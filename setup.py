@@ -14,7 +14,14 @@
 # limitations under the License.
 
 from setuptools import setup
+import os
 
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
 
 setup(
     name='pyvcloud',
@@ -26,7 +33,7 @@ setup(
     author='VMware, Inc.',
     author_email='pgomez@vmware.com',
     packages=['pyvcloud'],
-    install_requires=[],
+    install_requires=required,
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[
         'Development Status :: 1 - Planning',

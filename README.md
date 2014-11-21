@@ -1,7 +1,7 @@
 pyvcloud
 ========
 
-Python SDK for VMware vCloud Air.
+Python SDK for VMware vCloud.
 
 --
 

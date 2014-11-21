@@ -1,0 +1,14 @@
+*.pyc
+build
+dist
+.idea
+*.iml
+*.patch
+*.diff
+*.egg*
+.Python
+bin
+include
+lib
+
+

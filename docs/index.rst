@@ -1,15 +1,14 @@
-.. pyvcloud documentation master file, created by
-   sphinx-quickstart on Tue Nov 25 08:47:44 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to pyvcloud's documentation!
 ====================================
+
+This is the API documentation of the Python SDK for VMware vCloud (pyvcloud).
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
+   
+   vcloudair
 
 
 

@@ -27,8 +27,7 @@ setup(
     name='pyvcloud',
     version='0.1',
     description='VMware vCloud Python SDK',
-#    # NOTE: pypi prefers the use of RST to render docs
-#    long_description=read('README.md'),
+    long_description=read('README.rst'),
     url='https://github.com/vmware/pyvcloud',
     author='VMware, Inc.',
     author_email='pgomez@vmware.com',

@@ -18,7 +18,6 @@
 import base64
 import requests
 import StringIO
-# from vclouddirector import VCD
 from schema.vcim import serviceType, vchsType
 import json
 
@@ -29,6 +28,16 @@ class VCA(object):
         self.token = None
 
     def login(self, host, username, password, token=None):
+        """
+        Request to login to vCloud Air.
+        
+        :param host: URL of the vCloud service.
+        :param username: The user name.
+        :param password: The password.
+        :param token: The token from a previous successful login, None if this is a new login request.                        
+        :return: True if the user was successfully logged in, False otherwise.
+        """
+        
         if not (host.startswith('https://') or host.startswith('http://')):
             host = 'https://' + host
         if token:
@@ -57,6 +66,11 @@ class VCA(object):
                 return False
     
     def logout(self):
+        """
+        Request to logout from  vCloud Air.
+        
+        :return:
+        """        
         url = self.host + "/api/vchs/session"
         headers = {}
         headers["x-vchs-authorization"] = self.token

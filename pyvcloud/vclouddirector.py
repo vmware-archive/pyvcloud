@@ -60,3 +60,14 @@ class VCD(object):
                 edgeGateway = networkType.parseString(response.content, True)
                 gateways.append(Gateway(edgeGateway, self.headers))
         return gateways
+        
+    def get_gateway(self, gatewayId):
+        gateways = filter(lambda gateway: gateway.get_name() == gatewayId, self.get_gateways())
+        if gateways:
+            return gateways[0]
+        return None
+               
+        
+        
+    
+        

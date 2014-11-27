@@ -20,6 +20,7 @@ import requests
 import StringIO
 from schema.vcim import serviceType, vchsType
 import json
+from pyvcloud.vclouddirector import VCD
 
 class VCA(object):
 
@@ -114,19 +115,15 @@ class VCA(object):
             vCloudSession = vchsType.parseString(response.content, True)
             return vCloudSession            
         
-    # def get_gateway(self, gatewayId):
-    #     vdcReference = self.get_vdcReference(gatewayId, gatewayId)
-    #     if vdcReference[0] == True:
-    #         vCloudSession = self.create_vCloudSession(vdcReference[1])
-    #         if vCloudSession:
-    #             vcd = VCD(vCloudSession, gatewayId, gatewayId)
-    #             gateways = filter(lambda gateway: gateway.get_name() == gatewayId, vcd.get_gateways())
-    #             if gateways:
-    #                 return (True, gateways[0])
-    #     return (False, None)
-               
+    def get_vCloudDirector(self, serviceId, vdcId):
+        vdcReference = self.get_vdcReference(serviceId, vdcId)
+        if vdcReference[0] == True:
+            #todo: check if vcloud session can be cached as well...
+            vCloudSession = self.create_vCloudSession(vdcReference[1])
+            if vCloudSession:
+                vcd = VCD(vCloudSession, serviceId, serviceId)
+                return vcd
+        return None
         
-        
-    
 
 

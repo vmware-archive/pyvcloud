@@ -55,7 +55,7 @@ class Gateway(object):
         
     def get_nat_rules(self):
         result = []
-        gatewayConfiguration = self.me.get_Configuration()        
+        gatewayConfiguration = self.me.get_Configuration()
         edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
         natService = filter(lambda service: service.__class__.__name__ == "NatServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())[0]
         natRules = natService.get_NatRule()

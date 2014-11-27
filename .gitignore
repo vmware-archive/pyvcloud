@@ -10,5 +10,9 @@ dist
 bin
 include
 lib
+docs/_build
+*.xsd
+*.xjb
+
 
 

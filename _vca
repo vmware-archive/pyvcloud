@@ -1,0 +1,4 @@
+#compdef vca
+
+_arguments "1: :(catalogs datacenters disks gateways login logout nat networks profiles services status tasks templates vapps)"
+

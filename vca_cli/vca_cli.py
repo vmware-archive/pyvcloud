@@ -437,7 +437,7 @@ def tasks(ctx, operation, service, datacenter, taskid):
                 
 @cli.command(options_metavar='[-s <id>] [-d <id>]')
 @click.pass_context
-@click.argument('operation', default='list', metavar='[list | details | power.on | power.off | reboot | create]', type=click.Choice(['list', 'details', 'power.on', 'power.off', 'reboot', 'create']))
+@click.argument('operation', default='list', metavar='[list | details | power.on | power.off | shutdown | reboot | create | delete | undeploy]', type=click.Choice(['list', 'details', 'power.on', 'power.off', 'shutdown', 'reboot', 'create', 'delete', 'undeploy']))
 @click.argument('vapp', default='', metavar='[vAPP]')
 @click.argument('template', default='', metavar='[TEMPLATE]')
 @click.argument('catalog', default='', metavar='[CATALOG]')
@@ -482,13 +482,31 @@ def vapps(ctx, operation, service, datacenter, vapp, template, catalog):
                 vApp = vcd.get_vApp(vapp)
                 if vApp != None:
                     vApp.poweroff({'--blocking': True, '--json': True})
+            elif 'shutdown' == operation:
+                print "shutdown vApp '%s'" % vapp
+                vApp = vcd.get_vApp(vapp)
+                if vApp != None:
+                    vApp.shutdown({'--blocking': True, '--json': True})                    
             elif 'reboot' == operation:
                 print "reboot vApp '%s'" % vapp
                 vApp = vcd.get_vApp(vapp)
                 if vApp != None:
                     vApp.reboot({'--blocking': True, '--json': True})
             elif 'create' == operation:
-                print "create vApp '%s' from template %s in catalog %s" % (vapp, template, catalog)
+                print "create vApp '%s' from template '%s' in catalog '%s'" % (vapp, template, catalog)
+                vApp = vcd.create_vApp(vapp, template, catalog, {'--blocking': True, '--json': True, '--deploy': False, '--on': False, '--network': False})
+            elif 'delete' == operation:
+                print "delete vApp '%s'" % vapp
+                vApp = vcd.get_vApp(vapp)
+                if vApp != None:
+                    vApp.delete({'--blocking': True, '--json': True})                
+            elif 'undeploy' == operation:
+                print "undeploy vApp '%s'" % vapp
+                vApp = vcd.get_vApp(vapp)
+                if vApp != None:
+                    vApp.undeploy({'--blocking': True, '--json': True, '--action': 'powerOff'})                
+                    
+                    
                         
 @cli.command(options_metavar='[-s <id>] [-d <id>]')
 @click.pass_context

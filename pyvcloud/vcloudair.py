@@ -32,7 +32,7 @@ class VCA(object):
         """
         Request to login to vCloud Air.
         
-        :param host: URL of the vCloud service.
+        :param host: URL of the vCloud service, for example: vchs.vmware.com.
         :param username: The user name.
         :param password: The password.
         :param token: The token from a previous successful login, None if this is a new login request.                        

@@ -21641,12 +21641,12 @@ class EnvelopeType(GeneratedsSuper):
         elif nodeName_ == 'VirtualSystem':
             obj_ = VirtualSystem_Type.factory()
             obj_.build(child_)
-            self.ovf:Content = obj_
+            self.ovf.Content = obj_
             obj_.original_tagname_ = 'VirtualSystem'
         elif nodeName_ == 'VirtualSystemCollection':
             obj_ = VirtualSystemCollection_Type.factory()
             obj_.build(child_)
-            self.ovf:Content = obj_
+            self.ovf.Content = obj_
             obj_.original_tagname_ = 'VirtualSystemCollection'
         elif nodeName_ == 'Strings':
             obj_ = Strings_Type.factory()

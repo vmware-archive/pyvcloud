@@ -85,6 +85,9 @@ class Gateway(object):
             return (True, task, new_port)            
         else:
             return (False, response.content, -1)
+            
+    def add_nat_rules(self):
+        pass
                 
     def add_nat_rule(self, rule_type, original_ip, original_port, translated_ip, translated_port, protocol):
         gatewayInterfaces = self.get_uplink_interfaces()
@@ -170,48 +173,3 @@ class Gateway(object):
     def enable_fw(self, enable):
         pass
         
-    def print_nat_rules(self, natRules):
-        result = []
-        for natRule in natRules:
-            ruleID = natRule.get_Id()
-            enable = natRule.get_IsEnabled()
-            ruleType = natRule.get_RuleType()
-            gatewayNatRule = natRule.get_GatewayNatRule()
-            originalIp = gatewayNatRule.get_OriginalIp()
-            originalPort = gatewayNatRule.get_OriginalPort()
-            translatedIp = gatewayNatRule.get_TranslatedIp()
-            translatedPort = gatewayNatRule.get_TranslatedPort()
-            protocol = gatewayNatRule.get_Protocol()
-            interface = gatewayNatRule.get_Interface().get_name()
-            result.append([ruleID, str(enable), ruleType, originalIp, "Any" if not originalPort else originalPort,
-                          translatedIp, "Any" if not translatedPort else translatedPort,
-                          "Any" if not protocol else protocol, interface])
-        if result:
-            headers = ["Rule ID", "Enabled", "Type", "Original IP", "Original Port", "Translated IP", "Translated Port", "Protocol", "Applied On"]
-            print tabulate(result, headers = headers, tablefmt="orgtbl")
-        else:
-            print "No NAT rules found in this gateway"
-    
-    #it might be good to move this to the VCD class        
-    def get_task(self, task, mode=None):
-        response = requests.get(task.get_href(), headers = self.headers)
-        if response.status_code == requests.codes.ok:
-            task = taskType.parseString(response.content, True)
-            if mode == "json":
-                print ghf.task_json(response.content)
-            else:
-                if mode == "table":
-                    print ghf.task_table(response.content)
-                else:
-                    pass
-            return (True, task)                            
-        else:
-            ghf.print_xml_error(response.content, args["--json"])                    
-            return (False, None)
-            
-        
-        
-        
-        
-        
-

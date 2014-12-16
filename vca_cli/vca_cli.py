@@ -518,7 +518,34 @@ def vapps(ctx, operation, service, datacenter, vapp, template, catalog):
 @click.option('-d', '--datacenter', default='')
 def catalogs(ctx, operation, service, datacenter):
     """Operations with catalogs"""
-    pass
+    config = ConfigParser.RawConfigParser()
+    config.read(os.path.expanduser('~/.vcarc'))
+    section = 'Profile-%s' % ctx.obj['PROFILE'] 
+    #todo read config file once only
+    if '' == service and config.has_option(section, 'service'):
+        service = config.get(section, 'service')
+    if '' == datacenter and config.has_option(section, 'datacenter'):
+        datacenter = config.get(section, 'datacenter')     
+    vca = _getVCA(ctx.obj['PROFILE'])
+    if vca != None:
+        vcd = vca.get_vCloudDirector(service, datacenter)
+        if vcd != None:
+            if 'list' == operation:
+                print 'list of catalogs'
+        # catalogRecords = [child for child in queryResultRecords if "CatalogRecord" in child.tag]
+        # if catalogRecords:
+        #     for catalogRecord in catalogRecords:
+        #         name = catalogRecord.get("name")
+        #         numberOfVAppTemplates = catalogRecord.get("numberOfVAppTemplates")
+        #         numberOfMedia = catalogRecord.get("numberOfMedia")
+        #         isPublished = catalogRecord.get("isPublished")
+        #         isShared = catalogRecord.get("isShared")
+        #         ownerName = catalogRecord.get("ownerName")
+        #         result.append([name, numberOfVAppTemplates, numberOfMedia, ownerName, isPublished, isShared])
+                
+                table = [[catalog.name, len(catalog.CatalogItems.CatalogItem)] for catalog in vcd.get_catalogs()]
+                headers = ["Catalog", "# Templates"]
+                print tabulate(table, headers = headers, tablefmt="orgtbl")                                
 
 @cli.command(options_metavar='[-s <id>] [-d <id>]')
 @click.pass_context

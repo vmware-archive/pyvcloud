@@ -207,7 +207,7 @@ class VCD(object):
                         templateParams.set_InstantiationParams(instantiationParams)
                     else:
                         ghf.print_error("no such network found", args["--json"])
-                        return
+                        return (False, None)  
 
                 # turn templateParams into body of http requests (a bit complicated because some of the elements
                 # inside templateParams do not have the right names that can be used as the body of http request
@@ -233,15 +233,19 @@ class VCD(object):
                         ghf.display_progress(task, args["--json"], self.headers)
                     # else display result immediately
                     else:
-                        if args["--json"]:
-                            print ghf.task_json(task_string)
-                        else:
-                            print ghf.task_table(task_string)
+                        return(True, vApp)
+                        # if args["--json"]:
+                        #     print ghf.task_json(task_string)
+                        # else:
+                        #     print ghf.task_table(task_string)
                 else:
                     # print error
-                    ghf.print_xml_error(response.content, args["--json"])
+                    # ghf.print_xml_error(response.content, args["--json"])
+                    return(False, response.content)  
             else:
-                ghf.print_error("No such template found in this catalog", args["--json"])
+                # ghf.print_error("No such template found in this catalog", args["--json"])
+                return(False, "No such template found in this catalog")
         else:
-            ghf.print_error("No such catalog found", args["--json"])            
+            # ghf.print_error("No such catalog found", args["--json"])   
+            return(False, "No such catalog found")
 

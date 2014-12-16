@@ -91,7 +91,52 @@ class VCD(object):
         for link in links:
             response = requests.get(link.get_href(), headers = self.headers)
             catalogs.append(catalogType.parseString(response.content, True))
-        return catalogs        
+        return catalogs       
+         
+    # this method returns a list of catalogs (together with their details) inside the organization that manages the vdc
+    def list_catalogs(self):
+        result = []
+        catalogs_href = self.href.split("/vdc")[0] + "/catalogs/query"
+        response = requests.get(catalogs_href, headers = self.headers)
+        # use ET to parse response because some attributes would be missing if it is converted to python object
+        queryResultRecords = ET.fromstring(response.content)
+        catalogRecords = [child for child in queryResultRecords if "CatalogRecord" in child.tag]
+        if catalogRecords:
+            for catalogRecord in catalogRecords:
+                name = catalogRecord.get("name")
+                numberOfVAppTemplates = catalogRecord.get("numberOfVAppTemplates")
+                numberOfMedia = catalogRecord.get("numberOfMedia")
+                isPublished = catalogRecord.get("isPublished")
+                isShared = catalogRecord.get("isShared")
+                ownerName = catalogRecord.get("ownerName")
+                result.append([name, numberOfVAppTemplates, numberOfMedia, ownerName, isPublished, isShared])
+        return result
+
+    # this method returns a list of templates (together with their details) inside the vdc
+    def list_templates(self, args):
+        result = []
+        templates_href = self.href.split("/vdc")[0] + "/vAppTemplates/query"
+        response = requests.get(templates_href, headers=self.headers)
+        # use ET to parse response because some attributes would be missing if it is converted to python object
+        queryResultRecords = ET.fromstring(response.content)
+        vAppTemplateRecords = [child for child in queryResultRecords if "VAppTemplateRecord" in child.tag]
+        if vAppTemplateRecords:
+            # filter out other catalogs if catalog is specified
+            if args["--catalog"]:
+                vAppTemplateRecords = filter(lambda vAppTemplateRecord: vAppTemplateRecord.get("catalogName").lower() == args["--catalog"].lower(), vAppTemplateRecords)
+            if vAppTemplateRecords:
+                for vAppTemplateRecord in vAppTemplateRecords:
+                    catalog = vAppTemplateRecord.get("catalogName")
+                    name = vAppTemplateRecord.get("name")
+                    status = vAppTemplateRecord.get("status")
+                    ownerName = vAppTemplateRecord.get("ownerName")
+                    vms = vAppTemplateRecord.get("numberOfVMs")
+                    cpu = vAppTemplateRecord.get("numberOfCpus")
+                    memory = int(vAppTemplateRecord.get("memoryAllocationMB")) / 1000
+                    storage = int(vAppTemplateRecord.get("storageKB")) / 1000000
+                    storageProfileName = vAppTemplateRecord.get("storageProfileName")
+                    result.append([catalog, name, status, ownerName, vms, cpu, memory, storage, storageProfileName])
+        return result        
 
     def get_task_from_id(self, id, mode=None):
         url = self.href[:self.href.index('/api')]+'/api/task/'+id

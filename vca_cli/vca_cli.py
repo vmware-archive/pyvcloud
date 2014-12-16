@@ -494,7 +494,11 @@ def vapps(ctx, operation, service, datacenter, vapp, template, catalog):
                     vApp.reboot({'--blocking': True, '--json': True})
             elif 'create' == operation:
                 print "create vApp '%s' from template '%s' in catalog '%s'" % (vapp, template, catalog)
-                vApp = vcd.create_vApp(vapp, template, catalog, {'--blocking': True, '--json': True, '--deploy': False, '--on': False, '--network': False})
+                result = vcd.create_vApp(vapp, template, catalog, {'--blocking': False, '--json': True, '--deploy': False, '--on': False, '--network': False})
+                if result[0]:
+                    vApp = result[1]                    
+                    task = vApp.get_Tasks().get_Task()[0]
+                    ghf.display_progress(task, False, vcd.headers)
             elif 'delete' == operation:
                 print "delete vApp '%s'" % vapp
                 vApp = vcd.get_vApp(vapp)
@@ -505,8 +509,7 @@ def vapps(ctx, operation, service, datacenter, vapp, template, catalog):
                 vApp = vcd.get_vApp(vapp)
                 if vApp != None:
                     vApp.undeploy({'--blocking': True, '--json': True, '--action': 'powerOff'})                
-                    
-                    
+                                        
                         
 @cli.command(options_metavar='[-s <id>] [-d <id>]')
 @click.pass_context
@@ -534,8 +537,7 @@ def templates(ctx, operation, service, datacenter):
 def disks(ctx, operation, service, datacenter):
     """Operations with disks"""
     pass
-    
-                
+                    
 
 if __name__ == '__main__':
     cli(obj={})

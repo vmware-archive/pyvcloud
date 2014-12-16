@@ -18,7 +18,8 @@
 import requests
 from gateway import Gateway
 from vapp import VAPP
-from schema.vcd.v1_5.schemas.vcloud import networkType, vdcType, queryRecordViewType, taskType, vAppType, organizationType, catalogType
+from schema.vcd.v1_5.schemas.vcloud import networkType, vdcType, queryRecordViewType, taskType, vAppType, organizationType, catalogType, diskType
+from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 from helper import generalHelperFunctions as ghf
 from urlparse import urlparse
 from xml.etree import ElementTree as ET
@@ -94,6 +95,7 @@ class VCD(object):
         return catalogs       
          
     # this method returns a list of catalogs (together with their details) inside the organization that manages the vdc
+    # note, this might be limited to 25 by default
     def list_catalogs(self):
         result = []
         catalogs_href = self.href.split("/vdc")[0] + "/catalogs/query"
@@ -113,6 +115,7 @@ class VCD(object):
         return result
 
     # this method returns a list of templates (together with their details) inside the vdc
+    # note, this might be limited to 25 by default
     def list_templates(self, args):
         result = []
         templates_href = self.href.split("/vdc")[0] + "/vAppTemplates/query"
@@ -136,7 +139,7 @@ class VCD(object):
                     storage = int(vAppTemplateRecord.get("storageKB")) / 1000000
                     storageProfileName = vAppTemplateRecord.get("storageProfileName")
                     result.append([catalog, name, status, ownerName, vms, cpu, memory, storage, storageProfileName])
-        return result        
+        return result          
 
     def get_task_from_id(self, id, mode=None):
         url = self.href[:self.href.index('/api')]+'/api/task/'+id
@@ -294,3 +297,69 @@ class VCD(object):
             # ghf.print_error("No such catalog found", args["--json"])   
             return(False, "No such catalog found")
 
+    def get_diskRefs(self):
+        vdc = self._get_vdc()
+        resourceEntities = vdc.get_ResourceEntities().get_ResourceEntity()
+        return [resourceEntity for resourceEntity in resourceEntities
+                    if resourceEntity.get_type() == "application/vnd.vmware.vcloud.disk+xml"]
+                    
+    def _parse_disk(self, content):
+        diskDesc = diskType.parseString(content, True)
+        disk = DiskType()
+        ids = diskDesc.anyAttributes_.get('id').split(':')
+        disk.set_id(ids[3])
+        disk.set_name(diskDesc.anyAttributes_.get('name'))
+        disk.set_size(diskDesc.anyAttributes_.get('size'))
+        disk.set_busType(diskDesc.anyAttributes_.get('busType'))
+        disk.set_busSubType(diskDesc.anyAttributes_.get('busSubType'))            
+        disk.set_status(diskDesc.anyAttributes_.get('status'))
+        xml = ET.fromstring(content)
+        for child in xml:
+            if '{http://www.vmware.com/vcloud/v1.5}Owner' == child.tag:
+                for grandchild in child:
+                    owner = OwnerType()
+                    owner.set_User(grandchild.attrib['name'])
+                    disk.set_Owner(owner)
+            if '{http://www.vmware.com/vcloud/v1.5}StorageProfile' == child.tag:
+                storageProfile = VdcStorageProfileType()
+                storageProfile.set_name(child.attrib['name'])
+                disk.set_StorageProfile(storageProfile)        
+        return disk
+        
+    # return all independent disks within this virtual data center
+    def get_disks(self):
+        links = self.get_diskRefs()
+        disks = []
+        for link in links:
+            response = requests.get(link.get_href(), headers = self.headers)
+            disk = self._parse_disk(response.content)
+            disks.append(disk)
+        return disks
+        
+    def add_disk(self, name, size):
+        body = """
+                <vcloud:DiskCreateParams xmlns:vcloud="http://www.vmware.com/vcloud/v1.5">
+                    <vcloud:Disk name="%s" size="%s"/>
+                </vcloud:DiskCreateParams>
+            """ % (name, size)        
+        vdc = self._get_vdc()
+        content_type = "application/vnd.vmware.vcloud.diskCreateParams+xml"
+        link = filter(lambda link: link.get_type() == content_type, vdc.get_Link())
+        response = requests.post(link[0].get_href(), data=body, headers=self.headers)
+        if response.status_code == requests.codes.created:
+            disk = self._parse_disk(response.content)
+            return(True, disk)
+        else:
+            return(False, response.content)
+            
+    def delete_disk(self, id):
+        link = filter(lambda link: link.get_href().endswith(id), self.get_diskRefs())
+        if len(link)>0:
+            response = requests.delete(link[0].get_href(), headers=self.headers)
+            if response.status_code == requests.codes.accepted:
+                task = taskType.parseString(response.content, True)
+                return (True, task)            
+            else:
+                return(False, response.content)
+        else:
+            return(False, 'disk not found')

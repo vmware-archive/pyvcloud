@@ -210,3 +210,23 @@ status = {-1 : statusn1,
            14 : status14,
            15 : status15,
             }
+def get_disk_status_string(code):
+    if '1' == code:
+        return 'Ready'
+    else:
+        return 'unknown'
+        
+def get_disk_bus_type_string(code):
+    if '6' == code:
+        return 'SCSI'
+    else:
+        return 'unknown'       
+        
+def get_disk_bus_sub_type_string(code):
+    if 'lsilogic' == code:
+        return 'LSI Logic Parallel'
+    else:
+        return 'unknown'              
+        
+        
+        

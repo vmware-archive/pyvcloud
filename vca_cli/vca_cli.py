@@ -129,7 +129,37 @@ def logout(ctx):
 @click.pass_context
 def status(ctx):
     """Show current status"""   
-    pass
+    config = ConfigParser.RawConfigParser()
+    config.read(os.path.expanduser('~/.vcarc'))
+    section = 'Profile-%s' % ctx.obj['PROFILE'] 
+    if config.has_section(section):
+        #todo read config file once only
+        service = '<not set>'
+        datacenter = '<not set>'
+        gateway = '<not set>'
+        token = ''
+        if config.has_option(section, 'token'):
+            token = config.get(section, 'token')        
+        if config.has_option(section, 'service'):
+            service = config.get(section, 'service')
+        if config.has_option(section, 'datacenter'):
+            datacenter = config.get(section, 'datacenter')     
+        if config.has_option(section, 'gateway'):
+            gateway = config.get(section, 'gateway')          
+        click.secho("profile:    %s" % ctx.obj['PROFILE'] , fg='blue')
+        click.secho("host:       %s" % config.get(section, 'host'), fg='blue')
+        click.secho("user:       %s" % config.get(section, 'user'), fg='blue')    
+        click.secho("service:    %s" % service, fg='blue')   
+        click.secho("datacenter: %s" % datacenter, fg='blue')   
+        click.secho("gateway:    %s" % gateway, fg='blue')   
+        vca = _getVCA(ctx.obj['PROFILE'])
+        if vca != None:
+            click.secho("session:    %s" % 'active', fg='blue') 
+        else:
+            click.secho("session:    %s" % 'inactive', fg='red') 
+                    
+    else:
+        click.secho("unknown profile '%s'" % ctx.obj['PROFILE'] , fg='red')
     
 def _print_config(config):
     for section in config.sections():
@@ -566,12 +596,55 @@ def templates(ctx, operation, service, datacenter):
                 
 @cli.command(options_metavar='[-s <id>] [-d <id>]')
 @click.pass_context
-@click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
+@click.argument('operation', default='list', metavar='[list | add | delete]', type=click.Choice(['list', 'add', 'delete']))
+@click.argument('name', default='', metavar='[DISK NAME or ID]')
+@click.argument('size', default='', metavar='[DISK SIZE (MB)]')
 @click.option('-s', '--service', default='')
 @click.option('-d', '--datacenter', default='')
-def disks(ctx, operation, service, datacenter):
+@click.option('--force', is_flag=True)
+def disks(ctx, operation, service, datacenter, name, size, force):
     """Operations with disks"""
-    pass
+    config = ConfigParser.RawConfigParser()
+    config.read(os.path.expanduser('~/.vcarc'))
+    section = 'Profile-%s' % ctx.obj['PROFILE'] 
+    #todo read config file once only
+    if '' == service and config.has_option(section, 'service'):
+        service = config.get(section, 'service')
+    if '' == datacenter and config.has_option(section, 'datacenter'):
+        datacenter = config.get(section, 'datacenter')     
+    vca = _getVCA(ctx.obj['PROFILE'])
+    if vca != None:
+        vcd = vca.get_vCloudDirector(service, datacenter)
+        if vcd != None:
+            if 'list' == operation:
+                print 'list of independent disks'
+                disks = vcd.get_disks()
+                table = []
+                for disk in disks:
+                    table.append([disk.get_id(), disk.get_name(), round(float(disk.get_size()) / 1048576, 2), ghf.get_disk_status_string(disk.get_status()), 
+                        disk.get_Owner().get_User(), disk.get_StorageProfile().get_name(),
+                        "%s (%s)" % (ghf.get_disk_bus_sub_type_string(disk.get_busSubType()), ghf.get_disk_bus_type_string(disk.get_busType()))])
+                headers = ["Id", "Name", "Size (MB)", "Status", "Owner", "Storage Policy", "Bus Type"]
+                print tabulate(table, headers = headers, tablefmt="orgtbl")           
+            elif 'add' == operation:
+                print "add disk '%s' of size '%s'(MB)" % (name, size)
+                result = vcd.add_disk(name, int(size)*1024*1024)            
+                if result[0]:
+                    print "disk created '%s'" % result[1].get_id()
+                else:
+                    print "failed creating disk: %s" % result[1]
+            elif 'delete' == operation:
+                print "delete disk '%s'" % (name)
+                if force or click.confirm('Are you sure you want to delete the independent disk?'):
+                    result = vcd.delete_disk(name)            
+                    if result[0]:
+                        print "disk being deleted, task: '%s'" % result[1].get_href()
+                    else:
+                        print "failed to delete disk: %s" % result[1]
+                else:
+                    print "disk not deleted"
+                
+                    
                     
 
 if __name__ == '__main__':

@@ -32,7 +32,7 @@ setup(
     author='VMware, Inc.',
     author_email='pgomez@vmware.com',
     packages=['pyvcloud'],
-    # install_requires=required,
+    install_requires=required,
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[
         'Development Status :: 1 - Planning',

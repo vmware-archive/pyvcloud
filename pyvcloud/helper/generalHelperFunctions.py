@@ -15,7 +15,7 @@
 
 import sys, time
 import requests
-from schema.vcd.v1_5.schemas.vcloud import taskType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from StringIO import StringIO
 import json
 import xmltodict

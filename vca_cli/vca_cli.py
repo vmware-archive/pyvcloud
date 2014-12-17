@@ -465,15 +465,16 @@ def tasks(ctx, operation, service, datacenter, taskid):
                 print "details about task '%s'" % taskid
                 vcd.get_task_from_id(taskid, 'table')
                 
-@cli.command(options_metavar='[-s <id>] [-d <id>]')
+@cli.command(options_metavar='[-s <id>] [-d <id>] [-v]')
 @click.pass_context
 @click.argument('operation', default='list', metavar='[list | details | power.on | power.off | shutdown | reboot | create | delete | undeploy]', type=click.Choice(['list', 'details', 'power.on', 'power.off', 'shutdown', 'reboot', 'create', 'delete', 'undeploy']))
-@click.argument('vapp', default='', metavar='[vAPP]')
+@click.argument('vapp', default='', metavar='[VAPP]')
 @click.argument('template', default='', metavar='[TEMPLATE]')
 @click.argument('catalog', default='', metavar='[CATALOG]')
 @click.option('-s', '--service', default='')
 @click.option('-d', '--datacenter', default='')
-def vapps(ctx, operation, service, datacenter, vapp, template, catalog):
+@click.option('-v', '--vms', 'listvms', is_flag=True)
+def vapps(ctx, operation, service, datacenter, vapp, template, catalog, listvms):
     """Operations with vApps"""
     config = ConfigParser.RawConfigParser()
     config.read(os.path.expanduser('~/.vcarc'))
@@ -489,9 +490,23 @@ def vapps(ctx, operation, service, datacenter, vapp, template, catalog):
         if vcd != None:
             if 'list' == operation:
                 print 'list of vApps'
-                table = [[vcd.service,vcd.vdc,vApp.get_name(), ghf.status[vApp.get_status()](), vApp.get_Owner().get_User().get_name(),
-                    vApp.get_DateCreated().strftime("%d/%m/%Y %H:%M:%S")] for vApp in vcd.get_vApps()]
-                headers = ["Service", "Datacenter", "vApp", "Status", "Owner", "Date Created"]
+                table = []
+                for vApp in vcd.get_vApps():
+                    vms = []
+                    if listvms:
+                        va = vcd.get_vApp(vApp.get_name())
+                        for description in va.details_of_vms():
+                            vms.append(description[0])
+                        table.append([vcd.service, vcd.vdc, vApp.get_name(), vms, ghf.status[vApp.get_status()](), vApp.get_Owner().get_User().get_name(),
+                            vApp.get_DateCreated().strftime("%d/%m/%Y %H:%M:%S")])                            
+                    else:
+                        table.append([vcd.service, vcd.vdc, vApp.get_name(), ghf.status[vApp.get_status()](), vApp.get_Owner().get_User().get_name(),
+                            vApp.get_DateCreated().strftime("%d/%m/%Y %H:%M:%S")])
+                        
+                if listvms:
+                    headers = ["Service", "Datacenter", "vApp", "VMs", "Status", "Owner", "Date Created"]
+                else:
+                    headers = ["Service", "Datacenter", "vApp", "Status", "Owner", "Date Created"]                        
                 print tabulate(table, headers = headers, tablefmt="orgtbl")                
             elif 'details' == operation:
                 print "details about vApp '%s'" % vapp
@@ -593,16 +608,18 @@ def templates(ctx, operation, service, datacenter):
                 table = vcd.list_templates({'--catalog': False})
                 headers = ["Catalog", "Template", "Status", "Owner", "# VMs", "# CPU", "Memory(GB)", "Storage(GB)", "Storage Profile"]
                 print tabulate(table, headers = headers, tablefmt="orgtbl")     
-                
-@cli.command(options_metavar='[-s <id>] [-d <id>]')
+              
+#todo: detail about a disk, showing the vm and the vapp that is attached  
+@cli.command(options_metavar='[-s <id>] [-d <id>] | [-v | --vms] | [-f | --force]')
 @click.pass_context
 @click.argument('operation', default='list', metavar='[list | add | delete]', type=click.Choice(['list', 'add', 'delete']))
 @click.argument('name', default='', metavar='[DISK NAME or ID]')
 @click.argument('size', default='', metavar='[DISK SIZE (MB)]')
 @click.option('-s', '--service', default='')
 @click.option('-d', '--datacenter', default='')
-@click.option('--force', is_flag=True)
-def disks(ctx, operation, service, datacenter, name, size, force):
+@click.option('-f', '--force', is_flag=True)
+@click.option('-v', '--vms', 'listvms', is_flag=True)
+def disks(ctx, operation, service, datacenter, name, size, force, listvms):
     """Operations with disks"""
     config = ConfigParser.RawConfigParser()
     config.read(os.path.expanduser('~/.vcarc'))
@@ -620,11 +637,24 @@ def disks(ctx, operation, service, datacenter, name, size, force):
                 print 'list of independent disks'
                 disks = vcd.get_disks()
                 table = []
-                for disk in disks:
-                    table.append([disk.get_id(), disk.get_name(), round(float(disk.get_size()) / 1048576, 2), ghf.get_disk_status_string(disk.get_status()), 
-                        disk.get_Owner().get_User(), disk.get_StorageProfile().get_name(),
-                        "%s (%s)" % (ghf.get_disk_bus_sub_type_string(disk.get_busSubType()), ghf.get_disk_bus_type_string(disk.get_busType()))])
-                headers = ["Id", "Name", "Size (MB)", "Status", "Owner", "Storage Policy", "Bus Type"]
+                vms = []
+                for disk_pair in disks:
+                    disk = disk_pair[0]
+                    if listvms:
+                        for vm in disk_pair[1]:
+                            vms.append(vm.name)
+                        table.append([disk.get_id(), disk.get_name(), round(float(disk.get_size()) / 1048576, 2), ghf.get_disk_status_string(disk.get_status()), 
+                            disk.get_Owner().get_User(), disk.get_StorageProfile().get_name(),
+                            "%s (%s)" % (ghf.get_disk_bus_sub_type_string(disk.get_busSubType()), ghf.get_disk_bus_type_string(disk.get_busType())),
+                            vms])
+                    else:
+                        table.append([disk.get_id(), disk.get_name(), round(float(disk.get_size()) / 1048576, 2), ghf.get_disk_status_string(disk.get_status()), 
+                            disk.get_Owner().get_User(), disk.get_StorageProfile().get_name(),
+                            "%s (%s)" % (ghf.get_disk_bus_sub_type_string(disk.get_busSubType()), ghf.get_disk_bus_type_string(disk.get_busType()))])                                                    
+                if listvms:
+                    headers = ["Id", "Name", "Size (MB)", "Status", "Owner", "Storage Policy", "Bus Type", "Attached VMs"]
+                else:
+                    headers = ["Id", "Name", "Size (MB)", "Status", "Owner", "Storage Policy", "Bus Type"]                    
                 print tabulate(table, headers = headers, tablefmt="orgtbl")           
             elif 'add' == operation:
                 print "add disk '%s' of size '%s'(MB)" % (name, size)
@@ -645,7 +675,38 @@ def disks(ctx, operation, service, datacenter, name, size, force):
                     print "disk not deleted"
                 
                     
-                    
+#todo attach/deattach disk to/from VM  
+#   POST /vApp/{id}/disk/action/attach
+#todo list vms attached to a disk
+#   GET /disk/{id}/attachedVms         
+
+
+@cli.command(options_metavar='[-s <id>] [-d <id>]')
+@click.pass_context
+@click.argument('operation', default='', metavar='[attach | dettach]', type=click.Choice(['attach', 'detach']))
+@click.argument('vapp', default='', metavar='[VAPP]')
+@click.argument('vm', default='', metavar='[VM]')
+@click.argument('diskid', default='', metavar='[DISK ID]')
+@click.option('-s', '--service', default='')
+@click.option('-d', '--datacenter', default='')
+def vms(ctx, operation, service, datacenter, vapp, vm, diskid):
+    """Operations with VMs"""
+    config = ConfigParser.RawConfigParser()
+    config.read(os.path.expanduser('~/.vcarc'))
+    section = 'Profile-%s' % ctx.obj['PROFILE'] 
+    #todo read config file once only
+    if '' == service and config.has_option(section, 'service'):
+        service = config.get(section, 'service')
+    if '' == datacenter and config.has_option(section, 'datacenter'):
+        datacenter = config.get(section, 'datacenter')     
+    vca = _getVCA(ctx.obj['PROFILE'])
+    if vca != None:
+        vcd = vca.get_vCloudDirector(service, datacenter)
+        if vcd != None:
+            if 'attach' == operation:
+                print "attach disk '%s' to VM '%s:%s'" % (diskid, vapp, vm)
+
+         
 
 if __name__ == '__main__':
     cli(obj={})

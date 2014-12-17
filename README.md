@@ -1,7 +1,7 @@
 vca-cli
 ========
 
-Command Line Interface for VMware vCloud.
+Command Line Interface for VMware vCloud Air.
 
 > Release early, release often.
 

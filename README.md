@@ -59,7 +59,7 @@ Usage:
       -h, --help           Show this message and exit.
       
     
-    > vca login myname@mycompany.com
+    > vca login myname@mycomp.com
     Password: ********
     Login successful with profile 'default'
     
@@ -84,6 +84,75 @@ Usage:
     | RnD                   | Active   | 85-719       | compute:dedicatedcloud | US - Nevada |
     | Production            | Active   | 85-719       | compute:dedicatedcloud | US - Nevada |
     | DevOps                | Active   | 85-719       | compute:dedicatedcloud | US - Nevada |
+    | AppServices           | Active   | 85-719       | compute:dedicatedcloud | US - Nevada |    
+    
+    
+    > vca gateways --service 85-719 --datacenter AppServices
+    Available gateways in datacenter 'AppServices' in service '85-719' for 'default' profile:
+    | Datacenter   | Gateway     |
+    |--------------+-------------|
+    | AppServices  | AppServices |
+    
+    
+    > vca profiles --service 85-719 --datacenter AppServices --gateway AppServices set
+    Profile-default
+    	host=https://vchs.vmware.com
+    	user=myname@mycomp.com
+    	service=85-719
+    	gateway=AppServices
+    	datacenter=AppServices
+    	token=d188143a5d4642745d9c46c696...
+    
+    
+    > vca status
+    profile:    default
+    host:       https://vchs.vmware.com
+    user:       myname@mycomp.com
+    service:    85-719
+    datacenter: AppServices
+    gateway:    AppServices
+    session:    active    
+    
+    
+    > vca nat
+    list of dnat rules
+    |   Rule ID | Enabled   | Type   | Original IP      | Original Port   | Translated IP   | Translated Port   | Protocol   | Applied On   |
+    |-----------+-----------+--------+------------------+-----------------+-----------------+-------------------+------------+--------------|
+    |     65538 | True      | SNAT   | 192.168.109.0/24 | any             | 192.240.158.81  | any               | any        | d0p1-ext     |
+    |     65537 | True      | DNAT   | 192.240.158.81   | 22              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
+    |     65539 | True      | DNAT   | 192.240.158.81   | 80              | 192.168.109.2   | 80                | tcp        | d0p1-ext     |
+    |     65540 | True      | DNAT   | 192.240.158.81   | 8080            | 192.168.109.4   | 8080              | tcp        | d0p1-ext     |
+    
+    
+    > vca vapps --vms
+    list of vApps
+    | Service   | Datacenter   | vApp   | VMs     | Status     | Owner            | Date Created        |
+    |-----------+--------------+--------+---------+------------+------------------+---------------------|
+    | 85-719    | AppServices  | ub     | ['ub']  | Powered on | myname@mycom.com | 12/11/2014 05:41:17 |
+    | 85-719    | AppServices  | cts    | ['cts'] | Powered on | myname@mycom.com | 12/11/2014 02:58:13 |    
+    
+    
+    > vca templates
+    list of templates
+    | Catalog        | Template                                 | Status   | Owner             |   # VMs |   # CPU |   Memory(GB) |   Storage(GB) | Storage Profile   |
+    |----------------+------------------------------------------+----------+-------------------+---------+---------+--------------+---------------+-------------------|
+    | blueprints     | cts_6_4_64bit                            | RESOLVED | myname@mycomp.com |       1 |       1 |            2 |            20 | SSD-Accelerated   |
+    | Public Catalog | W2K8-STD-R2-64BIT-SQL2K8-STD-R2-SP2      | RESOLVED | catalog_admin     |       1 |       1 |            4 |            41 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-64BIT-SQL2K12-STD-SP1          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            41 | SSD-Accelerated   |
+    | Public Catalog | CentOS64-32Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-64BIT-SQL2K12-WEB-SP1          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            41 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-R2-64BIT                       | RESOLVED | system            |       1 |       1 |            4 |            41 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-R2-SQL2K14-WEB                 | RESOLVED | system            |       1 |       1 |            4 |            41 | SSD-Accelerated   |
+    | Public Catalog | CentOS64-64Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
+    | Public Catalog | W2K8-STD-R2-64BIT-SQL2K8-WEB-R2-SP2      | RESOLVED | catalog_admin     |       1 |       1 |            4 |            41 | SSD-Accelerated   |
+    | Public Catalog | Ubuntu Server 12.04 LTS (i386 20140927)  | RESOLVED | system            |       1 |       1 |            1 |            10 | SSD-Accelerated   |
+    | Public Catalog | Ubuntu Server 12.04 LTS (amd64 20140927) | RESOLVED | system            |       1 |       1 |            1 |            10 | SSD-Accelerated   |
+    | Public Catalog | CentOS63-64Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
+    | Public Catalog | W2K8-STD-R2-64BIT                        | RESOLVED | system            |       1 |       1 |            2 |            41 | SSD-Accelerated   |
+    | blueprints     | ubuntu_1204_64bit                        | RESOLVED | myname@mycomp.com |       1 |       2 |            4 |            67 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-64BIT                          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            41 | SSD-Accelerated   |
+    | Public Catalog | CentOS63-32Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-R2-SQL2K14-STD                 | RESOLVED | system            |       1 |       1 |            4 |            41 | SSD-Accelerated   |    
     
 
 

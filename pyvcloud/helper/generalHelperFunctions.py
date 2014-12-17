@@ -177,7 +177,7 @@ def status6():
 def status7():
     return "Unrecognized state"
 def status8():
-    return "Power off"
+    return "Powered off"
 def status9():
     return "Inconsistent state"
 def status10():

@@ -18,7 +18,7 @@
 import requests
 from gateway import Gateway
 from vapp import VAPP
-from schema.vcd.v1_5.schemas.vcloud import networkType, vdcType, queryRecordViewType, taskType, vAppType, organizationType, catalogType, diskType
+from schema.vcd.v1_5.schemas.vcloud import networkType, vdcType, queryRecordViewType, taskType, vAppType, organizationType, catalogType, diskType, vmsType
 from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 from helper import generalHelperFunctions as ghf
 from urlparse import urlparse
@@ -333,7 +333,17 @@ class VCD(object):
         for link in links:
             response = requests.get(link.get_href(), headers = self.headers)
             disk = self._parse_disk(response.content)
-            disks.append(disk)
+
+            vms = []
+            content_type = "application/vnd.vmware.vcloud.vms+xml"
+            response = requests.get(link.get_href()+'/attachedVms', headers = self.headers)
+            # print response.content
+            listofvms = vmsType.parseString(response.content, True)
+            for vmReference in listofvms.get_VmReference():
+                # print vmReference.name
+                vms.append(vmReference)
+            
+            disks.append([disk, vms])
         return disks
         
     def add_disk(self, name, size):

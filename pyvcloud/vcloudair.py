@@ -121,7 +121,7 @@ class VCA(object):
             #todo: check if vcloud session can be cached as well...
             vCloudSession = self.create_vCloudSession(vdcReference[1])
             if vCloudSession:
-                vcd = VCD(vCloudSession, serviceId, serviceId)
+                vcd = VCD(vCloudSession, serviceId, vdcId)
                 return vcd
         return None
         

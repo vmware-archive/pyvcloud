@@ -1,17 +1,15 @@
-# VMware vCloud Python SDK
+# vCloud Air CLI 0.1
+# 
 # Copyright (c) 2014 VMware, Inc. All Rights Reserved.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# This product is licensed to you under the Apache License, Version 2.0 (the "License").  
+# You may not use this product except in compliance with the License.  
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This product may include a number of subcomponents with
+# separate copyright notices and license terms. Your use of the source
+# code for the these subcomponents is subject to the terms and
+# conditions of the subcomponent's license, as noted in the LICENSE file. 
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 # coding: utf-8
 
@@ -42,7 +40,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-d', '--debug', is_flag=True, help='Enable debug')
 @click.pass_context
 def cli(ctx, profile, version, debug):
-    """A command line interface to VMware vCloud."""
+    """VMware vCloud Air Command Line Interface."""
     ctx.obj={}
     if profile != '':
         ctx.obj['PROFILE'] = profile
@@ -53,8 +51,8 @@ def cli(ctx, profile, version, debug):
         if config.has_option(section, 'profile'):
             ctx.obj['PROFILE'] = config.get(section, 'profile')
         else:
-            ctx.obj['PROFILE'] = 'default'        
-    
+            ctx.obj['PROFILE'] = 'default'            
+
     if debug:
         httplib.HTTPConnection.debuglevel = 1
         logging.basicConfig() # you need to initialize logging, otherwise you will not see anything from requests
@@ -66,6 +64,11 @@ def cli(ctx, profile, version, debug):
         version = pkg_resources.require("vca-cli")[0].version
         version_pyvcloud = pkg_resources.require("pyvcloud")[0].version
         click.echo(click.style('vca-cli version %s (pyvcloud: %s)' % (version, version_pyvcloud), fg='blue'))    
+    else:
+        if ctx.invoked_subcommand is None:
+               # click.secho('VMware vCloud Air Command Line Interface', fg='blue')
+               help_text = ctx.get_help()
+               print help_text        
     
 @cli.command()
 @click.pass_context
@@ -165,7 +168,7 @@ def _print_config(config):
     for section in config.sections():
         click.secho(section, fg='green')
         for option in config.options(section):
-            click.echo(click.style("%s=" % option, fg='yellow') + click.style("%s" % config.get(section, option), fg='blue'))               
+            click.echo(click.style("\t%s=" % option, fg='yellow') + click.style("%s" % config.get(section, option), fg='blue'))               
     
 #todo: set default profile
 @cli.command()

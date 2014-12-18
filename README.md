@@ -103,7 +103,7 @@ List services and virtual datacenters available to the user:
     
     
 
-Configure values for service, datacenter and gateway and set as the default values:
+Configure values for service, datacenter and gateway and set as the default profile:
 
     
     > vca profiles --service 85-719 --datacenter AppServices --gateway AppServices set

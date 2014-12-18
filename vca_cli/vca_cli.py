@@ -38,8 +38,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-p', '--profile', default='', metavar='<profile>', help='Profile id')
 @click.option('-v', '--version', is_flag=True, help='Show version')
 @click.option('-d', '--debug', is_flag=True, help='Enable debug')
+@click.option('-j', '--json', is_flag=True, help='Results as JSON object')
 @click.pass_context
-def cli(ctx, profile, version, debug):
+def cli(ctx, profile, version, debug, json):
     """VMware vCloud Air Command Line Interface."""
     ctx.obj={}
     if profile != '':

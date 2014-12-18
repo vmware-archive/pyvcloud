@@ -145,8 +145,8 @@ List vApps, VMs and templates:
     list of vApps
     | Service   | Datacenter   | vApp   | VMs     | Status     | Owner            | Date Created        |
     |-----------+--------------+--------+---------+------------+------------------+---------------------|
-    | 85-719    | AppServices  | ub     | ['ub']  | Powered on | myname@mycom.com | 12/11/2014 05:41:17 |
-    | 85-719    | AppServices  | cts    | ['cts'] | Powered on | myname@mycom.com | 12/11/2014 02:58:13 |    
+    | 85-719    | AppServices  | ub     | ['ub']  | Powered on | myname@mycomp.com | 12/11/2014 05:41:17 |
+    | 85-719    | AppServices  | cts    | ['cts'] | Powered on | myname@mycomp.com | 12/11/2014 02:58:13 |    
     
     
     > vca templates

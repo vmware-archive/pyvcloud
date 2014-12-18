@@ -18,8 +18,8 @@
 import base64
 import requests
 import StringIO
-from schema.vcim import serviceType, vchsType
 import json
+from pyvcloud.schema.vcim import serviceType, vchsType
 from pyvcloud.vclouddirector import VCD
 
 class VCA(object):

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
 
@@ -31,7 +31,7 @@ setup(
     url='https://github.com/vmware/pyvcloud',
     author='VMware, Inc.',
     author_email='pgomez@vmware.com',
-    packages=['pyvcloud'],
+    packages=find_packages(),
     install_requires=required,
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[

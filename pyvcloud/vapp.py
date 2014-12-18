@@ -32,6 +32,31 @@ class VAPP(object):
     def name(self):
         return self.me.get_name()
 
+    def _get_vms(self):
+        children = self.me.get_Children()
+        if children:
+            return children.get_Vm()
+        else:
+            return []
+
+    def get_vms_network_info(self):
+        result = []
+        vms = self._get_vms()
+        for vm in vms:
+            nw_connections = []
+            sections = vm.get_Section()
+            networkConnectionSection = filter(lambda section: section.__class__.__name__== "NetworkConnectionSectionType", sections)[0]
+            connections = networkConnectionSection.get_NetworkConnection()
+            for connection in connections:
+                nw_connections.append(
+                    {'network_name': connection.get_network(),
+                     'ip': connection.get_IpAddress(),
+                     'mac': connection.get_MACAddress(),
+                     'is_connected': connection.get_IsConnected()
+                     })
+            result.append(nw_connections)
+        return result
+
     def details_of_vms(self):
         result = []
         children = self.me.get_Children()

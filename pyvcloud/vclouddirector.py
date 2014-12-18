@@ -477,5 +477,4 @@ class VCD(object):
             return vApp.detach_disk_from_vm(vm, diskRefs[0])
         else:
             return (False, 'disk not found')
-            
 

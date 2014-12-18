@@ -48,6 +48,11 @@ Usage:
       vapps        Operations with vApps
       vms          Operations with VMs  
       
+      
+
+Log in to vCloud Air:
+
+      
     > vca login --help
     Usage: vca login [OPTIONS] USER
     
@@ -63,6 +68,9 @@ Usage:
     Password: ********
     Login successful with profile 'default'
     
+
+List services and virtual datacenters available to the user:
+
     
     > vca services    
     Available services for 'default' profile:
@@ -94,6 +102,10 @@ Usage:
     | AppServices  | AppServices |
     
     
+
+Configure values for service, datacenter and gateway and set as the default values:
+
+    
     > vca profiles --service 85-719 --datacenter AppServices --gateway AppServices set
     Profile-default
     	host=https://vchs.vmware.com
@@ -113,15 +125,9 @@ Usage:
     gateway:    AppServices
     session:    active    
     
-    
-    > vca nat
-    list of dnat rules
-    |   Rule ID | Enabled   | Type   | Original IP      | Original Port   | Translated IP   | Translated Port   | Protocol   | Applied On   |
-    |-----------+-----------+--------+------------------+-----------------+-----------------+-------------------+------------+--------------|
-    |     65538 | True      | SNAT   | 192.168.109.0/24 | any             | 192.240.158.81  | any               | any        | d0p1-ext     |
-    |     65537 | True      | DNAT   | 192.240.158.81   | 22              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
-    |     65539 | True      | DNAT   | 192.240.158.81   | 80              | 192.168.109.2   | 80                | tcp        | d0p1-ext     |
-    |     65540 | True      | DNAT   | 192.240.158.81   | 8080            | 192.168.109.4   | 8080              | tcp        | d0p1-ext     |
+
+List vApps, VMs and templates:
+
     
     
     > vca vapps --vms
@@ -153,6 +159,57 @@ Usage:
     | Public Catalog | W2K12-STD-64BIT                          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            41 | SSD-Accelerated   |
     | Public Catalog | CentOS63-32Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
     | Public Catalog | W2K12-STD-R2-SQL2K14-STD                 | RESOLVED | system            |       1 |       1 |            4 |            41 | SSD-Accelerated   |    
+    
+    
+
+Working with Edge Gateway NAT rules:
+
+    > vca nat
+    list of dnat rules
+    |   Rule ID | Enabled   | Type   | Original IP      | Original Port   | Translated IP   | Translated Port   | Protocol   | Applied On   |
+    |-----------+-----------+--------+------------------+-----------------+-----------------+-------------------+------------+--------------|
+    |     65538 | True      | SNAT   | 192.168.109.0/24 | any             | 192.240.158.81  | any               | any        | d0p1-ext     |
+    |     65537 | True      | DNAT   | 192.240.158.81   | 22              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
+    |     65540 | True      | DNAT   | 192.240.158.81   | 8080            | 192.168.109.4   | 8080              | tcp        | d0p1-ext     |
+    
+    
+    >vca nat add DNAT 192.240.158.81 80 192.168.109.2 80 tcp
+    adding dnat rule
+    +-------------+-----------------------------------------------------------------------------------------------+
+    | @startTime  | 2014-12-18T02:58:24.777Z                                                                      |
+    +-------------+-----------------------------------------------------------------------------------------------+
+    | @status     | running                                                                                       |
+    +-------------+-----------------------------------------------------------------------------------------------+
+    | @href       | https://p1v21-vcd.vchs.vmware.com/api/task/1e449f40-c25f-4037-8475-ff783dca5eef               |
+    +-------------+-----------------------------------------------------------------------------------------------+
+    | task:cancel | https://p1v21-vcd.vchs.vmware.com/api/task/1e449f40-c25f-4037-8475-ff783dca5eef/action/cancel |
+    +-------------+-----------------------------------------------------------------------------------------------+
+    |   Rule ID | Enabled   | Type   | Original IP      | Original Port   | Translated IP   | Translated Port   | Protocol   | Applied On   |
+    |-----------+-----------+--------+------------------+-----------------+-----------------+-------------------+------------+--------------|
+    |     65538 | True      | SNAT   | 192.168.109.0/24 | any             | 192.240.158.81  | any               | any        | d0p1-ext     |
+    |     65537 | True      | DNAT   | 192.240.158.81   | 22              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
+    |     65540 | True      | DNAT   | 192.240.158.81   | 8080            | 192.168.109.4   | 8080              | tcp        | d0p1-ext     |
+    |     65541 | True      | DNAT   | 192.240.158.81   | 23              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
+    |     65542 | True      | DNAT   | 192.240.158.81   | 80              | 192.168.109.2   | 80                | tcp        | d0p1-ext     |
+    
+    
+    > vca nat del DNAT 192.240.158.81 80 192.168.109.2 80 tcp
+    deleting dnat rule
+    +-------------+-----------------------------------------------------------------------------------------------+
+    | @startTime  | 2014-12-18T02:56:55.677Z                                                                      |
+    +-------------+-----------------------------------------------------------------------------------------------+
+    | @status     | running                                                                                       |
+    +-------------+-----------------------------------------------------------------------------------------------+
+    | @href       | https://p1v21-vcd.vchs.vmware.com/api/task/fe423f3b-3d8d-4fff-ba0a-491f052723db               |
+    +-------------+-----------------------------------------------------------------------------------------------+
+    | task:cancel | https://p1v21-vcd.vchs.vmware.com/api/task/fe423f3b-3d8d-4fff-ba0a-491f052723db/action/cancel |
+    +-------------+-----------------------------------------------------------------------------------------------+
+    |   Rule ID | Enabled   | Type   | Original IP      | Original Port   | Translated IP   | Translated Port   | Protocol   | Applied On   |
+    |-----------+-----------+--------+------------------+-----------------+-----------------+-------------------+------------+--------------|
+    |     65538 | True      | SNAT   | 192.168.109.0/24 | any             | 192.240.158.81  | any               | any        | d0p1-ext     |
+    |     65537 | True      | DNAT   | 192.240.158.81   | 22              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
+    |     65540 | True      | DNAT   | 192.240.158.81   | 8080            | 192.168.109.4   | 8080              | tcp        | d0p1-ext     |
+    |     65541 | True      | DNAT   | 192.240.158.81   | 23              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
     
 
 

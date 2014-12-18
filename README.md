@@ -15,7 +15,11 @@ Installation:
 
 Install completions for oh-my-zsh
 
-> ln -s ~/vca-cli/_vca ~/.oh-my-zsh/completions/_vca
+    
+    ln -s ~/vca-cli/_vca ~/.oh-my-zsh/completions/_vca
+    
+
+Uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMware vCloud.
 
 Usage:
 
@@ -172,7 +176,7 @@ List vApps, VMs and templates:
 Working with Edge Gateway NAT rules:
 
     > vca nat
-    list of dnat rules
+    list of nat rules
     |   Rule ID | Enabled   | Type   | Original IP      | Original Port   | Translated IP   | Translated Port   | Protocol   | Applied On   |
     |-----------+-----------+--------+------------------+-----------------+-----------------+-------------------+------------+--------------|
     |     65538 | True      | SNAT   | 192.168.109.0/24 | any             | 192.240.158.81  | any               | any        | d0p1-ext     |
@@ -181,7 +185,7 @@ Working with Edge Gateway NAT rules:
     
     
     >vca nat add DNAT 192.240.158.81 80 192.168.109.2 80 tcp
-    adding dnat rule
+    adding nat rule
     +-------------+-----------------------------------------------------------------------------------------------+
     | @startTime  | 2014-12-18T02:58:24.777Z                                                                      |
     +-------------+-----------------------------------------------------------------------------------------------+
@@ -201,7 +205,7 @@ Working with Edge Gateway NAT rules:
     
     
     > vca nat del DNAT 192.240.158.81 80 192.168.109.2 80 tcp
-    deleting dnat rule
+    deleting nat rule
     +-------------+-----------------------------------------------------------------------------------------------+
     | @startTime  | 2014-12-18T02:56:55.677Z                                                                      |
     +-------------+-----------------------------------------------------------------------------------------------+

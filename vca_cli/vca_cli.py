@@ -398,15 +398,15 @@ def nat(ctx, operation, service, datacenter, gateway, rule_type, original_ip, or
             gatewayReference = vcd.get_gateway(gateway)
             
             if 'list' == operation:
-                print 'list of dnat rules'
+                print 'list of nat rules'
             elif 'add' == operation:
-                print 'adding dnat rule'
+                print 'adding nat rule'
                 if gatewayReference != None:
                     result = gatewayReference.add_nat_rule(rule_type, original_ip, original_port, translated_ip, translated_port, protocol)
                     if result[0]:
                         vcd.get_task(result[1], 'table')
             elif 'del' == operation:
-                print 'deleting dnat rule'
+                print 'deleting nat rule'
                 if gatewayReference != None:
                     result = gatewayReference.del_nat_rule(rule_type, original_ip, original_port, translated_ip, translated_port, protocol)
                     if result[0]:
@@ -623,7 +623,7 @@ def templates(ctx, operation, service, datacenter):
 @click.option('-f', '--force', is_flag=True)
 @click.option('-v', '--vms', 'listvms', is_flag=True)
 def disks(ctx, operation, service, datacenter, name, size, force, listvms):
-    """Operations with disks"""
+    """Operations with independent disks"""
     config = ConfigParser.RawConfigParser()
     config.read(os.path.expanduser('~/.vcarc'))
     section = 'Profile-%s' % ctx.obj['PROFILE'] 

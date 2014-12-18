@@ -69,6 +69,13 @@ Log in to vCloud Air:
     Login successful with profile 'default'
     
 
+Alternatively:
+
+    
+    > vca login myname@mycomp.com --password my_secret_password
+    Login successful with profile 'default'
+    
+
 List services and virtual datacenters available to the user:
 
     

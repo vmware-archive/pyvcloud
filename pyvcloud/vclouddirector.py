@@ -135,8 +135,8 @@ class VCD(object):
                     ownerName = vAppTemplateRecord.get("ownerName")
                     vms = vAppTemplateRecord.get("numberOfVMs")
                     cpu = vAppTemplateRecord.get("numberOfCpus")
-                    memory = int(vAppTemplateRecord.get("memoryAllocationMB")) / 1000
-                    storage = int(vAppTemplateRecord.get("storageKB")) / 1000000
+                    memory = int(vAppTemplateRecord.get("memoryAllocationMB")) / 1000 if isinstance(vAppTemplateRecord.get("memoryAllocationMB"), int) else ''
+                    storage = int(vAppTemplateRecord.get("storageKB")) / 1000000 if isinstance(vAppTemplateRecord.get("storageKB"), int) else ''
                     storageProfileName = vAppTemplateRecord.get("storageProfileName")
                     result.append([catalog, name, status, ownerName, vms, cpu, memory, storage, storageProfileName])
         return result          

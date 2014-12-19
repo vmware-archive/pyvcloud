@@ -10,13 +10,13 @@ This project is under development.
 Installation:
 
     
-    pip install vca-cli
+    $ pip install vca-cli
     
 
 Install completions for oh-my-zsh
 
     
-    ln -s ~/vca-cli/_vca ~/.oh-my-zsh/completions/_vca
+    $ ln -s ~/vca-cli/_vca ~/.oh-my-zsh/completions/_vca
     
 
 Uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMware vCloud.
@@ -24,7 +24,7 @@ Uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMwa
 Usage:
 
     
-    > vca --help
+    $ vca --help
     Usage: vca [OPTIONS] COMMAND [ARGS]...
     
       VMware vCloud Air Command Line Interface.
@@ -57,7 +57,7 @@ Usage:
 Log in to vCloud Air:
 
       
-    > vca login --help
+    $ vca login --help
     Usage: vca login [OPTIONS] USER
     
       Login to a vCloud service
@@ -68,7 +68,7 @@ Log in to vCloud Air:
       -h, --help           Show this message and exit.
       
     
-    > vca login myname@mycomp.com
+    $ vca login myname@mycomp.com
     Password: ********
     Login successful with profile 'default'
     
@@ -76,14 +76,14 @@ Log in to vCloud Air:
 Alternatively:
 
     
-    > vca login myname@mycomp.com --password my_secret_password
+    $ vca login myname@mycomp.com --password my_secret_password
     Login successful with profile 'default'
     
 
 List services and virtual datacenters available to the user:
 
     
-    > vca services    
+    $ vca services    
     Available services for 'default' profile:
     | ID              | Type                   | Region          |
     |-----------------+------------------------+-----------------|
@@ -95,7 +95,7 @@ List services and virtual datacenters available to the user:
     | M371661272-4608 | compute:dr2c           | US - Virginia   |    
     
     
-    > vca datacenters --service 85-719
+    $ vca datacenters --service 85-719
     Available datacenters in service '85-719' for 'default' profile:
     | Virtual Data Center   | Status   | Service ID   | Service Type           | Region      |
     |-----------------------+----------+--------------+------------------------+-------------|
@@ -106,7 +106,7 @@ List services and virtual datacenters available to the user:
     | AppServices           | Active   | 85-719       | compute:dedicatedcloud | US - Nevada |    
     
     
-    > vca gateways --service 85-719 --datacenter AppServices
+    $ vca gateways --service 85-719 --datacenter AppServices
     Available gateways in datacenter 'AppServices' in service '85-719' for 'default' profile:
     | Datacenter   | Gateway     |
     |--------------+-------------|
@@ -117,7 +117,7 @@ List services and virtual datacenters available to the user:
 Configure values for service, datacenter and gateway and set as the default profile:
 
     
-    > vca profiles --service 85-719 --datacenter AppServices --gateway AppServices set
+    $ vca profiles --service 85-719 --datacenter AppServices --gateway AppServices set
     Profile-default
     	host=https://vchs.vmware.com
     	user=myname@mycomp.com
@@ -127,7 +127,7 @@ Configure values for service, datacenter and gateway and set as the default prof
     	token=d188143a5d4642745d9c46c696...
     
     
-    > vca status
+    $ vca status
     profile:    default
     host:       https://vchs.vmware.com
     user:       myname@mycomp.com
@@ -141,7 +141,7 @@ List vApps, VMs and templates:
 
     
     
-    > vca vapps --vms
+    $ vca vapps --vms
     list of vApps
     | Service   | Datacenter   | vApp   | VMs     | Status     | Owner            | Date Created        |
     |-----------+--------------+--------+---------+------------+------------------+---------------------|
@@ -149,7 +149,7 @@ List vApps, VMs and templates:
     | 85-719    | AppServices  | cts    | ['cts'] | Powered on | myname@mycomp.com | 12/11/2014 02:58:13 |    
     
     
-    > vca templates
+    $ vca templates
     list of templates
     | Catalog        | Template                                 | Status   | Owner             |   # VMs |   # CPU |   Memory(GB) |   Storage(GB) | Storage Profile   |
     |----------------+------------------------------------------+----------+-------------------+---------+---------+--------------+---------------+-------------------|
@@ -175,7 +175,7 @@ List vApps, VMs and templates:
 
 Working with Edge Gateway NAT rules:
 
-    > vca nat
+    $ vca nat
     list of nat rules
     |   Rule ID | Enabled   | Type   | Original IP      | Original Port   | Translated IP   | Translated Port   | Protocol   | Applied On   |
     |-----------+-----------+--------+------------------+-----------------+-----------------+-------------------+------------+--------------|
@@ -184,7 +184,7 @@ Working with Edge Gateway NAT rules:
     |     65540 | True      | DNAT   | 192.240.158.81   | 8080            | 192.168.109.4   | 8080              | tcp        | d0p1-ext     |
     
     
-    >vca nat add DNAT 192.240.158.81 80 192.168.109.2 80 tcp
+    $ vca nat add DNAT 192.240.158.81 80 192.168.109.2 80 tcp
     adding nat rule
     +-------------+-----------------------------------------------------------------------------------------------+
     | @startTime  | 2014-12-18T02:58:24.777Z                                                                      |
@@ -204,7 +204,7 @@ Working with Edge Gateway NAT rules:
     |     65542 | True      | DNAT   | 192.240.158.81   | 80              | 192.168.109.2   | 80                | tcp        | d0p1-ext     |
     
     
-    > vca nat del DNAT 192.240.158.81 80 192.168.109.2 80 tcp
+    $ vca nat del DNAT 192.240.158.81 80 192.168.109.2 80 tcp
     deleting nat rule
     +-------------+-----------------------------------------------------------------------------------------------+
     | @startTime  | 2014-12-18T02:56:55.677Z                                                                      |

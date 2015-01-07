@@ -26,6 +26,7 @@ import httplib
 from os.path import expanduser
 from tabulate import tabulate
 
+# from pyvcloud.vcloudairondemand import VCAOD
 from pyvcloud.vcloudair import VCA
 from pyvcloud.vclouddirector import VCD
 from pyvcloud.vapp import VAPP
@@ -67,20 +68,39 @@ def cli(ctx, profile, version, debug, json):
         click.echo(click.style('vca-cli version %s (pyvcloud: %s)' % (version, version_pyvcloud), fg='blue'))    
     else:
         if ctx.invoked_subcommand is None:
-               # click.secho('VMware vCloud Air Command Line Interface', fg='blue')
                help_text = ctx.get_help()
                print help_text        
     
 @cli.command()
 @click.pass_context
 @click.argument('user')
+@click.option('-t', '--type', 'service_type', default='subscription', metavar='[subscription | ondemand | vcd ]', type=click.Choice(['subscription', 'ondemand', 'vcd']))
+@click.option('-v', '--version', 'service_version', default='5.6', metavar='[5.5 | 5.6 | 5.7 ]', type=click.Choice(['5.5', '5.6', '5.7']))
 @click.option('-H', '--host', default='https://vchs.vmware.com')
-@click.option('-p', '--password', prompt=True, confirmation_prompt=False,
-              hide_input=True)
-def login(ctx, user, host, password):
+@click.option('-p', '--password', prompt=True, confirmation_prompt=False, hide_input=True)
+def login(ctx, user, host, password, service_type, service_version):
     """Login to a vCloud service"""
+    
+    if not (host.startswith('https://') or host.startswith('http://')):
+        host = 'https://' + host              
+
     vca = VCA()
-    result = vca.login(host, user, password, None)
+    result = vca.login(host, user, password, None, service_type, service_version)        
+    
+    if service_type == 'subscription':
+        pass
+    elif service_type == 'ondemand':
+        pass
+    elif service_type == 'vcd':
+        pass
+          
+    # if host == 'https://beta2014.vchs.vmware.com':
+        # print 'OnDemand'
+        # vca = VCAOD()
+        # result = vca.login('https://iam.vchs.vmware.com', host, user, password, None)
+    # else:
+        # subscription = True
+    
     if result:
         click.echo(click.style('Login successful with profile \'%s\'' % ctx.obj['PROFILE'], fg='blue'))
         config = ConfigParser.RawConfigParser()  
@@ -91,6 +111,8 @@ def login(ctx, user, host, password):
         config.set(section, 'host', host)
         config.set(section, 'user', user)        
         config.set(section, 'token', vca.token)
+        config.set(section, 'service_type', service_type)
+        config.set(section, 'service_version', service_version)
         with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
             config.write(configfile)        
     else:
@@ -103,10 +125,13 @@ def _getVCA(profile='default'):
         config = ConfigParser.RawConfigParser()
         config.read(os.path.expanduser('~/.vcarc'))
         section = 'Profile-%s' % profile
-        if config.has_option(section, "host") and config.has_option(section, "token"):
+        if config.has_option(section, "host") and config.has_option(section, "token") and config.has_option(section, "user") and config.has_option(section, "service_type") and config.has_option(section, "service_version"):
             host = config.get(section, "host")
+            user = config.get(section, "user")            
             token = config.get(section, "token")
-            if vca.login(host, None, None, token):
+            service_type = config.get(section, "service_type")
+            service_version = config.get(section, "service_version")
+            if vca.login(host, user, None, token, service_type, service_version):
                 return vca
             else:
                 print "token expired"
@@ -142,6 +167,8 @@ def status(ctx):
         datacenter = '<not set>'
         gateway = '<not set>'
         token = ''
+        service_type = ''
+        service_version = ''
         if config.has_option(section, 'token'):
             token = config.get(section, 'token')        
         if config.has_option(section, 'service'):
@@ -150,17 +177,20 @@ def status(ctx):
             datacenter = config.get(section, 'datacenter')     
         if config.has_option(section, 'gateway'):
             gateway = config.get(section, 'gateway')          
-        click.secho("profile:    %s" % ctx.obj['PROFILE'] , fg='blue')
-        click.secho("host:       %s" % config.get(section, 'host'), fg='blue')
-        click.secho("user:       %s" % config.get(section, 'user'), fg='blue')    
-        click.secho("service:    %s" % service, fg='blue')   
-        click.secho("datacenter: %s" % datacenter, fg='blue')   
-        click.secho("gateway:    %s" % gateway, fg='blue')   
+        click.secho("profile:         %s" % ctx.obj['PROFILE'] , fg='blue')
+        click.secho("host:            %s" % config.get(section, 'host'), fg='blue')
+        click.secho("service type:    %s" % config.get(section, 'service_type'), fg='blue')   
+        click.secho("service version: %s" % config.get(section, 'service_version'), fg='blue')         
+        click.secho("user:            %s" % config.get(section, 'user'), fg='blue')    
+        click.secho("service:         %s" % service, fg='blue')   
+        click.secho("datacenter:      %s" % datacenter, fg='blue')   
+        click.secho("gateway:         %s" % gateway, fg='blue')   
+                  
         vca = _getVCA(ctx.obj['PROFILE'])
         if vca != None:
-            click.secho("session:    %s" % 'active', fg='blue') 
+            click.secho("session:         %s" % 'active', fg='blue') 
         else:
-            click.secho("session:    %s" % 'inactive', fg='red') 
+            click.secho("session:         %s" % 'inactive', fg='red') 
                     
     else:
         click.secho("unknown profile '%s'" % ctx.obj['PROFILE'] , fg='red')
@@ -212,7 +242,77 @@ def profiles(ctx, operation, service, datacenter, gateway):
         with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
             config.write(configfile)        
         _print_config(config)        
-            
+        
+@cli.command(options_metavar='[-P <id>]')
+@click.pass_context
+@click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
+@click.option('-P', '--plan', default='', metavar='<id>', help='Plan id')
+def plans(ctx, operation, plan):
+    """Operations with plans"""
+    pass
+    # profile = 'default'
+    # vca = VCAOD()
+    # try:
+    #     config = ConfigParser.RawConfigParser()
+    #     config.read(os.path.expanduser('~/.vcarc'))
+    #     section = 'Profile-%s' % profile
+    #     if config.has_option(section, "host") and config.has_option(section, "token"):
+    #         host = config.get(section, "host")
+    #         token = config.get(section, "token")
+    #         if vca.login('', host, None, None, token):
+    #             plans = vca.get_plans()
+    #             headers = ["ID", "Type", "Region"]
+    #             table = [[plan.get_id(), plan.get_name(), plan.get_region()] for plan in plans]
+    #             click.echo(click.style("Available plans for '%s' profile:" % ctx.obj['PROFILE'], fg='blue'))
+    #             print tabulate(table, headers = headers, tablefmt="orgtbl")
+    #             return vca
+    #         else:
+    #             print "token expired"
+    #     else:
+    #         print "please authenticate"
+    # except ConfigParser.Error:
+    #     print "please authenticate"
+    # return None
+    
+@cli.command(options_metavar='[-i <id>]')
+@click.pass_context
+@click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
+@click.option('-i', '--instance', default='', metavar='<id>', help='Instance id')
+def instances(ctx, operation, instance):
+    """Operations with instances"""
+    pass
+    # profile = 'default'
+    # vca = VCAOD()
+    # try:
+    #     config = ConfigParser.RawConfigParser()
+    #     config.read(os.path.expanduser('~/.vcarc'))
+    #     section = 'Profile-%s' % profile
+    #     if config.has_option(section, "host") and config.has_option(section, "token"):
+    #         host = config.get(section, "host")
+    #         token = config.get(section, "token")
+    #         if vca.login('', host, None, None, token):
+    #             instances = vca.get_instances()
+    #             # for instance in instances:
+    #             #     print instance.__dict__
+    #             headers = ["Plan ID", "Instance ID", "Type", "Region", "Organization Name"]
+    #             table = []
+    #             for instance in instances:
+    #                 attr = eval(instance.get_instanceAttributes())
+    #                 table.append([instance.get_planId(), instance.get_id(), instance.get_name(), instance.get_region(), attr['orgName']])
+    #             click.echo(click.style("Available instances for '%s' profile:" % ctx.obj['PROFILE'], fg='blue'))
+    #             print tabulate(table, headers = headers, tablefmt="orgtbl")
+    #             i = vca.get_vdcReference('b0c56abf-e257-4b86-ac3c-5f676fd09790', 'fbf278f0-065d-4028-96d4-6ece56789751')
+    #             attr = eval(i[1].get_instanceAttributes())
+    #             print "%s:%s:%s" % ('b0c56abf-e257-4b86-ac3c-5f676fd09790' , 'fbf278f0-065d-4028-96d4-6ece56789751' , attr['sessionUri'])
+    #             return vca
+    #         else:
+    #             print "token expired"
+    #     else:
+    #         print "please authenticate"
+    # except ConfigParser.Error:
+    #     print "please authenticate"
+    # return None
+
 @cli.command(options_metavar='[-s <id>]')
 @click.pass_context
 @click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
@@ -250,11 +350,11 @@ def datacenters(ctx, operation, service, datacenter):
                 for serviceReference in serviceReferences:
                     vdcReferences = vca.get_vdcReferences(serviceReference)
                     for vdcReference in vdcReferences:
-                            table.append([vdcReference.get_name(), vdcReference.get_status()
-                                          ,serviceReference.get_serviceId(), serviceReference.get_serviceType(), serviceReference.get_region()])
+                        table.append([vdcReference.get_name(), vdcReference.get_status()
+                                  ,serviceReference.get_serviceId(), serviceReference.get_serviceType(), serviceReference.get_region()])
                 if table:
                     headers = ["Virtual Data Center", "Status"
-                                ,"Service ID", "Service Type", "Region"]
+                            ,"Service ID", "Service Type", "Region"]
                     click.echo(click.style("Available datacenters in service '%s' for '%s' profile:" % (service, ctx.obj['PROFILE']), fg='blue'))                                   
                     print tabulate(table, headers = headers, tablefmt="orgtbl")
                 else:
@@ -273,8 +373,7 @@ def datacenters(ctx, operation, service, datacenter):
                     print "cpu used: %d" % cpu.get_Used()
                     print "mem used: %d" % memory.get_Used()
         else:
-            print 'Unknown operation %s' % operation
-                    
+            print 'Unknown operation %s' % operation                    
     else:
         print 'Service(s) not found'
         

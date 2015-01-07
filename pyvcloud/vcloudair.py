@@ -20,6 +20,7 @@ import requests
 import StringIO
 import json
 from pyvcloud.schema.vcim import serviceType, vchsType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType
 from pyvcloud.vclouddirector import VCD
 
 class VCA(object):
@@ -27,10 +28,14 @@ class VCA(object):
     def __init__(self):
         self.host = None
         self.token = None
+        self.service_type = 'subscription'
+        self.version = '5.6'
+        self.session = None
+        self.org_name = None
 
-    def login(self, host, username, password, token=None):
+    def login(self, host, username, password, token=None, service_type='subscription', version='5.6'):
         """
-        Request to login to vCloud Air.
+        Request to login to vCloud Air
         
         :param host: URL of the vCloud service, for example: vchs.vmware.com.
         :param username: The user name.
@@ -41,30 +46,74 @@ class VCA(object):
         
         if not (host.startswith('https://') or host.startswith('http://')):
             host = 'https://' + host
-        if token:
-            headers = {}
-            headers["x-vchs-authorization"] = token
-            headers["Accept"] = "application/xml;version=5.6"
-            response = requests.get(host + "/api/vchs/services", headers=headers)
-            if response.status_code == requests.codes.ok:
-                self.host = host
-                self.token = token
-                return True
+        
+        if service_type == 'subscription':
+            if token:
+                headers = {}
+                headers["x-vchs-authorization"] = token
+                headers["Accept"] = "application/xml;version=" + version
+                response = requests.get(host + "/api/vchs/services", headers=headers)
+                if response.status_code == requests.codes.ok:
+                    self.host = host
+                    self.token = token
+                    self.service_type = service_type
+                    self.version = version
+                    return True
+                else:
+                    return False
             else:
-                return False
+                url = host + "/api/vchs/sessions"
+                encode = "Basic " + base64.encodestring(username + ":" + password)
+                headers = {}
+                headers["Authorization"] = encode.rstrip()
+                headers["Accept"] = "application/xml;version=" + version
+                response = requests.post(url, headers=headers)
+                if response.status_code == requests.codes.created:
+                    self.host = host
+                    self.token = response.headers["x-vchs-authorization"]
+                    self.service_type = service_type
+                    self.version = version                
+                    return True
+                else:
+                    return False
+        elif service_type == 'ondemand':
+            pass
+        elif service_type == 'vcd':
+            if token:
+                url = host + "/api/session"     
+                headers = {}
+                headers["x-vcloud-authorization"] = token
+                headers["Accept"] = "application/*+xml;version=" + version
+                response = requests.get(url, headers=headers)
+                if response.status_code == requests.codes.ok:
+                    self.host = host
+                    self.token = token
+                    self.session = sessionType.parseString(response.content, True)
+                    self.service_type = service_type
+                    self.version = version    
+                    self.org_name = username[username.rfind('@')+1:]                    
+                    return True
+                else:
+                    return False
+            else:
+                url = host + "/api/sessions"                     
+                encode = "Basic " + base64.encodestring(username + ":" + password)
+                headers = {}
+                headers["Authorization"] = encode.rstrip()
+                headers["Accept"] = "application/*+xml;version=" + version
+                response = requests.post(url, headers=headers)
+                if response.status_code == requests.codes.ok:
+                    self.host = host
+                    self.token = response.headers["x-vcloud-authorization"]
+                    self.service_type = service_type
+                    self.version = version    
+                    self.session = sessionType.parseString(response.content, True)
+                    self.org_name = username[username.rfind('@')+1:]
+                    return True
+                else:
+                    return False
         else:
-            url = host + "/api/vchs/sessions"
-            encode = "Basic " + base64.encodestring(username + ":" + password)
-            headers = {}
-            headers["Authorization"] = encode.rstrip()
-            headers["Accept"] = "application/xml;version=5.6"
-            response = requests.post(url, headers=headers)
-            if response.status_code == requests.codes.created:
-                self.host = host
-                self.token = response.headers["x-vchs-authorization"]
-                return True
-            else:
-                return False
+            pass
     
     def logout(self):
         """
@@ -72,15 +121,26 @@ class VCA(object):
         
         :return:
         """        
-        url = self.host + "/api/vchs/session"
-        headers = {}
-        headers["x-vchs-authorization"] = self.token
-        return requests.delete(url, headers=self._get_vchsHeaders())
+        if self.service_type == 'subscription':
+            url = self.host + "/api/vchs/session"
+            headers = {}
+            headers["x-vchs-authorization"] = self.token
+            return requests.delete(url, headers=self._get_vchsHeaders())
+        elif self.service_type == 'ondemand':
+            pass
+        elif self.service_type == 'vcd':
+            self.session = None
         
     def _get_vchsHeaders(self):
-        headers = {}
-        headers["x-vchs-authorization"] = self.token
-        headers["Accept"] = "application/xml;version=5.6"
+        headers = {}        
+        if self.service_type == 'subscription':
+            headers["x-vchs-authorization"] = self.token
+            headers["Accept"] = "application/xml;version=" + self.version
+        elif self.service_type == 'ondemand':
+            pass
+        elif self.service_type == 'vcd':
+            headers["x-vcloud-authorization"] = self.token
+            headers["Accept"] = "application/*+xml;version=" + self.version            
         return headers
         
     def get_serviceReferences(self):
@@ -115,15 +175,29 @@ class VCA(object):
             vCloudSession = vchsType.parseString(response.content, True)
             return vCloudSession            
         
-    def get_vCloudDirector(self, serviceId, vdcId):
-        vdcReference = self.get_vdcReference(serviceId, vdcId)
-        if vdcReference[0] == True:
-            #todo: check if vcloud session can be cached as well...
-            vCloudSession = self.create_vCloudSession(vdcReference[1])
-            if vCloudSession:
-                vcd = VCD(vCloudSession, serviceId, vdcId)
-                return vcd
+    def get_vCloudDirector(self, serviceId=None, vdcId=None):
+        if self.service_type == 'subscription':
+            vdcReference = self.get_vdcReference(serviceId, vdcId)
+            if vdcReference[0] == True:
+                #todo: check if vcloud session can be cached as well...
+                vCloudSession = self.create_vCloudSession(vdcReference[1])
+                if vCloudSession:
+                    vdcLink = vCloudSession.get_VdcLink()
+                    vcd = VCD(vdcLink.get_authorizationToken(), vdcLink.get_href(), self.version, serviceId, vdcId)
+                    return vcd
+        elif self.service_type == 'ondemand':
+            pass
+        elif self.service_type == 'vcd':
+            if self.session:
+                org_refs = filter(lambda org_ref: (org_ref.name == self.org_name and org_ref.type_ == 'application/vnd.vmware.vcloud.org+xml'), self.session.Link)
+                if org_refs:
+                    href = org_refs[0].href
+                    response = requests.get(href, headers=self._get_vchsHeaders())
+                    if response.status_code == requests.codes.ok:
+                        org = organizationType.parseString(response.content, True)
+                        vdc_links = filter(lambda vdc_link: (vdc_link.name == self.org_name and vdc_link.type_ == 'application/vnd.vmware.vcloud.vdc+xml'), org.Link)
+                        if vdc_links:
+                            vcd = VCD(self.token, vdc_links[0].href, self.version, None, self.org_name)
+                            return vcd
         return None
-        
-
 

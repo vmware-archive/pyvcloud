@@ -26,19 +26,22 @@ from xml.etree import ElementTree as ET
 
 class VCD(object):
 
-    def __init__(self, vCloudSession, serviceId, vdcId):
-        vdcLink = vCloudSession.get_VdcLink()
-        self.token = vdcLink.get_authorizationToken()
-        self.defaultVersion = "5.6"
+    # def __init__(self, vCloudSession, serviceId, vdcId):
+    def __init__(self, token, href, version, serviceId, vdcId):
+        # vdcLink = vCloudSession.get_VdcLink()
+        # self.token = vdcLink.get_authorizationToken()
+        self.token = token
+        self.href = href
+        self.version = version
         self.headers = self._get_vcdHeaders()
-        self.href = vdcLink.get_href()
+        # self.href = vdcLink.get_href()
         self.service = serviceId
         self.vdc = vdcId        
-
+        
     def _get_vcdHeaders(self):
         headers = {}
         headers["x-vcloud-authorization"] = self.token
-        headers["Accept"] = "application/*+xml;version=" + self.defaultVersion
+        headers["Accept"] = "application/*+xml;version=" + self.version
         return headers
 
     def _get_vdc(self):

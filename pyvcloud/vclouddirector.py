@@ -18,7 +18,7 @@
 import requests
 from gateway import Gateway
 from vapp import VAPP
-from schema.vcd.v1_5.schemas.vcloud import networkType, vdcType, queryRecordViewType, taskType, vAppType, organizationType, catalogType, diskType, vmsType
+from schema.vcd.v1_5.schemas.vcloud import networkType, vdcType, queryRecordViewType, taskType, vAppType, organizationType, catalogType, diskType, vmsType, vcloudType
 from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 from helper import generalHelperFunctions as ghf
 from urlparse import urlparse
@@ -81,7 +81,13 @@ class VCD(object):
         link = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.org+xml", vdc.get_Link())[0]
         response = requests.get(link.get_href(), headers = self.headers)
         return organizationType.parseString(response.content, True)
-
+        
+    # return all available network references within this virtual data center (use the reference to get the actual network)
+    def get_networkRefs(self):
+        vdc = self._get_vdc()
+        availableNetworks = vdc.get_AvailableNetworks()
+        return availableNetworks.get_Network()
+        
     # return all catalog references within this virtual data center (use reference to get the actual catalog)
     def get_catalogRefs(self):
         org = self.get_org()

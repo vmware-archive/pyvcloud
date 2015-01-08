@@ -12,7 +12,7 @@ Sample usage:
 Login to a vCloud Director instance::
 
     from pyvcloud.vcloudair import VCA
-    vca=VCA()
+    vca = VCA()
     vca.login('vcdhost.company.com', 'vcdUser@vcdOrg', 'password', None, 'vcd', '5.6')
     vcd = vca.get_vCloudDirector()
 

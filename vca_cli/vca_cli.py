@@ -32,7 +32,6 @@ from pyvcloud.vclouddirector import VCD
 from pyvcloud.vapp import VAPP
 from pyvcloud.helper import generalHelperFunctions as ghf
 
-
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -43,17 +42,29 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.pass_context
 def cli(ctx, profile, version, debug, json):
     """VMware vCloud Air Command Line Interface."""
+    config = ConfigParser.RawConfigParser()
+    config.read(os.path.expanduser('~/.vcarc'))    
     ctx.obj={}
     if profile != '':
         ctx.obj['PROFILE'] = profile
     else:
-        config = ConfigParser.RawConfigParser()
-        config.read(os.path.expanduser('~/.vcarc'))
         section = 'Global'
         if config.has_option(section, 'profile'):
             ctx.obj['PROFILE'] = config.get(section, 'profile')
         else:
-            ctx.obj['PROFILE'] = 'default'            
+            ctx.obj['PROFILE'] = 'default'    
+   
+    section = 'Profile-%s' % ctx.obj['PROFILE']
+    if config.has_option(section, "host"):
+        ctx.obj['host'] = config.get(section, "host")
+    if config.has_option(section, "user"):
+        ctx.obj['user'] = config.get(section, "user")            
+    if config.has_option(section, "token"):
+        ctx.obj['token'] = config.get(section, "token")
+    if config.has_option(section, "service_type"):
+        ctx.obj['service_type'] = config.get(section, "service_type")
+    if config.has_option(section, "service_version"):
+        ctx.obj['service_version'] = config.get(section, "service_version")
 
     if debug:
         httplib.HTTPConnection.debuglevel = 1
@@ -86,13 +97,6 @@ def login(ctx, user, host, password, service_type, service_version):
 
     vca = VCA()
     result = vca.login(host, user, password, None, service_type, service_version)        
-    
-    if service_type == 'subscription':
-        pass
-    elif service_type == 'ondemand':
-        pass
-    elif service_type == 'vcd':
-        pass
           
     # if host == 'https://beta2014.vchs.vmware.com':
         # print 'OnDemand'
@@ -185,13 +189,11 @@ def status(ctx):
         click.secho("service:         %s" % service, fg='blue')   
         click.secho("datacenter:      %s" % datacenter, fg='blue')   
         click.secho("gateway:         %s" % gateway, fg='blue')   
-                  
         vca = _getVCA(ctx.obj['PROFILE'])
         if vca != None:
             click.secho("session:         %s" % 'active', fg='blue') 
         else:
             click.secho("session:         %s" % 'inactive', fg='red') 
-                    
     else:
         click.secho("unknown profile '%s'" % ctx.obj['PROFILE'] , fg='red')
     
@@ -319,6 +321,10 @@ def instances(ctx, operation, instance):
 @click.option('-s', '--service', default='', metavar='<id>', help='Service id')
 def services(ctx, operation, service):
     """Operations with services"""
+    if ctx.obj['service_type'] != 'subscription':
+        print "command not supported with service type '%s'" % ctx.obj['service_type']        
+        return
+        
     vca = _getVCA(ctx.obj['PROFILE'])
     if vca != None:
         services = vca.get_serviceReferences()
@@ -592,7 +598,7 @@ def vapps(ctx, operation, service, datacenter, vapp, template, catalog, listvms)
         vcd = vca.get_vCloudDirector(service, datacenter)
         if vcd != None:
             if 'list' == operation:
-                print 'list of vApps'
+                click.secho("Available vApps in datacenter '%s' for '%s' profile:" % (datacenter, ctx.obj['PROFILE']), fg='blue')                
                 table = []
                 for vApp in vcd.get_vApps():
                     vms = []
@@ -604,8 +610,7 @@ def vapps(ctx, operation, service, datacenter, vapp, template, catalog, listvms)
                             vApp.get_DateCreated().strftime("%d/%m/%Y %H:%M:%S")])                            
                     else:
                         table.append([vcd.service, vcd.vdc, vApp.get_name(), ghf.status[vApp.get_status()](), vApp.get_Owner().get_User().get_name(),
-                            vApp.get_DateCreated().strftime("%d/%m/%Y %H:%M:%S")])
-                        
+                            vApp.get_DateCreated().strftime("%d/%m/%Y %H:%M:%S")])                        
                 if listvms:
                     headers = ["Service", "Datacenter", "vApp", "VMs", "Status", "Owner", "Date Created"]
                 else:
@@ -657,7 +662,6 @@ def vapps(ctx, operation, service, datacenter, vapp, template, catalog, listvms)
                 vApp = vcd.get_vApp(vapp)
                 if vApp != None:
                     vApp.undeploy({'--blocking': True, '--json': True, '--action': 'powerOff'})                
-                                        
                         
 @cli.command(options_metavar='[-s <id>] [-d <id>]')
 @click.pass_context
@@ -808,8 +812,6 @@ def vms(ctx, operation, service, datacenter, vapp, vm, diskid):
         if vcd != None:
             if 'attach' == operation:
                 print "attach disk '%s' to VM '%s:%s'" % (diskid, vapp, vm)
-
-         
 
 if __name__ == '__main__':
     cli(obj={})

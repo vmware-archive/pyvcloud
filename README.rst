@@ -28,7 +28,7 @@ On the subscription-based vCloud Air, there are services and datacenters::
     for service in vca.get_serviceReferences():
         print service.serviceId  
     
-    for datacenter in vca.get_vdcReference('myservice'):
+    for datacenter in vca.get_vdcReferences('myservice'):
         print datacenter.name
         
     vcd = vca.get_vCloudDirector('myservice', 'mydatacenter')

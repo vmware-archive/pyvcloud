@@ -35,8 +35,7 @@ On the subscription-based vCloud Air, there are services and datacenters::
 
 In both cases, after getting a reference to a vCloud Director instance (vcd), get all vApps::
 
-    vapps = vcd.get_vApps()
-    for vapp in vapps:
+    for vapp in vcd.get_vApps():
         print "name: %s, status: %s\n" % (vapp.name, vapp.status)
 
 Get all vApp templates::
@@ -49,7 +48,7 @@ Get all networks::
 
 Create a vApp and connect it to an organization network::
 
-    vapp = vcd.create_vApp('vapp2', 'ubuntu_1204_64bit', 'blueprints', {'--blocking': False, '--json': True, '--deploy': False, '--on': False, '--network': 'AppServices-default-routed', '--fencemode': 'bridged'})    
+    vapp = vcd.create_vApp('myvapp', 'ubuntu_1204_64bit', 'blueprints', {'--blocking': False, '--json': True, '--deploy': False, '--on': False, '--network': 'AppServices-default-routed', '--fencemode': 'bridged'})    
 
 
 

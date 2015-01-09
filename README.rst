@@ -17,6 +17,9 @@ Import modules and instantiate a vCloud Air object::
 Login to a vCloud Director instance::
 
     vca.login('vcdhost.company.com', 'vcdUser@vcdOrg', 'password', None, 'vcd', '5.6')
+    
+A user might have access to one or more datacenters within an organization:
+
     for datacenter in vca.get_vdcReferences():
         print datacenter.name        
     vcd = vca.get_vCloudDirector(vdcId='mydatacenter')

@@ -33,6 +33,7 @@ class VCA(object):
         self.version = '5.6'
         self.session = None
         self.org_name = None
+        self.plans = None
 
     def login(self, host, username, password, token=None, service_type='subscription', version='5.6'):
         """
@@ -64,7 +65,7 @@ class VCA(object):
                     return False
             else:
                 url = host + "/api/vchs/sessions"
-                encode = "Basic " + base64.encodestring(username + ":" + password)
+                encode = "Basic " + base64.standard_b64encode(username + ":" + password)
                 headers = {}
                 headers["Authorization"] = encode.rstrip()
                 headers["Accept"] = "application/xml;version=" + version
@@ -78,7 +79,38 @@ class VCA(object):
                 else:
                     return False
         elif service_type == 'ondemand':
-            pass
+            if token:                
+                headers = {}
+                headers["Authorization"] = "Bearer %s" % token
+                headers["Accept"] = "application/json;version=%s;class=com.vmware.vchs.sc.restapi.model.planlisttype'" % version
+                response = requests.get(host + "/api/sc/plans", headers=headers)
+                if response.status_code == requests.codes.ok:
+                    self.host = host
+                    self.token_iam = token
+                    self.service_type = service_type
+                    self.version = version    
+                    self.plans = json.loads(response.content)['plans']
+                    # print response.content
+                    return True
+                else:
+                    return False
+            else:
+                url = host + "/api/iam/login"
+                encode = "Basic " + base64.standard_b64encode(username + ":" + password)
+                headers = {}
+                headers["Authorization"] = encode.rstrip()
+                headers["Accept"] = "application/json;version=%s" % version
+                # headers["Content-type"] = "application/xml;version=" + version
+                response = requests.post(url, headers=headers)
+                if response.status_code == requests.codes.created:
+                    self.host = host
+                    self.token_iam = response.headers["vchs-authorization"]
+                    self.service_type = service_type
+                    self.version = version              
+                    # print response.content  
+                    return True
+                else:
+                    return False
         elif service_type == 'vcd':
             if token:
                 url = host + "/api/session"     
@@ -98,7 +130,7 @@ class VCA(object):
                     return False
             else:
                 url = host + "/api/sessions"                     
-                encode = "Basic " + base64.encodestring(username + ":" + password)
+                encode = "Basic " + base64.standard_b64encode(username + ":" + password)
                 headers = {}
                 headers["Authorization"] = encode.rstrip()
                 headers["Accept"] = "application/*+xml;version=" + version
@@ -115,6 +147,26 @@ class VCA(object):
                     return False
         else:
             pass
+            
+    def login_ondemand_instance(self, instance_id, username, password):
+        instances = filter(lambda instance: instance['id'] == instance_id, self.get_instances())        
+        if instances:
+            instance = instances[0]
+            attr = json.loads(instance['instanceAttributes'])
+            org_name = attr['orgName']
+            session_uri = attr['sessionUri']
+            encode = "Basic " + base64.standard_b64encode(username + "@" + org_name + ":" + password)
+            headers = {}
+            headers["Authorization"] = encode.rstrip()
+            headers["Accept"] = "application/*+xml;version=" + self.version
+            response = requests.post(session_uri, headers=headers)
+            if response.status_code == requests.codes.ok:
+                #todo: get the host.... or uri....
+                # self.host = host
+                self.token = response.headers["x-vcloud-authorization"]
+                self.org_name = org_name
+                return True
+        return False
     
     def logout(self):
         """
@@ -149,21 +201,32 @@ class VCA(object):
         serviceList = serviceType.parseString(response.content, True)
         return serviceList.get_Service()
     
-    def get_vdcReferences(self, service):
-        serviceReference = None
-        if isinstance(service, str):
-            serviceReferences = filter(lambda serviceReference: serviceReference.get_serviceId().lower() == service.lower(), self.get_serviceReferences())
-            if serviceReferences:
-                serviceReference = serviceReferences[0]
+    def get_vdcReferences(self, service=None):
+        if self.service_type == 'subscription' or self.service_type == 'ondemand':
+            serviceReference = None
+            if isinstance(service, str):
+                serviceReferences = filter(lambda serviceReference: serviceReference.get_serviceId().lower() == service.lower(), self.get_serviceReferences())
+                if serviceReferences:
+                    serviceReference = serviceReferences[0]
+                else:
+                    return None
+            elif isinstance(service, ServiceType):
+                serviceReference = service
             else:
                 return None
-        elif isinstance(service, ServiceType):
-            serviceReference = service
-        else:
-            return None
-        response = requests.get(serviceReference.get_href(), headers=self._get_vchsHeaders())
-        compute = vchsType.parseString(response.content, True)
-        return compute.get_VdcRef()        
+            response = requests.get(serviceReference.get_href(), headers=self._get_vchsHeaders())
+            compute = vchsType.parseString(response.content, True)
+            return compute.get_VdcRef()        
+        elif self.service_type == 'vcd':
+            if self.session:
+                org_refs = filter(lambda org_ref: (org_ref.name == self.org_name and org_ref.type_ == 'application/vnd.vmware.vcloud.org+xml'), self.session.Link)
+                if org_refs:
+                    href = org_refs[0].href
+                    response = requests.get(href, headers=self._get_vchsHeaders())
+                    if response.status_code == requests.codes.ok:
+                        org = organizationType.parseString(response.content, True)
+                        vdc_links = filter(lambda vdc_link: (vdc_link.type_ == 'application/vnd.vmware.vcloud.vdc+xml'), org.Link)
+                        return vdc_links
         
     def get_vdcReference(self, serviceId, vdcId):
         serviceReferences = filter(lambda serviceReference: serviceReference.get_serviceId().lower() == serviceId.lower(), self.get_serviceReferences())
@@ -207,9 +270,29 @@ class VCA(object):
                     response = requests.get(href, headers=self._get_vchsHeaders())
                     if response.status_code == requests.codes.ok:
                         org = organizationType.parseString(response.content, True)
-                        vdc_links = filter(lambda vdc_link: (vdc_link.name == self.org_name and vdc_link.type_ == 'application/vnd.vmware.vcloud.vdc+xml'), org.Link)
+                        vdc_links = filter(lambda vdc_link: (vdc_link.name == vdcId and vdc_link.type_ == 'application/vnd.vmware.vcloud.vdc+xml'), org.Link)
                         if vdc_links:
                             vcd = VCD(self.token, vdc_links[0].href, self.version, None, self.org_name)
                             return vcd
         return None
-
+        
+    def get_plans(self):
+        if self.service_type == 'ondemand':
+            self.login(self.host, None, None, self.token_iam, self.service_type, self.version)
+            return self.plans
+        else:
+            return None
+            
+    def get_instances(self):
+        if self.service_type == 'ondemand':            
+            headers = {}
+            headers["Authorization"] = "Bearer %s" % self.token_iam
+            headers["Accept"] = "application/json;version=%s" % self.version
+            response = requests.get(self.host + "/api/sc/instances", headers=headers)
+            if response.status_code == requests.codes.ok:
+                return json.loads(response.content)['instances']          
+            else:
+                return None
+        else:
+            return None
+            

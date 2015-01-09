@@ -17,7 +17,9 @@ Import modules and instantiate a vCloud Air object::
 Login to a vCloud Director instance::
 
     vca.login('vcdhost.company.com', 'vcdUser@vcdOrg', 'password', None, 'vcd', '5.6')
-    vcd = vca.get_vCloudDirector()
+    for datacenter in vca.get_vdcReferences():
+        print datacenter.name        
+    vcd = vca.get_vCloudDirector('mydatacenter')
 
 Login to subscription-based vCloud Air::
 
@@ -48,7 +50,33 @@ Get all networks::
 
 Create a vApp and connect it to an organization network::
 
-    vapp = vcd.create_vApp('myvapp', 'ubuntu_1204_64bit', 'blueprints', {'--blocking': False, '--json': True, '--deploy': False, '--on': False, '--network': 'AppServices-default-routed', '--fencemode': 'bridged'})    
+    task = vcd.create_vApp('myvapp', 'ubuntu_1204_64bit', 'blueprints', {'--blocking': False, '--json': True, '--deploy': False, '--on': False, '--network': 'AppServices-default-routed', '--fencemode': 'bridged'})    
+    
+Getting a vApp::
+
+    myvapp = vcd.get_vApp('myvapp')
+    
+Displaying the XML representation of the vApp::
+
+    import sys
+    myvapp.me.export(sys.stdout, 0)
 
 
+Development
+===========
+
+To test the current code, check it out from github and install it with::
+
+    pip install --editable .
+
+To debug a python session, add this code::
+
+    import logging
+    import httplib
+    httplib.HTTPConnection.debuglevel = 1
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.DEBUG)
+    requests_log = logging.getLogger("requests.packages.urllib3")
+    requests_log.setLevel(logging.DEBUG)
+    requests_log.propagate = True
 

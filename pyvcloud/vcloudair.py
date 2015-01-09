@@ -22,6 +22,7 @@ import json
 from pyvcloud.schema.vcim import serviceType, vchsType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType
 from pyvcloud.vclouddirector import VCD
+from pyvcloud.schema.vcim.serviceType import ServiceType
 
 class VCA(object):
 
@@ -148,10 +149,21 @@ class VCA(object):
         serviceList = serviceType.parseString(response.content, True)
         return serviceList.get_Service()
     
-    def get_vdcReferences(self, serviceReference):
+    def get_vdcReferences(self, service):
+        serviceReference = None
+        if isinstance(service, str):
+            serviceReferences = filter(lambda serviceReference: serviceReference.get_serviceId().lower() == service.lower(), self.get_serviceReferences())
+            if serviceReferences:
+                serviceReference = serviceReferences[0]
+            else:
+                return None
+        elif isinstance(service, ServiceType):
+            serviceReference = service
+        else:
+            return None
         response = requests.get(serviceReference.get_href(), headers=self._get_vchsHeaders())
         compute = vchsType.parseString(response.content, True)
-        return compute.get_VdcRef()
+        return compute.get_VdcRef()        
         
     def get_vdcReference(self, serviceId, vdcId):
         serviceReferences = filter(lambda serviceReference: serviceReference.get_serviceId().lower() == serviceId.lower(), self.get_serviceReferences())

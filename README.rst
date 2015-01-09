@@ -9,15 +9,31 @@ This project is under development.
 
 Sample usage:
 
-Login to a vCloud Director instance::
+Import modules and instantiate a vCloud Air object::
 
     from pyvcloud.vcloudair import VCA
     vca = VCA()
+
+Login to a vCloud Director instance::
+
     vca.login('vcdhost.company.com', 'vcdUser@vcdOrg', 'password', None, 'vcd', '5.6')
     vcd = vca.get_vCloudDirector()
 
+Login to subscription-based vCloud Air::
 
-Get all vApps::
+    vca.login('vchs.vmware.com', 'user@company.com', 'password', None, 'subscription', '5.6')  
+    
+On the subscription-based vCloud Air, there are services and datacenters::
+
+    for service in vca.get_serviceReferences():
+        print service.serviceId  
+    
+    for datacenter in vca.get_vdcReference('myservice'):
+        print datacenter.name
+        
+    vcd = vca.get_vCloudDirector('myservice', 'mydatacenter')
+
+In both cases, after getting a reference to a vCloud Director instance (vcd), get all vApps::
 
     vapps = vcd.get_vApps()
     for vapp in vapps:

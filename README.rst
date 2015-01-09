@@ -19,7 +19,7 @@ Login to a vCloud Director instance::
     vca.login('vcdhost.company.com', 'vcdUser@vcdOrg', 'password', None, 'vcd', '5.6')
     for datacenter in vca.get_vdcReferences():
         print datacenter.name        
-    vcd = vca.get_vCloudDirector('mydatacenter')
+    vcd = vca.get_vCloudDirector(vdcId='mydatacenter')
 
 Login to subscription-based vCloud Air::
 

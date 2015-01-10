@@ -29,6 +29,7 @@ class VCA(object):
     def __init__(self):
         self.host = None
         self.token = None
+        self.token_iam = None
         self.service_type = 'subscription'
         self.version = '5.6'
         self.session = None

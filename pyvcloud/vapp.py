@@ -17,7 +17,7 @@
 
 import requests
 from schema.vcd.v1_5.schemas.vcloud import vAppType, vdcType, queryRecordViewType, taskType, vcloudType
-from schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType
+from schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType, NetworkConnectionSectionType
 from iptools import ipv4, IpRange
 from tabulate import tabulate
 from helper import generalHelperFunctions as ghf
@@ -168,5 +168,34 @@ class VAPP(object):
         networkConfigSection.add_NetworkConfig(networkConfig)
         networkConfigSection.set_Info(info)
         return networkConfigSection
+        
+    def create_networkConnectionSection(self, network_name, ip_address_allocation_mode):
+        networkConnectionSection = vcloudType.NetworkConnectionSectionType()
+        info = vcloudType.Msg_Type()
+        info.set_valueOf_("Connection Information")
+        networkConnection = vcloudType.NetworkConnectionType(network=network_name, IpAddressAllocationMode=ip_address_allocation_mode, IsConnected=True, NetworkConnectionIndex=0)
+        networkConnectionSection.add_NetworkConnection(networkConnection)
+        networkConnectionSection.set_Info(info)
+        return networkConnectionSection
+        
+    def connect_vms(self, network_name, ip_address_allocation_mode):
+        children = self.me.get_Children()
+        if children:
+            vms = children.get_Vm()
+            for vm in vms:
+                networkConnectionSection = [section for section in vm.get_Section() if isinstance(section, NetworkConnectionSectionType)][0]
+                for networkConnection in networkConnectionSection.get_NetworkConnection():
+                    networkConnection.set_IpAddressAllocationMode(ip_address_allocation_mode)
+                    networkConnection.set_network(network_name)
+                    networkConnection.set_IsConnected('true')
+                body = ghf.convertPythonObjToStr(networkConnectionSection, name = 'NetworkConnectionSection',
+                                          namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"').\
+                                          replace("vmw:Info", "ovf:Info")
+                response = requests.put(vm.get_href() + "/networkConnectionSection/", data = body, headers=self.headers)
+                if response.status_code == requests.codes.accepted:
+                    task = taskType.parseString(response.content, True)
+                    ghf.display_progress(task, False, self.headers)
+
+        
         
                         

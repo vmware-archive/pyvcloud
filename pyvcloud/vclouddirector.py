@@ -126,6 +126,7 @@ class VCD(object):
     # this method returns a list of templates (together with their details) inside the vdc
     # note, this might be limited to 25 by default
     def list_templates(self, args):
+        print "list_templates might retrieve a subset of the available templates..."
         result = []
         templates_href = self.href.split("/vdc")[0] + "/vAppTemplates/query"
         response = requests.get(templates_href, headers=self.headers)
@@ -148,7 +149,8 @@ class VCD(object):
                     storage = int(vAppTemplateRecord.get("storageKB")) / 1000000 if isinstance(vAppTemplateRecord.get("storageKB"), int) else ''
                     storageProfileName = vAppTemplateRecord.get("storageProfileName")
                     result.append([catalog, name, status, ownerName, vms, cpu, memory, storage, storageProfileName])
-        return result          
+                    print vAppTemplateRecord.__dict__
+        return result
 
     def get_task_from_id(self, id, mode=None):
         url = self.href[:self.href.index('/api')]+'/api/task/'+id
@@ -261,6 +263,12 @@ class VCD(object):
                         networkConfigSection = VAPP.create_networkConfigSection(network_name, network_href, fence_mode)
                         instantiationParams = vcloudType.InstantiationParamsType()
                         instantiationParams.add_Section(networkConfigSection)
+                        # add networkConnectionSection to templateParams
+                        ipAddressAllocationMode = args["--IpAddressAllocationMode"]        
+                            # def create_networkConnectionSection(network_name, network_href, IpAddressAllocationMode):
+                        # networkConnectionSection = VAPP.create_networkConnectionSection(network_name, network_href, ipAddressAllocationMode)
+                        # instantiationParams.add_Section(networkConnectionSection)
+                        
                         templateParams.set_InstantiationParams(instantiationParams)
                     else:
                         ghf.print_error("no such network found", args["--json"])
@@ -272,7 +280,29 @@ class VCD(object):
                 body = '<?xml version="1.0" encoding="UTF-8"?>' + \
                 ghf.convertPythonObjToStr(templateParams, name = 'InstantiateVAppTemplateParams',
                                           namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"').\
-                replace("ovf:Section", "NetworkConfigSection").replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info")
+                replace("ovf:Section", "NetworkConfigSection", 2).replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info")
+                
+                #if version >= 5.6
+                # body = body.replace("<AllEULAsAccepted>",
+                # """
+                # <SourcedVmInstantiationParams>
+                #     <Source href="https://p1v21-vcd.vchs.vmware.com/api/vAppTemplate/vappTemplate-971dd408-5f80-4bb7-89d2-764d6bbb1517"/>
+                #     <InstantiationParams>
+                #         <NetworkConnectionSection>
+                #             <ovf:Info />
+                #             <PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
+                #             <NetworkConnection needsCustomization="true" network="%s">
+                #                 <NetworkConnectionIndex>0</NetworkConnectionIndex>
+                #                 <IsConnected>true</IsConnected>
+                #                 <IpAddressAllocationMode>POOL</IpAddressAllocationMode>
+                #             </NetworkConnection>
+                #         </NetworkConnectionSection>
+                #     </InstantiationParams>
+                # </SourcedVmInstantiationParams>
+                # <AllEULAsAccepted>
+                # """ % args["--network"])
+                # # .replace("ovf:Section", "NetworkConnectionSection", 2)
+                print body
                 # find link from vdc that can be used for post request
                 vdc = self._get_vdc()
                 content_type = "application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml"
@@ -305,7 +335,7 @@ class VCD(object):
         else:
             # ghf.print_error("No such catalog found", args["--json"])   
             return(False, "No such catalog found")
-
+            
     def get_diskRefs(self):
         vdc = self._get_vdc()
         resourceEntities = vdc.get_ResourceEntities().get_ResourceEntity()

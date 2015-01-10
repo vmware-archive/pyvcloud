@@ -53,11 +53,15 @@ Get all networks::
 
 Create a vApp and connect it to an organization network::
 
-    task = vcd.create_vApp('myvapp', 'ubuntu_1204_64bit', 'blueprints', {'--blocking': False, '--json': True, '--deploy': False, '--on': False, '--network': 'AppServices-default-routed', '--fencemode': 'bridged'})    
+    task = vcd.create_vApp('myvapp', 'ubuntu_1204_64bit', 'blueprints', {'--blocking': True, '--json': True, '--deploy': False, '--on': False, '--network': 'AppServices-default-routed', '--fencemode': 'bridged'})    
     
 Getting a vApp::
 
     myvapp = vcd.get_vApp('myvapp')
+    
+Connect the VMs in the vApp to the network, using static IP pool::
+
+    myvapp.connect_vms('AppServices-default-routed', 'POOL')
     
 Displaying the XML representation of the vApp::
 

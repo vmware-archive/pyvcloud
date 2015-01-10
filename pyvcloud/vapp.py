@@ -169,14 +169,14 @@ class VAPP(object):
         networkConfigSection.set_Info(info)
         return networkConfigSection
         
-    def create_networkConnectionSection(self, network_name, ip_address_allocation_mode):
-        networkConnectionSection = vcloudType.NetworkConnectionSectionType()
-        info = vcloudType.Msg_Type()
-        info.set_valueOf_("Connection Information")
-        networkConnection = vcloudType.NetworkConnectionType(network=network_name, IpAddressAllocationMode=ip_address_allocation_mode, IsConnected=True, NetworkConnectionIndex=0)
-        networkConnectionSection.add_NetworkConnection(networkConnection)
-        networkConnectionSection.set_Info(info)
-        return networkConnectionSection
+    # def create_networkConnectionSection(self, network_name, ip_address_allocation_mode):
+    #     networkConnectionSection = vcloudType.NetworkConnectionSectionType()
+    #     info = vcloudType.Msg_Type()
+    #     info.set_valueOf_("Connection Information")
+    #     networkConnection = vcloudType.NetworkConnectionType(network=network_name, IpAddressAllocationMode=ip_address_allocation_mode, IsConnected=True, NetworkConnectionIndex=0)
+    #     networkConnectionSection.add_NetworkConnection(networkConnection)
+    #     networkConnectionSection.set_Info(info)
+    #     return networkConnectionSection
         
     def connect_vms(self, network_name, ip_address_allocation_mode):
         children = self.me.get_Children()

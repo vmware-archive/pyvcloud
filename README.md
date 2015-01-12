@@ -137,44 +137,61 @@ Configure values for service, datacenter and gateway and set as the default prof
     session:    active    
     
 
-List vApps, VMs and templates:
+List vApps, VMs, catalogs and templates:
 
     
     
     $ vca vapps --vms
-    list of vApps
-    | Service   | Datacenter   | vApp   | VMs     | Status     | Owner            | Date Created        |
-    |-----------+--------------+--------+---------+------------+------------------+---------------------|
+    Available vApps in datacenter 'AppServices' for 'vcd' profile:
+    | Service   | Datacenter   | vApp   | VMs     | Status     | Owner            | Date Created         |
+    |-----------+--------------+--------+---------+------------+------------------+----------------------|
     | 85-719    | AppServices  | ub     | ['ub']  | Powered on | myname@mycomp.com | 12/11/2014 05:41:17 |
     | 85-719    | AppServices  | cts    | ['cts'] | Powered on | myname@mycomp.com | 12/11/2014 02:58:13 |    
     
     
+    $ vca catalogs    
+    Available catalogs in datacenter 'AppServices' for 'vcd' profile:
+    | Catalog        |   # Templates |   # Media | Owner             | Published   | Shared   |
+    |----------------+---------------+-----------+-------------------+-------------+----------|
+    | blueprints     |             3 |         0 | pgomez@vmware.com | false       | false    |
+    | Public Catalog |            15 |         0 | system            | true        | true     |    
+    
+    
     $ vca templates
-    list of templates
+    Available templates in datacenter 'AppServices' for 'vcd' profile:
     | Catalog        | Template                                 | Status   | Owner             |   # VMs |   # CPU |   Memory(GB) |   Storage(GB) | Storage Profile   |
     |----------------+------------------------------------------+----------+-------------------+---------+---------+--------------+---------------+-------------------|
-    | blueprints     | cts_6_4_64bit                            | RESOLVED | myname@mycomp.com |       1 |       1 |            2 |            20 | SSD-Accelerated   |
-    | Public Catalog | W2K8-STD-R2-64BIT-SQL2K8-STD-R2-SP2      | RESOLVED | catalog_admin     |       1 |       1 |            4 |            41 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-64BIT-SQL2K12-STD-SP1          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            41 | SSD-Accelerated   |
-    | Public Catalog | CentOS64-32Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-64BIT-SQL2K12-WEB-SP1          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            41 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-R2-64BIT                       | RESOLVED | system            |       1 |       1 |            4 |            41 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-R2-SQL2K14-WEB                 | RESOLVED | system            |       1 |       1 |            4 |            41 | SSD-Accelerated   |
-    | Public Catalog | CentOS64-64Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
-    | Public Catalog | W2K8-STD-R2-64BIT-SQL2K8-WEB-R2-SP2      | RESOLVED | catalog_admin     |       1 |       1 |            4 |            41 | SSD-Accelerated   |
-    | Public Catalog | Ubuntu Server 12.04 LTS (i386 20140927)  | RESOLVED | system            |       1 |       1 |            1 |            10 | SSD-Accelerated   |
-    | Public Catalog | Ubuntu Server 12.04 LTS (amd64 20140927) | RESOLVED | system            |       1 |       1 |            1 |            10 | SSD-Accelerated   |
-    | Public Catalog | CentOS63-64Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
-    | Public Catalog | W2K8-STD-R2-64BIT                        | RESOLVED | system            |       1 |       1 |            2 |            41 | SSD-Accelerated   |
-    | blueprints     | ubuntu_1204_64bit                        | RESOLVED | myname@mycomp.com |       1 |       2 |            4 |            67 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-64BIT                          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            41 | SSD-Accelerated   |
     | Public Catalog | CentOS63-32Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-R2-SQL2K14-STD                 | RESOLVED | system            |       1 |       1 |            4 |            41 | SSD-Accelerated   |    
+    | Public Catalog | CentOS63-64Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
+    | Public Catalog | CentOS64-32Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
+    | Public Catalog | CentOS64-64Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
+    | blueprints     | cts_6_4_64bit                            | RESOLVED | pgomez@vmware.com |       1 |       1 |            2 |            20 | SSD-Accelerated   |
+    | Public Catalog | Ubuntu Server 12.04 LTS (amd64 20140927) | RESOLVED | system            |       1 |       1 |            1 |            10 | SSD-Accelerated   |
+    | Public Catalog | Ubuntu Server 12.04 LTS (i386 20140927)  | RESOLVED | system            |       1 |       1 |            1 |            10 | SSD-Accelerated   |
+    | blueprints     | ubuntu_1204_64bit                        | RESOLVED | pgomez@vmware.com |       1 |       2 |            4 |            64 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-64BIT                          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            40 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-64BIT-SQL2K12-STD-SP1          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            40 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-64BIT-SQL2K12-WEB-SP1          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            40 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-R2-64BIT                       | RESOLVED | system            |       1 |       1 |            4 |            40 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-R2-SQL2K14-STD                 | RESOLVED | system            |       1 |       1 |            4 |            40 | SSD-Accelerated   |
+    | Public Catalog | W2K12-STD-R2-SQL2K14-WEB                 | RESOLVED | system            |       1 |       1 |            4 |            40 | SSD-Accelerated   |
+    | Public Catalog | W2K8-STD-R2-64BIT                        | RESOLVED | system            |       1 |       1 |            2 |            40 | SSD-Accelerated   |
+    | Public Catalog | W2K8-STD-R2-64BIT-SQL2K8-STD-R2-SP2      | RESOLVED | catalog_admin     |       1 |       1 |            4 |            40 | SSD-Accelerated   |
+    | Public Catalog | W2K8-STD-R2-64BIT-SQL2K8-WEB-R2-SP2      | RESOLVED | catalog_admin     |       1 |       1 |            4 |            40 | SSD-Accelerated   |    
     
+    
+    $ vca templates --catalog blueprints
+    Available templates in datacenter 'AppServices' for 'vcd' profile:
+    | Catalog    | Template             | Status   | Owner             |   # VMs |   # CPU |   Memory(GB) |   Storage(GB) | Storage Profile   |
+    |------------+----------------------+----------+-------------------+---------+---------+--------------+---------------+-------------------|
+    | blueprints | CoreOS-WLAM-TEMPLATE | RESOLVED | pgomez@vmware.com |       1 |       2 |            1 |             8 | SSD-Accelerated   |
+    | blueprints | cts_6_4_64bit        | RESOLVED | pgomez@vmware.com |       1 |       1 |            2 |            20 | SSD-Accelerated   |
+    | blueprints | ubuntu_1204_64bit    | RESOLVED | pgomez@vmware.com |       1 |       2 |            4 |            64 | SSD-Accelerated   |    
     
 
 Working with Edge Gateway NAT rules:
 
+    
     $ vca nat
     list of nat rules
     |   Rule ID | Enabled   | Type   | Original IP      | Original Port   | Translated IP   | Translated Port   | Protocol   | Applied On   |

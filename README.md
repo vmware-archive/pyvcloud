@@ -13,6 +13,12 @@ Installation:
     $ pip install vca-cli
     
 
+Upgrade a previous installation:
+
+        
+    $ pip install vca-cli --upgrade
+    
+
 Install completions for oh-my-zsh
 
     

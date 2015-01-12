@@ -60,8 +60,10 @@ Sample vApp life cycle::
     #connect vApp to org network
     vcd.connect_vApp(vapp, 'AppServices-default-routed', 'bridged')
 
-    #connect vms
+    #connect the VMs
     vapp.connect_vms('AppServices-default-routed', 'POOL')
+    
+    #power on the vApp and VMs
     vapp.poweron({'--blocking': True, '--json': True})
     
 The vApp is now ready to use. When is time to delet it (need to get the vapp reference before each operation)::

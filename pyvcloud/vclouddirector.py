@@ -124,32 +124,37 @@ class VCD(object):
         return result
 
     # this method returns a list of templates (together with their details) inside the vdc
-    # note, this might be limited to 25 by default
     def list_templates(self, args):
-        print "list_templates might retrieve a subset of the available templates..."
         result = []
-        templates_href = self.href.split("/vdc")[0] + "/vAppTemplates/query"
-        response = requests.get(templates_href, headers=self.headers)
-        # use ET to parse response because some attributes would be missing if it is converted to python object
-        queryResultRecords = ET.fromstring(response.content)
-        vAppTemplateRecords = [child for child in queryResultRecords if "VAppTemplateRecord" in child.tag]
-        if vAppTemplateRecords:
-            # filter out other catalogs if catalog is specified
-            if args["--catalog"]:
-                vAppTemplateRecords = filter(lambda vAppTemplateRecord: vAppTemplateRecord.get("catalogName").lower() == args["--catalog"].lower(), vAppTemplateRecords)
+        page = 1
+        more_pages = True
+        while more_pages:
+            templates_href = self.href.split("/vdc")[0] + "/vAppTemplates/query?sortAsc=name&page=%d" % page
+            response = requests.get(templates_href, headers=self.headers)
+            # use ET to parse response because some attributes would be missing if it is converted to python object
+            queryResultRecords = ET.fromstring(response.content)
+            more_pages = [child for child in queryResultRecords if "Link" in child.tag and child.attrib['rel'] == 'nextPage']
+            if more_pages:
+                page = page + 1                
+            vAppTemplateRecords = [child for child in queryResultRecords if "VAppTemplateRecord" in child.tag]
             if vAppTemplateRecords:
-                for vAppTemplateRecord in vAppTemplateRecords:
-                    catalog = vAppTemplateRecord.get("catalogName")
-                    name = vAppTemplateRecord.get("name")
-                    status = vAppTemplateRecord.get("status")
-                    ownerName = vAppTemplateRecord.get("ownerName")
-                    vms = vAppTemplateRecord.get("numberOfVMs")
-                    cpu = vAppTemplateRecord.get("numberOfCpus")
-                    memory = int(vAppTemplateRecord.get("memoryAllocationMB")) / 1000 if isinstance(vAppTemplateRecord.get("memoryAllocationMB"), int) else ''
-                    storage = int(vAppTemplateRecord.get("storageKB")) / 1000000 if isinstance(vAppTemplateRecord.get("storageKB"), int) else ''
-                    storageProfileName = vAppTemplateRecord.get("storageProfileName")
-                    result.append([catalog, name, status, ownerName, vms, cpu, memory, storage, storageProfileName])
-                    print vAppTemplateRecord.__dict__
+                # filter out other catalogs if catalog is specified
+                if args["--catalog"]:
+                    vAppTemplateRecords = filter(lambda vAppTemplateRecord: vAppTemplateRecord.get("catalogName").lower() == args["--catalog"].lower(), vAppTemplateRecords)
+                if vAppTemplateRecords:
+                    for vAppTemplateRecord in vAppTemplateRecords:
+                        catalog = vAppTemplateRecord.get("catalogName")
+                        name = vAppTemplateRecord.get("name")
+                        status = vAppTemplateRecord.get("status")
+                        ownerName = vAppTemplateRecord.get("ownerName")
+                        vms = vAppTemplateRecord.get("numberOfVMs")
+                        cpu = vAppTemplateRecord.get("numberOfCpus")
+                        # memory = int(vAppTemplateRecord.get("memoryAllocationMB")) / 1000 if isinstance(vAppTemplateRecord.get("memoryAllocationMB"), int) else ''
+                        # storage = int(vAppTemplateRecord.get("storageKB")) / 1000000 if isinstance(vAppTemplateRecord.get("storageKB"), int) else ''
+                        memory = int(vAppTemplateRecord.get("memoryAllocationMB")) / 1024
+                        storage = int(vAppTemplateRecord.get("storageKB")) / (1024*1024)
+                        storageProfileName = vAppTemplateRecord.get("storageProfileName")
+                        result.append([catalog, name, status, ownerName, vms, cpu, memory, storage, storageProfileName])
         return result
 
     def get_task_from_id(self, id, mode=None):

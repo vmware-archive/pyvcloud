@@ -51,18 +51,27 @@ Get all networks::
 
     networks = vcd.get_networkRefs()
 
-Create a vApp and connect it to an organization network::
+Sample vApp life cycle::
 
-    task = vcd.create_vApp('myvapp', 'ubuntu_1204_64bit', 'blueprints', {'--blocking': True, '--json': True, '--deploy': False, '--on': False, '--network': 'AppServices-default-routed', '--fencemode': 'bridged'})    
-    
-Getting a vApp::
+    #create vApp and get the reference
+    vcd.create_vApp('myvapp', 'Ubuntu Server 12.04 LTS (amd64 20140927)', 'Public Catalog', {'--blocking': True, '--json': True, '--deploy': False, '--on': False, '--network': ''})
+    vapp = vcd.get_vApp('myvapp')
 
-    myvapp = vcd.get_vApp('myvapp')
-    
-Connect the VMs in the vApp to the network, using static IP pool::
+    #connect vApp to org network
+    vcd.connect_vApp(vapp, 'AppServices-default-routed', 'bridged')
 
-    myvapp.connect_vms('AppServices-default-routed', 'POOL')
+    #connect vms
+    vapp.connect_vms('AppServices-default-routed', 'POOL')
+    vapp.poweron({'--blocking': True, '--json': True})
     
+The vApp is now ready to use. When is time to delet it (need to get the vapp reference before each operation)::
+
+    vapp = vcd.get_vApp('myvapp')
+    vapp.undeploy({'--blocking': True, '--json': True, '--action': 'shutdown'})
+
+    vapp = vcd.get_vApp('myvapp')
+    vapp.delete({'--blocking': True, '--json': True})    
+
 Displaying the XML representation of the vApp::
 
     import sys

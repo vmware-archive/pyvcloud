@@ -307,7 +307,7 @@ class VCD(object):
                 # <AllEULAsAccepted>
                 # """ % args["--network"])
                 # # .replace("ovf:Section", "NetworkConnectionSection", 2)
-                print body
+                # print body
                 # find link from vdc that can be used for post request
                 vdc = self._get_vdc()
                 content_type = "application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml"
@@ -340,6 +340,52 @@ class VCD(object):
         else:
             # ghf.print_error("No such catalog found", args["--json"])   
             return(False, "No such catalog found")
+            
+    def connect_vApp(self, vApp, networkName, fenceMode):
+        networkRefs = filter(lambda networkRef: networkRef.get_name().lower() == networkName.lower(), self.get_networkRefs())
+        if networkRefs:
+            network_name = networkRefs[0].get_name()
+            network_href = networkRefs[0].get_href()
+            return vApp.connect_to_network(network_name, network_href, fenceMode, False, True)
+        else:
+            ghf.print_error("network not found", args["--json"])
+            return (False, "network not found")
+    
+    def disconnect_vApp(self, vApp, networkName):
+        return vApp.disconnect_from_network(networkName, False, True)
+            
+    # def connect_vApp(self, vApp, networkName, fenceMode):
+    #     networkRefs = filter(lambda networkRef: networkRef.get_name().lower() == networkName.lower(), self.get_networkRefs())
+    #     if networkRefs:
+    #         network_name = networkRefs[0].get_name()
+    #         network_href = networkRefs[0].get_href()
+    #         parentNetwork = vcloudType.ReferenceType(href=network_href)
+    #         configuration = vcloudType.NetworkConfigurationType()
+    #         configuration.set_ParentNetwork(parentNetwork)
+    #         configuration.set_FenceMode(fenceMode)
+    #         networkConfig = vcloudType.VAppNetworkConfigurationType()
+    #         networkConfig.set_networkName(network_name)
+    #         networkConfig.set_Configuration(configuration)
+    #         info = vcloudType.Msg_Type()
+    #         info.set_valueOf_("Configuration parameters for logical networks")
+    #         networkConfigSection = vcloudType.NetworkConfigSectionType()
+    #         networkConfigSection.add_NetworkConfig(networkConfig)
+    #         networkConfigSection.set_Info(info)
+    #         body = '<?xml version="1.0" encoding="UTF-8"?>' + \
+    #         ghf.convertPythonObjToStr(networkConfigSection, name = 'NetworkConfigSection',
+    #                                   namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"').\
+    #         replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info")
+    #         response = requests.put(vApp.me.get_href() + "/networkConfigSection/", data = body, headers=self.headers)
+    #         if response.status_code == requests.codes.accepted:
+    #             task = taskType.parseString(response.content, True)
+    #             ghf.display_progress(task, False, self.headers)
+    #             task = taskType.parseString(response.content, True)
+    #             return (True, task)
+    #         else:
+    #             return (False, response.content)
+    #     else:
+    #         ghf.print_error("network not found", args["--json"])
+    #         return (False, "network not found")
             
     def get_diskRefs(self):
         vdc = self._get_vdc()

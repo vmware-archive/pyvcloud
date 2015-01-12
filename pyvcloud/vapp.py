@@ -61,6 +61,8 @@ class VAPP(object):
         else:
             if http == "post":
                 response = requests.post(link[0].get_href(), data = body, headers=self.headers)
+            elif http == "put":
+                response = requests.put(link[0].get_href(), data = body, headers=self.headers)
             else:
                 response = requests.delete(link[0].get_href(), headers=self.headers)
             if response.status_code == requests.codes.accepted:
@@ -169,15 +171,6 @@ class VAPP(object):
         networkConfigSection.set_Info(info)
         return networkConfigSection
         
-    # def create_networkConnectionSection(self, network_name, ip_address_allocation_mode):
-    #     networkConnectionSection = vcloudType.NetworkConnectionSectionType()
-    #     info = vcloudType.Msg_Type()
-    #     info.set_valueOf_("Connection Information")
-    #     networkConnection = vcloudType.NetworkConnectionType(network=network_name, IpAddressAllocationMode=ip_address_allocation_mode, IsConnected=True, NetworkConnectionIndex=0)
-    #     networkConnectionSection.add_NetworkConnection(networkConnection)
-    #     networkConnectionSection.set_Info(info)
-    #     return networkConnectionSection
-        
     def connect_vms(self, network_name, ip_address_allocation_mode):
         children = self.me.get_Children()
         if children:
@@ -195,6 +188,81 @@ class VAPP(object):
                 if response.status_code == requests.codes.accepted:
                     task = taskType.parseString(response.content, True)
                     ghf.display_progress(task, False, self.headers)
+                    task = taskType.parseString(response.content, True)
+                    return (True, task)      
+                else:
+                    return (False, response.content)      
+                    
+    def connect_to_network(self, network_name, network_href, fence_mode, output_json, blocking):
+        # get link that contains url for sending http request to add a network
+        # this link is located under NetworkConfigSection of the vapp
+        vApp_NetworkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
+        link = [link for link in vApp_NetworkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]
+        # Now that we have the link for sending http requests, build the request body
+        networkConfigSection = VAPP.create_networkConfigSection(network_name, network_href, fence_mode)
+        # add the original networks to the networkConfigSection
+        for networkConfig in vApp_NetworkConfigSection.get_NetworkConfig():
+            if networkConfig.get_networkName().lower() == network_name.lower():
+                ghf.print_error("This vapp is already connected to org vdc network " + network_name, output_json)
+                return
+            networkConfigSection.add_NetworkConfig(networkConfig)
+        # need to be careful with replacing string because it might be wrong
+        body = ghf.convertPythonObjToStr(networkConfigSection, name = 'NetworkConfigSection',
+                                         namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"').\
+                                         replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").replace("vmw:", "")
+        response = requests.put(link.get_href(), data = body, headers = self.headers)
+        if response.status_code == requests.codes.accepted:
+            task = taskType.parseString(response.content, True)
+            # if blocking then display progress bar before outputing the result 
+            if blocking:
+                ghf.display_progress(task, output_json, self.headers)
+                task = taskType.parseString(response.content, True)
+                return (True, task)
+            # else display result immediately
+            else:
+                if output_json:
+                    print ghf.task_json(response.content)
+                else:
+                    print ghf.task_table(response.content)
+                return (False, response.content)
+        else:
+            # print the error message
+            ghf.print_xml_error(response.content, output_json)
+
+    # disconnect vapp from a network
+    def disconnect_from_network(self, network_name, output_json, blocking):
+        # get networkConfigSection of the vapp and remove the selected network
+        networkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
+        link = [link for link in networkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]
+        # this is the index of the networkConfig to be removed from the networkConfigSection
+        found = -1
+        for index, networkConfig in enumerate(networkConfigSection.get_NetworkConfig()):
+            if networkConfig.get_networkName().lower() == network_name.lower():
+                found = index
+        if found != -1:
+            networkConfigSection.NetworkConfig.pop(found)
+            # need to be careful with replacing string because it might be wrong
+            body = ghf.convertPythonObjToStr(networkConfigSection, name = 'NetworkConfigSection',
+                                             namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"').\
+                                             replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
+                                             replace("/Info", "/ovf:Info")
+            response = requests.put(link.get_href(), data = body, headers = self.headers)
+            if response.status_code == requests.codes.accepted:
+                task = taskType.parseString(response.content, True)
+                # if blocking then display progress bar before outputing the result 
+                if blocking:
+                    ghf.display_progress(task, output_json, self.headers)
+                # else display result immediately
+                else:
+                    if output_json:
+                        print ghf.task_json(response.content)
+                    else:
+                        print ghf.task_table(response.content)
+            else:
+                # print the error message
+                ghf.print_xml_error(response.content, output_json)
+        else:
+            ghf.print_error("No such network found in this vapp", output_json)                              
 
         
         

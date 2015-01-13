@@ -434,6 +434,77 @@ class VAPP(object):
         else:
             return False, response.content
 
+    def add_network(self, network_name, network_href, fence_mode):
+        vApp_NetworkConfigSection = [section for section in self.me.get_Section()
+                                     if (section.__class__.__name__ ==
+                                         "NetworkConfigSectionType")
+                                     ][0]
+        link = [link for link in vApp_NetworkConfigSection.get_Link()
+                if (link.get_type() ==
+                    "application/vnd.vmware.vcloud.networkConfigSection+xml")
+                ][0]
+
+        networkConfigSection = VAPP.create_networkConfigSection(
+            network_name, network_href, fence_mode)
+
+        for networkConfig in vApp_NetworkConfigSection.get_NetworkConfig():
+            if networkConfig.get_networkName().lower() == network_name.lower():
+                return (False,
+                        "VApp {0} is already connected to org vdc network {1}"
+                        .format(self.name, network_name))
+            networkConfigSection.add_NetworkConfig(networkConfig)
+
+        body = ghf.convertPythonObjToStr(
+            networkConfigSection,
+            name='NetworkConfigSection',
+            namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5"'
+                         ' xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"'
+        )
+        body = body.replace('Info msgid=""', "ovf:Info")
+        body = body.replace("/Info", "/ovf:Info")
+        body = body.replace("vmw:", "")
+
+        response = requests.put(link.get_href(), data = body, headers = self.headers)
+        if response.status_code == requests.codes.accepted:
+            task = taskType.parseString(response.content, True)
+            return True, task
+        else:
+            return False, response.content
+
+    def remove_network(self, network_name):
+        networkConfigSection = [section for section in self.me.get_Section()
+                                     if (section.__class__.__name__ ==
+                                         "NetworkConfigSectionType")
+                               ][0]
+        link = [link for link in networkConfigSection.get_Link()
+                if (link.get_type() ==
+                    "application/vnd.vmware.vcloud.networkConfigSection+xml")
+                ][0]
+
+        found = None
+        for index, networkConfig in enumerate(networkConfigSection.get_NetworkConfig()):
+            if networkConfig.get_networkName().lower() == network_name.lower():
+                found = index
+        if found is None:
+            networkConfigSection.NetworkConfig.pop(found)
+
+            body = ghf.convertPythonObjToStr(
+                networkConfigSection,
+                name = 'NetworkConfigSection',
+                namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" '
+                'xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"')
+            body = body.replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info")
+            body = body.replace("/Info", "/ovf:Info")
+            body = body.replace("vmw:", "")
+            response = requests.put(link.get_href(), data = body, headers = self.headers)
+            if response.status_code == requests.codes.accepted:
+                task = taskType.parseString(response.content, True)
+                return True, task
+            else:
+                return False, response.content
+        else:
+            return False, "Network {0} could not be found".format(network_name)
+
     def _create_request_body(self, obj, name, namespacedef):
         body = ghf.convertPythonObjToStr(obj,
                                          name=name,

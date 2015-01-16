@@ -1,4 +1,4 @@
-PyYAML==3.11
+PyYAML==3.10
 iptools==0.6.1
 lxml==3.4.0
 requests==2.4.3

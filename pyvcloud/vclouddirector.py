@@ -432,7 +432,6 @@ class VCD(object):
             for vmReference in listofvms.get_VmReference():
                 # print vmReference.name
                 vms.append(vmReference)
-            
             disks.append([disk, vms])
         return disks
         
@@ -463,3 +462,20 @@ class VCD(object):
                 return(False, response.content)
         else:
             return(False, 'disk not found')
+            
+    #usage attach_disk(vcd.get_vApp('vapp'), 'vm', 'disk')
+    def attach_disk(self, vApp, vm, disk):
+        diskRefs = filter(lambda diskRef: diskRef.get_href().endswith('/disk/' + disk) or diskRef.get_name() == disk, self.get_diskRefs())
+        if diskRefs:
+            return vApp.attach_disk_to_vm(vm, diskRefs[0])
+        else:
+            return (False, 'disk not found')
+            
+    def detach_disk(self, vApp, vm, disk):
+        diskRefs = filter(lambda diskRef: diskRef.get_href().endswith('/disk/' + disk) or diskRef.get_name() == disk, self.get_diskRefs())
+        if diskRefs:
+            return vApp.detach_disk_from_vm(vm, diskRefs[0])
+        else:
+            return (False, 'disk not found')
+            
+

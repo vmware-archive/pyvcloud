@@ -59,20 +59,24 @@ Sample vApp life cycle::
 
     #connect vApp to org network
     vcd.connect_vApp(vapp, 'AppServices-default-routed', 'bridged')
+    
+    #In some cases, the vApp template is connected to the default 'VM Network',
+    #in those cases it is safe to disconnect the vApp from that network
+    vapp.disconnect_from_network('VM Network')
 
     #connect the VMs
     vapp.connect_vms('AppServices-default-routed', 'POOL')
     
     #power on the vApp and VMs
-    vapp.poweron({'--blocking': True, '--json': True})
+    vapp.poweron()
     
 The vApp is now ready to use. When is time to delet it (need to get the vapp reference before each operation)::
 
     vapp = vcd.get_vApp('myvapp')
-    vapp.undeploy({'--blocking': True, '--json': True, '--action': 'shutdown'})
+    vapp.undeploy(action='shutdown')
 
     vapp = vcd.get_vApp('myvapp')
-    vapp.delete({'--blocking': True, '--json': True})    
+    vapp.delete()    
 
 Displaying the XML representation of the vApp::
 

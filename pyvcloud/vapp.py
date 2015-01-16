@@ -53,9 +53,12 @@ class VAPP(object):
                 result.append([name, status, cpu_capacity + " vCPUs", str(memory_capacity) + " GB", os, owner])
         return result
         
-    def execute(self, operation, blocking, failure_msg, http, output_json, body = None):
+    def execute(self, operation, blocking, failure_msg, http, output_json, body = None, targetVM = None):
         # get action link from vm or vapp that has the url of the desired operation
-        link = filter(lambda link: link.get_rel() == operation, self.me.get_Link())
+        if targetVM:
+            link = filter(lambda link: link.get_rel() == operation, targetVM.get_Link())
+        else:
+            link = filter(lambda link: link.get_rel() == operation, self.me.get_Link())
         if not link:
             ghf.print_error("This " + self.name + " " + failure_msg, output_json)
         else:
@@ -80,47 +83,47 @@ class VAPP(object):
                 # print the error message
                 ghf.print_xml_error(response.content, output_json)        
         
-    def deploy(self, args):
+    def deploy(self, blocking=True, output_json=True, powerOn='true'):
         # build the body for sending post request
         deployVAppParams = vcloudType.DeployVAppParamsType()
         # the valid values of on are true and false
-        deployVAppParams.set_powerOn(args["--on"])
+        deployVAppParams.set_powerOn(powerOn)
         body = ghf.convertPythonObjToStr(deployVAppParams, name = "DeployVAppParams",
                                          namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
-        self.execute("deploy", args["--blocking"], "can't be deployed", "post", args["--json"], body)
+        self.execute("deploy", blocking, "can't be deployed", "post", output_json, body)
 
-    def undeploy(self, args):
+    def undeploy(self, blocking=True, output_json=True, action='powerOff'):
         undeployVAppParams = vcloudType.UndeployVAppParamsType()
         # The valid values of action are powerOff (Power off the VMs. This is the default action if
         # this attribute is missing or empty), suspend (Suspend the VMs), shutdown (Shut down the VMs),
         # force (Attempt to power off the VMs. Failures in undeploying the VM or associated networks
         # are ignored. All references to the vApp and its VMs are removed from the database),
         # default (Use the actions, order, and delay specified in the StartupSection).
-        undeployVAppParams.set_UndeployPowerAction(args["--action"])
+        undeployVAppParams.set_UndeployPowerAction(action)
         body = ghf.convertPythonObjToStr(undeployVAppParams, name = "UndeployVAppParams",
                                          namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
-        self.execute("undeploy", args["--blocking"], "can't be undeployed", "post", args["--json"], body)
+        self.execute("undeploy", blcoking, "can't be undeployed", "post", output_json, body)
 
-    def reboot(self, args):
-        self.execute("power:reboot", args["--blocking"], "can't be rebooted", "post", args["--json"])
+    def reboot(self, blocking=True, output_json=True):
+        self.execute("power:reboot", blocking, "can't be rebooted", "post", output_json)
 
-    def poweron(self, args):
-        self.execute("power:powerOn", args["--blocking"], "can't be powered on", "post", args["--json"])
+    def poweron(self, blocking=True, output_json=True):
+        self.execute("power:powerOn", blocking, "can't be powered on", "post", output_json)
 
-    def poweroff(self, args):
-        self.execute("power:powerOff", args["--blocking"], "can't be powered off", "post", args["--json"])
+    def poweroff(self, blocking=True, output_json=True):
+        self.execute("power:powerOff", blocking, "can't be powered off", "post", output_json)
 
-    def shutdown(self, args):
-        self.execute("power:shutdown", args["--blocking"], "can't be shutdown", "post", args["--json"])
+    def shutdown(self, blocking=True, output_json=True):
+        self.execute("power:shutdown", blocking, "can't be shutdown", "post", output_json)
 
-    def suspend(self, args):
-        self.execute("power:suspend", args["--blocking"], "can't be suspended", "post", args["--json"])
+    def suspend(self, blocking=True, output_json=True):
+        self.execute("power:suspend", blocking, "can't be suspended", "post", output_json)
 
-    def reset(self, args):
-        self.execute("power:reset", args["--blocking"], "can't be reset", "post", args["--json"])
+    def reset(self, blocking=True, output_json=True):
+        self.execute("power:reset", blocking, "can't be reset", "post", output_json)
 
-    def delete(self, args):
-        self.execute("remove", args["--blocking"], "can't be deleted", "delete", args["--json"])
+    def delete(self, blocking=True, output_json=True):
+        self.execute("remove", blocking, "can't be deleted", "delete", output_json)
 
     def create_snapshot(self, args):
         createSnapshotParams = vcloudType.CreateSnapshotParamsType()
@@ -191,9 +194,12 @@ class VAPP(object):
                     task = taskType.parseString(response.content, True)
                     return (True, task)      
                 else:
-                    return (False, response.content)      
+                    return (False, response.content)     
                     
-    def connect_to_network(self, network_name, network_href, fence_mode, output_json, blocking):
+    def disconnect_vms(self, network_name):
+        pass 
+                    
+    def connect_to_network(self, network_name, network_href, fence_mode, output_json=True, blocking=True):
         # get link that contains url for sending http request to add a network
         # this link is located under NetworkConfigSection of the vapp
         vApp_NetworkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
@@ -230,7 +236,7 @@ class VAPP(object):
             ghf.print_xml_error(response.content, output_json)
 
     # disconnect vapp from a network
-    def disconnect_from_network(self, network_name, output_json, blocking):
+    def disconnect_from_network(self, network_name, output_json=True, blocking=True):
         # get networkConfigSection of the vapp and remove the selected network
         networkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
         link = [link for link in networkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]
@@ -262,8 +268,32 @@ class VAPP(object):
                 # print the error message
                 ghf.print_xml_error(response.content, output_json)
         else:
-            ghf.print_error("No such network found in this vapp", output_json)                              
+            ghf.print_error("No such network found in this vapp", output_json)        
+            
+    def attach_disk_to_vm(self, vm_name, disk_ref):
+        children = self.me.get_Children()
+        if children:            
+            vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
+            if vms:
+                body = """
+                 <DiskAttachOrDetachParams xmlns="http://www.vmware.com/vcloud/v1.5">
+                     <Disk type="application/vnd.vmware.vcloud.disk+xml"
+                         href="%s" />
+                 </DiskAttachOrDetachParams>
+                """ % disk_ref.href
+                return self.execute("disk:attach", True, "can't be attached", "post", True, body=body, targetVM=vms[0])
 
-        
+    def detach_disk_from_vm(self, vm_name, disk_ref):
+        children = self.me.get_Children()
+        if children:            
+            vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
+            if vms:
+                body = """
+                 <DiskAttachOrDetachParams xmlns="http://www.vmware.com/vcloud/v1.5">
+                     <Disk type="application/vnd.vmware.vcloud.disk+xml"
+                         href="%s" />
+                 </DiskAttachOrDetachParams>
+                """ % disk_ref.href
+                return self.execute("disk:detach", True, "can't be detached", "post", True, body=body, targetVM=vms[0])        
         
                         

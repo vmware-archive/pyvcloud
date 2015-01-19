@@ -102,7 +102,7 @@ class VAPP(object):
         undeployVAppParams.set_UndeployPowerAction(action)
         body = ghf.convertPythonObjToStr(undeployVAppParams, name = "UndeployVAppParams",
                                          namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
-        self.execute("undeploy", blcoking, "can't be undeployed", "post", output_json, body)
+        self.execute("undeploy", blocking, "can't be undeployed", "post", output_json, body)
 
     def reboot(self, blocking=True, output_json=True):
         self.execute("power:reboot", blocking, "can't be rebooted", "post", output_json)

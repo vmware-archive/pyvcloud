@@ -36,8 +36,8 @@ class VCD(object):
         self.headers = self._get_vcdHeaders()
         # self.href = vdcLink.get_href()
         self.service = serviceId
-        self.vdc = vdcId        
-        
+        self.vdc = vdcId
+
     def _get_vcdHeaders(self):
         headers = {}
         headers["x-vcloud-authorization"] = self.token
@@ -47,7 +47,7 @@ class VCD(object):
     def _get_vdc(self):
         response = requests.get(self.href, headers = self.headers)
         return vdcType.parseString(response.content, True)
-        
+
     def get_vdcResources(self):
         vdc = self._get_vdc()
         computeCapacity = vdc.get_ComputeCapacity()
@@ -55,7 +55,7 @@ class VCD(object):
         memory = computeCapacity.get_Memory()
         storageCapacity = vdc.get_StorageCapacity()
         return (cpu, memory, storageCapacity)
-        
+
     def get_gateways(self):
         gateways = []
         link = filter(lambda link: link.get_rel() == "edgeGateways", self._get_vdc().get_Link())
@@ -67,13 +67,13 @@ class VCD(object):
                 edgeGateway = networkType.parseString(response.content, True)
                 gateways.append(Gateway(edgeGateway, self.headers))
         return gateways
-        
+
     def get_gateway(self, gatewayId):
         gateways = filter(lambda gateway: gateway.get_name() == gatewayId, self.get_gateways())
         if gateways:
             return gateways[0]
         return None
-        
+
     # for now, each user is under one org
     def get_org(self):
         vdc = self._get_vdc()
@@ -95,8 +95,8 @@ class VCD(object):
         for link in links:
             response = requests.get(link.get_href(), headers = self.headers)
             catalogs.append(catalogType.parseString(response.content, True))
-        return catalogs       
-         
+        return catalogs
+
     # this method returns a list of catalogs (together with their details) inside the organization that manages the vdc
     # note, this might be limited to 25 by default
     def list_catalogs(self):
@@ -129,7 +129,7 @@ class VCD(object):
             queryResultRecords = ET.fromstring(response.content)
             more_pages = [child for child in queryResultRecords if "Link" in child.tag and child.attrib['rel'] == 'nextPage']
             if more_pages:
-                page = page + 1                
+                page = page + 1
             vAppTemplateRecords = [child for child in queryResultRecords if "VAppTemplateRecord" in child.tag]
             if vAppTemplateRecords:
                 # filter out other catalogs if catalog is specified
@@ -163,11 +163,11 @@ class VCD(object):
                     print ghf.task_table(response.content)
                 else:
                     pass
-            return (True, task)                            
+            return (True, task)
         else:
-            ghf.print_xml_error(response.content, args["--json"])                    
+            ghf.print_xml_error(response.content, args["--json"])
             return (False, None)
-        
+
     def get_task(self, task, mode=None):
         response = requests.get(task.get_href(), headers = self.headers)
         if response.status_code == requests.codes.ok:
@@ -179,11 +179,11 @@ class VCD(object):
                     print ghf.task_table(response.content)
                 else:
                     pass
-            return (True, task)                            
+            return (True, task)
         else:
-            ghf.print_xml_error(response.content, args["--json"])                    
+            ghf.print_xml_error(response.content, args["--json"])
             return (False, None)
-    
+
     def get_tasks(self):
         vdc = self._get_vdc()
         o = urlparse(vdc.get_href())
@@ -203,7 +203,7 @@ class VCD(object):
             #         print ghf.task_table(response.content)
             #     else:
             #         pass
-            
+
     def get_vAppRefs(self):
         vdc = self._get_vdc()
         resourceEntities = vdc.get_ResourceEntities().get_ResourceEntity()
@@ -224,7 +224,7 @@ class VCD(object):
             response = requests.get(vAppRefs[0].get_href(), headers=self.headers)
             vapp = vAppType.parseString(response.content,True)
             return VAPP(vapp, self.headers)
-            
+
     def create_vApp(self, vAppName, template, catalogName, args):
         catalogRefs = filter(lambda catalogRef: catalogRef.get_name().lower() == catalogName.lower(), self.get_catalogRefs())
         if catalogRefs:
@@ -263,15 +263,15 @@ class VCD(object):
                         instantiationParams = vcloudType.InstantiationParamsType()
                         instantiationParams.add_Section(networkConfigSection)
                         # add networkConnectionSection to templateParams
-                        ipAddressAllocationMode = args["--IpAddressAllocationMode"]        
+                        ipAddressAllocationMode = args["--IpAddressAllocationMode"]
                             # def create_networkConnectionSection(network_name, network_href, IpAddressAllocationMode):
                         # networkConnectionSection = VAPP.create_networkConnectionSection(network_name, network_href, ipAddressAllocationMode)
                         # instantiationParams.add_Section(networkConnectionSection)
-                        
+
                         templateParams.set_InstantiationParams(instantiationParams)
                     else:
                         ghf.print_error("no such network found", args["--json"])
-                        return (False, None)  
+                        return (False, None)
 
                 # turn templateParams into body of http requests (a bit complicated because some of the elements
                 # inside templateParams do not have the right names that can be used as the body of http request
@@ -280,7 +280,7 @@ class VCD(object):
                 ghf.convertPythonObjToStr(templateParams, name = 'InstantiateVAppTemplateParams',
                                           namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"').\
                 replace("ovf:Section", "NetworkConfigSection", 2).replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info")
-                
+
                 #if version >= 5.6
                 # body = body.replace("<AllEULAsAccepted>",
                 # """
@@ -314,7 +314,7 @@ class VCD(object):
                     vApp = vAppType.parseString(response.content, True)
                     task = vApp.get_Tasks().get_Task()[0]
                     task_string = ghf.convertPythonObjToStr(task, name = 'Task')
-                    # if blocking then display progress bar before outputing the result 
+                    # if blocking then display progress bar before outputing the result
                     if args["--blocking"]:
                         ghf.display_progress(task, args["--json"], self.headers)
                     # else display result immediately
@@ -327,14 +327,14 @@ class VCD(object):
                 else:
                     # print error
                     # ghf.print_xml_error(response.content, args["--json"])
-                    return(False, response.content)  
+                    return(False, response.content)
             else:
                 # ghf.print_error("No such template found in this catalog", args["--json"])
                 return(False, "No such template found in this catalog")
         else:
-            # ghf.print_error("No such catalog found", args["--json"])   
+            # ghf.print_error("No such catalog found", args["--json"])
             return(False, "No such catalog found")
-            
+
     def connect_vApp(self, vApp, networkName, fenceMode):
         networkRefs = filter(lambda networkRef: networkRef.get_name().lower() == networkName.lower(), self.get_networkRefs())
         if networkRefs:
@@ -344,10 +344,10 @@ class VCD(object):
         else:
             ghf.print_error("network not found", args["--json"])
             return (False, "network not found")
-    
+
     def disconnect_vApp(self, vApp, networkName):
         return vApp.disconnect_from_network(networkName, False, True)
-            
+
     # def connect_vApp(self, vApp, networkName, fenceMode):
     #     networkRefs = filter(lambda networkRef: networkRef.get_name().lower() == networkName.lower(), self.get_networkRefs())
     #     if networkRefs:
@@ -380,13 +380,13 @@ class VCD(object):
     #     else:
     #         ghf.print_error("network not found", args["--json"])
     #         return (False, "network not found")
-            
+
     def get_diskRefs(self):
         vdc = self._get_vdc()
         resourceEntities = vdc.get_ResourceEntities().get_ResourceEntity()
         return [resourceEntity for resourceEntity in resourceEntities
                     if resourceEntity.get_type() == "application/vnd.vmware.vcloud.disk+xml"]
-                    
+
     def _parse_disk(self, content):
         diskDesc = diskType.parseString(content, True)
         disk = DiskType()
@@ -395,7 +395,7 @@ class VCD(object):
         disk.set_name(diskDesc.anyAttributes_.get('name'))
         disk.set_size(diskDesc.anyAttributes_.get('size'))
         disk.set_busType(diskDesc.anyAttributes_.get('busType'))
-        disk.set_busSubType(diskDesc.anyAttributes_.get('busSubType'))            
+        disk.set_busSubType(diskDesc.anyAttributes_.get('busSubType'))
         disk.set_status(diskDesc.anyAttributes_.get('status'))
         xml = ET.fromstring(content)
         for child in xml:
@@ -407,9 +407,9 @@ class VCD(object):
             if '{http://www.vmware.com/vcloud/v1.5}StorageProfile' == child.tag:
                 storageProfile = VdcStorageProfileType()
                 storageProfile.set_name(child.attrib['name'])
-                disk.set_StorageProfile(storageProfile)        
+                disk.set_StorageProfile(storageProfile)
         return disk
-        
+
     # return all independent disks within this virtual data center
     def get_disks(self):
         links = self.get_diskRefs()
@@ -428,13 +428,13 @@ class VCD(object):
                 vms.append(vmReference)
             disks.append([disk, vms])
         return disks
-        
+
     def add_disk(self, name, size):
         body = """
                 <vcloud:DiskCreateParams xmlns:vcloud="http://www.vmware.com/vcloud/v1.5">
                     <vcloud:Disk name="%s" size="%s"/>
                 </vcloud:DiskCreateParams>
-            """ % (name, size)        
+            """ % (name, size)
         vdc = self._get_vdc()
         content_type = "application/vnd.vmware.vcloud.diskCreateParams+xml"
         link = filter(lambda link: link.get_type() == content_type, vdc.get_Link())
@@ -444,19 +444,19 @@ class VCD(object):
             return(True, disk)
         else:
             return(False, response.content)
-            
+
     def delete_disk(self, id):
         link = filter(lambda link: link.get_href().endswith(id), self.get_diskRefs())
         if len(link)>0:
             response = requests.delete(link[0].get_href(), headers=self.headers)
             if response.status_code == requests.codes.accepted:
                 task = taskType.parseString(response.content, True)
-                return (True, task)            
+                return (True, task)
             else:
                 return(False, response.content)
         else:
             return(False, 'disk not found')
-            
+
     #usage attach_disk(vcd.get_vApp('vapp'), 'vm', 'disk')
     def attach_disk(self, vApp, vm, disk):
         diskRefs = filter(lambda diskRef: diskRef.get_href().endswith('/disk/' + disk) or diskRef.get_name() == disk, self.get_diskRefs())
@@ -464,7 +464,7 @@ class VCD(object):
             return vApp.attach_disk_to_vm(vm, diskRefs[0])
         else:
             return (False, 'disk not found')
-            
+
     def detach_disk(self, vApp, vm, disk):
         diskRefs = filter(lambda diskRef: diskRef.get_href().endswith('/disk/' + disk) or diskRef.get_name() == disk, self.get_diskRefs())
         if diskRefs:
@@ -483,3 +483,65 @@ class VCD(object):
             self.get_networkRefs())
         if len(network_refs) == 1:
             return network_refs[0].get_href()
+
+    def get_admin_network_href(self, network_name):
+        vdc = self._get_vdc()
+        link = filter(lambda link: link.get_rel() == "orgVdcNetworks",
+                      vdc.get_Link())
+        response = requests.get(link[0].get_href(), headers=self.headers)
+        queryResultRecords = queryRecordViewType.parseString(response.content,
+                                                             True)
+        if response.status_code == requests.codes.ok:
+            for record in queryResultRecords.get_Record():
+                if record.name == network_name:
+                    return record.href
+
+    def create_vdc_network(self, network_name, gateway_name, start_address,
+                           end_address, gateway_ip, netmask,
+                           dns1, dns2, dns_suffix):
+        vdc = self._get_vdc()
+        gateway = ReferenceType(href=self.get_gateway(gateway_name).me.href)
+        gateway.original_tagname_ = "EdgeGateway"
+
+        iprange = IpRangeType(StartAddress=start_address,
+                              EndAddress=end_address)
+        ipranges = IpRangesType(IpRange=[iprange])
+        ipscope = IpScopeType(IsInherited=False,
+                              Gateway=gateway_ip,
+                              Netmask=netmask,
+                              Dns1=dns1,
+                              Dns2=dns2,
+                              DnsSuffix=dns_suffix,
+                              IpRanges=ipranges)
+        ipscopes = IpScopesType(IpScope=[ipscope])
+
+        configuration = NetworkConfigurationType(IpScopes=ipscopes,
+                                                 FenceMode="natRouted")
+        net = OrgVdcNetworkType(name=network_name, Description="Network reated by pyvcloud",
+                                EdgeGateway=gateway, Configuration=configuration,
+                                IsShared=False)
+        namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"'
+        content_type = "application/vnd.vmware.vcloud.orgVdcNetwork+xml"
+        body = '<?xml version="1.0" encoding="UTF-8"?>{0}'.format(
+            ghf.convertPythonObjToStr(net, name='OrgVdcNetwork',
+                                      namespacedef=namespacedef))
+        postlink = filter(lambda link: link.get_type() == content_type,
+                          vdc.get_Link())[0].href
+        headers = self.headers
+        headers["Content-Type"] = content_type
+        response = requests.post(postlink, data=body, headers=headers)
+        if response.status_code == requests.codes.created:
+            network = networkType.parseString(response.content, True)
+            task = network.get_Tasks().get_Task()[0]
+            return (True, task)
+        else:
+            return (False, response.content)
+
+    def delete_vdc_network(self, network_name):
+        netref = self.get_admin_network_href(network_name)
+        response = requests.delete(netref, headers=self.headers)
+        if response.status_code == requests.codes.accepted:
+            task = taskType.parseString(response.content, True)
+            return (True, task)
+        else:
+            return (False, response.content)

@@ -449,9 +449,7 @@ class VAPP(object):
 
         for networkConfig in vApp_NetworkConfigSection.get_NetworkConfig():
             if networkConfig.get_networkName().lower() == network_name.lower():
-                return (False,
-                        "VApp {0} is already connected to org vdc network {1}"
-                        .format(self.name, network_name))
+                continue
             networkConfigSection.add_NetworkConfig(networkConfig)
 
         body = ghf.convertPythonObjToStr(

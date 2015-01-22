@@ -20,6 +20,8 @@ from gateway import Gateway
 from vapp import VAPP
 from schema.vcd.v1_5.schemas.vcloud import networkType, vdcType, queryRecordViewType, taskType, vAppType, organizationType, catalogType, diskType, vmsType, vcloudType
 from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import OrgVdcNetworkType, ReferenceType, NetworkConfigurationType, IpScopesType, IpScopeType,  IpRangesType, IpRangeType
+
 from helper import generalHelperFunctions as ghf
 from urlparse import urlparse
 from xml.etree import ElementTree as ET

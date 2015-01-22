@@ -21,7 +21,7 @@ MAX_LEASE = 7200
 
 import requests
 from schema.vcd.v1_5.schemas.vcloud import networkType, vdcType, queryRecordViewType, taskType
-from schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType
+from schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType, DhcpPoolServiceType
 from iptools import ipv4, IpRange
 from tabulate import tabulate
 from helper import generalHelperFunctions as ghf

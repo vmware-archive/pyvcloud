@@ -15,6 +15,10 @@
 
 # coding: utf-8
 
+DEFAULT_LEASE = 3600
+MAX_LEASE = 7200
+
+
 import requests
 from schema.vcd.v1_5.schemas.vcloud import networkType, vdcType, queryRecordViewType, taskType
 from schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType

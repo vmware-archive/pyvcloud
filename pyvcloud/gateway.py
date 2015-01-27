@@ -22,6 +22,7 @@ MAX_LEASE = 7200
 import requests
 from schema.vcd.v1_5.schemas.vcloud import networkType, vdcType, queryRecordViewType, taskType
 from schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType, DhcpPoolServiceType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import FirewallRuleType, ProtocolsType
 from iptools import ipv4, IpRange
 from tabulate import tabulate
 from helper import generalHelperFunctions as ghf
@@ -66,9 +67,6 @@ class Gateway(object):
         for natRule in natRules:
             result.append(natRule)
         return result
-
-    def get_fw_rules(self):
-        pass
 
     def _post_nat_rules(self, new_rules, new_port=-1):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
@@ -184,12 +182,9 @@ class Gateway(object):
                              edgeGatewayServiceConfiguration.get_NetworkService())[0]
         return dhcpService.get_Pool()
 
-    def _post_dhcp_pools(self, pools):
+    def _post_configuration(self):
         gatewayConfiguration = self.me.get_Configuration()
         edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
-        dhcpService = filter(lambda service: service.__class__.__name__ == "GatewayDhcpServiceType",
-                             edgeGatewayServiceConfiguration.get_NetworkService())[0]
-        dhcpService.set_Pool(pools)
         body = '<?xml version="1.0" encoding="UTF-8"?>' + \
                ghf.convertPythonObjToStr(edgeGatewayServiceConfiguration, name='EdgeGatewayServiceConfiguration',
                                          namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ')
@@ -203,6 +198,14 @@ class Gateway(object):
             return (True, task)
         else:
             return (False, response.content)
+
+    def _post_dhcp_pools(self, pools):
+        gatewayConfiguration = self.me.get_Configuration()
+        edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
+        dhcpService = filter(lambda service: service.__class__.__name__ == "GatewayDhcpServiceType",
+                             edgeGatewayServiceConfiguration.get_NetworkService())[0]
+        dhcpService.set_Pool(pools)
+        return self._post_configuration()
 
     def add_dhcp_pool(self, network_name, low_ip_address, hight_ip_address,
                       default_lease, max_lease):
@@ -226,3 +229,62 @@ class Gateway(object):
     def delete_dhcp_pool(self, network_name):
         pools = [p for p in self.get_dhcp_pools() if p.get_Network().name != network_name]
         return self._post_dhcp_pools(pools)
+
+    def _getFirewallService(self):
+        gatewayConfiguration = self.me.get_Configuration()
+        edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
+        return filter(lambda service: service.__class__.__name__ == "FirewallServiceType",
+                      edgeGatewayServiceConfiguration.get_NetworkService())[0]
+
+    def _post_firewall_rules(self, rules):
+        self._getFirewallService().set_FirewallRule(rules)
+        return self._post_configuration()
+
+    def get_fw_rules(self):
+        return self._getFirewallService().get_FirewallRule()
+
+    def add_fw_rule(self, is_enable, description, policy, protocol, dest_port, dest_ip,
+                    source_port, source_ip, enable_logging):
+        protocols = _create_protocols_type(protocol)
+        new_rule = FirewallRuleType(IsEnabled=is_enable,
+                                    Description=description, Policy=policy, Protocols=protocols,
+                                    DestinationPortRange=dest_port, DestinationIp=dest_ip,
+                                    SourcePortRange=source_port, SourceIp=source_ip,
+                                    EnableLogging=enable_logging)
+        rules = self.get_fw_rules()
+        rules.append(new_rule)
+        return self._post_firewall_rules(rules)
+
+    def delete_fw_rule(self, protocol, dest_port, dest_ip,
+                       source_port, source_ip):
+        def create_protocol_list(protocol):
+            plist = []
+            plist.append(protocol.get_Tcp())
+            plist.append(protocol.get_Any())
+            plist.append(protocol.get_Tcp())
+            plist.append(protocol.get_Udp())
+            plist.append(protocol.get_Icmp())
+            plist.append(protocol.get_Other())
+            return plist
+        rules = self.get_fw_rules()
+        new_rules = []
+        to_delete_trait = (create_protocol_list(_create_protocols_type(protocol)),
+                           dest_port, dest_ip,
+                           source_port, source_ip)
+        for rule in rules:
+            current_trait = (create_protocol_list(rule.get_Protocols()),
+                             rule.get_DestinationPortRange(),
+                             rule.get_DestinationIp(),
+                             rule.get_SourcePortRange(),
+                             rule.get_SourceIp())
+            if current_trait == to_delete_trait:
+                continue
+            else:
+                new_rules.append(rule)
+        return self._post_firewall_rules(new_rules)
+
+
+def _create_protocols_type(protocol):
+    all_protocols = {"Tcp": None, "Udp": None, "Icmp": None, "Any": None}
+    all_protocols[protocol] = True
+    return ProtocolsType(**all_protocols)

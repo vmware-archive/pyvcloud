@@ -13,7 +13,7 @@ Installation:
     $ pip install vca-cli
     
 
-Upgrade a previous installation:
+Upgrade from a previous installation:
 
         
     $ pip install vca-cli --upgrade
@@ -29,221 +29,47 @@ Uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMwa
 
 Usage:
 
-    
-    $ vca --help
-    Usage: vca [OPTIONS] COMMAND [ARGS]...
-    
-      VMware vCloud Air Command Line Interface.
-      
-    Options:
-      -p, --profile <profile>  Profile id
-      -v, --version            Show version
-      -d, --debug              Enable debug
-      -h, --help               Show this message and exit.
-      
-    Commands:
-      catalogs     Operations with catalogs
-      datacenters  Operations with virtual data centers
-      disks        Operations with disks
-      gateways     Operations with gateways
-      login        Login to a vCloud service
-      logout       Logout from a vCloud service
-      nat          Operations with gateway NAT rules
-      networks     Operations with networks
-      profiles     Configure profiles
-      services     Operations with services
-      status       Show current status
-      tasks        Operations with tasks
-      templates    Operations with templates
-      vapps        Operations with vApps
-      vms          Operations with VMs  
-      
-      
-
-Log in to vCloud Air:
-
-      
-    $ vca login --help
-    Usage: vca login [OPTIONS] USER
-    
-      Login to a vCloud service
-      
-    Options:
-      -H, --host TEXT
-      -p, --password TEXT
-      -h, --help           Show this message and exit.
-      
-    
-    $ vca login myname@mycomp.com
-    Password: ********
-    Login successful with profile 'default'
-    
-
-Alternatively:
+Login
 
     
-    $ vca login myname@mycomp.com --password my_secret_password
-    Login successful with profile 'default'
+    # vCA on demand
+    vca login user@domain.com --password ********
+    # same as
+    vca login user@domain.com --password ******** --host iam.vchs.vmware.com --type ondemand --version 5.7
+    
+    # vCA subscription
+    vca login user@domain.com --password ******** --host vchs.vmware.com --type subscription --version 5.6
+    
+    # vCD
+    vca login user@domain.com --password ******** --host vcdhost.domain.com --org myorg --type vcd --version 5.6
     
 
-List services and virtual datacenters available to the user:
+
+On Demand, login to a specific instance and get the details of the instance (organization):
 
     
-    $ vca services    
-    Available services for 'default' profile:
-    | ID              | Type                   | Region          |
-    |-----------------+------------------------+-----------------|
-    | 85-719          | compute:dedicatedcloud | US - Nevada     |
-    | 20-162          | compute:vpc            | US - Nevada     |
-    | M536557417-4609 | compute:dr2c           | US - California |
-    | M869414061-4607 | compute:dr2c           | US - Nevada     |
-    | M409710659-4610 | compute:dr2c           | US - Texas      |
-    | M371661272-4608 | compute:dr2c           | US - Virginia   |    
-    
-    
-    $ vca datacenters --service 85-719
-    Available datacenters in service '85-719' for 'default' profile:
-    | Virtual Data Center   | Status   | Service ID   | Service Type           | Region      |
-    |-----------------------+----------+--------------+------------------------+-------------|
-    | Marketing             | Active   | 85-719       | compute:dedicatedcloud | US - Nevada |
-    | RnD                   | Active   | 85-719       | compute:dedicatedcloud | US - Nevada |
-    | Production            | Active   | 85-719       | compute:dedicatedcloud | US - Nevada |
-    | DevOps                | Active   | 85-719       | compute:dedicatedcloud | US - Nevada |
-    | AppServices           | Active   | 85-719       | compute:dedicatedcloud | US - Nevada |    
-    
-    
-    $ vca gateways --service 85-719 --datacenter AppServices
-    Available gateways in datacenter 'AppServices' in service '85-719' for 'default' profile:
-    | Datacenter   | Gateway     |
-    |--------------+-------------|
-    | AppServices  | AppServices |
-    
+    vca login user@domain.com --password ********
+    vca instances
+    vca login user@domain.com --password ******** --instance c40ba6b4-c158-49fb-b164-5c66f90344fa
+    vca org
     
 
-Configure values for service, datacenter and gateway and set as the default profile:
+Connection status
 
     
-    $ vca profiles --service 85-719 --datacenter AppServices --gateway AppServices set
-    Profile-default
-    	host=https://vchs.vmware.com
-    	user=myname@mycomp.com
-    	service=85-719
-    	gateway=AppServices
-    	datacenter=AppServices
-    	token=d188143a5d4642745d9c46c696...
+    vca status
     
-    
-    $ vca status
-    profile:    default
-    host:       https://vchs.vmware.com
-    user:       myname@mycomp.com
-    service:    85-719
-    datacenter: AppServices
-    gateway:    AppServices
-    session:    active    
+    profile:         default
+    host:            https://iam.vchs.vmware.com
+    service type:    ondemand
+    service version: 5.7
+    user:            user@domain.com
+    session:         active
     
 
-List vApps, VMs, catalogs and templates:
+Logout
 
     
+    vca logout
     
-    $ vca vapps --vms
-    Available vApps in datacenter 'AppServices' for 'vcd' profile:
-    | Service   | Datacenter   | vApp   | VMs     | Status     | Owner            | Date Created         |
-    |-----------+--------------+--------+---------+------------+------------------+----------------------|
-    | 85-719    | AppServices  | ub     | ['ub']  | Powered on | myname@mycomp.com | 12/11/2014 05:41:17 |
-    | 85-719    | AppServices  | cts    | ['cts'] | Powered on | myname@mycomp.com | 12/11/2014 02:58:13 |    
-    
-    
-    $ vca catalogs    
-    Available catalogs in datacenter 'AppServices' for 'vcd' profile:
-    | Catalog        |   # Templates |   # Media | Owner             | Published   | Shared   |
-    |----------------+---------------+-----------+-------------------+-------------+----------|
-    | blueprints     |             3 |         0 | pgomez@vmware.com | false       | false    |
-    | Public Catalog |            15 |         0 | system            | true        | true     |    
-    
-    
-    $ vca templates
-    Available templates in datacenter 'AppServices' for 'vcd' profile:
-    | Catalog        | Template                                 | Status   | Owner             |   # VMs |   # CPU |   Memory(GB) |   Storage(GB) | Storage Profile   |
-    |----------------+------------------------------------------+----------+-------------------+---------+---------+--------------+---------------+-------------------|
-    | Public Catalog | CentOS63-32Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
-    | Public Catalog | CentOS63-64Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
-    | Public Catalog | CentOS64-32Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
-    | Public Catalog | CentOS64-64Bit                           | RESOLVED | system            |       1 |       1 |            1 |            20 | SSD-Accelerated   |
-    | blueprints     | cts_6_4_64bit                            | RESOLVED | pgomez@vmware.com |       1 |       1 |            2 |            20 | SSD-Accelerated   |
-    | Public Catalog | Ubuntu Server 12.04 LTS (amd64 20140927) | RESOLVED | system            |       1 |       1 |            1 |            10 | SSD-Accelerated   |
-    | Public Catalog | Ubuntu Server 12.04 LTS (i386 20140927)  | RESOLVED | system            |       1 |       1 |            1 |            10 | SSD-Accelerated   |
-    | blueprints     | ubuntu_1204_64bit                        | RESOLVED | pgomez@vmware.com |       1 |       2 |            4 |            64 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-64BIT                          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            40 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-64BIT-SQL2K12-STD-SP1          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            40 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-64BIT-SQL2K12-WEB-SP1          | RESOLVED | catalog_admin     |       1 |       1 |            4 |            40 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-R2-64BIT                       | RESOLVED | system            |       1 |       1 |            4 |            40 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-R2-SQL2K14-STD                 | RESOLVED | system            |       1 |       1 |            4 |            40 | SSD-Accelerated   |
-    | Public Catalog | W2K12-STD-R2-SQL2K14-WEB                 | RESOLVED | system            |       1 |       1 |            4 |            40 | SSD-Accelerated   |
-    | Public Catalog | W2K8-STD-R2-64BIT                        | RESOLVED | system            |       1 |       1 |            2 |            40 | SSD-Accelerated   |
-    | Public Catalog | W2K8-STD-R2-64BIT-SQL2K8-STD-R2-SP2      | RESOLVED | catalog_admin     |       1 |       1 |            4 |            40 | SSD-Accelerated   |
-    | Public Catalog | W2K8-STD-R2-64BIT-SQL2K8-WEB-R2-SP2      | RESOLVED | catalog_admin     |       1 |       1 |            4 |            40 | SSD-Accelerated   |    
-    
-    
-    $ vca templates --catalog blueprints
-    Available templates in datacenter 'AppServices' for 'vcd' profile:
-    | Catalog    | Template             | Status   | Owner             |   # VMs |   # CPU |   Memory(GB) |   Storage(GB) | Storage Profile   |
-    |------------+----------------------+----------+-------------------+---------+---------+--------------+---------------+-------------------|
-    | blueprints | CoreOS-WLAM-TEMPLATE | RESOLVED | pgomez@vmware.com |       1 |       2 |            1 |             8 | SSD-Accelerated   |
-    | blueprints | cts_6_4_64bit        | RESOLVED | pgomez@vmware.com |       1 |       1 |            2 |            20 | SSD-Accelerated   |
-    | blueprints | ubuntu_1204_64bit    | RESOLVED | pgomez@vmware.com |       1 |       2 |            4 |            64 | SSD-Accelerated   |    
-    
-
-Working with Edge Gateway NAT rules:
-
-    
-    $ vca nat
-    list of nat rules
-    |   Rule ID | Enabled   | Type   | Original IP      | Original Port   | Translated IP   | Translated Port   | Protocol   | Applied On   |
-    |-----------+-----------+--------+------------------+-----------------+-----------------+-------------------+------------+--------------|
-    |     65538 | True      | SNAT   | 192.168.109.0/24 | any             | 192.240.158.81  | any               | any        | d0p1-ext     |
-    |     65537 | True      | DNAT   | 192.240.158.81   | 22              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
-    |     65540 | True      | DNAT   | 192.240.158.81   | 8080            | 192.168.109.4   | 8080              | tcp        | d0p1-ext     |
-    
-    
-    $ vca nat add DNAT 192.240.158.81 80 192.168.109.2 80 tcp
-    adding nat rule
-    +-------------+-----------------------------------------------------------------------------------------------+
-    | @startTime  | 2014-12-18T02:58:24.777Z                                                                      |
-    +-------------+-----------------------------------------------------------------------------------------------+
-    | @status     | running                                                                                       |
-    +-------------+-----------------------------------------------------------------------------------------------+
-    | @href       | https://p1v21-vcd.vchs.vmware.com/api/task/1e449f40-c25f-4037-8475-ff783dca5eef               |
-    +-------------+-----------------------------------------------------------------------------------------------+
-    | task:cancel | https://p1v21-vcd.vchs.vmware.com/api/task/1e449f40-c25f-4037-8475-ff783dca5eef/action/cancel |
-    +-------------+-----------------------------------------------------------------------------------------------+
-    |   Rule ID | Enabled   | Type   | Original IP      | Original Port   | Translated IP   | Translated Port   | Protocol   | Applied On   |
-    |-----------+-----------+--------+------------------+-----------------+-----------------+-------------------+------------+--------------|
-    |     65538 | True      | SNAT   | 192.168.109.0/24 | any             | 192.240.158.81  | any               | any        | d0p1-ext     |
-    |     65537 | True      | DNAT   | 192.240.158.81   | 22              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
-    |     65540 | True      | DNAT   | 192.240.158.81   | 8080            | 192.168.109.4   | 8080              | tcp        | d0p1-ext     |
-    |     65541 | True      | DNAT   | 192.240.158.81   | 23              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
-    |     65542 | True      | DNAT   | 192.240.158.81   | 80              | 192.168.109.2   | 80                | tcp        | d0p1-ext     |
-    
-    
-    $ vca nat del DNAT 192.240.158.81 80 192.168.109.2 80 tcp
-    deleting nat rule
-    +-------------+-----------------------------------------------------------------------------------------------+
-    | @startTime  | 2014-12-18T02:56:55.677Z                                                                      |
-    +-------------+-----------------------------------------------------------------------------------------------+
-    | @status     | running                                                                                       |
-    +-------------+-----------------------------------------------------------------------------------------------+
-    | @href       | https://p1v21-vcd.vchs.vmware.com/api/task/fe423f3b-3d8d-4fff-ba0a-491f052723db               |
-    +-------------+-----------------------------------------------------------------------------------------------+
-    | task:cancel | https://p1v21-vcd.vchs.vmware.com/api/task/fe423f3b-3d8d-4fff-ba0a-491f052723db/action/cancel |
-    +-------------+-----------------------------------------------------------------------------------------------+
-    |   Rule ID | Enabled   | Type   | Original IP      | Original Port   | Translated IP   | Translated Port   | Protocol   | Applied On   |
-    |-----------+-----------+--------+------------------+-----------------+-----------------+-------------------+------------+--------------|
-    |     65538 | True      | SNAT   | 192.168.109.0/24 | any             | 192.240.158.81  | any               | any        | d0p1-ext     |
-    |     65537 | True      | DNAT   | 192.240.158.81   | 22              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
-    |     65540 | True      | DNAT   | 192.240.158.81   | 8080            | 192.168.109.4   | 8080              | tcp        | d0p1-ext     |
-    |     65541 | True      | DNAT   | 192.240.158.81   | 23              | 192.168.109.2   | 22                | tcp        | d0p1-ext     |
-    
-
 

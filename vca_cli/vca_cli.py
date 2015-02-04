@@ -13,6 +13,8 @@
 
 # coding: utf-8
 
+import sys
+import operator
 import click
 import time
 import random
@@ -24,14 +26,30 @@ import ConfigParser
 import logging
 import httplib
 import json
+import requests
+import xmltodict
 from os.path import expanduser
 from tabulate import tabulate
+from time import sleep
+from StringIO import StringIO
 
-# from pyvcloud.vcloudairondemand import VCAOD
 from pyvcloud.vcloudair import VCA
-from pyvcloud.vclouddirector import VCD
-from pyvcloud.vapp import VAPP
-from pyvcloud.helper import generalHelperFunctions as ghf
+from pyvcloud.helper import CommonUtils
+
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
+
+#todo: configurable profile file ~/.vcarc
+#todo: consider default list or info
+#todo: consider add the selectors --service --org, --vdc, --gateway... at the root and pass by ctx
+#todo: reuse vcloud session token between calls
+#todo: command to update session
+#todo: OnDemand create instance and create vdc
+#todo: OnDemand plan command, billing mettering and instance creation
+#todo: store and display status of the vcloud org_url
+
+properties = ['session_token', 'org', 'org_url', 'service', 'vdc', 'instance', 'service_type', 'service_version', 'token', 'user', 'host', 'gateway']
+
+default_operation = 'list'
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -39,39 +57,35 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-p', '--profile', default='', metavar='<profile>', help='Profile id')
 @click.option('-v', '--version', is_flag=True, help='Show version')
 @click.option('-d', '--debug', is_flag=True, help='Enable debug')
-@click.option('-j', '--json', is_flag=True, help='Results as JSON object')
+@click.option('-j', '--json', 'json_output', is_flag=True, help='Results as JSON object')
+@click.option('-x', '--xml', 'xml_output', is_flag=True, help='Results as XML document')
+@click.option('-i', '--insecure', is_flag=True, help='Perform insecure SSL connections')
 @click.pass_context
-def cli(ctx, profile, version, debug, json):
+def cli(ctx, profile, version, debug, json_output, xml_output, insecure):
     """VMware vCloud Air Command Line Interface."""
     config = ConfigParser.RawConfigParser()
     config.read(os.path.expanduser('~/.vcarc'))    
     ctx.obj={}
     if profile != '':
-        ctx.obj['PROFILE'] = profile
+        ctx.obj['profile'] = profile
     else:
         section = 'Global'
         if config.has_option(section, 'profile'):
-            ctx.obj['PROFILE'] = config.get(section, 'profile')
+            ctx.obj['profile'] = config.get(section, 'profile')
         else:
-            ctx.obj['PROFILE'] = 'default'    
+            ctx.obj['profile'] = 'default'    
    
-    section = 'Profile-%s' % ctx.obj['PROFILE']
-    if config.has_option(section, "host"):
-        ctx.obj['host'] = config.get(section, "host")
-    if config.has_option(section, "user"):
-        ctx.obj['user'] = config.get(section, "user")            
-    if config.has_option(section, "token"):
-        ctx.obj['token'] = config.get(section, "token")
-    if config.has_option(section, "token_iam"):
-        ctx.obj['token_iam'] = config.get(section, "token_iam")        
-    if config.has_option(section, "service_type"):
-        ctx.obj['service_type'] = config.get(section, "service_type")
-    if config.has_option(section, "service_version"):
-        ctx.obj['service_version'] = config.get(section, "service_version")
+    section = 'Profile-%s' % ctx.obj['profile']    
+    for prop in properties:
+        ctx.obj[prop] = config.get(section, prop) if config.has_option(section, prop) else ''
+        
+    ctx.obj['verify'] = not insecure
+    ctx.obj['json_output'] = json_output
+    ctx.obj['xml_output'] = xml_output
 
     if debug:
         httplib.HTTPConnection.debuglevel = 1
-        logging.basicConfig() # you need to initialize logging, otherwise you will not see anything from requests
+        logging.basicConfig()
         logging.getLogger().setLevel(logging.DEBUG)
         requests_log = logging.getLogger("requests.packages.urllib3")
         requests_log.setLevel(logging.DEBUG)
@@ -79,442 +93,826 @@ def cli(ctx, profile, version, debug, json):
     if version:
         version = pkg_resources.require("vca-cli")[0].version
         version_pyvcloud = pkg_resources.require("pyvcloud")[0].version
-        click.echo(click.style('vca-cli version %s (pyvcloud: %s)' % (version, version_pyvcloud), fg='blue'))    
+        print_message('vca-cli version %s (pyvcloud: %s)' % (version, version_pyvcloud), ctx.obj['json_output'])
     else:
         if ctx.invoked_subcommand is None:
                help_text = ctx.get_help()
                print help_text        
+
+def _save_property(profile, property, value):               
+    config = ConfigParser.RawConfigParser()
+    config.read(os.path.expanduser('~/.vcarc'))
+    section = 'Profile-%s' % profile
+    if not config.has_section(section):
+        config.add_section(section)
+    config.set(section, property, value)
+    with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
+        config.write(configfile)    
     
+#todo: add --list-vdcs / orgs    
 @cli.command()
 @click.pass_context
 @click.argument('user')
-@click.option('-t', '--type', 'service_type', default='subscription', metavar='[subscription | ondemand | vcd ]', type=click.Choice(['subscription', 'ondemand', 'vcd']))
-@click.option('-v', '--version', 'service_version', default='5.6', metavar='[5.5 | 5.6 | 5.7 ]', type=click.Choice(['5.5', '5.6', '5.7']))
-@click.option('-H', '--host', default='https://vchs.vmware.com')
-@click.option('-p', '--password', prompt=True, confirmation_prompt=False, hide_input=True)
-def login(ctx, user, host, password, service_type, service_version):
+@click.option('-t', '--type', 'service_type', default='ondemand', metavar='[subscription | ondemand | vcd ]', type=click.Choice(['subscription', 'ondemand', 'vcd']), help='')
+@click.option('-v', '--version', 'service_version', default='5.7', metavar='[5.5 | 5.6 | 5.7]', type=click.Choice(['5.5', '5.6', '5.7']), help='')
+@click.option('-H', '--host', default='https://iam.vchs.vmware.com', help='')
+@click.option('-p', '--password', prompt=True, confirmation_prompt=False, hide_input=True, help='Password')
+@click.option('-i', '--instance', default=None, help='Instance Id')
+@click.option('-o', '--org', default=None, help='Organization Name')
+def login(ctx, user, host, password, service_type, service_version, instance, org):
     """Login to a vCloud service"""
-    
     if not (host.startswith('https://') or host.startswith('http://')):
-        host = 'https://' + host              
-
-    vca = VCA()
-    result = vca.login(host, user, password, None, service_type, service_version)        
-          
-    # if host == 'https://beta2014.vchs.vmware.com':
-        # print 'OnDemand'
-        # vca = VCAOD()
-        # result = vca.login('https://iam.vchs.vmware.com', host, user, password, None)
-    # else:
-        # subscription = True
-    
+        host = 'https://' + host   
+    vca = VCA(host, user, service_type, service_version, ctx.obj['verify'])
+    result = vca.login(password=password, org=org)
     if result:
-        click.echo(click.style('Login successful with profile \'%s\'' % ctx.obj['PROFILE'], fg='blue'))
-        config = ConfigParser.RawConfigParser()  
-        config.read(os.path.expanduser('~/.vcarc'))            
-        section = 'Profile-%s' % ctx.obj['PROFILE']
-        if not config.has_section(section):
-            config.add_section(section)
-        config.set(section, 'host', host)
-        config.set(section, 'user', user)        
-        config.set(section, 'token_iam', vca.token_iam)
-        config.set(section, 'token', vca.token)
-        config.set(section, 'service_type', service_type)
-        config.set(section, 'service_version', service_version)
-        with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
-            config.write(configfile)        
-    else:
-        click.echo(click.style('login failed', fg='red'))    
+        if instance:
+            result = vca.login_to_instance(instance, password, None, None)
+        if result:        
+            print_message('Login successful for profile \'%s\'' % ctx.obj['profile'], ctx.obj['json_output'])
+            config = ConfigParser.RawConfigParser()
+            config.read(os.path.expanduser('~/.vcarc'))
+            section = 'Profile-%s' % ctx.obj['profile']
+            if not config.has_section(section):
+                config.add_section(section)
+            config.set(section, 'host', host)
+            config.set(section, 'user', user)
+            config.set(section, 'token', vca.token)
+            config.set(section, 'service_type', service_type)
+            config.set(section, 'service_version', service_version)
+            if instance:
+                config.set(section, 'instance', instance)
+                config.set(section, 'session_token', vca.vcloud_session.token)                
+                config.set(section, 'org_url', vca.vcloud_session.org_url)   
+            else:
+                config.set(section, 'instance', 'None')
+                config.set(section, 'session_token', 'None')                
+                config.set(section, 'org_url', 'None')                   
+            if org:
+                config.set(section, 'org', org)                
+                config.set(section, 'org_url', vca.vcloud_session.org_url)                   
+            with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
+                config.write(configfile)
+    if not result:
+        print_error('login failed', ctx.obj['json_output'])
     return result
     
-#todo: make it a subcomand of instances
-@cli.command()
-@click.pass_context
-@click.argument('instance')
-@click.option('-p', '--password', prompt=True, confirmation_prompt=False, hide_input=True)
-def use_instance(ctx, password, instance):
-    """Use an instance of vCloud Air on demand"""
-    if ctx.obj['service_type'] != 'ondemand':
-        print "command not supported with service type '%s'" % ctx.obj['service_type']        
-        return None
-    try:
-        vca = _getVCA(ctx.obj['PROFILE'])
-        if vca != None:
-            result = vca.login_ondemand_instance(instance, ctx.obj['user'], password)
-            if result:
-                config = ConfigParser.RawConfigParser()  
-                config.read(os.path.expanduser('~/.vcarc'))            
-                section = 'Profile-%s' % ctx.obj['PROFILE']
-                if not config.has_section(section):
-                    config.add_section(section)
-                config.set(section, 'token', vca.token)    
-                with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
-                    config.write(configfile)                                    
-            print result
-        else:
-            print "token expired"
-    except ConfigParser.Error:
-        print "please authenticate"
-    return None    
-    
-def _getVCA(profile='default'):
-    vca = VCA()
-    try:
-        config = ConfigParser.RawConfigParser()
-        config.read(os.path.expanduser('~/.vcarc'))
-        section = 'Profile-%s' % profile
-        if config.has_option(section, "host") and config.has_option(section, "token") and config.has_option(section, "user") and config.has_option(section, "service_type") and config.has_option(section, "service_version") and config.has_option(section, "token_iam"):
-            host = config.get(section, "host")
-            user = config.get(section, "user")            
-            token = config.get(section, "token")
-            token_iam = config.get(section, "token_iam")            
-            service_type = config.get(section, "service_type")
-            service_version = config.get(section, "service_version")
-            t = token
-            if service_type == 'ondemand':
-                t = token_iam
-            if vca.login(host, user, None, t, service_type, service_version):
-                return vca
-            else:
-                print "token expired"
-        else:
-            print "please authenticate"
-    except ConfigParser.Error:
-        print "please authenticate"
-    return None
-
 @cli.command()
 @click.pass_context
 def logout(ctx):
     """Logout from a vCloud service"""
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    section = 'Profile-%s' % ctx.obj['PROFILE']
-    if config.has_option(section, "host") and config.has_option(section, "token"):
-        config.remove_option(section, "token")
-        with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
-            config.write(configfile)     
-        click.echo(click.style('logged out user %s' % config.get(section, 'user'), fg='blue'))   
+    vca = _getVCA(ctx)
+    if vca:
+        vca.logout()
+    _save_property(ctx.obj['profile'], 'token', 'None')
+    _save_property(ctx.obj['profile'], 'session_token', 'None')            
+    print_message('Logout successful for profile \'%s\'' % ctx.obj['profile'], ctx.obj['json_output'])        
     
 @cli.command()
 @click.pass_context
 def status(ctx):
     """Show current status"""   
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    section = 'Profile-%s' % ctx.obj['PROFILE'] 
-    if config.has_section(section):
-        #todo read config file once only
-        service = '<not set>'
-        datacenter = '<not set>'
-        gateway = '<not set>'
-        token = ''
-        service_type = ''
-        service_version = ''
-        if config.has_option(section, 'token'):
-            token = config.get(section, 'token')        
-        if config.has_option(section, 'service'):
-            service = config.get(section, 'service')
-        if config.has_option(section, 'datacenter'):
-            datacenter = config.get(section, 'datacenter')     
-        if config.has_option(section, 'gateway'):
-            gateway = config.get(section, 'gateway')          
-        click.secho("profile:         %s" % ctx.obj['PROFILE'] , fg='blue')
-        click.secho("host:            %s" % config.get(section, 'host'), fg='blue')
-        click.secho("service type:    %s" % config.get(section, 'service_type'), fg='blue')   
-        click.secho("service version: %s" % config.get(section, 'service_version'), fg='blue')         
-        click.secho("user:            %s" % config.get(section, 'user'), fg='blue')    
-        click.secho("service:         %s" % service, fg='blue')   
-        click.secho("datacenter:      %s" % datacenter, fg='blue')   
-        click.secho("gateway:         %s" % gateway, fg='blue')   
-        vca = _getVCA(ctx.obj['PROFILE'])
-        if vca != None:
-            click.secho("session:         %s" % 'active', fg='blue') 
-        else:
-            click.secho("session:         %s" % 'inactive', fg='red') 
-    else:
-        click.secho("unknown profile '%s'" % ctx.obj['PROFILE'] , fg='red')
-    
-def _print_config(config):
-    for section in config.sections():
-        click.secho(section, fg='green')
-        for option in config.options(section):
-            click.echo(click.style("\t%s=" % option, fg='yellow') + click.style("%s" % config.get(section, option), fg='blue'))               
-    
-#todo: set default profile
+    vca = _getVCA(ctx)
+    headers= ['Property', 'Value']
+    table = []
+    for property in properties:
+        table.append([property, (ctx.obj[property][:50]+'..') if len(ctx.obj[property])>50 else ctx.obj[property]])
+    table.append(["session", 'active' if (vca and vca.vcloud_session) else 'inactive'])        
+    sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)      
+    print_table("Status:", 'status', headers, sorted_table, ctx.obj['json_output'])             
+        
 @cli.command()
 @click.pass_context
-@click.argument('operation', default='list', metavar='[list | set | del | select]', type=click.Choice(['list', 'set', 'del', 'select']))
-@click.option('-s', '--service', default='')
-@click.option('-d', '--datacenter', default='')
-@click.option('-g', '--gateway', default='')
-def profiles(ctx, operation, service, datacenter, gateway):
-    """Configure profiles"""
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    if 'list' == operation:
-        _print_config(config)
-    elif 'set' == operation:
-        section = 'Profile-%s' % ctx.obj['PROFILE']
-        if not config.has_section(section):
-            config.add_section(section)
-        if '' != service:
-            config.set(section, 'service', service)
-        if '' != datacenter:            
-            config.set(section, 'datacenter', datacenter)
-        if '' != gateway:    
-            config.set(section, 'gateway', gateway)    
-        with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
-            config.write(configfile)
-        _print_config(config)
-    elif 'del' == operation:
-        section = 'Profile-%s' % ctx.obj['PROFILE']
-        if config.has_section(section):
-            config.remove_section(section)
-        with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
-            config.write(configfile)            
-        _print_config(config)
-    elif 'select' == operation:
-        section = 'Global'
-        if not config.has_section(section):
-            config.add_section(section)
-        config.set(section, 'profile', ctx.obj['PROFILE'])
-        with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
-            config.write(configfile)        
-        _print_config(config)        
-        
-@cli.command(options_metavar='[-P <id>]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
-@click.option('-P', '--plan', default='', metavar='<id>', help='Plan id')
-def plans(ctx, operation, plan):
-    """Operations with plans"""
-    if ctx.obj['service_type'] != 'ondemand':
-        print "command not supported with service type '%s'" % ctx.obj['service_type']        
-        return None
-    try:
-        vca = _getVCA(ctx.obj['PROFILE'])
-        if vca != None:
-            plans = vca.get_plans()
-            headers = ["ID", "Type", "Region"]
-            # table = [[plan.get_id(), plan.get_name(), plan.get_region()] for plan in plans]
-            table = [[plan['id'], plan['name'], plan['region']] for plan in plans]
-            click.echo(click.style("Available plans for '%s' profile:" % ctx.obj['PROFILE'], fg='blue'))
-            print tabulate(table, headers = headers, tablefmt="orgtbl")
-            # return vca
-        else:
-            print "token expired"
-    except ConfigParser.Error:
-        print "please authenticate"
-    return None
-    
-@cli.command(options_metavar='[-i <id>]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
-@click.option('-i', '--instance', default='', metavar='<id>', help='Instance id')
-def instances(ctx, operation, instance):
-    """Operations with instances"""
-    if ctx.obj['service_type'] != 'ondemand':
-        print "command not supported with service type '%s'" % ctx.obj['service_type']        
-        return None
-    try:
-        vca = _getVCA(ctx.obj['PROFILE'])
-        if vca != None:
-            instances = vca.get_instances()
-            headers = ["Plan ID", "Instance ID", "Type", "Region", "Organization Name"]
-            # table = [[plan.get_id(), plan.get_name(), plan.get_region()] for plan in plans]
-            table = [[instance['planId'], instance['id'], instance['name'], instance['region'], json.loads(instance['instanceAttributes'])['orgName']] for instance in instances]
-            click.echo(click.style("Available instances for '%s' profile:" % ctx.obj['PROFILE'], fg='blue'))
-            print tabulate(table, headers = headers, tablefmt="orgtbl")
-            # return vca
-        else:
-            print "token expired"
-    except ConfigParser.Error:
-        print "please authenticate"
-    return None
-
-    # profile = 'default'
-    # vca = VCAOD()
-    # try:
-    #     config = ConfigParser.RawConfigParser()
-    #     config.read(os.path.expanduser('~/.vcarc'))
-    #     section = 'Profile-%s' % profile
-    #     if config.has_option(section, "host") and config.has_option(section, "token"):
-    #         host = config.get(section, "host")
-    #         token = config.get(section, "token")
-    #         if vca.login('', host, None, None, token):
-    #             instances = vca.get_instances()
-    #             # for instance in instances:
-    #             #     print instance.__dict__
-    #             headers = ["Plan ID", "Instance ID", "Type", "Region", "Organization Name"]
-    #             table = []
-    #             for instance in instances:
-    #                 attr = eval(instance.get_instanceAttributes())
-    #                 table.append([instance.get_planId(), instance.get_id(), instance.get_name(), instance.get_region(), attr['orgName']])
-    #             click.echo(click.style("Available instances for '%s' profile:" % ctx.obj['PROFILE'], fg='blue'))
-    #             print tabulate(table, headers = headers, tablefmt="orgtbl")
-    #             i = vca.get_vdcReference('b0c56abf-e257-4b86-ac3c-5f676fd09790', 'fbf278f0-065d-4028-96d4-6ece56789751')
-    #             attr = eval(i[1].get_instanceAttributes())
-    #             print "%s:%s:%s" % ('b0c56abf-e257-4b86-ac3c-5f676fd09790' , 'fbf278f0-065d-4028-96d4-6ece56789751' , attr['sessionUri'])
-    #             return vca
-    #         else:
-    #             print "token expired"
-    #     else:
-    #         print "please authenticate"
-    # except ConfigParser.Error:
-    #     print "please authenticate"
-    # return None
-
-@cli.command(options_metavar='[-s <id>]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
-@click.option('-s', '--service', default='', metavar='<id>', help='Service id')
-def services(ctx, operation, service):
-    """Operations with services"""
-    if ctx.obj['service_type'] != 'subscription':
-        print "command not supported with service type '%s'" % ctx.obj['service_type']        
+@click.argument('operation', default=default_operation, metavar='[list | info]', type=click.Choice(['list', 'info']))
+@click.option('-p', '--plan', default='', metavar='<plan>', help='Plan Id')
+def plan(ctx, operation, plan):
+    """Operations with Instances"""
+    vca = _getVCA(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
         return
+    if 'list' == operation:
+        headers = ["Plan Id", "Region", "Type"]
+        plans = vca.get_plans()
+        items = plans if plans else []
+        table = [[item['id'], item['region'], item['name']] for item in items]
+        print_table("Available plans for user '%s' in '%s' profile:" % (ctx.obj['user'], ctx.obj['profile']), 'plans', headers, table, ctx.obj['json_output'])
+    elif 'info' == operation:
+        print 'info about plan'
+                
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[list | info]', type=click.Choice(['list', 'info']))
+@click.option('-i', '--instance', default='', metavar='<instance>', help='Instance Id')
+def instance(ctx, operation, instance):
+    """Operations with Instances"""
+    vca = _getVCA(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        return
+    if 'list' == operation:
+        headers = ["Instance Id", "Region", "Plan Id"]
+        instances = vca.instances
+        items = instances if instances else []
+        table = [[item['id'], item['region'], item['planId']] for item in items]
+        print_table("Available instances for user '%s' in '%s' profile:" % (ctx.obj['user'], ctx.obj['profile']), 'instances', headers, table, ctx.obj['json_output'])
+    elif 'info' == operation:
+        print 'instance information'
+    elif 'delete' == operation:
+        vca.delete_instance(instance)
+
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[list | use | info]', type=click.Choice(['list', 'use', 'info']))
+@click.option('-s', '--service', default='', metavar='<service>', help='Service Id')
+@click.option('-o', '--org', default='', metavar='<org>', help='Organization Id')
+def org(ctx, operation, service, org):
+    """Operations with Organizations"""
+    if '' == service:
+        service = ctx.obj['service']
+    if '' == org:
+        org = ctx.obj['org']    
+    vca = _getVCA(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        return
+    if 'list' == operation:
+        headers = ['Organization Id', "Selected"]
+        table = ['']
+        if 'ondemand' == ctx.obj['service_type']:
+            if vca.vcloud_session and vca.vcloud_session.organization:
+                instance = filter(lambda instance: instance['id'] == ctx.obj['instance'], vca.instances)[0]
+                headers = ['Instance Id', 'Region', 'Organization Id', "Selected"]
+                table = []
+                table.append([instance['id'], instance['region'], vca.vcloud_session.organization.name, '*'])
+                
+        elif 'subscription' == ctx.obj['service_type']:
+            if vca.services:
+                headers = ["Service Id", "Type", "Region", "Organization Id", "Status", "Selected"]
+                table = []
+                for s in vca.services.get_Service():
+                    for vdc in vca.get_vdc_references(s.serviceId):
+                        selected = '*' if ctx.obj['org'] == vdc.name else ' '
+                        table.append([s.serviceId, s.serviceType, s.region, vdc.name, vdc.status, selected])            
+        elif 'vcd' == ctx.obj['service_type']:
+            if vca.vcloud_session and vca.vcloud_session.organization:
+                table = []
+                table.append([vca.vcloud_session.organization.name, '*'])
+        print_table("Available Organizations for '%s' profile:" % ctx.obj['profile'], 'orgs', headers, table, ctx.obj['json_output'])
+    elif 'use' == operation:
+        #this might be redundant with _getVCA()  
+        result = False
+        if 'ondemand' == ctx.obj['service_type']:
+            return
+            # print_message("Use the login command to select another organization, indicating the instance id", ctx.obj['json_output'])
+            # return
+        elif 'subscription' == ctx.obj['service_type']:
+            result = vca.login_to_vdc(service, org)
+        elif 'vcd' == ctx.obj['service_type']:
+            # print_message("Use the login command to select another organization, indicating the organization id", ctx.obj['json_output'])
+            return
+        if result:
+            if vca.vdc:            
+                _save_property(ctx.obj['profile'], 'service', service)
+                _save_property(ctx.obj['profile'], 'org', org)
+                if vca.vcloud_session: _save_property(ctx.obj['profile'], 'org_url', vca.vcloud_session.org_url)
+                print_message("Using organization '%s' in profile '%s'" % (org, ctx.obj['profile']), ctx.obj['json_output'])
+                print_org_details(ctx, vca)
+                return
+        print_error("Unable to select organization '%s' in profile '%s'" % (org, ctx.obj['profile']), ctx.obj['json_output'])
+    elif 'info' == operation:
+        if vca.vcloud_session:
+            print_org_details(ctx, vca)
+        else:
+            print_message('no org selected', ctx.obj['json_output'])
+
+# todo: review if service and org really are used here, or if they should or not
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[list | use | info]', type=click.Choice(['list', 'use', 'info']))
+@click.option('-s', '--service', default='', metavar='<service>', help='Service Id')
+@click.option('-d', '--org', default='', metavar='<org>', help='Organization Id')
+@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
+def vdc(ctx, operation, service, org, vdc):       
+    """Operations with Virtual Data Centers (vdc)"""
+    if service == '': service = ctx.obj['service'] 
+    if org == '': org = ctx.obj['org'] 
+    if vdc == '': vdc = ctx.obj['vdc']             
+    vca = _getVCA(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        return
+    if 'list' == operation:
+        headers = ['Virtual Data Center', "Selected"]
+        table = ['', '']    
+        if vca.vcloud_session and vca.vcloud_session.organization:
+            headers = ['Virtual Data Center', "Selected"]
+            links = vca.vcloud_session.organization.Link if vca.vcloud_session.organization else []
+            table1 = [[details.get_name(), '*' if details.get_name() == vdc else ' '] for details in filter(lambda info: info.name and info.type_ == 'application/vnd.vmware.vcloud.vdc+xml', links)]
+            table = sorted(table1, key=operator.itemgetter(0), reverse=False)                
+        print_table("Available Virtual Data Centers for '%s' profile:" % ctx.obj['profile'], 'vdcs', headers, table, ctx.obj['json_output'])
+    elif 'use' == operation:
+        the_vdc = vca.get_vdc(vdc)
+        if the_vdc:
+            _save_property(ctx.obj['profile'], 'service', service)
+            _save_property(ctx.obj['profile'], 'org', org)
+            _save_property(ctx.obj['profile'], 'vdc', vdc)        
+            if vca.vcloud_session: _save_property(ctx.obj['profile'], 'org_url', vca.vcloud_session.org_url)            
+            print_message("Using vdc '%s' in profile '%s'" % (vdc, ctx.obj['profile']), ctx.obj['json_output'])
+            print_vdc_details(ctx, the_vdc, vca.get_gateways(vdc))
+            return
+        print_error("Unable to select vdc '%s' in profile '%s'" % (vdc, ctx.obj['profile']), ctx.obj['json_output'])
+    elif 'info' == operation:    
+        the_vdc = vca.get_vdc(vdc)
+        if the_vdc:
+            print_vdc_details(ctx, the_vdc, vca.get_gateways(vdc))
+            return
+        print_error("Unable to select vdc '%s' in profile '%s'" % (vdc, ctx.obj['profile']), ctx.obj['json_output'])
         
-    vca = _getVCA(ctx.obj['PROFILE'])
-    if vca != None:
-        services = vca.get_serviceReferences()
-        headers = ["ID", "Type", "Region"]
-        table = [[serviceReference.get_serviceId(), serviceReference.get_serviceType(), serviceReference.get_region()] for serviceReference in services]
-        click.echo(click.style("Available services for '%s' profile:" % ctx.obj['PROFILE'], fg='blue'))   
+#todo: add service and org?
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | customize | insert | eject]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'customize', 'insert', 'eject']))
+@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
+@click.option('-a', '--vapp', default='', metavar='<vapp>', help='vApp name')
+@click.option('-c', '--catalog', default='', metavar='<catalog>', help='catalog name')
+@click.option('-t', '--template', default='', metavar='<template>', help='template name')
+@click.option('-n', '--network', default='', metavar='<network>', help='Network name')
+@click.option('-m', '--mode', default='POOL', metavar='[POOL, DHCP]', help='Network connection mode', type=click.Choice(['POOL', 'DHCP']))
+@click.option('-M', '--vm', 'vm_name', default='', metavar='<vm>', help='VM name')
+@click.option('-f', '--file', 'cust_file', default=None, metavar='<customization_file>', help='Guest OS Customization script file', type=click.File('r'))
+@click.option('-e', '--media', default='', metavar='<media>', help='virtual media name (ISO)')
+def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, cust_file, media):
+    """Operations with vApps"""
+    if vdc == '': vdc = ctx.obj['vdc'] 
+    vca = _getVCA(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        return
+    if 'list' == operation:
+        headers = ['vApp', "VMs", "Status", "Deployed", "Description"]
+        table = []    
+        the_vdc = vca.get_vdc(vdc)
+        if the_vdc:
+            table1 = []
+            for entity in the_vdc.get_ResourceEntities().ResourceEntity:
+                if entity.type_ == 'application/vnd.vmware.vcloud.vApp+xml':
+                    the_vapp = vca.get_vapp(the_vdc, entity.name)
+                    vms = []
+                    if the_vapp and the_vapp.me.Children:
+                        for vm in the_vapp.me.Children.Vm:
+                            vms.append(vm.name)
+                        # virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]
+                    table1.append([entity.name, vms, status[the_vapp.me.get_status()](), 'yes' if the_vapp.me.deployed else 'no', the_vapp.me.Description])                     
+            table = sorted(table1, key=operator.itemgetter(0), reverse=False)                
+        print_table("Available vApps in '%s' for '%s' profile:" % (vdc, ctx.obj['profile']), 'vapps', headers, table, ctx.obj['json_output'])
+    elif 'create' == operation:
+        print_message("creating vApp '%s' in VDC '%s' from template '%s' in catalog '%s'" % (vapp, vdc, template, catalog), ctx.obj['json_output'])
+        task = vca.create_vapp(vdc, vapp, template, catalog)
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: print_error("can't create the vApp", ctx.obj['json_output'])
+        if '' != network:
+            the_vdc = vca.get_vdc(vdc)        
+            the_vapp = vca.get_vapp(the_vdc, vapp)
+            print_message("disconnecting vApp from networks pre-defined in the template", ctx.obj['json_output'])
+            task = the_vapp.disconnect_from_networks()
+            if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+            else: print_error("can't disconnect vApp from networks", ctx.obj['json_output'])
+            
+            nets = filter(lambda n: n.name == network, vca.get_networks(vdc))
+            if len(nets) == 1:
+                print_message("connecting vApp to network '%s' with mode '%s'" % (network, mode), ctx.obj['json_output'])
+                task = the_vapp.connect_to_network(nets[0].name, nets[0].href)
+                if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+                else: print_error("can't connect the vApp to the network", ctx.obj['json_output'])
+                print_message("connecting VMs to network '%s' with mode '%s'" % (network, mode), ctx.obj['json_output'])                
+                task = the_vapp.connect_vms(nets[0].name, mode)
+                if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+                else: print_error("can't connect the vApp to the network", ctx.obj['json_output'])
+    elif 'delete' == operation:
+        print "deleting vApp '%s' from VDC '%s'" % (vapp, vdc)
+        task = vca.delete_vapp(vdc, vapp)
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: print_error("can't delete vApp", ctx.obj['json_output'])
+    elif 'customize' == operation:
+        print "customizing VM '%s' in vApp '%s' in VDC '%s'" % (vm_name, vapp, vdc)
+        the_vdc = vca.get_vdc(vdc)        
+        the_vapp = vca.get_vapp(the_vdc, vapp)
+        if the_vdc and the_vapp and cust_file:
+            task = the_vapp.customize_guest_os(vm_name, cust_file.read())
+            if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+            else: print_error("can't customize vApp", ctx.obj['json_output'])
+    elif 'info' == operation or 'power.off' == operation or 'power.on' == operation or 'delete' == operation:
+        the_vdc = vca.get_vdc(vdc)
+        if the_vdc:
+            the_vapp = vca.get_vapp(the_vdc, vapp)
+            if the_vapp and the_vapp.me:
+                if 'info' == operation:
+                    print_vapp_details(ctx, the_vapp.me)
+                else:
+                    task = None
+                    if 'power.on' == operation: task = the_vapp.poweron()
+                    elif 'power.off' == operation: task = the_vapp.poweroff()
+                    elif 'delete' == operation: task = the_vapp.delete()                    
+                    if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+                    else: print_error("can't operate with the vApp", ctx.obj['json_output'])                                
+                _save_property(ctx.obj['profile'], 'vdc', vdc)
+            else:
+                print_error("vApp '%s' not found" % vapp, ctx.obj['json_output'])
+    elif 'insert' == operation or 'eject' == operation:
+        the_vdc = vca.get_vdc(vdc)
+        if the_vdc:
+            the_vapp = vca.get_vapp(the_vdc, vapp)
+            if the_vapp:
+                the_media = vca.get_media(catalog, media)
+                task = the_vapp.vm_media(vm_name, the_media, operation)
+                if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+                else: print_error("can't insert or eject media", ctx.obj['json_output'])
+    else:
+        print_message('not implemented', ctx.obj['json_output'])
+    if vdc != '': _save_property(ctx.obj['profile'], 'vdc', vdc)
+        
+def statusn1():
+    return "Could not be created"
+def status0():
+    return "Unresolved"
+def status1():
+    return "Resolved"
+def status2():
+    return "Deployed"
+def status3():
+    return "Suspended"
+def status4():
+    return "Powered on"
+def status5():
+    return "Waiting for user input"
+def status6():
+    return "Unknown state"
+def status7():
+    return "Unrecognized state"
+def status8():
+    return "Powered off"
+def status9():
+    return "Inconsistent state"
+def status10():
+    return "Children do not all have the same status"
+def status11():
+    return "Upload initiated, OVF descriptor pending"
+def status12():
+    return "Upload initiated, copying contents"
+def status13():
+    return "Upload initiated , disk contents pending"
+def status14():
+    return "Upload has been quarantined"
+def status15():
+    return "Upload quarantine period has expired"
+status = {-1 : statusn1,
+           0 : status0,
+           1 : status1,
+           2 : status2,
+           3 : status3,
+           4 : status4,
+           5 : status5,
+           6 : status6,
+           7 : status7,
+           8 : status8,
+           9 : status9,
+           10 : status10,
+           11 : status11,
+           12 : status12,
+           13 : status13,
+           14 : status14,
+           15 : status15,
+            }        
+        
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[list]', type=click.Choice(['list']))
+@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
+@click.option('-a', '--vapp', default='', metavar='<vapp>', help='vApp name')
+def vm(ctx, operation, vdc, vapp):
+    """Operations with VMs"""
+    if vdc == '': vdc = ctx.obj['vdc'] 
+    vca = _getVCA(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        return
+    if 'list' == operation:
+        headers = ['VM', "vApp", "Status", "IPs", "Networks", "vCPUs", "Memory (GB)", "CD/DVD", "OS", "Owner"]
+        table = []    
+        the_vdc = vca.get_vdc(vdc)
+        if the_vdc:
+            table1 = []
+            for entity in the_vdc.get_ResourceEntities().ResourceEntity:
+                if entity.type_ == 'application/vnd.vmware.vcloud.vApp+xml':
+                    if vapp != '' and vapp != entity.name:
+                        continue
+                    the_vapp = vca.get_vapp(the_vdc, entity.name)
+                    #todo: add disk info
+                    if not the_vapp or not the_vapp.me or not the_vapp.me.Children:
+                        continue
+                    for vm in the_vapp.me.Children.Vm:
+                        owner = the_vapp.me.get_Owner().get_User().get_name()
+                        vm_status = status[vm.get_status()]()
+                        sections = vm.get_Section()
+                        virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]
+                        items = virtualHardwareSection.get_Item()
+                        cpu = filter(lambda item: item.get_Description().get_valueOf_() == "Number of Virtual CPUs", items)[0]
+                        cpu_capacity = cpu.get_ElementName().get_valueOf_().split(" virtual CPU(s)")[0]
+                        memory = filter(lambda item: item.get_Description().get_valueOf_() == "Memory Size", items)[0]
+                        memory_capacity = int(memory.get_ElementName().get_valueOf_().split(" MB of memory")[0]) / 1024
+                        operatingSystemSection = filter(lambda section: section.__class__.__name__== "OperatingSystemSection_Type", sections)[0]
+                        os = operatingSystemSection.get_Description().get_valueOf_()
+                        ips = []
+                        networks = []
+                        cds = []
+                        for item in items:
+                            if item.Connection:
+                                for c in item.Connection:
+                                    networks.append(c.valueOf_)
+                                    if c.anyAttributes_.get('{http://www.vmware.com/vcloud/v1.5}ipAddress'):                                                                 
+                                        #print c.anyAttributes_.get('{http://www.vmware.com/vcloud/v1.5}ipAddress')
+                                        ips.append(c.anyAttributes_.get('{http://www.vmware.com/vcloud/v1.5}ipAddress'))
+                            elif item.HostResource and item.ResourceSubType and item.ResourceSubType.valueOf_ == 'vmware.cdrom.iso':
+                                if len(item.HostResource[0].valueOf_)>0:
+                                    cds.append(item.HostResource[0].valueOf_)
+                        table1.append([vm.name, entity.name, vm_status, ips, networks, cpu_capacity, str(memory_capacity), cds, os, owner])
+            table = sorted(table1, key=operator.itemgetter(0), reverse=False)                
+        print_table("Available VMs in '%s' for '%s' profile:" % (vdc, ctx.obj['profile']), 'vms', headers, table, ctx.obj['json_output'])   
+    else:
+        print_message('not implemented', ctx.obj['json_output'])       
+    if vdc != '': _save_property(ctx.obj['profile'], 'vdc', vdc)
+        
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[info | list | create | delete]', type=click.Choice(['info', 'list', 'create', 'delete']))
+@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
+@click.option('-c', '--catalog', 'catalog_name', default='', metavar='<catalog>', help='Catalog Name')
+@click.option('-d', '--description', default='', metavar='<description>', help='Catalog Description')
+def catalog(ctx, operation, vdc, catalog_name, description):
+    """Operations with Catalogs"""
+    if vdc == '': vdc = ctx.obj['vdc']     
+    vca = _getVCA(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        return
+    if 'create' == operation:
+        task = vca.create_catalog(catalog_name, description)
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: print_error("can't create the catalog", ctx.obj['json_output'])
+    elif 'delete' == operation:
+        result = vca.delete_catalog(catalog_name)
+        if result:
+            print_message('catalog deleted', ctx.obj['json_output'])
+        else:
+            print_error("can't delete the catalog", ctx.obj['json_output'])
+        # import sys; task.export(sys.stdout, 0)
+    else:
+        print_message('not implemented', ctx.obj['json_output'])
+
+
+#todo: default operation here is info instead of list, fixme
+#todo: consider a specific edge, a vdc can have more than one
+@cli.command()
+@click.pass_context
+@click.argument('operation', default='info', metavar='[info | add]', type=click.Choice(['info', 'add']))
+@click.option('--rule_type', default='DNAT', metavar='<rule_type>', help='Rule type', type=click.Choice(['DNAT', 'SNAT']))
+@click.option('--original_ip', default='', metavar='<ip>', help='Original IP')
+@click.option('--original_port', default='any', metavar='<port>', help='Original Port')
+@click.option('--translated_ip', default='', metavar='<ip>', help='Translated IP')
+@click.option('--translated_port', default='any', metavar='<port>', help='Translated Port')
+@click.option('--protocol', default='any', metavar='<protocol>', help='Protocol', type=click.Choice(['any', 'tcp', 'udp']))
+def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, translated_port, protocol):
+    """Operations with Edge Gateway NAT Rules"""
+    vca = _getVCA(ctx)
+    vdc = ctx.obj['vdc'] 
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        return
+    gateways = vca.get_gateways(vdc)
+    if len(gateways) != 1:
+        print_error('Gateway not found', ctx.obj['json_output'])
+        return
+    if 'info' == operation:
+        rules = gateways[0].get_nat_rules()
+        print_nat_rules(ctx, rules)
+    elif 'add' == operation:
+        # gateways[0].me.export(sys.stdout, 0)
+        gateways[0].add_nat_rule(rule_type, original_ip, original_port, translated_ip, translated_port, protocol)
+        # gateways[0].me.export(sys.stdout, 0)
+        task = gateways[0].save_services_configuration()
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: print_error("can't operate with the edge gateway", ctx.obj['json_output'])
+    else:
+        print_message('not implemented', ctx.obj['json_output'])
+
+#todo: default operation here is info instead of list, fixme
+#todo: consider a specific edge, a vdc can have more than one
+@cli.command()
+@click.pass_context
+@click.argument('operation', default='info', metavar='[info | enable | disable]', type=click.Choice(['info', 'enable', 'disable']))
+def firewall(ctx, operation):
+    """Operations with Edge Gateway Firewall Rules"""
+    vca = _getVCA(ctx)
+    vdc = ctx.obj['vdc'] 
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        return
+    gateways = vca.get_gateways(vdc)
+    if len(gateways) != 1:
+        print_error('Gateway not found', ctx.obj['json_output'])
+        return
+    if 'enable' == operation or 'disable' == operation:    
+        gateways[0].enable_fw('enable'==operation)
+        task = gateways[0].save_services_configuration()
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: print_error("can't operate with the edge gateway", ctx.obj['json_output'])                                
+        # gateway_name = gateways[0].get_name()
+        # gateways = [vca.get_gateway(vdc, gateway_name)]
+        # print_gateways(ctx, gateways)
+    elif 'info' == operation:
+        print_message('not implemented', ctx.obj['json_output'])                
+    else:
+        print_message('not implemented', ctx.obj['json_output'])
+
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[info | list | use]', type=click.Choice(['info', 'list', 'use']))
+def network(ctx, operation):
+    """Operations with Networks"""
+    vca = _getVCA(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        return
+    if 'list' == operation:
+        print_networks(ctx, vca.get_networks(ctx.obj['vdc']))
+    elif 'use' == operation:
+        print_message('not implemented', ctx.obj['json_output'])                
+    else:
+        print_message('not implemented', ctx.obj['json_output'])
+
+# @cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[info | list | use]', type=click.Choice(['info', 'list', 'use']))
+def template(ctx, operation):
+    """Operations with ..."""
+    # if vdc == '': vdc = ctx.obj['vdc'] 
+    vca = _getVCA(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        return
+    if 'list' == operation:
+        print_message('not implemented', ctx.obj['json_output'])                                
+    elif 'use' == operation:
+        print_message('not implemented', ctx.obj['json_output'])                        
+    elif 'info' == operation:
+        print_message('not implemented', ctx.obj['json_output'])                
+    else:
+        print_message('not implemented', ctx.obj['json_output'])
+    # if vdc != '': _save_property(ctx.obj['profile'], 'vdc', vdc)
+    
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[info | list | use]', type=click.Choice(['info', 'list', 'use']))
+@click.option('-s', '--service', default='', metavar='<service>', help='Service Id')
+@click.option('-d', '--org', default='', metavar='<org>', help='Organization Id')
+@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
+def gateway(ctx, operation, service, org, vdc):
+    """Operations with Edge Gateway"""
+    if service == '': service = ctx.obj['service']
+    if org == '': org = ctx.obj['org']
+    if vdc == '': vdc = ctx.obj['vdc']             
+    vca = _getVCA(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        return
+    if 'list' == operation:
+        gateways = vca.get_gateways(vdc)
+        print_gateways(ctx, gateways)
+    elif 'use' == operation or 'info' == operation:
+        gateways = vca.get_gateways(vdc)
+        if len(gateways) > 0:
+            print_gateway_details(ctx, gateways[0])
+    if service != '': _save_property(ctx.obj['profile'], 'service', service)
+    if org != '': _save_property(ctx.obj['profile'], 'org', org)
+    if vdc != '': _save_property(ctx.obj['profile'], 'vdc', vdc)      
+    
+@cli.command()
+@click.pass_context
+def example(ctx):
+    """vCloud Air CLI Examples"""
+    pass
+        
+def _getVCA(ctx):
+    vca = VCA(ctx.obj['host'], ctx.obj['user'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['verify'])
+    if vca.login(token=ctx.obj['token'], org=ctx.obj['org'], org_url=ctx.obj['org_url']):
+        if 'ondemand' == ctx.obj['service_type']:
+            if ctx.obj['instance'] and ctx.obj['session_token']:
+                vca.login_to_instance(ctx.obj['instance'], None, ctx.obj['session_token'], ctx.obj['org_url'])
+        elif 'subscription' == ctx.obj['service_type']:
+            #todo: use the session token?
+            if ctx.obj['instance'] and ctx.obj['session_token']:
+                vca.login_to_vdc(ctx.obj['service'], ctx.obj['org'])
+        return vca
+    else:
+        return None
+        
+def print_table(msg, obj, headers, table, json_output):    
+    if json_output:
+        data = [dict(zip(headers, row)) for row in table]
+        print json.dumps({"Errorcode" : "0" , "Details" : msg, obj : data}, sort_keys=True, indent=4, separators=(',', ': '))
+    else:
+        click.echo(click.style(msg, fg='blue'))
         print tabulate(table, headers = headers, tablefmt="orgtbl")
         
-@cli.command(options_metavar='[-s <id>] [-d <id>]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
-@click.option('-s', '--service', default='')
-@click.option('-d', '--datacenter', default='')
-def datacenters(ctx, operation, service, datacenter):
-    """Operations with virtual data centers"""
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    section = 'Profile-%s' % ctx.obj['PROFILE'] 
-    #todo read config file once only
-    if '' == service and config.has_option(section, 'service'):
-        service = config.get(section, 'service')
-    vca = _getVCA(ctx.obj['PROFILE'])
-    if vca != None:        
-        if 'list' == operation:
-            if ctx.obj['service_type'] == 'subscription':       
-                serviceReferences = vca.get_serviceReferences()     
-                serviceReferences = filter(lambda serviceReference: serviceReference.get_serviceId().lower() == service.lower(), serviceReferences)
-                if serviceReferences:
-                    table = []
-                    for serviceReference in serviceReferences:
-                        vdcReferences = vca.get_vdcReferences(serviceReference)
-                        for vdcReference in vdcReferences:
-                            table.append([vdcReference.get_name(), vdcReference.get_status()
-                                  ,serviceReference.get_serviceId(), serviceReference.get_serviceType(), serviceReference.get_region()])
-                    if table:
-                        headers = ["Virtual Data Center", "Status"
-                                ,"Service ID", "Service Type", "Region"]
-                        click.echo(click.style("Available datacenters in service '%s' for '%s' profile:" % (service, ctx.obj['PROFILE']), fg='blue'))                                   
-                        print tabulate(table, headers = headers, tablefmt="orgtbl")
-                    else:
-                        print 'VDC(s) not found in this service'
-            elif ctx.obj['service_type'] == 'ondemand':
-                pass                 
-            elif ctx.obj['service_type'] == 'vcd':
-                table = []
-                vdcReferences = vca.get_vdcReferences()
-                for vdcReference in vdcReferences:
-                    table.append([vdcReference.name])
-                if table:
-                    headers = ["Virtual Data Center"]
-                    click.echo(click.style("Available datacenters for '%s' profile:" % (ctx.obj['PROFILE']), fg='blue'))                                   
-                    print tabulate(table, headers = headers, tablefmt="orgtbl")
+def print_message(msg, json_output):
+    if json_output:
+        json_msg = {"Returncode" : "1", "Details" : msg}        
+        print json.dumps(json_msg, sort_keys=True, indent=4, separators=(',', ': '))
+    else:
+        click.secho(msg, fg='blue')
+    
+def print_error(msg, json_output):    
+    if json_output:
+        json_msg = {"Errorcode" : "1", "Details" : msg}
+        print json.dumps(json_msg, sort_keys=True, indent=4, separators=(',', ': '))
+    else:
+        click.secho(msg, fg='red')
+        
+def print_json(obj, headers, table):
+    data = [dict(zip(headers, row)) for row in table]
+    print json.dumps({"Errorcode" : "0" , obj : data}, sort_keys=True, indent=4, separators=(',', ': '))
 
-        elif 'details' == operation:
-            if '' == datacenter and config.has_option(section, 'datacenter'):
-                datacenter = config.get(section, 'datacenter')
-            click.echo(click.style("Details for datacenter '%s' in service '%s' for '%s' profile:" % (datacenter, service, ctx.obj['PROFILE']), fg='blue'))                                   
-            vdcReference = vca.get_vdcReference(service, datacenter)
-            if vdcReference[0] == True:
-                # print vdcReference[1].get_name()
-                vCloudSession = vca.create_vCloudSession(vdcReference[1])                
-                if vCloudSession:
-                    vcd = VCD(vCloudSession, service, datacenter)
-                    (cpu, memory, storageCapacity) = vcd.get_vdcResources()
-                    print "cpu used: %d" % cpu.get_Used()
-                    print "mem used: %d" % memory.get_Used()
-        else:
-            print 'Unknown operation %s' % operation                    
-    else:
-        print 'Service(s) not found'
+def remove_task_unwanted_keys(task_dict):
+    removed_keys = ["expiryTime", "cancelRequested", "id", "name", "operation",
+                   "operationName", "serviceNamespace", "type", "xmlns",
+                   "xmlns:xsi", "xsi:schemaLocation", "Details",
+                   "Organization", "Owner", "User"]
+    for removed_key in removed_keys:
+        for key in task_dict["Task"]:
+            if removed_key in key:
+                del task_dict["Task"][key]
+                break        
         
-@cli.command(options_metavar='[-s <id>] [-d <id>]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
-@click.option('-s', '--service', default='')
-@click.option('-d', '--datacenter', default='')
-@click.option('-g', '--gateway', default='')
-def gateways(ctx, operation, service, datacenter, gateway):
-    """Operations with gateways"""
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    section = 'Profile-%s' % ctx.obj['PROFILE'] 
-    #todo read config file once only
-    if '' == service and config.has_option(section, 'service'):
-        service = config.get(section, 'service')
-    if '' == datacenter and config.has_option(section, 'datacenter'):
-        datacenter = config.get(section, 'datacenter')     
-    vca = _getVCA(ctx.obj['PROFILE'])
-    if vca != None:
-        vcd = vca.get_vCloudDirector(service, datacenter)
-        if vcd != None:
-            if 'list' == operation:
-                click.secho("Available gateways in datacenter '%s' in service '%s' for '%s' profile:" % (datacenter, service, ctx.obj['PROFILE']), fg='blue')
-                gatewayReferences = vcd.get_gateways()
-                if gatewayReferences:
-                    table = []
-                    for gatewayReference in gatewayReferences:
-                        table.append([datacenter, gatewayReference.get_name()])
-                        if table:
-                            headers = ["Datacenter", "Gateway"]
-                            print tabulate(table, headers = headers, tablefmt="orgtbl")
-                        else:
-                            print 'No gateways found in this datacenter'
-            elif 'details' == operation:
-                if '' == gateway and config.has_option(section, 'gateway'):
-                    gateway = config.get(section, 'gateway')
-                gatewayReference = vcd.get_gateway(gateway)
-                if gatewayReference != None:
-                    click.secho("Details for gateway '%s' in datacenter '%s' in service '%s' for '%s' profile:" % (gateway, datacenter, service, ctx.obj['PROFILE']), fg='blue')
-                    click.secho('Public IPs', fg='blue')
-                    table = []
-                    ips = gatewayReference.get_public_ips()
-                    iplist = ''
-                    for ip in ips:
-                        if iplist == '':
-                            iplist = ip
-                        else:
-                            iplist = iplist + ', ' + ip
-                    interfaces = gatewayReference.get_uplink_interfaces()
-                    intlist = ''
-                    for interface in interfaces:
-                        if intlist == '':
-                            intlist = interface.get_Name()
-                        else:
-                            intlist = intlist + ', ' + interface.get_Name()
-                    table.append([gatewayReference.get_name(), iplist, intlist])
-                    headers = ["Gateway", "Public IPs", "Uplink"]
-                    print tabulate(table, headers = headers, tablefmt="orgtbl")
-                    click.secho('NAT rules', fg='blue')
-                    natRules = gatewayReference.get_nat_rules()
-                    _print_nat_rules(natRules)
-                    # click.secho('Firewall rules', fg='blue')
-                else:
-                    print 'Gateway not found'
-        else:
-            print 'Datacenter not found'
-    else:
-        print 'Service not found'  
+def task_json(task_xml):
+    task_dict = xmltodict.parse(task_xml)
+    remove_task_unwanted_keys(task_dict)
+    # add error message (0 means no error and 1 means error)
+    task_dict["Errorcode"] = "0"
+    return json.dumps(task_dict, sort_keys=True, indent=4, separators=(',', ': '))
+
+def task_table(task_xml):
+    task_dict = xmltodict.parse(task_xml)
+    remove_task_unwanted_keys(task_dict)
+    # modify link so that it can be printed on the table
+    for key in task_dict["Task"]:
+        if "Link" in key:
+            rel = [task_dict["Task"][key][link_key] for link_key in task_dict["Task"][key] if "rel" in link_key][0]
+            href = [task_dict["Task"][key][link_key] for link_key in task_dict["Task"][key] if "href" in link_key][0]
+            task_dict["Task"][rel] = href
+            del task_dict["Task"][key]
+    # add error message (0 means no error and 1 means error)
+    table = task_dict["Task"].items()
+    return tabulate(table, tablefmt="grid")        
         
-def _print_nat_rules(natRules):
+def display_progress(task, json, headers):
+    progress = task.get_Progress()
+    status = task.get_status()
+    rnd = 0
+    while status != "success":
+        if status == "error":
+            error = task.get_Error()
+            print_error(CommonUtils.convertPythonObjToStr(error, name = "Error"), json)
+            return
+        else:
+            # some task doesn't not report progress
+            if progress:
+                sys.stdout.write("\rprogress : ["+"*"*int(progress)+" "*(100-int(progress-1))+"] "+str(progress)+" %")
+            else:
+                sys.stdout.write("\rprogress : ")
+                if rnd % 4 == 0:
+                    sys.stdout.write("["+"*"*25+" "*75+"]")
+                elif rnd % 4 == 1:
+                    sys.stdout.write("["+" "*25+"*"*25+" "*50+"]")
+                elif rnd % 4 == 2:
+                    sys.stdout.write("["+" "*50+"*"*25+" "*25+"]")
+                elif rnd % 4 == 3:
+                    sys.stdout.write("["+" "*75+"*"*25+"]")
+                rnd += 1
+            sys.stdout.flush()
+            time.sleep(1)
+            response = requests.get(task.get_href(), headers = headers)
+            task = taskType.parseString(response.content, True)
+            progress = task.get_Progress()
+            status = task.get_status()
+    sys.stdout.write("\r" + " "*120)
+    sys.stdout.flush()
+    if json:
+        sys.stdout.write("\r" + task_json(response.content) + '\n')
+    else:
+        sys.stdout.write("\r" + task_table(response.content) + '\n')
+    sys.stdout.flush()        
+    
+def print_org_details(ctx, vca):
+    if ctx.obj['xml_output']:
+        vca.vcloud_session.organization.export(sys.stdout, 0)
+        return
+    headers = ["Type", "Name"]
+    links = vca.vcloud_session.organization.Link if vca.vcloud_session.organization else []
+    org_name = vca.vcloud_session.organization.name if vca.vcloud_session.organization else []
+    #todo: review filter/lambda below
+    table = [[details.get_type().split('.')[-1].split('+')[0], details.get_name()] for details in filter(lambda info: info.name, links)]
+    sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)        
+    print_table("Details for org '%s':" % org_name, 'orgs', headers, sorted_table, ctx.obj['json_output'])     
+    
+def print_vdc_details(ctx, vdc, gateways):     
+    if ctx.obj['xml_output']:
+        vdc.export(sys.stdout, 0)
+        for gateway in gateways: print_gateway_details(ctx, gateway)
+        return       
+    headers = ['Type', 'Name']
+    table = []
+    for entity in vdc.get_ResourceEntities().ResourceEntity:
+        table.append([entity.type_.split('.')[-1].split('+')[0], entity.name])
+    for entity in vdc.get_AvailableNetworks().Network:
+        table.append([entity.type_.split('.')[-1].split('+')[0], entity.name])
+    for gateway in gateways:
+        table.append(['edge gateway', gateway.get_name()])
+    sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)        
+    print_table("Virtual Data Center '%s' for '%s' profile; details:" % (vdc.name, ctx.obj['profile']), 'vdc', headers, sorted_table, ctx.obj['json_output'])
+                
+    headers = ['Resource', 'Allocated', 'Limit', 'Reserved', 'Used', 'Overhead']
+    table = []
+    computeCapacity = vdc.get_ComputeCapacity()
+    cpu = computeCapacity.get_Cpu()
+    memory = computeCapacity.get_Memory()
+    # storageCapacity = vca.vdc.get_StorageCapacity()
+    table.append(['CPU (%s)' % cpu.get_Units(), cpu.get_Allocated(), cpu.get_Limit(), cpu.get_Reserved(), cpu.get_Used(), cpu.get_Overhead()])
+    table.append(['Memory (%s)' % memory.get_Units(), memory.get_Allocated(), memory.get_Limit(), memory.get_Reserved(), memory.get_Used(), memory.get_Overhead()])
+    sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)        
+    print_table("Compute capacity:", 'compute', headers, sorted_table, ctx.obj['json_output'])
+    
+    print_gateways(ctx, gateways)
+        
+def print_gateways(ctx, gateways):
+    if ctx.obj['xml_output']:
+        for gateway in gateways: gateway.me.export(sys.stdout, 0)
+        return
+    #todo add VPN and LB services
+    headers = ['Name', 'External IPs', 'DHCP Service', 'Firewall Service', 'NAT Service', 'Internal Networks']
+    table = []
+    for gateway in gateways:
+        interfaces = gateway.get_interfaces('internal')
+        interface_table = []
+        for interface in interfaces: interface_table.append(interface.get_Name())
+        table.append([gateway.get_name(), gateway.get_public_ips(), 
+        'On' if gateway.is_dhcp_enabled() else 'Off', 
+        'On' if gateway.is_fw_enabled() else 'Off', 
+        'On' if gateway.is_nat_enabled() else 'Off', 
+        interface_table])
+    # sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+    print_table("Edge Gateways:", 'gateways', headers, table, ctx.obj['json_output'])                
+        
+def print_gateway_details(ctx, gateway):
+    if ctx.obj['xml_output']:
+        gateway.me.export(sys.stdout, 0)
+        return
+    print_message("not implemented", ctx.obj['json_output'])
+    return
+    headers = ['Property', 'Value']
+    table = []
+    table.append(['Name', gateway.me.name])
+    # headers = ['Type', 'Name']
+    # table = []
+    # for entity in vdc.get_ResourceEntities().ResourceEntity:
+    #     table.append([entity.type_.split('.')[-1].split('+')[0], entity.name])
+    # for entity in vdc.get_AvailableNetworks().Network:
+    #     table.append([entity.type_.split('.')[-1].split('+')[0], entity.name])
+    # for gateway in gateways:
+    #     table.append(['edge gateway', gateway.name])
+    # sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+    print_table("Gateway '%s' details:" % (gateway.me.name), 'gateway', headers, table, ctx.obj['json_output'])
+    
+def print_networks(ctx, item_list):
+    if ctx.obj['xml_output']:
+        for item in item_list: item.export(sys.stdout, 0)
+        return
+    headers = ['Name', 'Status', 'DHCP Service', 'IP Range']
+    table = []
+    for item in item_list:
+        table.append([item.get_name(), '', '', ''])
+    sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+    print_table("Networks available in Virtual Data Center '%s':" % (ctx.obj['vdc']), 'networks', headers, sorted_table, ctx.obj['json_output'])        
+    
+def print_vapp_details(ctx, vapp):            
+    if ctx.obj['xml_output']:
+        vapp.export(sys.stdout, 0)
+        return
+    headers = []
+    sorted_table = []
+    print_table("Details for vApp '%s':" % vapp.name, 'vapp', headers, sorted_table, ctx.obj['json_output'])  
+    
+def print_nat_rules(ctx, natRules):
     result = []
     for natRule in natRules:
         ruleID = natRule.get_Id()
@@ -534,352 +932,7 @@ def _print_nat_rules(natRules):
         headers = ["Rule ID", "Enabled", "Type", "Original IP", "Original Port", "Translated IP", "Translated Port", "Protocol", "Applied On"]
         print tabulate(result, headers = headers, tablefmt="orgtbl")
     else:
-        print "No NAT rules found in this gateway"
-        
-@cli.command(options_metavar='[-s <id>] [-d <id>] [-g <id>]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | add | del]', type=click.Choice(['list', 'add', 'del']))
-@click.argument('rule_type', default='DNAT', metavar='[DNAT | SNAT]', type=click.Choice(['DNAT', 'SNAT']))
-@click.argument('original_ip', default='')
-@click.argument('original_port', default='')
-@click.argument('translated_ip', default='')
-@click.argument('translated_port', default='')
-@click.argument('protocol', default='')
-@click.option('-s', '--service', default='')
-@click.option('-d', '--datacenter', default='')
-@click.option('-g', '--gateway', default='')
-def nat(ctx, operation, service, datacenter, gateway, rule_type, original_ip, original_port, translated_ip, translated_port, protocol):
-    """Operations with gateway NAT rules"""
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    section = 'Profile-%s' % ctx.obj['PROFILE'] 
-    #todo read config file once only
-    if '' == service and config.has_option(section, 'service'):
-        service = config.get(section, 'service')
-    if '' == datacenter and config.has_option(section, 'datacenter'):
-        datacenter = config.get(section, 'datacenter')     
-    vca = _getVCA(ctx.obj['PROFILE'])
-    if vca != None:
-        vcd = vca.get_vCloudDirector(service, datacenter)
-        if vcd != None:
-            if '' == gateway and config.has_option(section, 'gateway'): 
-                gateway = config.get(section, 'gateway')
-            gatewayReference = vcd.get_gateway(gateway)
-            
-            if 'list' == operation:
-                print 'list of nat rules'
-            elif 'add' == operation:
-                print 'adding nat rule'
-                if gatewayReference != None:
-                    result = gatewayReference.add_nat_rule(rule_type, original_ip, original_port, translated_ip, translated_port, protocol)
-                    if result[0]:
-                        vcd.get_task(result[1], 'table')
-            elif 'del' == operation:
-                print 'deleting nat rule'
-                if gatewayReference != None:
-                    result = gatewayReference.del_nat_rule(rule_type, original_ip, original_port, translated_ip, translated_port, protocol)
-                    if result[0]:
-                        vcd.get_task(result[1], 'table')
-            if gatewayReference != None:
-                natRules = gatewayReference.get_nat_rules()
-                _print_nat_rules(natRules)            
-            else:
-                print 'Gateway not found'                
-        else:
-            print 'Gateway not found'
-
-@cli.command(options_metavar='[-s <id>] [-d <id>]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | add]', type=click.Choice(['list', 'add']))
-@click.option('-s', '--service', default='')
-@click.option('-d', '--datacenter', default='')
-def networks(ctx, operation, service, datacenter):
-    """Operations with networks"""
-    pass
+        print_message("No NAT rules found in this gateway", ctx.obj['json_output']) 
     
-@cli.command(options_metavar='[-s <id>] [-d <id>]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
-@click.argument('taskid', default='', metavar='[TASK-ID]')
-@click.option('-s', '--service', default='')
-@click.option('-d', '--datacenter', default='')
-def tasks(ctx, operation, service, datacenter, taskid):
-    """Operations with tasks"""
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    section = 'Profile-%s' % ctx.obj['PROFILE'] 
-    #todo read config file once only
-    if '' == service and config.has_option(section, 'service'):
-        service = config.get(section, 'service')
-    if '' == datacenter and config.has_option(section, 'datacenter'):
-        datacenter = config.get(section, 'datacenter')     
-    vca = _getVCA(ctx.obj['PROFILE'])
-    if vca != None:
-        vcd = vca.get_vCloudDirector(service, datacenter)
-        if vcd != None:
-            if 'list' == operation:
-                print 'list of tasks'
-                taskRecords = vcd.get_tasks()
-                table = []
-                for taskRecord in taskRecords:
-                    id = taskRecord.get_href()[taskRecord.get_href().rindex('/')+1:]
-                    table.append([taskRecord.get_name(), taskRecord.get_status(), taskRecord.get_endDate(), id])
-                import operator
-                tt = sorted(table, key=operator.itemgetter(2), reverse=True)
-                t = []
-                i = 0
-                for row in tt:
-                    i = i + 1
-                    t.append([i] + row)
-                headers = ["Name", "Status", "End Date", "id"]
-                print tabulate(t, headers = headers, tablefmt="orgtbl")                
-            elif 'details' == operation:
-                print "details about task '%s'" % taskid
-                vcd.get_task_from_id(taskid, 'table')
-                
-@cli.command(options_metavar='[-s <id>] [-d <id>] [-v]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | details | power.on | power.off | shutdown | reboot | create | delete | undeploy]', type=click.Choice(['list', 'details', 'power.on', 'power.off', 'shutdown', 'reboot', 'create', 'delete', 'undeploy']))
-@click.argument('vapp', default='', metavar='[VAPP]')
-@click.argument('template', default='', metavar='[TEMPLATE]')
-@click.argument('catalog', default='', metavar='[CATALOG]')
-@click.option('-s', '--service', default='')
-@click.option('-d', '--datacenter', default='')
-@click.option('-v', '--vms', 'listvms', is_flag=True)
-def vapps(ctx, operation, service, datacenter, vapp, template, catalog, listvms):
-    """Operations with vApps"""
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    section = 'Profile-%s' % ctx.obj['PROFILE'] 
-    #todo read config file once only
-    if '' == service and config.has_option(section, 'service'):
-        service = config.get(section, 'service')
-    if '' == datacenter and config.has_option(section, 'datacenter'):
-        datacenter = config.get(section, 'datacenter')     
-    vca = _getVCA(ctx.obj['PROFILE'])
-    if vca != None:
-        vcd = vca.get_vCloudDirector(service, datacenter)
-        if vcd != None:
-            if 'list' == operation:
-                click.secho("Available vApps in datacenter '%s' for '%s' profile:" % (datacenter, ctx.obj['PROFILE']), fg='blue')                
-                table = []
-                for vApp in vcd.get_vApps():
-                    vms = []
-                    if listvms:
-                        va = vcd.get_vApp(vApp.get_name())
-                        for description in va.details_of_vms():
-                            vms.append(description[0])
-                        table.append([vcd.service, vcd.vdc, vApp.get_name(), vms, ghf.status[vApp.get_status()](), vApp.get_Owner().get_User().get_name(),
-                            vApp.get_DateCreated().strftime("%d/%m/%Y %H:%M:%S")])                            
-                    else:
-                        table.append([vcd.service, vcd.vdc, vApp.get_name(), ghf.status[vApp.get_status()](), vApp.get_Owner().get_User().get_name(),
-                            vApp.get_DateCreated().strftime("%d/%m/%Y %H:%M:%S")])                        
-                if listvms:
-                    headers = ["Service", "Datacenter", "vApp", "VMs", "Status", "Owner", "Date Created"]
-                else:
-                    headers = ["Service", "Datacenter", "vApp", "Status", "Owner", "Date Created"]                        
-                print tabulate(table, headers = headers, tablefmt="orgtbl")                
-            elif 'details' == operation:
-                print "details about vApp '%s'" % vapp
-                vApp = vcd.get_vApp(vapp)
-                if vApp != None:
-                    table = []
-                    for description in vApp.details_of_vms():
-                        table.append([vcd.service, vcd.vdc, vApp.name] + description)                
-                    headers = ["Service", "Datacenter", "vApp", "VM", "Status", "CPU", "Memory", "OS", "Owner"]
-                    print tabulate(table, headers = headers, tablefmt="orgtbl")
-            elif 'power.on' == operation:
-                print "power on vApp '%s'" % vapp
-                vApp = vcd.get_vApp(vapp)
-                if vApp != None:
-                    vApp.poweron({'--blocking': True, '--json': True})                    
-            elif 'power.off' == operation:
-                print "power off vApp '%s'" % vapp
-                vApp = vcd.get_vApp(vapp)
-                if vApp != None:
-                    vApp.poweroff({'--blocking': True, '--json': True})
-            elif 'shutdown' == operation:
-                print "shutdown vApp '%s'" % vapp
-                vApp = vcd.get_vApp(vapp)
-                if vApp != None:
-                    vApp.shutdown({'--blocking': True, '--json': True})                    
-            elif 'reboot' == operation:
-                print "reboot vApp '%s'" % vapp
-                vApp = vcd.get_vApp(vapp)
-                if vApp != None:
-                    vApp.reboot({'--blocking': True, '--json': True})
-            elif 'create' == operation:
-                print "create vApp '%s' from template '%s' in catalog '%s'" % (vapp, template, catalog)
-                result = vcd.create_vApp(vapp, template, catalog, {'--blocking': False, '--json': True, '--deploy': False, '--on': False, '--network': False})
-                if result[0]:
-                    vApp = result[1]                    
-                    task = vApp.get_Tasks().get_Task()[0]
-                    ghf.display_progress(task, False, vcd.headers)
-            elif 'delete' == operation:
-                print "delete vApp '%s'" % vapp
-                vApp = vcd.get_vApp(vapp)
-                if vApp != None:
-                    vApp.delete({'--blocking': True, '--json': True})                
-            elif 'undeploy' == operation:
-                print "undeploy vApp '%s'" % vapp
-                vApp = vcd.get_vApp(vapp)
-                if vApp != None:
-                    vApp.undeploy({'--blocking': True, '--json': True, '--action': 'powerOff'})                
-                        
-@cli.command(options_metavar='[-s <id>] [-d <id>]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
-@click.option('-s', '--service', default='')
-@click.option('-d', '--datacenter', default='')
-def catalogs(ctx, operation, service, datacenter):
-    """Operations with catalogs"""
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    section = 'Profile-%s' % ctx.obj['PROFILE'] 
-    #todo read config file once only
-    if '' == service and config.has_option(section, 'service'):
-        service = config.get(section, 'service')
-    if '' == datacenter and config.has_option(section, 'datacenter'):
-        datacenter = config.get(section, 'datacenter')     
-    vca = _getVCA(ctx.obj['PROFILE'])
-    if vca != None:
-        vcd = vca.get_vCloudDirector(service, datacenter)
-        if vcd != None:
-            if 'list' == operation:
-                click.secho("Available catalogs in datacenter '%s' for '%s' profile:" % (datacenter, ctx.obj['PROFILE']), fg='blue')                
-                # table = [[catalog.name, len(catalog.CatalogItems.CatalogItem)] for catalog in vcd.get_catalogs()]
-                table = vcd.list_catalogs()
-                headers = ["Catalog", "# Templates", "# Media", "Owner", "Published", "Shared"]
-                # table = []
-                # headers = ["Catalog", "# Templates"]
-                # catalogs = vcd.get_catalogs()
-                # for catalog in catalogs:
-                #     table.append([catalog.name, len(catalog.CatalogItems.CatalogItem)])
-                print tabulate(table, headers = headers, tablefmt="orgtbl")
-
-@cli.command(options_metavar='[-s <service_name>] [-d <datacenter_name>] [-c <catalog_name>]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | details]', type=click.Choice(['list', 'details']))
-@click.option('-s', '--service', default='')
-@click.option('-d', '--datacenter', default='')
-@click.option('-c', '--catalog', default='')
-def templates(ctx, operation, service, datacenter, catalog):
-    """Operations with templates"""
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    section = 'Profile-%s' % ctx.obj['PROFILE'] 
-    #todo read config file once only
-    if '' == service and config.has_option(section, 'service'):
-        service = config.get(section, 'service')
-    if '' == datacenter and config.has_option(section, 'datacenter'):
-        datacenter = config.get(section, 'datacenter')     
-    vca = _getVCA(ctx.obj['PROFILE'])
-    if vca != None:
-        vcd = vca.get_vCloudDirector(service, datacenter)
-        if vcd != None:
-            if 'list' == operation:
-                click.secho("Available templates in datacenter '%s' for '%s' profile:" % (datacenter, ctx.obj['PROFILE']), fg='blue')                
-                # result.append([catalog, name, status, ownerName, vms, cpu, memory, storage, storageProfileName])
-                table = vcd.list_templates({'--catalog': catalog})
-                headers = ["Catalog", "Template", "Status", "Owner", "# VMs", "# CPU", "Memory(GB)", "Storage(GB)", "Storage Profile"]
-                print tabulate(table, headers = headers, tablefmt="orgtbl")     
-              
-#todo: detail about a disk, showing the vm and the vapp that is attached  
-@cli.command(options_metavar='[-s <id>] [-d <id>] | [-v | --vms] | [-f | --force]')
-@click.pass_context
-@click.argument('operation', default='list', metavar='[list | add | delete]', type=click.Choice(['list', 'add', 'delete']))
-@click.argument('name', default='', metavar='[DISK NAME or ID]')
-@click.argument('size', default='', metavar='[DISK SIZE (MB)]')
-@click.option('-s', '--service', default='')
-@click.option('-d', '--datacenter', default='')
-@click.option('-f', '--force', is_flag=True)
-@click.option('-v', '--vms', 'listvms', is_flag=True)
-def disks(ctx, operation, service, datacenter, name, size, force, listvms):
-    """Operations with independent disks"""
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    section = 'Profile-%s' % ctx.obj['PROFILE'] 
-    #todo read config file once only
-    if '' == service and config.has_option(section, 'service'):
-        service = config.get(section, 'service')
-    if '' == datacenter and config.has_option(section, 'datacenter'):
-        datacenter = config.get(section, 'datacenter')     
-    vca = _getVCA(ctx.obj['PROFILE'])
-    if vca != None:
-        vcd = vca.get_vCloudDirector(service, datacenter)
-        if vcd != None:
-            if 'list' == operation:
-                print 'list of independent disks'
-                disks = vcd.get_disks()
-                table = []
-                vms = []
-                for disk_pair in disks:
-                    disk = disk_pair[0]
-                    if listvms:
-                        for vm in disk_pair[1]:
-                            vms.append(vm.name)
-                        table.append([disk.get_id(), disk.get_name(), round(float(disk.get_size()) / 1048576, 2), ghf.get_disk_status_string(disk.get_status()), 
-                            disk.get_Owner().get_User(), disk.get_StorageProfile().get_name(),
-                            "%s (%s)" % (ghf.get_disk_bus_sub_type_string(disk.get_busSubType()), ghf.get_disk_bus_type_string(disk.get_busType())),
-                            vms])
-                    else:
-                        table.append([disk.get_id(), disk.get_name(), round(float(disk.get_size()) / 1048576, 2), ghf.get_disk_status_string(disk.get_status()), 
-                            disk.get_Owner().get_User(), disk.get_StorageProfile().get_name(),
-                            "%s (%s)" % (ghf.get_disk_bus_sub_type_string(disk.get_busSubType()), ghf.get_disk_bus_type_string(disk.get_busType()))])                                                    
-                if listvms:
-                    headers = ["Id", "Name", "Size (MB)", "Status", "Owner", "Storage Policy", "Bus Type", "Attached VMs"]
-                else:
-                    headers = ["Id", "Name", "Size (MB)", "Status", "Owner", "Storage Policy", "Bus Type"]                    
-                print tabulate(table, headers = headers, tablefmt="orgtbl")           
-            elif 'add' == operation:
-                print "add disk '%s' of size '%s'(MB)" % (name, size)
-                result = vcd.add_disk(name, int(size)*1024*1024)            
-                if result[0]:
-                    print "disk created '%s'" % result[1].get_id()
-                else:
-                    print "failed creating disk: %s" % result[1]
-            elif 'delete' == operation:
-                print "delete disk '%s'" % (name)
-                if force or click.confirm('Are you sure you want to delete the independent disk?'):
-                    result = vcd.delete_disk(name)            
-                    if result[0]:
-                        print "disk being deleted, task: '%s'" % result[1].get_href()
-                    else:
-                        print "failed to delete disk: %s" % result[1]
-                else:
-                    print "disk not deleted"
-                
-                    
-#todo attach/deattach disk to/from VM  
-#   POST /vApp/{id}/disk/action/attach
-#todo list vms attached to a disk
-#   GET /disk/{id}/attachedVms         
-
-
-@cli.command(options_metavar='[-s <id>] [-d <id>]')
-@click.pass_context
-@click.argument('operation', default='', metavar='[attach | dettach]', type=click.Choice(['attach', 'detach']))
-@click.argument('vapp', default='', metavar='[VAPP]')
-@click.argument('vm', default='', metavar='[VM]')
-@click.argument('diskid', default='', metavar='[DISK ID]')
-@click.option('-s', '--service', default='')
-@click.option('-d', '--datacenter', default='')
-def vms(ctx, operation, service, datacenter, vapp, vm, diskid):
-    """Operations with VMs"""
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.expanduser('~/.vcarc'))
-    section = 'Profile-%s' % ctx.obj['PROFILE'] 
-    #todo read config file once only
-    if '' == service and config.has_option(section, 'service'):
-        service = config.get(section, 'service')
-    if '' == datacenter and config.has_option(section, 'datacenter'):
-        datacenter = config.get(section, 'datacenter')     
-    vca = _getVCA(ctx.obj['PROFILE'])
-    if vca != None:
-        vcd = vca.get_vCloudDirector(service, datacenter)
-        if vcd != None:
-            if 'attach' == operation:
-                print "attach disk '%s' to VM '%s:%s'" % (diskid, vapp, vm)
-
 if __name__ == '__main__':
     cli(obj={})

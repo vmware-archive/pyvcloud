@@ -16,83 +16,55 @@
 # coding: utf-8
 
 import requests
+from StringIO import StringIO
 from schema.vcd.v1_5.schemas.vcloud import vAppType, vdcType, queryRecordViewType, taskType, vcloudType
 from schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType, NetworkConnectionSectionType
 from iptools import ipv4, IpRange
 from tabulate import tabulate
-from helper import generalHelperFunctions as ghf
 
 class VAPP(object):
 
-    def __init__(self, vApp, headers):
+    def __init__(self, vApp, headers, verify):
         self.me = vApp
         self.headers = headers
+        self.verify = verify
 
     @property
     def name(self):
         return self.me.get_name()
-
-    def details_of_vms(self):
-        result = []
-        children = self.me.get_Children()
-        if children:
-            vms = children.get_Vm()
-            for vm in vms:
-                name = vm.get_name()
-                status = ghf.status[vm.get_status()]()
-                owner = self.me.get_Owner().get_User().get_name()
-                sections = vm.get_Section()
-                virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]
-                items = virtualHardwareSection.get_Item()
-                cpu = filter(lambda item: item.get_Description().get_valueOf_() == "Number of Virtual CPUs", items)[0]
-                cpu_capacity = cpu.get_ElementName().get_valueOf_().split(" virtual CPU(s)")[0]
-                memory = filter(lambda item: item.get_Description().get_valueOf_() == "Memory Size", items)[0]
-                memory_capacity = int(memory.get_ElementName().get_valueOf_().split(" MB of memory")[0]) / 1024
-                operatingSystemSection = filter(lambda section: section.__class__.__name__== "OperatingSystemSection_Type", sections)[0]
-                os = operatingSystemSection.get_Description().get_valueOf_()
-                result.append([name, status, cpu_capacity + " vCPUs", str(memory_capacity) + " GB", os, owner])
-        return result
         
-    def execute(self, operation, blocking, failure_msg, http, output_json, body = None, targetVM = None):
-        # get action link from vm or vapp that has the url of the desired operation
+    def execute(self, operation, http, body=None, targetVM=None):
         if targetVM:
             link = filter(lambda link: link.get_rel() == operation, targetVM.get_Link())
         else:
             link = filter(lambda link: link.get_rel() == operation, self.me.get_Link())
         if not link:
-            ghf.print_error("This " + self.name + " " + failure_msg, output_json)
+            print "unable to execute vApp operation: %s" % operation
+            return False
         else:
             if http == "post":
-                response = requests.post(link[0].get_href(), data = body, headers=self.headers)
+                headers = self.headers
+                # headers['Content-type'] = 'text/xml'
+                response = requests.post(link[0].get_href(), data = body, headers=headers, verify=self.verify)
             elif http == "put":
-                response = requests.put(link[0].get_href(), data = body, headers=self.headers)
+                response = requests.put(link[0].get_href(), data = body, headers=self.headers, verify=self.verify)
             else:
-                response = requests.delete(link[0].get_href(), headers=self.headers)
+                response = requests.delete(link[0].get_href(), headers=self.headers, verify=self.verify)
             if response.status_code == requests.codes.accepted:
-                task = taskType.parseString(response.content, True)
-                # if blocking then display progress bar before outputing the result 
-                if blocking:
-                    ghf.display_progress(task, output_json, self.headers)
-                # else display result immediately
-                else:
-                    if output_json:
-                        print ghf.task_json(response.content)
-                    else:
-                        print ghf.task_table(response.content)
+                return taskType.parseString(response.content, True)
             else:
-                # print the error message
-                ghf.print_xml_error(response.content, output_json)        
+                return False
         
-    def deploy(self, blocking=True, output_json=True, powerOn='true'):
-        # build the body for sending post request
-        deployVAppParams = vcloudType.DeployVAppParamsType()
-        # the valid values of on are true and false
-        deployVAppParams.set_powerOn(powerOn)
-        body = ghf.convertPythonObjToStr(deployVAppParams, name = "DeployVAppParams",
-                                         namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
-        self.execute("deploy", blocking, "can't be deployed", "post", output_json, body)
-
-    def undeploy(self, blocking=True, output_json=True, action='powerOff'):
+    # def deploy(self, powerOn='true'):
+    #     # build the body for sending post request
+    #     deployVAppParams = vcloudType.DeployVAppParamsType()
+    #     # the valid values of on are true and false
+    #     deployVAppParams.set_powerOn(powerOn)
+    #     body = ghf.convertPythonObjToStr(deployVAppParams, name = "DeployVAppParams",
+    #                                      namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
+    #     self.execute("deploy", blocking, "can't be deployed", "post", output_json, body)
+    #
+    def undeploy(self, action='powerOff'):
         undeployVAppParams = vcloudType.UndeployVAppParamsType()
         # The valid values of action are powerOff (Power off the VMs. This is the default action if
         # this attribute is missing or empty), suspend (Suspend the VMs), shutdown (Shut down the VMs),
@@ -100,64 +72,66 @@ class VAPP(object):
         # are ignored. All references to the vApp and its VMs are removed from the database),
         # default (Use the actions, order, and delay specified in the StartupSection).
         undeployVAppParams.set_UndeployPowerAction(action)
-        body = ghf.convertPythonObjToStr(undeployVAppParams, name = "UndeployVAppParams",
-                                         namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
-        self.execute("undeploy", blocking, "can't be undeployed", "post", output_json, body)
+        output = StringIO()
+        undeployVAppParams.export(output,
+            0,
+            name_ = "UndeployVAppParams",
+            namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5"',
+            pretty_print = False)
+        return self.execute("undeploy", "post", body=output.getvalue())
 
-    def reboot(self, blocking=True, output_json=True):
-        self.execute("power:reboot", blocking, "can't be rebooted", "post", output_json)
+    def reboot(self):
+        self.execute("power:reboot", "post")
 
-    def poweron(self, blocking=True, output_json=True):
-        self.execute("power:powerOn", blocking, "can't be powered on", "post", output_json)
+    def poweron(self):
+        return self.execute("power:powerOn", "post")
 
-    def poweroff(self, blocking=True, output_json=True):
-        self.execute("power:powerOff", blocking, "can't be powered off", "post", output_json)
+    def poweroff(self):
+        return self.execute("power:powerOff", "post")
 
-    def shutdown(self, blocking=True, output_json=True):
-        self.execute("power:shutdown", blocking, "can't be shutdown", "post", output_json)
+    def shutdown(self):
+        return self.execute("power:shutdown", "post")
 
-    def suspend(self, blocking=True, output_json=True):
-        self.execute("power:suspend", blocking, "can't be suspended", "post", output_json)
+    def suspend(self):
+        self.execute("power:suspend", "post")
 
-    def reset(self, blocking=True, output_json=True):
-        self.execute("power:reset", blocking, "can't be reset", "post", output_json)
+    def reset(self):
+        self.execute("power:reset", "post")
 
-    def delete(self, blocking=True, output_json=True):
-        self.execute("remove", blocking, "can't be deleted", "delete", output_json)
+    def delete(self):
+        return self.execute("remove", "delete")
 
     def create_snapshot(self, args):
-        createSnapshotParams = vcloudType.CreateSnapshotParamsType()
-        createSnapshotParams.set_name(args["--snapshot"])
-        createSnapshotParams.set_memory(args["--memory"])
-        createSnapshotParams.set_quiesce(args["--quiesce"])
-        body = ghf.convertPythonObjToStr(createSnapshotParams, name = "CreateSnapshotParams",
-                                         namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
-        self.execute("snapshot:create", args["--blocking"], "can't be taken a snapshot", "post", args["--json"], body)
+        pass
+        # createSnapshotParams = vcloudType.CreateSnapshotParamsType()
+        # createSnapshotParams.set_name(args["--snapshot"])
+        # createSnapshotParams.set_memory(args["--memory"])
+        # createSnapshotParams.set_quiesce(args["--quiesce"])
+        # body = ghf.convertPythonObjToStr(createSnapshotParams, name = "CreateSnapshotParams",
+        #                                  namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
+        # self.execute("snapshot:create", args["--blocking"], "can't be taken a snapshot", "post", args["--json"], body)
 
     def revert_snapshot(self, args):
-        self.execute("snapshot:revertToCurrent", args["--blocking"], "can't be reverted to its current snapshot", "post", args["--json"])
+        pass
+        # self.execute("snapshot:revertToCurrent", args["--blocking"], "can't be reverted to its current snapshot", "post", args["--json"])
 
     def delete_snapshot(self, args):
-        self.execute("snapshot:removeAll", args["--blocking"], "can't have its snapshot deleted", "post", args["--json"])
+        pass
+        # self.execute("snapshot:removeAll", args["--blocking"], "can't have its snapshot deleted", "post", args["--json"])
         
-    # create instantiateVAppTemplateParams python object (read "vCloud API Programming Guide", pages 32 and 33)
     @staticmethod
-    def create_instantiateVAppTemplateParams(name, template_href, deploy="true", power="true"):
-
-        # template params that can be used as body of http request
+    def create_instantiateVAppTemplateParams(name, template_href, deploy="true", power="false"):
         templateParams = vcloudType.InstantiateVAppTemplateParamsType()
         templateParams.set_name(name)
         templateParams.set_deploy(deploy)
         templateParams.set_powerOn(power)
 
-        # set source of the templateParams using href of the template
         source = vcloudType.ReferenceType(href=template_href)
         templateParams.set_Source(source)
         templateParams.set_AllEULAsAccepted("true")
 
         return templateParams
 
-    # this networkConfigSection is used to change the network connection of vapp
     @staticmethod
     def create_networkConfigSection(network_name, network_href, fence_mode):
         parentNetwork = vcloudType.ReferenceType(href=network_href)
@@ -184,97 +158,84 @@ class VAPP(object):
                     networkConnection.set_IpAddressAllocationMode(ip_address_allocation_mode)
                     networkConnection.set_network(network_name)
                     networkConnection.set_IsConnected('true')
-                body = ghf.convertPythonObjToStr(networkConnectionSection, name = 'NetworkConnectionSection',
-                                          namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"').\
-                                          replace("vmw:Info", "ovf:Info")
-                response = requests.put(vm.get_href() + "/networkConnectionSection/", data = body, headers=self.headers)
+                output = StringIO()
+                networkConnectionSection.export(output,
+                    0, 
+                    name_ = 'NetworkConnectionSection',
+                    namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
+                    pretty_print = False)
+                body=output.getvalue().replace("vmw:Info", "ovf:Info")
+                response = requests.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify)
                 if response.status_code == requests.codes.accepted:
-                    task = taskType.parseString(response.content, True)
-                    ghf.display_progress(task, False, self.headers)
-                    task = taskType.parseString(response.content, True)
-                    return (True, task)      
-                else:
-                    return (False, response.content)     
+                    return taskType.parseString(response.content, True)
                     
     def disconnect_vms(self, network_name):
         pass 
                     
-    def connect_to_network(self, network_name, network_href, fence_mode, output_json=True, blocking=True):
-        # get link that contains url for sending http request to add a network
-        # this link is located under NetworkConfigSection of the vapp
+    def connect_to_network(self, network_name, network_href, fence_mode='bridged'):
         vApp_NetworkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
         link = [link for link in vApp_NetworkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]
-        # Now that we have the link for sending http requests, build the request body
         networkConfigSection = VAPP.create_networkConfigSection(network_name, network_href, fence_mode)
-        # add the original networks to the networkConfigSection
         for networkConfig in vApp_NetworkConfigSection.get_NetworkConfig():
-            if networkConfig.get_networkName().lower() == network_name.lower():
-                ghf.print_error("This vapp is already connected to org vdc network " + network_name, output_json)
+            if networkConfig.get_networkName() == network_name:
                 return
             networkConfigSection.add_NetworkConfig(networkConfig)
-        # need to be careful with replacing string because it might be wrong
-        body = ghf.convertPythonObjToStr(networkConfigSection, name = 'NetworkConfigSection',
-                                         namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"').\
-                                         replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").replace("vmw:", "")
-        response = requests.put(link.get_href(), data = body, headers = self.headers)
+        output = StringIO()
+        networkConfigSection.export(output,
+            0, 
+            name_ = 'NetworkConfigSection',
+            namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
+            pretty_print = False)
+        body = output.getvalue().\
+            replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").replace("vmw:", "")
+        response = requests.put(link.get_href(), data=body, headers=self.headers, verify=self.verify)
         if response.status_code == requests.codes.accepted:
-            task = taskType.parseString(response.content, True)
-            # if blocking then display progress bar before outputing the result 
-            if blocking:
-                ghf.display_progress(task, output_json, self.headers)
-                task = taskType.parseString(response.content, True)
-                return (True, task)
-            # else display result immediately
-            else:
-                if output_json:
-                    print ghf.task_json(response.content)
-                else:
-                    print ghf.task_table(response.content)
-                return (False, response.content)
-        else:
-            # print the error message
-            ghf.print_xml_error(response.content, output_json)
+            return taskType.parseString(response.content, True)
 
-    # disconnect vapp from a network
-    def disconnect_from_network(self, network_name, output_json=True, blocking=True):
-        # get networkConfigSection of the vapp and remove the selected network
+    def disconnect_from_networks(self):
         networkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
         link = [link for link in networkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]
-        # this is the index of the networkConfig to be removed from the networkConfigSection
+        networkConfigSection.NetworkConfig[:] = []
+        output = StringIO()
+        networkConfigSection.export(output, 
+            0,
+            name_ = 'NetworkConfigSection',
+            namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
+            pretty_print = False)
+        body = output.getvalue().\
+                replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
+                replace("/Info", "/ovf:Info")
+        response = requests.put(link.get_href(), data=body, headers=self.headers, verify=self.verify)
+        if response.status_code == requests.codes.accepted:
+            return taskType.parseString(response.content, True)
+
+    def disconnect_from_network(self, network_name):
+        networkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
+        link = [link for link in networkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]
         found = -1
         for index, networkConfig in enumerate(networkConfigSection.get_NetworkConfig()):
-            if networkConfig.get_networkName().lower() == network_name.lower():
+            if networkConfig.get_networkName() == network_name:
                 found = index
         if found != -1:
             networkConfigSection.NetworkConfig.pop(found)
-            # need to be careful with replacing string because it might be wrong
-            body = ghf.convertPythonObjToStr(networkConfigSection, name = 'NetworkConfigSection',
-                                             namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"').\
-                                             replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
-                                             replace("/Info", "/ovf:Info")
-            response = requests.put(link.get_href(), data = body, headers = self.headers)
+            output = StringIO()
+            networkConfigSection.export(output, 
+                0,
+                name_ = 'NetworkConfigSection',
+                namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
+                pretty_print = False)
+            body = output.getvalue().\
+                    replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
+                    replace("/Info", "/ovf:Info")
+            response = requests.put(link.get_href(), data=body, headers=self.headers, verify=self.verify)
             if response.status_code == requests.codes.accepted:
-                task = taskType.parseString(response.content, True)
-                # if blocking then display progress bar before outputing the result 
-                if blocking:
-                    ghf.display_progress(task, output_json, self.headers)
-                # else display result immediately
-                else:
-                    if output_json:
-                        print ghf.task_json(response.content)
-                    else:
-                        print ghf.task_table(response.content)
-            else:
-                # print the error message
-                ghf.print_xml_error(response.content, output_json)
-        else:
-            ghf.print_error("No such network found in this vapp", output_json)        
+                return taskType.parseString(response.content, True)
             
     def attach_disk_to_vm(self, vm_name, disk_ref):
         children = self.me.get_Children()
         if children:            
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
-            if vms:
+            if len(vms) ==1:
                 body = """
                  <DiskAttachOrDetachParams xmlns="http://www.vmware.com/vcloud/v1.5">
                      <Disk type="application/vnd.vmware.vcloud.disk+xml"
@@ -287,7 +248,7 @@ class VAPP(object):
         children = self.me.get_Children()
         if children:            
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
-            if vms:
+            if len(vms) ==1:
                 body = """
                  <DiskAttachOrDetachParams xmlns="http://www.vmware.com/vcloud/v1.5">
                      <Disk type="application/vnd.vmware.vcloud.disk+xml"
@@ -295,5 +256,49 @@ class VAPP(object):
                  </DiskAttachOrDetachParams>
                 """ % disk_ref.href
                 return self.execute("disk:detach", True, "can't be detached", "post", True, body=body, targetVM=vms[0])        
+
+    def vm_media(self, vm_name, media, operation):
+        children = self.me.get_Children()
+        if children:            
+            vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
+            if len(vms) ==1:
+                body = """
+                 <MediaInsertOrEjectParams xmlns="http://www.vmware.com/vcloud/v1.5">
+                     <Media 
+                       type="%s"
+                       name="%s"
+                       href="%s" />
+                 </MediaInsertOrEjectParams>
+                """ % (media.get('name'), media.get('id'), media.get('href'))
+                return self.execute("media:%sMedia" % operation, "post", body=body, targetVM=vms[0])        
+                
+    def customize_guest_os(self, vm_name, customization_script):
+        children = self.me.get_Children()
+        if children:            
+            vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
+            if len(vms) ==1:
+                sections = vms[0].get_Section()
+                guestCustomizationSection = filter(lambda section: section.__class__.__name__== "GuestCustomizationSectionType", sections)
+                guestCustomizationSection[0].set_CustomizationScript(customization_script)
+                output = StringIO()
+                guestCustomizationSection[0].export(output, 
+                    0,
+                    name_ = 'GuestCustomizationSection',
+                    namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
+                    pretty_print = False)
+                body = output.getvalue().\
+                    replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
+                    replace("/Info", "/ovf:Info")                    
+                headers = self.headers
+                headers['Content-type'] = 'application/vnd.vmware.vcloud.guestcustomizationsection+xml'
+                response = requests.put(guestCustomizationSection[0].Link[0].href, data=body, headers=headers, verify=self.verify)
+                if response.status_code == requests.codes.accepted:
+                    return taskType.parseString(response.content, True)
+                
+        
+        
+        
+        
+        
         
                         

@@ -20,79 +20,81 @@ from schema.vcd.v1_5.schemas.vcloud import networkType, vdcType, queryRecordView
 from schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType
 from iptools import ipv4, IpRange
 from tabulate import tabulate
-from helper import generalHelperFunctions as ghf
+from helper import CommonUtils
 
 class Gateway(object):
 
-    def __init__(self, gateway, headers):
+    def __init__(self, gateway, headers, verify):
         self.me = gateway
         self.headers = headers
+        self.verify = verify
         
     def get_name(self):
         return self.me.get_name()
-
-    def get_uplink_interfaces(self):
+        
+    def get_interfaces(self, interface_type):
         result = []
         gatewayConfiguration = self.me.get_Configuration()
         gatewayInterfaces = gatewayConfiguration.get_GatewayInterfaces()
-        gatewayInterfaces = filter(lambda gatewayInterface : gatewayInterface.get_InterfaceType() == "uplink", gatewayInterfaces.get_GatewayInterface())
+        gatewayInterfaces = filter(lambda gatewayInterface : gatewayInterface.get_InterfaceType() == interface_type, gatewayInterfaces.get_GatewayInterface())
         for gatewayInterface in gatewayInterfaces:
             result.append(gatewayInterface)
         return result
-                
+        
     def get_public_ips(self):
         result = []        
-        for gatewayInterface in self.get_uplink_interfaces():
+        for gatewayInterface in self.get_interfaces('uplink'):
             subnetParticipation = gatewayInterface.get_SubnetParticipation()[0]
             ipRanges = subnetParticipation.get_IpRanges()
-            for ipRange in ipRanges.get_IpRange():
-                startAddress = ipRange.get_StartAddress()
-                endAddress = ipRange.get_EndAddress()
-                addresses = IpRange(startAddress, endAddress)
-                for address in addresses:
-                    result.append(address)
+            if ipRanges:
+                for ipRange in ipRanges.get_IpRange():
+                    startAddress = ipRange.get_StartAddress()
+                    endAddress = ipRange.get_EndAddress()
+                    addresses = IpRange(startAddress, endAddress)
+                    for address in addresses:
+                        result.append(address)
+            # ipAddress = subnetParticipation.get_IpAddress()
+            # if ipAddress: result.append(ipAddress)
+        result = list(set(result))
         return result
         
     def get_nat_rules(self):
         result = []
         gatewayConfiguration = self.me.get_Configuration()
         edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
-        natService = filter(lambda service: service.__class__.__name__ == "NatServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())[0]
-        natRules = natService.get_NatRule()
-        for natRule in natRules:
-            result.append(natRule)
+        natServiceList = filter(lambda service: service.__class__.__name__ == "NatServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())
+        if len(natServiceList)>0:
+            natRules = natServiceList[0].get_NatRule()
+            for natRule in natRules:
+                result.append(natRule)
         return result
         
     def get_fw_rules(self):
         pass
         
     def _post_nat_rules(self, new_rules, new_port=-1):
+        pass
+        
+    def save_services_configuration(self):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
-        natService = filter(lambda service: service.__class__.__name__ == "NatServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())[0]
-        natService.set_NatRule(new_rules)
         body = '<?xml version="1.0" encoding="UTF-8"?>' + \
-            ghf.convertPythonObjToStr(self.me.get_Configuration().get_EdgeGatewayServiceConfiguration(), name = 'EdgeGatewayServiceConfiguration',
-                                      namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ')
+            CommonUtils.convertPythonObjToStr(self.me.get_Configuration().get_EdgeGatewayServiceConfiguration(), 
+            name = 'EdgeGatewayServiceConfiguration',
+            namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ')
         content_type = "application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml"
-        # get link element that contains an action URL for instantiateVAppTemplate.
-        # It implements an action that adds an object (a vApp) to the VDC.
         link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
-        # send post request using this body as data
-        # does it need to specify the content type? No
         response = requests.post(link[0].get_href(), data=body, headers=self.headers)     
         if response.status_code == requests.codes.accepted:
             task = taskType.parseString(response.content, True)
-            return (True, task, new_port)            
-        else:
-            return (False, response.content, -1)
-            
+            return task           
+
     def add_nat_rules(self):
         pass
                 
     def add_nat_rule(self, rule_type, original_ip, original_port, translated_ip, translated_port, protocol):
-        gatewayInterfaces = self.get_uplink_interfaces()
+        gatewayInterfaces = self.get_interfaces('uplink')
         if len(gatewayInterfaces) == 0:
-            return (False, None)
+            return
         gatewayInterface = gatewayInterfaces[0]
         natRules = self.get_nat_rules()
         
@@ -109,7 +111,7 @@ class Gateway(object):
 
         port_changed = True        
         original_port_modified = original_port
-        while port_changed:     
+        while port_changed and len(natRules)>0:     
             for natRule in natRules:   
                 port_changed = False
                 if rule_type == natRule.get_RuleType():
@@ -140,7 +142,17 @@ class Gateway(object):
         gatewayRule.set_Protocol(protocol)
         rule.set_GatewayNatRule(gatewayRule)
         natRules.append(rule)
-        return self._post_nat_rules(natRules, original_port_modified)
+        natService = None
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()        
+        natServices = filter(lambda service: service.__class__.__name__ == "NatServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())
+        if len(natServices) > 0:
+            natService = natServices[0]
+            natService.set_NatRule(natRules)            
+        else:
+            natService = NatServiceType()            
+            natService.set_NatRule(natRules)
+            edgeGatewayServiceConfiguration.get_NetworkService().append(natService)
+        
         
     def del_nat_rule(self, rule_type, original_ip, original_port, translated_ip, translated_port, protocol):
         gatewayInterfaces = self.get_uplink_interfaces()
@@ -165,11 +177,29 @@ class Gateway(object):
                    newRules.append(natRule)
             else:
                 newRules.append(natRule)
-        return self._post_nat_rules(newRules)
+        # return self._post_nat_rules(newRules)
             
     def del_all_nat_rules(self):
         pass
-    
+        
+    def is_fw_enabled(self):
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        services = filter(lambda service: service.__class__.__name__ == "FirewallServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())
+        return len(services) == 1 and services[0].get_IsEnabled()
+        
+    def is_dhcp_enabled(self):
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        services = filter(lambda service: service.__class__.__name__ == "GatewayDhcpServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())
+        return len(services) == 1 and services[0].get_IsEnabled()
+        
+    def is_nat_enabled(self):
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        services = filter(lambda service: service.__class__.__name__ == "NatServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())
+        return len(services) == 1 and services[0].get_IsEnabled()
+            
     def enable_fw(self, enable):
-        pass
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        services = filter(lambda service: service.__class__.__name__ == "FirewallServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())
+        if len(services) == 1:
+            services[0].set_IsEnabled(enable)
         

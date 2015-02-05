@@ -1,11 +1,11 @@
 vca-cli
-========
+=======
 
 Command Line Interface for VMware vCloud Air. It supports vCloud Air On Demand and Subscription. It also supports vCloud Director.
 
 > Release early, release often.
 
-This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version.
+This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version. Uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMware vCloud.
 
 Installation:
 
@@ -25,9 +25,8 @@ Install completions for oh-my-zsh
     $ wget https://raw.githubusercontent.com/vmware/vca-cli/master/scripts/_vca -O ~/.oh-my-zsh/completions/_vca
     
 
-Uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMware vCloud.
-
 Usage:
+======
 
 Login:
 
@@ -179,3 +178,27 @@ Syntax, commands and arguments:
         vdc       Operations with Virtual Data Centers (vdc)
         vm        Operations with Virtual Machines (VMs)
           
+
+Detailed syntax for a specific command:
+
+    
+    $vca vapp --help
+    Usage: vca vapp [OPTIONS] [list | info | create | delete | power.on |
+                    power.off | customize | insert | eject]
+                    
+      Operations with vApps
+      
+    Options:
+      -v, --vdc <vdc>                 Virtual Data Center Id
+      -a, --vapp <vapp>               vApp name
+      -c, --catalog <catalog>         catalog name
+      -t, --template <template>       template name
+      -n, --network <network>         Network name
+      -m, --mode [POOL, DHCP]         Network connection mode
+      -V, --vm <vm>                   VM name
+      -f, --file <customization_file>
+                                      Guest OS Customization script file
+      -e, --media <media>             virtual media name (ISO)
+      -h, --help                      Show this message and exit.
+      
+

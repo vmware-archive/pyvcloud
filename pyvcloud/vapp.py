@@ -120,19 +120,6 @@ class VAPP(object):
         # self.execute("snapshot:removeAll", args["--blocking"], "can't have its snapshot deleted", "post", args["--json"])
         
     @staticmethod
-    def create_instantiateVAppTemplateParams(name, template_href, deploy="true", power="false"):
-        templateParams = vcloudType.InstantiateVAppTemplateParamsType()
-        templateParams.set_name(name)
-        templateParams.set_deploy(deploy)
-        templateParams.set_powerOn(power)
-
-        source = vcloudType.ReferenceType(href=template_href)
-        templateParams.set_Source(source)
-        templateParams.set_AllEULAsAccepted("true")
-
-        return templateParams
-
-    @staticmethod
     def create_networkConfigSection(network_name, network_href, fence_mode):
         parentNetwork = vcloudType.ReferenceType(href=network_href)
         configuration = vcloudType.NetworkConfigurationType()

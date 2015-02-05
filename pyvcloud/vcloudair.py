@@ -230,13 +230,36 @@ class VCA(object):
             if response.status_code == requests.codes.ok:
                 vapp = VAPP(vAppType.parseString(response.content, True), self.vcloud_session.get_vcloud_headers(), self.verify)
                 return vapp
+
+    def _create_instantiateVAppTemplateParams(self, name, template_href, vm_name, vm_href, deploy="true", power="false"):
+        templateParams = vcloudType.InstantiateVAppTemplateParamsType()
+        templateParams.set_name(name)
+        templateParams.set_deploy(deploy)
+        templateParams.set_powerOn(power)
+
+        source = vcloudType.ReferenceType(href=template_href)
+        templateParams.set_Source(source)
+        templateParams.set_AllEULAsAccepted("true")
+
+        if vm_name:
+            params = vcloudType.SourcedCompositionItemParamType()
+            params.set_Source(vcloudType.ReferenceType(href=vm_href))
+            gen_params = vcloudType.VmGeneralParamsType()
+            gen_params.set_Name(vm_name)
+            params.set_VmGeneralParams(gen_params)
+            templateParams.add_SourcedItem(params)
+
+        return templateParams
                 
-    def create_vapp(self, vdc_name, vapp_name, template_name, catalog_name, network_name=None, network_mode='bridged'):
+                
+    def create_vapp(self, vdc_name, vapp_name, template_name, catalog_name, network_name=None, network_mode='bridged', vm_name=None):
         self.vdc = self.get_vdc(vdc_name)
         if not self.vcloud_session or not self.vcloud_session.organization or not self.vdc:        
             #"Select an organization and datacenter first"
             return False
-        catalogs = filter(lambda link: catalog_name == link.get_name() and link.get_type() == "application/vnd.vmware.vcloud.catalog+xml", self.vcloud_session.organization.get_Link())
+        if '' == vm_name: vm_name = None
+        catalogs = filter(lambda link: catalog_name == link.get_name() and link.get_type() == "application/vnd.vmware.vcloud.catalog+xml",
+                                 self.vcloud_session.organization.get_Link())
         if len(catalogs) == 1:
             response = requests.get(catalogs[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
             if response.status_code == requests.codes.ok:
@@ -247,8 +270,15 @@ class VCA(object):
                     # use ElementTree instead because none of the types inside resources (not even catalogItemType) is able to parse the response correctly
                     catalogItem = ET.fromstring(response.content)
                     entity = [child for child in catalogItem if child.get("type") == "application/vnd.vmware.vcloud.vAppTemplate+xml"][0]
-                    template_params = VAPP.create_instantiateVAppTemplateParams(vapp_name, entity.get("href"))
-                    # import sys; template_params.export(sys.stdout, 0)
+                    vm_href = None
+                    if vm_name:
+                        response = requests.get(entity.get('href'), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+                        if response.status_code == requests.codes.ok:
+                            vAppTemplate = ET.fromstring(response.content)
+                            for vm in vAppTemplate.iter('{http://www.vmware.com/vcloud/v1.5}Vm'):
+                                vm_href = vm.get('href')
+                    template_params = self._create_instantiateVAppTemplateParams(vapp_name, entity.get("href"), vm_name=vm_name, vm_href=vm_href)
+                        
                     if network_name:
                         pass
                     output = StringIO()
@@ -315,9 +345,19 @@ class VCA(object):
                 return False
         vapp = self.get_vapp(self.vdc, vapp_name)
         if vapp: return vapp.delete()
+        
+    def get_catalogs(self):
+        links = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.catalog+xml", self.vcloud_session.organization.Link)
+        catalogs = []
+        for link in links:
+            response = requests.get(link.get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+            if response.status_code == requests.codes.ok:
+                catalogs.append(catalogType.parseString(response.content, True))
+        return catalogs               
                                 
     def create_catalog(self, catalog_name, description):
-        refs = filter(lambda ref: ref.rel == 'add' and ref.type_ == 'application/vnd.vmware.admin.catalog+xml', self.vcloud_session.organization.Link)
+        refs = filter(lambda ref: ref.rel == 'add' and ref.type_ == 'application/vnd.vmware.admin.catalog+xml',         
+                             self.vcloud_session.organization.Link)
         if len(refs) == 1:
             data = """<?xml version="1.0" encoding="UTF-8"?>
             <AdminCatalog xmlns="http://www.vmware.com/vcloud/v1.5" name="%s">
@@ -328,22 +368,31 @@ class VCA(object):
             if response.status_code == requests.codes.created:
                 task = vCloudEntities.parseString(response.content, True)
                 return task.get_Tasks().get_Task()[0]
-                
-    #todo, get the url from the server, this doesn't work in ondemand
+
     def delete_catalog(self, catalog_name):
+        admin_url = None
+        if 'ondemand' == self.service_type:
+            refs = filter(lambda ref: ref.type_ == 'application/vnd.vmware.admin.organization+xml', 
+                                 self.vcloud_session.organization.Link)
+            if len(refs) == 1:
+                admin_url = refs[0].href
+        else:
+            refs = filter(lambda ref: ref.type_ == 'application/vnd.vmware.admin.catalog+xml', 
+                                 self.vcloud_session.organization.Link)
+            if len(refs) == 1:
+                admin_url = refs[0].href[:refs[0].href.rindex('/')]
+        if admin_url:
+            response = requests.get(admin_url, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+            if response.status_code == requests.codes.ok:
+                adminOrg = vCloudEntities.parseString(response.content, True)
+                if adminOrg and adminOrg.Catalogs and adminOrg.Catalogs.CatalogReference:
+                    catRefs = filter(lambda ref: ref.name == catalog_name and ref.type_ == 'application/vnd.vmware.admin.catalog+xml',
+                                            adminOrg.Catalogs.CatalogReference)
+                    if len(catRefs) == 1:
+                        response = requests.delete(catRefs[0].href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+                        if response.status_code == requests.codes.no_content:
+                            return True
         return False
-        # refs = filter(lambda ref: ref.name == catalog_name and ref.type_ == 'application/vnd.vmware.vcloud.catalog+xml', self.vcloud_session.organization.Link)
-        # if len(refs) == 1:
-        #     id = refs[0].href.split("/")[-1]
-        #     from urlparse import urlparse
-        #     o = urlparse(refs[0].href)
-        #     href = o.scheme + "://" + o.netloc + "/api/compute/api/admin/catalog/" + id
-        #     response = requests.delete(href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
-        #     if response.status_code == requests.codes.no_content:
-        #         return True
-        #     else:
-        #         return False
-        # return False
         
     def get_gateways(self, vdc_name):
         gateways = []

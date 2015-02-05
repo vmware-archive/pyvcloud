@@ -1,11 +1,11 @@
 vca-cli
 ========
 
-Command Line Interface for VMware vCloud Air.
+Command Line Interface for VMware vCloud Air. It supports vCloud Air On Demand and Subscription. It also supports vCloud Director.
 
 > Release early, release often.
 
-This project is under development.
+This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version.
 
 Installation:
 
@@ -22,14 +22,14 @@ Upgrade from a previous installation:
 Install completions for oh-my-zsh
 
     
-    $ ln -s _vca ~/.oh-my-zsh/completions/_vca
+    $ wget https://raw.githubusercontent.com/vmware/vca-cli/master/scripts/_vca -O ~/.oh-my-zsh/completions/_vca
     
 
 Uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMware vCloud.
 
 Usage:
 
-Login
+Login:
 
     
     # vCA On Demand
@@ -78,7 +78,7 @@ vCloud Air On Demand, login to a specific instance and get the details of the in
     | vdc        | VDC2                   |
     
 
-Connection status
+Connection status:
 
     
     $ vca status
@@ -101,14 +101,14 @@ Connection status
     | vdc             | VDC1                                                 |
     
 
-Logout
+Logout:
 
     
     $ vca logout
     Logout successful for profile 'default'
     
 
-Usage examples
+Usage examples:
 
     
     $ vca example
@@ -145,7 +145,7 @@ Usage examples
     | show command help                   | vca <command> --help
     
 
-Help
+Syntax, commands and arguments:
 
     
     $ vca --help

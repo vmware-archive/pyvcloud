@@ -10,7 +10,6 @@
 # code for the these subcomponents is subject to the terms and
 # conditions of the subcomponent's license, as noted in the LICENSE file. 
 #
-
 # coding: utf-8
 
 import sys
@@ -38,6 +37,11 @@ from pyvcloud.helper import CommonUtils
 
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 
+#todo: include network config during the instantiation
+#todo: list tasks
+#todo: catalogs, details
+#todo: delete nat rule
+#todo: replace network config instead of adding
 #todo: configurable profile file ~/.vcarc
 #todo: consider default list or info
 #todo: consider add the selectors --service --org, --vdc, --gateway... at the root and pass by ctx
@@ -217,9 +221,7 @@ def instance(ctx, operation, instance):
         table = [[item['id'], item['region'], item['planId']] for item in items]
         print_table("Available instances for user '%s' in '%s' profile:" % (ctx.obj['user'], ctx.obj['profile']), 'instances', headers, table, ctx.obj['json_output'])
     elif 'info' == operation:
-        print 'instance information'
-    elif 'delete' == operation:
-        vca.delete_instance(instance)
+        print_message("not implemented", ctx.obj['json_output'])
 
 @cli.command()
 @click.pass_context
@@ -228,10 +230,8 @@ def instance(ctx, operation, instance):
 @click.option('-o', '--org', default='', metavar='<org>', help='Organization Id')
 def org(ctx, operation, service, org):
     """Operations with Organizations"""
-    if '' == service:
-        service = ctx.obj['service']
-    if '' == org:
-        org = ctx.obj['org']    
+    if '' == service: service = ctx.obj['service']
+    if '' == org: org = ctx.obj['org']    
     vca = _getVCA(ctx)
     if not vca:
         print_error('User not authenticated or token expired', ctx.obj['json_output'])
@@ -339,7 +339,7 @@ def vdc(ctx, operation, service, org, vdc):
 @click.option('-t', '--template', default='', metavar='<template>', help='template name')
 @click.option('-n', '--network', default='', metavar='<network>', help='Network name')
 @click.option('-m', '--mode', default='POOL', metavar='[POOL, DHCP]', help='Network connection mode', type=click.Choice(['POOL', 'DHCP']))
-@click.option('-M', '--vm', 'vm_name', default='', metavar='<vm>', help='VM name')
+@click.option('-V', '--vm', 'vm_name', default='', metavar='<vm>', help='VM name')
 @click.option('-f', '--file', 'cust_file', default=None, metavar='<customization_file>', help='Guest OS Customization script file', type=click.File('r'))
 @click.option('-e', '--media', default='', metavar='<media>', help='virtual media name (ISO)')
 def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, cust_file, media):
@@ -368,7 +368,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
         print_table("Available vApps in '%s' for '%s' profile:" % (vdc, ctx.obj['profile']), 'vapps', headers, table, ctx.obj['json_output'])
     elif 'create' == operation:
         print_message("creating vApp '%s' in VDC '%s' from template '%s' in catalog '%s'" % (vapp, vdc, template, catalog), ctx.obj['json_output'])
-        task = vca.create_vapp(vdc, vapp, template, catalog)
+        task = vca.create_vapp(vdc, vapp, template, catalog, vm_name=vm_name)
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
         else: print_error("can't create the vApp", ctx.obj['json_output'])
         if '' != network:
@@ -491,7 +491,7 @@ status = {-1 : statusn1,
 @click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
 @click.option('-a', '--vapp', default='', metavar='<vapp>', help='vApp name')
 def vm(ctx, operation, vdc, vapp):
-    """Operations with VMs"""
+    """Operations with Virtual Machines (VMs)"""
     if vdc == '': vdc = ctx.obj['vdc'] 
     vca = _getVCA(ctx)
     if not vca:
@@ -566,7 +566,9 @@ def catalog(ctx, operation, vdc, catalog_name, description):
             print_message('catalog deleted', ctx.obj['json_output'])
         else:
             print_error("can't delete the catalog", ctx.obj['json_output'])
-        # import sys; task.export(sys.stdout, 0)
+    elif 'list':
+        catalogs = vca.get_catalogs()
+        print_catalogs(ctx, catalogs)
     else:
         print_message('not implemented', ctx.obj['json_output'])
 
@@ -701,7 +703,66 @@ def gateway(ctx, operation, service, org, vdc):
 @click.pass_context
 def example(ctx):
     """vCloud Air CLI Examples"""
-    pass
+    headers = ['Example', "Command"]
+    table = []
+    table.append(['login to vCA On Demand', 
+        'vca login email@company.com --password mypassword'])
+    table.append(['login to a vCA On Demand instance', 
+        'vca login email@company.com --password mypassword --instance c40ba6b4-c158-49fb-b164-5c66f90344fa'])        
+    table.append(['login to vCA Subscription', 
+        'vca login email@company.com --password mypassword --type subscription --host https://vchs.vmware.com --version 5.6'])
+    table.append(['login to vCloud Director', 
+        'vca login email@company.com --password mypassword --type vcd --host https://p1v21-vcd.vchs.vmware.com --version 5.6 --org MyOrganization'])
+    table.append(['login with no SSL verification', 
+        'vca --insecure login email@company.com --password mypassword'])
+    table.append(['show status', 
+        'vca status'])    
+    table.append(['logout', 
+        'vca logout'])    
+    table.append(['list organizations', 
+        'vca org'])
+    table.append(['select organization', 
+        'vca org use --org MyOrg'])
+    table.append(['select organization in subscription', 
+        'vca org use --org MyOrg --service ServiceId'])        
+    table.append(['show current organization', 
+        'vca org info'])
+    table.append(['select and show organization', 
+        'vca org info --org MyOrg'])
+    table.append(['show current organization in XML', 
+        'vca --xml org info'])
+    table.append(['show current organization in JSON', 
+        'vca --json org info'])
+    table.append(['list virtual data centers', 
+        'vca vdc'])
+    table.append(['select virtual data centers', 
+        'vca vdc use --vdc VDC1'])
+    table.append(['show virtual data center', 
+        'vca vdc info'])
+    table.append(['list catalogs', 
+        'vca catalog'])
+    table.append(['create catalog', 
+        'vca catalog create --catalog mycatalog'])
+    table.append(['delete catalog', 
+        'vca catalog delete --catalog mycatalog'])
+    table.append(['list networks', 
+        'vca network'])        
+    table.append(['list vapps', 
+        'vca vapp'])
+    table.append(['create vapp', 
+        'vca vapp create -a coreos2 -V coreos2 -c default-catalog -t coreos_template -n default-routed-network -m POOL'])        
+    table.append(['delete vapp', 
+        'vca vapp delete -a coreos2'])        
+    table.append(['show vapp details in XML', 
+        'vca -x vapp info -a coreos2'])        
+    table.append(['show version', 
+        'vca --version'])
+    table.append(['show help', 
+        'vca --help'])
+    table.append(['show command help', 
+        'vca <command> --help'])
+
+    print_table('vca-cli usage examples:', 'examples', headers, table, ctx.obj['json_output'])   
         
 def _getVCA(ctx):
     vca = VCA(ctx.obj['host'], ctx.obj['user'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['verify'])
@@ -933,6 +994,21 @@ def print_nat_rules(ctx, natRules):
         print tabulate(result, headers = headers, tablefmt="orgtbl")
     else:
         print_message("No NAT rules found in this gateway", ctx.obj['json_output']) 
+        
+def print_catalogs(ctx, catalogs):
+    result = []
+    for catalog in catalogs:
+        if catalog.CatalogItems and catalog.CatalogItems.CatalogItem:
+            for item in catalog.CatalogItems.CatalogItem:
+                result.append([catalog.name, item.name])
+        else:
+            result.append([catalog.name, ''])
+    if result:
+        headers = ["Catalog", "Item"]
+        sorted_table = sorted(result, key=operator.itemgetter(0), reverse=False)
+        print_table("Catalogs and items:", 'catalogs', headers, sorted_table, ctx.obj['json_output'])  
+    else:
+        print_message("No catalogs found in this organization", ctx.obj['json_output'])         
     
 if __name__ == '__main__':
     cli(obj={})

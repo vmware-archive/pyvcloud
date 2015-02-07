@@ -137,6 +137,7 @@ Usage examples:
     | create vapp                         | vca vapp create -a coreos2 -V coreos2 -c default-catalog -t coreos_template -n default-routed-network -m POOL                            |
     | delete vapp                         | vca vapp delete -a coreos2                                                                                                               |
     | show vapp details in XML            | vca -x vapp info -a coreos2                                                                                                              |
+    | deploy vapp                         | vca vapp deploy --vapp ubu                                                                                                               |    
     | undeploy vapp                       | vca vapp undeploy --vapp ubu                                                                                                             |
     | customize vapp vm                   | vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh                                                                      |
     | list vms                            | vca vm                                                                                                                                   |

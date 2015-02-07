@@ -141,10 +141,14 @@ Usage examples:
     | show vapp details in XML            | vca -x vapp info -a coreos2                                                                                                              |
     | undeploy vapp                       | vca vapp undeploy --vapp ubu                                                                                                             |
     | customize vapp vm                   | vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh                                                                      |
+    | list vms                            | vca vm                                                                                                                                   |
+    | list vms in JSON format             | vca -j vm                                                                                                                                |
+    | retrieve the IP of a vm             | IP=`vca -j vm -a ubu | jq '.vms[0].IPs[0]'` && echo $IP                                                                                  |
+    | show the REST calls in the command  | vca --debug vm                                                                                                                           |
     | show version                        | vca --version                                                                                                                            |
     | show help                           | vca --help                                                                                                                               |
     | show command help                   | vca <command> --help                                                                                                                     |
-        
+    
 
 Syntax, commands and arguments:
 

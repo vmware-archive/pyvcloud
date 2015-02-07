@@ -781,6 +781,14 @@ def example(ctx):
         'vca vapp undeploy --vapp ubu'])                
     table.append(['customize vapp vm', 
         'vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh'])                        
+    table.append(['list vms', 
+        'vca vm'])
+    table.append(['list vms in JSON format', 
+        'vca -j vm'])
+    table.append(['retrieve the IP of a vm', 
+        "IP=`vca -j vm -a ubu | jq '.vms[0].IPs[0]'` && echo $IP"])
+    table.append(['show the REST calls in the command', 
+        'vca --debug vm'])
     table.append(['show version', 
         'vca --version'])
     table.append(['show help', 

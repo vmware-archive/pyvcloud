@@ -783,6 +783,8 @@ def example(ctx):
         'vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh'])                        
     table.append(['list vms', 
         'vca vm'])
+    table.append(['list vms in a vapp', 
+        'vca vm -a ubu'])        
     table.append(['list vms in JSON format', 
         'vca -j vm'])
     table.append(['retrieve the IP of a vm', 

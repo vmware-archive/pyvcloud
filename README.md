@@ -139,10 +139,12 @@ Usage examples:
     | create vapp                         | vca vapp create -a coreos2 -V coreos2 -c default-catalog -t coreos_template -n default-routed-network -m POOL                            |
     | delete vapp                         | vca vapp delete -a coreos2                                                                                                               |
     | show vapp details in XML            | vca -x vapp info -a coreos2                                                                                                              |
+    | undeploy vapp                       | vca vapp undeploy --vapp ubu                                                                                                             |
+    | customize vapp vm                   | vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh                                                                      |
     | show version                        | vca --version                                                                                                                            |
     | show help                           | vca --help                                                                                                                               |
-    | show command help                   | vca <command> --help
-    
+    | show command help                   | vca <command> --help                                                                                                                     |
+        
 
 Syntax, commands and arguments:
 
@@ -184,7 +186,8 @@ Detailed syntax for a specific command:
     
     $vca vapp --help
     Usage: vca vapp [OPTIONS] [list | info | create | delete | power.on |
-                    power.off | customize | insert | eject]
+                    power.off | undeploy | deploy | customize |
+                    insert | eject]
                     
       Operations with vApps
       

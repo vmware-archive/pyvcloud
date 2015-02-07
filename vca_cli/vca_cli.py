@@ -37,6 +37,7 @@ from pyvcloud.helper import CommonUtils
 
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 
+#todo: print vApp in json format
 #todo: include network config during the instantiation
 #todo: list tasks
 #todo: catalogs, details
@@ -46,10 +47,12 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 #todo: consider default list or info
 #todo: consider add the selectors --service --org, --vdc, --gateway... at the root and pass by ctx
 #todo: reuse vcloud session token between calls
-#todo: command to update session
-#todo: OnDemand create instance and create vdc
+#todo: command to update session to avoid timeouts, if possible
+#todo: OnDemand create instance and create vdc, use templates
 #todo: OnDemand plan command, billing mettering and instance creation
 #todo: store and display status of the vcloud org_url
+#todo: catch exceptions
+#todo: vapp command returns nothing no error when session is inactive on subscription
 
 properties = ['session_token', 'org', 'org_url', 'service', 'vdc', 'instance', 'service_type', 'service_version', 'token', 'user', 'host', 'gateway']
 
@@ -332,7 +335,7 @@ def vdc(ctx, operation, service, org, vdc):
 #todo: add service and org?
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | customize | insert | eject]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'customize', 'insert', 'eject']))
+@click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | undeploy | deploy | customize | insert | eject]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'undeploy', 'deploy', 'customize', 'insert', 'eject']))
 @click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
 @click.option('-a', '--vapp', default='', metavar='<vapp>', help='vApp name')
 @click.option('-c', '--catalog', default='', metavar='<catalog>', help='catalog name')
@@ -378,7 +381,6 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
             task = the_vapp.disconnect_from_networks()
             if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
             else: print_error("can't disconnect vApp from networks", ctx.obj['json_output'])
-            
             nets = filter(lambda n: n.name == network, vca.get_networks(vdc))
             if len(nets) == 1:
                 print_message("connecting vApp to network '%s' with mode '%s'" % (network, mode), ctx.obj['json_output'])
@@ -394,13 +396,33 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
         task = vca.delete_vapp(vdc, vapp)
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
         else: print_error("can't delete vApp", ctx.obj['json_output'])
+    elif 'deploy' == operation:
+        print "deploying vApp '%s' to VDC '%s'" % (vapp, vdc)
+        the_vdc = vca.get_vdc(vdc)        
+        the_vapp = vca.get_vapp(the_vdc, vapp)
+        task = the_vapp.deploy()
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: print_error("can't deploy vApp", ctx.obj['json_output'])        
+    elif 'undeploy' == operation:
+        print "undeploying vApp '%s' from VDC '%s'" % (vapp, vdc)
+        the_vdc = vca.get_vdc(vdc)        
+        the_vapp = vca.get_vapp(the_vdc, vapp)
+        task = the_vapp.undeploy()
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: print_error("can't undeploy vApp", ctx.obj['json_output'])        
     elif 'customize' == operation:
         print "customizing VM '%s' in vApp '%s' in VDC '%s'" % (vm_name, vapp, vdc)
         the_vdc = vca.get_vdc(vdc)        
         the_vapp = vca.get_vapp(the_vdc, vapp)
         if the_vdc and the_vapp and cust_file:
+            print_message("uploading customization script", ctx.obj['json_output'])
             task = the_vapp.customize_guest_os(vm_name, cust_file.read())
-            if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+            if task: 
+                display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+                print_message("deploying and starting the vApp", ctx.obj['json_output'])
+                task = the_vapp.force_customization(vm_name)
+                if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+                else: print_error("can't customize vApp", ctx.obj['json_output'])
             else: print_error("can't customize vApp", ctx.obj['json_output'])
     elif 'info' == operation or 'power.off' == operation or 'power.on' == operation or 'delete' == operation:
         the_vdc = vca.get_vdc(vdc)
@@ -755,6 +777,10 @@ def example(ctx):
         'vca vapp delete -a coreos2'])        
     table.append(['show vapp details in XML', 
         'vca -x vapp info -a coreos2'])        
+    table.append(['undeploy vapp', 
+        'vca vapp undeploy --vapp ubu'])                
+    table.append(['customize vapp vm', 
+        'vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh'])                        
     table.append(['show version', 
         'vca --version'])
     table.append(['show help', 

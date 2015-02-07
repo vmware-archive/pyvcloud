@@ -335,7 +335,7 @@ def vdc(ctx, operation, service, org, vdc):
 #todo: add service and org?
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | undeploy | deploy | customize | insert | eject]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'undeploy', 'deploy', 'customize', 'insert', 'eject']))
+@click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | deploy | undeploy | customize | insert | eject]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'deploy', 'undeploy', 'customize', 'insert', 'eject']))
 @click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
 @click.option('-a', '--vapp', default='', metavar='<vapp>', help='vApp name')
 @click.option('-c', '--catalog', default='', metavar='<catalog>', help='catalog name')
@@ -777,6 +777,8 @@ def example(ctx):
         'vca vapp delete -a coreos2'])        
     table.append(['show vapp details in XML', 
         'vca -x vapp info -a coreos2'])        
+    table.append(['deploy vapp', 
+        'vca vapp deploy --vapp ubu'])                        
     table.append(['undeploy vapp', 
         'vca vapp undeploy --vapp ubu'])                
     table.append(['customize vapp vm', 

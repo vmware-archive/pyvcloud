@@ -54,7 +54,6 @@ vCloud Air On Demand, login to a specific instance and get the details of the in
     Login successful for profile 'default'
     
     $ vca instance
-    
     Available instances for user 'email@company.com' in 'default' profile:
     | Instance Id                          | Region                            | Plan Id                              |
     |--------------------------------------+-----------------------------------+--------------------------------------|
@@ -81,7 +80,6 @@ Connection status:
 
     
     $ vca status
-    
     Status:
     | Property        | Value                                                |
     |-----------------+------------------------------------------------------|
@@ -190,7 +188,7 @@ Detailed syntax for a specific command:
     
     $vca vapp --help
     Usage: vca vapp [OPTIONS] [list | info | create | delete | power.on |
-                    power.off | undeploy | deploy | customize |
+                    power.off | deploy | undeploy | customize |
                     insert | eject]
                     
       Operations with vApps

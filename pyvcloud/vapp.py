@@ -21,6 +21,7 @@ from schema.vcd.v1_5.schemas.vcloud import vAppType, vdcType, queryRecordViewTyp
 from schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType, NetworkConnectionSectionType
 from iptools import ipv4, IpRange
 from tabulate import tabulate
+from pyvcloud.helper import CommonUtils
 
 class VAPP(object):
 
@@ -44,7 +45,10 @@ class VAPP(object):
         else:
             if http == "post":
                 headers = self.headers
-                # headers['Content-type'] = 'text/xml'
+                if body and body.startswith('<DeployVAppParams '):
+                    headers['Content-type'] = 'application/vnd.vmware.vcloud.deployVAppParams+xml'
+                elif body and body.startswith('<UndeployVAppParams '):
+                    headers['Content-type'] = 'application/vnd.vmware.vcloud.undeployVAppParams+xml'
                 response = requests.post(link[0].get_href(), data = body, headers=headers, verify=self.verify)
             elif http == "put":
                 response = requests.put(link[0].get_href(), data = body, headers=self.headers, verify=self.verify)
@@ -55,15 +59,14 @@ class VAPP(object):
             else:
                 return False
         
-    # def deploy(self, powerOn='true'):
-    #     # build the body for sending post request
-    #     deployVAppParams = vcloudType.DeployVAppParamsType()
-    #     # the valid values of on are true and false
-    #     deployVAppParams.set_powerOn(powerOn)
-    #     body = ghf.convertPythonObjToStr(deployVAppParams, name = "DeployVAppParams",
-    #                                      namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
-    #     self.execute("deploy", blocking, "can't be deployed", "post", output_json, body)
-    #
+    def deploy(self, powerOn=True):
+        powerOnValue = 'true' if powerOn else 'false'
+        deployVAppParams = vcloudType.DeployVAppParamsType()
+        deployVAppParams.set_powerOn(powerOnValue)
+        body = CommonUtils.convertPythonObjToStr(deployVAppParams, name = "DeployVAppParams",
+                namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
+        return self.execute("deploy", "post", body=body)
+
     def undeploy(self, action='powerOff'):
         undeployVAppParams = vcloudType.UndeployVAppParamsType()
         # The valid values of action are powerOff (Power off the VMs. This is the default action if
@@ -72,13 +75,9 @@ class VAPP(object):
         # are ignored. All references to the vApp and its VMs are removed from the database),
         # default (Use the actions, order, and delay specified in the StartupSection).
         undeployVAppParams.set_UndeployPowerAction(action)
-        output = StringIO()
-        undeployVAppParams.export(output,
-            0,
-            name_ = "UndeployVAppParams",
-            namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5"',
-            pretty_print = False)
-        return self.execute("undeploy", "post", body=output.getvalue())
+        body = CommonUtils.convertPythonObjToStr(undeployVAppParams, name = "UndeployVAppParams",
+                namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
+        return self.execute("undeploy", "post", body=body)
 
     def reboot(self):
         self.execute("power:reboot", "post")
@@ -263,9 +262,11 @@ class VAPP(object):
         children = self.me.get_Children()
         if children:            
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
-            if len(vms) ==1:
+            if len(vms) == 1:
                 sections = vms[0].get_Section()
                 guestCustomizationSection = filter(lambda section: section.__class__.__name__== "GuestCustomizationSectionType", sections)
+                guestCustomizationSection[0].set_AdminAutoLogonEnabled(False)
+                guestCustomizationSection[0].set_AdminAutoLogonCount(0)
                 guestCustomizationSection[0].set_CustomizationScript(customization_script)
                 output = StringIO()
                 guestCustomizationSection[0].export(output, 
@@ -281,7 +282,32 @@ class VAPP(object):
                 response = requests.put(guestCustomizationSection[0].Link[0].href, data=body, headers=headers, verify=self.verify)
                 if response.status_code == requests.codes.accepted:
                     return taskType.parseString(response.content, True)
-                
+                else:
+                    print response.content
+                    
+                    
+    def force_customization(self, vm_name):
+        children = self.me.get_Children()
+        if children:            
+            vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
+            if len(vms) == 1:
+                sections = vms[0].get_Section()
+                links = filter(lambda link: link.rel== "deploy", vms[0].Link)
+                if len(links) == 1:
+                    forceCustomizationValue = 'true'
+                    deployVAppParams = vcloudType.DeployVAppParamsType()
+                    deployVAppParams.set_powerOn('true')
+                    deployVAppParams.set_deploymentLeaseSeconds(0)
+                    deployVAppParams.set_forceCustomization('true')
+                    body = CommonUtils.convertPythonObjToStr(deployVAppParams, name = "DeployVAppParams",
+                            namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
+                    headers = self.headers
+                    headers['Content-type'] = 'application/vnd.vmware.vcloud.deployVAppParams+xml'
+                    response = requests.post(links[0].href, data=body, headers=headers, verify=self.verify)
+                    if response.status_code == requests.codes.accepted:
+                        return taskType.parseString(response.content, True)
+                    else:
+                        print response.content
         
         
         

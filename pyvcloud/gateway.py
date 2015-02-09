@@ -155,32 +155,70 @@ class Gateway(object):
         
         
     def del_nat_rule(self, rule_type, original_ip, original_port, translated_ip, translated_port, protocol):
-        gatewayInterfaces = self.get_uplink_interfaces()
+        gatewayInterfaces = self.get_interfaces('uplink')
         if len(gatewayInterfaces) == 0:
-            return (False, None)
+            return False
         gatewayInterface = gatewayInterfaces[0]
         natRules = self.get_nat_rules()
         newRules = []
 
+        found_rule = False
         for natRule in natRules:
             #todo check if the network interface is the same
             ruleId = natRule.get_Id()
             if rule_type == natRule.get_RuleType():
                 gatewayNatRule = natRule.get_GatewayNatRule()
-                if original_ip == gatewayNatRule.get_OriginalIp() and \
-                   original_port == gatewayNatRule.get_OriginalPort() and \
-                   translated_ip == gatewayNatRule.get_TranslatedIp() and \
-                   translated_port == gatewayNatRule.get_TranslatedPort() and \
-                   protocol == gatewayNatRule.get_Protocol():
-                   pass
+                # import sys; gatewayNatRule.export(sys.stdout, 0)
+                gateway_original_ip = gatewayNatRule.get_OriginalIp() if gatewayNatRule.get_OriginalIp() else 'any'
+                gateway_original_port = gatewayNatRule.get_OriginalPort() if gatewayNatRule.get_OriginalPort() else 'any'
+                gateway_translated_ip = gatewayNatRule.get_TranslatedIp() if gatewayNatRule.get_TranslatedIp() else 'any'
+                gateway_translated_port = gatewayNatRule.get_TranslatedPort() if gatewayNatRule.get_TranslatedPort() else 'any'
+                gateway_protocol = gatewayNatRule.get_Protocol() if gatewayNatRule.get_Protocol() else 'any'
+                if original_ip == gateway_original_ip and \
+                   original_port == gateway_original_port and \
+                   translated_ip == gateway_translated_ip and \
+                   translated_port == gateway_translated_port and \
+                   protocol == gateway_protocol:
+                       found_rule = True
                 else:
                    newRules.append(natRule)
             else:
                 newRules.append(natRule)
         # return self._post_nat_rules(newRules)
+        if found_rule:
+            natService = None
+            edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()        
+            natServices = filter(lambda service: service.__class__.__name__ == "NatServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())
+            if len(natServices) > 0:
+                natService = natServices[0]
+                natService.set_NatRule(newRules)            
+            else:
+                natService = NatServiceType()            
+                natService.set_NatRule(newRules)
+                edgeGatewayServiceConfiguration.get_NetworkService().append(natService)
+            # import sys; self.me.export(sys.stdout, 0)
+            return True
             
     def del_all_nat_rules(self):
-        pass
+        gatewayInterfaces = self.get_interfaces('uplink')
+        if len(gatewayInterfaces) == 0:
+            return False
+        gatewayInterface = gatewayInterfaces[0]
+        natRules = self.get_nat_rules()
+        newRules = []
+
+        natService = None
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()        
+        natServices = filter(lambda service: service.__class__.__name__ == "NatServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())
+        if len(natServices) > 0:
+            natService = natServices[0]
+            natService.set_NatRule(newRules)            
+        else:
+            natService = NatServiceType()            
+            natService.set_NatRule(newRules)
+            edgeGatewayServiceConfiguration.get_NetworkService().append(natService)
+        return True
+
         
     def is_fw_enabled(self):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()

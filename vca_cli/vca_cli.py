@@ -37,6 +37,8 @@ from pyvcloud.helper import CommonUtils
 
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 
+#todo: delete all nat rules
+#todo: configure nat rules from yaml file
 #todo: print vApp in json format
 #todo: include network config during the instantiation
 #todo: list tasks
@@ -599,14 +601,16 @@ def catalog(ctx, operation, vdc, catalog_name, description):
 #todo: consider a specific edge, a vdc can have more than one
 @cli.command()
 @click.pass_context
-@click.argument('operation', default='info', metavar='[info | add]', type=click.Choice(['info', 'add']))
+@click.argument('operation', default='info', metavar='[info | add | delete]', type=click.Choice(['info', 'add', 'delete']))
 @click.option('--rule_type', default='DNAT', metavar='<rule_type>', help='Rule type', type=click.Choice(['DNAT', 'SNAT']))
 @click.option('--original_ip', default='', metavar='<ip>', help='Original IP')
 @click.option('--original_port', default='any', metavar='<port>', help='Original Port')
 @click.option('--translated_ip', default='', metavar='<ip>', help='Translated IP')
 @click.option('--translated_port', default='any', metavar='<port>', help='Translated Port')
 @click.option('--protocol', default='any', metavar='<protocol>', help='Protocol', type=click.Choice(['any', 'tcp', 'udp']))
-def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, translated_port, protocol):
+@click.option('-f', '--file', 'nat_rules_file', default=None, metavar='<nat_rules_file>', help='NAT rules file', type=click.File('r'))
+@click.option('--all', is_flag=True)
+def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, translated_port, protocol, nat_rules_file, all):
     """Operations with Edge Gateway NAT Rules"""
     vca = _getVCA(ctx)
     vdc = ctx.obj['vdc'] 
@@ -621,12 +625,29 @@ def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, tr
         rules = gateways[0].get_nat_rules()
         print_nat_rules(ctx, rules)
     elif 'add' == operation:
-        # gateways[0].me.export(sys.stdout, 0)
-        gateways[0].add_nat_rule(rule_type, original_ip, original_port, translated_ip, translated_port, protocol)
-        # gateways[0].me.export(sys.stdout, 0)
+        if nat_rules_file:
+            rules = yaml.load(nat_rules_file)
+            if rules and rules[0]:
+                nat_rules = rules[0].get('NAT_rules')
+                for rule in nat_rules:
+                    gateways[0].add_nat_rule(rule.get('rule_type'), rule.get('original_ip'), rule.get('original_port'), rule.get('translated_ip'), rule.get('translated_port'), rule.get('protocol'))
+        else:
+            gateways[0].add_nat_rule(rule_type, original_ip, original_port, translated_ip, translated_port, protocol)
         task = gateways[0].save_services_configuration()
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
         else: print_error("can't operate with the edge gateway", ctx.obj['json_output'])
+    elif 'delete':
+        found_rule = False
+        if all:
+            gateways[0].del_all_nat_rules()
+            found_rule = True
+        else:
+            found_rule = gateways[0].del_nat_rule(rule_type, original_ip, original_port, translated_ip, translated_port, protocol)
+        if found_rule:
+            task = gateways[0].save_services_configuration()
+            if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+            else: print_error("can't operate with the edge gateway", ctx.obj['json_output'])        
+        else: print_error("rule doesn't exist in edge gateway", ctx.obj['json_output'])        
     else:
         print_message('not implemented', ctx.obj['json_output'])
 
@@ -791,6 +812,18 @@ def example(ctx):
         'vca -j vm'])
     table.append(['retrieve the IP of a vm', 
         "IP=`vca -j vm -a ubu | jq '.vms[0].IPs[0]'` && echo $IP"])
+    table.append(['list edge gateway NAT rules', 
+        'vca nat'])
+    table.append(['add edge gateway DNAT rule',
+        "vca nat add --rule_type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.2 --translated_port 22 --protocol tcp"])
+    table.append(['add edge gateway SNAT rule',
+        "vca nat add --rule_type SNAT --original_ip 192.168.109.0/24 --translated_ip 107.189.93.162"])
+    table.append(['add edge gateway rules from file',
+        "vca nat add --file natrules.yaml"])        
+    table.append(['delete edge gateway NAT rule',
+        "vca nat delete --rule_type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.4 --translated_port 22 --protocol tcp"])
+    table.append(['delete all edge gateway NAT rules',
+        "vca nat delete --all"])
     table.append(['show the REST calls in the command', 
         'vca --debug vm'])
     table.append(['show version', 

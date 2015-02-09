@@ -110,44 +110,86 @@ Usage examples:
     
     $ vca example
     vca-cli usage examples:
-    | Example                             | Command                                                                                                                                  |
-    |-------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------|
-    | login to vCA On Demand              | vca login email@company.com --password mypassword                                                                                        |
-    | login to a vCA On Demand instance   | vca login email@company.com --password mypassword --instance c40ba6b4-c158-49fb-b164-5c66f90344fa                                        |
-    | login to vCA Subscription           | vca login email@company.com --password mypassword --type subscription --host https://vchs.vmware.com --version 5.6                       |
-    | login to vCloud Director            | vca login email@company.com --password mypassword --type vcd --host https://p1v21-vcd.vchs.vmware.com --version 5.6 --org MyOrganization |
-    | login with no SSL verification      | vca --insecure login email@company.com --password mypassword                                                                             |
-    | show status                         | vca status                                                                                                                               |
-    | logout                              | vca logout                                                                                                                               |
-    | list organizations                  | vca org                                                                                                                                  |
-    | select organization                 | vca org use --org MyOrg                                                                                                                  |
-    | select organization in subscription | vca org use --org MyOrg --service ServiceId                                                                                              |
-    | show current organization           | vca org info                                                                                                                             |
-    | select and show organization        | vca org info --org MyOrg                                                                                                                 |
-    | show current organization in XML    | vca --xml org info                                                                                                                       |
-    | show current organization in JSON   | vca --json org info                                                                                                                      |
-    | list virtual data centers           | vca vdc                                                                                                                                  |
-    | select virtual data centers         | vca vdc use --vdc VDC1                                                                                                                   |
-    | show virtual data center            | vca vdc info                                                                                                                             |
-    | list catalogs                       | vca catalog                                                                                                                              |
-    | create catalog                      | vca catalog create --catalog mycatalog                                                                                                   |
-    | delete catalog                      | vca catalog delete --catalog mycatalog                                                                                                   |
-    | list networks                       | vca network                                                                                                                              |
-    | list vapps                          | vca vapp                                                                                                                                 |
-    | create vapp                         | vca vapp create -a coreos2 -V coreos2 -c default-catalog -t coreos_template -n default-routed-network -m POOL                            |
-    | delete vapp                         | vca vapp delete -a coreos2                                                                                                               |
-    | show vapp details in XML            | vca -x vapp info -a coreos2                                                                                                              |
-    | deploy vapp                         | vca vapp deploy --vapp ubu                                                                                                               |    
-    | undeploy vapp                       | vca vapp undeploy --vapp ubu                                                                                                             |
-    | customize vapp vm                   | vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh                                                                      |
-    | list vms                            | vca vm                                                                                                                                   |
-    | list vms in JSON format             | vca -j vm                                                                                                                                |
-    | retrieve the IP of a vm             | IP=`vca -j vm -a ubu | jq '.vms[0].IPs[0]'` && echo $IP                                                                                  |
-    | show the REST calls in the command  | vca --debug vm                                                                                                                           |
-    | show version                        | vca --version                                                                                                                            |
-    | show help                           | vca --help                                                                                                                               |
-    | show command help                   | vca <command> --help                                                                                                                     |
+    | Example                             | Command                                                                                                                                           |
+    |-------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------|
+    | login to vCA On Demand              | vca login email@company.com --password mypassword                                                                                                 |
+    | login to a vCA On Demand instance   | vca login email@company.com --password mypassword --instance c40ba6b4-c158-49fb-b164-5c66f90344fa                                                 |
+    | login to vCA Subscription           | vca login email@company.com --password mypassword --type subscription --host https://vchs.vmware.com --version 5.6                                |
+    | login to vCloud Director            | vca login email@company.com --password mypassword --type vcd --host https://p1v21-vcd.vchs.vmware.com --version 5.6 --org MyOrganization          |
+    | login with no SSL verification      | vca --insecure login email@company.com --password mypassword                                                                                      |
+    | show status                         | vca status                                                                                                                                        |
+    | logout                              | vca logout                                                                                                                                        |
+    | list organizations                  | vca org                                                                                                                                           |
+    | select organization                 | vca org use --org MyOrg                                                                                                                           |
+    | select organization in subscription | vca org use --org MyOrg --service ServiceId                                                                                                       |
+    | show current organization           | vca org info                                                                                                                                      |
+    | select and show organization        | vca org info --org MyOrg                                                                                                                          |
+    | show current organization in XML    | vca --xml org info                                                                                                                                |
+    | show current organization in JSON   | vca --json org info                                                                                                                               |
+    | list virtual data centers           | vca vdc                                                                                                                                           |
+    | select virtual data centers         | vca vdc use --vdc VDC1                                                                                                                            |
+    | show virtual data center            | vca vdc info                                                                                                                                      |
+    | list catalogs                       | vca catalog                                                                                                                                       |
+    | create catalog                      | vca catalog create --catalog mycatalog                                                                                                            |
+    | delete catalog                      | vca catalog delete --catalog mycatalog                                                                                                            |
+    | list networks                       | vca network                                                                                                                                       |
+    | list vapps                          | vca vapp                                                                                                                                          |
+    | create vapp                         | vca vapp create -a coreos2 -V coreos2 -c default-catalog -t coreos_template -n default-routed-network -m POOL                                     |
+    | delete vapp                         | vca vapp delete -a coreos2                                                                                                                        |
+    | show vapp details in XML            | vca -x vapp info -a coreos2                                                                                                                       |
+    | deploy vapp                         | vca vapp deploy --vapp ubu                                                                                                                        |
+    | undeploy vapp                       | vca vapp undeploy --vapp ubu                                                                                                                      |
+    | customize vapp vm                   | vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh                                                                               |
+    | list vms                            | vca vm                                                                                                                                            |
+    | list vms in a vapp                  | vca vm -a ubu                                                                                                                                     |
+    | list vms in JSON format             | vca -j vm                                                                                                                                         |
+    | retrieve the IP of a vm             | IP=`vca -j vm -a ubu | jq '.vms[0].IPs[0]'` && echo $IP                                                                                           |
+    | list edge gateway NAT rules         | vca nat                                                                                                                                           |
+    | add edge gateway DNAT rule          | vca nat add --rule_type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.2 --translated_port 22 --protocol tcp    |
+    | add edge gateway SNAT rule          | vca nat add --rule_type SNAT --original_ip 192.168.109.0/24 --translated_ip 107.189.93.162                                                        |
+    | add edge gateway rules from file    | vca nat add --file natrules.yaml                                                                                                                  |
+    | delete edge gateway NAT rule        | vca nat delete --rule_type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.4 --translated_port 22 --protocol tcp |
+    | delete all edge gateway NAT rules   | vca nat delete --all                                                                                                                              |
+    | show the REST calls in the command  | vca --debug vm                                                                                                                                    |
+    | show version                        | vca --version                                                                                                                                     |
+    | show help                           | vca --help                                                                                                                                        |
+    | show command help                   | vca <command> --help                                                                                                                              |
     
+
+When using a file to indicate the edge gateway NAT rules, use the following YAML syntax:
+
+    
+    - NAT_rules:
+    
+        - rule_type: SNAT
+          original_ip: 192.168.109.0/24
+          original_port: any
+          translated_ip: 107.189.93.162
+          translated_port: any
+          protocol: any
+          
+        - rule_type: DNAT
+          original_ip: 107.189.93.162
+          original_port: 22
+          translated_ip: 192.168.109.2
+          translated_port: 22
+          protocol: tcp
+          
+        - rule_type: DNAT
+          original_ip: 107.189.93.162
+          original_port: 80
+          translated_ip: 192.168.109.2
+          translated_port: 80
+          protocol: tcp
+          
+        - rule_type: DNAT
+          original_ip: 107.189.93.162
+          original_port: 422
+          translated_ip: 192.168.109.4
+          translated_port: 22
+          protocol: tcp  
+    
+
 
 Syntax, commands and arguments:
 

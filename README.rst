@@ -29,7 +29,7 @@ The Python SDK can be installed with the following command::
 Usage
 =====
 
-Login to vCloud can be done for different type of services: vCloud Air Subscription, vCloud Air OnDemand and vCloud Director Standalone. See the following `code <https://github.com/vmware/pyvcloud/blob/master/examples/examples.py>`_ as an example::
+The SDK supports logging in to different type of services: vCloud Air Subscription, vCloud Air OnDemand and vCloud Director Standalone. See the following `code <https://github.com/vmware/pyvcloud/blob/master/examples/examples.py>`_ as an example::
 
     import time, datetime, os
     from pyvcloud.vcloudair import VCA

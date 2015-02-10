@@ -21,6 +21,10 @@ Login to a vCloud Director instance::
 Installation
 ============
 
+The Python SDK requires the libxml2 and libxslt libraries, see `lxml <http://lxml.de/installation.html>`_ for more details. On Debian/Ubuntu, you can install the libraries with this command::
+
+    sudo apt-get install libxml2-dev libxslt-dev python-dev
+
 The Python SDK can be installed with the following command::
 
     pip install pyvcloud

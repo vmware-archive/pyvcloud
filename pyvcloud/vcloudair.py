@@ -174,9 +174,10 @@ class VCA(object):
         if len(vdcReferences) == 0:
             return None
         return vdcReferences[0]
-            
-    def login_to_vdc(self, service, vdc):
-        vdcReference = self.get_vdc_reference(service, vdc)
+
+    #in subscription 1 org <-> 1 vdc
+    def login_to_org(self, service, org_name):
+        vdcReference = self.get_vdc_reference(service, org_name)
         if vdcReference:
             link = filter(lambda link: link.get_type() == "application/xml;class=vnd.vmware.vchs.vcloudsession", vdcReference.get_Link())[0]
             response = requests.post(link.get_href(), headers=self._get_vcloud_headers(), verify=self.verify)

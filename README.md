@@ -5,7 +5,7 @@ Command Line Interface for VMware vCloud Air. It supports vCloud Air On Demand a
 
 > Release early, release often.
 
-This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version. Uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMware vCloud.
+This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version. Uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMware vCloud. See [pyvcloud installation](https://github.com/vmware/pyvcloud#installation) for additional requirements. 
 
 Installation:
 

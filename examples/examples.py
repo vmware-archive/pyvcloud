@@ -64,7 +64,7 @@ org = 'a6545fcb-d68a-489f-afff-2ea055104cc1'
 vdc = 'VDC1'
 vapp = 'ubu'
 
-#sample login sequence on vCloud Air OnDemand
+#sample login sequence on vCloud Air On Demand
 vca = VCA(host=host, username=username, service_type='ondemand', version='5.7', verify=True)
 
 #first login, with password

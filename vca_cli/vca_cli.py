@@ -33,17 +33,15 @@ from time import sleep
 from StringIO import StringIO
 
 from pyvcloud.vcloudair import VCA
+from pyvcloud.vcloudsession import VCS
 from pyvcloud.helper import CommonUtils
 
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 
-#todo: delete all nat rules
-#todo: configure nat rules from yaml file
 #todo: print vApp in json format
-#todo: include network config during the instantiation
+#todo: include network config during the instantiation to instantiate vm and connect in one shot
 #todo: list tasks
 #todo: catalogs, details
-#todo: delete nat rule
 #todo: replace network config instead of adding
 #todo: configurable profile file ~/.vcarc
 #todo: consider default list or info
@@ -56,7 +54,7 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 #todo: catch exceptions
 #todo: vapp command returns nothing no error when session is inactive on subscription
 
-properties = ['session_token', 'org', 'org_url', 'service', 'vdc', 'instance', 'service_type', 'service_version', 'token', 'user', 'host', 'gateway']
+properties = ['session_token', 'org', 'org_url', 'service', 'vdc', 'instance', 'service_type', 'service_version', 'token', 'user', 'host', 'gateway', 'session_uri', 'verify']
 
 default_operation = 'list'
 
@@ -87,6 +85,9 @@ def cli(ctx, profile, version, debug, json_output, xml_output, insecure):
     section = 'Profile-%s' % ctx.obj['profile']    
     for prop in properties:
         ctx.obj[prop] = config.get(section, prop) if config.has_option(section, prop) else ''
+        if ctx.obj[prop] == 'None': ctx.obj[prop] = None
+        if ctx.obj[prop] == 'True': ctx.obj[prop] = True
+        if ctx.obj[prop] == 'False': ctx.obj[prop] = False
         
     ctx.obj['verify'] = not insecure
     ctx.obj['json_output'] = json_output
@@ -122,7 +123,7 @@ def _save_property(profile, property, value):
 @cli.command()
 @click.pass_context
 @click.argument('user')
-@click.option('-t', '--type', 'service_type', default='ondemand', metavar='[subscription | ondemand | vcd ]', type=click.Choice(['subscription', 'ondemand', 'vcd']), help='')
+@click.option('-t', '--type', 'service_type', default='ondemand', metavar='[subscription | ondemand | vcd]', type=click.Choice(['subscription', 'ondemand', 'vcd']), help='')
 @click.option('-v', '--version', 'service_version', default='5.7', metavar='[5.5 | 5.6 | 5.7]', type=click.Choice(['5.5', '5.6', '5.7']), help='')
 @click.option('-H', '--host', default='https://iam.vchs.vmware.com', help='')
 @click.option('-p', '--password', prompt=True, confirmation_prompt=False, hide_input=True, help='Password')
@@ -151,15 +152,15 @@ def login(ctx, user, host, password, service_type, service_version, instance, or
             config.set(section, 'service_version', service_version)
             if instance:
                 config.set(section, 'instance', instance)
+                config.set(section, 'org_url', vca.vcloud_session.org_url)
+            if vca.vcloud_session:
                 config.set(section, 'session_token', vca.vcloud_session.token)                
-                config.set(section, 'org_url', vca.vcloud_session.org_url)   
-            else:
-                config.set(section, 'instance', 'None')
-                config.set(section, 'session_token', 'None')                
-                config.set(section, 'org_url', 'None')                   
             if org:
                 config.set(section, 'org', org)                
-                config.set(section, 'org_url', vca.vcloud_session.org_url)                   
+                config.set(section, 'org_url', vca.vcloud_session.org_url)
+            else:
+                config.set(section, 'org', None)                
+                if not instance: config.set(section, 'org_url', None)
             with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
                 config.write(configfile)
     if not result:
@@ -174,7 +175,10 @@ def logout(ctx):
     if vca:
         vca.logout()
     _save_property(ctx.obj['profile'], 'token', 'None')
-    _save_property(ctx.obj['profile'], 'session_token', 'None')            
+    _save_property(ctx.obj['profile'], 'session_token', 'None') 
+    _save_property(ctx.obj['profile'], 'org_url', 'None')    
+    _save_property(ctx.obj['profile'], 'session_uri', 'None')
+    # _save_property(ctx.obj['profile'], 'vdc', 'None')
     print_message('Logout successful for profile \'%s\'' % ctx.obj['profile'], ctx.obj['json_output'])        
     
 @cli.command()
@@ -185,7 +189,10 @@ def status(ctx):
     headers= ['Property', 'Value']
     table = []
     for property in properties:
-        table.append([property, (ctx.obj[property][:50]+'..') if len(ctx.obj[property])>50 else ctx.obj[property]])
+        if isinstance(ctx.obj[property], basestring):
+            table.append([property, (ctx.obj[property][:50]+'..') if len(ctx.obj[property])>50 else ctx.obj[property]])
+        else:
+            table.append([property, ctx.obj[property]])
     table.append(["session", 'active' if (vca and vca.vcloud_session) else 'inactive'])        
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)      
     print_table("Status:", 'status', headers, sorted_table, ctx.obj['json_output'])             
@@ -250,7 +257,6 @@ def org(ctx, operation, service, org):
                 headers = ['Instance Id', 'Region', 'Organization Id', "Selected"]
                 table = []
                 table.append([instance['id'], instance['region'], vca.vcloud_session.organization.name, '*'])
-                
         elif 'subscription' == ctx.obj['service_type']:
             if vca.services:
                 headers = ["Service Id", "Type", "Region", "Organization Id", "Status", "Selected"]
@@ -268,19 +274,20 @@ def org(ctx, operation, service, org):
         #this might be redundant with _getVCA()  
         result = False
         if 'ondemand' == ctx.obj['service_type']:
+            print_message("Can't change organization, use the login command to select another organization, indicating the instance id", ctx.obj['json_output'])
             return
-            # print_message("Use the login command to select another organization, indicating the instance id", ctx.obj['json_output'])
-            # return
         elif 'subscription' == ctx.obj['service_type']:
-            result = vca.login_to_vdc(service, org)
+            result = vca.login_to_org(service, org)
         elif 'vcd' == ctx.obj['service_type']:
             # print_message("Use the login command to select another organization, indicating the organization id", ctx.obj['json_output'])
             return
         if result:
-            if vca.vdc:            
+            if vca.org:            
                 _save_property(ctx.obj['profile'], 'service', service)
                 _save_property(ctx.obj['profile'], 'org', org)
-                if vca.vcloud_session: _save_property(ctx.obj['profile'], 'org_url', vca.vcloud_session.org_url)
+                if vca.vcloud_session: 
+                    _save_property(ctx.obj['profile'], 'org_url', vca.vcloud_session.org_url)
+                    _save_property(ctx.obj['profile'], 'session_token', vca.vcloud_session.token)
                 print_message("Using organization '%s' in profile '%s'" % (org, ctx.obj['profile']), ctx.obj['json_output'])
                 print_org_details(ctx, vca)
                 return
@@ -291,19 +298,15 @@ def org(ctx, operation, service, org):
         else:
             print_message('no org selected', ctx.obj['json_output'])
 
-# todo: review if service and org really are used here, or if they should or not
+# assumes the org (and service) has been previously selected
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[list | use | info]', type=click.Choice(['list', 'use', 'info']))
-@click.option('-s', '--service', default='', metavar='<service>', help='Service Id')
-@click.option('-d', '--org', default='', metavar='<org>', help='Organization Id')
 @click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
-def vdc(ctx, operation, service, org, vdc):       
+def vdc(ctx, operation, vdc):       
     """Operations with Virtual Data Centers (vdc)"""
-    if service == '': service = ctx.obj['service'] 
-    if org == '': org = ctx.obj['org'] 
-    if vdc == '': vdc = ctx.obj['vdc']             
-    vca = _getVCA(ctx)
+    if '' == vdc: vdc = ctx.obj['vdc']             
+    vca = _getVCA_vcloud_session(ctx)
     if not vca:
         print_error('User not authenticated or token expired', ctx.obj['json_output'])
         return
@@ -313,14 +316,17 @@ def vdc(ctx, operation, service, org, vdc):
         if vca.vcloud_session and vca.vcloud_session.organization:
             headers = ['Virtual Data Center', "Selected"]
             links = vca.vcloud_session.organization.Link if vca.vcloud_session.organization else []
+            if '' == vdc:
+                vdcs = filter(lambda info: info.name and info.type_ == 'application/vnd.vmware.vcloud.vdc+xml', links)
+                if len(vdcs) > 0: vdc = vdcs[0].get_name()
             table1 = [[details.get_name(), '*' if details.get_name() == vdc else ' '] for details in filter(lambda info: info.name and info.type_ == 'application/vnd.vmware.vcloud.vdc+xml', links)]
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)                
-        print_table("Available Virtual Data Centers for '%s' profile:" % ctx.obj['profile'], 'vdcs', headers, table, ctx.obj['json_output'])
+            vdcs = filter(lambda info: info.name == vdc and info.type_ == 'application/vnd.vmware.vcloud.vdc+xml', links)
+            if len(vdcs) > 0: _save_property(ctx.obj['profile'], 'vdc', vdc)
+        print_table("Available Virtual Data Centers in org '%s' for '%s' profile:" % (ctx.obj['org'], ctx.obj['profile']), 'vdcs', headers, table, ctx.obj['json_output'])
     elif 'use' == operation:
         the_vdc = vca.get_vdc(vdc)
         if the_vdc:
-            _save_property(ctx.obj['profile'], 'service', service)
-            _save_property(ctx.obj['profile'], 'org', org)
             _save_property(ctx.obj['profile'], 'vdc', vdc)        
             if vca.vcloud_session: _save_property(ctx.obj['profile'], 'org_url', vca.vcloud_session.org_url)            
             print_message("Using vdc '%s' in profile '%s'" % (vdc, ctx.obj['profile']), ctx.obj['json_output'])
@@ -331,10 +337,11 @@ def vdc(ctx, operation, service, org, vdc):
         the_vdc = vca.get_vdc(vdc)
         if the_vdc:
             print_vdc_details(ctx, the_vdc, vca.get_gateways(vdc))
+            _save_property(ctx.obj['profile'], 'vdc', vdc)
             return
         print_error("Unable to select vdc '%s' in profile '%s'" % (vdc, ctx.obj['profile']), ctx.obj['json_output'])
-        
-#todo: add service and org?
+
+# assumes the org (and service) and vdc been previously selected   
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | deploy | undeploy | customize | insert | eject]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'deploy', 'undeploy', 'customize', 'insert', 'eject']))
@@ -350,7 +357,7 @@ def vdc(ctx, operation, service, org, vdc):
 def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, cust_file, media):
     """Operations with vApps"""
     if vdc == '': vdc = ctx.obj['vdc'] 
-    vca = _getVCA(ctx)
+    vca = _getVCA_vcloud_session(ctx)
     if not vca:
         print_error('User not authenticated or token expired', ctx.obj['json_output'])
         return
@@ -454,7 +461,6 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
                 else: print_error("can't insert or eject media", ctx.obj['json_output'])
     else:
         print_message('not implemented', ctx.obj['json_output'])
-    if vdc != '': _save_property(ctx.obj['profile'], 'vdc', vdc)
         
 def statusn1():
     return "Could not be created"
@@ -517,7 +523,7 @@ status = {-1 : statusn1,
 def vm(ctx, operation, vdc, vapp):
     """Operations with Virtual Machines (VMs)"""
     if vdc == '': vdc = ctx.obj['vdc'] 
-    vca = _getVCA(ctx)
+    vca = _getVCA_vcloud_session(ctx)
     if not vca:
         print_error('User not authenticated or token expired', ctx.obj['json_output'])
         return
@@ -565,7 +571,6 @@ def vm(ctx, operation, vdc, vapp):
         print_table("Available VMs in '%s' for '%s' profile:" % (vdc, ctx.obj['profile']), 'vms', headers, table, ctx.obj['json_output'])   
     else:
         print_message('not implemented', ctx.obj['json_output'])       
-    if vdc != '': _save_property(ctx.obj['profile'], 'vdc', vdc)
         
 @cli.command()
 @click.pass_context
@@ -576,7 +581,8 @@ def vm(ctx, operation, vdc, vapp):
 def catalog(ctx, operation, vdc, catalog_name, description):
     """Operations with Catalogs"""
     if vdc == '': vdc = ctx.obj['vdc']     
-    vca = _getVCA(ctx)
+    # vca = _getVCA(ctx)
+    vca = _getVCA_vcloud_session(ctx)
     if not vca:
         print_error('User not authenticated or token expired', ctx.obj['json_output'])
         return
@@ -602,7 +608,7 @@ def catalog(ctx, operation, vdc, catalog_name, description):
 @cli.command()
 @click.pass_context
 @click.argument('operation', default='info', metavar='[info | add | delete]', type=click.Choice(['info', 'add', 'delete']))
-@click.option('--rule_type', default='DNAT', metavar='<rule_type>', help='Rule type', type=click.Choice(['DNAT', 'SNAT']))
+@click.option('--type', 'rule_type', default='DNAT', metavar='<type>', help='Rule type', type=click.Choice(['DNAT', 'SNAT']))
 @click.option('--original_ip', default='', metavar='<ip>', help='Original IP')
 @click.option('--original_port', default='any', metavar='<port>', help='Original Port')
 @click.option('--translated_ip', default='', metavar='<ip>', help='Translated IP')
@@ -612,7 +618,8 @@ def catalog(ctx, operation, vdc, catalog_name, description):
 @click.option('--all', is_flag=True)
 def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, translated_port, protocol, nat_rules_file, all):
     """Operations with Edge Gateway NAT Rules"""
-    vca = _getVCA(ctx)
+    # vca = _getVCA(ctx)
+    vca = _getVCA_vcloud_session(ctx)
     vdc = ctx.obj['vdc'] 
     if not vca:
         print_error('User not authenticated or token expired', ctx.obj['json_output'])
@@ -630,7 +637,7 @@ def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, tr
             if rules and rules[0]:
                 nat_rules = rules[0].get('NAT_rules')
                 for rule in nat_rules:
-                    gateways[0].add_nat_rule(rule.get('rule_type'), rule.get('original_ip'), rule.get('original_port'), rule.get('translated_ip'), rule.get('translated_port'), rule.get('protocol'))
+                    gateways[0].add_nat_rule(rule.get('type'), rule.get('original_ip'), rule.get('original_port'), rule.get('translated_ip'), rule.get('translated_port'), rule.get('protocol'))
         else:
             gateways[0].add_nat_rule(rule_type, original_ip, original_port, translated_ip, translated_port, protocol)
         task = gateways[0].save_services_configuration()
@@ -658,7 +665,8 @@ def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, tr
 @click.argument('operation', default='info', metavar='[info | enable | disable]', type=click.Choice(['info', 'enable', 'disable']))
 def firewall(ctx, operation):
     """Operations with Edge Gateway Firewall Rules"""
-    vca = _getVCA(ctx)
+    # vca = _getVCA(ctx)
+    vca = _getVCA_vcloud_session(ctx)
     vdc = ctx.obj['vdc'] 
     if not vca:
         print_error('User not authenticated or token expired', ctx.obj['json_output'])
@@ -685,7 +693,8 @@ def firewall(ctx, operation):
 @click.argument('operation', default=default_operation, metavar='[info | list | use]', type=click.Choice(['info', 'list', 'use']))
 def network(ctx, operation):
     """Operations with Networks"""
-    vca = _getVCA(ctx)
+    # vca = _getVCA(ctx)
+    vca = _getVCA_vcloud_session(ctx)
     if not vca:
         print_error('User not authenticated or token expired', ctx.obj['json_output'])
         return
@@ -702,7 +711,8 @@ def network(ctx, operation):
 def template(ctx, operation):
     """Operations with ..."""
     # if vdc == '': vdc = ctx.obj['vdc'] 
-    vca = _getVCA(ctx)
+    # vca = _getVCA(ctx)
+    vca = _getVCA_vcloud_session(ctx)
     if not vca:
         print_error('User not authenticated or token expired', ctx.obj['json_output'])
         return
@@ -727,7 +737,8 @@ def gateway(ctx, operation, service, org, vdc):
     if service == '': service = ctx.obj['service']
     if org == '': org = ctx.obj['org']
     if vdc == '': vdc = ctx.obj['vdc']             
-    vca = _getVCA(ctx)
+    # vca = _getVCA(ctx)
+    vca = _getVCA_vcloud_session(ctx)
     if not vca:
         print_error('User not authenticated or token expired', ctx.obj['json_output'])
         return
@@ -746,108 +757,145 @@ def gateway(ctx, operation, service, org, vdc):
 @click.pass_context
 def example(ctx):
     """vCloud Air CLI Examples"""
-    headers = ['Example', "Command"]
+    headers = ['Id', 'Example', "Command"]
+    id = 0
     table = []
-    table.append(['login to vCA On Demand', 
+    id+=1; table.append([id, 'login to vCA On Demand', 
         'vca login email@company.com --password mypassword'])
-    table.append(['login to a vCA On Demand instance', 
+    id+=1; table.append([id, 'login to a vCA On Demand instance', 
         'vca login email@company.com --password mypassword --instance c40ba6b4-c158-49fb-b164-5c66f90344fa'])        
-    table.append(['login to vCA Subscription', 
+    id+=1; table.append([id, 'login to vCA Subscription', 
         'vca login email@company.com --password mypassword --type subscription --host https://vchs.vmware.com --version 5.6'])
-    table.append(['login to vCloud Director', 
+    id+=1; table.append([id, 'login to vCloud Director', 
         'vca login email@company.com --password mypassword --type vcd --host https://p1v21-vcd.vchs.vmware.com --version 5.6 --org MyOrganization'])
-    table.append(['login with no SSL verification', 
+    id+=1; table.append([id, 'login with no SSL verification', 
         'vca --insecure login email@company.com --password mypassword'])
-    table.append(['show status', 
+    id+=1; table.append([id, 'prompt user for password', 
+        'vca login email@company.com'])        
+    id+=1; table.append([id, 'show status', 
         'vca status'])    
-    table.append(['logout', 
+    id+=1; table.append([id, 'logout', 
         'vca logout'])    
-    table.append(['list organizations', 
+    id+=1; table.append([id, 'list organizations', 
         'vca org'])
-    table.append(['select organization', 
+    id+=1; table.append([id, 'select organization', 
         'vca org use --org MyOrg'])
-    table.append(['select organization in subscription', 
+    id+=1; table.append([id, 'select organization in subscription', 
         'vca org use --org MyOrg --service ServiceId'])        
-    table.append(['show current organization', 
+    id+=1; table.append([id, 'show current organization', 
         'vca org info'])
-    table.append(['select and show organization', 
+    id+=1; table.append([id, 'select and show organization', 
         'vca org info --org MyOrg'])
-    table.append(['show current organization in XML', 
+    id+=1; table.append([id, 'show current organization in XML', 
         'vca --xml org info'])
-    table.append(['show current organization in JSON', 
+    id+=1; table.append([id, 'show current organization in JSON', 
         'vca --json org info'])
-    table.append(['list virtual data centers', 
+    id+=1; table.append([id, 'list virtual data centers', 
         'vca vdc'])
-    table.append(['select virtual data centers', 
+    id+=1; table.append([id, 'select virtual data centers', 
         'vca vdc use --vdc VDC1'])
-    table.append(['show virtual data center', 
+    id+=1; table.append([id, 'show virtual data center', 
         'vca vdc info'])
-    table.append(['list catalogs', 
+    id+=1; table.append([id, 'list catalogs', 
         'vca catalog'])
-    table.append(['create catalog', 
+    id+=1; table.append([id, 'create catalog', 
         'vca catalog create --catalog mycatalog'])
-    table.append(['delete catalog', 
+    id+=1; table.append([id, 'delete catalog', 
         'vca catalog delete --catalog mycatalog'])
-    table.append(['list networks', 
+    id+=1; table.append([id, 'list networks', 
         'vca network'])        
-    table.append(['list vapps', 
+    id+=1; table.append([id, 'list vapps', 
         'vca vapp'])
-    table.append(['create vapp', 
+    id+=1; table.append([id, 'create vapp', 
         'vca vapp create -a coreos2 -V coreos2 -c default-catalog -t coreos_template -n default-routed-network -m POOL'])        
-    table.append(['delete vapp', 
+    id+=1; table.append([id, 'delete vapp', 
         'vca vapp delete -a coreos2'])        
-    table.append(['show vapp details in XML', 
+    id+=1; table.append([id, 'show vapp details in XML', 
         'vca -x vapp info -a coreos2'])        
-    table.append(['deploy vapp', 
+    id+=1; table.append([id, 'deploy vapp', 
         'vca vapp deploy --vapp ubu'])                        
-    table.append(['undeploy vapp', 
+    id+=1; table.append([id, 'undeploy vapp', 
         'vca vapp undeploy --vapp ubu'])                
-    table.append(['customize vapp vm', 
+    id+=1; table.append([id, 'customize vapp vm', 
         'vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh'])                        
-    table.append(['list vms', 
+    id+=1; table.append([id, 'insert ISO to vapp vm', 
+        'vca vapp insert --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso'])                        
+    id+=1; table.append([id, 'eject ISO from vapp vm', 
+        'vca vapp eject --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso'])                        
+    id+=1; table.append([id, 'list vms', 
         'vca vm'])
-    table.append(['list vms in a vapp', 
+    id+=1; table.append([id, 'list vms in a vapp', 
         'vca vm -a ubu'])        
-    table.append(['list vms in JSON format', 
+    id+=1; table.append([id, 'list vms in JSON format', 
         'vca -j vm'])
-    table.append(['retrieve the IP of a vm', 
+    id+=1; table.append([id, 'retrieve the IP of a vm', 
         "IP=`vca -j vm -a ubu | jq '.vms[0].IPs[0]'` && echo $IP"])
-    table.append(['list edge gateway NAT rules', 
+    id+=1; table.append([id, 'list edge gateway NAT rules', 
         'vca nat'])
-    table.append(['add edge gateway DNAT rule',
-        "vca nat add --rule_type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.2 --translated_port 22 --protocol tcp"])
-    table.append(['add edge gateway SNAT rule',
-        "vca nat add --rule_type SNAT --original_ip 192.168.109.0/24 --translated_ip 107.189.93.162"])
-    table.append(['add edge gateway rules from file',
+    id+=1; table.append([id, 'add edge gateway DNAT rule',
+        "vca nat add --type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.2 --translated_port 22 --protocol tcp"])
+    id+=1; table.append([id, 'add edge gateway SNAT rule',
+        "vca nat add --type SNAT --original_ip 192.168.109.0/24 --translated_ip 107.189.93.162"])
+    id+=1; table.append([id, 'add edge gateway rules from file',
         "vca nat add --file natrules.yaml"])        
-    table.append(['delete edge gateway NAT rule',
-        "vca nat delete --rule_type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.4 --translated_port 22 --protocol tcp"])
-    table.append(['delete all edge gateway NAT rules',
+    id+=1; table.append([id, 'delete edge gateway NAT rule',
+        "vca nat delete --type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.4 --translated_port 22 --protocol tcp"])
+    id+=1; table.append([id, 'delete all edge gateway NAT rules',
         "vca nat delete --all"])
-    table.append(['show the REST calls in the command', 
+    id+=1; table.append([id, 'show the REST calls in the command', 
         'vca --debug vm'])
-    table.append(['show version', 
+    id+=1; table.append([id, 'show version', 
         'vca --version'])
-    table.append(['show help', 
+    id+=1; table.append([id, 'show help', 
         'vca --help'])
-    table.append(['show command help', 
+    id+=1; table.append([id, 'show command help', 
         'vca <command> --help'])
 
     print_table('vca-cli usage examples:', 'examples', headers, table, ctx.obj['json_output'])   
         
 def _getVCA(ctx):
-    vca = VCA(ctx.obj['host'], ctx.obj['user'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['verify'])
+    # for k, v in ctx.obj.iteritems(): print k, "==>", v
+    if ctx.obj['token'] == None:
+        return None
+    vca = VCA(ctx.obj['host'], ctx.obj['user'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['verify'])        
     if vca.login(token=ctx.obj['token'], org=ctx.obj['org'], org_url=ctx.obj['org_url']):
         if 'ondemand' == ctx.obj['service_type']:
             if ctx.obj['instance'] and ctx.obj['session_token']:
-                vca.login_to_instance(ctx.obj['instance'], None, ctx.obj['session_token'], ctx.obj['org_url'])
+                result = vca.login_to_instance(ctx.obj['instance'], None, ctx.obj['session_token'], ctx.obj['org_url'])
+                if result:
+                    ctx.obj['session_uri'] = vca.vcloud_session.url
+                    _save_property(ctx.obj['profile'], 'session_uri', ctx.obj['session_uri'])      
+                    ctx.obj['verify'] = vca.verify
+                    _save_property(ctx.obj['profile'], 'verify', ctx.obj['verify'])                          
+                else:
+                    return None
         elif 'subscription' == ctx.obj['service_type']:
-            #todo: use the session token?
-            if ctx.obj['instance'] and ctx.obj['session_token']:
-                vca.login_to_vdc(ctx.obj['service'], ctx.obj['org'])
+            if ctx.obj['service'] and ctx.obj['session_token']:
+                result = vca.login_to_org(ctx.obj['service'], ctx.obj['org'])
+                if result:
+                    ctx.obj['session_uri'] = vca.vcloud_session.url
+                    _save_property(ctx.obj['profile'], 'session_uri', ctx.obj['session_uri'])      
+                    ctx.obj['verify'] = vca.verify
+                    _save_property(ctx.obj['profile'], 'verify', ctx.obj['verify'])                          
+                else:
+                    return None
         return vca
     else:
         return None
+
+def _getVCA_vcloud_session(ctx):
+    # for k, v in ctx.obj.iteritems(): print k, "-->", v
+    if ctx.obj['org_url'] == None or ctx.obj['org'] == None or ctx.obj['session_uri'] == None:
+        return _getVCA(ctx)
+    vca = VCA(ctx.obj['host'], ctx.obj['user'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['verify'])                
+    if 'ondemand' == ctx.obj['service_type'] or 'subscription' == ctx.obj['service_type']:
+        vcloud_session = VCS(ctx.obj['session_uri'], ctx.obj['user'], ctx.obj['org'], ctx.obj['instance'], ctx.obj['org_url'], ctx.obj['org_url'], ctx.obj['service_version'], ctx.obj['verify'])
+        result = vcloud_session.login(token=ctx.obj['session_token'])
+        if result:
+            vca.vcloud_session = vcloud_session
+            return vca
+    else:
+        return _getVCA(ctx)
         
 def print_table(msg, obj, headers, table, json_output):    
     if json_output:

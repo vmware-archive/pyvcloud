@@ -1,27 +1,34 @@
 - NAT_rules:
     
-    - rule_type: SNAT
+    - type: SNAT
       original_ip: 192.168.109.0/24
       original_port: any
       translated_ip: 107.189.93.162
       translated_port: any
       protocol: any
   
-    - rule_type: DNAT
+    - type: DNAT
       original_ip: 107.189.93.162
       original_port: 22
       translated_ip: 192.168.109.2
       translated_port: 22
       protocol: tcp
   
-    - rule_type: DNAT
+    - type: DNAT
       original_ip: 107.189.93.162
       original_port: 80
       translated_ip: 192.168.109.2
       translated_port: 80
       protocol: tcp
   
-    - rule_type: DNAT
+    - type: DNAT
+      original_ip: 107.189.93.162
+      original_port: 322
+      translated_ip: 192.168.109.3
+      translated_port: 22
+      protocol: tcp
+
+    - type: DNAT
       original_ip: 107.189.93.162
       original_port: 422
       translated_ip: 192.168.109.4

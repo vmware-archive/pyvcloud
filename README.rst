@@ -23,7 +23,7 @@ Installation
 
 The Python SDK can be installed with the following command::
 
-    pip install pyvlcoud
+    pip install pyvcloud
 
 
 Usage

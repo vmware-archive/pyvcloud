@@ -29,10 +29,10 @@ The Python SDK can be installed with the following command::
 Usage
 =====
 
-Login to vCloud can be done for different type of services: vCloud Air Subscription, vCloud Air OnDemand and vCloud Director Standalone. See the following code as an example::
+Login to vCloud can be done for different type of services: vCloud Air Subscription, vCloud Air OnDemand and vCloud Director Standalone. See the following [code](https://raw.githubusercontent.com/vmware/pyvcloud/master/examples/examples.py) as an example::
 
+    import time, datetime, os
     from pyvcloud.vcloudair import VCA
-    import time, datetime
 
     def print_vca(vca):
         if vca:
@@ -61,8 +61,8 @@ Login to vCloud can be done for different type of services: vCloud Air Subscript
 
     ### Subscription
     host='vchs.vmware.com'
-    username = 'email@company.com'
-    password = '*****************'
+    username = os.environ['VCAUSER']
+    password = os.environ['PASSWORD']
     service = '85-719'
     org = 'AppServices'
     vdc = 'AppServices'
@@ -90,8 +90,8 @@ Login to vCloud can be done for different type of services: vCloud Air Subscript
 
     ### On Demand            
     host='iam.vchs.vmware.com'
-    username = 'email@company.com'
-    password = '*****************'
+    username = os.environ['VCAUSER']
+    password = os.environ['PASSWORD']
     instance = 'c40ba6b4-c158-49fb-b164-5c66f90344fa'
     org = 'a6545fcb-d68a-489f-afff-2ea055104cc1'
     vdc = 'VDC1'
@@ -121,10 +121,10 @@ Login to vCloud can be done for different type of services: vCloud Air Subscript
     test_vcloud_session(vca, vdc, vapp)
 
 
-    ### vCloud Director Standalone
+    ### vCloud Director standalone
     host='p1v21-vcd.vchs.vmware.com'
-    username = 'email@company.com'
-    password = '*****************'
+    username = os.environ['VCAUSER']
+    password = os.environ['PASSWORD']
     service = '85-719'
     org = 'AppServices'
     vdc = 'AppServices'
@@ -144,6 +144,7 @@ Login to vCloud can be done for different type of services: vCloud Air Subscript
     #this tests the vcloud session token
     test_vcloud_session(vca, vdc, vapp)
 
+    
 Development
 ===========
 

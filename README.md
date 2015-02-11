@@ -13,6 +13,16 @@ Installation:
     $ pip install vca-cli
     
 
+The vca-cli requires a Python environment installed, if the previous command fails, install the dependencies. Here is an example of installing the dependencies on Debian/Ubuntu:
+
+    
+    $ sudo apt-get install -y libxml2-dev libxslt-dev python-dev python-pip
+    
+    $ sudo pip install vca-cli
+    
+
+It is also possible to install vca-cli in a [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
+
 Upgrade from a previous installation:
 
         

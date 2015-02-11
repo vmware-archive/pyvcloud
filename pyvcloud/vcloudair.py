@@ -48,7 +48,15 @@ class VCA(object):
         self.organization = None
         self.vdc = None
         self.services = None
-        
+
+    def _get_services(self):
+        headers = {}
+        headers["x-vchs-authorization"] = self.token
+        headers["Accept"] = "application/xml;version=" + self.version
+        response = requests.get(self.host + "/api/vchs/services", headers=headers, verify=self.verify)
+        if response.status_code == requests.codes.ok:
+            return serviceType.parseString(response.content, True)
+
     def login(self, password=None, token=None, org=None, org_url=None):
         """
         Request to login to vCloud Air
@@ -79,6 +87,7 @@ class VCA(object):
                 response = requests.post(url, headers=headers, verify=self.verify)
                 if response.status_code == requests.codes.created:
                     self.token = response.headers["x-vchs-authorization"]
+                    self.services = self._get_services()
                     return True
                 else:
                     return False

@@ -23,11 +23,17 @@ Installation
 
 The Python SDK requires the libxml2 and libxslt libraries, see `lxml <http://lxml.de/installation.html>`_ for more details. On Debian/Ubuntu, you can install the libraries with this command::
 
-    sudo apt-get install libxml2-dev libxslt-dev python-dev
+    sudo apt-get install libxml2-dev libxslt-dev
+    
+Of course, a Python dev environment is required::
+
+    sudo apt-get install python-dev python-pip
 
 The Python SDK can be installed with the following command::
 
     pip install pyvcloud
+    
+Use of `virtualenv <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_ is recommended.
 
 
 Usage

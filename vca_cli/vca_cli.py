@@ -892,6 +892,12 @@ def example(ctx):
         'vca -j vm'])
     id+=1; table.append([id, 'retrieve the IP of a vm', 
         "IP=`vca -j vm -a ubu | jq '.vms[0].IPs[0]'` && echo $IP"])
+    id+=1; table.append([id, 'list edge gateways', 
+        'vca gateway'])
+    id+=1; table.append([id, 'set syslog server on gateway', 
+        'vca gateway set-syslog --gateway gateway --ip 192.168.109.2'])
+    id+=1; table.append([id, 'unset syslog server on gateway', 
+        'vca gateway set-syslog --gateway gateway'])
     id+=1; table.append([id, 'list edge gateway NAT rules', 
         'vca nat'])
     id+=1; table.append([id, 'add edge gateway DNAT rule',

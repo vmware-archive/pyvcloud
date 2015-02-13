@@ -162,16 +162,19 @@ Usage examples:
     |   33 | list vms in a vapp                  | vca vm -a ubu                                                                                                                                |
     |   34 | list vms in JSON format             | vca -j vm                                                                                                                                    |
     |   35 | retrieve the IP of a vm             | IP=`vca -j vm -a ubu | jq '.vms[0].IPs[0]'` && echo $IP                                                                                      |
-    |   36 | list edge gateway NAT rules         | vca nat                                                                                                                                      |
-    |   37 | add edge gateway DNAT rule          | vca nat add --type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.2 --translated_port 22 --protocol tcp    |
-    |   38 | add edge gateway SNAT rule          | vca nat add --type SNAT --original_ip 192.168.109.0/24 --translated_ip 107.189.93.162                                                        |
-    |   39 | add edge gateway rules from file    | vca nat add --file natrules.yaml                                                                                                             |
-    |   40 | delete edge gateway NAT rule        | vca nat delete --type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.4 --translated_port 22 --protocol tcp |
-    |   41 | delete all edge gateway NAT rules   | vca nat delete --all                                                                                                                         |
-    |   42 | show the REST calls in the command  | vca --debug vm                                                                                                                               |
-    |   43 | show version                        | vca --version                                                                                                                                |
-    |   44 | show help                           | vca --help                                                                                                                                   |
-    |   45 | show command help                   | vca <command> --help                                                                                                                         |
+    |   36 | list edge gateways                  | vca gateway                                                                                                                                  |
+    |   37 | set syslog server on gateway        | vca gateway set-syslog --gateway gateway --ip 192.168.109.2                                                                                  |
+    |   38 | unset syslog server on gateway      | vca gateway set-syslog --gateway gateway                                                                                                     |
+    |   39 | list edge gateway NAT rules         | vca nat                                                                                                                                      |
+    |   40 | add edge gateway DNAT rule          | vca nat add --type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.2 --translated_port 22 --protocol tcp    |
+    |   41 | add edge gateway SNAT rule          | vca nat add --type SNAT --original_ip 192.168.109.0/24 --translated_ip 107.189.93.162                                                        |
+    |   42 | add edge gateway rules from file    | vca nat add --file natrules.yaml                                                                                                             |
+    |   43 | delete edge gateway NAT rule        | vca nat delete --type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.4 --translated_port 22 --protocol tcp |
+    |   44 | delete all edge gateway NAT rules   | vca nat delete --all                                                                                                                         |
+    |   45 | show the REST calls in the command  | vca --debug vm                                                                                                                               |
+    |   46 | show version                        | vca --version                                                                                                                                |
+    |   47 | show help                           | vca --help                                                                                                                                   |
+    |   48 | show command help                   | vca <command> --help                                                                                                                         |
     
 
 When using a file to indicate the edge gateway NAT rules, use the following YAML syntax:

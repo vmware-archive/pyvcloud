@@ -417,7 +417,7 @@ class VCA(object):
             queryResultRecords = queryRecordViewType.parseString(response.content, True)
             if queryResultRecords.get_Record():
                 for edgeGatewayRecord in queryResultRecords.get_Record():
-                    if queryResultRecord.get_Name() == gateway_name:
+                    if edgeGatewayRecord.get_name() == gateway_name:
                         response = requests.get(edgeGatewayRecord.get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
                         if response.status_code == requests.codes.ok:
                             gateway = Gateway(networkType.parseString(response.content, True), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
@@ -436,7 +436,6 @@ class VCA(object):
         return result
         
     def parsexml_(self, string_to_parse):
-        import xml.etree.ElementTree as ET
         doc = ET.fromstring(string_to_parse)
         return doc
         

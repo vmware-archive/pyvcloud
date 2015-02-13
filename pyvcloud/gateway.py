@@ -21,6 +21,7 @@ from schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRu
 from iptools import ipv4, IpRange
 from tabulate import tabulate
 from helper import CommonUtils
+from xml.etree import ElementTree as ET
 
 class Gateway(object):
 
@@ -240,4 +241,47 @@ class Gateway(object):
         services = filter(lambda service: service.__class__.__name__ == "FirewallServiceType" , edgeGatewayServiceConfiguration.get_NetworkService())
         if len(services) == 1:
             services[0].set_IsEnabled(enable)
+            
+    def get_syslog_conf(self):
+        headers = self.headers
+        headers['Accept']='application/*+xml;version=5.11'
+        response = requests.get(self.me.href, data='', headers=headers, verify=self.verify)
+        if response.status_code == requests.codes.ok:
+            doc = ET.fromstring(response.content)
+            for element in doc.iter('{http://www.vmware.com/vcloud/v1.5}SyslogServerIp'):
+                return element.text
+        return ''
+            
+    def set_syslog_conf(self, syslog_server_ip):
+        headers = self.headers
+        headers['Accept']='application/*+xml;version=5.11'
+        headers['Content-Type']='application/vnd.vmware.vcloud.SyslogSettings+xml;version=5.11'
+        # content_type = "application/vnd.vmware.vcloud.SyslogSettings+xml"
+        body = ''
+        if '' == syslog_server_ip:
+            body="""
+            <SyslogServerSettings xmlns="http://www.vmware.com/vcloud/v1.5"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vmware.com/vcloud/v1.5 http://10.160.99.94/api/v1.5/schema/master.xsd">
+                  <TenantSyslogServerSettings>
+                  </TenantSyslogServerSettings>
+              </SyslogServerSettings>
+                    """
+        else:
+            body="""
+<SyslogServerSettings xmlns="http://www.vmware.com/vcloud/v1.5"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vmware.com/vcloud/v1.5 http://10.160.99.94/api/v1.5/schema/master.xsd">
+      <TenantSyslogServerSettings>
+          <SyslogServerIp>%s</SyslogServerIp>
+      </TenantSyslogServerSettings>
+  </SyslogServerSettings>
+        """ % syslog_server_ip        
+        # '<SyslogServerSettings><TenantSyslogServerSettings><SyslogServerIp>%s</SyslogServerIp></TenantSyslogServerSettings></SyslogServerSettings>' % syslog_server_ip
+        # link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
+        response = requests.post(self.me.href+'/action/configureSyslogServerSettings', data=body, headers=headers, verify=self.verify)     
+        if response.status_code == requests.codes.accepted:
+            task = taskType.parseString(response.content, True)
+            return task           
+            
+
+        
         

@@ -59,9 +59,9 @@ test_vcloud_session(vca, vdc, vapp)
 host='iam.vchs.vmware.com'
 username = os.environ['VCAUSER']
 password = os.environ['PASSWORD']
-instance = 'c40ba6b4-c158-49fb-b164-5c66f90344fa'
-org = 'a6545fcb-d68a-489f-afff-2ea055104cc1'
-vdc = 'VDC1'
+instance = '28149a83-0d23-4f03-85e1-eb8be013e4ff'
+org = '8e479bba-862d-417e-a69f-c35aa50b8d95'
+vdc = 'AppServices'
 vapp = 'ubu'
 
 #sample login sequence on vCloud Air On Demand

@@ -244,7 +244,7 @@ def status(ctx):
     headers= ['Property', 'Value']
     table = []
     for property in properties:
-        if property == 'password' and len(ctx.obj[property])>0:
+        if property == 'password' and ctx.obj[property] and len(ctx.obj[property])>0:
             table.append([property, '<encrypted>'])
             continue                          
         if isinstance(ctx.obj[property], basestring):
@@ -676,6 +676,9 @@ def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, tr
     if not vca:
         print_error('User not authenticated or token expired', ctx.obj['json_output'])
         return
+    if not vdc or len(vdc) == 0:
+        print_error('Unable to use the edge gateway, please select first a valid virtual data center. Type \'vca vdc\' to list available virtual data centers', ctx.obj['json_output'])
+        return        
     gateways = vca.get_gateways(vdc)
     if len(gateways) != 1:
         print_error('Gateway not found', ctx.obj['json_output'])

@@ -354,6 +354,34 @@ class VAPP(object):
                 return True
         return False
 
+    def get_vms_details(self):
+        result = []
+        children = self.me.get_Children()
+        if children:
+            vms = children.get_Vm()
+            for vm in vms:
+                name = vm.get_name()
+                status = self.STATUS_MAP[vm.get_status()]
+                owner = self.me.get_Owner().get_User().get_name()
+                sections = vm.get_Section()
+                virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]
+                items = virtualHardwareSection.get_Item()
+                cpu = filter(lambda item: item.get_Description().get_valueOf_() == "Number of Virtual CPUs", items)[0]
+                cpu_capacity = cpu.get_ElementName().get_valueOf_().split(" virtual CPU(s)")[0]
+                memory = filter(lambda item: item.get_Description().get_valueOf_() == "Memory Size", items)[0]
+                memory_capacity = int(memory.get_ElementName().get_valueOf_().split(" MB of memory")[0]) / 1024
+                operatingSystemSection = filter(lambda section: section.__class__.__name__== "OperatingSystemSection_Type", sections)[0]
+                os = operatingSystemSection.get_Description().get_valueOf_()
+                result.append(
+                    {'name': name,
+                     'status': status,
+                     'cpus': cpu_capacity,
+                     'memory': memory_capacity,
+                     'os': os,
+                     'owner': owner}
+                )
+        return result
+
     def _get_vms(self):
         children = self.me.get_Children()
         if children:

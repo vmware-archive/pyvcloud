@@ -261,6 +261,7 @@ class VCA(object):
             gen_params.set_Name(vm_name)
             params.set_VmGeneralParams(gen_params)
             templateParams.add_SourcedItem(params)
+
         if vm_cpus or vm_memory:
             hardware = vcloudType.InstantiateVmHardwareCustomizationParamsType()
             if vm_cpus:
@@ -268,13 +269,13 @@ class VCA(object):
                 hardware.set_CoresPerSocket(vm_cpus)
             if vm_memory:
                 hardware.set_MemorySize(vm_memory)
+            source = vcloudType.ReferenceType(href=vm_href)
             instantiation_params = vcloudType.SourcedVmInstantiationParamsType(
                 Source=source, HardwareCustomization=hardware)
             templateParams.set_SourcedVmInstantiationParams([instantiation_params])
 
         return templateParams
-                
-                
+
     def create_vapp(self, vdc_name, vapp_name, template_name, catalog_name,
                     network_name=None, network_mode='bridged', vm_name=None,
                     vm_cpus=None, vm_memory=None):

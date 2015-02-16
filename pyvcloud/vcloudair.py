@@ -241,7 +241,10 @@ class VCA(object):
                 vapp = VAPP(vAppType.parseString(response.content, True), self.vcloud_session.get_vcloud_headers(), self.verify)
                 return vapp
 
-    def _create_instantiateVAppTemplateParams(self, name, template_href, vm_name, vm_href, deploy="true", power="false"):
+    def _create_instantiateVAppTemplateParams(self, name, template_href,
+                                              vm_name, vm_href, deploy="true",
+                                              power="false", vm_cpus=None,
+                                              vm_memory=None):
         templateParams = vcloudType.InstantiateVAppTemplateParamsType()
         templateParams.set_name(name)
         templateParams.set_deploy(deploy)
@@ -258,11 +261,23 @@ class VCA(object):
             gen_params.set_Name(vm_name)
             params.set_VmGeneralParams(gen_params)
             templateParams.add_SourcedItem(params)
+        if vm_cpus or vm_memory:
+            hardware = vcloudType.InstantiateVmHardwareCustomizationParamsType()
+            if vm_cpus:
+                hardware.set_NumberOfCpus(vm_cpus)
+                hardware.set_CoresPerSocket(vm_cpus)
+            if vm_memory:
+                hardware.set_MemorySize(vm_memory)
+            instantiation_params = vcloudType.SourcedVmInstantiationParamsType(
+                Source=source, HardwareCustomization=hardware)
+            templateParams.set_SourcedVmInstantiationParams([instantiation_params])
 
         return templateParams
                 
                 
-    def create_vapp(self, vdc_name, vapp_name, template_name, catalog_name, network_name=None, network_mode='bridged', vm_name=None):
+    def create_vapp(self, vdc_name, vapp_name, template_name, catalog_name,
+                    network_name=None, network_mode='bridged', vm_name=None,
+                    vm_cpus=None, vm_memory=None):
         self.vdc = self.get_vdc(vdc_name)
         if not self.vcloud_session or not self.vcloud_session.organization or not self.vdc:        
             #"Select an organization and datacenter first"
@@ -287,7 +302,9 @@ class VCA(object):
                             vAppTemplate = ET.fromstring(response.content)
                             for vm in vAppTemplate.iter('{http://www.vmware.com/vcloud/v1.5}Vm'):
                                 vm_href = vm.get('href')
-                    template_params = self._create_instantiateVAppTemplateParams(vapp_name, entity.get("href"), vm_name=vm_name, vm_href=vm_href)
+                    template_params = self._create_instantiateVAppTemplateParams(
+                        vapp_name, entity.get("href"), vm_name=vm_name,
+                        vm_href=vm_href, vm_cpus=vm_cpus, vm_memory=vm_memory)
                         
                     if network_name:
                         pass
@@ -308,14 +325,7 @@ class VCA(object):
                         vApp = vAppType.parseString(response.content, True)
                         task = vApp.get_Tasks().get_Task()[0]
                         return task
-                    else:
-                        return False
-                else:
-                    return False
-            else:
-                return False
-        else:
-            return False
+        return False
             
     def block_until_completed(self, task):
         progress = task.get_Progress()

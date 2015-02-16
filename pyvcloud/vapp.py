@@ -134,16 +134,21 @@ class VAPP(object):
         networkConfigSection.set_Info(info)
         return networkConfigSection
         
-    def connect_vms(self, network_name, ip_address_allocation_mode):
+    def connect_vms(self, network_name, connection_index,
+                    connections_primary_index=None, ip_allocation_mode='DHCP',
+                    mac_address=None, ip_address=None):
         children = self.me.get_Children()
         if children:
             vms = children.get_Vm()
             for vm in vms:
+                new_connection = self._create_networkConnection(
+                    network_name, connection_index, ip_allocation_mode,
+                    mac_address, ip_address)
                 networkConnectionSection = [section for section in vm.get_Section() if isinstance(section, NetworkConnectionSectionType)][0]
-                for networkConnection in networkConnectionSection.get_NetworkConnection():
-                    networkConnection.set_IpAddressAllocationMode(ip_address_allocation_mode)
-                    networkConnection.set_network(network_name)
-                    networkConnection.set_IsConnected('true')
+                self._modify_networkConnectionSection(
+                    networkConnectionSection,
+                    new_connection,
+                    connections_primary_index)
                 output = StringIO()
                 networkConnectionSection.export(output,
                     0, 
@@ -258,18 +263,29 @@ class VAPP(object):
                 """ % (media.get('name'), media.get('id'), media.get('href'))
                 return self.execute("media:%sMedia" % operation, "post", body=body, targetVM=vms[0])        
                 
-    def customize_guest_os(self, vm_name, customization_script):
+    def customize_guest_os(self, vm_name, customization_script=None,
+                           computer_name=None, admin_password=None):
         children = self.me.get_Children()
         if children:            
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
             if len(vms) == 1:
                 sections = vms[0].get_Section()
-                guestCustomizationSection = filter(lambda section: section.__class__.__name__== "GuestCustomizationSectionType", sections)
-                guestCustomizationSection[0].set_AdminAutoLogonEnabled(False)
-                guestCustomizationSection[0].set_AdminAutoLogonCount(0)
-                guestCustomizationSection[0].set_CustomizationScript(customization_script)
+                customization_section = [section for section in sections
+                         if (section.__class__.__name__ ==
+                             "GuestCustomizationSectionType")
+                         ][0]
+                customization_section.set_AdminAutoLogonEnabled(False)
+                customization_section.set_AdminAutoLogonCount(0)
+                if customization_script:
+                    customization_section.set_CustomizationScript(
+                        customization_script)
+                if computer_name:
+                    customization_section.set_ComputerName(computer_name)
+                if admin_password:
+                    customization_section.set_AdminPasswordEnabled(True)
+                    customization_section.set_AdminPassword(admin_password)
                 output = StringIO()
-                guestCustomizationSection[0].export(output, 
+                customization_section.export(output, 
                     0,
                     name_ = 'GuestCustomizationSection',
                     namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
@@ -279,7 +295,7 @@ class VAPP(object):
                     replace("/Info", "/ovf:Info")                    
                 headers = self.headers
                 headers['Content-type'] = 'application/vnd.vmware.vcloud.guestcustomizationsection+xml'
-                response = requests.put(guestCustomizationSection[0].Link[0].href, data=body, headers=headers, verify=self.verify)
+                response = requests.put(customization_section.Link[0].href, data=body, headers=headers, verify=self.verify)
                 if response.status_code == requests.codes.accepted:
                     return taskType.parseString(response.content, True)
                 else:
@@ -308,10 +324,70 @@ class VAPP(object):
                         return taskType.parseString(response.content, True)
                     else:
                         print response.content
-        
-        
-        
-        
-        
-        
-                        
+
+    def get_vms_network_info(self):
+        result = []
+        vms = self._get_vms()
+        for vm in vms:
+            nw_connections = []
+            sections = vm.get_Section()
+            networkConnectionSection = filter(lambda section: section.__class__.__name__ == "NetworkConnectionSectionType", sections)[0]
+            connections = networkConnectionSection.get_NetworkConnection()
+            for connection in connections:
+                nw_connections.append(
+                    {'network_name': connection.get_network(),
+                     'ip': connection.get_IpAddress(),
+                     'mac': connection.get_MACAddress(),
+                     'is_connected': connection.get_IsConnected()
+                     })
+            result.append(nw_connections)
+        return result
+
+    def customize_on_next_poweron(self):
+        vm = self._get_vms()[0]
+        link = filter(lambda link: link.get_rel() == "customizeAtNextPowerOn",
+                      vm.get_Link())
+        if link:
+            response = requests.post(link[0].get_href(), data=None,
+                                     headers=self.headers)
+            if response.status_code == requests.codes.no_content:
+                return True
+        return False
+
+    def _get_vms(self):
+        children = self.me.get_Children()
+        if children:
+            return children.get_Vm()
+        else:
+            return []
+
+    def _modify_networkConnectionSection(self, section, new_connection,
+                                         primary_index=None):
+
+        for networkConnection in section.get_NetworkConnection():
+            if (networkConnection.get_network().lower() ==
+                new_connection.get_network().lower()):
+                return (False,
+                        "VApp {0} is already connected to org vdc network {1}"
+                        .format(self.name, networkConnection.get_network()))
+
+        section.add_NetworkConnection(new_connection)
+        if section.get_Info() is None:
+            info = vcloudType.Msg_Type()
+            info.set_valueOf_("Network connection")
+            section.set_Info(info)
+        if primary_index is not None:
+            section.set_PrimaryNetworkConnectionIndex(primary_index)
+
+    def _create_networkConnection(self, network_name, index, ip_allocation_mode,
+                                  mac_address=None, ip_address=None):
+        networkConnection = vcloudType.NetworkConnectionType()
+        networkConnection.set_network(network_name)
+        networkConnection.set_NetworkConnectionIndex(index)
+        networkConnection.set_IpAddressAllocationMode(ip_allocation_mode)
+        networkConnection.set_IsConnected(True)
+        if ip_address and ip_allocation_mode == 'MANUAL':
+            networkConnection.set_IpAddress(ip_address)
+        if mac_address:
+            networkConnection.set_MACAddress(mac_address)
+        return networkConnection

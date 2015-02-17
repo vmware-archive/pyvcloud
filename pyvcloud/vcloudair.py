@@ -536,11 +536,23 @@ class VCA(object):
         else:
             return (False, response.content)
 
-    def delete_vdc_network(self, network_name):
-        netref = self.get_admin_network_href(network_name)
+    def delete_vdc_network(self, vdc_name, network_name):
+        netref = self.get_admin_network_href(vdc_name, network_name)
         response = requests.delete(netref, headers=self.vcloud_session.get_vcloud_headers())
         if response.status_code == requests.codes.accepted:
             task = taskType.parseString(response.content, True)
             return (True, task)
         else:
             return (False, response.content)
+
+    def get_admin_network_href(self, vdc_name, network_name):
+        vdc = self.get_vdc(vdc_name)
+        link = filter(lambda link: link.get_rel() == "orgVdcNetworks",
+                      vdc.get_Link())
+        response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers())
+        queryResultRecords = queryRecordViewType.parseString(response.content,
+                                                             True)
+        if response.status_code == requests.codes.ok:
+            for record in queryResultRecords.get_Record():
+                if record.name == network_name:
+                    return record.href

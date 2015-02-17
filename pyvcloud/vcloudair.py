@@ -48,7 +48,15 @@ class VCA(object):
         self.organization = None
         self.vdc = None
         self.services = None
-        
+
+    def _get_services(self):
+        headers = {}
+        headers["x-vchs-authorization"] = self.token
+        headers["Accept"] = "application/xml;version=" + self.version
+        response = requests.get(self.host + "/api/vchs/services", headers=headers, verify=self.verify)
+        if response.status_code == requests.codes.ok:
+            return serviceType.parseString(response.content, True)
+
     def login(self, password=None, token=None, org=None, org_url=None):
         """
         Request to login to vCloud Air
@@ -79,6 +87,7 @@ class VCA(object):
                 response = requests.post(url, headers=headers, verify=self.verify)
                 if response.status_code == requests.codes.created:
                     self.token = response.headers["x-vchs-authorization"]
+                    self.services = self._get_services()
                     return True
                 else:
                     return False
@@ -232,7 +241,10 @@ class VCA(object):
                 vapp = VAPP(vAppType.parseString(response.content, True), self.vcloud_session.get_vcloud_headers(), self.verify)
                 return vapp
 
-    def _create_instantiateVAppTemplateParams(self, name, template_href, vm_name, vm_href, deploy="true", power="false"):
+    def _create_instantiateVAppTemplateParams(self, name, template_href,
+                                              vm_name, vm_href, deploy="true",
+                                              power="false", vm_cpus=None,
+                                              vm_memory=None):
         templateParams = vcloudType.InstantiateVAppTemplateParamsType()
         templateParams.set_name(name)
         templateParams.set_deploy(deploy)
@@ -250,10 +262,23 @@ class VCA(object):
             params.set_VmGeneralParams(gen_params)
             templateParams.add_SourcedItem(params)
 
+        if vm_cpus or vm_memory:
+            hardware = vcloudType.InstantiateVmHardwareCustomizationParamsType()
+            if vm_cpus:
+                hardware.set_NumberOfCpus(vm_cpus)
+                hardware.set_CoresPerSocket(vm_cpus)
+            if vm_memory:
+                hardware.set_MemorySize(vm_memory)
+            source = vcloudType.ReferenceType(href=vm_href)
+            instantiation_params = vcloudType.SourcedVmInstantiationParamsType(
+                Source=source, HardwareCustomization=hardware)
+            templateParams.set_SourcedVmInstantiationParams([instantiation_params])
+
         return templateParams
-                
-                
-    def create_vapp(self, vdc_name, vapp_name, template_name, catalog_name, network_name=None, network_mode='bridged', vm_name=None):
+
+    def create_vapp(self, vdc_name, vapp_name, template_name, catalog_name,
+                    network_name=None, network_mode='bridged', vm_name=None,
+                    vm_cpus=None, vm_memory=None):
         self.vdc = self.get_vdc(vdc_name)
         if not self.vcloud_session or not self.vcloud_session.organization or not self.vdc:        
             #"Select an organization and datacenter first"
@@ -278,7 +303,9 @@ class VCA(object):
                             vAppTemplate = ET.fromstring(response.content)
                             for vm in vAppTemplate.iter('{http://www.vmware.com/vcloud/v1.5}Vm'):
                                 vm_href = vm.get('href')
-                    template_params = self._create_instantiateVAppTemplateParams(vapp_name, entity.get("href"), vm_name=vm_name, vm_href=vm_href)
+                    template_params = self._create_instantiateVAppTemplateParams(
+                        vapp_name, entity.get("href"), vm_name=vm_name,
+                        vm_href=vm_href, vm_cpus=vm_cpus, vm_memory=vm_memory)
                         
                     if network_name:
                         pass
@@ -299,14 +326,7 @@ class VCA(object):
                         vApp = vAppType.parseString(response.content, True)
                         task = vApp.get_Tasks().get_Task()[0]
                         return task
-                    else:
-                        return False
-                else:
-                    return False
-            else:
-                return False
-        else:
-            return False
+        return False
             
     def block_until_completed(self, task):
         progress = task.get_Progress()

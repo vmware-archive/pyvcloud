@@ -29,6 +29,7 @@ class Gateway(object):
         self.me = gateway
         self.headers = headers
         self.verify = verify
+        self.response = None
         
     def get_name(self):
         return self.me.get_name()
@@ -84,9 +85,9 @@ class Gateway(object):
             namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ')
         content_type = "application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml"
         link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
-        response = requests.post(link[0].get_href(), data=body, headers=self.headers)     
-        if response.status_code == requests.codes.accepted:
-            task = taskType.parseString(response.content, True)
+        self.response = requests.post(link[0].get_href(), data=body, headers=self.headers)     
+        if self.response.status_code == requests.codes.accepted:
+            task = taskType.parseString(self.response.content, True)
             return task           
 
     def add_nat_rules(self):
@@ -245,9 +246,9 @@ class Gateway(object):
     def get_syslog_conf(self):
         headers = self.headers
         headers['Accept']='application/*+xml;version=5.11'
-        response = requests.get(self.me.href, data='', headers=headers, verify=self.verify)
-        if response.status_code == requests.codes.ok:
-            doc = ET.fromstring(response.content)
+        self.response = requests.get(self.me.href, data='', headers=headers, verify=self.verify)
+        if self.response.status_code == requests.codes.ok:
+            doc = ET.fromstring(self.response.content)
             for element in doc.iter('{http://www.vmware.com/vcloud/v1.5}SyslogServerIp'):
                 return element.text
         return ''
@@ -277,9 +278,9 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
         """ % syslog_server_ip        
         # '<SyslogServerSettings><TenantSyslogServerSettings><SyslogServerIp>%s</SyslogServerIp></TenantSyslogServerSettings></SyslogServerSettings>' % syslog_server_ip
         # link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
-        response = requests.post(self.me.href+'/action/configureSyslogServerSettings', data=body, headers=headers, verify=self.verify)     
-        if response.status_code == requests.codes.accepted:
-            task = taskType.parseString(response.content, True)
+        self.response = requests.post(self.me.href+'/action/configureSyslogServerSettings', data=body, headers=headers, verify=self.verify)     
+        if self.response.status_code == requests.codes.accepted:
+            task = taskType.parseString(self.response.content, True)
             return task           
             
 

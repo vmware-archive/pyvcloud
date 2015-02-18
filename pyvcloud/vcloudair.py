@@ -25,7 +25,7 @@ from pyvcloud.schema.vcd.v1_5.schemas.admin import vCloudEntities
 from pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities import AdminCatalogType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType, \
     vAppType, organizationListType, vdcType, catalogType, queryRecordViewType, \
-    networkType
+    networkType, vcloudType, taskType
 from pyvcloud.vcloudsession import VCS
 from pyvcloud.vapp import VAPP
 from pyvcloud.gateway import Gateway
@@ -303,7 +303,7 @@ class VCA(object):
                     entity = [child for child in catalogItem if child.get("type") == "application/vnd.vmware.vcloud.vAppTemplate+xml"][0]
                     vm_href = None
                     if vm_name:
-                        response = requests.get(entity.get('href'), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+                        self.response = requests.get(entity.get('href'), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
                         if self.response.status_code == requests.codes.ok:
                             vAppTemplate = ET.fromstring(self.response.content)
                             for vm in vAppTemplate.iter('{http://www.vmware.com/vcloud/v1.5}Vm'):
@@ -535,31 +535,31 @@ class VCA(object):
                           vdc.get_Link())[0].href
         headers = self.vcloud_session.get_vcloud_headers()
         headers["Content-Type"] = content_type
-        response = requests.post(postlink, data=body, headers=headers)
-        if response.status_code == requests.codes.created:
-            network = networkType.parseString(response.content, True)
+        self.response = requests.post(postlink, data=body, headers=headers)
+        if self.response.status_code == requests.codes.created:
+            network = networkType.parseString(self.response.content, True)
             task = network.get_Tasks().get_Task()[0]
             return (True, task)
         else:
-            return (False, response.content)
+            return (False, self.response.content)
 
     def delete_vdc_network(self, vdc_name, network_name):
         netref = self.get_admin_network_href(vdc_name, network_name)
-        response = requests.delete(netref, headers=self.vcloud_session.get_vcloud_headers())
-        if response.status_code == requests.codes.accepted:
-            task = taskType.parseString(response.content, True)
+        self.response = requests.delete(netref, headers=self.vcloud_session.get_vcloud_headers())
+        if self.response.status_code == requests.codes.accepted:
+            task = taskType.parseString(self.response.content, True)
             return (True, task)
         else:
-            return (False, response.content)
+            return (False, self.response.content)
 
     def get_admin_network_href(self, vdc_name, network_name):
         vdc = self.get_vdc(vdc_name)
         link = filter(lambda link: link.get_rel() == "orgVdcNetworks",
                       vdc.get_Link())
-        response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers())
-        queryResultRecords = queryRecordViewType.parseString(response.content,
+        self.response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers())
+        queryResultRecords = queryRecordViewType.parseString(self.response.content,
                                                              True)
-        if response.status_code == requests.codes.ok:
+        if self.response.status_code == requests.codes.ok:
             for record in queryResultRecords.get_Record():
                 if record.name == network_name:
                     return record.href

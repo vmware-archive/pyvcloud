@@ -25,7 +25,7 @@ from pyvcloud.schema.vcd.v1_5.schemas.admin import vCloudEntities
 from pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities import AdminCatalogType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType, \
     vAppType, organizationListType, vdcType, catalogType, queryRecordViewType, \
-    networkType
+    networkType, vcloudType, taskType
 from pyvcloud.vcloudsession import VCS
 from pyvcloud.vapp import VAPP
 from pyvcloud.gateway import Gateway

@@ -34,6 +34,7 @@ class VCS(object):
         self.api_url = api_url
         self.org_url = org_url
         self.organization = None
+        self.response = None
         
     def get_vcloud_headers(self):
         headers = {}
@@ -46,10 +47,10 @@ class VCS(object):
             headers = {}
             headers["x-vcloud-authorization"] = token
             headers["Accept"] = "application/*+xml;version=" + self.version
-            response = requests.get(self.org_url, headers=headers, verify=self.verify)
-            if response.status_code == requests.codes.ok:
+            self.response = requests.get(self.org_url, headers=headers, verify=self.verify)
+            if self.response.status_code == requests.codes.ok:
                 self.token = token
-                self.organization = organizationType.parseString(response.content, True)
+                self.organization = organizationType.parseString(self.response.content, True)
                 return True
             else:
                 return False
@@ -58,10 +59,10 @@ class VCS(object):
             headers = {}
             headers["Authorization"] = encode.rstrip()
             headers["Accept"] = "application/*+xml;version=" + self.version
-            response = requests.post(self.url, headers=headers, verify=self.verify)
-            if response.status_code == requests.codes.ok:
-                self.token = response.headers["x-vcloud-authorization"]
-                session = sessionType.parseString(response.content, True)
+            self.response = requests.post(self.url, headers=headers, verify=self.verify)
+            if self.response.status_code == requests.codes.ok:
+                self.token = self.response.headers["x-vcloud-authorization"]
+                session = sessionType.parseString(self.response.content, True)
                 self.org_url = filter(lambda link: link.type_ == 'application/vnd.vmware.vcloud.org+xml', session.Link)[0].href
                 return True                        
             else:

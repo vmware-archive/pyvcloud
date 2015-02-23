@@ -164,6 +164,8 @@ class VCA(object):
     def login_to_instance(self, instance, password, token, org_url):
         instances = filter(lambda i: i['id']==instance, self.instances)
         if len(instances)>0:
+            if 'No Attributes' == instances[0]['instanceAttributes']:
+                return False
             attributes = json.loads(instances[0]['instanceAttributes'])
             session_uri = attributes['sessionUri']
             org_name = attributes['orgName']

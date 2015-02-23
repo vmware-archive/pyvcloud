@@ -247,8 +247,8 @@ class VCA(object):
                 return vapp
 
     def _create_instantiateVAppTemplateParams(self, name, template_href,
-                                              vm_name, vm_href, deploy="true",
-                                              power="false", vm_cpus=None,
+                                              vm_name, vm_href, deploy,
+                                              power, vm_cpus=None,
                                               vm_memory=None):
         templateParams = vcloudType.InstantiateVAppTemplateParamsType()
         templateParams.set_name(name)
@@ -283,7 +283,8 @@ class VCA(object):
 
     def create_vapp(self, vdc_name, vapp_name, template_name, catalog_name,
                     network_name=None, network_mode='bridged', vm_name=None,
-                    vm_cpus=None, vm_memory=None):
+                    vm_cpus=None, vm_memory=None, deploy='false',
+                    poweron='false'):
         self.vdc = self.get_vdc(vdc_name)
         if not self.vcloud_session or not self.vcloud_session.organization or not self.vdc:
             #"Select an organization and datacenter first"
@@ -310,7 +311,8 @@ class VCA(object):
                                 vm_href = vm.get('href')
                     template_params = self._create_instantiateVAppTemplateParams(
                         vapp_name, entity.get("href"), vm_name=vm_name,
-                        vm_href=vm_href, vm_cpus=vm_cpus, vm_memory=vm_memory)
+                        vm_href=vm_href, vm_cpus=vm_cpus, vm_memory=vm_memory,
+                        deploy=deploy, power=poweron)
 
                     if network_name:
                         pass

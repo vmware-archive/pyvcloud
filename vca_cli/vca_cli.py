@@ -41,7 +41,9 @@ from pyvcloud.helper import CommonUtils
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from cryptography.fernet import Fernet
 
-#todo: consider option to save password
+#todo: revisit and review how session token can be reused
+#todo: http://click.pocoo.org/3/utils/#showing-progress-bars
+#todo: http://click.pocoo.org/3/utils/#screen-clearing
 #todo: print vApp in json format
 #todo: include network config during the instantiation to instantiate vm and connect in one shot
 #todo: list tasks
@@ -114,10 +116,13 @@ def cli(ctx, profile, version, debug, json_output, xml_output, insecure):
         requests_log = logging.getLogger("requests.packages.urllib3")
         requests_log.setLevel(logging.DEBUG)
         requests_log.propagate = True
+        ctx.obj['debug'] = True
+    else:
+        ctx.obj['debug'] = False
     if version:
         version = pkg_resources.require("vca-cli")[0].version
         version_pyvcloud = pkg_resources.require("pyvcloud")[0].version
-        print_message('vca-cli version %s (pyvcloud: %s)' % (version, version_pyvcloud), ctx.obj['json_output'])
+        print_message('vca-cli version %s (pyvcloud: %s)' % (version, version_pyvcloud), ctx)
     else:
         if ctx.invoked_subcommand is None:
                help_text = ctx.get_help()
@@ -150,7 +155,7 @@ def _login_user_to_service(ctx, user, host, password, service_type, service_vers
     # print org
     result = vca.login(password=password, org=org)
     if result:
-        if instance:
+        if 'ondemand' == service_type and instance:
             result = vca.login_to_instance(instance, password, None, None)
         if result:        
             config = ConfigParser.RawConfigParser()
@@ -163,14 +168,17 @@ def _login_user_to_service(ctx, user, host, password, service_type, service_vers
             config.set(section, 'token', vca.token)
             config.set(section, 'service_type', service_type)
             config.set(section, 'service_version', service_version)
-            if instance:
+            if 'ondemand' == service_type and instance:
                 config.set(section, 'instance', instance)
                 config.set(section, 'org_url', vca.vcloud_session.org_url)
             if vca.vcloud_session:
                 config.set(section, 'session_token', vca.vcloud_session.token)                
             if org:
-                config.set(section, 'org', org)                
-                config.set(section, 'org_url', vca.vcloud_session.org_url)
+                config.set(section, 'org', org)
+                if vca and vca.vcloud_session and vca.vcloud_session.org_url:
+                    config.set(section, 'org_url', vca.vcloud_session.org_url)
+                else:
+                    config.set(section, 'org_url', None)
             else:
                 config.set(section, 'org', None)                
                 if not instance: config.set(section, 'org_url', None)
@@ -178,6 +186,8 @@ def _login_user_to_service(ctx, user, host, password, service_type, service_vers
                 config.write(configfile)
                 
             _load_context(ctx, ctx.obj['profile'], ctx.obj['json_output'], ctx.obj['xml_output'], not ctx.obj['verify'])
+    if not result:
+        ctx.obj['response'] = vca.response
     return result
     
 def _getVCA_with_relogin(ctx):
@@ -185,13 +195,13 @@ def _getVCA_with_relogin(ctx):
     if vca == None and ctx.obj['password']:
         result = _login_user_to_service(ctx, ctx.obj['user'], ctx.obj['host'], ctx.obj['password'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['instance'], ctx.obj['org'])
         if result:
-            print_message('Token expired, re-login successful for profile \'%s\'' % ctx.obj['profile'], ctx.obj['json_output'])
+            print_message('Token expired, re-login successful for profile \'%s\'' % ctx.obj['profile'], ctx)
             vca = _getVCA(ctx)
         else:
-            print_error('Token expired, re-login failed for profile \'%s\'' % ctx.obj['profile'], ctx.obj['json_output'])
+            ctx.obj['response']=vca.response; print_error('Token expired, re-login failed for profile \'%s\'' % ctx.obj['profile'], ctx)
             vca = None
     elif vca == None:
-        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        ctx.obj['response']=vca.response; print_error('User not authenticated or token expired', ctx)
     return vca
     
 #todo: add --list-vdcs / orgs    
@@ -211,14 +221,14 @@ def login(ctx, user, host, password, service_type, service_version, instance, or
         host = 'https://' + host
     result = _login_user_to_service(ctx, user, host, password, service_type, service_version, instance, org)
     if result:
-        print_message('Login successful for profile \'%s\'' % ctx.obj['profile'], ctx.obj['json_output'])
+        print_message('Login successful for profile \'%s\'' % ctx.obj['profile'], ctx)
         if save_password:
             _save_property(ctx.obj['profile'], 'password', password)
-            print_message('Password will be saved in profile \'%s\'' % ctx.obj['profile'], ctx.obj['json_output'])
+            print_message('Password will be saved in profile \'%s\'' % ctx.obj['profile'], ctx)
         else:
             _save_property(ctx.obj['profile'], 'password', None)
     else:
-        print_error('Login failed', ctx.obj['json_output'])
+        print_error('Login failed', ctx)
     return result
     
 @cli.command()
@@ -234,7 +244,7 @@ def logout(ctx):
     _save_property(ctx.obj['profile'], 'session_uri', 'None')
     _save_property(ctx.obj['profile'], 'password', 'None')
     # _save_property(ctx.obj['profile'], 'vdc', 'None')
-    print_message('Logout successful for profile \'%s\'' % ctx.obj['profile'], ctx.obj['json_output'])        
+    print_message('Logout successful for profile \'%s\'' % ctx.obj['profile'], ctx)        
     
 @cli.command()
 @click.pass_context
@@ -253,7 +263,7 @@ def status(ctx):
             table.append([property, ctx.obj[property]])
     table.append(["session", 'active' if (vca and vca.vcloud_session) else 'inactive'])        
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)      
-    print_table("Status:", 'status', headers, sorted_table, ctx.obj['json_output'])             
+    print_table("Status:", 'status', headers, sorted_table, ctx)             
         
 @cli.command()
 @click.pass_context
@@ -268,7 +278,7 @@ def plan(ctx, operation, plan):
         plans = vca.get_plans()
         items = plans if plans else []
         table = [[item['id'], item['region'], item['name']] for item in items]
-        print_table("Available plans for user '%s' in '%s' profile:" % (ctx.obj['user'], ctx.obj['profile']), 'plans', headers, table, ctx.obj['json_output'])
+        print_table("Available plans for user '%s' in '%s' profile:" % (ctx.obj['user'], ctx.obj['profile']), 'plans', headers, table, ctx)
     elif 'info' == operation:
         print 'info about plan'
                 
@@ -281,13 +291,13 @@ def instance(ctx, operation, instance):
     vca = _getVCA_with_relogin(ctx)
     if not vca: return
     if 'list' == operation:
-        headers = ["Instance Id", "Region", "Plan Id"]
+        headers = ["Instance Id", "Region", "Description", "Plan Id"]
         instances = vca.instances
         items = instances if instances else []
-        table = [[item['id'], item['region'], item['planId']] for item in items]
-        print_table("Available instances for user '%s' in '%s' profile:" % (ctx.obj['user'], ctx.obj['profile']), 'instances', headers, table, ctx.obj['json_output'])
+        table = [[item['id'], item['region'], item['description'], item['planId']] for item in items]
+        print_table("Available instances for user '%s' in '%s' profile:" % (ctx.obj['user'], ctx.obj['profile']), 'instances', headers, table, ctx)
     elif 'info' == operation:
-        print_message("not implemented", ctx.obj['json_output'])
+        print_message("not implemented", ctx)
 
 @cli.command()
 @click.pass_context
@@ -321,17 +331,17 @@ def org(ctx, operation, service, org):
             if vca.vcloud_session and vca.vcloud_session.organization:
                 table = []
                 table.append([vca.vcloud_session.organization.name, '*'])
-        print_table("Available Organizations for '%s' profile:" % ctx.obj['profile'], 'orgs', headers, table, ctx.obj['json_output'])
+        print_table("Available Organizations for '%s' profile:" % ctx.obj['profile'], 'orgs', headers, table, ctx)
     elif 'use' == operation:
         #this might be redundant with _getVCA()  
         result = False
         if 'ondemand' == ctx.obj['service_type']:
-            print_message("Can't change organization, use the login command to select another organization, indicating the instance id", ctx.obj['json_output'])
+            print_message("Can't change organization, use the login command to select another organization, indicating the instance id", ctx)
             return
         elif 'subscription' == ctx.obj['service_type']:
             result = vca.login_to_org(service, org)
         elif 'vcd' == ctx.obj['service_type']:
-            # print_message("Use the login command to select another organization, indicating the organization id", ctx.obj['json_output'])
+            # print_message("Use the login command to select another organization, indicating the organization id", ctx)
             return
         if result:
             if vca.org:            
@@ -340,15 +350,15 @@ def org(ctx, operation, service, org):
                 if vca.vcloud_session: 
                     _save_property(ctx.obj['profile'], 'org_url', vca.vcloud_session.org_url)
                     _save_property(ctx.obj['profile'], 'session_token', vca.vcloud_session.token)
-                print_message("Using organization '%s' in profile '%s'" % (org, ctx.obj['profile']), ctx.obj['json_output'])
+                print_message("Using organization '%s' in profile '%s'" % (org, ctx.obj['profile']), ctx)
                 print_org_details(ctx, vca)
                 return
-        print_error("Unable to select organization '%s' in profile '%s'" % (org, ctx.obj['profile']), ctx.obj['json_output'])
+        ctx.obj['response']=vca.response; print_error("Unable to select organization '%s' in profile '%s'" % (org, ctx.obj['profile']), ctx)
     elif 'info' == operation:
         if vca.vcloud_session:
             print_org_details(ctx, vca)
         else:
-            print_message('no org selected', ctx.obj['json_output'])
+            print_message('no org selected', ctx)
 
 # assumes the org (and service) has been previously selected
 @cli.command()
@@ -360,7 +370,7 @@ def vdc(ctx, operation, vdc):
     if '' == vdc: vdc = ctx.obj['vdc']             
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
-        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        print_error('User not authenticated or token expired', ctx)
         return
     if 'list' == operation:
         headers = ['Virtual Data Center', "Selected"]
@@ -375,23 +385,23 @@ def vdc(ctx, operation, vdc):
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)                
             vdcs = filter(lambda info: info.name == vdc and info.type_ == 'application/vnd.vmware.vcloud.vdc+xml', links)
             if len(vdcs) > 0: _save_property(ctx.obj['profile'], 'vdc', vdc)
-        print_table("Available Virtual Data Centers in org '%s' for '%s' profile:" % (ctx.obj['org'], ctx.obj['profile']), 'vdcs', headers, table, ctx.obj['json_output'])
+        print_table("Available Virtual Data Centers in org '%s' for '%s' profile:" % (ctx.obj['org'], ctx.obj['profile']), 'vdcs', headers, table, ctx)
     elif 'use' == operation:
         the_vdc = vca.get_vdc(vdc)
         if the_vdc:
             _save_property(ctx.obj['profile'], 'vdc', vdc)        
             if vca.vcloud_session: _save_property(ctx.obj['profile'], 'org_url', vca.vcloud_session.org_url)            
-            print_message("Using vdc '%s' in profile '%s'" % (vdc, ctx.obj['profile']), ctx.obj['json_output'])
+            print_message("Using vdc '%s' in profile '%s'" % (vdc, ctx.obj['profile']), ctx)
             print_vdc_details(ctx, the_vdc, vca.get_gateways(vdc))
             return
-        print_error("Unable to select vdc '%s' in profile '%s'" % (vdc, ctx.obj['profile']), ctx.obj['json_output'])
+        ctx.obj['response']=vca.response; print_error("Unable to select vdc '%s' in profile '%s'" % (vdc, ctx.obj['profile']), ctx)
     elif 'info' == operation:    
         the_vdc = vca.get_vdc(vdc)
         if the_vdc:
             print_vdc_details(ctx, the_vdc, vca.get_gateways(vdc))
             _save_property(ctx.obj['profile'], 'vdc', vdc)
             return
-        print_error("Unable to select vdc '%s' in profile '%s'" % (vdc, ctx.obj['profile']), ctx.obj['json_output'])
+        ctx.obj['response']=vca.response; print_error("Unable to select vdc '%s' in profile '%s'" % (vdc, ctx.obj['profile']), ctx)
 
 # assumes the org (and service) and vdc been previously selected   
 @cli.command()
@@ -411,7 +421,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
     if vdc == '': vdc = ctx.obj['vdc'] 
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
-        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        print_error('User not authenticated or token expired', ctx)
         return
     if 'list' == operation:
         headers = ['vApp', "VMs", "Status", "Deployed", "Description"]
@@ -429,62 +439,62 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
                         # virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]
                     table1.append([entity.name, vms, status[the_vapp.me.get_status()](), 'yes' if the_vapp.me.deployed else 'no', the_vapp.me.Description])                     
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)                
-        print_table("Available vApps in '%s' for '%s' profile:" % (vdc, ctx.obj['profile']), 'vapps', headers, table, ctx.obj['json_output'])
+        print_table("Available vApps in '%s' for '%s' profile:" % (vdc, ctx.obj['profile']), 'vapps', headers, table, ctx)
     elif 'create' == operation:
-        print_message("creating vApp '%s' in VDC '%s' from template '%s' in catalog '%s'" % (vapp, vdc, template, catalog), ctx.obj['json_output'])
+        print_message("creating vApp '%s' in VDC '%s' from template '%s' in catalog '%s'" % (vapp, vdc, template, catalog), ctx)
         task = vca.create_vapp(vdc, vapp, template, catalog, vm_name=vm_name)
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: print_error("can't create the vApp", ctx.obj['json_output'])
+        else: ctx.obj['response']=vca.response; print_error("can't create the vApp", ctx)
         if '' != network:
             the_vdc = vca.get_vdc(vdc)        
             the_vapp = vca.get_vapp(the_vdc, vapp)
-            print_message("disconnecting vApp from networks pre-defined in the template", ctx.obj['json_output'])
+            print_message("disconnecting vApp from networks pre-defined in the template", ctx)
             task = the_vapp.disconnect_from_networks()
             if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-            else: print_error("can't disconnect vApp from networks", ctx.obj['json_output'])
+            else: ctx.obj['response']=the_vapp.response; print_error("can't disconnect vApp from networks", ctx)
             nets = filter(lambda n: n.name == network, vca.get_networks(vdc))
             if len(nets) == 1:
-                print_message("connecting vApp to network '%s' with mode '%s'" % (network, mode), ctx.obj['json_output'])
+                print_message("connecting vApp to network '%s' with mode '%s'" % (network, mode), ctx)
                 task = the_vapp.connect_to_network(nets[0].name, nets[0].href)
                 if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                else: print_error("can't connect the vApp to the network", ctx.obj['json_output'])
-                print_message("connecting VMs to network '%s' with mode '%s'" % (network, mode), ctx.obj['json_output'])                
-                task = the_vapp.connect_vms(nets[0].name, mode)
+                else: ctx.obj['response']=the_vapp.response; print_error("can't connect the vApp to the network", ctx)
+                print_message("connecting VMs to network '%s' with mode '%s'" % (network, mode), ctx)                
+                task = the_vapp.connect_vms(nets[0].name, connection_index=0, ip_allocation_mode=mode)
                 if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                else: print_error("can't connect the vApp to the network", ctx.obj['json_output'])
+                else: ctx.obj['response']=the_vapp.response; print_error("can't connect the vApp to the network", ctx)
     elif 'delete' == operation:
         print "deleting vApp '%s' from VDC '%s'" % (vapp, vdc)
         task = vca.delete_vapp(vdc, vapp)
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: print_error("can't delete vApp", ctx.obj['json_output'])
+        else: ctx.obj['response']=vca.response; print_error("can't delete vApp", ctx)
     elif 'deploy' == operation:
         print "deploying vApp '%s' to VDC '%s'" % (vapp, vdc)
         the_vdc = vca.get_vdc(vdc)        
         the_vapp = vca.get_vapp(the_vdc, vapp)
         task = the_vapp.deploy()
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: print_error("can't deploy vApp", ctx.obj['json_output'])        
+        else: ctx.obj['response']=the_vapp.response; print_error("can't deploy vApp", ctx)        
     elif 'undeploy' == operation:
-        print_message("undeploying vApp '%s' from VDC '%s'" % (vapp, vdc), ctx.obj['json_output'])
+        print_message("undeploying vApp '%s' from VDC '%s'" % (vapp, vdc), ctx)
         the_vdc = vca.get_vdc(vdc)        
         the_vapp = vca.get_vapp(the_vdc, vapp)
         task = the_vapp.undeploy()
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: print_error("can't undeploy vApp", ctx.obj['json_output'])        
+        else: ctx.obj['response']=the_vapp.response; print_error("can't undeploy vApp", ctx)        
     elif 'customize' == operation:
         print "customizing VM '%s' in vApp '%s' in VDC '%s'" % (vm_name, vapp, vdc)
         the_vdc = vca.get_vdc(vdc)        
         the_vapp = vca.get_vapp(the_vdc, vapp)
         if the_vdc and the_vapp and cust_file:
-            print_message("uploading customization script", ctx.obj['json_output'])
+            print_message("uploading customization script", ctx)
             task = the_vapp.customize_guest_os(vm_name, cust_file.read())
             if task: 
                 display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                print_message("deploying and starting the vApp", ctx.obj['json_output'])
+                print_message("deploying and starting the vApp", ctx)
                 task = the_vapp.force_customization(vm_name)
                 if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                else: print_error("can't customize vApp", ctx.obj['json_output'])
-            else: print_error("can't customize vApp", ctx.obj['json_output'])
+                else: ctx.obj['response']=the_app.response; print_error("can't customize vApp", ctx)
+            else: ctx.obj['response']=the_app.response; print_error("can't customize vApp", ctx)
     elif 'info' == operation or 'power.off' == operation or 'power.on' == operation or 'delete' == operation:
         the_vdc = vca.get_vdc(vdc)
         if the_vdc:
@@ -498,10 +508,10 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
                     elif 'power.off' == operation: task = the_vapp.poweroff()
                     elif 'delete' == operation: task = the_vapp.delete()                    
                     if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                    else: print_error("can't operate with the vApp", ctx.obj['json_output'])                                
+                    else: ctx.obj['response']=the_app.response; print_error("can't operate with the vApp", ctx)                                
                 _save_property(ctx.obj['profile'], 'vdc', vdc)
             else:
-                print_error("vApp '%s' not found" % vapp, ctx.obj['json_output'])
+                ctx.obj['response']=vca.response; print_error("vApp '%s' not found" % vapp, ctx)
     elif 'insert' == operation or 'eject' == operation:
         the_vdc = vca.get_vdc(vdc)
         if the_vdc:
@@ -510,9 +520,9 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
                 the_media = vca.get_media(catalog, media)
                 task = the_vapp.vm_media(vm_name, the_media, operation)
                 if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                else: print_error("can't insert or eject media", ctx.obj['json_output'])
+                else: ctx.obj['response']=the_app.response; print_error("can't insert or eject media", ctx)
     else:
-        print_message('not implemented', ctx.obj['json_output'])
+        print_message('not implemented', ctx)
         
 def statusn1():
     return "Could not be created"
@@ -577,7 +587,7 @@ def vm(ctx, operation, vdc, vapp):
     if vdc == '': vdc = ctx.obj['vdc'] 
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
-        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        ctx.obj['response']=vca.response; print_error('User not authenticated or token expired', ctx)
         return
     if 'list' == operation:
         headers = ['VM', "vApp", "Status", "IPs", "Networks", "vCPUs", "Memory (GB)", "CD/DVD", "OS", "Owner"]
@@ -620,9 +630,9 @@ def vm(ctx, operation, vdc, vapp):
                                     cds.append(item.HostResource[0].valueOf_)
                         table1.append([vm.name, entity.name, vm_status, ips, networks, cpu_capacity, str(memory_capacity), cds, os, owner])
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)                
-        print_table("Available VMs in '%s' for '%s' profile:" % (vdc, ctx.obj['profile']), 'vms', headers, table, ctx.obj['json_output'])   
+        print_table("Available VMs in '%s' for '%s' profile:" % (vdc, ctx.obj['profile']), 'vms', headers, table, ctx)   
     else:
-        print_message('not implemented', ctx.obj['json_output'])       
+        print_message('not implemented', ctx)       
         
 @cli.command()
 @click.pass_context
@@ -636,23 +646,21 @@ def catalog(ctx, operation, vdc, catalog_name, description):
     # vca = _getVCA(ctx)
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
-        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        ctx.obj['response']=vca.response; print_error('User not authenticated or token expired', ctx)
         return
     if 'create' == operation:
         task = vca.create_catalog(catalog_name, description)
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: print_error("can't create the catalog", ctx.obj['json_output'])
+        else: ctx.obj['response']=vca.response; print_error("can't create the catalog", ctx)
     elif 'delete' == operation:
         result = vca.delete_catalog(catalog_name)
-        if result:
-            print_message('catalog deleted', ctx.obj['json_output'])
-        else:
-            print_error("can't delete the catalog", ctx.obj['json_output'])
+        if result: print_message('catalog deleted', ctx)
+        else: ctx.obj['response']=vca.response; print_error("can't delete the catalog", ctx)
     elif 'list':
         catalogs = vca.get_catalogs()
         print_catalogs(ctx, catalogs)
     else:
-        print_message('not implemented', ctx.obj['json_output'])
+        print_message('not implemented', ctx)
 
 
 #todo: default operation here is info instead of list, fixme
@@ -674,14 +682,14 @@ def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, tr
     vca = _getVCA_vcloud_session(ctx)
     vdc = ctx.obj['vdc'] 
     if not vca:
-        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        print_error('User not authenticated or token expired', ctx)
         return
     if not vdc or len(vdc) == 0:
-        print_error('Unable to use the edge gateway, please select first a valid virtual data center. Type \'vca vdc\' to list available virtual data centers', ctx.obj['json_output'])
+        print_error('Unable to use the edge gateway, please select first a valid virtual data center. Type \'vca vdc\' to list available virtual data centers', ctx)
         return        
     gateways = vca.get_gateways(vdc)
     if len(gateways) != 1:
-        print_error('Gateway not found', ctx.obj['json_output'])
+        print_error('Gateway not found', ctx)
         return
     if 'info' == operation:
         rules = gateways[0].get_nat_rules()
@@ -697,7 +705,7 @@ def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, tr
             gateways[0].add_nat_rule(rule_type, original_ip, original_port, translated_ip, translated_port, protocol)
         task = gateways[0].save_services_configuration()
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: print_error("can't operate with the edge gateway", ctx.obj['json_output'])
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
     elif 'delete':
         found_rule = False
         if all:
@@ -708,10 +716,10 @@ def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, tr
         if found_rule:
             task = gateways[0].save_services_configuration()
             if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-            else: print_error("can't operate with the edge gateway", ctx.obj['json_output'])        
-        else: print_error("rule doesn't exist in edge gateway", ctx.obj['json_output'])        
+            else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)        
+        else: print_error("rule doesn't exist in edge gateway", ctx)        
     else:
-        print_message('not implemented', ctx.obj['json_output'])
+        print_message('not implemented', ctx)
 
 #todo: default operation here is info instead of list, fixme
 #todo: consider a specific edge, a vdc can have more than one
@@ -724,24 +732,24 @@ def firewall(ctx, operation):
     vca = _getVCA_vcloud_session(ctx)
     vdc = ctx.obj['vdc'] 
     if not vca:
-        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        print_error('User not authenticated or token expired', ctx)
         return
     gateways = vca.get_gateways(vdc)
     if len(gateways) != 1:
-        print_error('Gateway not found', ctx.obj['json_output'])
+        ctx.obj['response']=vca.response; print_error('Gateway not found', ctx)
         return
     if 'enable' == operation or 'disable' == operation:    
         gateways[0].enable_fw('enable'==operation)
         task = gateways[0].save_services_configuration()
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: print_error("can't operate with the edge gateway", ctx.obj['json_output'])                                
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)                                
         # gateway_name = gateways[0].get_name()
         # gateways = [vca.get_gateway(vdc, gateway_name)]
         # print_gateways(ctx, gateways)
     elif 'info' == operation:
-        print_message('not implemented', ctx.obj['json_output'])                
+        print_message('not implemented', ctx)                
     else:
-        print_message('not implemented', ctx.obj['json_output'])
+        print_message('not implemented', ctx)
 
 @cli.command()
 @click.pass_context
@@ -751,14 +759,14 @@ def network(ctx, operation):
     # vca = _getVCA(ctx)
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
-        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        print_error('User not authenticated or token expired', ctx)
         return
     if 'list' == operation:
         print_networks(ctx, vca.get_networks(ctx.obj['vdc']))
     elif 'use' == operation:
-        print_message('not implemented', ctx.obj['json_output'])                
+        print_message('not implemented', ctx)                
     else:
-        print_message('not implemented', ctx.obj['json_output'])
+        print_message('not implemented', ctx)
 
 # @cli.command()
 @click.pass_context
@@ -769,16 +777,16 @@ def template(ctx, operation):
     # vca = _getVCA(ctx)
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
-        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        print_error('User not authenticated or token expired', ctx)
         return
     if 'list' == operation:
-        print_message('not implemented', ctx.obj['json_output'])                                
+        print_message('not implemented', ctx)                                
     elif 'use' == operation:
-        print_message('not implemented', ctx.obj['json_output'])                        
+        print_message('not implemented', ctx)                        
     elif 'info' == operation:
-        print_message('not implemented', ctx.obj['json_output'])                
+        print_message('not implemented', ctx)                
     else:
-        print_message('not implemented', ctx.obj['json_output'])
+        print_message('not implemented', ctx)
     # if vdc != '': _save_property(ctx.obj['profile'], 'vdc', vdc)
     
 @cli.command()
@@ -797,7 +805,7 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
     if gateway == '': gateway = ctx.obj['gateway']
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
-        print_error('User not authenticated or token expired', ctx.obj['json_output'])
+        print_error('User not authenticated or token expired', ctx)
         return
     if 'list' == operation:
         gateways = vca.get_gateways(vdc)
@@ -805,18 +813,48 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
     elif 'use' == operation or 'info' == operation or 'set-syslog' == operation:
         the_gateway = vca.get_gateway(vdc, gateway)
         if the_gateway == None:
-            print_error('gateway not found', ctx.obj['json_output'])
+            ctx.obj['response']=vca.response; print_error('gateway not found', ctx)
             return
         if 'set-syslog' == operation:
             task = the_gateway.set_syslog_conf(ip)
             if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-            else: print_error("can't operate with the edge gateway", ctx.obj['json_output'])
+            else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
         elif the_gateway:
             print_gateway_details(ctx, the_gateway)
     if service != '': _save_property(ctx.obj['profile'], 'service', service)
     if org != '': _save_property(ctx.obj['profile'], 'org', org)
     if vdc != '': _save_property(ctx.obj['profile'], 'vdc', vdc)   
-    if gateway != '': _save_property(ctx.obj['profile'], 'gateway', gateway)          
+    if gateway != '': _save_property(ctx.obj['profile'], 'gateway', gateway)     
+    
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[list | info]', type=click.Choice(['list', 'info']))
+@click.option('-b', '--blueprint', default='', metavar='<blueprint_id>', help='Blueprint Id')
+def bp(ctx, operation, blueprint):
+    """Operations with Blueprints"""
+    vca = _getVCA_with_relogin(ctx)
+    if not vca: return 
+    if 'list' == operation:
+        pass
+    elif 'info' == operation:
+        pass
+    print 'not implemented'
+    
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[list | info]', type=click.Choice(['list', 'info']))
+@click.option('-d', '--deployment', default='', metavar='<deployment_id>', help='Deployment Id')
+def dep(ctx, operation, deployment):
+    """Operations with Deployments"""
+    vca = _getVCA_with_relogin(ctx)
+    if not vca: return 
+    if 'list' == operation:
+        pass
+    elif 'info' == operation:
+        pass
+    print 'not implemented'
+
+         
     
 @cli.command()
 @click.pass_context
@@ -922,7 +960,7 @@ def example(ctx):
     id+=1; table.append([id, 'show command help', 
         'vca <command> --help'])
 
-    print_table('vca-cli usage examples:', 'examples', headers, table, ctx.obj['json_output'])   
+    print_table('vca-cli usage examples:', 'examples', headers, table, ctx)   
         
 def _getVCA(ctx):
     # for k, v in ctx.obj.iteritems(): print k, "==>", v
@@ -933,21 +971,26 @@ def _getVCA(ctx):
     result = vca.login(token=ctx.obj['token'], org=ctx.obj['org'], org_url=ctx.obj['org_url'])
     if result:
         if 'ondemand' == ctx.obj['service_type']:
-            if ctx.obj['instance'] and ctx.obj['session_token']:
+            if ctx.obj['instance'] and ctx.obj['session_token'] and ctx.obj['org_url']:
                 result = vca.login_to_instance(ctx.obj['instance'], None, ctx.obj['session_token'], ctx.obj['org_url'])
                 if result:
                     ctx.obj['session_uri'] = vca.vcloud_session.url
                     _save_property(ctx.obj['profile'], 'session_uri', ctx.obj['session_uri'])      
-                    ctx.obj['verify'] = vca.verify
-                    _save_property(ctx.obj['profile'], 'verify', ctx.obj['verify'])                          
+                    # ctx.obj['verify'] = vca.verify
+                    # _save_property(ctx.obj['profile'], 'verify', ctx.obj['verify'])
         elif 'subscription' == ctx.obj['service_type']:
-            if ctx.obj['service'] and ctx.obj['session_token']:
+            if ctx.obj['service'] and ctx.obj['org']:
                 result = vca.login_to_org(ctx.obj['service'], ctx.obj['org'])
                 if result:
                     ctx.obj['session_uri'] = vca.vcloud_session.url
                     _save_property(ctx.obj['profile'], 'session_uri', ctx.obj['session_uri'])      
-                    ctx.obj['verify'] = vca.verify
-                    _save_property(ctx.obj['profile'], 'verify', ctx.obj['verify'])                          
+                    # ctx.obj['verify'] = vca.verify
+                    # _save_property(ctx.obj['profile'], 'verify', ctx.obj['verify'])
+                    ctx.obj['session_token'] = vca.vcloud_session.token
+                    _save_property(ctx.obj['profile'], 'session_token', ctx.obj['session_token'])
+                    ctx.obj['org_url'] = vca.vcloud_session.org_url
+                    _save_property(ctx.obj['profile'], 'org_url', ctx.obj['org_url'])                          
+                    # print('save new session token')
     if result:
         return vca
     else:
@@ -962,36 +1005,47 @@ def _getVCA_vcloud_session(ctx):
     vca = VCA(ctx.obj['host'], ctx.obj['user'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['verify'])                
     if 'ondemand' == ctx.obj['service_type'] or 'subscription' == ctx.obj['service_type']:
         vcloud_session = VCS(ctx.obj['session_uri'], ctx.obj['user'], ctx.obj['org'], ctx.obj['instance'], ctx.obj['org_url'], ctx.obj['org_url'], ctx.obj['service_version'], ctx.obj['verify'])
+        if ctx is not None and ctx.obj is not None and ctx.obj['debug']: print 'trying to reuse existing vcloud session'
         result = vcloud_session.login(token=ctx.obj['session_token'])
         if result:
             vca.vcloud_session = vcloud_session
-            # print '.'
+            if ctx is not None and ctx.obj is not None and ctx.obj['debug']: print 'reusing existing session'
             return vca
         else:
+            if ctx is not None and ctx.obj is not None and ctx.obj['debug']: print 'getting a new session'
             return _getVCA_with_relogin(ctx)
     else:
         return _getVCA_with_relogin(ctx)
         
-def print_table(msg, obj, headers, table, json_output):    
-    if json_output:
+def print_table(msg, obj, headers, table, ctx):    
+    if ctx is not None and ctx.obj is not None and ctx.obj['json_output']:
         data = [dict(zip(headers, row)) for row in table]
         print json.dumps({"Errorcode" : "0" , "Details" : msg, obj : data}, sort_keys=True, indent=4, separators=(',', ': '))
     else:
         click.echo(click.style(msg, fg='blue'))
         print tabulate(table, headers = headers, tablefmt="orgtbl")
         
-def print_message(msg, json_output):
-    if json_output:
+def print_message(msg, ctx):
+    if ctx is not None and ctx.obj is not None and ctx.obj['json_output']:
         json_msg = {"Returncode" : "1", "Details" : msg}        
         print json.dumps(json_msg, sort_keys=True, indent=4, separators=(',', ': '))
     else:
         click.secho(msg, fg='blue')
     
-def print_error(msg, json_output):    
-    if json_output:
+# def print_error(msg, ctx=None, response=None):
+def print_error(msg, ctx=None):
+    if ctx is not None and ctx.obj is not None and ctx.obj['json_output']:
         json_msg = {"Errorcode" : "1", "Details" : msg}
         print json.dumps(json_msg, sort_keys=True, indent=4, separators=(',', ': '))
     else:
+        if ctx is not None and ctx.obj is not None and 'response' in ctx.obj:
+            response = ctx.obj['response']
+            if response is not None and response.headers is not None and 'x-vmware-vcloud-request-id' in response.headers:
+                from xml.etree import ElementTree as ET
+                doc = ET.fromstring(response.content)
+                if doc is not None and doc.attrib is not None and doc.attrib.get('message'):
+                    click.secho(doc.attrib.get('message'), fg='red')
+                    return
         click.secho(msg, fg='red')
         
 def print_json(obj, headers, table):
@@ -1068,7 +1122,7 @@ def display_progress(task, json, headers):
     while status != "success":
         if status == "error":
             error = task.get_Error()
-            print_error(CommonUtils.convertPythonObjToStr(error, name = "Error"), json)
+            print_error(CommonUtils.convertPythonObjToStr(error, name = "Error"), ctx=None)
             return
         else:
             # some task doesn't not report progress
@@ -1109,7 +1163,7 @@ def print_org_details(ctx, vca):
     #todo: review filter/lambda below
     table = [[details.get_type().split('.')[-1].split('+')[0], details.get_name()] for details in filter(lambda info: info.name, links)]
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)        
-    print_table("Details for org '%s':" % org_name, 'orgs', headers, sorted_table, ctx.obj['json_output'])     
+    print_table("Details for org '%s':" % org_name, 'orgs', headers, sorted_table, ctx)     
     
 def print_vdc_details(ctx, vdc, gateways):     
     if ctx.obj['xml_output']:
@@ -1125,7 +1179,7 @@ def print_vdc_details(ctx, vdc, gateways):
     for gateway in gateways:
         table.append(['edge gateway', gateway.get_name()])
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)        
-    print_table("Virtual Data Center '%s' for '%s' profile; details:" % (vdc.name, ctx.obj['profile']), 'vdc', headers, sorted_table, ctx.obj['json_output'])
+    print_table("Virtual Data Center '%s' for '%s' profile; details:" % (vdc.name, ctx.obj['profile']), 'vdc', headers, sorted_table, ctx)
                 
     headers = ['Resource', 'Allocated', 'Limit', 'Reserved', 'Used', 'Overhead']
     table = []
@@ -1136,7 +1190,7 @@ def print_vdc_details(ctx, vdc, gateways):
     table.append(['CPU (%s)' % cpu.get_Units(), cpu.get_Allocated(), cpu.get_Limit(), cpu.get_Reserved(), cpu.get_Used(), cpu.get_Overhead()])
     table.append(['Memory (%s)' % memory.get_Units(), memory.get_Allocated(), memory.get_Limit(), memory.get_Reserved(), memory.get_Used(), memory.get_Overhead()])
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)        
-    print_table("Compute capacity:", 'compute', headers, sorted_table, ctx.obj['json_output'])
+    print_table("Compute capacity:", 'compute', headers, sorted_table, ctx)
     
     print_gateways(ctx, gateways)
         
@@ -1159,13 +1213,13 @@ def print_gateways(ctx, gateways):
         gateway.get_syslog_conf()
         ])
     # sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
-    print_table("Edge Gateways:", 'gateways', headers, table, ctx.obj['json_output'])                
+    print_table("Edge Gateways:", 'gateways', headers, table, ctx)                
         
 def print_gateway_details(ctx, gateway):
     if ctx.obj['xml_output']:
         gateway.me.export(sys.stdout, 0)
         return
-    # print_message("not implemented", ctx.obj['json_output'])
+    # print_message("not implemented", ctx)
     # return
     headers = ['Property', 'Value']
     table = []
@@ -1183,7 +1237,7 @@ def print_gateway_details(ctx, gateway):
     # for gateway in gateways:
     #     table.append(['edge gateway', gateway.name])
     # sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
-    print_table("Gateway '%s' details:" % gateway.me.name, 'gateway', headers, table, ctx.obj['json_output'])
+    print_table("Gateway '%s' details:" % gateway.me.name, 'gateway', headers, table, ctx)
     
 def print_networks(ctx, item_list):
     if ctx.obj['xml_output']:
@@ -1194,7 +1248,7 @@ def print_networks(ctx, item_list):
     for item in item_list:
         table.append([item.get_name(), '', '', ''])
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
-    print_table("Networks available in Virtual Data Center '%s':" % (ctx.obj['vdc']), 'networks', headers, sorted_table, ctx.obj['json_output'])        
+    print_table("Networks available in Virtual Data Center '%s':" % (ctx.obj['vdc']), 'networks', headers, sorted_table, ctx)        
     
 def print_vapp_details(ctx, vapp):            
     if ctx.obj['xml_output']:
@@ -1202,7 +1256,7 @@ def print_vapp_details(ctx, vapp):
         return
     headers = []
     sorted_table = []
-    print_table("Details for vApp '%s':" % vapp.name, 'vapp', headers, sorted_table, ctx.obj['json_output'])  
+    print_table("Details for vApp '%s':" % vapp.name, 'vapp', headers, sorted_table, ctx)  
     
 def print_nat_rules(ctx, natRules):
     result = []
@@ -1224,7 +1278,7 @@ def print_nat_rules(ctx, natRules):
         headers = ["Rule Id", "Enabled", "Type", "Original IP", "Original Port", "Translated IP", "Translated Port", "Protocol", "Applied On"]
         print tabulate(result, headers = headers, tablefmt="orgtbl")
     else:
-        print_message("No NAT rules found in this gateway", ctx.obj['json_output']) 
+        print_message("No NAT rules found in this gateway", ctx) 
         
 def print_catalogs(ctx, catalogs):
     result = []
@@ -1237,9 +1291,9 @@ def print_catalogs(ctx, catalogs):
     if result:
         headers = ["Catalog", "Item"]
         sorted_table = sorted(result, key=operator.itemgetter(0), reverse=False)
-        print_table("Catalogs and items:", 'catalogs', headers, sorted_table, ctx.obj['json_output'])  
+        print_table("Catalogs and items:", 'catalogs', headers, sorted_table, ctx)  
     else:
-        print_message("No catalogs found in this organization", ctx.obj['json_output'])         
+        print_message("No catalogs found in this organization", ctx)         
     
 if __name__ == '__main__':
     cli(obj={})

@@ -20,3 +20,6 @@ class Score(object):
         
     def get_blueprints():
         pass
+    
+    def add_blueprint():
+        pass

@@ -32,7 +32,6 @@ from tabulate import tabulate
 from time import sleep
 from StringIO import StringIO
 from datetime import datetime
-# import pytz
 
 from pyvcloud.vcloudair import VCA
 from pyvcloud.vcloudsession import VCS
@@ -41,7 +40,14 @@ from pyvcloud.helper import CommonUtils
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from cryptography.fernet import Fernet
 
+#todo: command to configure/customize computer-name, cpu, memory, disk of a vm
+#todo: configure DHCP on gateway for network with range
+#todo: configure POOL on network with range
+#todo: display DHCP configuration on gateway details
+#todo: delete template
+#todo: allocate external IP on demand
 #todo: revisit and review how session token can be reused
+#todo: reuse vcloud session token between calls
 #todo: http://click.pocoo.org/3/utils/#showing-progress-bars
 #todo: http://click.pocoo.org/3/utils/#screen-clearing
 #todo: print vApp in json format
@@ -50,9 +56,8 @@ from cryptography.fernet import Fernet
 #todo: catalogs, details
 #todo: replace network config instead of adding
 #todo: configurable profile file ~/.vcarc
-#todo: consider default list or info
+#todo: make sure default sub-operation is list...
 #todo: consider add the selectors --service --org, --vdc, --gateway... at the root and pass by ctx
-#todo: reuse vcloud session token between calls
 #todo: command to update session to avoid timeouts, if possible
 #todo: OnDemand create instance and create vdc, use templates
 #todo: OnDemand plan command, billing mettering and instance creation

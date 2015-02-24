@@ -17,3 +17,6 @@ class Score(object):
 
     def __init__():
         pass
+        
+    def get_blueprints():
+        pass

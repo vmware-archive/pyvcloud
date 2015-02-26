@@ -284,6 +284,8 @@ class VAPP(object):
                     customization_section.set_ComputerName(computer_name)
                 if admin_password:
                     customization_section.set_AdminPasswordEnabled(True)
+                    customization_section.set_AdminPasswordAuto(False)
+                    customization_section.set_ResetPasswordRequired(False)
                     customization_section.set_AdminPassword(admin_password)
                 output = StringIO()
                 customization_section.export(output, 

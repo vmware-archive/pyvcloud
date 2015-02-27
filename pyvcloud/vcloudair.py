@@ -444,7 +444,7 @@ class VCA(object):
     def get_gateway(self, vdc_name, gateway_name):
         gateway = None
         vdc = self.get_vdc(vdc_name)
-        if not vdc: return gateway       
+        if not vdc: return gateway
         link = filter(lambda link: link.get_rel() == "edgeGateways", vdc.get_Link())
         self.response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
         if self.response.status_code == requests.codes.ok:            

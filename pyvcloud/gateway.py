@@ -360,6 +360,47 @@ class Gateway(object):
         pools = [p for p in self.get_dhcp_pools() if p.get_Network().name != network_name]
         self._getDhcpService().set_Pool(pools)
 
+    def allocate_public_ip(self):
+        api_version = '5.11'
+        headers = dict(self.headers)
+        headers['Accept']='application/*+xml;version={0}'.format(api_version)
+        href = self.me.get_href() + '/action/manageExternalIpAddresses'
+        body = """
+        <ExternalIpAddressActionList
+         xmlns="http://www.vmware.com/vcloud/networkservice/1.0">
+        <Allocation>
+            <NumberOfExternalIpAddressesToAllocate>1</NumberOfExternalIpAddressesToAllocate>
+        </Allocation>
+        </ExternalIpAddressActionList>
+        """
+
+        self.response = requests.put(href, data=body, headers=headers,
+                                     verify=self.verify)
+        if self.response.status_code == requests.codes.ok:
+            task = taskType.parseString(self.response.content, True)
+            return task
+
+    def deallocate_public_ip(self, ip_address):
+        api_version = '5.11'
+        headers = dict(self.headers)
+        headers['Accept']='application/*+xml;version={0}'.format(api_version)
+        href = self.me.get_href() + '/action/manageExternalIpAddresses'
+        body = """
+        <ExternalIpAddressActionList
+         xmlns="http://www.vmware.com/vcloud/networkservice/1.0">
+        <Deallocation>
+            <ExternalIpAddress>{0}</ExternalIpAddress>
+        </Deallocation>
+        </ExternalIpAddressActionList>
+        """.format(ip_address)
+
+        self.response = requests.put(href, data=body, headers=headers,
+                                     verify=self.verify)
+        if self.response.status_code == requests.codes.ok:
+            task = taskType.parseString(self.response.content, True)
+            return task
+
+
 def _create_protocols_type(protocol):
     all_protocols = {"Tcp": None, "Udp": None, "Icmp": None, "Any": None}
     all_protocols[protocol] = True

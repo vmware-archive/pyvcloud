@@ -13,13 +13,150 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class Score(object):
+import requests
+import json
+import os
+import tempfile
+import shutil
+import requests
+import tarfile
+import urllib
 
-    def __init__():
-        pass
-        
-    def get_blueprints():
-        pass
+# from cloudify_rest_client.client import CloudifyClient
+# from cloudify_rest_client.blueprints import BlueprintsClient, Blueprint
+# from cloudify_rest_client.deployments import DeploymentClient, Deployment
+
+from os.path import expanduser
+
+class Score(object):
     
-    def add_blueprint():
-        pass
+    def __init__(self, url, org_url=None, token=None, version='5.7', verify=True):
+        self.url = url
+        self.org_url = org_url     
+        self.token = token   
+        self.version = version        
+        self.verify = verify
+        self.response = None        
+        self.blueprints = BlueprintsClient(self)
+        self.deployments = DeploymentsClient(self)
+        
+    def get_headers(self):
+        headers = {}
+        headers["x-vcloud-authorization"] = self.token
+        headers["x-vcloud-org-url"] = self.org_url                
+        headers["x-vcloud-version"] = self.version        
+        return headers
+        
+    def ping(self):
+        self.response = requests.get(self.url + '/blueprints', headers=self.get_headers(), verify=self.verify)
+        return self.response.status_code
+
+class BlueprintsClient(object):
+
+    def __init__(self, score):
+        self.score = score
+        
+    def list(self):
+        self.score.response = requests.get(self.score.url + '/blueprints', headers=self.score.get_headers(), verify=self.score.verify)
+        if self.score.response.status_code == requests.codes.ok:
+            return json.loads(self.score.response.content)
+            
+    def get(self, blueprint_id):
+        self.score.response = requests.get(self.score.url + '/blueprints/{0}'.format(blueprint_id), headers=self.score.get_headers(), verify=self.score.verify)
+        if self.score.response.status_code == requests.codes.ok:
+            return json.loads(self.score.response.content)
+        
+    def delete(self, blueprint_id):
+        self.score.response = requests.delete(self.score.url + '/blueprints/{0}'.format(blueprint_id), headers=self.score.get_headers(), verify=self.score.verify)
+        if self.score.response.status_code == requests.codes.ok:
+            return json.loads(self.score.response.content)
+            
+    def upload(self, blueprint_path, blueprint_id):
+        tempdir = tempfile.mkdtemp()
+        try:
+            tar_path = self._tar_blueprint(blueprint_path, tempdir)
+            application_file = os.path.basename(blueprint_path)
+
+            with open(tar_path, 'rb') as f:
+                blueprint = self._upload(
+                    f,
+                    blueprint_id=blueprint_id,
+                    application_file_name=application_file)
+                return blueprint
+        finally:
+            shutil.rmtree(tempdir)
+                
+    @staticmethod
+    def _tar_blueprint(blueprint_path, tempdir):
+        blueprint_path = expanduser(blueprint_path)
+        blueprint_name = os.path.basename(os.path.splitext(blueprint_path)[0])
+        blueprint_directory = os.path.dirname(blueprint_path)
+        if not blueprint_directory:
+            # blueprint path only contains a file name from the local directory
+            blueprint_directory = os.getcwd()
+        tar_path = '{0}/{1}.tar.gz'.format(tempdir, blueprint_name)
+        with tarfile.open(tar_path, "w:gz") as tar:
+            tar.add(blueprint_directory, arcname=os.path.basename(blueprint_directory))
+        return tar_path    
+
+    def _upload(self, tar_file_obj,
+                blueprint_id,
+                application_file_name=None):
+        query_params = {}
+        if application_file_name is not None:
+            query_params['application_file_name'] = \
+                urllib.quote(application_file_name)
+
+        def file_gen():
+            buffer_size = 8192
+            while True:
+                read_bytes = tar_file_obj.read(buffer_size)
+                yield read_bytes
+                if len(read_bytes) < buffer_size:
+                    return
+
+        uri = '/blueprints/{0}'.format(blueprint_id)
+        url = '{0}{1}'.format(self.score.url, uri)
+        headers = self.score.get_headers()
+        self.score.response = requests.put(url, headers=headers, params=query_params, data=file_gen(), verify=self.score.verify)
+
+        if self.score.response.status_code != 201:
+            raise Exception(self.score.response.status_code)
+            
+        return self.score.response.json()        
+        
+class DeploymentsClient(object):
+
+    def __init__(self, score):
+        self.score = score
+        
+    def list(self):
+        self.score.response = requests.get(self.score.url + '/deployments', headers=self.score.get_headers(), verify=self.score.verify)
+        if self.score.response.status_code == requests.codes.ok:
+            return json.loads(self.score.response.content)
+            
+    def get(self, deployment_id):
+        self.score.response = requests.get(self.score.url + '/deployments/{0}'.format(deployment_id), headers=self.score.get_headers(), verify=self.score.verify)
+        if self.score.response.status_code == requests.codes.ok:
+            return json.loads(self.score.response.content)
+            
+    def delete(self, deployment_id):
+        self.score.response = requests.delete(self.score.url + '/deployments/{0}'.format(deployment_id), headers=self.score.get_headers(), verify=self.score.verify)
+        if self.score.response.status_code == requests.codes.ok:
+            return json.loads(self.score.response.content)
+            
+    def create(self, blueprint_id, deployment_id, inputs=None):
+        assert blueprint_id
+        assert deployment_id
+        data = {
+            'blueprint_id': blueprint_id
+        }
+        if inputs:
+            data['inputs'] = inputs
+        headers = self.score.get_headers()
+        headers['Content-Type'] = 'application/json'
+        self.score.response = requests.put(self.score.url + '/deployments/{0}'.format(deployment_id), data= json.dumps(data), headers=headers, verify=self.score.verify)
+        if self.score.response.status_code == requests.codes.created:
+            return json.loads(self.score.response.content)
+
+            

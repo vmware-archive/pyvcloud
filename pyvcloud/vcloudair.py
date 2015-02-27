@@ -34,6 +34,7 @@ from pyvcloud.helper import CommonUtils
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import OrgVdcNetworkType,\
     ReferenceType, NetworkConfigurationType, IpScopesType, IpScopeType,\
     IpRangesType, IpRangeType, DhcpPoolServiceType
+from pyvcloud.score import Score
 
 class VCA(object):
 
@@ -469,6 +470,14 @@ class VCA(object):
                 network = networkType.parseString(self.response.content, True)
                 result.append(network)
         return result
+        
+    def get_network(self, vdc_name, network_name):
+        result = None
+        networks = self.get_networks(vdc_name)
+        for network in networks:
+            if network.get_name() == network_name:
+                result = network
+        return result
 
     def parsexml_(self, string_to_parse):
         doc = ET.fromstring(string_to_parse)
@@ -567,3 +576,8 @@ class VCA(object):
             for record in queryResultRecords.get_Record():
                 if record.name == network_name:
                     return record.href
+                    
+    def get_score_service(self, score_service_url):
+        if self.vcloud_session is None or self.vcloud_session.token is None:
+            return None
+        return Score(score_service_url, self.vcloud_session.org_url, self.vcloud_session.token, self.version, self.verify)

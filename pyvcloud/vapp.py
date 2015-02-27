@@ -18,6 +18,7 @@
 import requests
 from StringIO import StringIO
 from schema.vcd.v1_5.schemas.vcloud import vAppType, vdcType, queryRecordViewType, taskType, vcloudType
+from schema.vcd.v1_5.schemas.vcloud.taskType import TaskType
 from schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType, NetworkConnectionSectionType
 from iptools import ipv4, IpRange
 from tabulate import tabulate
@@ -170,7 +171,10 @@ class VAPP(object):
         networkConfigSection = VAPP.create_networkConfigSection(network_name, network_href, fence_mode)
         for networkConfig in vApp_NetworkConfigSection.get_NetworkConfig():
             if networkConfig.get_networkName() == network_name:
-                return
+                task = TaskType()
+                task.set_status("success")
+                task.set_Progress("100")
+                return task
             networkConfigSection.add_NetworkConfig(networkConfig)
         output = StringIO()
         networkConfigSection.export(output,

@@ -237,6 +237,35 @@ class Gateway(object):
         services = filter(lambda service: service.__class__.__name__ == "FirewallServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
         if len(services) == 1:
             services[0].set_IsEnabled(enable)
+            
+    def is_vpn_enabled(self):
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        services = filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
+        return len(services) == 1 and services[0].get_IsEnabled()
+        
+    def enable_vpn(self, enable):
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        services = filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
+        if len(services) == 1:
+            services[0].set_IsEnabled(enable)
+            
+    def get_vpn_service(self):
+        gatewayConfiguration = self.me.get_Configuration()
+        edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
+        return filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType",
+                      edgeGatewayServiceConfiguration.get_NetworkService())[0]    
+                      
+    def add_vpn_tunnel(self, name, local_ip, local_networks, peer_ip, peer_networks):
+        service = get_vpn_service()
+        
+    def delete_vpn_tunnel(self):
+        pass
+        
+    def add_networks_to_vpn_tunnel(self, tunnel, local_networks=None, peer_networks=None):
+        pass        
+    
+    def delete_networks_from_vpn_tunnel(self, tunnel, local_networks=None, peer_networks=None):
+        pass        
 
     def get_syslog_conf(self):
         headers = self.headers
@@ -359,7 +388,7 @@ class Gateway(object):
     def delete_dhcp_pool(self, network_name):
         pools = [p for p in self.get_dhcp_pools() if p.get_Network().name != network_name]
         self._getDhcpService().set_Pool(pools)
-
+        
 def _create_protocols_type(protocol):
     all_protocols = {"Tcp": None, "Udp": None, "Icmp": None, "Any": None}
     all_protocols[protocol] = True

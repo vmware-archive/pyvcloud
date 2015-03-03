@@ -22,10 +22,6 @@ import requests
 import tarfile
 import urllib
 
-# from cloudify_rest_client.client import CloudifyClient
-# from cloudify_rest_client.blueprints import BlueprintsClient, Blueprint
-# from cloudify_rest_client.deployments import DeploymentClient, Deployment
-
 from os.path import expanduser
 
 class Score(object):
@@ -39,6 +35,7 @@ class Score(object):
         self.response = None        
         self.blueprints = BlueprintsClient(self)
         self.deployments = DeploymentsClient(self)
+        self.executions = ExecutionsClient(self)
         
     def get_headers(self):
         headers = {}
@@ -155,8 +152,39 @@ class DeploymentsClient(object):
             data['inputs'] = inputs
         headers = self.score.get_headers()
         headers['Content-Type'] = 'application/json'
-        self.score.response = requests.put(self.score.url + '/deployments/{0}'.format(deployment_id), data= json.dumps(data), headers=headers, verify=self.score.verify)
-        if self.score.response.status_code == requests.codes.created:
+        self.score.response = requests.put(self.score.url + '/deployments/{0}'.format(deployment_id), data=json.dumps(data), headers=headers, verify=self.score.verify)
+        if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
+            
+            
+class ExecutionsClient(object):
+
+    def __init__(self, score):
+        self.score = score
+        
+    def list(self, deployment_id):
+        params = {'deployment_id': deployment_id}
+        self.score.response = requests.get(self.score.url + '/executions', headers=self.score.get_headers(), params=params,  verify=self.score.verify)
+        if self.score.response.status_code == requests.codes.ok:
+            return json.loads(self.score.response.content)
+            
+    def start(self, deployment_id, workflow_id, parameters=None,
+              allow_custom_parameters=False, force=False):
+        assert deployment_id
+        assert workflow_id
+        data = {
+            'deployment_id': deployment_id,
+            'workflow_id': workflow_id,
+            'parameters': parameters,
+            'allow_custom_parameters': str(allow_custom_parameters).lower(),
+            'force': str(force).lower()
+        }
+        headers = self.score.get_headers()
+        headers['Content-Type'] = 'application/json'        
+        self.score.response = requests.post(self.score.url + '/executions', headers=headers, data=json.dumps(data),  verify=self.score.verify)
+        # if self.score.response.status_code == requests.codes.ok:
+        #     return json.loads(self.score.response.content)
+        
+        
 
             

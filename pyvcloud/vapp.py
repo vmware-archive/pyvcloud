@@ -163,8 +163,30 @@ class VAPP(object):
                     return taskType.parseString(self.response.content, True)
                     
     def disconnect_vms(self, network_name):
-        pass 
-                    
+        children = self.me.get_Children()
+        if children:
+            vms = children.get_Vm()
+            for vm in vms:
+                print vm.get_Name()
+                # new_connection = self._create_networkConnection(
+                #     network_name, connection_index, ip_allocation_mode,
+                #     mac_address, ip_address)
+                # networkConnectionSection = [section for section in vm.get_Section() if isinstance(section, NetworkConnectionSectionType)][0]
+                # self._modify_networkConnectionSection(
+                #     networkConnectionSection,
+                #     new_connection,
+                #     connections_primary_index)
+                # output = StringIO()
+                # networkConnectionSection.export(output,
+                #     0,
+                #     name_ = 'NetworkConnectionSection',
+                #     namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
+                #     pretty_print = False)
+                # body=output.getvalue().replace("vmw:Info", "ovf:Info")
+                # self.response = requests.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify)
+                # if self.response.status_code == requests.codes.accepted:
+                #     return taskType.parseString(self.response.content, True)
+                                        
     def connect_to_network(self, network_name, network_href, fence_mode='bridged'):
         vApp_NetworkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
         link = [link for link in vApp_NetworkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]

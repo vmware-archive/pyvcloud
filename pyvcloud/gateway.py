@@ -253,8 +253,10 @@ class Gateway(object):
     def get_vpn_service(self):
         gatewayConfiguration = self.me.get_Configuration()
         edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
-        return filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType",
-                      edgeGatewayServiceConfiguration.get_NetworkService())[0]    
+        service = filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType",
+                      edgeGatewayServiceConfiguration.get_NetworkService())
+        if service is not None and len(service)>0:
+            return service[0]
                       
     def add_vpn_tunnel(self, name, local_ip, local_networks, peer_ip, peer_networks):
         service = get_vpn_service()

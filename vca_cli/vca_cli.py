@@ -30,7 +30,6 @@ import xmltodict
 from os.path import expanduser
 from tabulate import tabulate
 from time import sleep
-from StringIO import StringIO
 from datetime import datetime
 
 from pyvcloud.vcloudair import VCA
@@ -40,6 +39,10 @@ from pyvcloud.helper import CommonUtils
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from cryptography.fernet import Fernet
 
+#todo: upload/download ovf to/from catalog
+#todo: beautify array outputs
+#todo: score display output
+#todo: capture error when login on demand to instance and instance id is not correct
 #todo: command to configure/customize computer-name, cpu, memory, disk of a vm
 #todo: configure DHCP on gateway for network with range
 #todo: configure POOL on network with range
@@ -65,7 +68,7 @@ from cryptography.fernet import Fernet
 #todo: catch exceptions
 #todo: vapp command returns nothing no error when session is inactive on subscription
 
-properties = ['session_token', 'org', 'org_url', 'service', 'vdc', 'instance', 'service_type', 'service_version', 'token', 'user', 'host', 'gateway', 'session_uri', 'verify', 'password']
+properties = ['session_token', 'org', 'org_url', 'service', 'vdc', 'instance', 'service_type', 'service_version', 'token', 'user', 'host', 'gateway', 'session_uri', 'verify', 'password', 'host_score']
 
 default_operation = 'list'
 
@@ -159,6 +162,7 @@ def _login_user_to_service(ctx, user, host, password, service_type, service_vers
     # print password
     # print org
     result = vca.login(password=password, org=org)
+    # print 'result=', result
     if result:
         if 'ondemand' == service_type and instance:
             result = vca.login_to_instance(instance, password, None, None)
@@ -219,11 +223,14 @@ def _getVCA_with_relogin(ctx):
 @click.option('-p', '--password', prompt=True, confirmation_prompt=False, hide_input=True, help='Password')
 @click.option('-i', '--instance', default=None, help='Instance Id')
 @click.option('-o', '--org', default=None, help='Organization Name')
+@click.option('-c', '--host-score', 'host_score', default='https://score.vca.io', help='URL of the Score server')
 @click.option('-s', '--save-password', is_flag=True, default=False, help='Save Password')
-def login(ctx, user, host, password, service_type, service_version, instance, org, save_password):
+def login(ctx, user, host, password, service_type, service_version, instance, org, save_password, host_score):
     """Login to a vCloud service"""
     if not (host.startswith('https://') or host.startswith('http://')):
         host = 'https://' + host
+    if not (host_score.startswith('https://') or host_score.startswith('http://')):
+        host_score = 'https://' + host_score
     result = _login_user_to_service(ctx, user, host, password, service_type, service_version, instance, org)
     if result:
         print_message('Login successful for profile \'%s\'' % ctx.obj['profile'], ctx)
@@ -232,6 +239,7 @@ def login(ctx, user, host, password, service_type, service_version, instance, or
             print_message('Password will be saved in profile \'%s\'' % ctx.obj['profile'], ctx)
         else:
             _save_property(ctx.obj['profile'], 'password', None)
+        _save_property(ctx.obj['profile'], 'host_score', host_score)
     else:
         print_error('Login failed', ctx)
     return result
@@ -308,7 +316,7 @@ def instance(ctx, operation, instance):
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[list | use | info]', type=click.Choice(['list', 'use', 'info']))
 @click.option('-s', '--service', default='', metavar='<service>', help='Service Id')
-@click.option('-o', '--org', default='', metavar='<org>', help='Organization Id')
+@click.option('-o', '--org', default='', metavar='<org>', help='Organization Name')
 def org(ctx, operation, service, org):
     """Operations with Organizations"""
     if '' == service: service = ctx.obj['service']
@@ -316,17 +324,17 @@ def org(ctx, operation, service, org):
     vca = _getVCA_with_relogin(ctx)
     if not vca: return 
     if 'list' == operation:
-        headers = ['Organization Id', "Selected"]
+        headers = ['Organization Name', "Selected"]
         table = ['']
         if 'ondemand' == ctx.obj['service_type']:
             if vca.vcloud_session and vca.vcloud_session.organization:
                 instance = filter(lambda instance: instance['id'] == ctx.obj['instance'], vca.instances)[0]
-                headers = ['Instance Id', 'Region', 'Organization Id', "Selected"]
+                headers = ['Instance Id', 'Region', 'Organization Name', "Selected"]
                 table = []
                 table.append([instance['id'], instance['region'], vca.vcloud_session.organization.name, '*'])
         elif 'subscription' == ctx.obj['service_type']:
             if vca.services:
-                headers = ["Service Id", "Type", "Region", "Organization Id", "Status", "Selected"]
+                headers = ["Service Id", "Type", "Region", "Organization Name", "Status", "Selected"]
                 table = []
                 for s in vca.services.get_Service():
                     for vdc in vca.get_vdc_references(s.serviceId):
@@ -346,7 +354,7 @@ def org(ctx, operation, service, org):
         elif 'subscription' == ctx.obj['service_type']:
             result = vca.login_to_org(service, org)
         elif 'vcd' == ctx.obj['service_type']:
-            # print_message("Use the login command to select another organization, indicating the organization id", ctx)
+            # print_message("Use the login command to select another organization, indicating the organization name", ctx)
             return
         if result:
             if vca.org:            
@@ -411,7 +419,7 @@ def vdc(ctx, operation, vdc):
 # assumes the org (and service) and vdc been previously selected   
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | deploy | undeploy | customize | insert | eject]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'deploy', 'undeploy', 'customize', 'insert', 'eject']))
+@click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | deploy | undeploy | customize | insert | eject | disconnect]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'deploy', 'undeploy', 'customize', 'insert', 'eject', 'disconnect']))
 @click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
 @click.option('-a', '--vapp', default='', metavar='<vapp>', help='vApp name')
 @click.option('-c', '--catalog', default='', metavar='<catalog>', help='catalog name')
@@ -450,13 +458,13 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
         task = vca.create_vapp(vdc, vapp, template, catalog, vm_name=vm_name)
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
         else: ctx.obj['response']=vca.response; print_error("can't create the vApp", ctx)
+        the_vdc = vca.get_vdc(vdc)        
+        the_vapp = vca.get_vapp(the_vdc, vapp)
+        print_message("disconnecting vApp from networks pre-defined in the template", ctx)
+        task = the_vapp.disconnect_from_networks()
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=the_vapp.response; print_error("can't disconnect vApp from networks", ctx)
         if '' != network:
-            the_vdc = vca.get_vdc(vdc)        
-            the_vapp = vca.get_vapp(the_vdc, vapp)
-            print_message("disconnecting vApp from networks pre-defined in the template", ctx)
-            task = the_vapp.disconnect_from_networks()
-            if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-            else: ctx.obj['response']=the_vapp.response; print_error("can't disconnect vApp from networks", ctx)
             nets = filter(lambda n: n.name == network, vca.get_networks(vdc))
             if len(nets) == 1:
                 print_message("connecting vApp to network '%s' with mode '%s'" % (network, mode), ctx)
@@ -498,8 +506,8 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
                 print_message("deploying and starting the vApp", ctx)
                 task = the_vapp.force_customization(vm_name)
                 if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                else: ctx.obj['response']=the_app.response; print_error("can't customize vApp", ctx)
-            else: ctx.obj['response']=the_app.response; print_error("can't customize vApp", ctx)
+                else: ctx.obj['response']=the_vapp.response; print_error("can't customize vApp", ctx)
+            else: ctx.obj['response']=the_vapp.response; print_error("can't customize vApp", ctx)
     elif 'info' == operation or 'power.off' == operation or 'power.on' == operation or 'delete' == operation:
         the_vdc = vca.get_vdc(vdc)
         if the_vdc:
@@ -513,7 +521,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
                     elif 'power.off' == operation: task = the_vapp.poweroff()
                     elif 'delete' == operation: task = the_vapp.delete()                    
                     if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                    else: ctx.obj['response']=the_app.response; print_error("can't operate with the vApp", ctx)                                
+                    else: ctx.obj['response']=the_vapp.response; print_error("can't operate with the vApp", ctx)                                
                 _save_property(ctx.obj['profile'], 'vdc', vdc)
             else:
                 ctx.obj['response']=vca.response; print_error("vApp '%s' not found" % vapp, ctx)
@@ -525,7 +533,29 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
                 the_media = vca.get_media(catalog, media)
                 task = the_vapp.vm_media(vm_name, the_media, operation)
                 if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                else: ctx.obj['response']=the_app.response; print_error("can't insert or eject media", ctx)
+                else: ctx.obj['response']=the_vapp.response; print_error("can't insert or eject media", ctx)
+    elif 'disconnect' == operation:
+        print_message("disconnecting vApp '%s' in VDC '%s' from network '%s'" % (vapp, vdc, network), ctx)
+        # task = vca.create_vapp(vdc, vapp, template, catalog, vm_name=vm_name)
+        # if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        # else: ctx.obj['response']=vca.response; print_error("can't create the vApp", ctx)
+        # if '' != network:
+        #     the_vdc = vca.get_vdc(vdc)
+        #     the_vapp = vca.get_vapp(the_vdc, vapp)
+        #     print_message("disconnecting vApp from networks pre-defined in the template", ctx)
+        #     task = the_vapp.disconnect_from_networks()
+        #     if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        #     else: ctx.obj['response']=the_vapp.response; print_error("can't disconnect vApp from networks", ctx)
+        #     nets = filter(lambda n: n.name == network, vca.get_networks(vdc))
+        #     if len(nets) == 1:
+        #         print_message("connecting vApp to network '%s' with mode '%s'" % (network, mode), ctx)
+        #         task = the_vapp.connect_to_network(nets[0].name, nets[0].href)
+        #         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        #         else: ctx.obj['response']=the_vapp.response; print_error("can't connect the vApp to the network", ctx)
+        #         print_message("connecting VMs to network '%s' with mode '%s'" % (network, mode), ctx)
+        #         task = the_vapp.connect_vms(nets[0].name, connection_index=0, ip_allocation_mode=mode)
+        #         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        #         else: ctx.obj['response']=the_vapp.response; print_error("can't connect the vApp to the network", ctx)
     else:
         print_message('not implemented', ctx)
         
@@ -641,17 +671,17 @@ def vm(ctx, operation, vdc, vapp):
         
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[info | list | create | delete]', type=click.Choice(['info', 'list', 'create', 'delete']))
+@click.argument('operation', default=default_operation, metavar='[info | list | create | delete | delete-item]', type=click.Choice(['info', 'list', 'create', 'delete', 'delete-item']))
 @click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
 @click.option('-c', '--catalog', 'catalog_name', default='', metavar='<catalog>', help='Catalog Name')
+@click.option('-i', '--item', 'item_name', default='', metavar='<catalog item>', help='Catalog Item Name')
 @click.option('-d', '--description', default='', metavar='<description>', help='Catalog Description')
-def catalog(ctx, operation, vdc, catalog_name, description):
+def catalog(ctx, operation, vdc, catalog_name, item_name, description):
     """Operations with Catalogs"""
     if vdc == '': vdc = ctx.obj['vdc']     
-    # vca = _getVCA(ctx)
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
-        ctx.obj['response']=vca.response; print_error('User not authenticated or token expired', ctx)
+        print_error('User not authenticated or token expired', ctx)
         return
     if 'create' == operation:
         task = vca.create_catalog(catalog_name, description)
@@ -661,18 +691,20 @@ def catalog(ctx, operation, vdc, catalog_name, description):
         result = vca.delete_catalog(catalog_name)
         if result: print_message('catalog deleted', ctx)
         else: ctx.obj['response']=vca.response; print_error("can't delete the catalog", ctx)
+    elif 'delete-item' == operation:
+        result = vca.delete_catalog_item(catalog_name, item_name)
+        if result: print_message('catalog item deleted', ctx);
+        else: ctx.obj['response']=vca.response; print_error("can't delete the catalog item", ctx)        
     elif 'list':
         catalogs = vca.get_catalogs()
         print_catalogs(ctx, catalogs)
     else:
         print_message('not implemented', ctx)
 
-
-#todo: default operation here is info instead of list, fixme
-#todo: consider a specific edge, a vdc can have more than one
+#todo: consider selecting a specific edge, a vdc can have more than one...?
 @cli.command()
 @click.pass_context
-@click.argument('operation', default='info', metavar='[info | add | delete]', type=click.Choice(['info', 'add', 'delete']))
+@click.argument('operation', default=default_operation, metavar='[list | add | delete]', type=click.Choice(['list', 'add', 'delete']))
 @click.option('--type', 'rule_type', default='DNAT', metavar='<type>', help='Rule type', type=click.Choice(['DNAT', 'SNAT']))
 @click.option('--original_ip', default='', metavar='<ip>', help='Original IP')
 @click.option('--original_port', default='any', metavar='<port>', help='Original Port')
@@ -683,7 +715,6 @@ def catalog(ctx, operation, vdc, catalog_name, description):
 @click.option('--all', is_flag=True, default=False, help='Delete all rules')
 def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, translated_port, protocol, nat_rules_file, all):
     """Operations with Edge Gateway NAT Rules"""
-    # vca = _getVCA(ctx)
     vca = _getVCA_vcloud_session(ctx)
     vdc = ctx.obj['vdc'] 
     if not vca:
@@ -696,7 +727,7 @@ def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, tr
     if len(gateways) != 1:
         print_error('Gateway not found', ctx)
         return
-    if 'info' == operation:
+    if 'list' == operation:
         rules = gateways[0].get_nat_rules()
         print_nat_rules(ctx, rules)
     elif 'add' == operation:
@@ -726,14 +757,12 @@ def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, tr
     else:
         print_message('not implemented', ctx)
 
-#todo: default operation here is info instead of list, fixme
-#todo: consider a specific edge, a vdc can have more than one
+#todo: consider selecting a specific edge, a vdc can have more than one...?
 @cli.command()
 @click.pass_context
-@click.argument('operation', default='info', metavar='[info | enable | disable]', type=click.Choice(['info', 'enable', 'disable']))
+@click.argument('operation', default=default_operation, metavar='[list | enable | disable]', type=click.Choice(['list', 'enable', 'disable']))
 def firewall(ctx, operation):
     """Operations with Edge Gateway Firewall Rules"""
-    # vca = _getVCA(ctx)
     vca = _getVCA_vcloud_session(ctx)
     vdc = ctx.obj['vdc'] 
     if not vca:
@@ -748,45 +777,71 @@ def firewall(ctx, operation):
         task = gateways[0].save_services_configuration()
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
         else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)                                
-        # gateway_name = gateways[0].get_name()
-        # gateways = [vca.get_gateway(vdc, gateway_name)]
-        # print_gateways(ctx, gateways)
-    elif 'info' == operation:
+    elif 'list' == operation:
         print_message('not implemented', ctx)                
     else:
         print_message('not implemented', ctx)
+        
+#todo: consider selecting a specific edge, a vdc can have more than one...?
+#todo: set endpoint <external-network> <external-local-ip>
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[list | enable | disable]', type=click.Choice(['list', 'enable', 'disable']))
+def vpn(ctx, operation):
+    """Operations with Edge Gateway VPN"""
+    vca = _getVCA_vcloud_session(ctx)
+    vdc = ctx.obj['vdc'] 
+    if not vca:
+        print_error('User not authenticated or token expired', ctx)
+        return
+    gateways = vca.get_gateways(vdc)
+    if len(gateways) != 1:
+        ctx.obj['response']=vca.response; print_error('Gateway not found', ctx)
+        return
+    if 'enable' == operation or 'disable' == operation:    
+        gateways[0].enable_vpn('enable'==operation)
+        task = gateways[0].save_services_configuration()
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)                                
+    elif 'list' == operation:
+        print_vpn_configuration(ctx, gateways[0])                
+    else:
+        print_message('not implemented', ctx)        
 
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[info | list | use]', type=click.Choice(['info', 'list', 'use']))
-def network(ctx, operation):
+@click.argument('operation', default=default_operation, metavar='[info | list | add | delete]', type=click.Choice(['info', 'list', 'add', 'delete']))
+@click.option('-n', '--network', 'network_name', default='', metavar='<network>', help='Network name')
+def network(ctx, network_name, operation):
     """Operations with Networks"""
-    # vca = _getVCA(ctx)
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
         print_error('User not authenticated or token expired', ctx)
         return
     if 'list' == operation:
         print_networks(ctx, vca.get_networks(ctx.obj['vdc']))
-    elif 'use' == operation:
-        print_message('not implemented', ctx)                
+    elif 'delete' == operation:
+        result = vca.delete_vdc_network(ctx.obj['vdc'], network_name)
+        if result[0]:
+            display_progress(result[1], ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=vca.response; print_error("can't delete the network, " + result[1], ctx)                             
     else:
         print_message('not implemented', ctx)
 
 # @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[info | list | use]', type=click.Choice(['info', 'list', 'use']))
-def template(ctx, operation):
-    """Operations with ..."""
-    # if vdc == '': vdc = ctx.obj['vdc'] 
-    # vca = _getVCA(ctx)
+@click.argument('operation', default=default_operation, metavar='[info | list | delete]', type=click.Choice(['info', 'list', 'delete']))
+@click.option('-c', '--catalog', default='', metavar='<catalog>', help='catalog name')
+@click.option('-t', '--template', 'template_name', default='', metavar='<template>', help='template name')
+def template(ctx, operation, catalog, template_name):
+    """Operations with Templates"""
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
         print_error('User not authenticated or token expired', ctx)
         return
     if 'list' == operation:
         print_message('not implemented', ctx)                                
-    elif 'use' == operation:
+    elif 'delete' == operation:
         print_message('not implemented', ctx)                        
     elif 'info' == operation:
         print_message('not implemented', ctx)                
@@ -798,7 +853,7 @@ def template(ctx, operation):
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[info | list | use | set-syslog]', type=click.Choice(['info', 'list', 'use', 'set-syslog']))
 @click.option('-s', '--service', default='', metavar='<service>', help='Service Id')
-@click.option('-d', '--org', default='', metavar='<org>', help='Organization Id')
+@click.option('-d', '--org', default='', metavar='<org>', help='Organization Name')
 @click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
 @click.option('-g', '--gateway', default='', metavar='<gateway>', help='Edge Gateway Id')
 @click.option('-i', '--ip', default='', metavar='<ip>', help='Syslog Server IP')
@@ -833,33 +888,106 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
     
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[list | info]', type=click.Choice(['list', 'info']))
+@click.argument('operation', default=default_operation, metavar='[list | info | upload | delete]', type=click.Choice(['list', 'info', 'upload', 'delete']))
 @click.option('-b', '--blueprint', default='', metavar='<blueprint_id>', help='Blueprint Id')
-def bp(ctx, operation, blueprint):
+@click.option('-f', '--file', 'blueprint_file', default=None, metavar='<blueprint_file>', help='blueprint file', type=click.Path(exists=True))
+def bp(ctx, operation, blueprint, blueprint_file):
     """Operations with Blueprints"""
     vca = _getVCA_with_relogin(ctx)
     if not vca: return 
+    score=vca.get_score_service(ctx.obj['host_score'])
     if 'list' == operation:
-        pass
+        headers= ['Blueprint Id', 'Created']#, 'Deployments']
+        table = []
+        blueprints = score.blueprints.list()
+        if blueprints is None or len(blueprints) == 0:
+             print_message('no blueprints found', ctx)
+             return
+        for b in blueprints:
+            # print b.get('id')
+            table.append([b.get('id'), b.get('created_at')[:-7]])#, ''])
+        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)      
+        print_table("Blueprints:", 'blueprints', headers, sorted_table, ctx)                         
     elif 'info' == operation:
-        pass
-    print 'not implemented'
+        b = score.blueprints.get(blueprint)
+        if b is not None:
+            print json.dumps(b, sort_keys=False, indent=4, separators=(',', ': '))
+        else:
+            print_error("blueprint not found")
+    elif 'upload' == operation:
+        try:
+            b = score.blueprints.upload(blueprint_file, blueprint)
+            if b is not None:
+                print_message("successfully uploaded blueprint '%s'" % b.get('id'), ctx)
+        except:
+            print_error("failed to upload blueprint")
+            print_error(score.response.content)
+    elif 'delete' == operation:
+        b = score.blueprints.delete(blueprint)
+        if b:
+            print_message("successfully deleted blueprint '%s'" % blueprint, ctx)
+        else:
+            print_error("failed to delete blueprint")
     
+#todo: issue: returns if session expired...
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[list | info]', type=click.Choice(['list', 'info']))
+@click.argument('operation', default=default_operation, metavar='[list | info | create | delete | execute | cancel]', type=click.Choice(['list', 'info', 'create', 'delete', 'execute', 'cancel']))
+@click.option('-w', '--workflow', default=None, metavar='<workflow_id>', help='Workflow Id')
 @click.option('-d', '--deployment', default='', metavar='<deployment_id>', help='Deployment Id')
-def dep(ctx, operation, deployment):
+@click.option('-b', '--blueprint', default=None, metavar='<blueprint_id>', help='Blueprint Id')
+@click.option('-f', '--file', 'input_file', default=None, metavar='<input_file>', help='input file', type=click.File('r'))
+@click.option('-s', '--show-events', 'show_events', is_flag=True, default=False, help='Show events')
+def dep(ctx, operation, deployment, blueprint, input_file, workflow, show_events):
     """Operations with Deployments"""
     vca = _getVCA_with_relogin(ctx)
     if not vca: return 
+    score=vca.get_score_service(ctx.obj['host_score'])
     if 'list' == operation:
-        pass
+        headers= ['Blueprint Id', 'Deployment Id', 'Created']
+        table = []
+        deployments = score.deployments.list()
+        if deployments is None or len(deployments) == 0:
+             print_message('no deployments found', ctx)
+             return
+        for d in deployments:
+            if blueprint is None or blueprint == d.get('blueprint_id'):
+                table.append([d.get('blueprint_id'), d.get('id'), d.get('created_at')[:-7]])
+        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)      
+        print_table("deployments:", 'deployments', headers, sorted_table, ctx)                         
     elif 'info' == operation:
-        pass
-    print 'not implemented'
-
-         
+        d = score.deployments.get(deployment)
+        if d is not None:
+            e = score.executions.list(deployment)
+            events = None
+            if show_events and e is not None and len(e) > 0:
+                events = score.events.get(e[-1].get('id'))
+            print_deployment_info(d, e, events)
+        else:
+            print_error("deployment not found")
+    elif 'delete' == operation:
+        d = score.deployments.delete(deployment)
+        print score.response.status_code, score.response.content
+        if d:
+            print_message("successfully deleted deployment '%s'" % deployment, ctx)
+        else:
+            print_error("failed to delete deployment")            
+    elif 'create' == operation:
+        inputs = None
+        if input_file:
+            inputs = json.load(input_file)
+        d = score.deployments.create(blueprint, deployment, json.dumps(inputs, sort_keys=False, indent=4, separators=(',', ': ')))
+        if d:
+            print_message("successfully created deployment '%s'" % deployment, ctx)
+        else:            
+            ctx.obj['response'] = score.response; print_error("failed to create deployment", ctx)
+    elif 'execute' == operation:
+        e = score.executions.start(deployment, workflow)
+        print_execution(e, ctx)
+    elif 'cancel' == operation:
+        print 'not implemented'
+    else:
+        print 'not implemented'
     
 @cli.command()
 @click.pass_context
@@ -910,6 +1038,8 @@ def example(ctx):
         'vca catalog create --catalog mycatalog'])
     id+=1; table.append([id, 'delete catalog', 
         'vca catalog delete --catalog mycatalog'])
+    id+=1; table.append([id, 'delete catalog item', 
+        'vca catalog delete-item --catalog mycatalog --item my_vapp_template'])
     id+=1; table.append([id, 'list networks', 
         'vca network'])        
     id+=1; table.append([id, 'list vapps', 
@@ -937,13 +1067,15 @@ def example(ctx):
     id+=1; table.append([id, 'list vms in JSON format', 
         'vca -j vm'])
     id+=1; table.append([id, 'retrieve the IP of a vm', 
-        "IP=`vca -j vm -a ubu | jq '.vms[0].IPs[0]'` && echo $IP"])
+        "IP=`vca -j vm -a ubu | jq -r '.vms[0].IPs[0]'` && echo $IP"])
     id+=1; table.append([id, 'list edge gateways', 
         'vca gateway'])
+    id+=1; table.append([id, 'get details of edge gateways', 
+        'vca gateway info --gateway gateway_name'])
     id+=1; table.append([id, 'set syslog server on gateway', 
-        'vca gateway set-syslog --gateway gateway --ip 192.168.109.2'])
+        'vca gateway set-syslog --gateway gateway_name --ip 192.168.109.2'])
     id+=1; table.append([id, 'unset syslog server on gateway', 
-        'vca gateway set-syslog --gateway gateway'])
+        'vca gateway set-syslog --gateway gateway_name'])
     id+=1; table.append([id, 'list edge gateway NAT rules', 
         'vca nat'])
     id+=1; table.append([id, 'add edge gateway DNAT rule',
@@ -956,6 +1088,14 @@ def example(ctx):
         "vca nat delete --type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.4 --translated_port 22 --protocol tcp"])
     id+=1; table.append([id, 'delete all edge gateway NAT rules',
         "vca nat delete --all"])
+    id+=1; table.append([id, 'enable edge gateway firewall',
+        "vca fw enable"])
+    id+=1; table.append([id, 'disable edge gateway firewall',
+        "vca fw disable"])
+    id+=1; table.append([id, 'enable edge gateway VPN',
+        "vca vpn enable"])
+    id+=1; table.append([id, 'disable edge gateway VPN',
+        "vca vpn disable"])
     id+=1; table.append([id, 'show the REST calls in the command', 
         'vca --debug vm'])
     id+=1; table.append([id, 'show version', 
@@ -1000,7 +1140,6 @@ def _getVCA(ctx):
         return vca
     else:
         return None
-        
 
 def _getVCA_vcloud_session(ctx):
     # for k, v in ctx.obj.iteritems(): print k, "-->", v
@@ -1051,6 +1190,9 @@ def print_error(msg, ctx=None):
                 if doc is not None and doc.attrib is not None and doc.attrib.get('message'):
                     click.secho(doc.attrib.get('message'), fg='red')
                     return
+            elif response is not None:
+                    click.secho(msg + ", " + response.content, fg='red')
+                    return                
         click.secho(msg, fg='red')
         
 def print_json(obj, headers, table):
@@ -1165,8 +1307,11 @@ def print_org_details(ctx, vca):
     headers = ["Type", "Name"]
     links = vca.vcloud_session.organization.Link if vca.vcloud_session.organization else []
     org_name = vca.vcloud_session.organization.name if vca.vcloud_session.organization else []
+    org_id = vca.vcloud_session.organization.id if vca.vcloud_session.organization else []
     #todo: review filter/lambda below
     table = [[details.get_type().split('.')[-1].split('+')[0], details.get_name()] for details in filter(lambda info: info.name, links)]
+    table.append(['Org Id', org_id[org_id.rfind(':')+1:]])
+    table.append(['Org Name', org_name])
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)        
     print_table("Details for org '%s':" % org_name, 'orgs', headers, sorted_table, ctx)     
     
@@ -1204,18 +1349,25 @@ def print_gateways(ctx, gateways):
         for gateway in gateways: gateway.me.export(sys.stdout, 0)
         return
     #todo add VPN and LB services
-    headers = ['Name', 'External IPs', 'DHCP Service', 'Firewall Service', 'NAT Service', 'Internal Networks', 'Syslog']
+    headers = ['Name', 'External IPs', 'DHCP', 'Firewall', 'NAT', 'VPN', 'Routed Networks', 'Syslog']
     table = []
     for gateway in gateways:
         interfaces = gateway.get_interfaces('internal')
         interface_table = []
         for interface in interfaces: interface_table.append(interface.get_Name())
-        table.append([gateway.get_name(), gateway.get_public_ips(), 
-        'On' if gateway.is_dhcp_enabled() else 'Off', 
-        'On' if gateway.is_fw_enabled() else 'Off', 
-        'On' if gateway.is_nat_enabled() else 'Off', 
-        interface_table,
-        gateway.get_syslog_conf()
+        public_ips = gateway.get_public_ips()
+        public_ips_value = public_ips
+        if len(public_ips) > 2:
+            public_ips_value = "%d IPs (list = 'vca gateway -g %s info')" % (len(public_ips), gateway.get_name())
+        table.append([
+            gateway.get_name(), 
+            public_ips_value, 
+            'On' if gateway.is_dhcp_enabled() else 'Off', 
+            'On' if gateway.is_fw_enabled() else 'Off', 
+            'On' if gateway.is_nat_enabled() else 'Off', 
+            'On' if gateway.is_vpn_enabled() else 'Off',
+            interface_table,
+            gateway.get_syslog_conf()
         ])
     # sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
     print_table("Edge Gateways:", 'gateways', headers, table, ctx)                
@@ -1232,26 +1384,26 @@ def print_gateway_details(ctx, gateway):
     table.append(['DCHP Service', 'On' if gateway.is_dhcp_enabled() else 'Off'])    
     table.append(['Firewall Service', 'On' if gateway.is_fw_enabled() else 'Off'])    
     table.append(['NAT Service', 'On' if gateway.is_nat_enabled() else 'Off'])        
+    table.append(['VPN Service', 'On' if gateway.is_vpn_enabled() else 'Off'])        
     table.append(['Syslog', gateway.get_syslog_conf()])    
-    # headers = ['Type', 'Name']
-    # table = []
-    # for entity in vdc.get_ResourceEntities().ResourceEntity:
-    #     table.append([entity.type_.split('.')[-1].split('+')[0], entity.name])
-    # for entity in vdc.get_AvailableNetworks().Network:
-    #     table.append([entity.type_.split('.')[-1].split('+')[0], entity.name])
-    # for gateway in gateways:
-    #     table.append(['edge gateway', gateway.name])
-    # sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+    public_ips = gateway.get_public_ips()
+    table.append(['External IP #', len(public_ips)])
+    if len(public_ips) > 6:
+        table.append(['External IPs', str(public_ips[0:6]).strip('[]').replace("'", "")])    
+        table.append(['External IPs', str(public_ips[6:]).strip('[]').replace("'", "")])    
+    else:
+        table.append(['External IPs', str(public_ips).strip('[]').replace("'", "")])    
+        
     print_table("Gateway '%s' details:" % gateway.me.name, 'gateway', headers, table, ctx)
     
 def print_networks(ctx, item_list):
     if ctx.obj['xml_output']:
         for item in item_list: item.export(sys.stdout, 0)
         return
-    headers = ['Name', 'Status', 'DHCP Service', 'IP Range']
+    headers = ['Name', 'Mode', 'DHCP Service', 'DHCP IP Range', 'POOL IP Range']
     table = []
     for item in item_list:
-        table.append([item.get_name(), '', '', ''])
+        table.append([item.get_name(), item.get_Configuration().get_FenceMode(), '', '', ''])
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
     print_table("Networks available in Virtual Data Center '%s':" % (ctx.obj['vdc']), 'networks', headers, sorted_table, ctx)        
     
@@ -1281,9 +1433,46 @@ def print_nat_rules(ctx, natRules):
                       "any" if not protocol else protocol, interface])
     if result:
         headers = ["Rule Id", "Enabled", "Type", "Original IP", "Original Port", "Translated IP", "Translated Port", "Protocol", "Applied On"]
-        print tabulate(result, headers = headers, tablefmt="orgtbl")
+        print_table('NAT rules', 'nat-rules', headers, result, ctx)        
     else:
         print_message("No NAT rules found in this gateway", ctx) 
+        
+def print_vpn_configuration(ctx, gateway):
+    service = gateway.get_vpn_service()
+    if service is None:
+        print_message("VPN is not configured in this gateway", ctx)
+        return
+    headers = ['Gateway', 'Enabled']
+    enabled = 'On' if gateway.is_vpn_enabled() else 'Off'
+    table = []
+    table.append([gateway.me.get_name(), enabled])
+    print_table('VPN Service', 'vpn-service', headers, table, ctx)        
+
+    headers = ['EndPoint', 'Public IP']
+    table = []
+    for endpoint in service.get_Endpoint():
+        network = ''
+        for interface in gateway.get_interfaces('uplink'):
+            if endpoint.get_Network().get_href() == interface.get_Network().get_href():
+                network = interface.get_Network().get_name()
+        ip = endpoint.get_PublicIp()
+        table.append([network, ip])
+    print_table('VPN Endpoints', 'vpn-endpoints', headers, table, ctx)
+    headers = ['Tunnel', 'Local IP', 'Local Networks', 'Peer IP', 'Peer Networks', 'Enabled', 'Operational']
+    table = []
+    for tunnel in service.get_Tunnel():
+        local_networks = []
+        for network in tunnel.get_LocalSubnet():
+            local_networks.append(network.get_Name())
+        peer_networks = []
+        for network in tunnel.get_PeerSubnet():
+            peer_networks.append(network.get_Name())
+        table.append([tunnel.get_Name(), 
+            tunnel.get_LocalIpAddress(), local_networks, 
+            tunnel.get_PeerIpAddress(), peer_networks, 
+            'True' if tunnel.get_IsEnabled() == 1 else 'False', 
+            'True' if tunnel.get_IsOperational() == 1 else 'False'])
+    print_table('VPN Tunnels', 'vpn-tunnels', headers, table, ctx)
         
 def print_catalogs(ctx, catalogs):
     result = []
@@ -1298,7 +1487,39 @@ def print_catalogs(ctx, catalogs):
         sorted_table = sorted(result, key=operator.itemgetter(0), reverse=False)
         print_table("Catalogs and items:", 'catalogs', headers, sorted_table, ctx)  
     else:
-        print_message("No catalogs found in this organization", ctx)         
+        print_message("No catalogs found in this organization", ctx)      
+        
+#todo: display (input and) outputs
+def print_deployment_info(deployment, executions, events, ctx=None):
+    headers= ['Blueprint Id', 'Deployment Id', 'Created', 'Workflows']
+    table = []
+    workflows = []
+    for workflow in deployment.get('workflows'):
+        workflows.append(workflow.get('name').encode('utf-8'))
+    table.append([deployment.get('blueprint_id'), deployment.get('id'), deployment.get('created_at')[:-7], workflows])
+    print_table("Deployment information:", 'deployment', headers, table, ctx)
+
+    headers= ['Workflow', 'Created', 'Status', 'Id']
+    table = []
+    if executions is None or len(executions) == 0:
+         print_message('no executions found', ctx)
+         return
+    for e in executions:
+        table.append([e.get('workflow_id'), e.get('created_at')[:-7], e.get('status'), e.get('id')])
+    sorted_table = sorted(table, key=operator.itemgetter(1), reverse=False)      
+    print_table("Workflow executions for deployment '%s'" % deployment.get('id'), 'executions', headers, sorted_table, ctx)
     
+    if events:
+        print_message("Events for the last execution...", ctx)
+
+def print_execution(execution, ctx=None):    
+    if execution:
+        headers= ['Workflow', 'Created', 'Status', 'Message']
+        table = []
+        table.append([execution.get('workflow_id'), execution.get('created_at')[:-7], execution.get('status'), execution.get('error')])
+        sorted_table = sorted(table, key=operator.itemgetter(1), reverse=False)      
+        print_table("Workflow execution '%s' for deployment '%s'" % (execution.get('id'), execution.get('deployment_id')), 'execution', headers, sorted_table, ctx)                          
+    else:
+        print_message("No execution", ctx)
 if __name__ == '__main__':
     cli(obj={})

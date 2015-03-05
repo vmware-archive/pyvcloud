@@ -1,0 +1,10 @@
+- VPN_tunnels:
+    
+    - name: tunnel1
+      local_ip: 23.92.225.247
+      local_net: 192.168.109.0/24
+      peer_ip: 192.240.158.81
+      peer_net: 192.168.110.0/24
+      shared_secret:cV67WdA4wc4v3hiNfEJw6T978bss698grsdmGz356NDejBe4VGtupYbUhjnMJcOk
+      enc_protocol: AES256
+

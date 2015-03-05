@@ -24,6 +24,9 @@ import urllib
 
 from os.path import expanduser
 
+#todo: validate-blueprint
+#todo: get execution details
+#todo: cancel execution
 class Score(object):
     
     def __init__(self, url, org_url=None, token=None, version='5.7', verify=True):
@@ -36,6 +39,7 @@ class Score(object):
         self.blueprints = BlueprintsClient(self)
         self.deployments = DeploymentsClient(self)
         self.executions = ExecutionsClient(self)
+        self.events = EventsClient(self)
         
     def get_headers(self):
         headers = {}
@@ -182,8 +186,16 @@ class ExecutionsClient(object):
         headers = self.score.get_headers()
         headers['Content-Type'] = 'application/json'        
         self.score.response = requests.post(self.score.url + '/executions', headers=headers, data=json.dumps(data),  verify=self.score.verify)
-        # if self.score.response.status_code == requests.codes.ok:
-        #     return json.loads(self.score.response.content)
+        if self.score.response.status_code == requests.codes.ok:
+            return json.loads(self.score.response.content)
+            
+class EventsClient(object):
+    
+    def __init__(self, score):
+        self.score = score
+        
+    def get(self, execution_id, from_event=0, batch_size=100, include_logs=False):
+        pass
         
         
 

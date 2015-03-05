@@ -15,6 +15,8 @@
 
 # coding: utf-8
 
+#todo: upload/download ovf to/from catalog
+
 import time
 import base64
 import requests
@@ -425,6 +427,16 @@ class VCA(object):
                         if self.response.status_code == requests.codes.no_content:
                             return True
         return False
+        
+    def delete_catalog_item(self, catalog_name, item_name):
+        for catalog in self.get_catalogs():
+            if catalog.CatalogItems and catalog.CatalogItems.CatalogItem:
+                for item in catalog.CatalogItems.CatalogItem:
+                    if item_name == item.name:
+                        self.response = requests.delete(item.href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+                        if self.response.status_code == requests.codes.no_content:
+                            return True
+        return False
 
     def get_gateways(self, vdc_name):
         gateways = []
@@ -558,7 +570,9 @@ class VCA(object):
 
     def delete_vdc_network(self, vdc_name, network_name):
         netref = self.get_admin_network_href(vdc_name, network_name)
-        self.response = requests.delete(netref, headers=self.vcloud_session.get_vcloud_headers())
+        if netref is None:
+            return (False, 'network not found')
+        self.response = requests.delete(netref, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
         if self.response.status_code == requests.codes.accepted:
             task = taskType.parseString(self.response.content, True)
             return (True, task)
@@ -569,7 +583,7 @@ class VCA(object):
         vdc = self.get_vdc(vdc_name)
         link = filter(lambda link: link.get_rel() == "orgVdcNetworks",
                       vdc.get_Link())
-        self.response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers())
+        self.response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
         queryResultRecords = queryRecordViewType.parseString(self.response.content,
                                                              True)
         if self.response.status_code == requests.codes.ok:

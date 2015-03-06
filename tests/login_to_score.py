@@ -16,7 +16,7 @@ def print_vca(vca):
 
 def test_vcloud_session(vca, vdc, vapp):
     the_vdc = vca.get_vdc(vdc)
-    for x in range(1, 5):
+    for x in range(1, 1):
         print datetime.datetime.now(), the_vdc.get_name(), vca.vcloud_session.token
         the_vdc = vca.get_vdc(vdc)       
         if the_vdc: print the_vdc.get_name(), vca.vcloud_session.token
@@ -26,41 +26,13 @@ def test_vcloud_session(vca, vdc, vapp):
         else: print False
         time.sleep(2)
 
-### Subscription
-host='vchs.vmware.com'
-username = os.environ['VCAUSER']
-password = os.environ['PASSWORD']
-service = '85-719'
-org = 'AppServices'
-vdc = 'AppServices'
-vapp = 'cts'
-
-#sample login sequence on vCloud Air Subscription
-vca = VCA(host=host, username=username, service_type='subscription', version='5.6', verify=True)
-
-#first login, with password
-result = vca.login(password=password)
-print_vca(vca)
-
-#next login, with token, no password
-#this tests the vca token
-result = vca.login(token=vca.token)
-print_vca(vca)
-
-#uses vca.token to generate vca.vcloud_session.token
-vca.login_to_org(service, org)
-print_vca(vca)
-
-#this tests the vcloud session token
-test_vcloud_session(vca, vdc, vapp)
-
 
 ### On Demand            
 host='iam.vchs.vmware.com'
 username = os.environ['VCAUSER']
 password = os.environ['PASSWORD']
-instance = '28149a83-0d23-4f03-85e1-eb8be013e4ff'
-org = '8e479bba-862d-417e-a69f-c35aa50b8d95'
+instance = 'c40ba6b4-c158-49fb-b164-5c66f90344fa'
+org = 'a6545fcb-d68a-489f-afff-2ea055104cc1'
 vdc = 'VDC1'
 vapp = 'ubu'
 
@@ -87,27 +59,13 @@ else: print False
 #this tests the vcloud session token
 test_vcloud_session(vca, vdc, vapp)
 
+s=vca.get_score_service('https://score.vca.io')
+blueprints = s.list()
+for blueprint in blueprints:
+    print blueprint.get('id')
 
-### vCloud Director standalone
-host='p1v21-vcd.vchs.vmware.com'
-username = os.environ['VCAUSER']
-password = os.environ['PASSWORD']
-service = '85-719'
-org = 'AppServices'
-vdc = 'AppServices'
-vapp = 'cts'
+s.upload('os.environ['BPFILE']', 'bp1')
 
-#sample login sequence on vCloud Air Subscription
-vca = VCA(host=host, username=username, service_type='vcd', version='5.6', verify=True)
-
-#first login, with password and org name
-result = vca.login(password=password, org=org)
-print_vca(vca)
-
-#next login, with token, org and org_url, no password, it will retrieve the organization
-result = vca.login(token=vca.token, org=org, org_url=vca.vcloud_session.org_url)
-print_vca(vca)
-
-#this tests the vcloud session token
-test_vcloud_session(vca, vdc, vapp)
-
+blueprints = s.list()
+for blueprint in blueprints:
+    print blueprint.get('id')

@@ -82,10 +82,10 @@ class Gateway(object):
                                                  namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ')
         content_type = "application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml"
         link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
-        self.response = requests.post(link[0].get_href(), data=body, headers=self.headers)     
+        self.response = requests.post(link[0].get_href(), data=body, headers=self.headers)
         if self.response.status_code == requests.codes.accepted:
             task = taskType.parseString(self.response.content, True)
-            return task           
+            return task
 
     def add_nat_rules(self):
         pass
@@ -148,7 +148,8 @@ class Gateway(object):
             natService = natServices[0]
             natService.set_NatRule(natRules)
         else:
-            natService = NatServiceType()
+            natService = NatServiceType(IsEnabled=True)
+            natService.original_tagname_ = 'NatService'
             natService.set_NatRule(natRules)
             edgeGatewayServiceConfiguration.get_NetworkService().append(natService)
 
@@ -237,6 +238,37 @@ class Gateway(object):
         services = filter(lambda service: service.__class__.__name__ == "FirewallServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
         if len(services) == 1:
             services[0].set_IsEnabled(enable)
+            
+    def is_vpn_enabled(self):
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        services = filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
+        return len(services) == 1 and services[0].get_IsEnabled()
+        
+    def enable_vpn(self, enable):
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        services = filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
+        if len(services) == 1:
+            services[0].set_IsEnabled(enable)
+            
+    def get_vpn_service(self):
+        gatewayConfiguration = self.me.get_Configuration()
+        edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
+        service = filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType",
+                      edgeGatewayServiceConfiguration.get_NetworkService())
+        if service is not None and len(service)>0:
+            return service[0]
+                      
+    def add_vpn_tunnel(self, name, local_ip, local_networks, peer_ip, peer_networks):
+        service = get_vpn_service()
+        
+    def delete_vpn_tunnel(self):
+        pass
+        
+    def add_networks_to_vpn_tunnel(self, tunnel, local_networks=None, peer_networks=None):
+        pass        
+    
+    def delete_networks_from_vpn_tunnel(self, tunnel, local_networks=None, peer_networks=None):
+        pass        
 
     def get_syslog_conf(self):
         headers = self.headers
@@ -273,10 +305,10 @@ class Gateway(object):
             """ % syslog_server_ip
         # '<SyslogServerSettings><TenantSyslogServerSettings><SyslogServerIp>%s</SyslogServerIp></TenantSyslogServerSettings></SyslogServerSettings>' % syslog_server_ip
         # link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
-        self.response = requests.post(self.me.href+'/action/configureSyslogServerSettings', data=body, headers=headers, verify=self.verify)     
+        self.response = requests.post(self.me.href+'/action/configureSyslogServerSettings', data=body, headers=headers, verify=self.verify)
         if self.response.status_code == requests.codes.accepted:
             task = taskType.parseString(self.response.content, True)
-            return task           
+            return task
 
     def _getFirewallService(self):
         gatewayConfiguration = self.me.get_Configuration()
@@ -359,6 +391,46 @@ class Gateway(object):
     def delete_dhcp_pool(self, network_name):
         pools = [p for p in self.get_dhcp_pools() if p.get_Network().name != network_name]
         self._getDhcpService().set_Pool(pools)
+
+    def allocate_public_ip(self):
+        api_version = '5.11'
+        headers = dict(self.headers)
+        headers['Accept']='application/*+xml;version={0}'.format(api_version)
+        href = self.me.get_href() + '/action/manageExternalIpAddresses'
+        body = """
+        <ExternalIpAddressActionList
+         xmlns="http://www.vmware.com/vcloud/networkservice/1.0">
+        <Allocation>
+            <NumberOfExternalIpAddressesToAllocate>1</NumberOfExternalIpAddressesToAllocate>
+        </Allocation>
+        </ExternalIpAddressActionList>
+        """
+
+        self.response = requests.put(href, data=body, headers=headers,
+                                     verify=self.verify)
+        if self.response.status_code == requests.codes.ok:
+            task = taskType.parseString(self.response.content, True)
+            return task
+
+    def deallocate_public_ip(self, ip_address):
+        api_version = '5.11'
+        headers = dict(self.headers)
+        headers['Accept']='application/*+xml;version={0}'.format(api_version)
+        href = self.me.get_href() + '/action/manageExternalIpAddresses'
+        body = """
+        <ExternalIpAddressActionList
+         xmlns="http://www.vmware.com/vcloud/networkservice/1.0">
+        <Deallocation>
+            <ExternalIpAddress>{0}</ExternalIpAddress>
+        </Deallocation>
+        </ExternalIpAddressActionList>
+        """.format(ip_address)
+
+        self.response = requests.put(href, data=body, headers=headers,
+                                     verify=self.verify)
+        if self.response.status_code == requests.codes.ok:
+            task = taskType.parseString(self.response.content, True)
+            return task
 
 def _create_protocols_type(protocol):
     all_protocols = {"Tcp": None, "Udp": None, "Icmp": None, "Any": None}

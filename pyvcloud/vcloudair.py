@@ -15,6 +15,8 @@
 
 # coding: utf-8
 
+#todo: upload/download ovf to/from catalog
+
 import time
 import base64
 import requests
@@ -34,6 +36,7 @@ from pyvcloud.helper import CommonUtils
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import OrgVdcNetworkType,\
     ReferenceType, NetworkConfigurationType, IpScopesType, IpScopeType,\
     IpRangesType, IpRangeType, DhcpPoolServiceType
+from pyvcloud.score import Score
 
 class VCA(object):
 
@@ -151,7 +154,7 @@ class VCA(object):
     def get_instances(self):
         self.response = requests.get(self.host + "/api/sc/instances", headers=self._get_vcloud_headers(), verify=self.verify)
         if self.response.history[-1]:
-            self.response = requests.get(self.response.history[-1].headers['location'], headers=self._get_vcloud_headers(), verify=self.verify)                    
+            self.response = requests.get(self.response.history[-1].headers['location'], headers=self._get_vcloud_headers(), verify=self.verify)
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['instances']
         else:
@@ -164,6 +167,8 @@ class VCA(object):
     def login_to_instance(self, instance, password, token, org_url):
         instances = filter(lambda i: i['id']==instance, self.instances)
         if len(instances)>0:
+            if 'No Attributes' == instances[0]['instanceAttributes']:
+                return False
             attributes = json.loads(instances[0]['instanceAttributes'])
             session_uri = attributes['sessionUri']
             org_name = attributes['orgName']
@@ -181,7 +186,7 @@ class VCA(object):
             return []
         self.response = requests.get(serviceReferences[0].get_href(), headers=self._get_vcloud_headers(), verify=self.verify)
         vdcs = vchsType.parseString(self.response.content, True)
-        return vdcs.get_VdcRef()        
+        return vdcs.get_VdcRef()
 
     def get_vdc_reference(self, serviceId, vdcId):
         vdcReferences = filter(lambda vdcRef: vdcRef.get_name() == vdcId, self.get_vdc_references(serviceId))
@@ -202,9 +207,9 @@ class VCA(object):
                 headers[vdcLink.authorizationHeader] = vdcLink.authorizationToken
                 headers["Accept"] = "application/*+xml;version=" + self.version
                 self.response = requests.get(vdcLink.href, headers=headers, verify=self.verify)
-                if self.response.status_code == requests.codes.ok:                    
+                if self.response.status_code == requests.codes.ok:
                     self.vdc = vdcType.parseString(self.response.content, True)
-                    self.org = self.vdc.name                    
+                    self.org = self.vdc.name
                     org_url = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.org+xml", self.vdc.get_Link())[0].href
                     vcloud_session = VCS(org_url, self.username, self.org, None, org_url, org_url, version=self.version, verify=self.verify)
                     if vcloud_session.login(password=None, token=vdcLink.authorizationToken):
@@ -351,7 +356,7 @@ class VCA(object):
                     rnd += 1
                 time.sleep(1)
                 self.response = requests.get(task.get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
-                if self.response.status_code == requests.codes.ok:                    
+                if self.response.status_code == requests.codes.ok:
                     task = taskType.parseString(self.response.content, True)
                     progress = task.get_Progress()
                     status = task.get_status()
@@ -381,7 +386,7 @@ class VCA(object):
             self.response = requests.get(link.get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
             if self.response.status_code == requests.codes.ok:
                 catalogs.append(catalogType.parseString(self.response.content, True))
-        return catalogs               
+        return catalogs
 
     def create_catalog(self, catalog_name, description):
         refs = filter(lambda ref: ref.rel == 'add' and ref.type_ == 'application/vnd.vmware.admin.catalog+xml',
@@ -422,6 +427,16 @@ class VCA(object):
                         if self.response.status_code == requests.codes.no_content:
                             return True
         return False
+        
+    def delete_catalog_item(self, catalog_name, item_name):
+        for catalog in self.get_catalogs():
+            if catalog.CatalogItems and catalog.CatalogItems.CatalogItem:
+                for item in catalog.CatalogItems.CatalogItem:
+                    if item_name == item.name:
+                        self.response = requests.delete(item.href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+                        if self.response.status_code == requests.codes.no_content:
+                            return True
+        return False
 
     def get_gateways(self, vdc_name):
         gateways = []
@@ -429,7 +444,7 @@ class VCA(object):
         if not vdc: return gateways
         link = filter(lambda link: link.get_rel() == "edgeGateways", vdc.get_Link())
         self.response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
-        if self.response.status_code == requests.codes.ok:            
+        if self.response.status_code == requests.codes.ok:
             queryResultRecords = queryRecordViewType.parseString(self.response.content, True)
             if queryResultRecords.get_Record():
                 for edgeGatewayRecord in queryResultRecords.get_Record():
@@ -442,10 +457,10 @@ class VCA(object):
     def get_gateway(self, vdc_name, gateway_name):
         gateway = None
         vdc = self.get_vdc(vdc_name)
-        if not vdc: return gateway       
+        if not vdc: return gateway
         link = filter(lambda link: link.get_rel() == "edgeGateways", vdc.get_Link())
         self.response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
-        if self.response.status_code == requests.codes.ok:            
+        if self.response.status_code == requests.codes.ok:
             queryResultRecords = queryRecordViewType.parseString(self.response.content, True)
             if queryResultRecords.get_Record():
                 for edgeGatewayRecord in queryResultRecords.get_Record():
@@ -459,13 +474,21 @@ class VCA(object):
     def get_networks(self, vdc_name):
         result = []
         vdc = self.get_vdc(vdc_name)
-        if not vdc: return result              
+        if not vdc: return result
         networks = vdc.get_AvailableNetworks().get_Network()
         for n in networks:
             self.response = requests.get(n.get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
             if self.response.status_code == requests.codes.ok:
                 network = networkType.parseString(self.response.content, True)
                 result.append(network)
+        return result
+        
+    def get_network(self, vdc_name, network_name):
+        result = None
+        networks = self.get_networks(vdc_name)
+        for network in networks:
+            if network.get_name() == network_name:
+                result = network
         return result
 
     def parsexml_(self, string_to_parse):
@@ -525,7 +548,7 @@ class VCA(object):
 
         configuration = NetworkConfigurationType(IpScopes=ipscopes,
                                                  FenceMode="natRouted")
-        net = OrgVdcNetworkType(name=network_name, Description="Network reated by pyvcloud",
+        net = OrgVdcNetworkType(name=network_name, Description="Network created by pyvcloud",
                                 EdgeGateway=gateway, Configuration=configuration,
                                 IsShared=False)
         namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"'
@@ -547,7 +570,9 @@ class VCA(object):
 
     def delete_vdc_network(self, vdc_name, network_name):
         netref = self.get_admin_network_href(vdc_name, network_name)
-        self.response = requests.delete(netref, headers=self.vcloud_session.get_vcloud_headers())
+        if netref is None:
+            return (False, 'network not found')
+        self.response = requests.delete(netref, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
         if self.response.status_code == requests.codes.accepted:
             task = taskType.parseString(self.response.content, True)
             return (True, task)
@@ -558,10 +583,15 @@ class VCA(object):
         vdc = self.get_vdc(vdc_name)
         link = filter(lambda link: link.get_rel() == "orgVdcNetworks",
                       vdc.get_Link())
-        self.response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers())
+        self.response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
         queryResultRecords = queryRecordViewType.parseString(self.response.content,
                                                              True)
         if self.response.status_code == requests.codes.ok:
             for record in queryResultRecords.get_Record():
                 if record.name == network_name:
                     return record.href
+                    
+    def get_score_service(self, score_service_url):
+        if self.vcloud_session is None or self.vcloud_session.token is None:
+            return None
+        return Score(score_service_url, self.vcloud_session.org_url, self.vcloud_session.token, self.version, self.verify)

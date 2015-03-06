@@ -205,6 +205,9 @@ def _getVCA_with_relogin(ctx):
         result = _login_user_to_service(ctx, ctx.obj['user'], ctx.obj['host'], ctx.obj['password'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['instance'], ctx.obj['org'])
         if result:
             print_message('Token expired, re-login successful for profile \'%s\'' % ctx.obj['profile'], ctx)
+            #to reload token into ctx
+            _load_context(ctx, ctx.obj['profile'], ctx.obj['json_output'], ctx.obj['xml_output'], not ctx.obj['verify'])
+            time.sleep(1)
             vca = _getVCA(ctx)
         else:
             ctx.obj['response']=vca.response; print_error('Token expired, re-login failed for profile \'%s\'' % ctx.obj['profile'], ctx)
@@ -889,8 +892,8 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[list | info | upload | delete]', type=click.Choice(['list', 'info', 'upload', 'delete']))
-@click.option('-b', '--blueprint', default='', metavar='<blueprint_id>', help='Blueprint Id')
-@click.option('-f', '--file', 'blueprint_file', default=None, metavar='<blueprint_file>', help='blueprint file', type=click.Path(exists=True))
+@click.option('-b', '--blueprint', default='', metavar='<blueprint_id>', help='Name of the blueprint to create')
+@click.option('-f', '--file', 'blueprint_file', default=None, metavar='<blueprint_file>', help='Local file name of the blueprint (TOSCA YAML)', type=click.Path(exists=True))
 def bp(ctx, operation, blueprint, blueprint_file):
     """Operations with Blueprints"""
     vca = _getVCA_with_relogin(ctx)
@@ -936,7 +939,7 @@ def bp(ctx, operation, blueprint, blueprint_file):
 @click.option('-w', '--workflow', default=None, metavar='<workflow_id>', help='Workflow Id')
 @click.option('-d', '--deployment', default='', metavar='<deployment_id>', help='Deployment Id')
 @click.option('-b', '--blueprint', default=None, metavar='<blueprint_id>', help='Blueprint Id')
-@click.option('-f', '--file', 'input_file', default=None, metavar='<input_file>', help='input file', type=click.File('r'))
+@click.option('-f', '--file', 'input_file', default=None, metavar='<input_file>', help='Local file with the input values for the deployment (JSON)', type=click.File('r'))
 @click.option('-s', '--show-events', 'show_events', is_flag=True, default=False, help='Show events')
 def dep(ctx, operation, deployment, blueprint, input_file, workflow, show_events):
     """Operations with Deployments"""
@@ -967,7 +970,7 @@ def dep(ctx, operation, deployment, blueprint, input_file, workflow, show_events
             print_error("deployment not found")
     elif 'delete' == operation:
         d = score.deployments.delete(deployment)
-        print score.response.status_code, score.response.content
+        # print score.response.status_code, score.response.content
         if d:
             print_message("successfully deleted deployment '%s'" % deployment, ctx)
         else:

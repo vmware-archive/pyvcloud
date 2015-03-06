@@ -27,6 +27,7 @@ from os.path import expanduser
 #todo: validate-blueprint
 #todo: get execution details
 #todo: cancel execution
+#todo: get outputs of deployment
 class Score(object):
     
     def __init__(self, url, org_url=None, token=None, version='5.7', verify=True):

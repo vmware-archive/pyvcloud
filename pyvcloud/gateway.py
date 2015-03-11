@@ -321,12 +321,56 @@ class Gateway(object):
         if len(vpn_service.Tunnel) == len(new_tunnels):
             return False
         vpn_service.Tunnel = new_tunnels
+        return True
         
-    def add_networks_to_vpn_tunnel(self, tunnel, local_networks=None, peer_networks=None):
-        pass        
+    def add_network_to_vpn_tunnel(self, name, local_network_name=None, peer_network=None):
+        vpn_service = self.get_vpn_service()
+        if vpn_service is None or vpn_service.Endpoint is None:
+            return False
+        for tunnel in vpn_service.Tunnel:
+            if tunnel.get_Name() == name:
+                if local_network_name is not None:
+                    interfaces = self.get_interfaces('internal')
+                    gateway_interface = None
+                    for interface in interfaces: 
+                        if local_network_name == interface.get_Name():
+                            gateway_interface = interface
+                            break
+                    local_subnet = IpsecVpnSubnetType()
+                    local_subnet.set_Name(gateway_interface.get_Name())
+                    local_subnet.set_Gateway(gateway_interface.get_SubnetParticipation()[0].get_Gateway())
+                    local_subnet.set_Netmask(gateway_interface.get_SubnetParticipation()[0].get_Netmask())
+                    tunnel.add_LocalSubnet(local_subnet)         
+                if peer_network is not None:
+                    peer_subnet = IpsecVpnSubnetType()
+                    peer_subnet.set_Name(peer_network)
+                    pn = IPNetwork(peer_network)
+                    peer_subnet.set_Gateway(str(pn.ip))
+                    peer_subnet.set_Netmask(str(pn.netmask))
+                    tunnel.add_PeerSubnet(peer_subnet)
+                return True
+        return False
     
-    def delete_networks_from_vpn_tunnel(self, tunnel, local_networks=None, peer_networks=None):
-        pass
+    def delete_network_from_vpn_tunnel(self, name, local_network_name=None, peer_network=None):
+        vpn_service = self.get_vpn_service()
+        if vpn_service is None or vpn_service.Endpoint is None:
+            return False
+        for tunnel in vpn_service.Tunnel:
+            if tunnel.get_Name() == name:
+                if local_network_name is not None:
+                    new_subnets = []
+                    for subnet in tunnel.get_LocalSubnet():
+                        if subnet.get_Name() != local_network_name:
+                            new_subnets.append(subnet)
+                    tunnel.set_LocalSubnet(new_subnets)
+                if peer_network is not None:
+                    new_subnets = []
+                    for subnet in tunnel.get_PeerSubnet():
+                        if subnet.get_Name() != peer_network:
+                            new_subnets.append(subnet)
+                    tunnel.set_PeerSubnet(new_subnets)                    
+                return True
+        return False
 
     def add_vpn_endpoint(self, network_name, public_ip):
         vpn_service = self.get_vpn_service()
@@ -360,7 +404,7 @@ class Gateway(object):
         if len(vpn_service.Endpoint) == len(new_endpoints):
             return False
         vpn_service.Endpoint = new_endpoints
-
+        
     def get_syslog_conf(self):
         headers = self.headers
         headers['Accept']='application/*+xml;version=5.11'

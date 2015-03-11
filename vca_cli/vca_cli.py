@@ -809,14 +809,14 @@ def dhcp(ctx, operation):
 #todo: set endpoint <external-network> <external-local-ip>
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[list | enable | disable | add-endpoint | del-endpoint | add-tunnel | del-tunnel]', type=click.Choice(['list', 'enable', 'disable', 'add-endpoint', 'del-endpoint', 'add-tunnel', 'del-tunnel']))
+@click.argument('operation', default=default_operation, metavar='[list | enable | disable | add-endpoint | del-endpoint | add-tunnel | del-tunnel | add-network | del-network]', type=click.Choice(['list', 'enable', 'disable', 'add-endpoint', 'del-endpoint', 'add-tunnel', 'del-tunnel', 'add-network', 'del-network']))
 @click.option('-n', '--network', 'network_name', default='', metavar='<network>', help='Network name')
 @click.option('-p', '--public_ip', default='', metavar='<ip_address>', help='Public IP address')
 @click.option('-t', '--tunnel', default='', metavar='<tunnel>', help='Tunnel name')
 @click.option('-i', '--local_ip', default='', metavar='<ip_address>', help='Local IP address')
-@click.option('-w', '--local_network', default='', metavar='<network>', help='Local network')
+@click.option('-w', '--local_network', default=None, metavar='<network>', help='Local network')
 @click.option('-e', '--peer_ip', default='', metavar='<ip_address>', help='Peer IP address')
-@click.option('-k', '--peer_network', default='', metavar='<network>', help='Peer network')
+@click.option('-k', '--peer_network', default=None, metavar='<network>', help='Peer network')
 @click.option('-s', '--secret', default='', metavar='<secret>', help='Shared secret')
 def vpn(ctx, operation, network_name, public_ip, local_ip, local_network, peer_ip, peer_network, tunnel, secret):
     """Operations with Edge Gateway VPN"""
@@ -859,6 +859,22 @@ def vpn(ctx, operation, network_name, public_ip, local_ip, local_network, peer_i
         if result is False:
             print_error("can't delete tunnel on the edge gateway", ctx)
             return
+        task = gateways[0].save_services_configuration()        
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)        
+    elif 'add-network' == operation:
+        result = gateways[0].add_network_to_vpn_tunnel(tunnel, local_network, peer_network)
+        if result is False:
+            print_error("can't add network to tunnel on the edge gateway", ctx)
+            return        
+        task = gateways[0].save_services_configuration()        
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
+    elif 'del-network' == operation:
+        result = gateways[0].delete_network_from_vpn_tunnel(tunnel, local_network, peer_network)
+        if result is False:
+            print_error("can't delete network from tunnel on the edge gateway", ctx)
+            return        
         task = gateways[0].save_services_configuration()        
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
         else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)        
@@ -1183,6 +1199,14 @@ def example(ctx):
         "vca vpn add-tunnel --tunnel t1 --local_ip 107.189.123.101 --local_network routed-116 --peer_ip 192.240.158.15 --peer_network 192.168.110/24 --secret P8s3P...7v"])
     id+=1; table.append([id, 'delete VPN tunnel',
         "vca vpn del-tunnel --tunnel t1"])        
+    id+=1; table.append([id, 'add local network to VPN tunnel',
+        "vca vpn add-network --tunnel t1 --local_network routed-115"])
+    id+=1; table.append([id, 'add peer network to VPN tunnel',
+        "vca vpn add-network --tunnel t1 --peer_network 192.168.115.0/24"])
+    id+=1; table.append([id, 'delete local network from VPN tunnel',
+        "vca vpn del-network --tunnel t1 --local_network routed-115"])
+    id+=1; table.append([id, 'delete peer network from VPN tunnel',
+        "vca vpn del-network --tunnel t1 --peer_network 192.168.115.0/24"])
     id+=1; table.append([id, 'show the REST calls in the command', 
         'vca --debug vm'])
     id+=1; table.append([id, 'show version', 
@@ -1497,7 +1521,7 @@ def print_networks(ctx, item_list):
         return
     headers = ['Name', 'Mode', 'Gateway', 'Netmask', 
     # 'DHCP', 'DHCP IP Range',
-    'POOL IP Range']
+    'Pool IP Range']
     table = []
     for item in item_list:
         dhcp_enabled = 'Off'
@@ -1596,8 +1620,8 @@ def print_vpn_configuration(ctx, gateway):
             str(local_networks).strip('[]').replace("'", ""), 
             tunnel.get_PeerIpAddress(), 
             str(peer_networks).strip('[]').replace("'", ""), 
-            'True' if tunnel.get_IsEnabled() == 1 else 'False', 
-            'True' if tunnel.get_IsOperational() == 1 else 'False'])
+            'Yes' if tunnel.get_IsEnabled() == 1 else 'No', 
+            'Yes' if tunnel.get_IsOperational() == 1 else 'No'])
     print_table('VPN Tunnels', 'vpn-tunnels', headers, table, ctx)
 
 def print_dhcp_configuration(ctx, gateway):
@@ -1609,7 +1633,7 @@ def print_dhcp_configuration(ctx, gateway):
             pool.get_Network().get_name(), 
             pool.get_LowIpAddress(),
             pool.get_HighIpAddress(),
-            'True' if pool.get_IsEnabled() == 1 else 'False',
+            'Yes' if pool.get_IsEnabled() == 1 else 'No',
             pool.get_DefaultLeaseTime(),
             pool.get_MaxLeaseTime()
         ])

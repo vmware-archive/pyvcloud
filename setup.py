@@ -16,7 +16,7 @@ from setuptools import setup
 
 setup(
     name='vca-cli',
-    version='8',
+    version='9',
     description='VMware vCloud CLI',
     url='https://github.com/vmware/vca-cli',
     author='VMware, Inc.',
@@ -27,7 +27,7 @@ setup(
         # Colorama is only required for Windows.
         'colorama',
         'cryptography',
-        'pyvcloud == 10'
+        'pyvcloud == 11'
     ],
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[

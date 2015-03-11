@@ -784,13 +784,41 @@ def firewall(ctx, operation):
         print_message('not implemented', ctx)                
     else:
         print_message('not implemented', ctx)
+
+#todo: consider selecting a specific edge, a vdc can have more than one...?
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[list]', type=click.Choice(['list']))
+def dhcp(ctx, operation):
+    """Operations with Edge Gateway DHCP Service"""
+    vca = _getVCA_vcloud_session(ctx)
+    vdc = ctx.obj['vdc'] 
+    if not vca:
+        print_error('User not authenticated or token expired', ctx)
+        return
+    gateways = vca.get_gateways(vdc)
+    if len(gateways) != 1:
+        ctx.obj['response']=vca.response; print_error('Gateway not found', ctx)
+        return
+    if 'list' == operation:
+        print_dhcp_configuration(ctx, gateways[0])
+    else:
+        print_message('not implemented', ctx)
         
 #todo: consider selecting a specific edge, a vdc can have more than one...?
 #todo: set endpoint <external-network> <external-local-ip>
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[list | enable | disable]', type=click.Choice(['list', 'enable', 'disable']))
-def vpn(ctx, operation):
+@click.argument('operation', default=default_operation, metavar='[list | enable | disable | add-endpoint | del-endpoint | add-tunnel | del-tunnel]', type=click.Choice(['list', 'enable', 'disable', 'add-endpoint', 'del-endpoint', 'add-tunnel', 'del-tunnel']))
+@click.option('-n', '--network', 'network_name', default='', metavar='<network>', help='Network name')
+@click.option('-p', '--public_ip', default='', metavar='<ip_address>', help='Public IP address')
+@click.option('-t', '--tunnel', default='', metavar='<tunnel>', help='Tunnel name')
+@click.option('-i', '--local_ip', default='', metavar='<ip_address>', help='Local IP address')
+@click.option('-w', '--local_network', default='', metavar='<network>', help='Local network')
+@click.option('-e', '--peer_ip', default='', metavar='<ip_address>', help='Peer IP address')
+@click.option('-k', '--peer_network', default='', metavar='<network>', help='Peer network')
+@click.option('-s', '--secret', default='', metavar='<secret>', help='Shared secret')
+def vpn(ctx, operation, network_name, public_ip, local_ip, local_network, peer_ip, peer_network, tunnel, secret):
     """Operations with Edge Gateway VPN"""
     vca = _getVCA_vcloud_session(ctx)
     vdc = ctx.obj['vdc'] 
@@ -805,9 +833,35 @@ def vpn(ctx, operation):
         gateways[0].enable_vpn('enable'==operation)
         task = gateways[0].save_services_configuration()
         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)                                
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
     elif 'list' == operation:
-        print_vpn_configuration(ctx, gateways[0])                
+        print_vpn_configuration(ctx, gateways[0])                        
+    elif 'add-endpoint' == operation:
+        gateways[0].add_vpn_endpoint(network_name, public_ip)
+        task = gateways[0].save_services_configuration()        
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
+    elif 'del-endpoint' == operation:
+        result = gateways[0].del_vpn_endpoint(network_name, public_ip)
+        if result is False:
+            print_error("can't delete endpoint on the edge gateway", ctx)
+            return
+        task = gateways[0].save_services_configuration()        
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
+    elif 'add-tunnel' == operation:
+        gateways[0].add_vpn_tunnel(tunnel, local_ip, local_network, peer_ip, peer_network, secret)
+        task = gateways[0].save_services_configuration()        
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
+    elif 'del-tunnel' == operation:
+        result = gateways[0].delete_vpn_tunnel(tunnel)
+        if result is False:
+            print_error("can't delete tunnel on the edge gateway", ctx)
+            return
+        task = gateways[0].save_services_configuration()        
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)        
     else:
         print_message('not implemented', ctx)        
 
@@ -815,7 +869,14 @@ def vpn(ctx, operation):
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[info | list | add | delete]', type=click.Choice(['info', 'list', 'add', 'delete']))
 @click.option('-n', '--network', 'network_name', default='', metavar='<network>', help='Network name')
-def network(ctx, network_name, operation):
+@click.option('-g', '--gateway', default='', metavar='<gateway>', help='Edge Gateway Id')
+@click.option('-g', '--gateway_ip', default='', metavar='<gateway-ip>', help='Gateway IP')
+@click.option('-m', '--netmask', default='', metavar='<netmask>', help='Network mask')
+@click.option('-1', '--dns1', default='', metavar='<dns-1>', help='Primary DNS')
+@click.option('-2', '--dns2', default='', metavar='<dns-2>', help='Secondary DNS')
+@click.option('-s', '--suffix', 'dns_suffix', default='', metavar='<suffix>', help='DNS suffix')
+@click.option('-p', '--pool', default='', metavar='<pool-range>', help='Static IP pool')
+def network(ctx, network_name, operation, gateway, gateway_ip, netmask, dns1, dns2, dns_suffix, pool):
     """Operations with Networks"""
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
@@ -827,7 +888,14 @@ def network(ctx, network_name, operation):
         result = vca.delete_vdc_network(ctx.obj['vdc'], network_name)
         if result[0]:
             display_progress(result[1], ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: ctx.obj['response']=vca.response; print_error("can't delete the network, " + result[1], ctx)                             
+        else: ctx.obj['response']=vca.response; print_error("can't delete the network, " + result[1], ctx)
+    elif 'add' == operation:
+        start_address = pool.split('-')[0]
+        end_address = pool.split('-')[1]
+        result = vca.create_vdc_network(ctx.obj['vdc'], network_name, gateway, start_address, end_address, gateway_ip, netmask, dns1, dns2, dns_suffix)
+        if result[0]:
+            display_progress(result[1], ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=vca.response; print_error("can't add the network, " + result[1], ctx)
     else:
         print_message('not implemented', ctx)
 
@@ -1071,6 +1139,12 @@ def example(ctx):
         'vca -j vm'])
     id+=1; table.append([id, 'retrieve the IP of a vm', 
         "IP=`vca -j vm -a ubu | jq -r '.vms[0].IPs[0]'` && echo $IP"])
+    id+=1; table.append([id, 'list networks', 
+        'vca network'])
+    id+=1; table.append([id, 'add network', 
+        'vca network add --network network_name --gateway gateway_name --gateway_ip 192.168.117.1 --netmask 255.255.255.0 --dns1 192.168.117.1 --pool 192.168.117.2-192.168.117.100'])
+    id+=1; table.append([id, 'delete network', 
+        'vca network delete --network network_name'])
     id+=1; table.append([id, 'list edge gateways', 
         'vca gateway'])
     id+=1; table.append([id, 'get details of edge gateways', 
@@ -1095,10 +1169,20 @@ def example(ctx):
         "vca fw enable"])
     id+=1; table.append([id, 'disable edge gateway firewall',
         "vca fw disable"])
+    id+=1; table.append([id, 'list edge gateway VPN config', 
+        'vca vpn'])        
     id+=1; table.append([id, 'enable edge gateway VPN',
         "vca vpn enable"])
     id+=1; table.append([id, 'disable edge gateway VPN',
         "vca vpn disable"])
+    id+=1; table.append([id, 'add VPN endpoint',
+        "vca vpn add-endpoint --network d1p10-ext --public_ip 107.189.123.101"])
+    id+=1; table.append([id, 'delete VPN endpoint',
+        "vca vpn del-endpoint --network d1p10-ext --public_ip 107.189.123.101"])
+    id+=1; table.append([id, 'add VPN tunnel',
+        "vca vpn add-tunnel --tunnel t1 --local_ip 107.189.123.101 --local_network routed-116 --peer_ip 192.240.158.15 --peer_network 192.168.110/24 --secret P8s3P...7v"])
+    id+=1; table.append([id, 'delete VPN tunnel',
+        "vca vpn del-tunnel --tunnel t1"])        
     id+=1; table.append([id, 'show the REST calls in the command', 
         'vca --debug vm'])
     id+=1; table.append([id, 'show version', 
@@ -1352,9 +1436,12 @@ def print_gateways(ctx, gateways):
         for gateway in gateways: gateway.me.export(sys.stdout, 0)
         return
     #todo add VPN and LB services
-    headers = ['Name', 'External IPs', 'DHCP', 'Firewall', 'NAT', 'VPN', 'Routed Networks', 'Syslog']
+    headers = ['Name', 'External IPs', 'DHCP', 'Firewall', 'NAT', 'VPN', 'Routed Networks', 'Syslog', 'Uplinks']
     table = []
     for gateway in gateways:
+        interfaces = gateway.get_interfaces('uplink')
+        ext_interface_table = []
+        for interface in interfaces: ext_interface_table.append(interface.get_Name())
         interfaces = gateway.get_interfaces('internal')
         interface_table = []
         for interface in interfaces: interface_table.append(interface.get_Name())
@@ -1364,13 +1451,14 @@ def print_gateways(ctx, gateways):
             public_ips_value = "%d IPs (list = 'vca gateway -g %s info')" % (len(public_ips), gateway.get_name())
         table.append([
             gateway.get_name(), 
-            public_ips_value, 
+            str(public_ips_value).strip('[]').replace("'", ""), 
             'On' if gateway.is_dhcp_enabled() else 'Off', 
             'On' if gateway.is_fw_enabled() else 'Off', 
             'On' if gateway.is_nat_enabled() else 'Off', 
             'On' if gateway.is_vpn_enabled() else 'Off',
-            interface_table,
-            gateway.get_syslog_conf()
+            str(interface_table).strip('[]').replace("'", ""),
+            gateway.get_syslog_conf(),
+            str(ext_interface_table).strip('[]').replace("'", "")
         ])
     # sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
     print_table("Edge Gateways:", 'gateways', headers, table, ctx)                
@@ -1395,7 +1483,11 @@ def print_gateway_details(ctx, gateway):
         table.append(['External IPs', str(public_ips[0:6]).strip('[]').replace("'", "")])    
         table.append(['External IPs', str(public_ips[6:]).strip('[]').replace("'", "")])    
     else:
-        table.append(['External IPs', str(public_ips).strip('[]').replace("'", "")])    
+        table.append(['External IPs', str(public_ips).strip('[]').replace("'", "")])
+    interfaces = gateway.get_interfaces('uplink')
+    ext_interface_table = []
+    for interface in interfaces: ext_interface_table.append(interface.get_Name())
+    table.append(['Uplinks', str(ext_interface_table).strip('[]').replace("'", "")])
         
     print_table("Gateway '%s' details:" % gateway.me.name, 'gateway', headers, table, ctx)
     
@@ -1403,10 +1495,39 @@ def print_networks(ctx, item_list):
     if ctx.obj['xml_output']:
         for item in item_list: item.export(sys.stdout, 0)
         return
-    headers = ['Name', 'Mode', 'DHCP Service', 'DHCP IP Range', 'POOL IP Range']
+    headers = ['Name', 'Mode', 'Gateway', 'Netmask', 
+    # 'DHCP', 'DHCP IP Range',
+    'POOL IP Range']
     table = []
     for item in item_list:
-        table.append([item.get_name(), item.get_Configuration().get_FenceMode(), '', '', ''])
+        dhcp_enabled = 'Off'
+        dhcp_pools = []
+        if item.get_ServiceConfig() and len(item.get_ServiceConfig().get_NetworkService())>0:
+            for service in item.get_ServiceConfig().get_NetworkService():
+                if service.original_tagname_ == 'GatewayDhcpService':
+                    dhcp_enabled = 'On' if service.get_IsEnabled() else 'Off'
+                    for p in service.get_Pool():
+                        if p.get_IsEnabled():
+                            dhcp_pools.append(p.get_LowIpAddress() + '-' + p.get_HighIpAddress())
+        config = item.get_Configuration()
+        gateways = []
+        netmasks = []
+        ranges = []
+        for scope in config.get_IpScopes().get_IpScope():
+            gateways.append(scope.get_Gateway())
+            netmasks.append(scope.get_Netmask())
+            if scope.get_IpRanges() is not None:
+                for r in scope.get_IpRanges().get_IpRange():
+                    ranges.append(r.get_StartAddress() + '-' + r.get_EndAddress())
+        table.append([
+            item.get_name(), 
+            config.get_FenceMode(), 
+            str(gateways).strip('[]').replace("'", ""), 
+            str(netmasks).strip('[]').replace("'", ""), 
+            # 'N/A',#dhcp_enabled,
+            # 'N/A',#str(dhcp_pools).strip('[]').replace("'", ""),
+            str(ranges).strip('[]').replace("'", "")
+        ])
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
     print_table("Networks available in Virtual Data Center '%s':" % (ctx.obj['vdc']), 'networks', headers, sorted_table, ctx)        
     
@@ -1471,12 +1592,29 @@ def print_vpn_configuration(ctx, gateway):
         for network in tunnel.get_PeerSubnet():
             peer_networks.append(network.get_Name())
         table.append([tunnel.get_Name(), 
-            tunnel.get_LocalIpAddress(), local_networks, 
-            tunnel.get_PeerIpAddress(), peer_networks, 
+            tunnel.get_LocalIpAddress(), 
+            str(local_networks).strip('[]').replace("'", ""), 
+            tunnel.get_PeerIpAddress(), 
+            str(peer_networks).strip('[]').replace("'", ""), 
             'True' if tunnel.get_IsEnabled() == 1 else 'False', 
             'True' if tunnel.get_IsOperational() == 1 else 'False'])
     print_table('VPN Tunnels', 'vpn-tunnels', headers, table, ctx)
-        
+
+def print_dhcp_configuration(ctx, gateway):
+    pools = gateway.get_dhcp_pools()
+    headers = ['Network', 'IP Range From', 'To', 'Enabled', 'Default lease', 'Max Lease']
+    table = []
+    for pool in pools:
+        table.append([
+            pool.get_Network().get_name(), 
+            pool.get_LowIpAddress(),
+            pool.get_HighIpAddress(),
+            'True' if pool.get_IsEnabled() == 1 else 'False',
+            pool.get_DefaultLeaseTime(),
+            pool.get_MaxLeaseTime()
+        ])
+    print_table('DHCP Service', 'dhcp', headers, table, ctx)
+            
 def print_catalogs(ctx, catalogs):
     result = []
     for catalog in catalogs:

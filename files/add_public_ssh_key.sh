@@ -1,4 +1,6 @@
 #!/bin/bash 
+if [ x$1=x"precustomization" ]; 
+then 
 
 mkdir -p /home/ubuntu/.ssh
 
@@ -10,3 +12,4 @@ chown ubuntu.ubuntu /home/ubuntu/.ssh/authorized_keys
 chmod go-rwx /home/ubuntu/.ssh
 chmod go-rwx /home/ubuntu/.ssh/authorized_keys
 
+fi 

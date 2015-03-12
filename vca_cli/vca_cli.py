@@ -39,6 +39,8 @@ from pyvcloud.helper import CommonUtils
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from cryptography.fernet import Fernet
 
+#todo: vca status after vca logout fails in line 213
+#todo: vca status fails if ~/.vcarc is not found
 #todo: upload/download ovf to/from catalog
 #todo: beautify array outputs
 #todo: score display output
@@ -709,10 +711,10 @@ def catalog(ctx, operation, vdc, catalog_name, item_name, description):
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[list | add | delete]', type=click.Choice(['list', 'add', 'delete']))
 @click.option('--type', 'rule_type', default='DNAT', metavar='<type>', help='Rule type', type=click.Choice(['DNAT', 'SNAT']))
-@click.option('--original_ip', default='', metavar='<ip>', help='Original IP')
-@click.option('--original_port', default='any', metavar='<port>', help='Original Port')
-@click.option('--translated_ip', default='', metavar='<ip>', help='Translated IP')
-@click.option('--translated_port', default='any', metavar='<port>', help='Translated Port')
+@click.option('--original-ip', 'original_ip', default='', metavar='<ip>', help='Original IP')
+@click.option('--original-port', 'original_port', default='any', metavar='<port>', help='Original Port')
+@click.option('--translated-ip', 'translated_ip', default='', metavar='<ip>', help='Translated IP')
+@click.option('--translated-port', 'translated_port', default='any', metavar='<port>', help='Translated Port')
 @click.option('--protocol', default='any', metavar='<protocol>', help='Protocol', type=click.Choice(['any', 'tcp', 'udp']))
 @click.option('-f', '--file', 'nat_rules_file', default=None, metavar='<nat_rules_file>', help='NAT rules file', type=click.File('r'))
 @click.option('--all', is_flag=True, default=False, help='Delete all rules')
@@ -811,12 +813,12 @@ def dhcp(ctx, operation):
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[list | enable | disable | add-endpoint | del-endpoint | add-tunnel | del-tunnel | add-network | del-network]', type=click.Choice(['list', 'enable', 'disable', 'add-endpoint', 'del-endpoint', 'add-tunnel', 'del-tunnel', 'add-network', 'del-network']))
 @click.option('-n', '--network', 'network_name', default='', metavar='<network>', help='Network name')
-@click.option('-p', '--public_ip', default='', metavar='<ip_address>', help='Public IP address')
+@click.option('-p', '--public-ip', 'public_ip', default='', metavar='<ip_address>', help='Public IP address')
 @click.option('-t', '--tunnel', default='', metavar='<tunnel>', help='Tunnel name')
-@click.option('-i', '--local_ip', default='', metavar='<ip_address>', help='Local IP address')
-@click.option('-w', '--local_network', default=None, metavar='<network>', help='Local network')
-@click.option('-e', '--peer_ip', default='', metavar='<ip_address>', help='Peer IP address')
-@click.option('-k', '--peer_network', default=None, metavar='<network>', help='Peer network')
+@click.option('-i', '--local-ip', 'local_ip', default='', metavar='<ip_address>', help='Local IP address')
+@click.option('-w', '--local-network', 'local_network', default=None, metavar='<network>', help='Local network')
+@click.option('-e', '--peer-ip', 'peer_ip', default='', metavar='<ip_address>', help='Peer IP address')
+@click.option('-k', '--peer-network', 'peer_network', default=None, metavar='<network>', help='Peer network')
 @click.option('-s', '--secret', default='', metavar='<secret>', help='Shared secret')
 def vpn(ctx, operation, network_name, public_ip, local_ip, local_network, peer_ip, peer_network, tunnel, secret):
     """Operations with Edge Gateway VPN"""
@@ -883,10 +885,10 @@ def vpn(ctx, operation, network_name, public_ip, local_ip, local_network, peer_i
 
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[info | list | add | delete]', type=click.Choice(['info', 'list', 'add', 'delete']))
+@click.argument('operation', default=default_operation, metavar='[info | list | create | delete]', type=click.Choice(['info', 'list', 'create', 'delete']))
 @click.option('-n', '--network', 'network_name', default='', metavar='<network>', help='Network name')
 @click.option('-g', '--gateway', default='', metavar='<gateway>', help='Edge Gateway Id')
-@click.option('-g', '--gateway_ip', default='', metavar='<gateway-ip>', help='Gateway IP')
+@click.option('-g', '--gateway-ip', 'gateway_ip', default='', metavar='<gateway-ip>', help='Gateway IP')
 @click.option('-m', '--netmask', default='', metavar='<netmask>', help='Network mask')
 @click.option('-1', '--dns1', default='', metavar='<dns-1>', help='Primary DNS')
 @click.option('-2', '--dns2', default='', metavar='<dns-2>', help='Secondary DNS')
@@ -905,13 +907,13 @@ def network(ctx, network_name, operation, gateway, gateway_ip, netmask, dns1, dn
         if result[0]:
             display_progress(result[1], ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
         else: ctx.obj['response']=vca.response; print_error("can't delete the network, " + result[1], ctx)
-    elif 'add' == operation:
+    elif 'create' == operation:
         start_address = pool.split('-')[0]
         end_address = pool.split('-')[1]
         result = vca.create_vdc_network(ctx.obj['vdc'], network_name, gateway, start_address, end_address, gateway_ip, netmask, dns1, dns2, dns_suffix)
         if result[0]:
             display_progress(result[1], ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: ctx.obj['response']=vca.response; print_error("can't add the network, " + result[1], ctx)
+        else: ctx.obj['response']=vca.response; print_error("can't create the network, " + result[1], ctx)
     else:
         print_message('not implemented', ctx)
 
@@ -1157,8 +1159,8 @@ def example(ctx):
         "IP=`vca -j vm -a ubu | jq -r '.vms[0].IPs[0]'` && echo $IP"])
     id+=1; table.append([id, 'list networks', 
         'vca network'])
-    id+=1; table.append([id, 'add network', 
-        'vca network add --network network_name --gateway gateway_name --gateway_ip 192.168.117.1 --netmask 255.255.255.0 --dns1 192.168.117.1 --pool 192.168.117.2-192.168.117.100'])
+    id+=1; table.append([id, 'create network', 
+        'vca network create --network network_name --gateway gateway_name --gateway_ip 192.168.117.1 --netmask 255.255.255.0 --dns1 192.168.117.1 --pool 192.168.117.2-192.168.117.100'])
     id+=1; table.append([id, 'delete network', 
         'vca network delete --network network_name'])
     id+=1; table.append([id, 'list edge gateways', 
@@ -1172,13 +1174,13 @@ def example(ctx):
     id+=1; table.append([id, 'list edge gateway NAT rules', 
         'vca nat'])
     id+=1; table.append([id, 'add edge gateway DNAT rule',
-        "vca nat add --type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.2 --translated_port 22 --protocol tcp"])
+        "vca nat add --type DNAT --original-ip 107.189.93.162 --original-port 22 --translated-ip 192.168.109.2 --translated-port 22 --protocol tcp"])
     id+=1; table.append([id, 'add edge gateway SNAT rule',
-        "vca nat add --type SNAT --original_ip 192.168.109.0/24 --translated_ip 107.189.93.162"])
+        "vca nat add --type SNAT --original-ip 192.168.109.0/24 --translated_ip 107.189.93.162"])
     id+=1; table.append([id, 'add edge gateway rules from file',
         "vca nat add --file natrules.yaml"])        
     id+=1; table.append([id, 'delete edge gateway NAT rule',
-        "vca nat delete --type DNAT --original_ip 107.189.93.162 --original_port 22 --translated_ip 192.168.109.4 --translated_port 22 --protocol tcp"])
+        "vca nat delete --type DNAT --original-ip 107.189.93.162 --original-port 22 --translated-ip 192.168.109.4 --translated-port 22 --protocol tcp"])
     id+=1; table.append([id, 'delete all edge gateway NAT rules',
         "vca nat delete --all"])
     id+=1; table.append([id, 'enable edge gateway firewall',
@@ -1196,17 +1198,17 @@ def example(ctx):
     id+=1; table.append([id, 'delete VPN endpoint',
         "vca vpn del-endpoint --network d1p10-ext --public_ip 107.189.123.101"])
     id+=1; table.append([id, 'add VPN tunnel',
-        "vca vpn add-tunnel --tunnel t1 --local_ip 107.189.123.101 --local_network routed-116 --peer_ip 192.240.158.15 --peer_network 192.168.110/24 --secret P8s3P...7v"])
+        "vca vpn add-tunnel --tunnel t1 --local-ip 107.189.123.101 --local-network routed-116 --peer-ip 192.240.158.15 --peer-network 192.168.110/24 --secret P8s3P...7v"])
     id+=1; table.append([id, 'delete VPN tunnel',
         "vca vpn del-tunnel --tunnel t1"])        
     id+=1; table.append([id, 'add local network to VPN tunnel',
-        "vca vpn add-network --tunnel t1 --local_network routed-115"])
+        "vca vpn add-network --tunnel t1 --local-network routed-115"])
     id+=1; table.append([id, 'add peer network to VPN tunnel',
-        "vca vpn add-network --tunnel t1 --peer_network 192.168.115.0/24"])
+        "vca vpn add-network --tunnel t1 --peer-network 192.168.115.0/24"])
     id+=1; table.append([id, 'delete local network from VPN tunnel',
-        "vca vpn del-network --tunnel t1 --local_network routed-115"])
+        "vca vpn del-network --tunnel t1 --local-network routed-115"])
     id+=1; table.append([id, 'delete peer network from VPN tunnel',
-        "vca vpn del-network --tunnel t1 --peer_network 192.168.115.0/24"])
+        "vca vpn del-network --tunnel t1 --peer-network 192.168.115.0/24"])
     id+=1; table.append([id, 'show the REST calls in the command', 
         'vca --debug vm'])
     id+=1; table.append([id, 'show version', 

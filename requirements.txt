@@ -6,3 +6,4 @@ wsgiref==0.1.2
 xmltodict==0.9.0
 lxml==3.4.1
 cloudify==3.1
+netaddr==0.7.13

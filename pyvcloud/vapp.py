@@ -24,6 +24,28 @@ from iptools import ipv4, IpRange
 from tabulate import tabulate
 from pyvcloud.helper import CommonUtils
 
+
+VCLOUD_STATUS_MAP = {
+    -1: "Could not be created",
+    0: "Unresolved",
+    1: "Resolved",
+    2: "Deployed",
+    3: "Suspended",
+    4: "Powered on",
+    5: "Waiting for user input",
+    6: "Unknown state",
+    7: "Unrecognized state",
+    8: "Powered off",
+    9: "Inconsistent state",
+    10: "Children do not all have the same status",
+    11: "Upload initiated, OVF descriptor pending",
+    12: "Upload initiated, copying contents",
+    13: "Upload initiated , disk contents pending",
+    14: "Upload has been quarantined",
+    15: "Upload quarantine period has expired"
+    }
+
+
 class VAPP(object):
 
     def __init__(self, vApp, headers, verify):
@@ -35,7 +57,7 @@ class VAPP(object):
     @property
     def name(self):
         return self.me.get_name()
-        
+
     def execute(self, operation, http, body=None, targetVM=None):
         if targetVM:
             link = filter(lambda link: link.get_rel() == operation, targetVM.get_Link())
@@ -60,7 +82,7 @@ class VAPP(object):
                 return taskType.parseString(self.response.content, True)
             else:
                 return False
-        
+
     def deploy(self, powerOn=True):
         powerOnValue = 'true' if powerOn else 'false'
         deployVAppParams = vcloudType.DeployVAppParamsType()
@@ -119,7 +141,7 @@ class VAPP(object):
     def delete_snapshot(self, args):
         pass
         # self.execute("snapshot:removeAll", args["--blocking"], "can't have its snapshot deleted", "post", args["--json"])
-        
+
     @staticmethod
     def create_networkConfigSection(network_name, network_href, fence_mode):
         parentNetwork = vcloudType.ReferenceType(href=network_href)
@@ -135,7 +157,7 @@ class VAPP(object):
         networkConfigSection.add_NetworkConfig(networkConfig)
         networkConfigSection.set_Info(info)
         return networkConfigSection
-        
+
     def connect_vms(self, network_name, connection_index,
                     connections_primary_index=None, ip_allocation_mode='DHCP',
                     mac_address=None, ip_address=None):
@@ -153,7 +175,7 @@ class VAPP(object):
                     connections_primary_index)
                 output = StringIO()
                 networkConnectionSection.export(output,
-                    0, 
+                    0,
                     name_ = 'NetworkConnectionSection',
                     namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
                     pretty_print = False)
@@ -161,7 +183,7 @@ class VAPP(object):
                 self.response = requests.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify)
                 if self.response.status_code == requests.codes.accepted:
                     return taskType.parseString(self.response.content, True)
-                    
+
     def disconnect_vms(self, network_name):
         children = self.me.get_Children()
         if children:
@@ -186,7 +208,7 @@ class VAPP(object):
                 # self.response = requests.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify)
                 # if self.response.status_code == requests.codes.accepted:
                 #     return taskType.parseString(self.response.content, True)
-                                        
+
     def connect_to_network(self, network_name, network_href, fence_mode='bridged'):
         vApp_NetworkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
         link = [link for link in vApp_NetworkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]
@@ -200,7 +222,7 @@ class VAPP(object):
             networkConfigSection.add_NetworkConfig(networkConfig)
         output = StringIO()
         networkConfigSection.export(output,
-            0, 
+            0,
             name_ = 'NetworkConfigSection',
             namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
             pretty_print = False)
@@ -215,7 +237,7 @@ class VAPP(object):
         link = [link for link in networkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]
         networkConfigSection.NetworkConfig[:] = []
         output = StringIO()
-        networkConfigSection.export(output, 
+        networkConfigSection.export(output,
             0,
             name_ = 'NetworkConfigSection',
             namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
@@ -237,7 +259,7 @@ class VAPP(object):
         if found != -1:
             networkConfigSection.NetworkConfig.pop(found)
             output = StringIO()
-            networkConfigSection.export(output, 
+            networkConfigSection.export(output,
                 0,
                 name_ = 'NetworkConfigSection',
                 namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
@@ -248,10 +270,10 @@ class VAPP(object):
             self.response = requests.put(link.get_href(), data=body, headers=self.headers, verify=self.verify)
             if self.response.status_code == requests.codes.accepted:
                 return taskType.parseString(self.response.content, True)
-            
+
     def attach_disk_to_vm(self, vm_name, disk_ref):
         children = self.me.get_Children()
-        if children:            
+        if children:
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
             if len(vms) ==1:
                 body = """
@@ -264,7 +286,7 @@ class VAPP(object):
 
     def detach_disk_from_vm(self, vm_name, disk_ref):
         children = self.me.get_Children()
-        if children:            
+        if children:
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
             if len(vms) ==1:
                 body = """
@@ -273,27 +295,27 @@ class VAPP(object):
                          href="%s" />
                  </DiskAttachOrDetachParams>
                 """ % disk_ref.href
-                return self.execute("disk:detach", True, "can't be detached", "post", True, body=body, targetVM=vms[0])        
+                return self.execute("disk:detach", True, "can't be detached", "post", True, body=body, targetVM=vms[0])
 
     def vm_media(self, vm_name, media, operation):
         children = self.me.get_Children()
-        if children:            
+        if children:
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
             if len(vms) ==1:
                 body = """
                  <MediaInsertOrEjectParams xmlns="http://www.vmware.com/vcloud/v1.5">
-                     <Media 
+                     <Media
                        type="%s"
                        name="%s"
                        href="%s" />
                  </MediaInsertOrEjectParams>
                 """ % (media.get('name'), media.get('id'), media.get('href'))
-                return self.execute("media:%sMedia" % operation, "post", body=body, targetVM=vms[0])        
-                
+                return self.execute("media:%sMedia" % operation, "post", body=body, targetVM=vms[0])
+
     def customize_guest_os(self, vm_name, customization_script=None,
                            computer_name=None, admin_password=None):
         children = self.me.get_Children()
-        if children:            
+        if children:
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
             if len(vms) == 1:
                 sections = vms[0].get_Section()
@@ -314,14 +336,14 @@ class VAPP(object):
                     customization_section.set_ResetPasswordRequired(False)
                     customization_section.set_AdminPassword(admin_password)
                 output = StringIO()
-                customization_section.export(output, 
+                customization_section.export(output,
                     0,
                     name_ = 'GuestCustomizationSection',
                     namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
                     pretty_print = False)
                 body = output.getvalue().\
                     replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
-                    replace("/Info", "/ovf:Info")                    
+                    replace("/Info", "/ovf:Info")
                 headers = self.headers
                 headers['Content-type'] = 'application/vnd.vmware.vcloud.guestcustomizationsection+xml'
                 self.response = requests.put(customization_section.Link[0].href, data=body, headers=headers, verify=self.verify)
@@ -329,11 +351,11 @@ class VAPP(object):
                     return taskType.parseString(self.response.content, True)
                 else:
                     print self.response.content
-                    
-                    
+
+
     def force_customization(self, vm_name):
         children = self.me.get_Children()
-        if children:            
+        if children:
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
             if len(vms) == 1:
                 sections = vms[0].get_Section()
@@ -390,13 +412,13 @@ class VAPP(object):
             vms = children.get_Vm()
             for vm in vms:
                 name = vm.get_name()
-                status = self.STATUS_MAP[vm.get_status()]
+                status = VCLOUD_STATUS_MAP[vm.get_status()]
                 owner = self.me.get_Owner().get_User().get_name()
                 sections = vm.get_Section()
                 virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]
                 items = virtualHardwareSection.get_Item()
                 cpu = filter(lambda item: item.get_Description().get_valueOf_() == "Number of Virtual CPUs", items)[0]
-                cpu_capacity = cpu.get_ElementName().get_valueOf_().split(" virtual CPU(s)")[0]
+                cpu_capacity = int(cpu.get_ElementName().get_valueOf_().split(" virtual CPU(s)")[0])
                 memory = filter(lambda item: item.get_Description().get_valueOf_() == "Memory Size", items)[0]
                 memory_capacity = int(memory.get_ElementName().get_valueOf_().split(" MB of memory")[0]) / 1024
                 operatingSystemSection = filter(lambda section: section.__class__.__name__== "OperatingSystemSection_Type", sections)[0]

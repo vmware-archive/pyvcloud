@@ -259,30 +259,50 @@ class VCA(object):
         templateParams.set_name(name)
         templateParams.set_deploy(deploy)
         templateParams.set_powerOn(power)
-
         source = vcloudType.ReferenceType(href=template_href)
         templateParams.set_Source(source)
         templateParams.set_AllEULAsAccepted("true")
 
-        if vm_name:
+        if vm_name or vm_cpus or vm_memory:
             params = vcloudType.SourcedCompositionItemParamType()
             params.set_Source(vcloudType.ReferenceType(href=vm_href))
-            gen_params = vcloudType.VmGeneralParamsType()
-            gen_params.set_Name(vm_name)
-            params.set_VmGeneralParams(gen_params)
             templateParams.add_SourcedItem(params)
 
-        if vm_cpus or vm_memory:
-            hardware = vcloudType.InstantiateVmHardwareCustomizationParamsType()
-            if vm_cpus:
-                hardware.set_NumberOfCpus(vm_cpus)
-                hardware.set_CoresPerSocket(vm_cpus)
-            if vm_memory:
-                hardware.set_MemorySize(vm_memory)
-            source = vcloudType.ReferenceType(href=vm_href)
-            instantiation_params = vcloudType.SourcedVmInstantiationParamsType(
-                Source=source, HardwareCustomization=hardware)
-            templateParams.set_SourcedVmInstantiationParams([instantiation_params])
+            if vm_name:
+                gen_params = vcloudType.VmGeneralParamsType()
+                gen_params.set_Name(vm_name)
+                params.set_VmGeneralParams(gen_params)
+
+            if vm_cpus or vm_memory:
+                inst_param = vcloudType.InstantiationParamsType()
+                hardware = vcloudType.VirtualHardwareSection_Type(id=None)
+                hardware.original_tagname_ = "VirtualHardwareSection"
+                hardware.set_Info(vAppType.cimString(valueOf_="Virtual hardware requirements"))
+                inst_param.add_Section(hardware)
+                params.set_InstantiationParams(inst_param)
+
+                if vm_cpus:
+                    cpudata = vAppType.RASD_Type()
+                    cpudata.original_tagname_ = "ovf:Item"
+                    cpudata.set_required(None)
+                    cpudata.set_AllocationUnits(vAppType.cimString(valueOf_="hertz * 10^6"))
+                    cpudata.set_Description(vAppType.cimString(valueOf_="Number of Virtual CPUs"))
+                    cpudata.set_ElementName(vAppType.cimString(valueOf_="{0} virtual CPU(s)".format(vm_cpus)))
+                    cpudata.set_InstanceID(vAppType.cimInt(valueOf_=1))
+                    cpudata.set_ResourceType(3)
+                    cpudata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_cpus))
+                    hardware.add_Item(cpudata)
+                if vm_memory:
+                    memorydata = vAppType.RASD_Type()
+                    memorydata.original_tagname_ = "ovf:Item"
+                    memorydata.set_required(None)
+                    memorydata.set_AllocationUnits(vAppType.cimString(valueOf_="byte * 2^20"))
+                    memorydata.set_Description(vAppType.cimString(valueOf_="Memory Size"))
+                    memorydata.set_ElementName(vAppType.cimString(valueOf_="{0} MB of memory".format(vm_memory)))
+                    memorydata.set_InstanceID(vAppType.cimInt(valueOf_=2))
+                    memorydata.set_ResourceType(4)
+                    memorydata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_memory))
+                    hardware.add_Item(memorydata)
 
         return templateParams
 
@@ -325,13 +345,15 @@ class VCA(object):
                     template_params.export(output,
                         0,
                         name_ = 'InstantiateVAppTemplateParams',
-                        namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
-                        pretty_print = False)
+                        namespacedef_ = '''xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"
+                                           xmlns:rasd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData"''',
+                                           pretty_print = False)
                     body = '<?xml version="1.0" encoding="UTF-8"?>' + \
-                            output.getvalue().replace("ovf:Section", "NetworkConfigSection", 2).replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info")
-
+                            output.getvalue().replace('class:', 'rasd:')\
+                                             .replace(' xmlns:vmw="http://www.vmware.com/vcloud/v1.5"', '')\
+                                             .replace('vmw:', 'rasd:')\
+                                             .replace('Info>', "ovf:Info>")
                     content_type = "application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml"
-
                     link = filter(lambda link: link.get_type() == content_type, self.vdc.get_Link())
                     self.response = requests.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, data=body)
                     if self.response.status_code == requests.codes.created:
@@ -427,7 +449,7 @@ class VCA(object):
                         if self.response.status_code == requests.codes.no_content:
                             return True
         return False
-        
+
     def delete_catalog_item(self, catalog_name, item_name):
         for catalog in self.get_catalogs():
             if catalog.CatalogItems and catalog.CatalogItems.CatalogItem:
@@ -482,7 +504,7 @@ class VCA(object):
                 network = networkType.parseString(self.response.content, True)
                 result.append(network)
         return result
-        
+
     def get_network(self, vdc_name, network_name):
         result = None
         networks = self.get_networks(vdc_name)
@@ -590,7 +612,7 @@ class VCA(object):
             for record in queryResultRecords.get_Record():
                 if record.name == network_name:
                     return record.href
-                    
+
     def get_score_service(self, score_service_url):
         if self.vcloud_session is None or self.vcloud_session.token is None:
             return None

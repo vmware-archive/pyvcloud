@@ -39,6 +39,10 @@ from pyvcloud.helper import CommonUtils
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from cryptography.fernet import Fernet
 
+#todo: dhcp fails when disabled
+#todo: print nat rules in yaml format
+#todo: return OS -1 on error
+#todo: configure http agent
 #todo: vca status after vca logout fails in line 213
 #todo: vca status fails if ~/.vcarc is not found
 #todo: upload/download ovf to/from catalog
@@ -715,7 +719,7 @@ def catalog(ctx, operation, vdc, catalog_name, item_name, description):
 @click.option('--original-port', 'original_port', default='any', metavar='<port>', help='Original Port')
 @click.option('--translated-ip', 'translated_ip', default='', metavar='<ip>', help='Translated IP')
 @click.option('--translated-port', 'translated_port', default='any', metavar='<port>', help='Translated Port')
-@click.option('--protocol', default='any', metavar='<protocol>', help='Protocol', type=click.Choice(['any', 'tcp', 'udp']))
+@click.option('--protocol', default='any', metavar='<protocol>', help='Protocol', type=click.Choice(['any', 'Any', 'tcp', 'udp']))
 @click.option('-f', '--file', 'nat_rules_file', default=None, metavar='<nat_rules_file>', help='NAT rules file', type=click.File('r'))
 @click.option('--all', is_flag=True, default=False, help='Delete all rules')
 def nat(ctx, operation, rule_type, original_ip, original_port, translated_ip, translated_port, protocol, nat_rules_file, all):
@@ -1198,7 +1202,7 @@ def example(ctx):
     id+=1; table.append([id, 'delete VPN endpoint',
         "vca vpn del-endpoint --network d1p10-ext --public_ip 107.189.123.101"])
     id+=1; table.append([id, 'add VPN tunnel',
-        "vca vpn add-tunnel --tunnel t1 --local-ip 107.189.123.101 --local-network routed-116 --peer-ip 192.240.158.15 --peer-network 192.168.110/24 --secret P8s3P...7v"])
+        "vca vpn add-tunnel --tunnel t1 --local-ip 107.189.123.101 --local-network routed-116 --peer-ip 192.240.158.15 --peer-network 192.168.110.0/24 --secret P8s3P...7v"])
     id+=1; table.append([id, 'delete VPN tunnel',
         "vca vpn del-tunnel --tunnel t1"])        
     id+=1; table.append([id, 'add local network to VPN tunnel',
@@ -1521,7 +1525,7 @@ def print_networks(ctx, item_list):
     if ctx.obj['xml_output']:
         for item in item_list: item.export(sys.stdout, 0)
         return
-    headers = ['Name', 'Mode', 'Gateway', 'Netmask', 
+    headers = ['Name', 'Mode', 'Gateway', 'Netmask', 'DNS 1', 'DNS 2',
     # 'DHCP', 'DHCP IP Range',
     'Pool IP Range']
     table = []
@@ -1539,9 +1543,13 @@ def print_networks(ctx, item_list):
         gateways = []
         netmasks = []
         ranges = []
+        dns1 = []
+        dns2 = []
         for scope in config.get_IpScopes().get_IpScope():
             gateways.append(scope.get_Gateway())
             netmasks.append(scope.get_Netmask())
+            dns1.append(scope.get_Dns1())
+            dns2.append(scope.get_Dns2())
             if scope.get_IpRanges() is not None:
                 for r in scope.get_IpRanges().get_IpRange():
                     ranges.append(r.get_StartAddress() + '-' + r.get_EndAddress())
@@ -1550,6 +1558,8 @@ def print_networks(ctx, item_list):
             config.get_FenceMode(), 
             str(gateways).strip('[]').replace("'", ""), 
             str(netmasks).strip('[]').replace("'", ""), 
+            str(dns1).strip('[]').replace("'", ""), 
+            str(dns2).strip('[]').replace("'", ""), 
             # 'N/A',#dhcp_enabled,
             # 'N/A',#str(dhcp_pools).strip('[]').replace("'", ""),
             str(ranges).strip('[]').replace("'", "")

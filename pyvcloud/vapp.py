@@ -323,6 +323,7 @@ class VAPP(object):
                          if (section.__class__.__name__ ==
                              "GuestCustomizationSectionType")
                          ][0]
+                customization_section.set_Enabled(True)
                 customization_section.set_AdminAutoLogonEnabled(False)
                 customization_section.set_AdminAutoLogonCount(0)
                 if customization_script:

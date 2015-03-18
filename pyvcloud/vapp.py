@@ -313,7 +313,8 @@ class VAPP(object):
                 return self.execute("media:%sMedia" % operation, "post", body=body, targetVM=vms[0])
 
     def customize_guest_os(self, vm_name, customization_script=None,
-                           computer_name=None, admin_password=None):
+                           computer_name=None, admin_password=None,
+                           reset_password_required=False):
         children = self.me.get_Children()
         if children:
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
@@ -324,6 +325,8 @@ class VAPP(object):
                              "GuestCustomizationSectionType")
                          ][0]
                 customization_section.set_Enabled(True)
+                customization_section.set_ResetPasswordRequired(
+                    reset_password_required)
                 customization_section.set_AdminAutoLogonEnabled(False)
                 customization_section.set_AdminAutoLogonCount(0)
                 if customization_script:
@@ -334,7 +337,6 @@ class VAPP(object):
                 if admin_password:
                     customization_section.set_AdminPasswordEnabled(True)
                     customization_section.set_AdminPasswordAuto(False)
-                    customization_section.set_ResetPasswordRequired(False)
                     customization_section.set_AdminPassword(admin_password)
                 output = StringIO()
                 customization_section.export(output,

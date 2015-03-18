@@ -24,6 +24,7 @@ import urllib
 
 from os.path import expanduser
 
+#todo: get events
 #todo: validate-blueprint
 #todo: get execution details
 #todo: cancel execution

@@ -39,6 +39,7 @@ from pyvcloud.helper import CommonUtils
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from cryptography.fernet import Fernet
 
+#todo: dep show output
 #todo: dhcp fails when disabled
 #todo: print nat rules in yaml format
 #todo: return OS -1 on error
@@ -459,7 +460,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
                         for vm in the_vapp.me.Children.Vm:
                             vms.append(vm.name)
                         # virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]
-                    table1.append([entity.name, vms, status[the_vapp.me.get_status()](), 'yes' if the_vapp.me.deployed else 'no', the_vapp.me.Description])                     
+                    table1.append([entity.name, _as_list(vms), status[the_vapp.me.get_status()](), 'yes' if the_vapp.me.deployed else 'no', the_vapp.me.Description])                     
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)                
         print_table("Available vApps in '%s' for '%s' profile:" % (vdc, ctx.obj['profile']), 'vapps', headers, table, ctx)
     elif 'create' == operation:
@@ -672,7 +673,7 @@ def vm(ctx, operation, vdc, vapp):
                             elif item.HostResource and item.ResourceSubType and item.ResourceSubType.valueOf_ == 'vmware.cdrom.iso':
                                 if len(item.HostResource[0].valueOf_)>0:
                                     cds.append(item.HostResource[0].valueOf_)
-                        table1.append([vm.name, entity.name, vm_status, ips, networks, cpu_capacity, str(memory_capacity), cds, os, owner])
+                        table1.append([vm.name, entity.name, vm_status, _as_list(ips), _as_list(networks), cpu_capacity, str(memory_capacity), cds, os, owner])
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)                
         print_table("Available VMs in '%s' for '%s' profile:" % (vdc, ctx.obj['profile']), 'vms', headers, table, ctx)   
     else:
@@ -989,6 +990,7 @@ def bp(ctx, operation, blueprint, blueprint_file):
     vca = _getVCA_with_relogin(ctx)
     if not vca: return 
     score=vca.get_score_service(ctx.obj['host_score'])
+    if not score: return
     if 'list' == operation:
         headers= ['Blueprint Id', 'Created']#, 'Deployments']
         table = []
@@ -1068,7 +1070,7 @@ def dep(ctx, operation, deployment, blueprint, input_file, workflow, show_events
     elif 'create' == operation:
         inputs = None
         if input_file:
-            inputs = json.load(input_file)
+            inputs = yaml.load(input_file)
         d = score.deployments.create(blueprint, deployment, json.dumps(inputs, sort_keys=False, indent=4, separators=(',', ': ')))
         if d:
             print_message("successfully created deployment '%s'" % deployment, ctx)
@@ -1164,7 +1166,7 @@ def example(ctx):
     id+=1; table.append([id, 'list networks', 
         'vca network'])
     id+=1; table.append([id, 'create network', 
-        'vca network create --network network_name --gateway gateway_name --gateway_ip 192.168.117.1 --netmask 255.255.255.0 --dns1 192.168.117.1 --pool 192.168.117.2-192.168.117.100'])
+        'vca network create --network network_name --gateway gateway_name --gateway-ip 192.168.117.1 --netmask 255.255.255.0 --dns1 192.168.117.1 --pool 192.168.117.2-192.168.117.100'])
     id+=1; table.append([id, 'delete network', 
         'vca network delete --network network_name'])
     id+=1; table.append([id, 'list edge gateways', 
@@ -1180,7 +1182,7 @@ def example(ctx):
     id+=1; table.append([id, 'add edge gateway DNAT rule',
         "vca nat add --type DNAT --original-ip 107.189.93.162 --original-port 22 --translated-ip 192.168.109.2 --translated-port 22 --protocol tcp"])
     id+=1; table.append([id, 'add edge gateway SNAT rule',
-        "vca nat add --type SNAT --original-ip 192.168.109.0/24 --translated_ip 107.189.93.162"])
+        "vca nat add --type SNAT --original-ip 192.168.109.0/24 --translated-ip 107.189.93.162"])
     id+=1; table.append([id, 'add edge gateway rules from file',
         "vca nat add --file natrules.yaml"])        
     id+=1; table.append([id, 'delete edge gateway NAT rule',
@@ -1198,9 +1200,9 @@ def example(ctx):
     id+=1; table.append([id, 'disable edge gateway VPN',
         "vca vpn disable"])
     id+=1; table.append([id, 'add VPN endpoint',
-        "vca vpn add-endpoint --network d1p10-ext --public_ip 107.189.123.101"])
+        "vca vpn add-endpoint --network d1p10-ext --public-ip 107.189.123.101"])
     id+=1; table.append([id, 'delete VPN endpoint',
-        "vca vpn del-endpoint --network d1p10-ext --public_ip 107.189.123.101"])
+        "vca vpn del-endpoint --network d1p10-ext --public-ip 107.189.123.101"])
     id+=1; table.append([id, 'add VPN tunnel',
         "vca vpn add-tunnel --tunnel t1 --local-ip 107.189.123.101 --local-network routed-116 --peer-ip 192.240.158.15 --peer-network 192.168.110.0/24 --secret P8s3P...7v"])
     id+=1; table.append([id, 'delete VPN tunnel',
@@ -1351,7 +1353,10 @@ def task_table_old(task_xml):
 def utc2local (utc):
     epoch = time.mktime(utc.timetuple())
     offset = datetime.fromtimestamp (epoch) - datetime.utcfromtimestamp (epoch)
-    return utc + offset    
+    return utc + offset
+    
+def _as_list(input_array):
+    return str(input_array).strip('[]').replace("'", "")
     
 def task_table(task_xml):
     task_dict = xmltodict.parse(task_xml)
@@ -1486,9 +1491,9 @@ def print_gateways(ctx, gateways):
             'On' if gateway.is_fw_enabled() else 'Off', 
             'On' if gateway.is_nat_enabled() else 'Off', 
             'On' if gateway.is_vpn_enabled() else 'Off',
-            str(interface_table).strip('[]').replace("'", ""),
+            _as_list(interface_table),
             gateway.get_syslog_conf(),
-            str(ext_interface_table).strip('[]').replace("'", "")
+            _as_list(ext_interface_table)
         ])
     # sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
     print_table("Edge Gateways:", 'gateways', headers, table, ctx)                
@@ -1673,7 +1678,7 @@ def print_deployment_info(deployment, executions, events, ctx=None):
     workflows = []
     for workflow in deployment.get('workflows'):
         workflows.append(workflow.get('name').encode('utf-8'))
-    table.append([deployment.get('blueprint_id'), deployment.get('id'), deployment.get('created_at')[:-7], workflows])
+    table.append([deployment.get('blueprint_id'), deployment.get('id'), deployment.get('created_at')[:-7], _as_list(workflows)])
     print_table("Deployment information:", 'deployment', headers, table, ctx)
 
     headers= ['Workflow', 'Created', 'Status', 'Id']

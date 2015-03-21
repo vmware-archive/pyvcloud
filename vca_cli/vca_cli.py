@@ -39,6 +39,7 @@ from pyvcloud.helper import CommonUtils
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from cryptography.fernet import Fernet
 
+#todo: dhcp doesn't show 'isolated' networks
 #todo: dep show output
 #todo: dhcp fails when disabled
 #todo: print nat rules in yaml format
@@ -795,8 +796,10 @@ def firewall(ctx, operation):
 #todo: consider selecting a specific edge, a vdc can have more than one...?
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[list]', type=click.Choice(['list']))
-def dhcp(ctx, operation):
+@click.argument('operation', default=default_operation, metavar='[list | add | delete | enable | disable]', type=click.Choice(['list', 'add', 'delete', 'enable', 'disable']))
+@click.option('-n', '--network', 'network_name', default='', metavar='<network>', help='Network name')
+@click.option('-p', '--pool', default='', metavar='<pool-range>', help='DHCP pool range')
+def dhcp(ctx, operation, network_name, pool):
     """Operations with Edge Gateway DHCP Service"""
     vca = _getVCA_vcloud_session(ctx)
     vdc = ctx.obj['vdc'] 
@@ -809,9 +812,24 @@ def dhcp(ctx, operation):
         return
     if 'list' == operation:
         print_dhcp_configuration(ctx, gateways[0])
+    elif 'add' == operation:
+        gateways[0].add_dhcp_pool(network_name, pool.split('-')[0], pool.split('-')[1], default_lease=None, max_lease=None)
+        task = gateways[0].save_services_configuration()
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
+    elif 'delete' == operation:
+        gateways[0].delete_dhcp_pool(network_name)
+        task = gateways[0].save_services_configuration()
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
+    elif 'enable' == operation or 'disable' == operation:    
+        gateways[0].enable_dhcp('enable'==operation)
+        task = gateways[0].save_services_configuration()
+        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+        else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
     else:
         print_message('not implemented', ctx)
-        
+
 #todo: consider selecting a specific edge, a vdc can have more than one...?
 #todo: set endpoint <external-network> <external-local-ip>
 @cli.command()
@@ -905,7 +923,10 @@ def network(ctx, network_name, operation, gateway, gateway_ip, netmask, dns1, dn
     if not vca:
         print_error('User not authenticated or token expired', ctx)
         return
-    if 'list' == operation:
+    if 'info' == operation:
+        print_message('not implemented', ctx)
+        # print_networks(ctx, vca.get_networks(ctx.obj['vdc']))
+    elif 'list' == operation:
         print_networks(ctx, vca.get_networks(ctx.obj['vdc']))
     elif 'delete' == operation:
         result = vca.delete_vdc_network(ctx.obj['vdc'], network_name)
@@ -1154,7 +1175,7 @@ def example(ctx):
     id+=1; table.append([id, 'insert ISO to vapp vm', 
         'vca vapp insert --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso'])                        
     id+=1; table.append([id, 'eject ISO from vapp vm', 
-        'vca vapp eject --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso'])                        
+        'vca vapp eject --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso'])
     id+=1; table.append([id, 'list vms', 
         'vca vm'])
     id+=1; table.append([id, 'list vms in a vapp', 
@@ -1193,6 +1214,16 @@ def example(ctx):
         "vca fw enable"])
     id+=1; table.append([id, 'disable edge gateway firewall',
         "vca fw disable"])
+    id+=1; table.append([id, 'display DHCP configuration',
+        "vca dhcp"])
+    id+=1; table.append([id, 'enable DHCP service',
+        "vca dhcp enable"])
+    id+=1; table.append([id, 'disable DHCP service',
+        "vca dhcp disable"])
+    id+=1; table.append([id, 'add DHCP service to a network',
+        "vca dhcp add --network routed-211 --pool 192.168.211.101-192.168.211.200"])
+    id+=1; table.append([id, 'delete all DHCP pools from a network',
+        "vca dhcp delete --network routed-211"])
     id+=1; table.append([id, 'list edge gateway VPN config', 
         'vca vpn'])        
     id+=1; table.append([id, 'enable edge gateway VPN',
@@ -1206,7 +1237,7 @@ def example(ctx):
     id+=1; table.append([id, 'add VPN tunnel',
         "vca vpn add-tunnel --tunnel t1 --local-ip 107.189.123.101 --local-network routed-116 --peer-ip 192.240.158.15 --peer-network 192.168.110.0/24 --secret P8s3P...7v"])
     id+=1; table.append([id, 'delete VPN tunnel',
-        "vca vpn del-tunnel --tunnel t1"])        
+        "vca vpn del-tunnel --tunnel t1"])
     id+=1; table.append([id, 'add local network to VPN tunnel',
         "vca vpn add-network --tunnel t1 --local-network routed-115"])
     id+=1; table.append([id, 'add peer network to VPN tunnel',
@@ -1642,6 +1673,16 @@ def print_vpn_configuration(ctx, gateway):
     print_table('VPN Tunnels', 'vpn-tunnels', headers, table, ctx)
 
 def print_dhcp_configuration(ctx, gateway):
+    service = gateway.get_dhcp_service()
+    if service is None:
+        print_message("DHCP is not configured in this gateway", ctx)
+        return
+    headers = ['Gateway', 'Enabled']
+    enabled = 'On' if gateway.is_dhcp_enabled() else 'Off'
+    table = []
+    table.append([gateway.me.get_name(), enabled])
+    print_table('DHCP Service', 'dhcp-service', headers, table, ctx)        
+    
     pools = gateway.get_dhcp_pools()
     headers = ['Network', 'IP Range From', 'To', 'Enabled', 'Default lease', 'Max Lease']
     table = []
@@ -1654,7 +1695,7 @@ def print_dhcp_configuration(ctx, gateway):
             pool.get_DefaultLeaseTime(),
             pool.get_MaxLeaseTime()
         ])
-    print_table('DHCP Service', 'dhcp', headers, table, ctx)
+    print_table('DHCP Pools', 'dhcp-pools', headers, table, ctx)
             
 def print_catalogs(ctx, catalogs):
     result = []

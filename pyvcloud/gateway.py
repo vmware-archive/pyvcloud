@@ -85,7 +85,7 @@ class Gateway(object):
         link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
         self.response = requests.post(link[0].get_href(), data=body, headers=self.headers)
         task = taskType.parseString(self.response.content, True)
-        success = self.response.status_code == requests.codes.accepted:
+        success = self.response.status_code == requests.codes.accepted
         return task, success
 
     def add_nat_rules(self):

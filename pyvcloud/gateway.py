@@ -84,9 +84,9 @@ class Gateway(object):
         content_type = "application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml"
         link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
         self.response = requests.post(link[0].get_href(), data=body, headers=self.headers)
-        task = taskType.parseString(self.response.content, True)
-        success = self.response.status_code == requests.codes.accepted
-        return task, success
+        if self.response.status_code == requests.codes.accepted:
+            task = taskType.parseString(self.response.content, True)
+            return task
 
     def add_nat_rules(self):
         pass

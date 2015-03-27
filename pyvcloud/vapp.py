@@ -386,13 +386,16 @@ class VAPP(object):
             nw_connections = []
             sections = vm.get_Section()
             networkConnectionSection = filter(lambda section: section.__class__.__name__ == "NetworkConnectionSectionType", sections)[0]
+            primary_index = networkConnectionSection.get_PrimaryNetworkConnectionIndex()
             connections = networkConnectionSection.get_NetworkConnection()
             for connection in connections:
                 nw_connections.append(
                     {'network_name': connection.get_network(),
                      'ip': connection.get_IpAddress(),
                      'mac': connection.get_MACAddress(),
-                     'is_connected': connection.get_IsConnected()
+                     'is_connected': connection.get_IsConnected(),
+                     'is_primary': connection.get_NetworkConnectionIndex() == primary_index,
+                     'allocation_mode': connection.get_IpAddressAllocationMode()
                      })
             result.append(nw_connections)
         return result

@@ -31,14 +31,18 @@ from os.path import expanduser
 from tabulate import tabulate
 from time import sleep
 from datetime import datetime
+import collections
 
 from pyvcloud.vcloudair import VCA
 from pyvcloud.vcloudsession import VCS
 from pyvcloud.helper import CommonUtils
 
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType
 from cryptography.fernet import Fernet
 
+#todo: make sure that all the options in commands are in the same order, when possible
+#todo: example of allocate and deallocate public ip on demand
 #todo: dhcp doesn't show 'isolated' networks
 #todo: dep show output
 #todo: dhcp fails when disabled
@@ -388,10 +392,10 @@ def org(ctx, operation, service, org):
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[list | use | info]', type=click.Choice(['list', 'use', 'info']))
-@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
+@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Name')
 def vdc(ctx, operation, vdc):       
     """Operations with Virtual Data Centers (vdc)"""
-    if '' == vdc: vdc = ctx.obj['vdc']             
+    if '' == vdc: vdc = ctx.obj['vdc']
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
         print_error('User not authenticated or token expired', ctx)
@@ -431,7 +435,7 @@ def vdc(ctx, operation, vdc):
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | deploy | undeploy | customize | insert | eject | disconnect]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'deploy', 'undeploy', 'customize', 'insert', 'eject', 'disconnect']))
-@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
+@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Name')
 @click.option('-a', '--vapp', default='', metavar='<vapp>', help='vApp name')
 @click.option('-c', '--catalog', default='', metavar='<catalog>', help='catalog name')
 @click.option('-t', '--template', default='', metavar='<template>', help='template name')
@@ -530,9 +534,9 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
                     task = None
                     if 'power.on' == operation: task = the_vapp.poweron()
                     elif 'power.off' == operation: task = the_vapp.poweroff()
-                    elif 'delete' == operation: task = the_vapp.delete()                    
+                    elif 'delete' == operation: task = the_vapp.delete()
                     if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                    else: ctx.obj['response']=the_vapp.response; print_error("can't operate with the vApp", ctx)                                
+                    else: ctx.obj['response']=the_vapp.response; print_error("can't operate with the vApp", ctx)
                 _save_property(ctx.obj['profile'], 'vdc', vdc)
             else:
                 ctx.obj['response']=vca.response; print_error("vApp '%s' not found" % vapp, ctx)
@@ -626,7 +630,7 @@ status = {-1 : statusn1,
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[list]', type=click.Choice(['list']))
-@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
+@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Name')
 @click.option('-a', '--vapp', default='', metavar='<vapp>', help='vApp name')
 def vm(ctx, operation, vdc, vapp):
     """Operations with Virtual Machines (VMs)"""
@@ -683,7 +687,7 @@ def vm(ctx, operation, vdc, vapp):
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[info | list | create | delete | delete-item]', type=click.Choice(['info', 'list', 'create', 'delete', 'delete-item']))
-@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
+@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Name')
 @click.option('-c', '--catalog', 'catalog_name', default='', metavar='<catalog>', help='Catalog Name')
 @click.option('-i', '--item', 'item_name', default='', metavar='<catalog item>', help='Catalog Item Name')
 @click.option('-d', '--description', default='', metavar='<description>', help='Catalog Description')
@@ -966,17 +970,17 @@ def template(ctx, operation, catalog, template_name):
     
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[info | list | use | set-syslog]', type=click.Choice(['info', 'list', 'use', 'set-syslog']))
+@click.argument('operation', default=default_operation, metavar='[info | list | use | set-syslog | allocate | deallocate]', type=click.Choice(['info', 'list', 'use', 'set-syslog', 'allocate', 'deallocate']))
 @click.option('-s', '--service', default='', metavar='<service>', help='Service Id')
 @click.option('-d', '--org', default='', metavar='<org>', help='Organization Name')
-@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Id')
+@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Name')
 @click.option('-g', '--gateway', default='', metavar='<gateway>', help='Edge Gateway Id')
 @click.option('-i', '--ip', default='', metavar='<ip>', help='Syslog Server IP')
 def gateway(ctx, operation, service, org, vdc, gateway, ip):
     """Operations with Edge Gateway"""
     if service == '': service = ctx.obj['service']
     if org == '': org = ctx.obj['org']
-    if vdc == '': vdc = ctx.obj['vdc']             
+    if vdc == '': vdc = ctx.obj['vdc']
     if gateway == '': gateway = ctx.obj['gateway']
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
@@ -985,13 +989,21 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
     if 'list' == operation:
         gateways = vca.get_gateways(vdc)
         print_gateways(ctx, gateways)
-    elif 'use' == operation or 'info' == operation or 'set-syslog' == operation:
+    elif 'use' == operation or 'info' == operation or 'set-syslog' == operation or 'allocate' == operation or 'deallocate' == operation:
         the_gateway = vca.get_gateway(vdc, gateway)
         if the_gateway == None:
             ctx.obj['response']=vca.response; print_error('gateway not found', ctx)
             return
         if 'set-syslog' == operation:
             task = the_gateway.set_syslog_conf(ip)
+            if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+            else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
+        elif 'allocate' == operation:
+            task = the_gateway.allocate_public_ip()
+            if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+            else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
+        elif 'deallocate' == operation:
+            task = the_gateway.deallocate_public_ip(ip)
             if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
             else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
         elif the_gateway:
@@ -1052,7 +1064,7 @@ def bp(ctx, operation, blueprint, blueprint_file):
 @click.option('-w', '--workflow', default=None, metavar='<workflow_id>', help='Workflow Id')
 @click.option('-d', '--deployment', default='', metavar='<deployment_id>', help='Deployment Id')
 @click.option('-b', '--blueprint', default=None, metavar='<blueprint_id>', help='Blueprint Id')
-@click.option('-f', '--file', 'input_file', default=None, metavar='<input_file>', help='Local file with the input values for the deployment (JSON)', type=click.File('r'))
+@click.option('-f', '--file', 'input_file', default=None, metavar='<input_file>', help='Local file with the input values for the deployment (YAML)', type=click.File('r'))
 @click.option('-s', '--show-events', 'show_events', is_flag=True, default=False, help='Show events')
 def dep(ctx, operation, deployment, blueprint, input_file, workflow, show_events):
     """Operations with Deployments"""
@@ -1070,13 +1082,14 @@ def dep(ctx, operation, deployment, blueprint, input_file, workflow, show_events
             if blueprint is None or blueprint == d.get('blueprint_id'):
                 table.append([d.get('blueprint_id'), d.get('id'), d.get('created_at')[:-7]])
         sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)      
-        print_table("deployments:", 'deployments', headers, sorted_table, ctx)                         
+        print_table("deployments:", 'deployments', headers, sorted_table, ctx)
     elif 'info' == operation:
         d = score.deployments.get(deployment)
         if d is not None:
             e = score.executions.list(deployment)
             events = None
             if show_events and e is not None and len(e) > 0:
+                # print e[-1].get('id')
                 events = score.events.get(e[-1].get('id'))
             print_deployment_info(d, e, events)
         else:
@@ -1104,6 +1117,30 @@ def dep(ctx, operation, deployment, blueprint, input_file, workflow, show_events
         print 'not implemented'
     else:
         print 'not implemented'
+        
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation, metavar='[list | info | create | delete]', type=click.Choice(['list', 'info', 'create', 'delete']))
+@click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Name')
+@click.option('-d', '--disk', 'disk_name', default=None, metavar='<disk_name>', help='Disk Name')
+@click.option('-s', '--size', 'disk_size', default=5, metavar='<size>', help='Disk Size in GB', type=click.INT)
+def disk(ctx, operation, vdc, disk_name, disk_size):
+    """Operations with Independent Disks"""
+    if '' == vdc: vdc = ctx.obj['vdc']
+    vca = _getVCA_vcloud_session(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx)
+        return
+    if 'list' == operation:
+        disks = vca.get_disks(vdc)
+        print_disks(ctx, disks)
+    elif 'create' == operation:
+        assert disk_name, "Disk name can't be empty"
+        size = disk_size * 1000000
+        result = vca.add_disk(vdc, disk_name, size)
+        print result
+    else:
+        print_message('not implemented', ctx)
     
 @cli.command()
 @click.pass_context
@@ -1533,8 +1570,6 @@ def print_gateway_details(ctx, gateway):
     if ctx.obj['xml_output']:
         gateway.me.export(sys.stdout, 0)
         return
-    # print_message("not implemented", ctx)
-    # return
     headers = ['Property', 'Value']
     table = []
     table.append(['Name', gateway.me.name])
@@ -1722,7 +1757,7 @@ def print_deployment_info(deployment, executions, events, ctx=None):
     table.append([deployment.get('blueprint_id'), deployment.get('id'), deployment.get('created_at')[:-7], _as_list(workflows)])
     print_table("Deployment information:", 'deployment', headers, table, ctx)
 
-    headers= ['Workflow', 'Created', 'Status', 'Id']
+    headers = ['Workflow', 'Created', 'Status', 'Id']
     table = []
     if executions is None or len(executions) == 0:
          print_message('no executions found', ctx)
@@ -1733,16 +1768,51 @@ def print_deployment_info(deployment, executions, events, ctx=None):
     print_table("Workflow executions for deployment '%s'" % deployment.get('id'), 'executions', headers, sorted_table, ctx)
     
     if events:
-        print_message("Events for the last execution...", ctx)
+        # print_message("Events for the last execution:", ctx)
+        headers = ['Type', 'Started', 'Message']
+        table = []
+        for event in events:
+            if isinstance(event, collections.Iterable) and 'event_type' in event:
+                table.append([event.get('event_type'), event.get('timestamp'), 
+                #event.get('@timestamp'), 
+                event.get('message').get('text')])
+        print_table("Events for workflow '%s'" % deployment.get('workflow_id'), 'events', headers, table, ctx)
 
 def print_execution(execution, ctx=None):    
     if execution:
         headers= ['Workflow', 'Created', 'Status', 'Message']
         table = []
         table.append([execution.get('workflow_id'), execution.get('created_at')[:-7], execution.get('status'), execution.get('error')])
-        sorted_table = sorted(table, key=operator.itemgetter(1), reverse=False)      
-        print_table("Workflow execution '%s' for deployment '%s'" % (execution.get('id'), execution.get('deployment_id')), 'execution', headers, sorted_table, ctx)                          
+        sorted_table = sorted(table, key=operator.itemgetter(1), reverse=False)
+        print_table("Workflow execution '%s' for deployment '%s'" % (execution.get('id'), execution.get('deployment_id')), 'execution', headers, sorted_table, ctx)
     else:
         print_message("No execution", ctx)
+
+def print_disks(ctx, disks):
+    if ctx.obj['xml_output']:
+        for disk in disks:
+            # disk[0].export(sys.stdout, 0)
+            disk[0].set_status(int(disk[0].get_status()))
+            disk[0].set_size(int(disk[0].get_size()))
+            user = disk[0].get_Owner().get_User()
+            owner = OwnerType(user)
+            disk[0].set_Owner(None)
+            # print disk[0].get_Owner().__dict__ #.export(sys.stdout, 0)
+            disk[0].export(sys.stdout, 0)
+            print 'Owner:', user
+        return
+    headers = ['Disk', 'Size GB', 'Owner']
+    table = []
+    for disk in disks:
+        if len(disk)>0:
+            table.append([disk[0].name, int(disk[0].size)/1000000, disk[0].get_Owner().get_User()])
+    sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+    if len(sorted_table)>0:
+        print_table('Independent disks:', 'disks', headers, sorted_table, ctx)
+    else:
+        print_message("No independent disks found in this virtual data center")
+
+
 if __name__ == '__main__':
     cli(obj={})
+    

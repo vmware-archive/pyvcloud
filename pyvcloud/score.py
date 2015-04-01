@@ -157,7 +157,7 @@ class DeploymentsClient(object):
         if inputs:
             data['inputs'] = inputs
         headers = self.score.get_headers()
-        headers['Content-Type'] = 'application/json'
+        headers['Content-type'] = 'application/json'
         self.score.response = requests.put(self.score.url + '/deployments/{0}'.format(deployment_id), data=json.dumps(data), headers=headers, verify=self.score.verify)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
@@ -186,7 +186,7 @@ class ExecutionsClient(object):
             'force': str(force).lower()
         }
         headers = self.score.get_headers()
-        headers['Content-Type'] = 'application/json'        
+        headers['Content-type'] = 'application/json'
         self.score.response = requests.post(self.score.url + '/executions', headers=headers, data=json.dumps(data),  verify=self.score.verify)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
@@ -196,9 +196,41 @@ class EventsClient(object):
     def __init__(self, score):
         self.score = score
         
+    @staticmethod
+    def _create_events_query(execution_id, include_logs):
+        query = {
+            "bool": {
+                "must": [
+                    {"match": {"context.execution_id": execution_id}},
+                ]
+            }
+        }
+        match_cloudify_event = {"match": {"type": "cloudify_event"}}
+        if include_logs:
+            match_cloudify_log = {"match": {"type": "cloudify_log"}}
+            query['bool']['should'] = [
+                match_cloudify_event, match_cloudify_log
+            ]
+        else:
+            query['bool']['must'].append(match_cloudify_event)
+        return query
+        
     def get(self, execution_id, from_event=0, batch_size=100, include_logs=False):
-        pass
-        
-        
+        assert execution_id
+        data = {
+            "from": from_event,
+            "size": batch_size,
+            "sort": [{"@timestamp": {"order": "asc"}}],
+            "query": self._create_events_query(execution_id, include_logs)
+        }
+        headers = self.score.get_headers()
+        headers['Content-type'] = 'application/json'
+        self.score.response = requests.get(self.score.url + '/events', 
+            headers=headers, data=data,  verify=self.score.verify)
+        if self.score.response.status_code == requests.codes.ok:
+            # print self.score.response.content
+            json_events = json.loads(self.score.response.content)
+            return json_events
+        else:
+            return []
 
-            

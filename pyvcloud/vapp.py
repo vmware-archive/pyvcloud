@@ -282,7 +282,7 @@ class VAPP(object):
                          href="%s" />
                  </DiskAttachOrDetachParams>
                 """ % disk_ref.href
-                return self.execute("disk:attach", True, "can't be attached", "post", True, body=body, targetVM=vms[0])
+                return self.execute("disk:attach", "post", body=body, targetVM=vms[0])
 
     def detach_disk_from_vm(self, vm_name, disk_ref):
         children = self.me.get_Children()
@@ -295,7 +295,7 @@ class VAPP(object):
                          href="%s" />
                  </DiskAttachOrDetachParams>
                 """ % disk_ref.href
-                return self.execute("disk:detach", True, "can't be detached", "post", True, body=body, targetVM=vms[0])
+                return self.execute("disk:detach", "post", body=body, targetVM=vms[0])
 
     def vm_media(self, vm_name, media, operation):
         children = self.me.get_Children()

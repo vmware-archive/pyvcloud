@@ -27,7 +27,8 @@ from pyvcloud.schema.vcd.v1_5.schemas.admin import vCloudEntities
 from pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities import AdminCatalogType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType, \
     vAppType, organizationListType, vdcType, catalogType, queryRecordViewType, \
-    networkType, vcloudType, taskType
+    networkType, vcloudType, taskType, diskType, vmsType
+from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 from pyvcloud.vcloudsession import VCS
 from pyvcloud.vapp import VAPP
 from pyvcloud.gateway import Gateway
@@ -606,8 +607,7 @@ class VCA(object):
         link = filter(lambda link: link.get_rel() == "orgVdcNetworks",
                       vdc.get_Link())
         self.response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
-        queryResultRecords = queryRecordViewType.parseString(self.response.content,
-                                                             True)
+        queryResultRecords = queryRecordViewType.parseString(self.response.content, True)
         if self.response.status_code == requests.codes.ok:
             for record in queryResultRecords.get_Record():
                 if record.name == network_name:
@@ -617,3 +617,88 @@ class VCA(object):
         if self.vcloud_session is None or self.vcloud_session.token is None:
             return None
         return Score(score_service_url, self.vcloud_session.org_url, self.vcloud_session.token, self.version, self.verify)
+    
+    def get_diskRefs(self, vdc):
+        resourceEntities = vdc.get_ResourceEntities().get_ResourceEntity()
+        return [resourceEntity for resourceEntity in resourceEntities
+                    if resourceEntity.get_type() == "application/vnd.vmware.vcloud.disk+xml"]
+                    
+    def _parse_disk(self, content):
+        diskDesc = diskType.parseString(content, True)
+        disk = DiskType()
+        ids = diskDesc.anyAttributes_.get('id').split(':')
+        disk.set_id(ids[3])
+        disk.set_name(diskDesc.anyAttributes_.get('name'))
+        disk.set_size(diskDesc.anyAttributes_.get('size'))
+        disk.set_busType(diskDesc.anyAttributes_.get('busType'))
+        disk.set_busSubType(diskDesc.anyAttributes_.get('busSubType'))            
+        disk.set_status(diskDesc.anyAttributes_.get('status'))
+        xml = ET.fromstring(content)
+        for child in xml:
+            if '{http://www.vmware.com/vcloud/v1.5}Owner' == child.tag:
+                for grandchild in child:
+                    owner = OwnerType()
+                    owner.set_User(grandchild.attrib['name'])
+                    disk.set_Owner(owner)
+            if '{http://www.vmware.com/vcloud/v1.5}StorageProfile' == child.tag:
+                storageProfile = VdcStorageProfileType()
+                storageProfile.set_name(child.attrib['name'])
+                disk.set_StorageProfile(storageProfile)        
+        return disk
+
+    def get_disks(self, vdc_name):
+        vdc = self.get_vdc(vdc_name)
+        links = self.get_diskRefs(vdc)
+        disks = []
+        for link in links:
+            response = requests.get(link.get_href(), headers = self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+            disk = self._parse_disk(response.content)
+            vms = []
+            content_type = "application/vnd.vmware.vcloud.vms+xml"
+            response = requests.get(link.get_href()+'/attachedVms', headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+            # print response.content
+            listofvms = vmsType.parseString(response.content, True)
+            for vmReference in listofvms.get_VmReference():
+                vms.append(vmReference)
+            disks.append([disk, vms])
+        return disks
+        
+    def add_disk(self, vdc_name, name, size):
+        data = """
+                <vcloud:DiskCreateParams xmlns:vcloud="http://www.vmware.com/vcloud/v1.5">
+                    <vcloud:Disk name="%s" size="%s"/>
+                </vcloud:DiskCreateParams>
+            """ % (name, size)        
+        vdc = self.get_vdc(vdc_name)
+        content_type = "application/vnd.vmware.vcloud.diskCreateParams+xml"
+        link = filter(lambda link: link.get_type() == content_type, vdc.get_Link())
+        self.response = requests.post(link[0].get_href(), data=data, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+        if self.response.status_code == requests.codes.created:
+            disk = self._parse_disk(self.response.content)
+            return(True, disk)
+        else:
+            return(False, self.response.content)
+            
+    def delete_disk(self, vdc_name, name, id=None):
+        vdc = self.get_vdc(vdc_name)
+        refs = self.get_diskRefs(vdc)
+        link = []
+        if id is not None:
+            link = filter(lambda link: link.get_href().endswith('/'+id), refs)
+        elif name is not None:
+            link = filter(lambda link: link.get_name() == name, refs)
+        if len(link) == 1:
+            self.response = requests.delete(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+            if self.response.status_code == requests.codes.accepted:
+                task = taskType.parseString(self.response.content, True)
+                return (True, task)
+            else:
+                return(False, self.response.content)
+        elif len(link) == 0:
+            return(False, 'disk not found')
+        elif len(link) > 1:
+            return(False, 'more than one disks found with that name, use the disk id')
+
+
+
+

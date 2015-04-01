@@ -41,6 +41,7 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType
 from cryptography.fernet import Fernet
 
+#todo: add disk, validate that disk name doesn't exist
 #todo: make sure that all the options in commands are in the same order, when possible
 #todo: example of allocate and deallocate public ip on demand
 #todo: dhcp doesn't show 'isolated' networks
@@ -88,6 +89,8 @@ crypto_key = 'l1ZLY5hYPu4s2IXkTVxtndJ-L_k16rP1odagwhP_DsY='
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
+DISK_SIZE = 1000000000
+
 def _load_context(ctx, profile, json_output, xml_output, insecure):
     config = ConfigParser.RawConfigParser()
     config.read(os.path.expanduser('~/.vcarc'))    
@@ -100,7 +103,6 @@ def _load_context(ctx, profile, json_output, xml_output, insecure):
             ctx.obj['profile'] = config.get(section, 'profile')
         else:
             ctx.obj['profile'] = 'default'    
-   
     section = 'Profile-%s' % ctx.obj['profile']    
     for prop in properties:
         ctx.obj[prop] = config.get(section, prop) if config.has_option(section, prop) else ''
@@ -110,11 +112,9 @@ def _load_context(ctx, profile, json_output, xml_output, insecure):
         if prop == 'password' and ctx.obj[prop] and len(ctx.obj[prop])>0:
             cipher_suite = Fernet(crypto_key)
             ctx.obj[prop] = cipher_suite.decrypt(ctx.obj[prop])
-        
     ctx.obj['verify'] = not insecure
     ctx.obj['json_output'] = json_output
     ctx.obj['xml_output'] = xml_output
-    
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click.option('-p', '--profile', default='', metavar='<profile>', help='Profile id')
@@ -126,9 +126,7 @@ def _load_context(ctx, profile, json_output, xml_output, insecure):
 @click.pass_context
 def cli(ctx, profile, version, debug, json_output, xml_output, insecure):
     """VMware vCloud Air Command Line Interface."""
-
     _load_context(ctx, profile, json_output, xml_output, insecure)
-    
     if debug:
         httplib.HTTPConnection.debuglevel = 1
         logging.basicConfig()
@@ -165,20 +163,12 @@ def _save_property(profile, property, value):
         config.write(configfile)    
         
 def _login_user_to_service(ctx, user, host, password, service_type, service_version, instance, org):
-    # def __init__(self, host, username, service_type='ondemand', version='5.7', verify=True):
     vca = VCA(host, user, service_type, service_version, ctx.obj['verify'])
-    # print host
-    # print user
-    # print service_type
-    # print service_version
-    # print password
-    # print org
     result = vca.login(password=password, org=org)
-    # print 'result=', result
     if result:
         if 'ondemand' == service_type and instance:
             result = vca.login_to_instance(instance, password, None, None)
-        if result:        
+        if result:
             config = ConfigParser.RawConfigParser()
             config.read(os.path.expanduser('~/.vcarc'))
             section = 'Profile-%s' % ctx.obj['profile']
@@ -205,7 +195,6 @@ def _login_user_to_service(ctx, user, host, password, service_type, service_vers
                 if not instance: config.set(section, 'org_url', None)
             with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
                 config.write(configfile)
-                
             _load_context(ctx, ctx.obj['profile'], ctx.obj['json_output'], ctx.obj['xml_output'], not ctx.obj['verify'])
     if not result:
         ctx.obj['response'] = vca.response
@@ -222,7 +211,8 @@ def _getVCA_with_relogin(ctx):
             time.sleep(1)
             vca = _getVCA(ctx)
         else:
-            ctx.obj['response']=vca.response; print_error('Token expired, re-login failed for profile \'%s\'' % ctx.obj['profile'], ctx)
+            # ctx.obj['response']=vca.response;
+            print_error('Token expired, re-login failed for profile \'%s\'' % ctx.obj['profile'], ctx)
             vca = None
     elif vca == None:
         ctx.obj['response']=vca.response; print_error('User not authenticated or token expired', ctx)
@@ -434,7 +424,7 @@ def vdc(ctx, operation, vdc):
 # assumes the org (and service) and vdc been previously selected   
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | deploy | undeploy | customize | insert | eject | disconnect]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'deploy', 'undeploy', 'customize', 'insert', 'eject', 'disconnect']))
+@click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | deploy | undeploy | customize | insert | eject | disconnect | attach | detach]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'deploy', 'undeploy', 'customize', 'insert', 'eject', 'disconnect', 'attach', 'detach']))
 @click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Name')
 @click.option('-a', '--vapp', default='', metavar='<vapp>', help='vApp name')
 @click.option('-c', '--catalog', default='', metavar='<catalog>', help='catalog name')
@@ -444,7 +434,8 @@ def vdc(ctx, operation, vdc):
 @click.option('-V', '--vm', 'vm_name', default='', metavar='<vm>', help='VM name')
 @click.option('-f', '--file', 'cust_file', default=None, metavar='<customization_file>', help='Guest OS Customization script file', type=click.File('r'))
 @click.option('-e', '--media', default='', metavar='<media>', help='virtual media name (ISO)')
-def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, cust_file, media):
+@click.option('-d', '--disk', 'disk_name', default=None, metavar='<disk_name>', help='Disk Name')
+def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, cust_file, media, disk_name):
     """Operations with vApps"""
     if vdc == '': vdc = ctx.obj['vdc'] 
     vca = _getVCA_vcloud_session(ctx)
@@ -571,6 +562,24 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
         #         task = the_vapp.connect_vms(nets[0].name, connection_index=0, ip_allocation_mode=mode)
         #         if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
         #         else: ctx.obj['response']=the_vapp.response; print_error("can't connect the vApp to the network", ctx)
+    elif 'attach' == operation or 'detach' == operation:
+        the_vdc = vca.get_vdc(vdc)
+        if the_vdc:
+            the_vapp = vca.get_vapp(the_vdc, vapp)
+            if the_vapp:
+                link = filter(lambda link: link.get_name() == disk_name, vca.get_diskRefs(the_vdc))
+                if len(link) == 1:
+                    task = None
+                    if 'attach' == operation:
+                        task = the_vapp.attach_disk_to_vm(vm_name, link[0])
+                    else:
+                        task = the_vapp.detach_disk_from_vm(vm_name, link[0])
+                    if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+                    else: ctx.obj['response']=the_vapp.response; print_error("can't attach or detach disk", ctx)
+                elif len(link) == 0:
+                    print_error("disk not found", ctx)
+                elif len(link) > 1:
+                    print_error("more than one disk found with the same name", ctx)
     else:
         print_message('not implemented', ctx)
         
@@ -1124,7 +1133,8 @@ def dep(ctx, operation, deployment, blueprint, input_file, workflow, show_events
 @click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Name')
 @click.option('-d', '--disk', 'disk_name', default=None, metavar='<disk_name>', help='Disk Name')
 @click.option('-s', '--size', 'disk_size', default=5, metavar='<size>', help='Disk Size in GB', type=click.INT)
-def disk(ctx, operation, vdc, disk_name, disk_size):
+@click.option('-i', '--id', 'disk_id', default=None, metavar='<disk_id>', help='Disk Id')
+def disk(ctx, operation, vdc, disk_name, disk_size, disk_id):
     """Operations with Independent Disks"""
     if '' == vdc: vdc = ctx.obj['vdc']
     vca = _getVCA_vcloud_session(ctx)
@@ -1136,9 +1146,17 @@ def disk(ctx, operation, vdc, disk_name, disk_size):
         print_disks(ctx, disks)
     elif 'create' == operation:
         assert disk_name, "Disk name can't be empty"
-        size = disk_size * 1000000
+        size = disk_size * DISK_SIZE
         result = vca.add_disk(vdc, disk_name, size)
-        print result
+        if result and len(result) > 0:
+            if result[0]: print_message('disk %s successfully created' % disk_name, ctx) 
+            else: ctx.obj['response']=vca.response; print_error('disk %s could not be created' % disk_name, ctx)
+    elif 'delete' == operation:
+        assert not (disk_name is None and disk_id is None), "Both disk name and id can't be empty"
+        result = vca.delete_disk(vdc, disk_name, disk_id)
+        if result and len(result) > 0:
+            if result[0]: print_message('disk %s successfully deleted' % (disk_id if disk_id is not None else disk_name), ctx) 
+            else: ctx.obj['response']=vca.response; print_error('disk %s could not be deleted: %s' % (disk_name, result[1]), ctx)
     else:
         print_message('not implemented', ctx)
     
@@ -1208,11 +1226,23 @@ def example(ctx):
     id+=1; table.append([id, 'undeploy vapp', 
         'vca vapp undeploy --vapp ubu'])                
     id+=1; table.append([id, 'customize vapp vm', 
-        'vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh'])                        
+        'vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh'])
     id+=1; table.append([id, 'insert ISO to vapp vm', 
-        'vca vapp insert --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso'])                        
+        'vca vapp insert --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso'])
     id+=1; table.append([id, 'eject ISO from vapp vm', 
         'vca vapp eject --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso'])
+    id+=1; table.append([id, 'attach disk to vapp vm', 
+        'vca vapp attach --vapp myvapp --vm myvm --disk mydisk'])
+    id+=1; table.append([id, 'detach disk from vapp vm', 
+        'vca vapp detach --vapp myvapp --vm myvm --disk mydisk'])
+    id+=1; table.append([id, 'list independent disks', 
+        'vca vapp disk'])
+    id+=1; table.append([id, 'create independent disk of 100GB', 
+        'vca vapp disk create --disk mydisk --size 100'])
+    id+=1; table.append([id, 'delete independent disk by name', 
+        'vca vapp disk delete --disk mydisk'])
+    id+=1; table.append([id, 'delete independent disk by id', 
+        'vca vapp disk delete --id bce76ca7-29d0-4041-82d4-e4481804d5c4'])
     id+=1; table.append([id, 'list vms', 
         'vca vm'])
     id+=1; table.append([id, 'list vms in a vapp', 
@@ -1801,16 +1831,19 @@ def print_disks(ctx, disks):
             disk[0].export(sys.stdout, 0)
             print 'Owner:', user
         return
-    headers = ['Disk', 'Size GB', 'Owner']
+    headers = ['Disk', 'Size GB', 'Id', 'Owner']
     table = []
     for disk in disks:
         if len(disk)>0:
-            table.append([disk[0].name, int(disk[0].size)/1000000, disk[0].get_Owner().get_User()])
+            table.append([disk[0].name, 
+                          int(disk[0].size)/DISK_SIZE, 
+                          disk[0].id, 
+                          disk[0].get_Owner().get_User()])
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
     if len(sorted_table)>0:
         print_table('Independent disks:', 'disks', headers, sorted_table, ctx)
     else:
-        print_message("No independent disks found in this virtual data center")
+        print_message("No independent disks found in this virtual data center", ctx)
 
 
 if __name__ == '__main__':

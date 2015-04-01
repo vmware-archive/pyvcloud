@@ -239,19 +239,19 @@ class Gateway(object):
         services = filter(lambda service: service.__class__.__name__ == "FirewallServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
         if len(services) == 1:
             services[0].set_IsEnabled(enable)
-            
+
     def is_vpn_enabled(self):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
         services = filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
         return len(services) == 1 and services[0].get_IsEnabled()
-        
+
     def add_vpn_service(self, IsEnabled=True):
         vpn_service = GatewayIpsecVpnServiceType(IsEnabled=IsEnabled)
         vpn_service.original_tagname_ = 'GatewayIpsecVpnService'
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
         edgeGatewayServiceConfiguration.get_NetworkService().append(vpn_service)
         return vpn_service
-        
+
     def enable_vpn(self, enable):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
         services = filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
@@ -263,7 +263,7 @@ class Gateway(object):
             return services[0]
         else:
             return None
-            
+
     def get_vpn_service(self):
         gatewayConfiguration = self.me.get_Configuration()
         edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
@@ -271,17 +271,17 @@ class Gateway(object):
                       edgeGatewayServiceConfiguration.get_NetworkService())
         if service is not None and len(service)>0:
             return service[0]
-                      
+
     def add_vpn_tunnel(self, name, local_ip, local_network_name, peer_ip, peer_network, secret):
         vpn_service = self.get_vpn_service()
         if vpn_service is None:
             vpn_service = self.add_vpn_service()
         peer = IpsecVpnThirdPartyPeerType(PeerId=peer_ip)
         peer.original_tagname_ = 'IpsecVpnThirdPartyPeer'
-        
+
         interfaces = self.get_interfaces('internal')
         gateway_interface = None
-        for interface in interfaces: 
+        for interface in interfaces:
             if local_network_name == interface.get_Name():
                 gateway_interface = interface
                 break
@@ -291,13 +291,13 @@ class Gateway(object):
         local_subnet.set_Name(gateway_interface.get_Name())
         local_subnet.set_Gateway(gateway_interface.get_SubnetParticipation()[0].get_Gateway())
         local_subnet.set_Netmask(gateway_interface.get_SubnetParticipation()[0].get_Netmask())
-        
+
         peer_subnet = IpsecVpnSubnetType()
         peer_subnet.set_Name(peer_network)
         pn = IPNetwork(peer_network)
         peer_subnet.set_Gateway(str(pn.ip))
         peer_subnet.set_Netmask(str(pn.netmask))
-            
+
         tunnel = GatewayIpsecVpnTunnelType(
             Name=name, Description='',
             LocalIpAddress=local_ip, LocalId=local_ip,
@@ -309,7 +309,7 @@ class Gateway(object):
         tunnel.add_LocalSubnet(local_subnet)
         tunnel.add_PeerSubnet(peer_subnet)
         vpn_service.add_Tunnel(tunnel)
-        
+
     def delete_vpn_tunnel(self, name):
         vpn_service = self.get_vpn_service()
         if vpn_service is None or vpn_service.Endpoint is None:
@@ -322,7 +322,7 @@ class Gateway(object):
             return False
         vpn_service.Tunnel = new_tunnels
         return True
-        
+
     def add_network_to_vpn_tunnel(self, name, local_network_name=None, peer_network=None):
         vpn_service = self.get_vpn_service()
         if vpn_service is None or vpn_service.Endpoint is None:
@@ -332,7 +332,7 @@ class Gateway(object):
                 if local_network_name is not None:
                     interfaces = self.get_interfaces('internal')
                     gateway_interface = None
-                    for interface in interfaces: 
+                    for interface in interfaces:
                         if local_network_name == interface.get_Name():
                             gateway_interface = interface
                             break
@@ -340,7 +340,7 @@ class Gateway(object):
                     local_subnet.set_Name(gateway_interface.get_Name())
                     local_subnet.set_Gateway(gateway_interface.get_SubnetParticipation()[0].get_Gateway())
                     local_subnet.set_Netmask(gateway_interface.get_SubnetParticipation()[0].get_Netmask())
-                    tunnel.add_LocalSubnet(local_subnet)         
+                    tunnel.add_LocalSubnet(local_subnet)
                 if peer_network is not None:
                     peer_subnet = IpsecVpnSubnetType()
                     peer_subnet.set_Name(peer_network)
@@ -350,7 +350,7 @@ class Gateway(object):
                     tunnel.add_PeerSubnet(peer_subnet)
                 return True
         return False
-    
+
     def delete_network_from_vpn_tunnel(self, name, local_network_name=None, peer_network=None):
         vpn_service = self.get_vpn_service()
         if vpn_service is None or vpn_service.Endpoint is None:
@@ -368,7 +368,7 @@ class Gateway(object):
                     for subnet in tunnel.get_PeerSubnet():
                         if subnet.get_Name() != peer_network:
                             new_subnets.append(subnet)
-                    tunnel.set_PeerSubnet(new_subnets)                    
+                    tunnel.set_PeerSubnet(new_subnets)
                 return True
         return False
 
@@ -378,25 +378,25 @@ class Gateway(object):
             vpn_service = self.add_vpn_service()
         interfaces = self.get_interfaces('uplink')
         network = None
-        for interface in interfaces: 
+        for interface in interfaces:
             if network_name == interface.get_Name():
                 network = interface.get_Network()
                 break
         assert network
         endpoint = GatewayIpsecVpnEndpointType(Network=network, PublicIp=public_ip)
         vpn_service.add_Endpoint(endpoint)
-        
+
     def del_vpn_endpoint(self, network_name, public_ip):
         vpn_service = self.get_vpn_service()
         if vpn_service is None or vpn_service.Endpoint is None:
             return False
         interfaces = self.get_interfaces('uplink')
         network = None
-        for interface in interfaces: 
+        for interface in interfaces:
             if network_name == interface.get_Name():
                 network = interface.get_Network()
                 break
-        assert network            
+        assert network
         new_endpoints = []
         for endpoint in vpn_service.Endpoint:
             if (endpoint.Network.get_href() != network.get_href()) or (endpoint.get_PublicIp() != public_ip):
@@ -404,7 +404,7 @@ class Gateway(object):
         if len(vpn_service.Endpoint) == len(new_endpoints):
             return False
         vpn_service.Endpoint = new_endpoints
-        
+
     def get_syslog_conf(self):
         headers = self.headers
         headers['Accept']='application/*+xml;version=5.11'

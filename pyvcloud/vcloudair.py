@@ -583,7 +583,7 @@ class VCA(object):
                           vdc.get_Link())[0].href
         headers = self.vcloud_session.get_vcloud_headers()
         headers["Content-Type"] = content_type
-        self.response = requests.post(postlink, data=body, headers=headers)
+        self.response = requests.post(postlink, data=body, headers=headers, verify=self.verify)
         if self.response.status_code == requests.codes.created:
             network = networkType.parseString(self.response.content, True)
             task = network.get_Tasks().get_Task()[0]

@@ -44,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'vca-cli'
-copyright = u'2015, Paco Gomez'
+copyright = u'2015, VMware'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -197,7 +197,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'vca-cli.tex', u'vca-cli Documentation',
-   u'Paco Gomez', 'manual'),
+   u'VMware', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -227,7 +227,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'vca-cli', u'vca-cli Documentation',
-     [u'Paco Gomez'], 1)
+     [u'VMware'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -241,7 +241,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'vca-cli', u'vca-cli Documentation',
-   u'Paco Gomez', 'vca-cli', 'One line description of project.',
+   u'VMware', 'vca-cli', 'One line description of project.',
    'Miscellaneous'),
 ]
 

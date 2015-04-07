@@ -144,7 +144,7 @@ class VCA(object):
         headers = self._get_vcloud_headers()
         headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.sc.restapi.model.planlisttype" % self.version
         self.response = requests.get(self.host + "/api/sc/plans", headers=headers, verify=self.verify)
-        if self.response.history[-1]:
+        if self.response.history and self.response.history[-1]:
             self.response = requests.get(self.response.history[-1].headers['location'], headers=headers, verify=self.verify)
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['plans']
@@ -153,7 +153,7 @@ class VCA(object):
 
     def get_instances(self):
         self.response = requests.get(self.host + "/api/sc/instances", headers=self._get_vcloud_headers(), verify=self.verify)
-        if self.response.history[-1]:
+        if self.response.history and self.response.history[-1]:
             self.response = requests.get(self.response.history[-1].headers['location'], headers=self._get_vcloud_headers(), verify=self.verify)
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['instances']

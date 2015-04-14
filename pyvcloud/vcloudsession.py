@@ -35,7 +35,8 @@ class VCS(object):
         self.org_url = org_url
         self.organization = None
         self.response = None
-        
+        self.session = None
+
     def get_vcloud_headers(self):
         headers = {}
         headers["x-vcloud-authorization"] = self.token
@@ -62,9 +63,16 @@ class VCS(object):
             self.response = requests.post(self.url, headers=headers, verify=self.verify)
             if self.response.status_code == requests.codes.ok:
                 self.token = self.response.headers["x-vcloud-authorization"]
-                session = sessionType.parseString(self.response.content, True)
-                self.org_url = filter(lambda link: link.type_ == 'application/vnd.vmware.vcloud.org+xml', session.Link)[0].href
+                self.session = sessionType.parseString(self.response.content, True)
+                self.org_url = filter(lambda link: link.type_ == 'application/vnd.vmware.vcloud.org+xml', self.session.Link)[0].href
                 return True
             else:
                 return False
-                    
+
+    def get_Link(self):
+        if self.organization:
+            return self.organization.Link
+        elif self.session:
+            return self.session.Link
+        else:
+            return False

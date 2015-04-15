@@ -144,7 +144,7 @@ class VAPP(object):
 
     @staticmethod
     def create_networkConfigSection(network_name, network_href, fence_mode):
-        parentNetwork = vcloudType.ReferenceType(href=network_href)
+        parentNetwork = vcloudType.ReferenceType(href=network_href, name=network_name)
         configuration = vcloudType.NetworkConfigurationType()
         configuration.set_ParentNetwork(parentNetwork)
         configuration.set_FenceMode(fence_mode)
@@ -155,7 +155,7 @@ class VAPP(object):
         info.set_valueOf_("Configuration parameters for logical networks")
         networkConfigSection = vcloudType.NetworkConfigSectionType()
         networkConfigSection.add_NetworkConfig(networkConfig)
-        networkConfigSection.set_Info(info)
+        networkConfigSection.set_Info(vAppType.cimString(valueOf_="Network config"))
         return networkConfigSection
 
     def connect_vms(self, network_name, connection_index,
@@ -225,9 +225,10 @@ class VAPP(object):
             0,
             name_ = 'NetworkConfigSection',
             namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
-            pretty_print = False)
+            pretty_print = True)
         body = output.getvalue().\
-            replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").replace("vmw:", "")
+            replace('Info msgid=""', "ovf:Info").replace("Info", "ovf:Info").replace(":vmw", "").replace("vmw:","")\
+            .replace("RetainNetovf", "ovf").replace("ovf:InfoAcrossDeployments","RetainNetInfoAcrossDeployments")
         self.response = requests.put(link.get_href(), data=body, headers=self.headers, verify=self.verify)
         if self.response.status_code == requests.codes.accepted:
             return taskType.parseString(self.response.content, True)

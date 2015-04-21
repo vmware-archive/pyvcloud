@@ -21,7 +21,6 @@ from schema.vcd.v1_5.schemas.vcloud import vAppType, vdcType, queryRecordViewTyp
 from schema.vcd.v1_5.schemas.vcloud.taskType import TaskType
 from schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType, NetworkConnectionSectionType
 from iptools import ipv4, IpRange
-from tabulate import tabulate
 from pyvcloud.helper import CommonUtils
 
 

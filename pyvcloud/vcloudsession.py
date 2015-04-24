@@ -64,7 +64,7 @@ class VCS(object):
                 self.token = self.response.headers["x-vcloud-authorization"]
                 session = sessionType.parseString(self.response.content, True)
                 self.org_url = filter(lambda link: link.type_ == 'application/vnd.vmware.vcloud.org+xml', session.Link)[0].href
-                return True                        
+                return True
             else:
                 return False
                     

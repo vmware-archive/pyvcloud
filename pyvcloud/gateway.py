@@ -17,7 +17,7 @@
 
 import requests
 from schema.vcd.v1_5.schemas.vcloud import taskType
-from schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType, NatServiceType, FirewallRuleType, ProtocolsType, DhcpPoolServiceType, GatewayIpsecVpnServiceType, GatewayIpsecVpnEndpointType, GatewayIpsecVpnTunnelType, IpsecVpnSubnetType, IpsecVpnThirdPartyPeerType
+from schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType, NatServiceType, FirewallRuleType, ProtocolsType, DhcpPoolServiceType, GatewayIpsecVpnServiceType, GatewayIpsecVpnEndpointType, GatewayIpsecVpnTunnelType, IpsecVpnSubnetType, IpsecVpnThirdPartyPeerType, DhcpServiceType, GatewayDhcpServiceType
 from iptools import IpRange
 from helper import CommonUtils
 from xml.etree import ElementTree as ET
@@ -256,7 +256,7 @@ class Gateway(object):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
         services = filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
         if len(services) == 0:
-            vpn_service = self.add_vpn_service(IsEnabled)
+            vpn_service = self.add_vpn_service(enable)
             return vpn_service
         elif len(services) == 1:
             services[0].set_IsEnabled(enable)
@@ -497,12 +497,37 @@ class Gateway(object):
 
     def _getDhcpService(self):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
-        dhcpService = filter(lambda service: service.__class__.__name__ == "GatewayDhcpServiceType",
-                             edgeGatewayServiceConfiguration.get_NetworkService())[0]
-        return dhcpService
+        dhcpServices = filter(lambda service: service.__class__.__name__ == "GatewayDhcpServiceType",
+                             edgeGatewayServiceConfiguration.get_NetworkService())
+        if len(dhcpServices) > 0:
+            return dhcpServices[0]
+        
+    def get_dhcp_service(self):
+        return self._getDhcpService()
+        
+    def add_dhcp_service(self, IsEnabled=True):
+        service = GatewayDhcpServiceType(IsEnabled=IsEnabled)
+        service.original_tagname_ = 'GatewayDhcpService'
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        edgeGatewayServiceConfiguration.get_NetworkService().append(service)
+        return service
+
+    def enable_dhcp(self, enable):
+        edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        services = filter(lambda service: service.__class__.__name__ == "GatewayDhcpServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
+        if len(services) == 0:
+            dhcpService = add_dhcp_service(enable)
+            return dhcpService
+        elif len(services) == 1:
+            services[0].set_IsEnabled(enable)
+            return services[0]
+        else:
+            return None
 
     def get_dhcp_pools(self):
-        return self._getDhcpService().get_Pool()
+        service = self._getDhcpService()
+        if service:
+            return service.get_Pool()
 
     def add_dhcp_pool(self, network_name, low_ip_address, hight_ip_address,
                       default_lease, max_lease):
@@ -519,9 +544,14 @@ class Gateway(object):
                                        MaxLeaseTime=max_lease,
                                        LowIpAddress=low_ip_address,
                                        HighIpAddress=hight_ip_address)
+        service = self._getDhcpService()
+        if service == None:
+            service = self.add_dhcp_service(IsEnabled=True)
         pools = self.get_dhcp_pools()
+        if pools == None:
+            pools = []
         pools.append(new_pool)
-        self._getDhcpService().set_Pool(pools)
+        service.set_Pool(pools)
 
     def delete_dhcp_pool(self, network_name):
         pools = [p for p in self.get_dhcp_pools() if p.get_Network().name != network_name]

@@ -41,6 +41,10 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType
 from cryptography.fernet import Fernet
 
+#todo: adding a DNAT rule with type any fails
+#todo: make network mode case insensitive (pool, dhcp)
+#todo: identify primary ip from the gateway uplink information
+#todo: print version of cli and pyvcloud on the status command
 #todo: add disk, validate that disk name doesn't exist
 #todo: make sure that all the options in commands are in the same order, when possible
 #todo: example of allocate and deallocate public ip on demand
@@ -426,16 +430,17 @@ def vdc(ctx, operation, vdc):
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[list | info | create | delete | power.on | power.off | deploy | undeploy | customize | insert | eject | disconnect | attach | detach]', type=click.Choice(['list', 'info', 'create', 'delete', 'power.on', 'power.off', 'deploy', 'undeploy', 'customize', 'insert', 'eject', 'disconnect', 'attach', 'detach']))
 @click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Name')
-@click.option('-a', '--vapp', default='', metavar='<vapp>', help='vApp name')
-@click.option('-c', '--catalog', default='', metavar='<catalog>', help='catalog name')
-@click.option('-t', '--template', default='', metavar='<template>', help='template name')
+@click.option('-a', '--vapp', 'vapp', default='', metavar='<vapp>', help='vApp name')
+@click.option('-c', '--catalog', default='', metavar='<catalog>', help='Catalog name')
+@click.option('-t', '--template', default='', metavar='<template>', help='Template name')
 @click.option('-n', '--network', default='', metavar='<network>', help='Network name')
 @click.option('-m', '--mode', default='POOL', metavar='[POOL, DHCP]', help='Network connection mode', type=click.Choice(['POOL', 'DHCP']))
 @click.option('-V', '--vm', 'vm_name', default='', metavar='<vm>', help='VM name')
 @click.option('-f', '--file', 'cust_file', default=None, metavar='<customization_file>', help='Guest OS Customization script file', type=click.File('r'))
-@click.option('-e', '--media', default='', metavar='<media>', help='virtual media name (ISO)')
+@click.option('-e', '--media', default='', metavar='<media>', help='Virtual media name (ISO)')
 @click.option('-d', '--disk', 'disk_name', default=None, metavar='<disk_name>', help='Disk Name')
-def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, cust_file, media, disk_name):
+@click.option('-o', '--count', 'count', default=1, metavar='<count>', help='Number of vApps to create')
+def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, cust_file, media, disk_name, count):
     """Operations with vApps"""
     if vdc == '': vdc = ctx.obj['vdc'] 
     vca = _getVCA_vcloud_session(ctx)
@@ -460,27 +465,31 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)                
         print_table("Available vApps in '%s' for '%s' profile:" % (vdc, ctx.obj['profile']), 'vapps', headers, table, ctx)
     elif 'create' == operation:
-        print_message("creating vApp '%s' in VDC '%s' from template '%s' in catalog '%s'" % (vapp, vdc, template, catalog), ctx)
-        task = vca.create_vapp(vdc, vapp, template, catalog, vm_name=vm_name)
-        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: ctx.obj['response']=vca.response; print_error("can't create the vApp", ctx)
-        the_vdc = vca.get_vdc(vdc)        
-        the_vapp = vca.get_vapp(the_vdc, vapp)
-        print_message("disconnecting vApp from networks pre-defined in the template", ctx)
-        task = the_vapp.disconnect_from_networks()
-        if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-        else: ctx.obj['response']=the_vapp.response; print_error("can't disconnect vApp from networks", ctx)
-        if '' != network:
-            nets = filter(lambda n: n.name == network, vca.get_networks(vdc))
-            if len(nets) == 1:
-                print_message("connecting vApp to network '%s' with mode '%s'" % (network, mode), ctx)
-                task = the_vapp.connect_to_network(nets[0].name, nets[0].href)
-                if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                else: ctx.obj['response']=the_vapp.response; print_error("can't connect the vApp to the network", ctx)
-                print_message("connecting VMs to network '%s' with mode '%s'" % (network, mode), ctx)                
-                task = the_vapp.connect_vms(nets[0].name, connection_index=0, ip_allocation_mode=mode)
-                if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
-                else: ctx.obj['response']=the_vapp.response; print_error("can't connect the vApp to the network", ctx)
+        for x in xrange(1, count+1):
+            vapp_name = vapp
+            if count > 1:
+                vapp_name += '-' + str(x)
+            print_message("creating vApp '%s' in VDC '%s' from template '%s' in catalog '%s'" % (vapp_name, vdc, template, catalog), ctx)
+            task = vca.create_vapp(vdc, vapp_name, template, catalog, vm_name=vm_name)
+            if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+            else: ctx.obj['response']=vca.response; print_error("can't create the vApp", ctx)
+            the_vdc = vca.get_vdc(vdc)        
+            the_vapp = vca.get_vapp(the_vdc, vapp_name)
+            print_message("disconnecting vApp from networks pre-defined in the template", ctx)
+            task = the_vapp.disconnect_from_networks()
+            if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+            else: ctx.obj['response']=the_vapp.response; print_error("can't disconnect vApp from networks", ctx)
+            if '' != network:
+                nets = filter(lambda n: n.name == network, vca.get_networks(vdc))
+                if len(nets) == 1:
+                    print_message("connecting vApp to network '%s' with mode '%s'" % (network, mode), ctx)
+                    task = the_vapp.connect_to_network(nets[0].name, nets[0].href)
+                    if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+                    else: ctx.obj['response']=the_vapp.response; print_error("can't connect the vApp to the network", ctx)
+                    print_message("connecting VMs to network '%s' with mode '%s'" % (network, mode), ctx)                
+                    task = the_vapp.connect_vms(nets[0].name, connection_index=0, ip_allocation_mode=mode)
+                    if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
+                    else: ctx.obj['response']=the_vapp.response; print_error("can't connect the vApp to the network", ctx)
     elif 'delete' == operation:
         print "deleting vApp '%s' from VDC '%s'" % (vapp, vdc)
         task = vca.delete_vapp(vdc, vapp)
@@ -1217,6 +1226,10 @@ def example(ctx):
         'vca vapp'])
     id+=1; table.append([id, 'create vapp', 
         'vca vapp create -a coreos2 -V coreos2 -c default-catalog -t coreos_template -n default-routed-network -m POOL'])        
+    id+=1; table.append([id, 'create vapp', 
+        'vca vapp create --vapp myvapp --vm myvm --catalog \'Public Catalog\' --template \'Ubuntu Server 12.04 LTS (amd64 20150127)\' --network default-routed-network --mode POOL'])        
+    id+=1; table.append([id, 'create multiple vapps', 
+        'vca vapp create --vapp myvapp --vm myvm --catalog \'Public Catalog\' --template \'Ubuntu Server 12.04 LTS (amd64 20150127)\' --network default-routed-network --mode POOL --count 10'])        
     id+=1; table.append([id, 'delete vapp', 
         'vca vapp delete -a coreos2'])        
     id+=1; table.append([id, 'show vapp details in XML', 

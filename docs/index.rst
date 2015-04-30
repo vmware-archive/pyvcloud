@@ -5,7 +5,7 @@
 
 Welcome to vca-cli's documentation!
 ===================================
-vca-cli is the Command Line Interface for VMware vCloud.
+Command Line Interface for VMware vCloud.
 
 Contents:
 

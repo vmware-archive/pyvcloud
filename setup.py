@@ -16,7 +16,7 @@ from setuptools import setup
 
 setup(
     name='vca-cli',
-    version='11rc1',
+    version='11',
     description='VMware vCloud CLI',
     url='https://github.com/vmware/vca-cli',
     author='VMware, Inc.',

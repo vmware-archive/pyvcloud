@@ -19,11 +19,13 @@ import base64
 import requests
 import StringIO
 import json
+import logging
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType
+from pyvcloud import _get_logger, Http
 
 class VCS(object):
 
-    def __init__(self, url, username, org, instance, api_url, org_url, version='5.7', verify=True):
+    def __init__(self, url, username, org, instance, api_url, org_url, version='5.7', verify=True, log=False):
         self.url = url
         self.username = username
         self.token = None
@@ -35,7 +37,9 @@ class VCS(object):
         self.org_url = org_url
         self.organization = None
         self.response = None
-        
+        self.log = log
+        self.logger = _get_logger() if log else None
+
     def get_vcloud_headers(self):
         headers = {}
         headers["x-vcloud-authorization"] = self.token
@@ -47,7 +51,7 @@ class VCS(object):
             headers = {}
             headers["x-vcloud-authorization"] = token
             headers["Accept"] = "application/*+xml;version=" + self.version
-            self.response = requests.get(self.org_url, headers=headers, verify=self.verify)
+            self.response = Http.get(self.org_url, headers=headers, verify=self.verify, logger=self.logger)
             if self.response.status_code == requests.codes.ok:
                 self.token = token
                 self.organization = organizationType.parseString(self.response.content, True)
@@ -59,7 +63,7 @@ class VCS(object):
             headers = {}
             headers["Authorization"] = encode.rstrip()
             headers["Accept"] = "application/*+xml;version=" + self.version
-            self.response = requests.post(self.url, headers=headers, verify=self.verify)
+            self.response = Http.post(self.url, headers=headers, verify=self.verify, logger=self.logger)
             if self.response.status_code == requests.codes.ok:
                 self.token = self.response.headers["x-vcloud-authorization"]
                 session = sessionType.parseString(self.response.content, True)

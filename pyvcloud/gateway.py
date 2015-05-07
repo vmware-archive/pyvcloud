@@ -22,17 +22,19 @@ from iptools import IpRange
 from helper import CommonUtils
 from xml.etree import ElementTree as ET
 from netaddr import *
+from pyvcloud import _get_logger, Http
 
 DEFAULT_LEASE = 3600
 MAX_LEASE = 7200
 
 class Gateway(object):
 
-    def __init__(self, gateway, headers, verify):
+    def __init__(self, gateway, headers, verify, log=False):
         self.me = gateway
         self.headers = headers
         self.verify = verify
         self.response = None
+        self.logger = _get_logger() if log else None
 
     def get_name(self):
         return self.me.get_name()
@@ -83,7 +85,7 @@ class Gateway(object):
                                                  namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ')
         content_type = "application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml"
         link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
-        self.response = requests.post(link[0].get_href(), data=body, headers=self.headers)
+        self.response = Http.post(link[0].get_href(), data=body, headers=self.headers, logger=self.logger)
         if self.response.status_code == requests.codes.accepted:
             task = taskType.parseString(self.response.content, True)
             return task
@@ -408,7 +410,7 @@ class Gateway(object):
     def get_syslog_conf(self):
         headers = self.headers
         headers['Accept']='application/*+xml;version=5.11'
-        self.response = requests.get(self.me.href, data='', headers=headers, verify=self.verify)
+        self.response = Http.get(self.me.href, data='', headers=headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
             doc = ET.fromstring(self.response.content)
             for element in doc.iter('{http://www.vmware.com/vcloud/v1.5}SyslogServerIp'):
@@ -440,7 +442,7 @@ class Gateway(object):
             """ % syslog_server_ip
         # '<SyslogServerSettings><TenantSyslogServerSettings><SyslogServerIp>%s</SyslogServerIp></TenantSyslogServerSettings></SyslogServerSettings>' % syslog_server_ip
         # link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
-        self.response = requests.post(self.me.href+'/action/configureSyslogServerSettings', data=body, headers=headers, verify=self.verify)
+        self.response = Http.post(self.me.href+'/action/configureSyslogServerSettings', data=body, headers=headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.accepted:
             task = taskType.parseString(self.response.content, True)
             return task
@@ -571,8 +573,8 @@ class Gateway(object):
         </ExternalIpAddressActionList>
         """
 
-        self.response = requests.put(href, data=body, headers=headers,
-                                     verify=self.verify)
+        self.response = Http.put(href, data=body, headers=headers,
+                                     verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
             task = taskType.parseString(self.response.content, True)
             return task
@@ -591,8 +593,8 @@ class Gateway(object):
         </ExternalIpAddressActionList>
         """.format(ip_address)
 
-        self.response = requests.put(href, data=body, headers=headers,
-                                     verify=self.verify)
+        self.response = Http.put(href, data=body, headers=headers,
+                                     verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
             task = taskType.parseString(self.response.content, True)
             return task

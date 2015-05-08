@@ -314,6 +314,7 @@ class VCA(object):
         self.vdc = self.get_vdc(vdc_name)
         if not self.vcloud_session or not self.vcloud_session.organization or not self.vdc:
             #"Select an organization and datacenter first"
+            print "here"
             return False
         if '' == vm_name: vm_name = None
         catalogs = filter(lambda link: catalog_name == link.get_name() and link.get_type() == "application/vnd.vmware.vcloud.catalog+xml",
@@ -357,6 +358,7 @@ class VCA(object):
                     content_type = "application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml"
                     link = filter(lambda link: link.get_type() == content_type, self.vdc.get_Link())
                     self.response = requests.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, data=body)
+                    print self.response.content
                     if self.response.status_code == requests.codes.created:
                         vApp = vAppType.parseString(self.response.content, True)
                         task = vApp.get_Tasks().get_Task()[0]

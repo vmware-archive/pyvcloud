@@ -12,7 +12,7 @@ def _get_logger():
     _logger = logging.getLogger("pyvcloud")
     _logger.setLevel(logging.DEBUG)
     handler = logging.FileHandler("%s/pyvcloud.log" % tempfile.gettempdir())
-    formatter = logging.Formatter("%(asctime)-22.22s | %(levelname)-5.5s | %(name)-15.15s | %(module)-15.15s | %(funcName)-12.12s | %(message)s")
+    formatter = logging.Formatter("%(asctime)-23.23s | %(levelname)-5.5s | %(name)-15.15s | %(module)-15.15s | %(funcName)-12.12s | %(message)s")
     handler.setFormatter(formatter)
     _logger.addHandler(handler)
     requests_logger = logging.getLogger("requests.packages.urllib3")

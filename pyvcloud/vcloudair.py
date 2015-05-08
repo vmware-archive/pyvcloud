@@ -373,7 +373,7 @@ class VCA(object):
         while status != "success":
             if status == "error":
                 error = task.get_Error()
-                self.logger.error("vcloudair.block_until_completed: task error, major=%s, minor=%s, message=%s" % (error.get_majorErrorCode(), error.get_minorErrorCode(), error.get_message()))
+                self.logger.error("task error, major=%s, minor=%s, message=%s" % (error.get_majorErrorCode(), error.get_minorErrorCode(), error.get_message()))
                 return False
             else:
                 # some task doesn't not report progress
@@ -388,7 +388,7 @@ class VCA(object):
                     progress = task.get_Progress()
                     status = task.get_status()
                 else:
-                    self.logger.error("vcloudair.block_until_completed: can't get task")
+                    self.logger.error("can't get task")
                     return False
         return True
 
@@ -403,11 +403,11 @@ class VCA(object):
             if task:
                 self.block_until_completed(task)
             else:
-                self.logger.debug("vcloudair.delete_vapp: vapp.undeploy() didn't return a task")
+                self.logger.debug("vapp.undeploy() didn't return a task")
                 return False
         vapp = self.get_vapp(self.vdc, vapp_name)
         if vapp: return vapp.delete()
-        self.logger.debug("vcloudair.delete_vapp: no vApp")
+        self.logger.debug("no vApp")
 
     def get_catalogs(self):
         links = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.catalog+xml", self.vcloud_session.organization.Link)

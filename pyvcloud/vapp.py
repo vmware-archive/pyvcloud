@@ -144,7 +144,7 @@ class VAPP(object):
 
     @staticmethod
     def create_networkConfigSection(network_name, network_href, fence_mode):
-        parentNetwork = vcloudType.ReferenceType(href=network_href)
+        parentNetwork = vcloudType.ReferenceType(href=network_href, name=network_name)
         configuration = vcloudType.NetworkConfigurationType()
         configuration.set_ParentNetwork(parentNetwork)
         configuration.set_FenceMode(fence_mode)
@@ -155,7 +155,7 @@ class VAPP(object):
         info.set_valueOf_("Configuration parameters for logical networks")
         networkConfigSection = vcloudType.NetworkConfigSectionType()
         networkConfigSection.add_NetworkConfig(networkConfig)
-        networkConfigSection.set_Info(info)
+        networkConfigSection.set_Info(vAppType.cimString(valueOf_="Network config"))
         return networkConfigSection
 
     def connect_vms(self, network_name, connection_index,
@@ -189,25 +189,28 @@ class VAPP(object):
         if children:
             vms = children.get_Vm()
             for vm in vms:
-                print vm.get_Name()
-                # new_connection = self._create_networkConnection(
-                #     network_name, connection_index, ip_allocation_mode,
-                #     mac_address, ip_address)
-                # networkConnectionSection = [section for section in vm.get_Section() if isinstance(section, NetworkConnectionSectionType)][0]
-                # self._modify_networkConnectionSection(
-                #     networkConnectionSection,
-                #     new_connection,
-                #     connections_primary_index)
-                # output = StringIO()
-                # networkConnectionSection.export(output,
-                #     0,
-                #     name_ = 'NetworkConnectionSection',
-                #     namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
-                #     pretty_print = False)
-                # body=output.getvalue().replace("vmw:Info", "ovf:Info")
-                # self.response = requests.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify)
-                # if self.response.status_code == requests.codes.accepted:
-                #     return taskType.parseString(self.response.content, True)
+                # print vm.get_Name()
+                networkConnectionSection = [section for section in vm.get_Section() if isinstance(section, NetworkConnectionSectionType)][0]
+                link = [link for link in networkConnectionSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConnectionSection+xml"][0]
+                found = -1
+                for index, networkConnection in enumerate(networkConnectionSection.NetworkConnection):
+                       if networkConnection.get_network() == network_name:
+                            found = index
+                if found != -1:
+                    networkConnectionSection.NetworkConnection.pop(found)
+                    output = StringIO()
+                    networkConnectionSection.export(output,
+                    0,
+                    name_ = 'NetworkConfigSection',
+                    namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
+                    pretty_print = False)
+                    body = output.getvalue().\
+                    replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
+                    replace("/Info", "/ovf:Info")
+                    self.response = requests.put(link.get_href(), data=body, headers=self.headers, verify=self.verify)
+                    if self.response.status_code == requests.codes.accepted:
+                        return taskType.parseString(self.response.content, True)
+
 
     def connect_to_network(self, network_name, network_href, fence_mode='bridged'):
         vApp_NetworkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
@@ -225,9 +228,10 @@ class VAPP(object):
             0,
             name_ = 'NetworkConfigSection',
             namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
-            pretty_print = False)
+            pretty_print = True)
         body = output.getvalue().\
-            replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").replace("vmw:", "")
+            replace('Info msgid=""', "ovf:Info").replace("Info", "ovf:Info").replace(":vmw", "").replace("vmw:","")\
+            .replace("RetainNetovf", "ovf").replace("ovf:InfoAcrossDeployments","RetainNetInfoAcrossDeployments")
         self.response = requests.put(link.get_href(), data=body, headers=self.headers, verify=self.verify)
         if self.response.status_code == requests.codes.accepted:
             return taskType.parseString(self.response.content, True)
@@ -449,12 +453,14 @@ class VAPP(object):
     def _modify_networkConnectionSection(self, section, new_connection,
                                          primary_index=None):
 
-        for networkConnection in section.get_NetworkConnection():
-            if (networkConnection.get_network().lower() ==
-                new_connection.get_network().lower()):
-                return (False,
-                        "VApp {0} is already connected to org vdc network {1}"
-                        .format(self.name, networkConnection.get_network()))
+        #Need to add same interface more than once for a VM , so commenting out below lines
+
+        # for networkConnection in section.get_NetworkConnection():
+        #     if (networkConnection.get_network().lower() ==
+        #         new_connection.get_network().lower()):
+        #         return (False,
+        #                 "VApp {0} is already connected to org vdc network {1}"
+        #                 .format(self.name, networkConnection.get_network()))
 
         section.add_NetworkConnection(new_connection)
         if section.get_Info() is None:

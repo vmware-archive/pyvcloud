@@ -1,10 +1,11 @@
+import tempfile
 import logging
 import requests
 
 def _get_logger():
     logger = logging.getLogger("pyvcloud")
     logger.setLevel(logging.DEBUG)
-    handler = logging.FileHandler("/tmp/pyvcloud.log") # TODO: Get log file name parametrically
+    handler = logging.FileHandler("%s/pyvcloud.log" % tempfile.gettempdir())
     formatter = logging.Formatter("%(asctime)s %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)

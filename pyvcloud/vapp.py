@@ -450,12 +450,14 @@ class VAPP(object):
     def _modify_networkConnectionSection(self, section, new_connection,
                                          primary_index=None):
 
-        for networkConnection in section.get_NetworkConnection():
-            if (networkConnection.get_network().lower() ==
-                new_connection.get_network().lower()):
-                return (False,
-                        "VApp {0} is already connected to org vdc network {1}"
-                        .format(self.name, networkConnection.get_network()))
+        #Need to add same interface more than once for a VM , so commenting out below lines
+
+        # for networkConnection in section.get_NetworkConnection():
+        #     if (networkConnection.get_network().lower() ==
+        #         new_connection.get_network().lower()):
+        #         return (False,
+        #                 "VApp {0} is already connected to org vdc network {1}"
+        #                 .format(self.name, networkConnection.get_network()))
 
         section.add_NetworkConnection(new_connection)
         if section.get_Info() is None:

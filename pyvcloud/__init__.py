@@ -21,8 +21,8 @@ class Http(object):
             logger.debug('RESPONSE: [%d] %s', response.status_code, response.text)
 
     @staticmethod
-    def get(url, params=None, **kwargs):
-        response = requests.get(url, params, **kwargs)
+    def get(url, logger=None, **kwargs):
+        response = requests.get(url, **kwargs)
         Http._log_response(logger, response)
         return response
 

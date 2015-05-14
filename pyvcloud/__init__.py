@@ -2,24 +2,29 @@ import tempfile
 import logging
 import requests
 
+_logger = None
+
 def _get_logger():
-    logger = logging.getLogger("pyvcloud")
-    logger.setLevel(logging.DEBUG)
+    global _logger
+    if _logger is not None:
+        return _logger
+    
+    _logger = logging.getLogger("pyvcloud")
+    _logger.setLevel(logging.DEBUG)
     handler = logging.FileHandler("%s/pyvcloud.log" % tempfile.gettempdir())
-    formatter = logging.Formatter("%(asctime)s %(message)s")
+    formatter = logging.Formatter("%(asctime)-23.23s | %(levelname)-5.5s | %(name)-15.15s | %(module)-15.15s | %(funcName)-12.12s | %(message)s")
     handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    _logger.addHandler(handler)
     requests_logger = logging.getLogger("requests.packages.urllib3")
     requests_logger.addHandler(handler)
     requests_logger.setLevel(logging.DEBUG)
-    requests_logger.propagate = True
-    return logger
+    return _logger
 
 class Http(object):
     @staticmethod
     def _log_response(logger, response):
         if logger is not None:
-            logger.debug('RESPONSE: [%d] %s', response.status_code, response.text)
+            logger.debug('[%d] %s', response.status_code, response.text)
 
     @staticmethod
     def get(url, logger=None, **kwargs):

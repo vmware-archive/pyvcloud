@@ -23,6 +23,7 @@ import tarfile
 import urllib
 
 from os.path import expanduser
+from pyvcloud import _get_logger, Http
 
 #todo: get events
 #todo: validate-blueprint
@@ -31,7 +32,7 @@ from os.path import expanduser
 #todo: get outputs of deployment
 class Score(object):
     
-    def __init__(self, url, org_url=None, token=None, version='5.7', verify=True):
+    def __init__(self, url, org_url=None, token=None, version='5.7', verify=True, log=False):
         self.url = url
         self.org_url = org_url     
         self.token = token   
@@ -42,6 +43,7 @@ class Score(object):
         self.deployments = DeploymentsClient(self)
         self.executions = ExecutionsClient(self)
         self.events = EventsClient(self)
+        self.logger = _get_logger() if log else None
         
     def get_headers(self):
         headers = {}
@@ -51,7 +53,7 @@ class Score(object):
         return headers
         
     def ping(self):
-        self.response = requests.get(self.url + '/blueprints', headers=self.get_headers(), verify=self.verify)
+        self.response = Http.get(self.url + '/blueprints', headers=self.get_headers(), verify=self.verify, logger=self.logger)
         return self.response.status_code
 
 class BlueprintsClient(object):
@@ -60,17 +62,17 @@ class BlueprintsClient(object):
         self.score = score
         
     def list(self):
-        self.score.response = requests.get(self.score.url + '/blueprints', headers=self.score.get_headers(), verify=self.score.verify)
+        self.score.response = Http.get(self.score.url + '/blueprints', headers=self.score.get_headers(), verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
             
     def get(self, blueprint_id):
-        self.score.response = requests.get(self.score.url + '/blueprints/{0}'.format(blueprint_id), headers=self.score.get_headers(), verify=self.score.verify)
+        self.score.response = Http.get(self.score.url + '/blueprints/{0}'.format(blueprint_id), headers=self.score.get_headers(), verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
         
     def delete(self, blueprint_id):
-        self.score.response = requests.delete(self.score.url + '/blueprints/{0}'.format(blueprint_id), headers=self.score.get_headers(), verify=self.score.verify)
+        self.score.response = Http.delete(self.score.url + '/blueprints/{0}'.format(blueprint_id), headers=self.score.get_headers(), verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
             
@@ -121,7 +123,7 @@ class BlueprintsClient(object):
         uri = '/blueprints/{0}'.format(blueprint_id)
         url = '{0}{1}'.format(self.score.url, uri)
         headers = self.score.get_headers()
-        self.score.response = requests.put(url, headers=headers, params=query_params, data=file_gen(), verify=self.score.verify)
+        self.score.response = Http.put(url, headers=headers, params=query_params, data=file_gen(), verify=self.score.verify, logger=self.logger)
 
         if self.score.response.status_code != 201:
             raise Exception(self.score.response.status_code)
@@ -134,17 +136,17 @@ class DeploymentsClient(object):
         self.score = score
         
     def list(self):
-        self.score.response = requests.get(self.score.url + '/deployments', headers=self.score.get_headers(), verify=self.score.verify)
+        self.score.response = Http.get(self.score.url + '/deployments', headers=self.score.get_headers(), verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
             
     def get(self, deployment_id):
-        self.score.response = requests.get(self.score.url + '/deployments/{0}'.format(deployment_id), headers=self.score.get_headers(), verify=self.score.verify)
+        self.score.response = Http.get(self.score.url + '/deployments/{0}'.format(deployment_id), headers=self.score.get_headers(), verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
             
     def delete(self, deployment_id):
-        self.score.response = requests.delete(self.score.url + '/deployments/{0}'.format(deployment_id), headers=self.score.get_headers(), verify=self.score.verify)
+        self.score.response = Http.delete(self.score.url + '/deployments/{0}'.format(deployment_id), headers=self.score.get_headers(), verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
             
@@ -158,7 +160,7 @@ class DeploymentsClient(object):
             data['inputs'] = inputs
         headers = self.score.get_headers()
         headers['Content-type'] = 'application/json'
-        self.score.response = requests.put(self.score.url + '/deployments/{0}'.format(deployment_id), data=json.dumps(data), headers=headers, verify=self.score.verify)
+        self.score.response = Http.put(self.score.url + '/deployments/{0}'.format(deployment_id), data=json.dumps(data), headers=headers, verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
             
@@ -170,7 +172,7 @@ class ExecutionsClient(object):
         
     def list(self, deployment_id):
         params = {'deployment_id': deployment_id}
-        self.score.response = requests.get(self.score.url + '/executions', headers=self.score.get_headers(), params=params,  verify=self.score.verify)
+        self.score.response = Http.get(self.score.url + '/executions', headers=self.score.get_headers(), params=params,  verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
             
@@ -187,7 +189,7 @@ class ExecutionsClient(object):
         }
         headers = self.score.get_headers()
         headers['Content-type'] = 'application/json'
-        self.score.response = requests.post(self.score.url + '/executions', headers=headers, data=json.dumps(data),  verify=self.score.verify)
+        self.score.response = Http.post(self.score.url + '/executions', headers=headers, data=json.dumps(data),  verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
             
@@ -225,8 +227,8 @@ class EventsClient(object):
         }
         headers = self.score.get_headers()
         headers['Content-type'] = 'application/json'
-        self.score.response = requests.get(self.score.url + '/events', 
-            headers=headers, data=data,  verify=self.score.verify)
+        self.score.response = Http.get(self.score.url + '/events', 
+                                       headers=headers, data=data,  verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             # print self.score.response.content
             json_events = json.loads(self.score.response.content)

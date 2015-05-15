@@ -23,7 +23,7 @@ from schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType, NetworkConnectionS
 from iptools import ipv4, IpRange
 from tabulate import tabulate
 from pyvcloud.helper import CommonUtils
-
+from pyvcloud import _get_logger, Http
 
 VCLOUD_STATUS_MAP = {
     -1: "Could not be created",
@@ -48,23 +48,23 @@ VCLOUD_STATUS_MAP = {
 
 class VAPP(object):
 
-    def __init__(self, vApp, headers, verify):
+    def __init__(self, vApp, headers, verify, log=False):
         self.me = vApp
         self.headers = headers
         self.verify = verify
         self.response = None
+        self.logger = _get_logger() if log else None
 
     @property
     def name(self):
         return self.me.get_name()
 
     def execute(self, operation, http, body=None, targetVM=None):
-        if targetVM:
-            link = filter(lambda link: link.get_rel() == operation, targetVM.get_Link())
-        else:
-            link = filter(lambda link: link.get_rel() == operation, self.me.get_Link())
+        vApp = targetVM if targetVM else self.me
+        link = filter(lambda link: link.get_rel() == operation, vApp.get_Link())
         if not link:
-            print "unable to execute vApp operation: %s" % operation
+            self.logger.error("link not found; rel=%s" % operation)
+            self.logger.debug("vApp href=%s, name=%s" % vApp.get_href(), vApp.get_name())
             return False
         else:
             if http == "post":
@@ -73,14 +73,15 @@ class VAPP(object):
                     headers['Content-type'] = 'application/vnd.vmware.vcloud.deployVAppParams+xml'
                 elif body and body.startswith('<UndeployVAppParams '):
                     headers['Content-type'] = 'application/vnd.vmware.vcloud.undeployVAppParams+xml'
-                self.response = requests.post(link[0].get_href(), data = body, headers=headers, verify=self.verify)
+                self.response = Http.post(link[0].get_href(), data = body, headers=headers, verify=self.verify, logger=self.logger)
             elif http == "put":
-                self.response = requests.put(link[0].get_href(), data = body, headers=self.headers, verify=self.verify)
+                self.response = Http.put(link[0].get_href(), data = body, headers=self.headers, verify=self.verify, logger=self.logger)
             else:
-                self.response = requests.delete(link[0].get_href(), headers=self.headers, verify=self.verify)
+                self.response = Http.delete(link[0].get_href(), headers=self.headers, verify=self.verify, logger=self.logger)
             if self.response.status_code == requests.codes.accepted:
                 return taskType.parseString(self.response.content, True)
             else:
+                self.logger.debug("failed; response status=%d, content=%s" % (self.response.status_code, response.text))
                 return False
 
     def deploy(self, powerOn=True):
@@ -180,7 +181,7 @@ class VAPP(object):
                     namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
                     pretty_print = False)
                 body=output.getvalue().replace("vmw:Info", "ovf:Info")
-                self.response = requests.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify)
+                self.response = Http.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.accepted:
                     return taskType.parseString(self.response.content, True)
 
@@ -189,7 +190,7 @@ class VAPP(object):
         if children:
             vms = children.get_Vm()
             for vm in vms:
-                print vm.get_Name()
+                self.logger.debug("child VM name=%s" % vm.get_Name())
                 # new_connection = self._create_networkConnection(
                 #     network_name, connection_index, ip_allocation_mode,
                 #     mac_address, ip_address)
@@ -205,7 +206,7 @@ class VAPP(object):
                 #     namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
                 #     pretty_print = False)
                 # body=output.getvalue().replace("vmw:Info", "ovf:Info")
-                # self.response = requests.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify)
+                # self.response = Http.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify, logger=self.logger)
                 # if self.response.status_code == requests.codes.accepted:
                 #     return taskType.parseString(self.response.content, True)
 
@@ -228,7 +229,7 @@ class VAPP(object):
             pretty_print = False)
         body = output.getvalue().\
             replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").replace("vmw:", "")
-        self.response = requests.put(link.get_href(), data=body, headers=self.headers, verify=self.verify)
+        self.response = Http.put(link.get_href(), data=body, headers=self.headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.accepted:
             return taskType.parseString(self.response.content, True)
 
@@ -245,7 +246,7 @@ class VAPP(object):
         body = output.getvalue().\
                 replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
                 replace("/Info", "/ovf:Info")
-        self.response = requests.put(link.get_href(), data=body, headers=self.headers, verify=self.verify)
+        self.response = Http.put(link.get_href(), data=body, headers=self.headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.accepted:
             return taskType.parseString(self.response.content, True)
 
@@ -267,7 +268,7 @@ class VAPP(object):
             body = output.getvalue().\
                     replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
                     replace("/Info", "/ovf:Info")
-            self.response = requests.put(link.get_href(), data=body, headers=self.headers, verify=self.verify)
+            self.response = Http.put(link.get_href(), data=body, headers=self.headers, verify=self.verify, logger=self.logger)
             if self.response.status_code == requests.codes.accepted:
                 return taskType.parseString(self.response.content, True)
 
@@ -349,11 +350,11 @@ class VAPP(object):
                     replace("/Info", "/ovf:Info")
                 headers = self.headers
                 headers['Content-type'] = 'application/vnd.vmware.vcloud.guestcustomizationsection+xml'
-                self.response = requests.put(customization_section.Link[0].href, data=body, headers=headers, verify=self.verify)
+                self.response = Http.put(customization_section.Link[0].href, data=body, headers=headers, verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.accepted:
                     return taskType.parseString(self.response.content, True)
                 else:
-                    print self.response.content
+                    self.logger.debug("failed; response status=%d, content=%s" % (self.response.status_code, self.response.text))
 
 
     def force_customization(self, vm_name):
@@ -373,11 +374,11 @@ class VAPP(object):
                             namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
                     headers = self.headers
                     headers['Content-type'] = 'application/vnd.vmware.vcloud.deployVAppParams+xml'
-                    self.response = requests.post(links[0].href, data=body, headers=headers, verify=self.verify)
+                    self.response = Http.post(links[0].href, data=body, headers=headers, verify=self.verify, logger=self.logger)
                     if self.response.status_code == requests.codes.accepted:
                         return taskType.parseString(self.response.content, True)
                     else:
-                        print self.response.content
+                        self.logger.debug("response status=%d, content=%s" % (self.response.status_code, self.response.text))
 
     def get_vms_network_info(self):
         result = []
@@ -405,10 +406,12 @@ class VAPP(object):
         link = filter(lambda link: link.get_rel() == "customizeAtNextPowerOn",
                       vm.get_Link())
         if link:
-            self.response = requests.post(link[0].get_href(), data=None,
-                                     headers=self.headers)
+            self.response = Http.post(link[0].get_href(), data=None,
+                                      headers=self.headers, logger=self.logger)
             if self.response.status_code == requests.codes.no_content:
                 return True
+
+        self.logger.error("link not found")
         return False
 
     def get_vms_details(self):

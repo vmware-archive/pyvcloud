@@ -7,8 +7,9 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
-   
+
    vcloudair
+   changes   
 
 
 
@@ -18,4 +19,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

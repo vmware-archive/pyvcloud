@@ -8,7 +8,7 @@ def _get_logger():
     global _logger
     if _logger is not None:
         return _logger
-    
+
     _logger = logging.getLogger("pyvcloud")
     _logger.setLevel(logging.DEBUG)
     handler = logging.FileHandler("%s/pyvcloud.log" % tempfile.gettempdir())
@@ -46,7 +46,6 @@ class Http(object):
 
     @staticmethod
     def delete(url, logger=None, **kwargs):
-        response = requests.delete(url, data, **kwargs)
+        response = requests.delete(url, **kwargs)
         Http._log_response(logger, response)
         return response
-

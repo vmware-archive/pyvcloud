@@ -19,7 +19,7 @@ Login to a vCloud Director instance::
     result = vca.login(password=password, org=org)
  
    
-See `changes log<http://pyvcloud.readthedocs.org/en/latest/changes.html>` for a list of changes.
+See `changes log <http://pyvcloud.readthedocs.org/en/latest/changes.html>`_ for a list of changes.
 
 Installation
 ============

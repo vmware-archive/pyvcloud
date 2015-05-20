@@ -18,7 +18,6 @@
 #todo: upload/download ovf to/from catalog
 
 import time
-import base64
 import requests
 from StringIO import StringIO
 import json
@@ -92,11 +91,9 @@ class VCA(object):
                     return False
             else:
                 url = self.host + "/api/vchs/sessions"
-                encode = "Basic " + base64.standard_b64encode(self.username + ":" + password)
                 headers = {}
-                headers["Authorization"] = encode.rstrip()
                 headers["Accept"] = "application/xml;version=" + self.version
-                self.response = Http.post(url, headers=headers, verify=self.verify, logger=self.logger)
+                self.response = Http.post(url, headers=headers, auth=(self.username, password), verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.created:
                     self.token = self.response.headers["x-vchs-authorization"]
                     self.services = self._get_services()
@@ -110,11 +107,10 @@ class VCA(object):
                 return self.instances != None
             else:
                 url = self.host + "/api/iam/login"
-                encode = "Basic " + base64.standard_b64encode(self.username + ":" + password)
                 headers = {}
-                headers["Authorization"] = encode.rstrip()
                 headers["Accept"] = "application/json;version=%s" % self.version
                 self.response = Http.post(url, headers=headers, verify=self.verify, logger=self.logger)
+                self.response = Http.post(url, headers=headers, auth=(self.username, password), verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.created:
                     self.token = self.response.headers["vchs-authorization"]
                     self.instances = self.get_instances()

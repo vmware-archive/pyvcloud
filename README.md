@@ -24,7 +24,7 @@ The vca-cli requires a Python environment installed, if the previous command fai
     $ sudo pip install vca-cli
     
 
-On MacOS, download and install the latests [Xcode command line tools](https://developer.apple.com/xcode/downloads/) and [Homebrew](http://brew.sh), then:
+On MacOS, download and install the latest [Xcode command line tools](https://developer.apple.com/xcode/downloads/) and [Homebrew](http://brew.sh), then:
 
     
     $ brew install libxml2

@@ -168,7 +168,7 @@ class VCA(object):
         self.response = Http.delete(self.host + "/api/sc/instances/" + instance, headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
         print self.response.status_code, self.response.content
 
-    def login_to_instance(self, instance, password, token, org_url):
+    def login_to_instance(self, instance, password, token=None, org_url=None):
         instances = filter(lambda i: i['id']==instance, self.instances)
         if len(instances)>0:
             if 'No Attributes' == instances[0]['instanceAttributes']:

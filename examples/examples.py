@@ -26,7 +26,11 @@ def test_vcloud_session(vca, vdc, vapp):
         else: print False
         time.sleep(2)
 
+
+##############################
 ### Subscription
+##############################
+
 host='vchs.vmware.com'
 username = os.environ['VCAUSER']
 password = os.environ['PASSWORD']
@@ -55,7 +59,10 @@ print_vca(vca)
 test_vcloud_session(vca, vdc, vapp)
 
 
+##############################
 ### On Demand            
+##############################
+
 host='iam.vchs.vmware.com'
 username = os.environ['VCAUSER']
 password = os.environ['PASSWORD']
@@ -88,11 +95,13 @@ else: print False
 test_vcloud_session(vca, vdc, vapp)
 
 
+##############################
 ### vCloud Director standalone
+##############################
+
 host='p1v21-vcd.vchs.vmware.com'
 username = os.environ['VCAUSER']
 password = os.environ['PASSWORD']
-service = '85-719'
 org = 'AppServices'
 vdc = 'AppServices'
 vapp = 'cts'

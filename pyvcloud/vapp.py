@@ -22,7 +22,7 @@ from schema.vcd.v1_5.schemas.vcloud.taskType import TaskType
 from schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType, NetworkConnectionSectionType
 from iptools import ipv4, IpRange
 from pyvcloud.helper import CommonUtils
-from pyvcloud import _get_logger, Http
+from pyvcloud import _get_logger, Http, Log
 
 VCLOUD_STATUS_MAP = {
     -1: "Could not be created",
@@ -62,8 +62,8 @@ class VAPP(object):
         vApp = targetVM if targetVM else self.me
         link = filter(lambda link: link.get_rel() == operation, vApp.get_Link())
         if not link:
-            self.logger.error("link not found; rel=%s" % operation)
-            self.logger.debug("vApp href=%s, name=%s" % vApp.get_href(), vApp.get_name())
+            Log.error(self.logger, "link not found; rel=%s" % operation)
+            Log.debug(self.logger, "vApp href=%s, name=%s" % (vApp.get_href(), vApp.get_name()))
             return False
         else:
             if http == "post":
@@ -80,7 +80,7 @@ class VAPP(object):
             if self.response.status_code == requests.codes.accepted:
                 return taskType.parseString(self.response.content, True)
             else:
-                self.logger.debug("failed; response status=%d, content=%s" % (self.response.status_code, response.text))
+                Log.debug(self.logger, "failed; response status=%d, content=%s" % (self.response.status_code, response.text))
                 return False
 
     def deploy(self, powerOn=True):
@@ -189,7 +189,7 @@ class VAPP(object):
         if children:
             vms = children.get_Vm()
             for vm in vms:
-                self.logger.debug("child VM name=%s" % vm.get_Name())
+                self.debug(self.logger, "child VM name=%s" % vm.get_Name())
                 # new_connection = self._create_networkConnection(
                 #     network_name, connection_index, ip_allocation_mode,
                 #     mac_address, ip_address)
@@ -353,7 +353,7 @@ class VAPP(object):
                 if self.response.status_code == requests.codes.accepted:
                     return taskType.parseString(self.response.content, True)
                 else:
-                    self.logger.debug("failed; response status=%d, content=%s" % (self.response.status_code, self.response.text))
+                    Log.debug(self.logger, "failed; response status=%d, content=%s" % (self.response.status_code, self.response.text))
 
 
     def force_customization(self, vm_name):
@@ -377,7 +377,7 @@ class VAPP(object):
                     if self.response.status_code == requests.codes.accepted:
                         return taskType.parseString(self.response.content, True)
                     else:
-                        self.logger.debug("response status=%d, content=%s" % (self.response.status_code, self.response.text))
+                        Log.debug(self.logger, "response status=%d, content=%s" % (self.response.status_code, self.response.text))
 
     def get_vms_network_info(self):
         result = []
@@ -410,7 +410,7 @@ class VAPP(object):
             if self.response.status_code == requests.codes.no_content:
                 return True
 
-        self.logger.error("link not found")
+        Log.error(self.logger, "link not found")
         return False
 
     def get_vms_details(self):

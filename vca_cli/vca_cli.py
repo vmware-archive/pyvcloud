@@ -292,7 +292,7 @@ def status(ctx):
 @click.argument('operation', default=default_operation, metavar='[list | info]', type=click.Choice(['list', 'info']))
 @click.option('-p', '--plan', default='', metavar='<plan>', help='Plan Id')
 def plan(ctx, operation, plan):
-    """Operations with Instances"""
+    """Operations with Plans"""
     vca = _getVCA_with_relogin(ctx)
     if not vca: return 
     if 'list' == operation:
@@ -988,12 +988,12 @@ def template(ctx, operation, catalog, template_name):
     
 @cli.command()
 @click.pass_context
-@click.argument('operation', default=default_operation, metavar='[info | list | use | set-syslog | allocate | deallocate]', type=click.Choice(['info', 'list', 'use', 'set-syslog', 'allocate', 'deallocate']))
+@click.argument('operation', default=default_operation, metavar='[info | list | use | set-syslog | add-ip | del-ip]', type=click.Choice(['info', 'list', 'use', 'set-syslog', 'add-ip', 'del-ip']))
 @click.option('-s', '--service', default='', metavar='<service>', help='Service Id')
 @click.option('-d', '--org', default='', metavar='<org>', help='Organization Name')
 @click.option('-v', '--vdc', default='', metavar='<vdc>', help='Virtual Data Center Name')
 @click.option('-g', '--gateway', default='', metavar='<gateway>', help='Edge Gateway Id')
-@click.option('-i', '--ip', default='', metavar='<ip>', help='Syslog Server IP')
+@click.option('-i', '--ip', default='', metavar='<ip>', help='IP address')
 def gateway(ctx, operation, service, org, vdc, gateway, ip):
     """Operations with Edge Gateway"""
     if service == '': service = ctx.obj['service']
@@ -1007,7 +1007,7 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
     if 'list' == operation:
         gateways = vca.get_gateways(vdc)
         print_gateways(ctx, gateways)
-    elif 'use' == operation or 'info' == operation or 'set-syslog' == operation or 'allocate' == operation or 'deallocate' == operation:
+    elif 'use' == operation or 'info' == operation or 'set-syslog' == operation or 'add-ip' == operation or 'del-ip' == operation:
         the_gateway = vca.get_gateway(vdc, gateway)
         if the_gateway == None:
             ctx.obj['response']=vca.response; print_error('gateway not found', ctx)
@@ -1016,11 +1016,11 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
             task = the_gateway.set_syslog_conf(ip)
             if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
             else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
-        elif 'allocate' == operation:
+        elif 'add-ip' == operation:
             task = the_gateway.allocate_public_ip()
             if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
             else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
-        elif 'deallocate' == operation:
+        elif 'del-ip' == operation:
             task = the_gateway.deallocate_public_ip(ip)
             if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
             else: ctx.obj['response']=gateways[0].response; print_error("can't operate with the edge gateway", ctx)
@@ -1342,7 +1342,7 @@ def _getVCA(ctx):
     if ctx.obj['token'] == None:
         return None
     result = False
-    vca = VCA(ctx.obj['host'], ctx.obj['user'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['verify'])        
+    vca = VCA(ctx.obj['host'], ctx.obj['user'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['verify'], log=ctx.obj['debug'])        
     result = vca.login(token=ctx.obj['token'], org=ctx.obj['org'], org_url=ctx.obj['org_url'])
     if result:
         if 'ondemand' == ctx.obj['service_type']:
@@ -1376,7 +1376,7 @@ def _getVCA_vcloud_session(ctx):
 #    if ctx.obj['org_url'] == None or ctx.obj['org'] == None or ctx.obj['session_uri'] == None:
     if ctx.obj['org_url'] == None or ctx.obj['session_uri'] == None:
         return _getVCA_with_relogin(ctx)
-    vca = VCA(ctx.obj['host'], ctx.obj['user'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['verify'])                
+    vca = VCA(ctx.obj['host'], ctx.obj['user'], ctx.obj['service_type'], ctx.obj['service_version'], ctx.obj['verify'], log=ctx.obj['debug'])                
     if 'ondemand' == ctx.obj['service_type'] or 'subscription' == ctx.obj['service_type']:
         vcloud_session = VCS(ctx.obj['session_uri'], ctx.obj['user'], ctx.obj['org'], ctx.obj['instance'], ctx.obj['org_url'], ctx.obj['org_url'], ctx.obj['service_version'], ctx.obj['verify'])
         if ctx is not None and ctx.obj is not None and ctx.obj['debug']: print 'trying to reuse existing vcloud session'

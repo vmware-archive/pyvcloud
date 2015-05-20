@@ -624,12 +624,12 @@ class VCA(object):
         if self.vcloud_session is None or self.vcloud_session.token is None:
             return None
         return Score(score_service_url, self.vcloud_session.org_url, self.vcloud_session.token, self.version, self.verify)
-    
+
     def get_diskRefs(self, vdc):
         resourceEntities = vdc.get_ResourceEntities().get_ResourceEntity()
         return [resourceEntity for resourceEntity in resourceEntities
                     if resourceEntity.get_type() == "application/vnd.vmware.vcloud.disk+xml"]
-                    
+
     def _parse_disk(self, content):
         diskDesc = diskType.parseString(content, True)
         disk = DiskType()
@@ -638,7 +638,7 @@ class VCA(object):
         disk.set_name(diskDesc.anyAttributes_.get('name'))
         disk.set_size(diskDesc.anyAttributes_.get('size'))
         disk.set_busType(diskDesc.anyAttributes_.get('busType'))
-        disk.set_busSubType(diskDesc.anyAttributes_.get('busSubType'))            
+        disk.set_busSubType(diskDesc.anyAttributes_.get('busSubType'))
         disk.set_status(diskDesc.anyAttributes_.get('status'))
         xml = ET.fromstring(content)
         for child in xml:
@@ -650,7 +650,10 @@ class VCA(object):
             if '{http://www.vmware.com/vcloud/v1.5}StorageProfile' == child.tag:
                 storageProfile = VdcStorageProfileType()
                 storageProfile.set_name(child.attrib['name'])
-                disk.set_StorageProfile(storageProfile)        
+                disk.set_StorageProfile(storageProfile)
+            if '{http://www.vmware.com/vcloud/v1.5}Tasks' == child.tag:
+                task = taskType.parseString(ET.tostring(child.getchildren()[0]), True)
+                disk.set_Tasks([task])
         return disk
 
     def get_disks(self, vdc_name):
@@ -669,13 +672,13 @@ class VCA(object):
                 vms.append(vmReference)
             disks.append([disk, vms])
         return disks
-        
+
     def add_disk(self, vdc_name, name, size):
         data = """
                 <vcloud:DiskCreateParams xmlns:vcloud="http://www.vmware.com/vcloud/v1.5">
                     <vcloud:Disk name="%s" size="%s"/>
                 </vcloud:DiskCreateParams>
-            """ % (name, size)        
+            """ % (name, size)
         vdc = self.get_vdc(vdc_name)
         content_type = "application/vnd.vmware.vcloud.diskCreateParams+xml"
         link = filter(lambda link: link.get_type() == content_type, vdc.get_Link())
@@ -685,7 +688,7 @@ class VCA(object):
             return(True, disk)
         else:
             return(False, self.response.content)
-            
+
     def delete_disk(self, vdc_name, name, id=None):
         vdc = self.get_vdc(vdc_name)
         refs = self.get_diskRefs(vdc)
@@ -705,7 +708,3 @@ class VCA(object):
             return(False, 'disk not found')
         elif len(link) > 1:
             return(False, 'more than one disks found with that name, use the disk id')
-
-
-
-

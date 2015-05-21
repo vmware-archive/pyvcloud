@@ -41,6 +41,8 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType
 from cryptography.fernet import Fernet
 
+#issue: authentication fails in subscription use org if logged in previously to another account (workaround: vca logout first)
+#todo: add --save-password to examples
 #todo: adding a DNAT rule with type any fails
 #todo: make network mode case insensitive (pool, dhcp)
 #todo: identify primary ip from the gateway uplink information

@@ -228,7 +228,7 @@ def _getVCA_with_relogin(ctx):
 @click.argument('user')
 @click.option('-t', '--type', 'service_type', default='ondemand', metavar='[subscription | ondemand | vcd]', type=click.Choice(['subscription', 'ondemand', 'vcd']), help='')
 @click.option('-v', '--version', 'service_version', default='5.7', metavar='[5.5 | 5.6 | 5.7]', type=click.Choice(['5.5', '5.6', '5.7']), help='')
-@click.option('-H', '--host', default='https://vca.vmware.com', help='')
+@click.option('-H', '--host', default='https://iam.vchs.vmware.com', help='')
 @click.option('-p', '--password', prompt=True, confirmation_prompt=False, hide_input=True, help='Password')
 @click.option('-i', '--instance', default=None, help='Instance Id')
 @click.option('-o', '--org', default=None, help='Organization Name')
@@ -1278,6 +1278,10 @@ def example(ctx):
         'vca gateway set-syslog --gateway gateway_name --ip 192.168.109.2'])
     id+=1; table.append([id, 'unset syslog server on gateway', 
         'vca gateway set-syslog --gateway gateway_name'])
+    id+=1; table.append([id, 'allocate external IP address in OnDemand', 
+        'vca gateway add-ip'])
+    id+=1; table.append([id, 'deallocate external IP address in OnDemand', 
+        'vca gateway del-ip --ip 107.189.93.162'])        
     id+=1; table.append([id, 'list edge gateway NAT rules', 
         'vca nat'])
     id+=1; table.append([id, 'add edge gateway DNAT rule',

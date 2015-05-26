@@ -27,7 +27,6 @@ setup(
         # Colorama is only required for Windows.
         'colorama',
         'cryptography',
-        'pyyaml',
         'xmltodict',
         'tabulate',
         'pyvcloud == 13rc4'

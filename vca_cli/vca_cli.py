@@ -41,6 +41,8 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType
 from cryptography.fernet import Fernet
 
+#todo: when token expired, it doesn't seem to re-login the first time, but it works the second time
+#todo: list active tasks
 #issue: authentication fails in subscription use org if logged in previously to another account (workaround: vca logout first)
 #todo: add --save-password to examples
 #todo: adding a DNAT rule with type any fails
@@ -121,6 +123,7 @@ def _load_context(ctx, profile, json_output, xml_output, insecure):
     ctx.obj['verify'] = not insecure
     ctx.obj['json_output'] = json_output
     ctx.obj['xml_output'] = xml_output
+    ctx.obj['debug'] = False
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click.option('-p', '--profile', default='', metavar='<profile>', help='Profile id')
@@ -436,7 +439,7 @@ def vdc(ctx, operation, vdc):
 @click.option('-c', '--catalog', default='', metavar='<catalog>', help='Catalog name')
 @click.option('-t', '--template', default='', metavar='<template>', help='Template name')
 @click.option('-n', '--network', default='', metavar='<network>', help='Network name')
-@click.option('-m', '--mode', default='POOL', metavar='[POOL, DHCP]', help='Network connection mode', type=click.Choice(['POOL', 'DHCP']))
+@click.option('-m', '--mode', default='POOL', metavar='[pool, dhcp]', help='Network connection mode', type=click.Choice(['POOL', 'pool', 'DHCP', 'dhcp']))
 @click.option('-V', '--vm', 'vm_name', default='', metavar='<vm>', help='VM name')
 @click.option('-f', '--file', 'cust_file', default=None, metavar='<customization_file>', help='Guest OS Customization script file', type=click.File('r'))
 @click.option('-e', '--media', default='', metavar='<media>', help='Virtual media name (ISO)')
@@ -489,7 +492,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
                     if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
                     else: ctx.obj['response']=the_vapp.response; print_error("can't connect the vApp to the network", ctx)
                     print_message("connecting VMs to network '%s' with mode '%s'" % (network, mode), ctx)                
-                    task = the_vapp.connect_vms(nets[0].name, connection_index=0, ip_allocation_mode=mode)
+                    task = the_vapp.connect_vms(nets[0].name, connection_index=0, ip_allocation_mode=mode.upper())
                     if task: display_progress(task, ctx.obj['json_output'], vca.vcloud_session.get_vcloud_headers())
                     else: ctx.obj['response']=the_vapp.response; print_error("can't connect the vApp to the network", ctx)
     elif 'delete' == operation:
@@ -1227,7 +1230,7 @@ def example(ctx):
     id+=1; table.append([id, 'list vapps', 
         'vca vapp'])
     id+=1; table.append([id, 'create vapp', 
-        'vca vapp create -a coreos2 -V coreos2 -c default-catalog -t coreos_template -n default-routed-network -m POOL'])        
+        'vca vapp create -a coreos2 -V coreos2 -c default-catalog -t coreos_template -n default-routed-network -m pool'])
     id+=1; table.append([id, 'create vapp', 
         'vca vapp create --vapp myvapp --vm myvm --catalog \'Public Catalog\' --template \'Ubuntu Server 12.04 LTS (amd64 20150127)\' --network default-routed-network --mode POOL'])        
     id+=1; table.append([id, 'create multiple vapps', 

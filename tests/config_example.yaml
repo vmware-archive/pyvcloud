@@ -14,5 +14,8 @@ vcloud:
     mode: pool
     memory: 1024
     memory_new: 2048
+    cpus: 1
+    cpus_new: 4
+    
 
     

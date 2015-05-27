@@ -482,6 +482,43 @@ class VAPP(object):
                     raise Exception(self.response_status_code)
                 # return True
         raise Exception('can\'t find vm')
+        
+    def modify_vm_cpu(self, vm_name, cpus):
+        children = self.me.get_Children()
+        if children:
+            vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
+            if len(vms) == 1:
+                sections = vm.get_Section()                
+                virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]                
+                items = virtualHardwareSection.get_Item()
+                cpu = filter(lambda item: (item.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href') != None and item.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href').endswith('/virtualHardwareSection/cpu')), items)[0]
+                href = cpu.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href')
+                en = cpu.get_ElementName()
+                en.set_valueOf_('%d virtual CPU(s)' % cpus)
+                cpu.set_ElementName(en)
+                vq = cpu.get_VirtualQuantity()
+                vq.set_valueOf_(cpus)
+                cpu.set_VirtualQuantity(vq)
+                cpu_string = CommonUtils.convertPythonObjToStr(cpu, 'CPU')
+                Log.debug(self.logger, "cpu: \n%s" % cpu_string)
+                output = StringIO()
+                cpu.export(output,
+                    0,
+                    name_ = 'Item',
+                    namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" xmlns:rasd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData"',
+                    pretty_print = True)
+                body = output.getvalue().\
+                    replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").\
+                    replace("vmw:", "").replace("class:", "rasd:").replace("ResourceType", "rasd:ResourceType")
+                Log.debug(self.logger, "cpu: \n%s" % body)
+                headers = self.headers
+                headers['Content-type'] = 'application/vnd.vmware.vcloud.rasdItem+xml'
+                self.response = Http.put(href, data = body, headers=headers, verify=self.verify, logger=self.logger)
+                if self.response.status_code == requests.codes.accepted:
+                    return taskType.parseString(self.response.content, True)
+                else:
+                    raise Exception(self.response_status_code)
+        raise Exception('can\'t find vm')
 
     def _get_vms(self):
         children = self.me.get_Children()

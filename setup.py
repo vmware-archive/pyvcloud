@@ -29,7 +29,7 @@ setup(
         'cryptography',
         'xmltodict',
         'tabulate',
-        'pyvcloud == 13rc4'
+        'pyvcloud == 13rc7'
     ],
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[

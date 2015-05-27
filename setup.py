@@ -27,7 +27,8 @@ setup(
         # Colorama is only required for Windows.
         'colorama',
         'cryptography',
-        'pyvcloud == 12'
+        'pyvcloud == 12',
+        'dateutils'
     ],
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[

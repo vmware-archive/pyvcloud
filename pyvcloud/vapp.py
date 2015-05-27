@@ -80,7 +80,7 @@ class VAPP(object):
             if self.response.status_code == requests.codes.accepted:
                 return taskType.parseString(self.response.content, True)
             else:
-                Log.debug(self.logger, "failed; response status=%d, content=%s" % (self.response.status_code, response.text))
+                Log.debug(self.logger, "failed; response status=%d, content=%s" % (self.response.status_code, self.response.text))
                 return False
 
     def deploy(self, powerOn=True):
@@ -442,6 +442,46 @@ class VAPP(object):
                      'owner': owner}
                 )
         return result
+        
+    def modify_vm_memory(self, vm_name, new_size):
+        children = self.me.get_Children()
+        if children:
+            vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
+            if len(vms) == 1:
+                sections = vm.get_Section()                
+                virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]                
+                items = virtualHardwareSection.get_Item()
+                memory = filter(lambda item: item.get_Description().get_valueOf_() == "Memory Size", items)[0]                
+                href = memory.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href')
+                en = memory.get_ElementName()
+                en.set_valueOf_('%d MB of memory' % new_size)
+                memory.set_ElementName(en)
+                vq = memory.get_VirtualQuantity()
+                vq.set_valueOf_(new_size)
+                memory.set_VirtualQuantity(vq)
+                weight = memory.get_Weight()
+                weight.set_valueOf_(new_size*10)
+                memory.set_Weight(weight)
+                memory_string = CommonUtils.convertPythonObjToStr(memory, 'Memory')
+                Log.debug(self.logger, "memory: \n%s" % memory_string)
+                output = StringIO()
+                memory.export(output,
+                    0,
+                    name_ = 'Item',
+                    namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" xmlns:rasd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData"',
+                    pretty_print = True)
+                body = output.getvalue().\
+                    replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").\
+                    replace("vmw:", "").replace("class:", "rasd:").replace("ResourceType", "rasd:ResourceType")
+                headers = self.headers
+                headers['Content-type'] = 'application/vnd.vmware.vcloud.rasdItem+xml'
+                self.response = Http.put(href, data = body, headers=headers, verify=self.verify, logger=self.logger)
+                if self.response.status_code == requests.codes.accepted:
+                    return taskType.parseString(self.response.content, True)
+                else:
+                    raise Exception(self.response_status_code)
+                # return True
+        raise Exception('can\'t find vm')
 
     def _get_vms(self):
         children = self.me.get_Children()

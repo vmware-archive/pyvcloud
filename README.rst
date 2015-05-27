@@ -184,6 +184,8 @@ To test pyvcloud::
 
     git clone https://github.com/vmware/pyvcloud.git
     cd pyvcloud
+    virtualenv venv
+    source venv/bin/activate
     pip install --edit .
     cp tests/config_example.yaml tests/config_standalone.yaml
     nosetests --verbosity=2  --tc-format yaml --tc-file tests/config_standalone.yaml tests/vcloud_tests.py

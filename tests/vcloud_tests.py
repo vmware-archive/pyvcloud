@@ -101,8 +101,16 @@ class TestVCloud:
         assert the_vapp.name == vapp_name
         details = the_vapp.get_vms_details()
         assert details[0].get('memory_mb') == memory
+        task = the_vapp.modify_vm_memory(vm_name, memory_new)
+        assert task
+        self.vca.block_until_completed(task)
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        assert the_vapp.name == vapp_name
+        details = the_vapp.get_vms_details()
+        assert details[0].get('memory_mb') == memory_new
 
-    def test_0005(self):
+    def rest_0005(self):
         """Delete vApp"""
         vdc = config['vcloud']['vdc']
         vapp_name = config['vcloud']['vapp']

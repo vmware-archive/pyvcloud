@@ -180,6 +180,8 @@ To debug a python session, add this code::
 Testing
 =======
 
+To test pyvcloud::
+
     git clone https://github.com/vmware/pyvcloud.git
     cd pyvcloud
     pip install --edit .

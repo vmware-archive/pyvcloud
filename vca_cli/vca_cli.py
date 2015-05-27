@@ -27,6 +27,7 @@ import httplib
 import json
 import requests
 import xmltodict
+import dateutil.parser
 from os.path import expanduser
 from tabulate import tabulate
 from time import sleep
@@ -1491,8 +1492,8 @@ def task_table(task_xml):
     # add error message (0 means no error and 1 means error)
     # table = task_dict["Task"].items()
     headers = ['Start Time', 'Duration', 'Status']
-    startTime = datetime.strptime(task_dict["Task"].get('@startTime'), "%Y-%m-%dT%H:%M:%S.%fZ")
-    endTime = datetime.strptime(task_dict["Task"].get('@endTime'), "%Y-%m-%dT%H:%M:%S.%fZ")
+    startTime = dateutil.parser.parse(task_dict["Task"].get('@startTime'))
+    endTime = dateutil.parser.parse(task_dict["Task"].get('@endTime'))
     duration = endTime - startTime
     localStartTime = utc2local(startTime)
     total_seconds = int(duration.total_seconds())

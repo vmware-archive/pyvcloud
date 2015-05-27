@@ -454,13 +454,13 @@ class VAPP(object):
                 memory = filter(lambda item: item.get_Description().get_valueOf_() == "Memory Size", items)[0]                
                 href = memory.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href')
                 en = memory.get_ElementName()
-                en.set_valueOf_('%d MB of memory' % new_size)
+                en.set_valueOf_('%s MB of memory' % new_size)
                 memory.set_ElementName(en)
                 vq = memory.get_VirtualQuantity()
                 vq.set_valueOf_(new_size)
                 memory.set_VirtualQuantity(vq)
                 weight = memory.get_Weight()
-                weight.set_valueOf_(new_size*10)
+                weight.set_valueOf_(str(int(new_size)*10))
                 memory.set_Weight(weight)
                 memory_string = CommonUtils.convertPythonObjToStr(memory, 'Memory')
                 Log.debug(self.logger, "memory: \n%s" % memory_string)
@@ -479,8 +479,7 @@ class VAPP(object):
                 if self.response.status_code == requests.codes.accepted:
                     return taskType.parseString(self.response.content, True)
                 else:
-                    raise Exception(self.response_status_code)
-                # return True
+                    raise Exception(self.response.status_code)
         raise Exception('can\'t find vm')
         
     def modify_vm_cpu(self, vm_name, cpus):
@@ -494,7 +493,7 @@ class VAPP(object):
                 cpu = filter(lambda item: (item.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href') != None and item.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href').endswith('/virtualHardwareSection/cpu')), items)[0]
                 href = cpu.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href')
                 en = cpu.get_ElementName()
-                en.set_valueOf_('%d virtual CPU(s)' % cpus)
+                en.set_valueOf_('%s virtual CPU(s)' % cpus)
                 cpu.set_ElementName(en)
                 vq = cpu.get_VirtualQuantity()
                 vq.set_valueOf_(cpus)

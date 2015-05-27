@@ -188,5 +188,6 @@ To test pyvcloud::
     source venv/bin/activate
     pip install --edit .
     cp tests/config_example.yaml tests/config_standalone.yaml
+    # customize credentials and other parameters
     nosetests --verbosity=2  --tc-format yaml --tc-file tests/config_standalone.yaml tests/vcloud_tests.py
 

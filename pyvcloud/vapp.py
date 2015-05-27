@@ -428,7 +428,8 @@ class VAPP(object):
                 cpu = filter(lambda item: item.get_Description().get_valueOf_() == "Number of Virtual CPUs", items)[0]
                 cpu_capacity = int(cpu.get_ElementName().get_valueOf_().split(" virtual CPU(s)")[0])
                 memory = filter(lambda item: item.get_Description().get_valueOf_() == "Memory Size", items)[0]
-                memory_capacity = int(memory.get_ElementName().get_valueOf_().split(" MB of memory")[0]) / 1024
+                memory_capacity_mb = int(memory.get_ElementName().get_valueOf_().split(" MB of memory")[0])
+                memory_capacity = memory_capacity_mb / 1024
                 operatingSystemSection = filter(lambda section: section.__class__.__name__== "OperatingSystemSection_Type", sections)[0]
                 os = operatingSystemSection.get_Description().get_valueOf_()
                 result.append(
@@ -436,6 +437,7 @@ class VAPP(object):
                      'status': status,
                      'cpus': cpu_capacity,
                      'memory': memory_capacity,
+                     'memory_mb': memory_capacity_mb,
                      'os': os,
                      'owner': owner}
                 )

@@ -58,8 +58,9 @@ class Score(object):
 
 class BlueprintsClient(object):
 
-    def __init__(self, score):
+    def __init__(self, score, log=False):
         self.score = score
+        self.logger = _get_logger() if log else None
         
     def list(self):
         self.score.response = Http.get(self.score.url + '/blueprints', headers=self.score.get_headers(), verify=self.score.verify, logger=self.logger)
@@ -132,8 +133,9 @@ class BlueprintsClient(object):
         
 class DeploymentsClient(object):
 
-    def __init__(self, score):
+    def __init__(self, score, log=False):
         self.score = score
+        self.logger = _get_logger() if log else None
         
     def list(self):
         self.score.response = Http.get(self.score.url + '/deployments', headers=self.score.get_headers(), verify=self.score.verify, logger=self.logger)
@@ -167,8 +169,9 @@ class DeploymentsClient(object):
             
 class ExecutionsClient(object):
 
-    def __init__(self, score):
+    def __init__(self, score, log=False):
         self.score = score
+        self.logger = _get_logger() if log else None
         
     def list(self, deployment_id):
         params = {'deployment_id': deployment_id}
@@ -195,8 +198,9 @@ class ExecutionsClient(object):
             
 class EventsClient(object):
     
-    def __init__(self, score):
+    def __init__(self, score, log=False):
         self.score = score
+        self.logger = _get_logger() if log else None
         
     @staticmethod
     def _create_events_query(execution_id, include_logs):

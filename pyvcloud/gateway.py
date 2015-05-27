@@ -518,7 +518,7 @@ class Gateway(object):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
         services = filter(lambda service: service.__class__.__name__ == "GatewayDhcpServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
         if len(services) == 0:
-            dhcpService = add_dhcp_service(enable)
+            dhcpService = self.add_dhcp_service(enable)
             return dhcpService
         elif len(services) == 1:
             services[0].set_IsEnabled(enable)

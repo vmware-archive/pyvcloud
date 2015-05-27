@@ -163,7 +163,7 @@ Development
 
 To test the current code, check it out from github and install it with::
 
-    pip install --editable .
+    pip install --edit .
 
 To debug a python session, add this code::
 
@@ -175,4 +175,14 @@ To debug a python session, add this code::
     requests_log = logging.getLogger("requests.packages.urllib3")
     requests_log.setLevel(logging.DEBUG)
     requests_log.propagate = True
+    
+
+Testing
+=======
+
+    git clone https://github.com/vmware/pyvcloud.git
+    cd pyvcloud
+    pip install --edit .
+    cp tests/config_example.yaml tests/config_standalone.yaml
+    nosetests --verbosity=2  --tc-format yaml --tc-file tests/config_standalone.yaml tests/vcloud_tests.py
 

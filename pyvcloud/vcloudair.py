@@ -16,6 +16,9 @@
 # coding: utf-8
 
 #todo: upload/download ovf to/from catalog
+#todo: create vapp network name is not being used, clean it up
+#todo: pass parameters in the create vapp to optimize for speed, available from 6.3
+#todo: refactor returns, raise exceptions, document with release notes
 
 import time
 import requests

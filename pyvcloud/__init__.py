@@ -62,7 +62,7 @@ class Http(object):
 
     @staticmethod
     def delete(url, logger=None, **kwargs):
-        response = requests.delete(url, data, **kwargs)
+        response = requests.delete(url, **kwargs)
         Http._log_response(logger, response)
         return response
 

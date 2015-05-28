@@ -17,6 +17,9 @@ Import modules and instantiate a vCloud Air object::
 Login to a vCloud Director instance::
 
     result = vca.login(password=password, org=org)
+ 
+   
+See `changes log <http://pyvcloud.readthedocs.org/en/latest/changes.html>`_ for a list of changes.
 
 Installation
 ============
@@ -99,7 +102,7 @@ The SDK supports logging in to different type of services: vCloud Air Subscripti
 
 
     ### On Demand            
-    host='iam.vchs.vmware.com'
+    host='vca.vmware.com'
     username = os.environ['VCAUSER']
     password = os.environ['PASSWORD']
     instance = 'c40ba6b4-c158-49fb-b164-5c66f90344fa'
@@ -160,7 +163,7 @@ Development
 
 To test the current code, check it out from github and install it with::
 
-    pip install --editable .
+    pip install --edit .
 
 To debug a python session, add this code::
 
@@ -172,4 +175,20 @@ To debug a python session, add this code::
     requests_log = logging.getLogger("requests.packages.urllib3")
     requests_log.setLevel(logging.DEBUG)
     requests_log.propagate = True
+    
+
+Testing
+=======
+
+To test pyvcloud::
+
+    git clone https://github.com/vmware/pyvcloud.git
+    cd pyvcloud
+    virtualenv venv
+    source venv/bin/activate
+    pip install --edit .
+    cp tests/config_example.yaml tests/config_standalone.yaml
+    # customize credentials and other parameters
+    nosetests --verbosity=2  --tc-format yaml --tc-file tests/config_standalone.yaml \
+                tests/vcloud_tests.py
 

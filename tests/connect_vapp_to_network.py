@@ -15,7 +15,7 @@ def print_vca(vca):
         print 'vca: ', vca
 
 ### On Demand            
-host='iam.vchs.vmware.com'
+host='vca.vmware.com'
 username = os.environ['VCAUSER']
 password = os.environ['PASSWORD']
 instance = 'c40ba6b4-c158-49fb-b164-5c66f90344fa'

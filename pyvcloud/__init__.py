@@ -20,6 +20,22 @@ def _get_logger():
     requests_logger.setLevel(logging.DEBUG)
     return _logger
 
+class Log(object):
+    @staticmethod
+    def debug(logger, s):
+        if logger is not None:
+            logger.debug(s)
+
+    @staticmethod
+    def error(logger, s):
+        if logger is not None:
+            logger.error(s)
+            
+    @staticmethod
+    def info(logger, s):
+        if logger is not None:
+            logger.info(s)
+            
 class Http(object):
     @staticmethod
     def _log_response(logger, response):

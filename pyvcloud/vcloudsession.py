@@ -15,7 +15,6 @@
 
 # coding: utf-8
 
-import base64
 import requests
 import StringIO
 import json
@@ -59,11 +58,9 @@ class VCS(object):
             else:
                 return False
         else:
-            encode = "Basic " + base64.standard_b64encode(self.username + "@" + self.org + ":" + password)
             headers = {}
-            headers["Authorization"] = encode.rstrip()
             headers["Accept"] = "application/*+xml;version=" + self.version
-            self.response = Http.post(self.url, headers=headers, verify=self.verify, logger=self.logger)
+            self.response = Http.post(self.url, headers=headers, auth=(self.username + "@" + self.org, password), verify=self.verify, logger=self.logger)
             if self.response.status_code == requests.codes.ok:
                 self.token = self.response.headers["x-vcloud-authorization"]
                 session = sessionType.parseString(self.response.content, True)

@@ -21,9 +21,8 @@ from schema.vcd.v1_5.schemas.vcloud import vAppType, vdcType, queryRecordViewTyp
 from schema.vcd.v1_5.schemas.vcloud.taskType import TaskType
 from schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType, NetworkConnectionSectionType
 from iptools import ipv4, IpRange
-from tabulate import tabulate
 from pyvcloud.helper import CommonUtils
-from pyvcloud import _get_logger, Http
+from pyvcloud import _get_logger, Http, Log
 
 VCLOUD_STATUS_MAP = {
     -1: "Could not be created",
@@ -63,8 +62,8 @@ class VAPP(object):
         vApp = targetVM if targetVM else self.me
         link = filter(lambda link: link.get_rel() == operation, vApp.get_Link())
         if not link:
-            self.logger.error("link not found; rel=%s" % operation)
-            self.logger.debug("vApp href=%s, name=%s" % vApp.get_href(), vApp.get_name())
+            Log.error(self.logger, "link not found; rel=%s" % operation)
+            Log.debug(self.logger, "vApp href=%s, name=%s" % (vApp.get_href(), vApp.get_name()))
             return False
         else:
             if http == "post":
@@ -81,7 +80,7 @@ class VAPP(object):
             if self.response.status_code == requests.codes.accepted:
                 return taskType.parseString(self.response.content, True)
             else:
-                self.logger.debug("failed; response status=%d, content=%s" % (self.response.status_code, response.text))
+                Log.debug(self.logger, "failed; response status=%d, content=%s" % (self.response.status_code, self.response.text))
                 return False
 
     def deploy(self, powerOn=True):
@@ -190,7 +189,7 @@ class VAPP(object):
         if children:
             vms = children.get_Vm()
             for vm in vms:
-                self.logger.debug("child VM name=%s" % vm.get_Name())
+                self.debug(self.logger, "child VM name=%s" % vm.get_Name())
                 # new_connection = self._create_networkConnection(
                 #     network_name, connection_index, ip_allocation_mode,
                 #     mac_address, ip_address)
@@ -354,7 +353,7 @@ class VAPP(object):
                 if self.response.status_code == requests.codes.accepted:
                     return taskType.parseString(self.response.content, True)
                 else:
-                    self.logger.debug("failed; response status=%d, content=%s" % (self.response.status_code, self.response.text))
+                    Log.debug(self.logger, "failed; response status=%d, content=%s" % (self.response.status_code, self.response.text))
 
 
     def force_customization(self, vm_name):
@@ -378,7 +377,7 @@ class VAPP(object):
                     if self.response.status_code == requests.codes.accepted:
                         return taskType.parseString(self.response.content, True)
                     else:
-                        self.logger.debug("response status=%d, content=%s" % (self.response.status_code, self.response.text))
+                        Log.debug(self.logger, "response status=%d, content=%s" % (self.response.status_code, self.response.text))
 
     def get_vms_network_info(self):
         result = []
@@ -411,7 +410,7 @@ class VAPP(object):
             if self.response.status_code == requests.codes.no_content:
                 return True
 
-        self.logger.error("link not found")
+        Log.error(self.logger, "link not found")
         return False
 
     def get_vms_details(self):
@@ -429,7 +428,8 @@ class VAPP(object):
                 cpu = filter(lambda item: item.get_Description().get_valueOf_() == "Number of Virtual CPUs", items)[0]
                 cpu_capacity = int(cpu.get_ElementName().get_valueOf_().split(" virtual CPU(s)")[0])
                 memory = filter(lambda item: item.get_Description().get_valueOf_() == "Memory Size", items)[0]
-                memory_capacity = int(memory.get_ElementName().get_valueOf_().split(" MB of memory")[0]) / 1024
+                memory_capacity_mb = int(memory.get_ElementName().get_valueOf_().split(" MB of memory")[0])
+                memory_capacity = memory_capacity_mb / 1024
                 operatingSystemSection = filter(lambda section: section.__class__.__name__== "OperatingSystemSection_Type", sections)[0]
                 os = operatingSystemSection.get_Description().get_valueOf_()
                 result.append(
@@ -437,10 +437,87 @@ class VAPP(object):
                      'status': status,
                      'cpus': cpu_capacity,
                      'memory': memory_capacity,
+                     'memory_mb': memory_capacity_mb,
                      'os': os,
                      'owner': owner}
                 )
         return result
+        
+    def modify_vm_memory(self, vm_name, new_size):
+        children = self.me.get_Children()
+        if children:
+            vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
+            if len(vms) == 1:
+                sections = vm.get_Section()                
+                virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]                
+                items = virtualHardwareSection.get_Item()
+                memory = filter(lambda item: item.get_Description().get_valueOf_() == "Memory Size", items)[0]                
+                href = memory.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href')
+                en = memory.get_ElementName()
+                en.set_valueOf_('%s MB of memory' % new_size)
+                memory.set_ElementName(en)
+                vq = memory.get_VirtualQuantity()
+                vq.set_valueOf_(new_size)
+                memory.set_VirtualQuantity(vq)
+                weight = memory.get_Weight()
+                weight.set_valueOf_(str(int(new_size)*10))
+                memory.set_Weight(weight)
+                memory_string = CommonUtils.convertPythonObjToStr(memory, 'Memory')
+                Log.debug(self.logger, "memory: \n%s" % memory_string)
+                output = StringIO()
+                memory.export(output,
+                    0,
+                    name_ = 'Item',
+                    namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" xmlns:rasd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData"',
+                    pretty_print = True)
+                body = output.getvalue().\
+                    replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").\
+                    replace("vmw:", "").replace("class:", "rasd:").replace("ResourceType", "rasd:ResourceType")
+                headers = self.headers
+                headers['Content-type'] = 'application/vnd.vmware.vcloud.rasdItem+xml'
+                self.response = Http.put(href, data = body, headers=headers, verify=self.verify, logger=self.logger)
+                if self.response.status_code == requests.codes.accepted:
+                    return taskType.parseString(self.response.content, True)
+                else:
+                    raise Exception(self.response.status_code)
+        raise Exception('can\'t find vm')
+        
+    def modify_vm_cpu(self, vm_name, cpus):
+        children = self.me.get_Children()
+        if children:
+            vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
+            if len(vms) == 1:
+                sections = vm.get_Section()                
+                virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]                
+                items = virtualHardwareSection.get_Item()
+                cpu = filter(lambda item: (item.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href') != None and item.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href').endswith('/virtualHardwareSection/cpu')), items)[0]
+                href = cpu.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href')
+                en = cpu.get_ElementName()
+                en.set_valueOf_('%s virtual CPU(s)' % cpus)
+                cpu.set_ElementName(en)
+                vq = cpu.get_VirtualQuantity()
+                vq.set_valueOf_(cpus)
+                cpu.set_VirtualQuantity(vq)
+                cpu_string = CommonUtils.convertPythonObjToStr(cpu, 'CPU')
+                Log.debug(self.logger, "cpu: \n%s" % cpu_string)
+                output = StringIO()
+                cpu.export(output,
+                    0,
+                    name_ = 'Item',
+                    namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" xmlns:rasd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData"',
+                    pretty_print = True)
+                body = output.getvalue().\
+                    replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").\
+                    replace("vmw:", "").replace("class:", "rasd:").replace("ResourceType", "rasd:ResourceType")
+                Log.debug(self.logger, "cpu: \n%s" % body)
+                headers = self.headers
+                headers['Content-type'] = 'application/vnd.vmware.vcloud.rasdItem+xml'
+                self.response = Http.put(href, data = body, headers=headers, verify=self.verify, logger=self.logger)
+                if self.response.status_code == requests.codes.accepted:
+                    return taskType.parseString(self.response.content, True)
+                else:
+                    raise Exception(self.response_status_code)
+        raise Exception('can\'t find vm')
 
     def _get_vms(self):
         children = self.me.get_Children()

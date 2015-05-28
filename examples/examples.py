@@ -26,12 +26,17 @@ def test_vcloud_session(vca, vdc, vapp):
         else: print False
         time.sleep(2)
 
+
+##############################
 ### Subscription
+##############################
+
 host='vchs.vmware.com'
 username = os.environ['VCAUSER']
 password = os.environ['PASSWORD']
 service = '85-719'
 org = 'AppServices'
+
 vdc = 'AppServices'
 vapp = 'cts'
 
@@ -55,12 +60,15 @@ print_vca(vca)
 test_vcloud_session(vca, vdc, vapp)
 
 
+##############################
 ### On Demand            
-host='iam.vchs.vmware.com'
+##############################
+
+host='vca.vmware.com'
 username = os.environ['VCAUSER']
 password = os.environ['PASSWORD']
 instance = '28149a83-0d23-4f03-85e1-eb8be013e4ff'
-org = '8e479bba-862d-417e-a69f-c35aa50b8d95'
+
 vdc = 'VDC1'
 vapp = 'ubu'
 
@@ -72,7 +80,7 @@ result = vca.login(password=password)
 print_vca(vca)
 
 #then login with password and instance id, this will generate a session_token
-result = vca.login_to_instance(password=password, instance=instance, token=None, org_url=None)
+result = vca.login_to_instance(password=password, instance=instance)
 print_vca(vca)
 
 #next login, with token, org and org_url, no password, it will retrieve the organization
@@ -88,12 +96,15 @@ else: print False
 test_vcloud_session(vca, vdc, vapp)
 
 
+##############################
 ### vCloud Director standalone
+##############################
+
 host='p1v21-vcd.vchs.vmware.com'
 username = os.environ['VCAUSER']
 password = os.environ['PASSWORD']
-service = '85-719'
 org = 'AppServices'
+
 vdc = 'AppServices'
 vapp = 'cts'
 

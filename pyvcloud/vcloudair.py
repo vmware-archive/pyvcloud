@@ -16,9 +16,11 @@
 # coding: utf-8
 
 #todo: upload/download ovf to/from catalog
+#todo: create vapp network name is not being used, clean it up
+#todo: pass parameters in the create vapp to optimize for speed, available from 6.3
+#todo: refactor returns, raise exceptions, document with release notes
 
 import time
-import base64
 import requests
 from StringIO import StringIO
 import json
@@ -38,7 +40,7 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import OrgVdcNetworkTyp
     ReferenceType, NetworkConfigurationType, IpScopesType, IpScopeType,\
     IpRangesType, IpRangeType, DhcpPoolServiceType
 from pyvcloud.score import Score
-from pyvcloud import _get_logger, Http
+from pyvcloud import _get_logger, Http, Log
 
 class VCA(object):
 
@@ -92,11 +94,9 @@ class VCA(object):
                     return False
             else:
                 url = self.host + "/api/vchs/sessions"
-                encode = "Basic " + base64.standard_b64encode(self.username + ":" + password)
                 headers = {}
-                headers["Authorization"] = encode.rstrip()
                 headers["Accept"] = "application/xml;version=" + self.version
-                self.response = Http.post(url, headers=headers, verify=self.verify, logger=self.logger)
+                self.response = Http.post(url, headers=headers, auth=(self.username, password), verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.created:
                     self.token = self.response.headers["x-vchs-authorization"]
                     self.services = self._get_services()
@@ -110,11 +110,10 @@ class VCA(object):
                 return self.instances != None
             else:
                 url = self.host + "/api/iam/login"
-                encode = "Basic " + base64.standard_b64encode(self.username + ":" + password)
                 headers = {}
-                headers["Authorization"] = encode.rstrip()
                 headers["Accept"] = "application/json;version=%s" % self.version
                 self.response = Http.post(url, headers=headers, verify=self.verify, logger=self.logger)
+                self.response = Http.post(url, headers=headers, auth=(self.username, password), verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.created:
                     self.token = self.response.headers["vchs-authorization"]
                     self.instances = self.get_instances()
@@ -168,7 +167,7 @@ class VCA(object):
         self.response = Http.delete(self.host + "/api/sc/instances/" + instance, headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
         print self.response.status_code, self.response.content
 
-    def login_to_instance(self, instance, password, token, org_url):
+    def login_to_instance(self, instance, password, token=None, org_url=None):
         instances = filter(lambda i: i['id']==instance, self.instances)
         if len(instances)>0:
             if 'No Attributes' == instances[0]['instanceAttributes']:
@@ -373,7 +372,7 @@ class VCA(object):
         while status != "success":
             if status == "error":
                 error = task.get_Error()
-                self.logger.error("task error, major=%s, minor=%s, message=%s" % (error.get_majorErrorCode(), error.get_minorErrorCode(), error.get_message()))
+                Log.error(self.logger, "task error, major=%s, minor=%s, message=%s" % (error.get_majorErrorCode(), error.get_minorErrorCode(), error.get_message()))
                 return False
             else:
                 # some task doesn't not report progress
@@ -388,7 +387,7 @@ class VCA(object):
                     progress = task.get_Progress()
                     status = task.get_status()
                 else:
-                    self.logger.error("can't get task")
+                    Log.error(self.logger, "can't get task")
                     return False
         return True
 
@@ -403,11 +402,11 @@ class VCA(object):
             if task:
                 self.block_until_completed(task)
             else:
-                self.logger.debug("vapp.undeploy() didn't return a task")
+                Log.debug(self.logger, "vapp.undeploy() didn't return a task")
                 return False
         vapp = self.get_vapp(self.vdc, vapp_name)
         if vapp: return vapp.delete()
-        self.logger.debug("no vApp")
+        Log.debug(self.logger, "no vApp")
 
     def get_catalogs(self):
         links = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.catalog+xml", self.vcloud_session.organization.Link)

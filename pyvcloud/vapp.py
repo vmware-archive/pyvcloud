@@ -432,6 +432,7 @@ class VAPP(object):
                 memory_capacity = memory_capacity_mb / 1024
                 operatingSystemSection = filter(lambda section: section.__class__.__name__== "OperatingSystemSection_Type", sections)[0]
                 os = operatingSystemSection.get_Description().get_valueOf_()
+                customization_section = filter(lambda section: section.__class__.__name__== "GuestCustomizationSectionType", sections)[0]
                 result.append(
                     {'name': name,
                      'status': status,
@@ -439,8 +440,12 @@ class VAPP(object):
                      'memory': memory_capacity,
                      'memory_mb': memory_capacity_mb,
                      'os': os,
-                     'owner': owner}
+                     'owner': owner,
+                     'admin_password': customization_section.get_AdminPassword(),
+                     'reset_password_required': customization_section.get_ResetPasswordRequired()
+                     }
                 )
+        Log.debug(self.logger, "details of VMs: %s" % result)                        
         return result
         
     def modify_vm_memory(self, vm_name, new_size):

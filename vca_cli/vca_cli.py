@@ -1247,13 +1247,13 @@ def example(ctx):
     id+=1; table.append([id, 'create vapp', 
         'vca vapp create -a coreos2 -V coreos2 -c default-catalog -t coreos_template -n default-routed-network -m pool'])
     id+=1; table.append([id, 'create vapp', 
-        'vca vapp create --vapp myvapp --vm myvm --catalog \'Public Catalog\' --template \'Ubuntu Server 12.04 LTS (amd64 20150127)\' --network default-routed-network --mode POOL'])        
+        'vca vapp create --vapp myvapp --vm myvm --catalog \'Public Catalog\' --template \'Ubuntu Server 12.04 LTS (amd64 20150127)\' --network default-routed-network --mode pool'])        
     id+=1; table.append([id, 'create multiple vapps', 
-        'vca vapp create --vapp myvapp --vm myvm --catalog \'Public Catalog\' --template \'Ubuntu Server 12.04 LTS (amd64 20150127)\' --network default-routed-network --mode POOL --count 10'])        
-    id+=1; table.append([id, 'create vapp and configure VM size', 
-        'vca vapp create --vapp myvapp --vm myvm --catalog \'Public Catalog\' --template \'Ubuntu Server 12.04 LTS (amd64 20150127)\' --network default-routed-network --mode POOL --cpu 4 --ram 4096'])        
+        'vca vapp create --vapp myvapp --vm myvm --catalog \'Public Catalog\' --template \'Ubuntu Server 12.04 LTS (amd64 20150127)\' --network default-routed-network --mode pool --count 10'])        
+    id+=1; table.append([id, 'create vapp and configure vm size', 
+        'vca vapp create --vapp myvapp --vm myvm --catalog \'Public Catalog\' --template \'Ubuntu Server 12.04 LTS (amd64 20150127)\' --network default-routed-network --mode pool --cpu 4 --ram 4096'])        
     id+=1; table.append([id, 'delete vapp', 
-        'vca vapp delete -a coreos2'])        
+        'vca vapp delete -a coreos2'])
     id+=1; table.append([id, 'show vapp details in XML', 
         'vca -x vapp info -a coreos2'])        
     id+=1; table.append([id, 'deploy vapp', 

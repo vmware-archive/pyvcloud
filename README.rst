@@ -102,7 +102,7 @@ The SDK supports logging in to different type of services: vCloud Air Subscripti
 
 
     ### On Demand            
-    host='vca.vmware.com'
+    host='iam.vchs.vmware.com'
     username = os.environ['VCAUSER']
     password = os.environ['PASSWORD']
     instance = 'c40ba6b4-c158-49fb-b164-5c66f90344fa'
@@ -184,8 +184,8 @@ To test pyvcloud::
 
     git clone https://github.com/vmware/pyvcloud.git
     cd pyvcloud
-    virtualenv venv
-    source venv/bin/activate
+    virtualenv .venv
+    source .venv/bin/activate
     pip install --edit .
     cp tests/config_example.yaml tests/config_standalone.yaml
     # customize credentials and other parameters

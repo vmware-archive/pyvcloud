@@ -19,6 +19,7 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../pyvcloud'))
+sys.path.insert(1, os.path.abspath('..'))
 
 # -- General configuration ------------------------------------------------
 
@@ -52,8 +53,8 @@ master_doc = 'index'
 # General information about the project.
 project = u'pyvcloud'
 copyright = u'2015, VMware'
-
 # The version info for the project you're documenting, acts as replacement for
+
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #

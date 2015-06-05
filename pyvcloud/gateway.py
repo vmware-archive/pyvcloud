@@ -470,28 +470,29 @@ class Gateway(object):
 
     def delete_fw_rule(self, protocol, dest_port, dest_ip,
                        source_port, source_ip):
-        def create_protocol_list(protocol):
-            plist = []
-            plist.append(protocol.get_Tcp())
-            plist.append(protocol.get_Any())
-            plist.append(protocol.get_Tcp())
-            plist.append(protocol.get_Udp())
-            plist.append(protocol.get_Icmp())
-            plist.append(protocol.get_Other())
-            return plist
+        def create_protocol_tuple(protocol):
+            return (protocol.get_Tcp(),
+                    protocol.get_Any(),
+                    protocol.get_Udp(),
+                    protocol.get_Icmp(),
+                    protocol.get_Other())
+
+        def compare(first, second):
+            if isinstance(first, basestring) and isinstance(second, basestring):
+                return first.lower() == second.lower()
+            else:
+                return first == second
 
         rules = self.get_fw_rules()
         new_rules = []
-        to_delete_trait = (create_protocol_list(_create_protocols_type(protocol)),
-                           dest_port, dest_ip,
-                           source_port, source_ip)
+        to_delete_protocols = create_protocol_tuple(_create_protocols_type(protocol))
         for rule in rules:
-            current_trait = (create_protocol_list(rule.get_Protocols()),
-                             rule.get_DestinationPortRange(),
-                             rule.get_DestinationIp(),
-                             rule.get_SourcePortRange(),
-                             rule.get_SourceIp())
-            if current_trait == to_delete_trait:
+            current_protocols = create_protocol_tuple(rule.get_Protocols())
+            if (current_protocols == to_delete_protocols and
+                compare(dest_port, rule.get_DestinationPortRange()) and
+                compare(dest_ip, rule.get_DestinationIp()) and
+                compare(source_port, rule.get_SourcePortRange()) and
+                compare(source_ip, rule.get_SourceIp())):
                 continue
             else:
                 new_rules.append(rule)
@@ -503,10 +504,10 @@ class Gateway(object):
                              edgeGatewayServiceConfiguration.get_NetworkService())
         if len(dhcpServices) > 0:
             return dhcpServices[0]
-        
+
     def get_dhcp_service(self):
         return self._getDhcpService()
-        
+
     def add_dhcp_service(self, IsEnabled=True):
         service = GatewayDhcpServiceType(IsEnabled=IsEnabled)
         service.original_tagname_ = 'GatewayDhcpService'

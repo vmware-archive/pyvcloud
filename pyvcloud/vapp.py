@@ -15,6 +15,7 @@
 
 # coding: utf-8
 
+import time
 import requests
 from StringIO import StringIO
 from schema.vcd.v1_5.schemas.vcloud import vAppType, vdcType, queryRecordViewType, taskType, vcloudType
@@ -72,6 +73,8 @@ class VAPP(object):
                     headers['Content-type'] = 'application/vnd.vmware.vcloud.deployVAppParams+xml'
                 elif body and body.startswith('<UndeployVAppParams '):
                     headers['Content-type'] = 'application/vnd.vmware.vcloud.undeployVAppParams+xml'
+                elif body and body.startswith('<CreateSnapshotParams '):
+                    headers['Content-type'] = 'application/vnd.vmware.vcloud.createSnapshotParams+xml'
                 self.response = Http.post(link[0].get_href(), data = body, headers=headers, verify=self.verify, logger=self.logger)
             elif http == "put":
                 self.response = Http.put(link[0].get_href(), data = body, headers=self.headers, verify=self.verify, logger=self.logger)
@@ -124,23 +127,20 @@ class VAPP(object):
     def delete(self):
         return self.execute("remove", "delete")
 
-    def create_snapshot(self, args):
-        pass
-        # createSnapshotParams = vcloudType.CreateSnapshotParamsType()
-        # createSnapshotParams.set_name(args["--snapshot"])
-        # createSnapshotParams.set_memory(args["--memory"])
-        # createSnapshotParams.set_quiesce(args["--quiesce"])
-        # body = ghf.convertPythonObjToStr(createSnapshotParams, name = "CreateSnapshotParams",
-        #                                  namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
-        # self.execute("snapshot:create", args["--blocking"], "can't be taken a snapshot", "post", args["--json"], body)
+    def create_snapshot(self):
+        snapshot_name = '{}_snapshot_{}'.format(self.name, int(round(time.time() * 1000)))
+        createSnapshotParams = vcloudType.CreateSnapshotParamsType()
+        createSnapshotParams.set_name(snapshot_name)
+        createSnapshotParams.set_Description(snapshot_name)
+        body = CommonUtils.convertPythonObjToStr(createSnapshotParams, name="CreateSnapshotParams",
+                                                 namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5"')
+        return self.execute("snapshot:create", "post", body)
 
-    def revert_snapshot(self, args):
-        pass
-        # self.execute("snapshot:revertToCurrent", args["--blocking"], "can't be reverted to its current snapshot", "post", args["--json"])
+    def revert_snapshot(self):
+        return self.execute("snapshot:revertToCurrent", "post")
 
-    def delete_snapshot(self, args):
-        pass
-        # self.execute("snapshot:removeAll", args["--blocking"], "can't have its snapshot deleted", "post", args["--json"])
+    def delete_snapshot(self):
+        return self.execute("snapshot:removeAll", "post")
 
     @staticmethod
     def create_networkConfigSection(network_name, network_href, fence_mode):

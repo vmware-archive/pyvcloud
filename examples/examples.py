@@ -64,7 +64,7 @@ test_vcloud_session(vca, vdc, vapp)
 ### On Demand            
 ##############################
 
-host='vca.vmware.com'
+host='iam.vchs.vmware.com'
 username = os.environ['VCAUSER']
 password = os.environ['PASSWORD']
 instance = '28149a83-0d23-4f03-85e1-eb8be013e4ff'

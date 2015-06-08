@@ -4,7 +4,7 @@ from pyvcloud.vcloudair import VCA
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType, NatServiceType, FirewallRuleType, ProtocolsType
 
 class TestVCloud:
-    
+
     def __init__(self):
         self.vca = None
         self.login_to_vcloud()
@@ -29,7 +29,7 @@ class TestVCloud:
         elif 'subscription' == service_type:    
             result = self.vca.login(password=password)
             assert result
-        elif 'ondemand' == service_type:    
+        elif vcloudair.VCA_SERVICE_TYPE_ONDEMAND == service_type:    
             result = self.vca.login(password=password)
             assert result
     

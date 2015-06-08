@@ -42,9 +42,13 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import OrgVdcNetworkTyp
 from pyvcloud.score import Score
 from pyvcloud import _get_logger, Http, Log
 
+VCA_SERVICE_TYPE_ONDEMAND = 'ondemand'
+VCA_SERVICE_TYPE_SUBSCRIPTION = 'subscription'
+VCA_SERVICE_TYPE_STANDALONE = 'standalone'
+
 class VCA(object):
 
-    def __init__(self, host, username, service_type='ondemand', version='5.7', verify=True, log=False):
+    def __init__(self, host, username, service_type=VCA_SERVICE_TYPE_ONDEMAND, version='5.7', verify=True, log=False):
         if not (host.startswith('https://') or host.startswith('http://')):
             host = 'https://' + host
         self.host = host
@@ -80,7 +84,7 @@ class VCA(object):
         :return: True if the user was successfully logged in, False otherwise.
         """
 
-        if self.service_type == 'subscription':
+        if self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
             if token:
                 headers = {}
                 headers["x-vchs-authorization"] = token
@@ -103,7 +107,7 @@ class VCA(object):
                     return True
                 else:
                     return False
-        elif self.service_type == 'ondemand':
+        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
             if token:
                 self.token = token
                 self.instances = self.get_instances()
@@ -112,7 +116,6 @@ class VCA(object):
                 url = self.host + "/api/iam/login"
                 headers = {}
                 headers["Accept"] = "application/json;version=%s" % self.version
-                self.response = Http.post(url, headers=headers, verify=self.verify, logger=self.logger)
                 self.response = Http.post(url, headers=headers, auth=(self.username, password), verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.created:
                     self.token = self.response.headers["vchs-authorization"]

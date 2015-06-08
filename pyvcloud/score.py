@@ -202,37 +202,18 @@ class EventsClient(object):
         self.score = score
         self.logger = _get_logger() if log else None
         
-    @staticmethod
-    def _create_events_query(execution_id, include_logs):
-        query = {
-            "bool": {
-                "must": [
-                    {"match": {"context.execution_id": execution_id}},
-                ]
-            }
-        }
-        match_cloudify_event = {"match": {"type": "cloudify_event"}}
-        if include_logs:
-            match_cloudify_log = {"match": {"type": "cloudify_log"}}
-            query['bool']['should'] = [
-                match_cloudify_event, match_cloudify_log
-            ]
-        else:
-            query['bool']['must'].append(match_cloudify_event)
-        return query
-        
     def get(self, execution_id, from_event=0, batch_size=100, include_logs=False):
         assert execution_id
         data = {
+            "execution_id": execution_id,
             "from": from_event,
             "size": batch_size,
-            "sort": [{"@timestamp": {"order": "asc"}}],
-            "query": self._create_events_query(execution_id, include_logs)
+            "include_logs": include_logs
         }
         headers = self.score.get_headers()
         headers['Content-type'] = 'application/json'
         self.score.response = Http.get(self.score.url + '/events', 
-                                       headers=headers, data=data,  verify=self.score.verify, logger=self.logger)
+                                       headers=headers, data=json.dumps(data),  verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             # print self.score.response.content
             json_events = json.loads(self.score.response.content)

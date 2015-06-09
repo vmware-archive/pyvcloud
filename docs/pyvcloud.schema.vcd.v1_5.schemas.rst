@@ -6,7 +6,6 @@ Subpackages
 
 .. toctree::
 
-    pyvcloud.schema.vcd.v1_5.schemas.admin
     pyvcloud.schema.vcd.v1_5.schemas.vcloud
 
 Module contents

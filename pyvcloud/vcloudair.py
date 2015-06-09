@@ -247,7 +247,7 @@ class VCA(object):
         Request a list of references to existing virtual data centers.
 
         :param serviceId: (str): The service instance identifier.
-        :return: (list of ReferenceType): a list of :class:`.ReferenceType` objects for the vdcs hosting the service.
+        :return: (list of ReferenceType): a list of :class:`<pyvcloud.schema.vcim.vchsType.VdcReferenceType` objects for the vdcs hosting the service.
        
         **service type:**  subscription
 
@@ -265,7 +265,7 @@ class VCA(object):
 
         :param serviceId: (str): The service identifier for the service.
         :param vdcId: (str): The identifier for the virtual data center.
-        :return: (ReferenceType) a :class:`.ReferenceType` object representing the vdc.
+        :return: (ReferenceType) a :class:`pyvcloud.schema.vcim.vchsType.VdcReferenceType` object representing the vdc.
        
         **service type:**  subscription
 
@@ -337,7 +337,7 @@ class VCA(object):
         A vdc Data centers also provides storage for virtual media. 
 
         :param vdc_name: (str): The virtual data center name.
-        :return: (VdcType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.vdcType.VdcType` object describing the vdc. (For example: subscription, ondemand)
+        :return: (VdcType) a :class:`.vcloud.vdcType.VdcType` object describing the vdc. (For example: subscription, ondemand)
         
         **service type:** ondemand, subscription, vcd
 
@@ -446,7 +446,7 @@ class VCA(object):
         :param vm_memory: (str, optional): The amount of memory assigned to the VM, specified in MB.
         :param deploy: (bool): True to deploy the vApp immediately after creation, False otherwise.
         :param poweron: (bool): True to poweron the vApp immediately after deployment, False otherwise.
-        :return: (task): a :class:`.TaskType`, a handle to the asynchronous process executing the request. 
+        :return: (task): a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`, a handle to the asynchronous process executing the request. 
 
         **service type:**. ondemand, subscription, vcd
 
@@ -513,7 +513,7 @@ class VCA(object):
         The status of the task is checked at one second intervals until the task is completed.
         No timeout.
         
-        :param task: (task): A :class:`vCloudEntities.TaskType`  object that represents a running task.
+        :param task: (task): A :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`  object that represents a running task.
         :return: (bool) True if the task completed successfully, False if an error completed with an error.
        
         **service type:** ondemand, subscription, vcd
@@ -580,15 +580,16 @@ class VCA(object):
 
         A catalog contains one or more vApp templates and media images.
       
-        :return: (list of CatalogType) a list of :class:`.CatalogType` objects that describe the available catalogs.
-                 
+        :return: (list of CatalogType) a list of :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.catalogType.CatalogType` objects that describe the available catalogs.
+        
+        Each CatalogType contains a single :class:`.catalogType.CatalogItemsType` \n
+        which contains a list of :class:`.vcloud.catalogType.ReferenceType` objects. 
+        use get_name() on a CatalogType to retrieve the catalog name.
+        use get_name() on ReferenceType to retrieve the catalog item name.     
 
         **service type:** ondemand, subscription, vcd
 
-        .. note::  Each CatalogType contains a single :class:`.catalogType.CatalogItemsType` \n
-                   which contains a list of :class:`.vcloud.catalogType.ReferenceType` objects. 
-                   use get_name() on a CatalogType to retrieve the catalog name.
-                   use get_name() on ReferenceType to retrieve the catalog item name.
+  
       
         """
         links = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.catalog+xml", self.vcloud_session.organization.Link)
@@ -607,7 +608,7 @@ class VCA(object):
 
         :param catalog_name: (str): The name of the new catalog.
         :param description: (str): A description for the new catalog.
-        :return: (TaskType) a :class:`vCloudEntities.TaskType` object that can be used to monitor the creation of the catalog.
+        :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the creation of the catalog.
         
         **service type:** ondemand, subscription, vcd
 
@@ -740,7 +741,7 @@ class VCA(object):
         Request a list of the Networks within a Virtual Data Center.
 
         :param vdc_name: (str): The virtual data center name.
-        :return: (list of OrgVdcNetworkType)  A list of :class:`OrgVdcNetworkType` objects describing the available networks.
+        :return: (list of OrgVdcNetworkType)  A list of :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType.OrgVdcNetworkType` objects describing the available networks.
         
         **service type:** ondemand, subscription, vcd
 
@@ -762,7 +763,7 @@ class VCA(object):
 
         :param vdc_name: (str): The virtual data center name.
         :param network_name: (str): The name of the requested network.
-        :return: (OrgVdcNetworkType)  An :class:`.OrgVdcNetworkType` object describing the requested network.
+        :return: (OrgVdcNetworkType)  An :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType.OrgVdcNetworkType` object describing the requested network.
        
         **service type:** ondemand, subscription, vcd
 
@@ -838,7 +839,7 @@ class VCA(object):
         :param start_address: (str): The first ip address in a range of addresses for the network.
         :param end_address: (str): The last ip address in a range of addresses for the network.
         :return: (tuple of (bool, task or str))  Two values are returned, a bool success indicator and a \
-                 :class:`vCloudEntities.TaskType`  object if the bool value was True or a \
+                 :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`  object if the bool value was True or a \
                  str message indicating the reason for failure if the bool value was False.  
 
         **service type:** ondemand, subscription, vcd
@@ -889,7 +890,7 @@ class VCA(object):
         :param vdc_name: (str): The name of the virtual data center.
         :param network_name: (str): The name of the new network to be deleted.
         :return: (tuple of (bool, task or str))  Two values are returned, a bool success indicator and a \
-                 :class:`vCloudEntities.TaskType`  object if the bool value was True or a \
+                 :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`  object if the bool value was True or a \
                  str message indicating the reason for failure if the bool value was False.  
         
         **service type:** ondemand, subscription, vcd
@@ -922,6 +923,17 @@ class VCA(object):
         return Score(score_service_url, self.vcloud_session.org_url, self.vcloud_session.token, self.version, self.verify)
 
     def get_diskRefs(self, vdc):
+        """
+        Request a list of references to disk volumes in a vdc.
+
+        :param vdc: (str): The name of the virtual data center.
+        :return: (list of ResourceReferenceType)  A list of 
+                 :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.vdcType.ResourceReferenceType` objects. 
+        Use   get_name(), get_type() and get_href() methods on each list entry to return disk details.
+
+        **service type:** ondemand, subscription, vcd
+
+        """
         resourceEntities = vdc.get_ResourceEntities().get_ResourceEntity()
         return [resourceEntity for resourceEntity in resourceEntities
                     if resourceEntity.get_type() == "application/vnd.vmware.vcloud.disk+xml"]
@@ -958,7 +970,7 @@ class VCA(object):
 
         :param vdc_name: (str): The name of a virtual data center.
         :return: (list of tuples of (DiskType, list of str)):  An list of tuples. \
-                  Each tuple contains a :class:`.DiskType` object and a list of vms utilizing the disk. 
+                  Each tuple contains a :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType.DiskType` object and a list of vms utilizing the disk. 
         
         **service type:** ondemand, subscription, vcd
 
@@ -986,7 +998,7 @@ class VCA(object):
         :param vdc_name: (str): The name of the virtual data center.
         :param name: (str): The name of the new disk.
         :param size: (str): The size of the new disk in MB.
-        :return: (tuple(bool, DiskType))  Two values are returned, a bool success indicator and a :class:`.DiskType` object describing the disk resource.
+        :return: (tuple(bool, DiskType))  Two values are returned, a bool success indicator and a :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType.DiskType` object describing the disk resource.
        
         **service type:** ondemand, subscription, vcd
 
@@ -1013,8 +1025,8 @@ class VCA(object):
         :param vdc_name: (str): The name of the virtual data center.
         :param name: (str): The name of the new disk.
         :param id: (str, optional): The id of the disk resource. 
-        :return: (tuple(bool, DiskType))  Two values are returned, a bool success indicator and a \
-                 :class:`vCloudEntities.TaskType`  object if the bool value was True or a \
+        :return: (tuple(bool, TaskType))  Two values are returned, a bool success indicator and a \
+                 :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`  object if the bool value was True or a \
                  str message indicating the reason for failure if the bool value was False.  
 
         **service type:** ondemand, subscription, vcd

@@ -39,6 +39,7 @@ entityType module
 
 .. automodule:: pyvcloud.schema.vcd.v1_5.schemas.vcloud.entityType
     :members:
+    :undoc-members:
     :show-inheritance:
 
 mediaType module
@@ -46,6 +47,7 @@ mediaType module
 
 .. automodule:: pyvcloud.schema.vcd.v1_5.schemas.vcloud.mediaType
     :members:
+    :undoc-members:
     :show-inheritance:
 
 networkType module
@@ -75,21 +77,18 @@ queryRecordViewType module
 ------------------------------------------------------------------
 
 .. automodule:: pyvcloud.schema.vcd.v1_5.schemas.vcloud.queryRecordViewType
-    :members:
-    :show-inheritance:
 
 sessionType module
 ----------------------------------------------------------
 
 .. automodule:: pyvcloud.schema.vcd.v1_5.schemas.vcloud.sessionType
-    :members:
-    :show-inheritance:
 
 taskType module
 -------------------------------------------------------
 
 .. automodule:: pyvcloud.schema.vcd.v1_5.schemas.vcloud.taskType
     :members:
+    :undoc-members:
     :show-inheritance:
 
 tasksListType module
@@ -104,6 +103,7 @@ vAppTemplateType module
 
 .. automodule:: pyvcloud.schema.vcd.v1_5.schemas.vcloud.vAppTemplateType
     :members:
+    :undoc-members:
     :show-inheritance:
 
 vAppType module
@@ -126,6 +126,7 @@ vdcType module
 
 .. automodule:: pyvcloud.schema.vcd.v1_5.schemas.vcloud.vdcType
     :members:
+    :undoc-members:
     :show-inheritance:
 
 vmsType module
@@ -140,5 +141,4 @@ Module contents
 ---------------
 
 .. automodule:: pyvcloud.schema.vcd.v1_5.schemas.vcloud
-    :members:
     :show-inheritance:

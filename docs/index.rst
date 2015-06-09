@@ -12,6 +12,7 @@ Contents:
    vcloudair
    vapp
    changes   
+   modules
 
 
 

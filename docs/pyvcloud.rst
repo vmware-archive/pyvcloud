@@ -6,8 +6,6 @@ Subpackages
 
 .. toctree::
 
-    pyvcloud.helper
-    pyvcloud.schema
 
 Submodules
 ----------

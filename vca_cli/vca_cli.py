@@ -1173,9 +1173,9 @@ def events(ctx, execution, from_event, batch_size, show_logs):
         print_error("Can't find events for execution: {}".format(execution))
     else:
         print_table("Status:", 'status', events[0].keys(), [e.values() for e in events[:-1]], ctx)
-        print_message("Total events: {}".format(events[-1]), ctx)        
+        print_message("Total events: {}".format(events[-1]), ctx)
 
-        
+
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation, metavar='[list | info | create | delete]', type=click.Choice(['list', 'info', 'create', 'delete']))

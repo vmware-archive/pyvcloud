@@ -15,6 +15,7 @@
 
 # coding: utf-8
 
+import time
 import requests
 from StringIO import StringIO
 from schema.vcd.v1_5.schemas.vcloud import vAppType, vdcType, queryRecordViewType, taskType, vcloudType
@@ -83,6 +84,8 @@ class VAPP(object):
                     headers['Content-type'] = 'application/vnd.vmware.vcloud.deployVAppParams+xml'
                 elif body and body.startswith('<UndeployVAppParams '):
                     headers['Content-type'] = 'application/vnd.vmware.vcloud.undeployVAppParams+xml'
+                elif body and body.startswith('<CreateSnapshotParams '):
+                    headers['Content-type'] = 'application/vnd.vmware.vcloud.createSnapshotParams+xml'
                 self.response = Http.post(link[0].get_href(), data = body, headers=headers, verify=self.verify, logger=self.logger)
             elif http == "put":
                 self.response = Http.put(link[0].get_href(), data = body, headers=self.headers, verify=self.verify, logger=self.logger)
@@ -101,8 +104,6 @@ class VAPP(object):
         :param powerOn: (bool, optional): Power on the vApp and its contained VMs after deployment.
         :return: (bool): True if the user was vApp was successfully deployed, False otherwise.
         
-        **service type:**  subscription, ondemand, vcd
-
         """
         powerOnValue = 'true' if powerOn else 'false'
         deployVAppParams = vcloudType.DeployVAppParamsType()
@@ -131,8 +132,6 @@ class VAPP(object):
 
         :returns: (bool): True if the user was vApp was successfully deployed, False otherwise.
         
-        **Service type**:  subscription, ondemand, vcd
-
         """
         undeployVAppParams = vcloudType.UndeployVAppParamsType()
 
@@ -194,42 +193,43 @@ class VAPP(object):
         """
         return self.execute("remove", "delete")
 
-    def create_snapshot(self, args):
+
+    def create_snapshot(self):
         """
         Create a new snapshot of the vApp state.
-
-        **(Not implemented)**
+       
+        :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
+     
         """
-        pass
-        # createSnapshotParams = vcloudType.CreateSnapshotParamsType()
-        # createSnapshotParams.set_name(args["--snapshot"])
-        # createSnapshotParams.set_memory(args["--memory"])
-        # createSnapshotParams.set_quiesce(args["--quiesce"])
-        # body = ghf.convertPythonObjToStr(createSnapshotParams, name = "CreateSnapshotParams",
-        #                                  namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
-        # self.execute("snapshot:create", args["--blocking"], "can't be taken a snapshot", "post", args["--json"], body)
+        snapshot_name = '{}_snapshot_{}'.format(self.name, int(round(time.time() * 1000)))
+        createSnapshotParams = vcloudType.CreateSnapshotParamsType()
+        createSnapshotParams.set_name(snapshot_name)
+        createSnapshotParams.set_Description(snapshot_name)
+        body = CommonUtils.convertPythonObjToStr(createSnapshotParams, name="CreateSnapshotParams",
+                                                 namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5"')
+        return self.execute("snapshot:create", "post", body)
 
-    def revert_snapshot(self, args):
+    def revert_snapshot(self):
         """
-        Revert to an existing vApp snapshot. 
+        Revert to a previous vApp snapshot.
+       
+        :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
+     
+        """
+        return self.execute("snapshot:revertToCurrent", "post")
 
-        **(Not implemented)**
+    def delete_snapshot(self):
         """
-        pass
-        # self.execute("snapshot:revertToCurrent", args["--blocking"], "can't be reverted to its current snapshot", "post", args["--json"])
-
-    def delete_snapshot(self, args):
+        Delete an existing snapshot.
+       
+        :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
+     
         """
-        Delete an existing vApp snapshot. 
-
-        **(Not implemented)**
-        """
-        pass
-        # self.execute("snapshot:removeAll", args["--blocking"], "can't have its snapshot deleted", "post", args["--json"])
+        return self.execute("snapshot:removeAll", "post")
 
     @staticmethod
     def create_networkConfigSection(network_name, network_href, fence_mode):
-        parentNetwork = vcloudType.ReferenceType(href=network_href)
+        parentNetwork = vcloudType.ReferenceType(href=network_href, name=network_name)
         configuration = vcloudType.NetworkConfigurationType()
         configuration.set_ParentNetwork(parentNetwork)
         configuration.set_FenceMode(fence_mode)
@@ -240,14 +240,14 @@ class VAPP(object):
         info.set_valueOf_("Configuration parameters for logical networks")
         networkConfigSection = vcloudType.NetworkConfigSectionType()
         networkConfigSection.add_NetworkConfig(networkConfig)
-        networkConfigSection.set_Info(info)
+        networkConfigSection.set_Info(vAppType.cimString(valueOf_="Network config"))
         return networkConfigSection
 
     def connect_vms(self, network_name, connection_index,
                     connections_primary_index=None, ip_allocation_mode='DHCP',
                     mac_address=None, ip_address=None):
         """
-        Attach a vm to a virtual network.
+        Attach vms to a virtual network.
 
         something helpful.
        
@@ -355,9 +355,10 @@ class VAPP(object):
             0,
             name_ = 'NetworkConfigSection',
             namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
-            pretty_print = False)
+            pretty_print = True)
         body = output.getvalue().\
-            replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").replace("vmw:", "")
+            replace('Info msgid=""', "ovf:Info").replace("Info", "ovf:Info").replace(":vmw", "").replace("vmw:","")\
+            .replace("RetainNetovf", "ovf").replace("ovf:InfoAcrossDeployments","RetainNetInfoAcrossDeployments")
         self.response = Http.put(link.get_href(), data=body, headers=self.headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.accepted:
             return taskType.parseString(self.response.content, True)
@@ -781,12 +782,14 @@ class VAPP(object):
     def _modify_networkConnectionSection(self, section, new_connection,
                                          primary_index=None):
 
-        for networkConnection in section.get_NetworkConnection():
-            if (networkConnection.get_network().lower() ==
-                new_connection.get_network().lower()):
-                return (False,
-                        "VApp {0} is already connected to org vdc network {1}"
-                        .format(self.name, networkConnection.get_network()))
+        #Need to add same interface more than once for a VM , so commenting out below lines
+
+        # for networkConnection in section.get_NetworkConnection():
+        #     if (networkConnection.get_network().lower() ==
+        #         new_connection.get_network().lower()):
+        #         return (False,
+        #                 "VApp {0} is already connected to org vdc network {1}"
+        #                 .format(self.name, networkConnection.get_network()))
 
         section.add_NetworkConnection(new_connection)
         if section.get_Info() is None:

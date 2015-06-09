@@ -29,7 +29,7 @@ from pyvcloud.schema.vcd.v1_5.schemas.admin import vCloudEntities
 from pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities import AdminCatalogType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType, \
     vAppType, organizationListType, vdcType, catalogType, queryRecordViewType, \
-    networkType, vcloudType, taskType, diskType, vmsType
+    networkType, vcloudType, taskType, diskType, vmsType, vdcTemplateListType
 from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 from pyvcloud.vcloudsession import VCS
 from pyvcloud.vapp import VAPP
@@ -42,9 +42,13 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import OrgVdcNetworkTyp
 from pyvcloud.score import Score
 from pyvcloud import _get_logger, Http, Log
 
+VCA_SERVICE_TYPE_ONDEMAND = 'ondemand'
+VCA_SERVICE_TYPE_SUBSCRIPTION = 'subscription'
+VCA_SERVICE_TYPE_STANDALONE = 'standalone'
+
 class VCA(object):
 
-    def __init__(self, host, username, service_type='ondemand', version='5.7', verify=True, log=False):
+    def __init__(self, host, username, service_type=VCA_SERVICE_TYPE_ONDEMAND, version='5.7', verify=True, log=False):
         """
         Create a VCA connection
 
@@ -59,8 +63,6 @@ class VCA(object):
         
         **service type:**  subscription, ondemand, vcd
         """
-
-        pyvcloud.vcloudair.VCA
         if not (host.startswith('https://') or host.startswith('http://')):
             host = 'https://' + host
         self.host = host
@@ -101,7 +103,7 @@ class VCA(object):
 
         """
 
-        if self.service_type == 'subscription':
+        if self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
             if token:
                 headers = {}
                 headers["x-vchs-authorization"] = token
@@ -124,7 +126,7 @@ class VCA(object):
                     return True
                 else:
                     return False
-        elif self.service_type == 'ondemand':
+        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
             if token:
                 self.token = token
                 self.instances = self.get_instances()
@@ -133,7 +135,6 @@ class VCA(object):
                 url = self.host + "/api/iam/login"
                 headers = {}
                 headers["Accept"] = "application/json;version=%s" % self.version
-                self.response = Http.post(url, headers=headers, verify=self.verify, logger=self.logger)
                 self.response = Http.post(url, headers=headers, auth=(self.username, password), verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.created:
                     self.token = self.response.headers["vchs-authorization"]
@@ -424,6 +425,31 @@ class VCA(object):
                     hardware.add_Item(memorydata)
 
         return templateParams
+
+    def _get_vdc_templates(self):
+        content_type = "application/vnd.vmware.admin.vdcTemplates+xml"
+        link = filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link())
+        self.response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+        if self.response.status_code == requests.codes.ok:
+            return vdcTemplateListType.parseString(self.response.content, True)\
+
+    def create_vdc(self, vdc_name):
+        vdcTemplateList = self._get_vdc_templates()
+        content_type = "application/vnd.vmware.admin.vdcTemplate+xml"
+        vdcTemplate = filter(lambda link: link.get_type() == content_type, vdcTemplateList.get_VdcTemplate())
+        source = vcloudType.ReferenceType(href=vdcTemplate[0].get_href())
+
+        templateParams = vcloudType.InstantiateVAppTemplateParamsType()  # Too simple to add InstantiateVdcTemplateParamsType class
+        templateParams.set_name(vdc_name)
+        templateParams.set_Source(source)
+        body = CommonUtils.convertPythonObjToStr(templateParams, name="InstantiateVdcTemplateParams",
+                                                 namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5"')
+        content_type = "application/vnd.vmware.vcloud.instantiateVdcTemplateParams+xml"
+        link = filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link())
+        self.response = requests.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, data=body)
+        if self.response.status_code == requests.codes.accepted:
+            task = taskType.parseString(self.response.content, True)
+            return task
 
     def create_vapp(self, vdc_name, vapp_name, template_name, catalog_name,
                     network_name=None, network_mode='bridged', vm_name=None,

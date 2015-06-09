@@ -287,8 +287,8 @@ class TestVCloud:
                     found_rule = True
                     break
         assert found_rule == False
-        
-    
+
+
     def test_0012(self):
         """Enable Firewall service"""
         vdc_name = config['vcloud']['vdc']
@@ -337,12 +337,12 @@ class TestVCloud:
         assert task
         result = self.vca.block_until_completed(task)
         assert result
-        
+
     def _create_protocols_type(self, protocol):
         all_protocols = {"Tcp": None, "Udp": None, "Icmp": None, "Any": None}
         all_protocols[protocol] = True
         return ProtocolsType(**all_protocols)
-        
+
     def test_0014(self):
         """Get Firewall rule"""
         def create_protocol_list(protocol):
@@ -354,7 +354,7 @@ class TestVCloud:
             plist.append(protocol.get_Icmp())
             plist.append(protocol.get_Other())
             return plist
-            
+
         vdc_name = config['vcloud']['vdc']
         vapp_name = config['vcloud']['vapp']
         vm_name = config['vcloud']['vm']
@@ -389,7 +389,7 @@ class TestVCloud:
                 rule_found = True
                 break
         assert rule_found
-        
+
     def test_0015(self):
         """Delete Firewall rule"""
         def create_protocol_list(protocol):
@@ -401,7 +401,7 @@ class TestVCloud:
             plist.append(protocol.get_Icmp())
             plist.append(protocol.get_Other())
             return plist
-            
+
         vdc_name = config['vcloud']['vdc']
         vapp_name = config['vcloud']['vapp']
         vm_name = config['vcloud']['vm']
@@ -444,6 +444,44 @@ class TestVCloud:
                 rule_found = True
                 break
         assert rule_found == False
+
+    def test_0020(self):
+        """Power On vApp"""
+        vdc_name = config['vcloud']['vdc']
+        vapp_name = config['vcloud']['vapp']
+        the_vdc = self.vca.get_vdc(vdc_name)
+        assert the_vdc
+        assert the_vdc.get_name() == vdc_name
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        assert the_vapp.name == vapp_name
+        assert the_vapp.me.get_status() == 8
+        task = the_vapp.poweron()
+        assert task
+        result = self.vca.block_until_completed(task)
+        assert result
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp != None
+        assert the_vapp.me.get_status() == 4
+
+    def test_0022(self):
+        """Power Off vApp"""
+        vdc_name = config['vcloud']['vdc']
+        vapp_name = config['vcloud']['vapp']
+        the_vdc = self.vca.get_vdc(vdc_name)
+        assert the_vdc
+        assert the_vdc.get_name() == vdc_name
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        assert the_vapp.name == vapp_name
+        assert the_vapp.me.get_status() == 4
+        task = the_vapp.poweroff()
+        assert task
+        result = self.vca.block_until_completed(task)
+        assert result
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp != None
+        assert the_vapp.me.get_status() == 8
 
     def test_0099(self):
         """Delete vApp"""

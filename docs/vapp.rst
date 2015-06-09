@@ -1,11 +1,11 @@
 ==============
-vCloud Air
+vApp
 ==============
 
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: vcloudair
+.. automodule:: vapp
    :special-members: __init__
    :members:
    :undoc-members:

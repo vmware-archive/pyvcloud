@@ -1155,6 +1155,26 @@ def dep(ctx, operation, deployment, blueprint, input_file, workflow, show_events
         print 'not implemented'
     else:
         print 'not implemented'
+
+
+@cli.command()
+@click.pass_context
+@click.argument('execution', required=True)
+@click.option('-f', '--from', 'from_event', default=0, metavar='<from_event>', help='From event')
+@click.option('-s', '--size', 'batch_size', default=100, metavar='<batch_size>', help='Size batch of events')
+@click.option('-l', '--show-logs', 'show_logs', is_flag=True, default=False, help='Show logs for event')
+def events(ctx, execution, from_event, batch_size, show_logs):
+    """Operations with Events"""
+    vca = _getVCA_with_relogin(ctx)
+    if not vca: return
+    score = vca.get_score_service(ctx.obj['host_score'])
+    events = score.events.get(execution, from_event=from_event, batch_size=batch_size, include_logs=show_logs)
+    if len(events) == 1:
+        print_error("Can't find events for execution: {}".format(execution))
+    else:
+        print_table("Status:", 'status', events[0].keys(), [e.values() for e in events[1]], ctx)
+        print_message("Total events: {}".format(events[-1]), ctx)        
+
         
 @cli.command()
 @click.pass_context

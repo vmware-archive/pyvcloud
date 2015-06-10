@@ -1,0 +1,8 @@
+click
+# Colorama is only required for Windows.
+colorama
+cryptography
+xmltodict
+tabulate
+dateutils
+pyvcloud == 13rc7

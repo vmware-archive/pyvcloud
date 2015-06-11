@@ -946,7 +946,7 @@ class VCA(object):
     def get_score_service(self, score_service_url):
         if self.vcloud_session is None or self.vcloud_session.token is None:
             return None
-        return Score(score_service_url, self.vcloud_session.org_url, self.vcloud_session.token, self.version, self.verify)
+        return Score(score_service_url, self.vcloud_session.org_url, self.vcloud_session.token, self.version, self.verify, self.log)
 
     def get_diskRefs(self, vdc):
         """

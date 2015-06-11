@@ -63,6 +63,7 @@ class BlueprintsClient(object):
         self.logger = _get_logger() if log else None
         
     def list(self):
+        print 'list blueprints'
         self.score.response = Http.get(self.score.url + '/blueprints', headers=self.score.get_headers(), verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)

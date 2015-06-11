@@ -1,7 +1,7 @@
 vca-cli
 =======
 
-Command Line Interface for VMware vCloud Air. It supports vCloud Air On Demand and Subscription. It also supports vCloud Director.
+Command Line Interface for VMware vCloud Air. It supports vCloud Air On Demand and Subscription. It also supports standalone vCloud Director.
 
 > Release early, release often.
 
@@ -12,11 +12,11 @@ vca-cli uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK 
 Installation:
 =============
 
-In general, installation is as easy as to run:
+In general, `vca-cli` can be installed with:
 
     $ pip install vca-cli
 
-The vca-cli requires a Python environment already installed, if the previous command fails, follow the instructions below.
+`vca-cli` requires a Python environment already installed, if the previous command fails, follow the instructions below.
 
 Ubuntu:
 -------
@@ -27,6 +27,7 @@ The following instructions have been tested in Ubuntu 12.04:
     
     $ sudo apt-get install -y build-essential libffi-dev libssl-dev \
                               libxml2-dev libxslt-dev python-dev
+    
     $ wget https://bootstrap.pypa.io/get-pip.py
     
     $ sudo python get-pip.py
@@ -93,7 +94,7 @@ You might need to run the previous command with `sudo` on Ubuntu and CentOS, if 
 Usage:
 ======
 
-Login. When the *password* argument is omitted, vca-cli will prompt the user for the password:
+Login. When the *password* argument is omitted, `vca-cli` will prompt the user for the password. Use the `--save-password` to cache the password (encrypted) and automatically re-login when the token expires. Below are some examples:
 
     
     # vCA On Demand, password prompt
@@ -101,20 +102,24 @@ Login. When the *password* argument is omitted, vca-cli will prompt the user for
     Password: ***************
     
     # vCA On Demand
-    $ vca login user@domain.com --password ********
+    $ vca login user@domain.com --password ******** --save-password
     
     # same as:
-    $ vca login user@domain.com --password ******** --host iam.vchs.vmware.com --type ondemand --version 5.7
+    $ vca login user@domain.com --password ******** --save-password \
+             --host iam.vchs.vmware.com --type ondemand --version 5.7
     
     # vCA Subscription
-    $ vca login user@domain.com --password ******** --host vchs.vmware.com --type subscription --version 5.6
+    $ vca login user@domain.com --password ******** --save-password \
+             --host vchs.vmware.com --type subscription --version 5.6
     
-    # vCloud Director
-    $ vca login user@domain.com --password ******** --host vcdhost.domain.com --org myorg --type vcd --version 5.6
+    # vCloud Director Standalone
+    $ vca login user@domain.com --password ******** --save-password \
+             --host vcdhost.domain.com --org myorg --type vcd --version 5.6
     
     # vCloud Director with insecure SSL certificate
-    $ vca --insecure login user@domain.com --password ******** --host vcdhost.domain.com --org myorg --type vcd --version 5.6
-    
+    $ vca login user@domain.com --password ******** --save-password \
+             --host vcdhost.domain.com --org myorg --type vcd --version 5.6 \
+             --insecure
 
 vCloud Air On Demand, login to a specific instance and get the details of the instance (organization):
 

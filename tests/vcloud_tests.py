@@ -8,7 +8,7 @@ class TestVCloud:
     def __init__(self):
         self.vca = None
         self.login_to_vcloud()
- 
+
     def login_to_vcloud(self):
         """Login to vCloud"""
         username = config['vcloud']['username']
@@ -17,10 +17,8 @@ class TestVCloud:
         host = config['vcloud']['host']
         version = config['vcloud']['version']
         org = config['vcloud']['org']
-
         self.vca = VCA(host=host, username=username, service_type=service_type, version=version, verify=True, log=True)
         assert self.vca
-    
         if 'vcd' == service_type:
             result = self.vca.login(password=password, org=org)
             assert result
@@ -32,26 +30,25 @@ class TestVCloud:
         elif vcloudair.VCA_SERVICE_TYPE_ONDEMAND == service_type:    
             result = self.vca.login(password=password)
             assert result
-    
+
     def logout_from_vcloud(self):
         """Logout from vCloud"""
         print 'logout'
         selfl.vca.logout()
         self.vca = None
         assert self.vca is None
-    
- 
+
     def test_0001(self):
         """Loggin in to vCloud"""
         assert self.vca.token
-    
+
     def test_0002(self):
         """Get VDC"""
         vdc_name = config['vcloud']['vdc']
         the_vdc = self.vca.get_vdc(vdc_name)        
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
-    
+
     def test_0003(self):
         """Create vApp"""
         vdc_name = config['vcloud']['vdc']
@@ -288,7 +285,6 @@ class TestVCloud:
                     break
         assert found_rule == False
 
-
     def test_0012(self):
         """Enable Firewall service"""
         vdc_name = config['vcloud']['vdc']
@@ -401,7 +397,6 @@ class TestVCloud:
             plist.append(protocol.get_Icmp())
             plist.append(protocol.get_Other())
             return plist
-
         vdc_name = config['vcloud']['vdc']
         vapp_name = config['vcloud']['vapp']
         vm_name = config['vcloud']['vm']
@@ -501,5 +496,4 @@ class TestVCloud:
         assert result
         the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
         assert the_vapp == None
-
 

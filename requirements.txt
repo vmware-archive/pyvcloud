@@ -1,5 +1,5 @@
-iptools==0.6.1
-lxml==3.4.1
-netaddr==0.7.13
-requests==2.4.3
-PyYAML==3.11
+iptools>=0.6.1
+lxml>=3.4.1
+netaddr>=0.7.13
+requests>=2.4.3
+PyYAML>=3.10

@@ -66,7 +66,7 @@ Display the version installed:
     
     vca-cli version 12rc5 (pyvcloud: 13rc7)
 
-Installation with Virtualenv:
+Installation with virtualenv:
 -----------------------------
 
 Upgrade:
@@ -76,7 +76,7 @@ To upgrade an existing `vca-cli` install, just run:
 
     $ pip install vca-cli --upgrade
 
-You might need to run the previous command with `sudo` on Ubuntu and CentOS, if not using `Virtualenv`.
+You might need to run the previous command with `sudo` on Ubuntu and CentOS, if not using `virtualenv`.
 
 Pre-releases:
 -------------
@@ -89,7 +89,7 @@ And to upgrade a pre-release:
 
     $ pip install vca-cli --pre --upgrade
 
-You might need to run the previous command with `sudo` on Ubuntu and CentOS, if not using `Virtualenv`.
+You might need to run the previous command with `sudo` on Ubuntu and CentOS, if not using `virtualenv`.
 
 Usage:
 ======

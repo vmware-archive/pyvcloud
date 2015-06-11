@@ -21,7 +21,7 @@ In general, `vca-cli` can be installed with:
 Ubuntu:
 -------
 
-The following instructions have been tested in Ubuntu 12.04:
+The following instructions have been tested with Ubuntu 12.04:
 
     $ sudo apt-get update
     
@@ -94,7 +94,10 @@ You might need to run the previous command with `sudo` on Ubuntu and CentOS, if 
 Usage:
 ======
 
-Login. When the *password* argument is omitted, `vca-cli` will prompt the user for the password. Use the `--save-password` to cache the password (encrypted) and automatically re-login when the token expires. Below are some examples:
+Login and Logout:
+-----------------
+
+When the *password* argument is omitted, `vca-cli` will prompt the user for the password. Use the `--save-password` to cache the password (encrypted) and automatically re-login when the token expires. Below are some examples:
 
     
     # vCA On Demand, password prompt
@@ -179,7 +182,10 @@ Logout:
     Logout successful for profile 'default'
     
 
-Usage examples:
+Examples and Help:
+------------------
+
+`vca-cli` provides a list of examples with the `example` command:
 
     
     $ vca example

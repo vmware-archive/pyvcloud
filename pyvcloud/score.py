@@ -83,13 +83,11 @@ class BlueprintsClient(object):
         try:
             tar_path = self._tar_blueprint(blueprint_path, tempdir)
             application_file = os.path.basename(blueprint_path)
-
-            with open(tar_path, 'rb') as f:
-                blueprint = self._upload(
-                    f,
+            blueprint = self._upload(
+                    tar_path,
                     blueprint_id=blueprint_id,
                     application_file_name=application_file)
-                return blueprint
+            return blueprint
         finally:
             shutil.rmtree(tempdir)
                 
@@ -101,12 +99,12 @@ class BlueprintsClient(object):
         if not blueprint_directory:
             # blueprint path only contains a file name from the local directory
             blueprint_directory = os.getcwd()
-        tar_path = '{0}/{1}.tar.gz'.format(tempdir, blueprint_name)
+        tar_path = os.path.join(tempdir, '{0}.tar.gz'.format(blueprint_name))
         with tarfile.open(tar_path, "w:gz") as tar:
-            tar.add(blueprint_directory, arcname=os.path.basename(blueprint_directory))
+            tar.add(blueprint_directory, arcname=os.path.basename(blueprint_directory))            
         return tar_path    
 
-    def _upload(self, tar_file_obj,
+    def _upload(self, tar_file,
                 blueprint_id,
                 application_file_name=None):
         query_params = {}
@@ -114,18 +112,12 @@ class BlueprintsClient(object):
             query_params['application_file_name'] = \
                 urllib.quote(application_file_name)
 
-        def file_gen():
-            buffer_size = 8192
-            while True:
-                read_bytes = tar_file_obj.read(buffer_size)
-                yield read_bytes
-                if len(read_bytes) < buffer_size:
-                    return
-
         uri = '/blueprints/{0}'.format(blueprint_id)
         url = '{0}{1}'.format(self.score.url, uri)
         headers = self.score.get_headers()
-        self.score.response = Http.put(url, headers=headers, params=query_params, data=file_gen(), verify=self.score.verify, logger=self.logger)
+        with open(tar_file, 'rb') as f:
+            self.score.response = Http.put(url, headers=headers, params=query_params,
+                                           data=f, verify=self.score.verify, logger=self.logger)
 
         if self.score.response.status_code != 201:
             raise Exception(self.score.response.status_code)

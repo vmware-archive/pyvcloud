@@ -549,7 +549,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template, network, mode, vm_name, c
             the_vapp = vca.get_vapp(the_vdc, vapp)
             if the_vapp and the_vapp.me:
                 if 'info' == operation:
-                    print_vapp_details(ctx, the_vapp.me)
+                    print_vapp_details(ctx, the_vapp)
                 else:
                     task = None
                     if 'power.on' == operation: task = the_vapp.poweron()
@@ -710,7 +710,7 @@ def vm(ctx, operation, vdc, vapp):
                             if item.Connection:
                                 for c in item.Connection:
                                     networks.append(c.valueOf_)
-                                    if c.anyAttributes_.get('{http://www.vmware.com/vcloud/v1.5}ipAddress'):                                                                 
+                                    if c.anyAttributes_.get('{http://www.vmware.com/vcloud/v1.5}ipAddress'):
                                         #print c.anyAttributes_.get('{http://www.vmware.com/vcloud/v1.5}ipAddress')
                                         ips.append(c.anyAttributes_.get('{http://www.vmware.com/vcloud/v1.5}ipAddress'))
                             elif item.HostResource and item.ResourceSubType and item.ResourceSubType.valueOf_ == 'vmware.cdrom.iso':
@@ -1273,11 +1273,11 @@ def example(ctx):
     id+=1; table.append([id, 'list independent disks', 
         'vca vapp disk'])
     id+=1; table.append([id, 'create independent disk of 100GB', 
-        'vca vapp disk create --disk mydisk --size 100'])
+        'vca disk create --disk mydisk --size 100'])
     id+=1; table.append([id, 'delete independent disk by name', 
-        'vca vapp disk delete --disk mydisk'])
+        'vca disk delete --disk mydisk'])
     id+=1; table.append([id, 'delete independent disk by id', 
-        'vca vapp disk delete --id bce76ca7-29d0-4041-82d4-e4481804d5c4'])
+        'vca disk delete --id bce76ca7-29d0-4041-82d4-e4481804d5c4'])
     id+=1; table.append([id, 'list vms', 
         'vca vm'])
     id+=1; table.append([id, 'list vms in a vapp', 
@@ -1707,13 +1707,28 @@ def print_networks(ctx, item_list):
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
     print_table("Networks available in Virtual Data Center '%s':" % (ctx.obj['vdc']), 'networks', headers, sorted_table, ctx)        
     
-def print_vapp_details(ctx, vapp):            
+def print_vapp_details(ctx, the_vapp):            
     if ctx.obj['xml_output']:
-        vapp.export(sys.stdout, 0)
+        the_vapp.me.export(sys.stdout, 0)
         return
-    headers = []
+    headers = ['attribute', 'value']
     sorted_table = []
-    print_table("Details for vApp '%s':" % vapp.name, 'vapp', headers, sorted_table, ctx)  
+    vms = []
+    details = the_vapp.get_vms_details()
+    for vm in details:
+        vms.append(vm['name'])
+    sorted_table.append(['name', the_vapp.name])
+    sorted_table.append(['number of vms', len(details)])
+    sorted_table.append(['names of vms', vms])
+    print_table("Details for vApp '%s':" % the_vapp.name, 'vm', headers, sorted_table, ctx)
+    
+    for vm in details:
+        headers = ['attribute', 'value']
+        sorted_table = []
+        for key in vm.keys():
+            sorted_table.append([key, vm[key]])
+        print_table("Details for VM '%s':" % vm.get('name'), 'vm', headers, sorted_table, ctx)
+        # print json.dumps(vm, sort_keys=True, indent=4, separators=(',', ': '))
     
 def print_nat_rules(ctx, natRules):
     result = []

@@ -12,17 +12,29 @@ vca-cli uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK 
 Installation:
 =============
 
-    
+In general, installation is as easy as to run:
+
     $ pip install vca-cli
-    
 
-The vca-cli requires a Python environment installed, if the previous command fails, install the dependencies. Here is an example of installing the dependencies on Debian/Ubuntu:
+The vca-cli requires a Python environment already installed, if the previous command fails, follow the instructions below.
 
+Ubuntu:
+-------
+
+The following instructions have been tested in Ubuntu 12.04:
+
+    $ sudo apt-get update
     
-    $ sudo apt-get install -y build-essential libssl-dev libffi-dev libxml2-dev libxslt-dev python-dev python-pip
+    $ sudo apt-get install -y build-essential libffi-dev libssl-dev \
+                              libxml2-dev libxslt-dev python-dev
+    $ wget https://bootstrap.pypa.io/get-pip.py
+    
+    $ sudo python get-pip.py
     
     $ sudo pip install vca-cli
-    
+
+Mac OS X:
+---------
 
 On MacOS, download and install the latest [Xcode command line tools](https://developer.apple.com/xcode/downloads/) and [Homebrew](http://brew.sh), then:
 
@@ -41,8 +53,42 @@ Upgrade from a previous installation:
 Install completions for oh-my-zsh
 
     
-    $ wget https://raw.githubusercontent.com/vmware/vca-cli/master/scripts/_vca -O ~/.oh-my-zsh/completions/_vca
+    $ wget https://raw.githubusercontent.com/vmware/vca-cli/master/files/_vca -O ~/.oh-my-zsh/completions/_vca
     
+
+Verify Installation:
+--------------------
+
+Display the version installed:
+
+    $ vca --version
+    
+    vca-cli version 12rc5 (pyvcloud: 13rc7)
+
+Installation with Virtualenv:
+-----------------------------
+
+Upgrade:
+--------
+
+To upgrade an existing `vca-cli` install, just run:
+
+    $ pip install vca-cli --upgrade
+
+You might need to run the previous command with `sudo` on Ubuntu and CentOS, if not using `Virtualenv`.
+
+Pre-releases:
+-------------
+
+The commands described above install the current stable version of `vca-cli`. To install a pre-release version, enter:
+
+    $ pip install vca-cli --pre
+
+And to upgrade a pre-release:
+
+    $ pip install vca-cli --pre --upgrade
+
+You might need to run the previous command with `sudo` on Ubuntu and CentOS, if not using `Virtualenv`.
 
 Usage:
 ======

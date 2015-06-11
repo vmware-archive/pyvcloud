@@ -16,7 +16,7 @@ from setuptools import setup
 
 setup(
     name='vca-cli',
-    version='12rc5',
+    version='12rc6',
     description='VMware vCloud CLI',
     url='https://github.com/vmware/vca-cli',
     author='VMware, Inc.',
@@ -30,7 +30,7 @@ setup(
         'xmltodict',
         'tabulate',
         'dateutils',
-        'pyvcloud == 13rc7'
+        'pyvcloud == 13rc11'
     ],
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[

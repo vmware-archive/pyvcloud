@@ -291,10 +291,10 @@ def login(ctx, user, host, password, service_type,
           service_version, instance, org, save_password, host_score):
     """Login to a vCloud service"""
     if not (host.startswith('https://') or host.startswith('http://')):
-        host += 'https://'
-    if not (host_score.startswith('https://')
-            or host_score.startswith('http://')):
-        host_score += 'https://'
+        host = 'https://' + host
+    if not (host_score.startswith('https://') or 
+            host_score.startswith('http://')):
+        host_score = 'https://' + host_score
     result = _login_user_to_service(ctx, user, host,
                                     password, service_type,
                                     service_version, instance, org)

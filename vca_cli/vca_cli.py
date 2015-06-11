@@ -2308,7 +2308,6 @@ def display_progress(task, json, headers):
     progress = task.get_Progress()
     status = task.get_status()
     rnd = 0
-    response = requests.get(task.get_href(), headers=headers)
     while status != "success":
         if status == "error":
             error = task.get_Error()
@@ -2339,6 +2338,7 @@ def display_progress(task, json, headers):
                 rnd += 1
             sys.stdout.flush()
             time.sleep(1)
+            response = requests.get(task.get_href(), headers=headers)
             task = taskType.parseString(response.content, True)
             progress = task.get_Progress()
             status = task.get_status()

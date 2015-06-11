@@ -14,5 +14,6 @@ lib
 docs/_build
 *.xsd
 *.xjb
-
-
+.tox/
+.idea/
+.venv/

@@ -30,7 +30,7 @@ setup(
         'xmltodict',
         'tabulate',
         'dateutils',
-        'pyvcloud == 13rc11'
+        'pyvcloud == 13rc12'
     ],
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[

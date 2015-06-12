@@ -1559,14 +1559,16 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
               type=click.Path(exists=True))
 def bp(ctx, operation, blueprint, blueprint_file):
     """Operations with Blueprints"""
-    vca = _getVCA_with_relogin(ctx)
+    vca = _getVCA_vcloud_session(ctx)
     if not vca:
+        print_error('User not authenticated or token expired', ctx)
         return
     score = vca.get_score_service(ctx.obj['host_score'])
     if not score:
+        print_error('Unable to access the blueprints service', ctx)
         return
     if 'list' == operation:
-        headers = ['Blueprint(Id', 'Created']
+        headers = ['Blueprint Id', 'Created']
         table = []
         blueprints = score.blueprints.list()
         if blueprints is None or len(blueprints) == 0:
@@ -1627,12 +1629,13 @@ def bp(ctx, operation, blueprint, blueprint_file):
 def dep(ctx, operation, deployment, blueprint,
         input_file, workflow, show_events):
     """Operations with Deployments"""
-    vca = _getVCA_with_relogin(ctx)
+    vca = _getVCA_vcloud_session(ctx)
     if not vca:
+        print_error('User not authenticated or token expired', ctx)
         return
     score = vca.get_score_service(ctx.obj['host_score'])
     if 'list' == operation:
-        headers = ['Blueprint(Id', 'Deployment Id', 'Created']
+        headers = ['Blueprint Id', 'Deployment Id', 'Created']
         table = []
         deployments = score.deployments.list()
         if deployments is None or len(deployments) == 0:
@@ -1696,8 +1699,9 @@ def dep(ctx, operation, deployment, blueprint,
               help='Show logs for event')
 def events(ctx, execution, from_event, batch_size, show_logs):
     """Operations with Events"""
-    vca = _getVCA_with_relogin(ctx)
+    vca = _getVCA_vcloud_session(ctx)
     if not vca:
+        print_error('User not authenticated or token expired', ctx)
         return
     score = vca.get_score_service(ctx.obj['host_score'])
     events = score.events.get(execution, from_event=from_event,
@@ -2690,7 +2694,7 @@ def print_catalogs(ctx, catalogs):
 
 
 def print_deployment_info(deployment, executions, events, ctx=None):
-    headers = ['Blueprint(Id', 'Deployment Id', 'Created', 'Workflows']
+    headers = ['Blueprint Id', 'Deployment Id', 'Created', 'Workflows']
     table = []
     workflows = []
     for workflow in deployment.get('workflows'):

@@ -548,7 +548,7 @@ class VAPP(object):
                     Log.debug(self.logger, "failed; response status=%d, content=%s" % (self.response.status_code, self.response.text))
 
 
-    def force_customization(self, vm_name):
+    def force_customization(self, vm_name, power_on=True):
         """
         Force the guest OS customization script to be run for a specific vm in the vApp.
         A customization script must have been previously associated with the VM
@@ -556,6 +556,7 @@ class VAPP(object):
         The VMware tools must be installed in the Guest OS.
        
         :param vm_name: (str): The name of the vm to be customized.
+        :param power_on (bool): Wether to power the vm on after customization or not
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.b\n
                             if the task cannot be created a debug level log message is generated detailing the reason.
  
@@ -569,7 +570,10 @@ class VAPP(object):
                 if len(links) == 1:
                     forceCustomizationValue = 'true'
                     deployVAppParams = vcloudType.DeployVAppParamsType()
-                    deployVAppParams.set_powerOn('true')
+                    if power_on:
+                        deployVAppParams.set_powerOn('true')
+                    else:
+                        deployVAppParams.set_powerOn('false')
                     deployVAppParams.set_deploymentLeaseSeconds(0)
                     deployVAppParams.set_forceCustomization('true')
                     body = CommonUtils.convertPythonObjToStr(deployVAppParams, name = "DeployVAppParams",
@@ -589,7 +593,6 @@ class VAPP(object):
         :return: (list) a list, one entry per vm, each vm entry contains a list, one entry per network, \n
          each network entry contains a dictionary of properties for the network. \n
          Dictionary keys 'network_name', 'ip', 'mac', 'is_connected', 'is_primary', 'allocation_mode' 
-          
       
         """
         result = []

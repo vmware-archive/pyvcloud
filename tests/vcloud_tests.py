@@ -1,5 +1,6 @@
 from nose.tools import with_setup
 from testconfig import config
+from pyvcloud import vcloudair
 from pyvcloud.vcloudair import VCA
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType, NatServiceType, FirewallRuleType, ProtocolsType
 
@@ -17,6 +18,8 @@ class TestVCloud:
         host = config['vcloud']['host']
         version = config['vcloud']['version']
         org = config['vcloud']['org']
+        service = config['vcloud']['service']
+        instance = config['vcloud']['instance']
         self.vca = VCA(host=host, username=username, service_type=service_type, version=version, verify=True, log=True)
         assert self.vca
         if vcloudair.VCA_SERVICE_TYPE_STANDALONE == service_type:
@@ -24,11 +27,19 @@ class TestVCloud:
             assert result
             result = self.vca.login(token=self.vca.token, org=org, org_url=self.vca.vcloud_session.org_url)
             assert result
-        elif vcloudair.VCA_SERVICE_TYPE_SUBSCRIPTION == service_type:    
+        elif vcloudair.VCA_SERVICE_TYPE_SUBSCRIPTION == service_type:
             result = self.vca.login(password=password)
+            assert result
+            result = self.vca.login(token=self.vca.token)
+            assert result
+            result = self.vca.login_to_org(service, org)
             assert result
         elif vcloudair.VCA_SERVICE_TYPE_ONDEMAND == service_type:
             result = self.vca.login(password=password)
+            assert result
+            result = self.vca.login_to_instance(password=password, instance=instance, token=None, org_url=None)
+            assert result
+            result = self.vca.login_to_instance(password=None, instance=instance, token=self.vca.vcloud_session.token, org_url=self.vca.vcloud_session.org_url)
             assert result
 
     def logout_from_vcloud(self):

@@ -144,7 +144,7 @@ The SDK supports logging in to different type of services: vCloud Air Subscripti
     vapp = 'cts'
 
     #sample login sequence on vCloud Director standalone
-    vca = VCA(host=host, username=username, service_type='vcd', version='5.6', verify=True)
+    vca = VCA(host=host, username=username, service_type='standalone', version='5.6', verify=True)
 
     #first login, with password and org name
     result = vca.login(password=password, org=org)

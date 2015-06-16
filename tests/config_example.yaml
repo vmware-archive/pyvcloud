@@ -1,5 +1,5 @@
 vcloud:
-    service_type: vcd
+    service_type: standalone
     username: *****@company.com
     password: *****************
     host: p1v21-vcd.vchs.vmware.com
@@ -32,6 +32,4 @@ vcloud:
     fw_source_port: Any
     fw_source_ip: Any
     fw_enable_logging: false
-    
-
-    
+    custom_catalog: mycatalog

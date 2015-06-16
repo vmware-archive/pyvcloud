@@ -19,15 +19,15 @@ class TestVCloud:
         org = config['vcloud']['org']
         self.vca = VCA(host=host, username=username, service_type=service_type, version=version, verify=True, log=True)
         assert self.vca
-        if 'vcd' == service_type:
+        if vcloudair.VCA_SERVICE_TYPE_STANDALONE == service_type:
             result = self.vca.login(password=password, org=org)
             assert result
             result = self.vca.login(token=self.vca.token, org=org, org_url=self.vca.vcloud_session.org_url)
             assert result
-        elif 'subscription' == service_type:    
+        elif vcloudair.VCA_SERVICE_TYPE_SUBSCRIPTION == service_type:    
             result = self.vca.login(password=password)
             assert result
-        elif vcloudair.VCA_SERVICE_TYPE_ONDEMAND == service_type:    
+        elif vcloudair.VCA_SERVICE_TYPE_ONDEMAND == service_type:
             result = self.vca.login(password=password)
             assert result
 

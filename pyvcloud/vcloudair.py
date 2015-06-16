@@ -142,7 +142,7 @@ class VCA(object):
                     return True
                 else:
                     return False
-        elif self.service_type == 'vcd':
+        elif self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
             if token:
                 url = self.host + '/api/sessions'
                 vcloud_session = VCS(url, self.username, org, None, org_url, org_url, version=self.version, verify=self.verify, log=self.log)
@@ -315,13 +315,13 @@ class VCA(object):
     #common
     def _get_vcloud_headers(self):
         headers = {}
-        if self.service_type == 'subscription':
+        if self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
             headers["Accept"] = "application/xml;version=" + self.version
             headers["x-vchs-authorization"] = self.token
-        elif self.service_type == 'ondemand':
+        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
             headers["Authorization"] = "Bearer %s" % self.token
             headers["Accept"] = "application/json;version=%s" % self.version
-        elif self.service_type == 'vcd':
+        elif self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
             # headers["x-vcloud-authorization"] = self.token
             pass
         return headers
@@ -615,9 +615,9 @@ class VCA(object):
 
         **service type:** ondemand, subscription, vcd
 
-  
-      
+
         """
+        self.vcloud_session.login(token=self.vcloud_session.token)
         links = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.catalog+xml", self.vcloud_session.organization.Link)
         catalogs = []
         for link in links:
@@ -844,11 +844,11 @@ class VCA(object):
         **service type:** ondemand, subscription, vcd
 
         """
-        if self.service_type == 'subscription':
+        if self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
             pass
-        elif self.service_type == 'ondemand':
+        elif self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
             pass
-        elif self.service_type == 'vcd':
+        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
             pass
         self.token = None
         self.vcloud_session = None

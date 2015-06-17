@@ -104,6 +104,21 @@ class TestCatalog:
         assert self.catalog_exists(custom_catalog, catalogs)
 
 
+    def test_0011(self):
+        """Upload media file"""
+        vdc_name = config['vcloud']['vdc']
+        vapp_name = config['vcloud']['vapp']
+        vm_name = config['vcloud']['vm']
+        custom_catalog = config['vcloud']['custom_catalog']
+        media_file_name = config['vcloud']['media_file_name']
+        media_name = config['vcloud']['media_name']
+        the_vdc = self.vca.get_vdc(vdc_name)
+        assert the_vdc
+        assert the_vdc.get_name() == vdc_name
+        result = self.vca.upload_media(custom_catalog, media_name, media_file_name, media_file_name)
+        # assert not result
+        #assert that media is there
+
     def test_0099(self):
         """Delete Catalog"""
         vdc_name = config['vcloud']['vdc']

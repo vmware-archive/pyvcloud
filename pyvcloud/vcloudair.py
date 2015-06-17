@@ -478,7 +478,6 @@ class VCA(object):
 
         .. note:: In this version of pyvcloud a maximum of 1 vm can be added to a vapp.
 
-       
         """
         self.vdc = self.get_vdc(vdc_name)
         if not self.vcloud_session or not self.vcloud_session.organization or not self.vdc:
@@ -508,7 +507,6 @@ class VCA(object):
                         vapp_name, entity.get("href"), vm_name=vm_name,
                         vm_href=vm_href, vm_cpus=vm_cpus, vm_memory=vm_memory,
                         deploy=deploy, power=poweron)
-
                     if network_name:
                         pass
                     output = StringIO()
@@ -615,7 +613,6 @@ class VCA(object):
 
         **service type:** ondemand, subscription, vcd
 
-
         """
         self.vcloud_session.login(token=self.vcloud_session.token)
         links = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.catalog+xml", self.vcloud_session.organization.Link)
@@ -689,6 +686,42 @@ class VCA(object):
                             return True
         return False
 
+
+    def upload_media(self, catalog_name, item_name, media_file_name, description=''):
+        """
+        Uploads a media file (ISO) to a vCloud catalog
+
+        :param catalog_name: (str): The name of the catalog to upload the media.
+        :param item_name: (str): The name of the media file in the catalog.
+        :param media_file_name: (str): The name of the local media file to upload.
+        :return: (bool) True if the media file was successfully uploaded, false otherwise.
+
+        **service type:** ondemand, subscription, vcd
+
+        """
+        for catalog in self.get_catalogs():
+            if catalog_name != catalog.name:
+                continue
+            link = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.media+xml" and link.get_rel() == 'add', catalog.get_Link())
+            assert len(link) == 1
+            Log.debug(self.logger, link[0].get_href())
+            data = """
+            <Media
+               xmlns="http://www.vmware.com/vcloud/v1.5"
+               name="%s"
+               size="%s"
+               imageType="iso">
+               <Description>%s</Description>
+            </Media>
+            """ % (item_name, "51242131", description)
+            # self.response = Http.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), data=data, verify=self.verify, logger=self.logger)
+            # if self.response.status_code == requests.codes.created:
+            #     Log.debug(self.logger, self.response.content)
+            #     return True
+                # task = vCloudEntities.parseString(self.response.content, True)
+        return False
+
+
     def delete_catalog_item(self, catalog_name, item_name):
         """
         Request the deletion of an item from a catalog.
@@ -702,6 +735,8 @@ class VCA(object):
 
         """
         for catalog in self.get_catalogs():
+            if catalog_name != catalog.name:
+                continue
             if catalog.CatalogItems and catalog.CatalogItems.CatalogItem:
                 for item in catalog.CatalogItems.CatalogItem:
                     if item_name == item.name:

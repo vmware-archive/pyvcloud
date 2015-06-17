@@ -653,6 +653,18 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                 return
             the_vdc = vca.get_vdc(vdc)
             the_vapp = vca.get_vapp(the_vdc, vapp_name)
+            if vm_name is not None:
+                print_message(
+                    "setting computer name for VM '%s'"
+                    % (vm_name), ctx)
+                task = the_vapp.customize_guest_os(vm_name, computer_name=vm_name)
+                if task:
+                    display_progress(task, ctx.obj['json_output'],
+                                     vca.vcloud_session.get_vcloud_headers())
+                else:
+                    ctx.obj['response'] = the_vapp.response
+                    print_error("can't set computer name", ctx)
+                the_vapp = vca.get_vapp(the_vdc, vapp_name)
             if cpu is not None:
                 print_message(
                     "configuring '%s' vCPUs for VM '%s', vApp '%s'"
@@ -2228,7 +2240,6 @@ def print_message(msg, ctx):
 
 
 def print_error(msg, ctx=None):
-    print ''
     if (ctx is not None and ctx.obj is not
             None and ctx.obj['json_output']):
         json_msg = {"Errorcode": "1", "Details": msg}
@@ -2355,6 +2366,8 @@ def display_progress(task, json, headers):
     while status != "success":
         if status == "error":
             error = task.get_Error()
+            sys.stdout.write('\r\n')
+            sys.stdout.flush()
             print_error(CommonUtils.convertPythonObjToStr(
                 error, name="Error"), ctx=None)
             return

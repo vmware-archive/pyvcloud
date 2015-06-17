@@ -38,6 +38,7 @@ from pyvcloud.helper import CommonUtils
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType
 from cryptography.fernet import Fernet
+from pyvcloud import _get_logger, Http, Log
 
 # TODO(???): when token expired, it doesn't seem to re-login
 # the first time, but it works the second time
@@ -48,7 +49,6 @@ from cryptography.fernet import Fernet
 # TODO(???): adding a DNAT rule with type any fails
 # TODO(???): make network mode case insensitive (pool, dhcp)
 # TODO(???): identify primary ip from the gateway uplink information
-# TODO(???): print(version of cli and pyvcloud on the status command
 # TODO(???): add disk, validate that disk name doesn't exist
 # TODO(???): make sure that all the options in commands are
 #            in the same order, when possible
@@ -157,15 +157,17 @@ def cli(ctx, profile, version, debug, json_output, xml_output, insecure):
     """VMware vCloud Air Command Line Interface."""
     _load_context(ctx, profile, json_output, xml_output, insecure)
     if debug:
-        httplib.HTTPConnection.debuglevel = 1
-        logging.basicConfig()
-        logging.getLogger().setLevel(logging.DEBUG)
-        requests_log = logging.getLogger("requests.packages.urllib3")
-        requests_log.setLevel(logging.DEBUG)
-        requests_log.propagate = True
+        # httplib.HTTPConnection.debuglevel = 1
+        # logging.basicConfig()
+        # logging.getLogger().setLevel(logging.DEBUG)
+        # requests_log = logging.getLogger("requests.packages.urllib3")
+        # requests_log.setLevel(logging.DEBUG)
+        # requests_log.propagate = True
         ctx.obj['debug'] = True
+        ctx.obj['logger'] = _get_logger()
     else:
         ctx.obj['debug'] = False
+        ctx.obj['logger'] = None
     if version:
         version = pkg_resources.require("vca-cli")[0].version
         version_pyvcloud = pkg_resources.require("pyvcloud")[0].version
@@ -349,6 +351,8 @@ def status(ctx):
             table.append([property, ctx.obj[property]])
     table.append(["session", 'active' if (
         vca and vca.vcloud_session) else 'inactive'])
+    table.append(['vca_cli_version', pkg_resources.require("vca-cli")[0].version])
+    table.append(['pyvcloud_version', pkg_resources.require("pyvcloud")[0].version])
     sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
     print_table("Status:", 'status', headers, sorted_table, ctx)
 
@@ -565,11 +569,11 @@ def vdc(ctx, operation, vdc):
 @click.argument('operation', default=default_operation,
                 metavar='[list | info | create | delete | power.on'
                         ' | power.off | deploy | undeploy | customize'
-                        ' | insert | eject | disconnect | attach | detach]',
+                        ' | insert | eject | connect | disconnect | attach | detach]',
                 type=click.Choice(
                     ['list', 'info', 'create', 'delete', 'power.on',
                      'power.off', 'deploy', 'undeploy', 'customize',
-                     'insert', 'eject', 'disconnect', 'attach', 'detach']))
+                     'insert', 'eject', 'connect', 'disconnect', 'attach', 'detach']))
 @click.option('-v', '--vdc', default='',
               metavar='<vdc>', help='Virtual Data Center Name')
 @click.option('-a', '--vapp', 'vapp', default='',
@@ -581,8 +585,8 @@ def vdc(ctx, operation, vdc):
 @click.option('-n', '--network', default='',
               metavar='<network>', help='Network name')
 @click.option('-m', '--mode', default='POOL',
-              metavar='[pool, dhcp]', help='Network connection mode',
-              type=click.Choice(['POOL', 'pool', 'DHCP', 'dhcp']))
+              metavar='[pool, dhcp, manual]', help='Network connection mode',
+              type=click.Choice(['POOL', 'pool', 'DHCP', 'dhcp', 'MANUAL', 'manual']))
 @click.option('-V', '--vm', 'vm_name', default='',
               metavar='<vm>', help='VM name')
 @click.option('-f', '--file', 'cust_file',
@@ -598,9 +602,10 @@ def vdc(ctx, operation, vdc):
               metavar='<virtual CPUs>', help='Virtual CPUs')
 @click.option('-r', '--ram', 'ram', default=None,
               metavar='<MB RAM>', help='Memory in MB')
+@click.option('-i', '--ip', default='', metavar='<ip>', help='IP address')
 def vapp(ctx, operation, vdc, vapp, catalog, template,
          network, mode, vm_name, cust_file,
-         media, disk_name, count, cpu, ram):
+         media, disk_name, count, cpu, ram, ip):
     """Operations with vApps"""
     if vdc == '':
         vdc = ctx.obj['vdc']
@@ -671,16 +676,27 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                     ctx.obj['response'] = the_vapp.response
                     print_error("can't configure RAM", ctx)
                 the_vapp = vca.get_vapp(the_vdc, vapp_name)
-            print_message("disconnecting vApp from networks"
-                          " pre-defined in the template", ctx)
-            task = the_vapp.disconnect_from_networks()
-            if task:
-                display_progress(task, ctx.obj['json_output'],
-                                 vca.vcloud_session.get_vcloud_headers())
-            else:
-                ctx.obj['response'] = the_vapp.response
-                print_error("can't disconnect vApp from networks", ctx)
             if '' != network:
+                print_message("disconnecting VM from networks"
+                              " pre-defined in the template", ctx)
+                task = the_vapp.disconnect_vms()
+                if task:
+                    display_progress(task, ctx.obj['json_output'],
+                                     vca.vcloud_session.get_vcloud_headers())
+                else:
+                    ctx.obj['response'] = the_vapp.response
+                    print_error("can't disconnect VM from networks", ctx)
+                    return
+                print_message("disconnecting vApp from networks"
+                              " pre-defined in the template", ctx)
+                task = the_vapp.disconnect_from_networks()
+                if task:
+                    display_progress(task, ctx.obj['json_output'],
+                                     vca.vcloud_session.get_vcloud_headers())
+                else:
+                    ctx.obj['response'] = the_vapp.response
+                    print_error("can't disconnect vApp from networks", ctx)
+                    return
                 nets = filter(lambda n: n.name == network,
                               vca.get_networks(vdc))
                 if len(nets) == 1:
@@ -697,12 +713,14 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                         ctx.obj['response'] = the_vapp.response
                         print_error("can't connect the vApp to the network",
                                     ctx)
-                    print_message("connecting VMs to network '%s'"
+                        return
+                    print_message("connecting VM to network '%s'"
                                   " with mode '%s'" % (network, mode), ctx)
                     task = the_vapp.connect_vms(
                         nets[0].name,
                         connection_index=0,
-                        ip_allocation_mode=mode.upper())
+                        ip_allocation_mode=mode.upper(),
+                        mac_address=None, ip_address=ip)
                     if task:
                         display_progress(
                             task, ctx.obj['json_output'],
@@ -804,10 +822,22 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                 else:
                     ctx.obj['response'] = the_vapp.response
                     print_error("can't insert or eject media", ctx)
+    elif 'connect' == operation:
+        print_message("connecting vApp '%s', VM '%s' in VDC '%s' to network '%s'"
+                      % (vapp, vm_name, vdc, network), ctx)
     elif 'disconnect' == operation:
-        print_message("disconnecting vApp '%s' in VDC '%s' from network '%s'"
-                      % (vapp, vdc, network), ctx)
-
+        print_message("disconnecting vApp '%s', VM '%s' in VDC '%s' from network '%s'"
+                      % (vapp, vm_name, vdc, network), ctx)
+        # if '' != network:
+        #     print_message("disconnecting vApp from networks"
+        #                   " pre-defined in the template", ctx)
+        #     task = the_vapp.disconnect_from_networks()
+        #     if task:
+        #         display_progress(task, ctx.obj['json_output'],
+        #                          vca.vcloud_session.get_vcloud_headers())
+        #     else:
+        #         ctx.obj['response'] = the_vapp.response
+        #         print_error("can't disconnect vApp from networks", ctx)
     elif 'attach' == operation or 'detach' == operation:
         the_vdc = vca.get_vdc(vdc)
         if the_vdc:
@@ -1867,6 +1897,14 @@ def example(ctx):
                   ' Server 12.04 LTS (amd64 20150127)\''
                   ' --network default-routed-network --mode pool'])
     id += 1
+    table.append([id, 'create vapp with manually assigned IP',
+                  'vca vapp create --vapp myvapp --vm myvm'
+                  ' --catalog'
+                  ' \'Public Catalog\' --template \'Ubuntu'
+                  ' Server 12.04 LTS (amd64 20150127)\''
+                  ' --network default-routed-network --mode manual'
+                  ' --ip 192.168.109.25'])
+    id += 1
     table.append([id, 'create multiple vapps',
                   'vca vapp create --vapp myvapp --vm myvm'
                   ' --catalog'
@@ -2148,18 +2186,18 @@ def _getVCA_vcloud_session(ctx):
                              ctx.obj['verify'])
         if (ctx is not None and ctx.obj is not
                 None and ctx.obj['debug']):
-            print('trying to reuse existing vcloud session')
+            Log.debug(ctx.obj['logger'], "trying to reuse existing vcloud session")
         result = vcloud_session.login(token=ctx.obj['session_token'])
         if result:
             vca.vcloud_session = vcloud_session
             if (ctx is not None and ctx.obj is not
                     None and ctx.obj['debug']):
-                print('reusing existing session')
+                Log.debug(ctx.obj['logger'], "reusing existing session")
             return vca
         else:
             if (ctx is not None and ctx.obj is not
                     None and ctx.obj['debug']):
-                print('getting a new session')
+                Log.debug(ctx.obj['logger'], "getting a new session")
             return _getVCA_with_relogin(ctx)
     else:
         return _getVCA_with_relogin(ctx)
@@ -2189,6 +2227,7 @@ def print_message(msg, ctx):
 
 
 def print_error(msg, ctx=None):
+    print ''
     if (ctx is not None and ctx.obj is not
             None and ctx.obj['json_output']):
         json_msg = {"Errorcode": "1", "Details": msg}
@@ -2547,7 +2586,7 @@ def print_networks(ctx, item_list):
                 ctx)
 
 
-def print_vapp_details(ctx, vapp):
+def print_vapp_details(ctx, the_vapp):
     if ctx.obj['xml_output']:
         the_vapp.me.export(sys.stdout, 0)
         return

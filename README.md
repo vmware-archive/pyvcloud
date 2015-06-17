@@ -37,25 +37,21 @@ The following instructions have been tested with Ubuntu 12.04:
 Mac OS X:
 ---------
 
-On MacOS, download and install the latest [Xcode command line tools](https://developer.apple.com/xcode/downloads/) and [Homebrew](http://brew.sh), then:
+On Mac OS X (10.10.3), open a Terminal and enter the commands install the following components (skip those that are already installed on your mac):
 
-    
-    $ brew install libxml2
-    
+Install `Xcode Command Line Tools`:
 
-It is also possible to install vca-cli in a [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
+    $ xcode-select --install    
 
-Upgrade from a previous installation:
+Press `Install` and accept the license terms.
 
-        
-    $ pip install vca-cli --upgrade
-    
+Install `pip`:
 
-Install completions for oh-my-zsh
+    $ sudo easy_install pip
 
-    
-    $ wget https://raw.githubusercontent.com/vmware/vca-cli/master/files/_vca -O ~/.oh-my-zsh/completions/_vca
-    
+Install `vca-cli`
+
+    $ sudo pip install vca-cli
 
 Verify Installation:
 --------------------
@@ -64,10 +60,12 @@ Display the version installed:
 
     $ vca --version
     
-    vca-cli version 12rc5 (pyvcloud: 13rc7)
+    vca-cli version 12 (pyvcloud: 13)
 
 Installation with virtualenv:
 -----------------------------
+
+It is also possible to install vca-cli in a [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 
 Upgrade:
 --------
@@ -76,7 +74,7 @@ To upgrade an existing `vca-cli` install, just run:
 
     $ pip install vca-cli --upgrade
 
-You might need to run the previous command with `sudo` on Ubuntu and CentOS, if not using `virtualenv`.
+You might need to run the previous command with `sudo` (on Ubuntu, CentOS and Mac OS) if not using `virtualenv`.
 
 Pre-releases:
 -------------

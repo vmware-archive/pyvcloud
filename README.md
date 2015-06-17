@@ -155,23 +155,29 @@ Connection status:
 
     
     $ vca status
-    Status:
-    | Property        | Value                                                |
-    |-----------------+------------------------------------------------------|
-    | gateway         |                                                      |
-    | host            | https://iam.vchs.vmware.com                          |
-    | instance        | c40ba6b4-c158-49fb-b164-5c66f90344fa                 |
-    | org             | a6545fcb-d68a-489f-afff-2ea055104cc1                 |
-    | org_url         | https://us-california-1-3.vchs.vmware.com/api/comp.. |
-    | service         |                                                      |
-    | service_type    | ondemand                                             |
-    | service_version | 5.7                                                  |
-    | session         | active                                               |
-    | session_token   | 1135106472314155bea13eb60d8198c6                     |
-    | token           | eyJhbGciOiJSUzI1NiJ9.eyJqdGkiOiJlZmJlODhiZi03YjZjL.. |
-    | user            | email@company.com                                    |
-    | vdc             | VDC1                                                 |
     
+    Status:
+    | Property         | Value                                                |
+    |------------------+------------------------------------------------------|
+    | gateway          |                                                      |
+    | host             | https://iam.vchs.vmware.com                          |
+    | host_score       | https://score.vca.io                                 |
+    | instance         | d7a623de-1183-46a9-9b02-9043ca68f441                 |
+    | org              |                                                      |
+    | org_url          | https://us-virginia-1-4.vchs.vmware.com/api/comput.. |
+    | password         | <encrypted>                                          |
+    | pyvcloud_version | 13rc14                                               |
+    | service          | 85-719                                               |
+    | service_type     | ondemand                                             |
+    | service_version  | 5.7                                                  |
+    | session          | active                                               |
+    | session_token    | 523823d5754f43ad85cbb72333e8343b                     |
+    | session_uri      | https://us-virginia-1-4.vchs.vmware.com/api/comput.. |
+    | token            | eyJhbGciOiJSUzI1NiJ9.eyJqdGkiOiI2MzVlZGQ4Ni1iMTNhL.. |
+    | user             | vca_sas_oda@vmware.com                               |
+    | vca_cli_version  | 12rc9                                                |
+    | vdc              | vdc-tmp                                              |
+    | verify           | True                                                 |
 
 Logout:
 

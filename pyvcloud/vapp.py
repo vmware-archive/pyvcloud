@@ -332,7 +332,10 @@ class VAPP(object):
                     self.response = Http.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify, logger=self.logger)
                     if self.response.status_code == requests.codes.accepted:
                         return taskType.parseString(self.response.content, True)
-        raise "Can't disconnect VMs from network", network_name
+        task = TaskType()
+        task.set_status("success")
+        task.set_Progress("100")
+        return task
 
     def connect_to_network(self, network_name, network_href, fence_mode='bridged'):
         """

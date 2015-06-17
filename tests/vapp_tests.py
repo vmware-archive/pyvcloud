@@ -99,6 +99,30 @@ class TestVApp:
         assert the_vapp.me.get_status() == 8
 
 
+    def test_0009(self):
+        """Disconnect VM from pre-defined networks"""
+        vdc_name = config['vcloud']['vdc']
+        vapp_name = config['vcloud']['vapp']
+        vm_name = config['vcloud']['vm']
+        the_vdc = self.vca.get_vdc(vdc_name)
+        assert the_vdc
+        assert the_vdc.get_name() == vdc_name
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        assert the_vapp.name == vapp_name
+        task = the_vapp.disconnect_vms()
+        assert task
+        result = self.vca.block_until_completed(task)
+        assert result
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        vm_info = the_vapp.get_vms_network_info()
+        print vm_info
+        assert vm_info
+        assert len(vm_info) == 1
+        assert len(vm_info[0]) == 0
+
+
     def test_0010(self):
         """Disconnect vApp from pre-defined networks"""
         vdc_name = config['vcloud']['vdc']

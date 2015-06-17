@@ -8823,9 +8823,8 @@ class InstantiateVAppParamsType(VAppCreationParamsType):
             outfile.write('<%sIsSourceDelete>%s</%sIsSourceDelete>%s' % (namespace_, self.gds_format_boolean(self.IsSourceDelete, input_name='IsSourceDelete'), namespace_, eol_))
         for SourcedVmInstantiationParams_ in self.SourcedVmInstantiationParams:
             SourcedVmInstantiationParams_.export(outfile, level, namespace_, name_='SourcedVmInstantiationParams', pretty_print=pretty_print)
-        if self.SourcedItem is not None:
-            for SourcedItem_ in self.SourcedItem:
-                SourcedItem_.export(outfile, level, namespace_, name_='SourcedItem', pretty_print=pretty_print)
+        for SourcedItem_ in self.SourcedItem:
+            SourcedItem_.export(outfile, level, namespace_, name_='SourcedItem', pretty_print=pretty_print)
     def exportLiteral(self, outfile, level, name_='InstantiateVAppParamsType'):
         level += 1
         already_processed = set()

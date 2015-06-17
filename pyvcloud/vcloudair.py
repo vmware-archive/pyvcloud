@@ -371,6 +371,7 @@ class VCA(object):
                 vapp = VAPP(vAppType.parseString(self.response.content, True), self.vcloud_session.get_vcloud_headers(), self.verify, self.log)
                 return vapp
 
+    
     def _create_instantiateVAppTemplateParams(self, name, template_href,
                                               vm_name, vm_href, deploy,
                                               power, vm_cpus=None,
@@ -387,7 +388,7 @@ class VCA(object):
             params = vcloudType.SourcedCompositionItemParamType()
             params.set_Source(vcloudType.ReferenceType(href=vm_href))
             if self.version == "5.5":
-                templateParams.set_SourcedItem(None)
+                pass
             else:
                 templateParams.add_SourcedItem(params)
 

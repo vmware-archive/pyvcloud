@@ -386,12 +386,18 @@ class VCA(object):
         if vm_name or vm_cpus or vm_memory:
             params = vcloudType.SourcedCompositionItemParamType()
             params.set_Source(vcloudType.ReferenceType(href=vm_href))
-            templateParams.add_SourcedItem(params)
+            if self.version == "5.5":
+                templateParams.set_SourcedItem(None)
+            else:
+                templateParams.add_SourcedItem(params)
 
             if vm_name:
-                gen_params = vcloudType.VmGeneralParamsType()
-                gen_params.set_Name(vm_name)
-                params.set_VmGeneralParams(gen_params)
+                if self.version == "5.5":
+                   templateParams.set_name(vm_name)
+                else:
+                   gen_params = vcloudType.VmGeneralParamsType()
+                   gen_params.set_Name(vm_name)
+                   params.set_VmGeneralParams(gen_params)
 
             if vm_cpus or vm_memory:
                 inst_param = vcloudType.InstantiationParamsType()
@@ -508,7 +514,6 @@ class VCA(object):
                         vapp_name, entity.get("href"), vm_name=vm_name,
                         vm_href=vm_href, vm_cpus=vm_cpus, vm_memory=vm_memory,
                         deploy=deploy, power=poweron)
-
                     if network_name:
                         pass
                     output = StringIO()

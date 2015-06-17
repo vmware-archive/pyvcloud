@@ -37,7 +37,7 @@ The following instructions have been tested with Ubuntu 12.04:
 Mac OS X:
 ---------
 
-On Mac OS X (10.10.3), open a Terminal and enter the commands install the following components (skip those that are already installed on your mac):
+On Mac OS X (10.10.3), open a Terminal and enter the commands listed below (skip those that refer to a component already installed on your mac):
 
 Install `Xcode Command Line Tools`:
 
@@ -115,7 +115,7 @@ When the *password* argument is omitted, `vca-cli` will prompt the user for the 
     
     # vCloud Director Standalone
     $ vca login user@domain.com --password ******** --save-password \
-             --host vcdhost.domain.com --org myorg --type vcd --version 5.6
+             --host vcdhost.domain.com --org myorg --type standalone --version 5.6
     
     # vCloud Director with insecure SSL certificate
     $ vca login user@domain.com --password ******** --save-password \

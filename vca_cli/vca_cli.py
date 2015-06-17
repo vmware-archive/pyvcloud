@@ -275,8 +275,8 @@ def _getVCA_with_relogin(ctx):
 @click.pass_context
 @click.argument('user')
 @click.option('-t', '--type', 'service_type',
-              default='ondemand', metavar='[subscription | ondemand | vcd]',
-              type=click.Choice(['subscription', 'ondemand', 'vcd']), help='')
+              default='ondemand', metavar='[subscription | ondemand | standalone]',
+              type=click.Choice(['subscription', 'ondemand', 'vcd', 'standalone']), help='')
 @click.option('-v', '--version', 'service_version',
               default='5.7', metavar='[5.5 | 5.6 | 5.7]',
               type=click.Choice(['5.5', '5.6', '5.7']), help='')
@@ -448,7 +448,7 @@ def org(ctx, operation, service, org):
                         table.append([s.serviceId, s.serviceType,
                                       s.region, vdc.name,
                                       vdc.status, selected])
-        elif 'vcd' == ctx.obj['service_type']:
+        elif 'vcd' == ctx.obj['service_type'] or 'standalone' == ctx.obj['service_type']:
             if vca.vcloud_session and vca.vcloud_session.organization:
                 table = [vca.vcloud_session.organization.name, '*', ]
         print_table("Available Organizations for '%s' profile:" %
@@ -464,7 +464,7 @@ def org(ctx, operation, service, org):
             return
         elif 'subscription' == ctx.obj['service_type']:
             result = vca.login_to_org(service, org)
-        elif 'vcd' == ctx.obj['service_type']:
+        elif 'vcd' == ctx.obj['service_type'] or 'standalone' == ctx.obj['service_type']:
             return
         if result:
             if vca.org:
@@ -1818,9 +1818,9 @@ def example(ctx):
                   ' --type subscription --host https://vchs.vmware.com'
                   '--version 5.6'])
     id += 1
-    table.append([id, 'login to vCloud Director',
+    table.append([id, 'login to vCloud Director standalone',
                   'vca login email@company.com --password mypassword'
-                  ' --type vcd --host https://p1v21-vcd.vchs.vmware.com'
+                  ' --type standalone --host https://p1v21-vcd.vchs.vmware.com'
                   ' --version 5.6 --org MyOrganization'])
     id += 1
     table.append([id, 'login with no SSL verification',

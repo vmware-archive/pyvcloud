@@ -650,6 +650,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
             else:
                 ctx.obj['response'] = vca.response
                 print_error("can't create the vApp", ctx)
+                return
             the_vdc = vca.get_vdc(vdc)
             the_vapp = vca.get_vapp(the_vdc, vapp_name)
             if cpu is not None:

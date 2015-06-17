@@ -7,7 +7,7 @@ Command Line Interface for VMware vCloud Air. It supports vCloud Air On Demand a
 
 This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version. See the [documentation](http://vca-cli.readthedocs.org) for a detailed description of each command. More information about commands and usage can be found in the [vca-cli wiki](https://github.com/vmware/vca-cli/wiki). The [networking section](https://github.com/vmware/vca-cli/wiki/Networking) documents all the operations related to networks, edge gateway and network services.
 
-vca-cli uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMware vCloud. 
+`vca-cli` uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMware vCloud. 
 
 Installation:
 =============

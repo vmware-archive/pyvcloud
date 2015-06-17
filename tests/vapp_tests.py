@@ -74,8 +74,6 @@ class TestVApp:
         vm_name = config['vcloud']['vm']
         catalog = config['vcloud']['catalog']
         template = config['vcloud']['template']
-        network = config['vcloud']['network']
-        mode = config['vcloud']['mode']
         the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
@@ -93,11 +91,6 @@ class TestVApp:
         """Validate vApp State is powered off (8)"""
         vdc_name = config['vcloud']['vdc']
         vapp_name = config['vcloud']['vapp']
-        vm_name = config['vcloud']['vm']
-        catalog = config['vcloud']['catalog']
-        template = config['vcloud']['template']
-        network = config['vcloud']['network']
-        mode = config['vcloud']['mode']
         the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
@@ -126,9 +119,7 @@ class TestVApp:
         """Connect vApp to network"""
         vdc_name = config['vcloud']['vdc']
         vapp_name = config['vcloud']['vapp']
-        vm_name = config['vcloud']['vm']
         network = config['vcloud']['network']
-        mode = config['vcloud']['mode']
         the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
@@ -142,13 +133,13 @@ class TestVApp:
         assert result
 
 
-    def test_0014(self):
-        """Connect VM to network"""
+    def test_0013(self):
+        """Connect VM to network - MANUAL static IP mode"""
         vdc_name = config['vcloud']['vdc']
         vapp_name = config['vcloud']['vapp']
         vm_name = config['vcloud']['vm']
         network = config['vcloud']['network']
-        mode = config['vcloud']['mode']
+        ip_address = config['vcloud']['ip_address']
         the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
@@ -157,20 +148,159 @@ class TestVApp:
         the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
         assert the_vapp
         assert the_vapp.name == vapp_name
-        task = the_vapp.connect_vms(nets[0].name, connection_index=0, ip_allocation_mode=mode.upper())
+        task = the_vapp.connect_vms(nets[0].name, connection_index=0, ip_allocation_mode='MANUAL', ip_address=ip_address)
+        assert task
         result = self.vca.block_until_completed(task)
         assert result
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        vm_info = the_vapp.get_vms_network_info()
+        print vm_info
+        assert vm_info
+        assert len(vm_info) == 1
+        assert len(vm_info[0]) == 1
+        assert vm_info[0][0].get('network_name') == network
+        assert vm_info[0][0].get('allocation_mode') == 'MANUAL'
+        assert vm_info[0][0].get('ip') == ip_address
 
-
-    def test_0018(self):
-        """Validate vApp State is powered off (8)"""
+    def test_0014(self):
+        """Disconnect VM from network"""
         vdc_name = config['vcloud']['vdc']
         vapp_name = config['vcloud']['vapp']
         vm_name = config['vcloud']['vm']
-        catalog = config['vcloud']['catalog']
-        template = config['vcloud']['template']
         network = config['vcloud']['network']
-        mode = config['vcloud']['mode']
+        the_vdc = self.vca.get_vdc(vdc_name)
+        assert the_vdc
+        assert the_vdc.get_name() == vdc_name
+        nets = filter(lambda n: n.name == network, self.vca.get_networks(vdc_name))
+        assert len(nets) == 1
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        assert the_vapp.name == vapp_name
+        task = the_vapp.disconnect_vms(nets[0].name)
+        assert task
+        result = self.vca.block_until_completed(task)
+        assert result
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        vm_info = the_vapp.get_vms_network_info()
+        assert vm_info
+        assert len(vm_info) == 1
+        assert len(vm_info[0]) == 0
+
+
+    def test_0015(self):
+        """Connect VM to network - POOL mode"""
+        vdc_name = config['vcloud']['vdc']
+        vapp_name = config['vcloud']['vapp']
+        vm_name = config['vcloud']['vm']
+        network = config['vcloud']['network']
+        the_vdc = self.vca.get_vdc(vdc_name)
+        assert the_vdc
+        assert the_vdc.get_name() == vdc_name
+        nets = filter(lambda n: n.name == network, self.vca.get_networks(vdc_name))
+        assert len(nets) == 1
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        assert the_vapp.name == vapp_name
+        task = the_vapp.connect_vms(nets[0].name, connection_index=0, ip_allocation_mode='POOL')
+        assert task
+        result = self.vca.block_until_completed(task)
+        assert result
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        vm_info = the_vapp.get_vms_network_info()
+        print vm_info
+        assert vm_info
+        assert len(vm_info) == 1
+        assert len(vm_info[0]) == 1
+        assert vm_info[0][0].get('network_name') == network
+        assert vm_info[0][0].get('allocation_mode') == 'POOL'
+
+    def test_0016(self):
+        """Disconnect VM from network"""
+        vdc_name = config['vcloud']['vdc']
+        vapp_name = config['vcloud']['vapp']
+        vm_name = config['vcloud']['vm']
+        network = config['vcloud']['network']
+        the_vdc = self.vca.get_vdc(vdc_name)
+        assert the_vdc
+        assert the_vdc.get_name() == vdc_name
+        nets = filter(lambda n: n.name == network, self.vca.get_networks(vdc_name))
+        assert len(nets) == 1
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        assert the_vapp.name == vapp_name
+        task = the_vapp.disconnect_vms(nets[0].name)
+        assert task
+        result = self.vca.block_until_completed(task)
+        assert result
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        vm_info = the_vapp.get_vms_network_info()
+        assert vm_info
+        assert len(vm_info) == 1
+        assert len(vm_info[0]) == 0
+
+
+    def test_0017(self):
+        """Connect VM to network - DHCP mode"""
+        vdc_name = config['vcloud']['vdc']
+        vapp_name = config['vcloud']['vapp']
+        vm_name = config['vcloud']['vm']
+        network = config['vcloud']['network']
+        the_vdc = self.vca.get_vdc(vdc_name)
+        assert the_vdc
+        assert the_vdc.get_name() == vdc_name
+        nets = filter(lambda n: n.name == network, self.vca.get_networks(vdc_name))
+        assert len(nets) == 1
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        assert the_vapp.name == vapp_name
+        task = the_vapp.connect_vms(nets[0].name, connection_index=0, ip_allocation_mode='DHCP')
+        assert task
+        result = self.vca.block_until_completed(task)
+        assert result
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        vm_info = the_vapp.get_vms_network_info()
+        print vm_info
+        assert vm_info
+        assert len(vm_info) == 1
+        assert len(vm_info[0]) == 1
+        assert vm_info[0][0].get('network_name') == network
+        assert vm_info[0][0].get('allocation_mode') == 'DHCP'
+
+    def test_0018(self):
+        """Disconnect VM from network"""
+        vdc_name = config['vcloud']['vdc']
+        vapp_name = config['vcloud']['vapp']
+        vm_name = config['vcloud']['vm']
+        network = config['vcloud']['network']
+        the_vdc = self.vca.get_vdc(vdc_name)
+        assert the_vdc
+        assert the_vdc.get_name() == vdc_name
+        nets = filter(lambda n: n.name == network, self.vca.get_networks(vdc_name))
+        assert len(nets) == 1
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        assert the_vapp.name == vapp_name
+        task = the_vapp.disconnect_vms(nets[0].name)
+        assert task
+        result = self.vca.block_until_completed(task)
+        assert result
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        vm_info = the_vapp.get_vms_network_info()
+        assert vm_info
+        assert len(vm_info) == 1
+        assert len(vm_info[0]) == 0
+
+
+    def test_0030(self):
+        """Validate vApp State is powered off (8)"""
+        vdc_name = config['vcloud']['vdc']
+        vapp_name = config['vcloud']['vapp']
         the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
@@ -179,7 +309,7 @@ class TestVApp:
         assert the_vapp.me.get_status() == 8
 
 
-    def test_0020(self):
+    def test_0031(self):
         """Power On vApp"""
         vdc_name = config['vcloud']['vdc']
         vapp_name = config['vcloud']['vapp']
@@ -199,7 +329,7 @@ class TestVApp:
         assert the_vapp.me.get_status() == 4
 
 
-    def test_0022(self):
+    def test_0032(self):
         """Power Off vApp"""
         vdc_name = config['vcloud']['vdc']
         vapp_name = config['vcloud']['vapp']
@@ -223,11 +353,6 @@ class TestVApp:
         """Delete vApp"""
         vdc_name = config['vcloud']['vdc']
         vapp_name = config['vcloud']['vapp']
-        vm_name = config['vcloud']['vm']
-        catalog = config['vcloud']['catalog']
-        template = config['vcloud']['template']
-        network = config['vcloud']['network']
-        mode = config['vcloud']['mode']
         the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name

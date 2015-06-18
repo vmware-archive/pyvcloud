@@ -1,8 +1,7 @@
 vca-cli
 =======
 
-![Download Status](https://img.shields.io/pypi/dm/vca-cli.svg)
-Format: ![Download Status](https://pypi.python.org/pypi/vca-cli)
+![Download Status]((https://img.shields.io/pypi/dm/vca-cli.svg)https://pypi.python.org/pypi/vca-cli)
 
 
 Command Line Interface for VMware vCloud Air. It supports vCloud Air On Demand and Subscription. It also supports standalone vCloud Director.

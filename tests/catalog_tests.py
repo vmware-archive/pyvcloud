@@ -115,9 +115,9 @@ class TestCatalog:
         the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
-        result = self.vca.upload_media(custom_catalog, media_name, media_file_name, media_file_name)
-        # assert not result
-        #assert that media is there
+        result = self.vca.upload_media(custom_catalog, media_name, media_file_name, media_file_name, True)
+        assert result
+        #todo: assert that media is uploaded
 
     def test_0099(self):
         """Delete Catalog"""

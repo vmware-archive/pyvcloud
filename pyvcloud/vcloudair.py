@@ -20,8 +20,14 @@
 #todo: pass parameters in the create vapp to optimize for speed, available from 6.3
 #todo: refactor returns, raise exceptions, document with release notes
 
+import sys
+import os
 import time
 import requests
+from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, \
+    FileTransferSpeed, FormatLabel, Percentage, \
+    ProgressBar, ReverseBar, RotatingMarker, \
+    SimpleProgress, Timer
 from StringIO import StringIO
 import json
 from xml.etree import ElementTree as ET
@@ -694,7 +700,7 @@ class VCA(object):
         return False
 
 
-    def upload_media(self, catalog_name, item_name, media_file_name, description=''):
+    def upload_media(self, catalog_name, item_name, media_file_name, description='', display_progress=False):
         """
         Uploads a media file (ISO) to a vCloud catalog
 
@@ -706,6 +712,9 @@ class VCA(object):
         **service type:** ondemand, subscription, vcd
 
         """
+        assert os.path.isfile(media_file_name)
+        statinfo = os.stat(media_file_name)
+        assert statinfo.st_size
         for catalog in self.get_catalogs():
             if catalog_name != catalog.name:
                 continue
@@ -720,7 +729,7 @@ class VCA(object):
                imageType="iso">
                <Description>%s</Description>
             </Media>
-            """ % (item_name, "51242131", description)
+            """ % (item_name, statinfo.st_size, description)
             self.response = Http.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), 
                             data=data, verify=self.verify, logger=self.logger)
             if self.response.status_code == requests.codes.created:
@@ -729,10 +738,35 @@ class VCA(object):
                 href = entity.get('href')
                 self.response = Http.get(href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.ok:
-                    # Log.debug(self.logger, self.response.content)
                     media = mediaType.parseString(self.response.content, True)
                     link = filter(lambda link: link.get_rel() == 'upload:default', media.get_Files().get_File()[0].get_Link())[0]
-                    Log.debug(self.logger, link.get_href())
+                    progress_bar = None
+                    if display_progress:
+                        widgets = ['Uploading file: ', Percentage(), ' ', Bar(),
+                                   ' ', ETA(), ' ', FileTransferSpeed()]
+                        progress_bar = ProgressBar(widgets=widgets, maxval=statinfo.st_size).start()
+                    f = open(media_file_name, 'rb')
+                    bytes_transferred = 0
+                    chunk_bytes = 1024*1024
+                    while bytes_transferred < statinfo.st_size:
+                        my_bytes = f.read(chunk_bytes)
+                        if len(my_bytes) <= chunk_bytes:
+                            headers = self.vcloud_session.get_vcloud_headers()
+                            headers['Content-Range'] = 'bytes %s-%s/%s' % (bytes_transferred, len(my_bytes)-1, statinfo.st_size)
+                            headers['Content-Length'] = str(len(my_bytes))
+                            self.response = Http.put(link.get_href(), headers=headers, 
+                                            data=my_bytes, verify=self.verify, logger=None)
+                            if self.response.status_code == requests.codes.ok:
+                                bytes_transferred += len(my_bytes)
+                                if display_progress:
+                                    progress_bar.update(bytes_transferred)
+                                Log.debug(self.logger, 'transferred %s of %s bytes' % (str(bytes_transferred), str(statinfo.st_size)))
+                            else:
+                                Log.debug(self.logger, 'file upload failed with error: [%s] %s' % (self.response.status_code, self.response.content))
+                                return False
+                    f.close()
+                    if display_progress:
+                        progress_bar.finish()
                     return True
         return False
 

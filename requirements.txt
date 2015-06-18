@@ -3,3 +3,4 @@ lxml>=3.4.1
 netaddr>=0.7.13
 requests>=2.4.3
 PyYAML>=3.10
+progressbar>=2.3

@@ -1,6 +1,8 @@
 pyvcloud
 ========
 
+|docs| |pip|
+
 Python SDK for VMware vCloud. It supports vCloud Air On Demand and Subscription. It also supports vCloud Director.
 
 ``Release early, release often.``
@@ -192,4 +194,19 @@ To test pyvcloud::
     # customize credentials and other parameters
     nosetests --verbosity=2  --tc-format yaml --tc-file tests/config_standalone.yaml \
                 tests/vcloud_tests.py
+
+.. |build-status| image:: https://img.shields.io/travis/vmware/pyvcloud.svg?style=flat
+    :alt: build status
+    :scale: 100%
+    :target: https://travis-ci.org/pyvcloud/
+
+.. |docs| image:: https://readthedocs.org/projects/pyvcloud/badge/?version=latest
+    :alt: Documentation Status
+    :scale: 100%
+    :target: https://readthedocs.org/projects/pyvcloud/
+
+.. |pip| image:: https://img.shields.io/pypi/dm/pyvcloud.svg
+    :alt: Download Status
+    :scale: 100%
+    :target: https://pypi.python.org/pypi/pyvcloud
 

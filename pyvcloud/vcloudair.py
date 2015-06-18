@@ -706,34 +706,40 @@ class VCA(object):
         **service type:** ondemand, subscription, vcd
 
         """
-        for catalog in self.get_catalogs():
-            if catalog_name != catalog.name:
-                continue
-            link = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.media+xml" and link.get_rel() == 'add', catalog.get_Link())
-            assert len(link) == 1
-            Log.debug(self.logger, link[0].get_href())
-            data = """
-            <Media
-               xmlns="http://www.vmware.com/vcloud/v1.5"
-               name="%s"
-               size="%s"
-               imageType="iso">
-               <Description>%s</Description>
-            </Media>
-            """ % (item_name, "51242131", description)
-            self.response = Http.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), 
-                            data=data, verify=self.verify, logger=self.logger)
-            if self.response.status_code == requests.codes.created:
-                catalogItem = ET.fromstring(self.response.content)
-                entity = [child for child in catalogItem if child.get("type") == "application/vnd.vmware.vcloud.media+xml"][0]
-                href = entity.get('href')
-                self.response = Http.get(href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
-                if self.response.status_code == requests.codes.ok:
-                    # Log.debug(self.logger, self.response.content)
-                    media = mediaType.parseString(self.response.content, True)
-                    link = filter(lambda link: link.get_rel() == 'upload:default', media.get_Files().get_File()[0].get_Link())[0]
-                    Log.debug(self.logger, link.get_href())
-                    return True
+        import os
+        if os.path.isfile(media_file_name):
+            for catalog in self.get_catalogs():
+                if catalog_name != catalog.name:
+                    continue
+                link = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.media+xml" and link.get_rel() == 'add', catalog.get_Link())
+                assert len(link) == 1
+                Log.debug(self.logger, link[0].get_href())
+                data = """
+                <Media
+                   xmlns="http://www.vmware.com/vcloud/v1.5"
+                   name="%s"
+                   size="%s"
+                   imageType="iso">
+                   <Description>%s</Description>
+                </Media>
+                """ % (item_name, os.path.getsize(media_file_name), description)
+                self.response = Http.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(),
+                                data=data, verify=self.verify, logger=self.logger)
+                if self.response.status_code == requests.codes.created:
+                    catalogItem = ET.fromstring(self.response.content)
+                    entity = [child for child in catalogItem if child.get("type") ==
+                              "application/vnd.vmware.vcloud.media+xml"][0]
+                    href = entity.get('href')
+                    self.response = Http.get(
+                        href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+                    if self.response.status_code == requests.codes.ok:
+                        # Log.debug(self.logger, self.response.content)
+                        media = mediaType.parseString(self.response.content, True)
+                        link = filter(
+                            lambda link: link.get_rel() == 'upload:default',
+                            media.get_Files().get_File()[0].get_Link())[0]
+                        Log.debug(self.logger, link.get_href())
+                        return True
         return False
 
 
@@ -759,6 +765,7 @@ class VCA(object):
                         if self.response.status_code == requests.codes.no_content:
                             return True
         return False
+                        
 
     def get_gateways(self, vdc_name):
         """
@@ -883,6 +890,7 @@ class VCA(object):
                         for element in doc._children:
                             if element.tag == '{http://www.vmware.com/vcloud/v1.5}Entity':
                                 return element.attrib
+
 
     #todo: send DELETE
     def logout(self):

@@ -1,7 +1,9 @@
 vca-cli
 =======
 
-|pip|
+![Download Status](https://img.shields.io/pypi/dm/vca-cli.svg)
+Format: ![Download Status](https://pypi.python.org/pypi/vca-cli)
+
 
 Command Line Interface for VMware vCloud Air. It supports vCloud Air On Demand and Subscription. It also supports standalone vCloud Director.
 
@@ -347,7 +349,3 @@ Detailed syntax for a specific command:
       
 
 
-.. |pip| image:: https://img.shields.io/pypi/dm/vca-cli.svg
-    :alt: Download Status
-    :scale: 100%
-    :target: https://pypi.python.org/pypi/vca-cli

@@ -290,19 +290,17 @@ class VAPP(object):
                     0,
                     name_ = 'NetworkConnectionSection',
                     namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
-                    pretty_print = False)
+                    pretty_print = True)
                 body=output.getvalue().replace("vmw:Info", "ovf:Info")
                 self.response = Http.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.accepted:
                     return taskType.parseString(self.response.content, True)
 
-    def disconnect_vms(self, network_name):
+    def disconnect_vms(self, network_name=None):
         """
         Disconnect the vm from the vapp network. 
 
-        **(Not implemented)**
-
-        :param network_name: (string): The name of the vApp network.
+        :param network_name: (string): The name of the vApp network. If None, then disconnect from all the networks.
         :return: (bool): True if the user was vApp was successfully deployed, False otherwise.
             
         """
@@ -310,25 +308,34 @@ class VAPP(object):
         if children:
             vms = children.get_Vm()
             for vm in vms:
-                self.debug(self.logger, "child VM name=%s" % vm.get_Name())
-                # new_connection = self._create_networkConnection(
-                #     network_name, connection_index, ip_allocation_mode,
-                #     mac_address, ip_address)
-                # networkConnectionSection = [section for section in vm.get_Section() if isinstance(section, NetworkConnectionSectionType)][0]
-                # self._modify_networkConnectionSection(
-                #     networkConnectionSection,
-                #     new_connection,
-                #     connections_primary_index)
-                # output = StringIO()
-                # networkConnectionSection.export(output,
-                #     0,
-                #     name_ = 'NetworkConnectionSection',
-                #     namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
-                #     pretty_print = False)
-                # body=output.getvalue().replace("vmw:Info", "ovf:Info")
-                # self.response = Http.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify, logger=self.logger)
-                # if self.response.status_code == requests.codes.accepted:
-                #     return taskType.parseString(self.response.content, True)
+                Log.debug(self.logger, "child VM name=%s" % vm.get_name())
+                networkConnectionSection = [section for section in vm.get_Section() if isinstance(section, NetworkConnectionSectionType)][0]
+                found = -1
+                if network_name is None:
+                    networkConnectionSection.set_NetworkConnection([])
+                    found = 1
+                else:
+                    for index, networkConnection in enumerate(networkConnectionSection.get_NetworkConnection()):
+                        if networkConnection.get_network() == network_name:
+                            found = index
+                            break
+                    if found != -1:
+                        networkConnectionSection.NetworkConnection.pop(found)
+                if found != -1:
+                    output = StringIO()
+                    networkConnectionSection.export(output,
+                        0,
+                        name_ = 'NetworkConnectionSection',
+                        namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
+                        pretty_print = True)
+                    body=output.getvalue().replace("vmw:Info", "ovf:Info")
+                    self.response = Http.put(vm.get_href() + "/networkConnectionSection/", data=body, headers=self.headers, verify=self.verify, logger=self.logger)
+                    if self.response.status_code == requests.codes.accepted:
+                        return taskType.parseString(self.response.content, True)
+        task = TaskType()
+        task.set_status("success")
+        task.set_Progress("100")
+        return task
 
     def connect_to_network(self, network_name, network_href, fence_mode='bridged'):
         """
@@ -378,7 +385,7 @@ class VAPP(object):
             0,
             name_ = 'NetworkConfigSection',
             namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
-            pretty_print = False)
+            pretty_print = True)
         body = output.getvalue().\
                 replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
                 replace("/Info", "/ovf:Info")
@@ -408,7 +415,7 @@ class VAPP(object):
                 0,
                 name_ = 'NetworkConfigSection',
                 namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
-                pretty_print = False)
+                pretty_print = True)
             body = output.getvalue().\
                     replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
                     replace("/Info", "/ovf:Info")
@@ -535,7 +542,7 @@ class VAPP(object):
                     0,
                     name_ = 'GuestCustomizationSection',
                     namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
-                    pretty_print = False)
+                    pretty_print = True)
                 body = output.getvalue().\
                     replace("vmw:", "").replace('Info xmlns:vmw="http://www.vmware.com/vcloud/v1.5" msgid=""', "ovf:Info").\
                     replace("/Info", "/ovf:Info")
@@ -548,7 +555,7 @@ class VAPP(object):
                     Log.debug(self.logger, "failed; response status=%d, content=%s" % (self.response.status_code, self.response.text))
 
 
-    def force_customization(self, vm_name):
+    def force_customization(self, vm_name, power_on=True):
         """
         Force the guest OS customization script to be run for a specific vm in the vApp.
         A customization script must have been previously associated with the VM
@@ -556,6 +563,7 @@ class VAPP(object):
         The VMware tools must be installed in the Guest OS.
        
         :param vm_name: (str): The name of the vm to be customized.
+        :param power_on (bool): Wether to power the vm on after customization or not
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.b\n
                             if the task cannot be created a debug level log message is generated detailing the reason.
  
@@ -569,7 +577,10 @@ class VAPP(object):
                 if len(links) == 1:
                     forceCustomizationValue = 'true'
                     deployVAppParams = vcloudType.DeployVAppParamsType()
-                    deployVAppParams.set_powerOn('true')
+                    if power_on:
+                        deployVAppParams.set_powerOn('true')
+                    else:
+                        deployVAppParams.set_powerOn('false')
                     deployVAppParams.set_deploymentLeaseSeconds(0)
                     deployVAppParams.set_forceCustomization('true')
                     body = CommonUtils.convertPythonObjToStr(deployVAppParams, name = "DeployVAppParams",
@@ -589,7 +600,6 @@ class VAPP(object):
         :return: (list) a list, one entry per vm, each vm entry contains a list, one entry per network, \n
          each network entry contains a dictionary of properties for the network. \n
          Dictionary keys 'network_name', 'ip', 'mac', 'is_connected', 'is_primary', 'allocation_mode' 
-          
       
         """
         result = []
@@ -752,7 +762,6 @@ class VAPP(object):
                 vq.set_valueOf_(cpus)
                 cpu.set_VirtualQuantity(vq)
                 cpu_string = CommonUtils.convertPythonObjToStr(cpu, 'CPU')
-                Log.debug(self.logger, "cpu: \n%s" % cpu_string)
                 output = StringIO()
                 cpu.export(output,
                     0,
@@ -762,14 +771,13 @@ class VAPP(object):
                 body = output.getvalue().\
                     replace('Info msgid=""', "ovf:Info").replace("/Info", "/ovf:Info").\
                     replace("vmw:", "").replace("class:", "rasd:").replace("ResourceType", "rasd:ResourceType")
-                Log.debug(self.logger, "cpu: \n%s" % body)
                 headers = self.headers
                 headers['Content-type'] = 'application/vnd.vmware.vcloud.rasdItem+xml'
                 self.response = Http.put(href, data = body, headers=headers, verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.accepted:
                     return taskType.parseString(self.response.content, True)
                 else:
-                    raise Exception(self.response_status_code)
+                    raise Exception(self.response.status_code)
         raise Exception('can\'t find vm')
 
     def _get_vms(self):

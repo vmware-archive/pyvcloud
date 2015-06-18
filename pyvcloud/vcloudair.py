@@ -29,7 +29,7 @@ from pyvcloud.schema.vcd.v1_5.schemas.admin import vCloudEntities
 from pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities import AdminCatalogType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType, \
     vAppType, organizationListType, vdcType, catalogType, queryRecordViewType, \
-    networkType, vcloudType, taskType, diskType, vmsType, vdcTemplateListType
+    networkType, vcloudType, taskType, diskType, vmsType, vdcTemplateListType, mediaType
 from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 from pyvcloud.vcloudsession import VCS
 from pyvcloud.vapp import VAPP
@@ -142,7 +142,7 @@ class VCA(object):
                     return True
                 else:
                     return False
-        elif self.service_type == 'vcd':
+        elif self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
             if token:
                 url = self.host + '/api/sessions'
                 vcloud_session = VCS(url, self.username, org, None, org_url, org_url, version=self.version, verify=self.verify, log=self.log)
@@ -315,13 +315,13 @@ class VCA(object):
     #common
     def _get_vcloud_headers(self):
         headers = {}
-        if self.service_type == 'subscription':
+        if self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
             headers["Accept"] = "application/xml;version=" + self.version
             headers["x-vchs-authorization"] = self.token
-        elif self.service_type == 'ondemand':
+        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
             headers["Authorization"] = "Bearer %s" % self.token
             headers["Accept"] = "application/json;version=%s" % self.version
-        elif self.service_type == 'vcd':
+        elif self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
             # headers["x-vcloud-authorization"] = self.token
             pass
         return headers
@@ -371,6 +371,7 @@ class VCA(object):
                 vapp = VAPP(vAppType.parseString(self.response.content, True), self.vcloud_session.get_vcloud_headers(), self.verify, self.log)
                 return vapp
 
+
     def _create_instantiateVAppTemplateParams(self, name, template_href,
                                               vm_name, vm_href, deploy,
                                               power, vm_cpus=None,
@@ -386,12 +387,18 @@ class VCA(object):
         if vm_name or vm_cpus or vm_memory:
             params = vcloudType.SourcedCompositionItemParamType()
             params.set_Source(vcloudType.ReferenceType(href=vm_href))
-            templateParams.add_SourcedItem(params)
+            if self.version == "5.5":
+                pass
+            else:
+                templateParams.add_SourcedItem(params)
 
             if vm_name:
-                gen_params = vcloudType.VmGeneralParamsType()
-                gen_params.set_Name(vm_name)
-                params.set_VmGeneralParams(gen_params)
+                if self.version == "5.5":
+                   templateParams.set_name(vm_name)
+                else:
+                   gen_params = vcloudType.VmGeneralParamsType()
+                   gen_params.set_Name(vm_name)
+                   params.set_VmGeneralParams(gen_params)
 
             if vm_cpus or vm_memory:
                 inst_param = vcloudType.InstantiationParamsType()
@@ -478,7 +485,6 @@ class VCA(object):
 
         .. note:: In this version of pyvcloud a maximum of 1 vm can be added to a vapp.
 
-       
         """
         self.vdc = self.get_vdc(vdc_name)
         if not self.vcloud_session or not self.vcloud_session.organization or not self.vdc:
@@ -508,7 +514,6 @@ class VCA(object):
                         vapp_name, entity.get("href"), vm_name=vm_name,
                         vm_href=vm_href, vm_cpus=vm_cpus, vm_memory=vm_memory,
                         deploy=deploy, power=poweron)
-
                     if network_name:
                         pass
                     output = StringIO()
@@ -615,9 +620,8 @@ class VCA(object):
 
         **service type:** ondemand, subscription, vcd
 
-  
-      
         """
+        self.vcloud_session.login(token=self.vcloud_session.token)
         links = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.catalog+xml", self.vcloud_session.organization.Link)
         catalogs = []
         for link in links:
@@ -689,6 +693,50 @@ class VCA(object):
                             return True
         return False
 
+
+    def upload_media(self, catalog_name, item_name, media_file_name, description=''):
+        """
+        Uploads a media file (ISO) to a vCloud catalog
+
+        :param catalog_name: (str): The name of the catalog to upload the media.
+        :param item_name: (str): The name of the media file in the catalog.
+        :param media_file_name: (str): The name of the local media file to upload.
+        :return: (bool) True if the media file was successfully uploaded, false otherwise.
+
+        **service type:** ondemand, subscription, vcd
+
+        """
+        for catalog in self.get_catalogs():
+            if catalog_name != catalog.name:
+                continue
+            link = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.media+xml" and link.get_rel() == 'add', catalog.get_Link())
+            assert len(link) == 1
+            Log.debug(self.logger, link[0].get_href())
+            data = """
+            <Media
+               xmlns="http://www.vmware.com/vcloud/v1.5"
+               name="%s"
+               size="%s"
+               imageType="iso">
+               <Description>%s</Description>
+            </Media>
+            """ % (item_name, "51242131", description)
+            self.response = Http.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), 
+                            data=data, verify=self.verify, logger=self.logger)
+            if self.response.status_code == requests.codes.created:
+                catalogItem = ET.fromstring(self.response.content)
+                entity = [child for child in catalogItem if child.get("type") == "application/vnd.vmware.vcloud.media+xml"][0]
+                href = entity.get('href')
+                self.response = Http.get(href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+                if self.response.status_code == requests.codes.ok:
+                    # Log.debug(self.logger, self.response.content)
+                    media = mediaType.parseString(self.response.content, True)
+                    link = filter(lambda link: link.get_rel() == 'upload:default', media.get_Files().get_File()[0].get_Link())[0]
+                    Log.debug(self.logger, link.get_href())
+                    return True
+        return False
+
+
     def delete_catalog_item(self, catalog_name, item_name):
         """
         Request the deletion of an item from a catalog.
@@ -702,6 +750,8 @@ class VCA(object):
 
         """
         for catalog in self.get_catalogs():
+            if catalog_name != catalog.name:
+                continue
             if catalog.CatalogItems and catalog.CatalogItems.CatalogItem:
                 for item in catalog.CatalogItems.CatalogItem:
                     if item_name == item.name:
@@ -844,11 +894,11 @@ class VCA(object):
         **service type:** ondemand, subscription, vcd
 
         """
-        if self.service_type == 'subscription':
+        if self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
             pass
-        elif self.service_type == 'ondemand':
+        elif self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
             pass
-        elif self.service_type == 'vcd':
+        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
             pass
         self.token = None
         self.vcloud_session = None
@@ -1077,3 +1127,15 @@ class VCA(object):
             return(False, 'disk not found')
         elif len(link) > 1:
             return(False, 'more than one disks found with that name, use the disk id')
+
+
+    #https://us-texas-1-14.vchs.vmware.com/api/compute/api/task/d298aec0-2b43-4dc0-8978-d73d6b17a20e/action/cancel
+    def cancel_task(self, task_url):
+        self.response = Http.post(task_url + '/action/cancel', headers=self.vcloud_session.get_vcloud_headers(), 
+            verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.no_content:
+            return True
+        else:
+            Log.error(self.logger, "can't cancel task")
+            return False
+

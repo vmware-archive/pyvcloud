@@ -1,12 +1,14 @@
 vcloud:
     service_type: standalone
-    username: *****@company.com
-    password: *****************
+    username: email@company.com
+    password: '***************'
     host: p1v21-vcd.vchs.vmware.com
     version: '5.6'
     org: AppServices
     vdc: AppServices
     gateway: AppServices
+    service: ''
+    instance: ''
     catalog: 'Public Catalog'
     template: 'Ubuntu Server 12.04 LTS (amd64 20150127)'
     vapp: myvapp
@@ -32,4 +34,4 @@ vcloud:
     fw_source_port: Any
     fw_source_ip: Any
     fw_enable_logging: false
-    custom_catalog: mycatalog
+    custom_catalog: catalog-1

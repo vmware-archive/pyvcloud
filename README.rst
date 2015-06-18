@@ -200,10 +200,10 @@ To test pyvcloud::
     :scale: 100%
     :target: https://travis-ci.org/pyvcloud/
 
-.. |docs| image:: https://readthedocs.org/projects/pyvcloud/badge/?version=latest
+.. |docs| image:: https://readthedocs.org/projects/pyvcloud/badge/?version=stable
     :alt: Documentation Status
     :scale: 100%
-    :target: https://readthedocs.org/projects/pyvcloud/
+    :target: http://pyvcloud.readthedocs.org/en/stable/
 
 .. |pip| image:: https://img.shields.io/pypi/dm/pyvcloud.svg
     :alt: Download Status

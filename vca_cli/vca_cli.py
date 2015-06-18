@@ -1813,6 +1813,28 @@ def disk(ctx, operation, vdc, disk_name, disk_size, disk_id):
 
 @cli.command()
 @click.pass_context
+@click.argument('operation', default=default_operation,
+                metavar='[list | info | cancel]', type=click.Choice(['list', 'info', 'cancel']))
+@click.option('-v', '--vdc', default='', metavar='<vdc>',
+              help='Virtual Data Center Name')
+@click.option('-i', '--id', 'task_id', default='', metavar='<task_id>',
+              help='Task Id')
+def task(ctx, operation, vdc, task_id):
+    """Operations with Tasks"""
+    if '' == vdc:
+        vdc = ctx.obj['vdc']
+    vca = _getVCA_vcloud_session(ctx)
+    if not vca:
+        print_error('User not authenticated or token expired', ctx)
+        return
+    if 'cancel' == operation:
+        result = vca.cancel_task(task_id)
+    else:
+        print_message('not implemented', ctx)
+
+
+@cli.command()
+@click.pass_context
 def example(ctx):
     """vCloud Air CLI Examples"""
     headers = ['Id', 'Example', "Command"]

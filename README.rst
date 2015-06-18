@@ -215,7 +215,7 @@ To test pyvcloud::
     :scale: 100%
     :target: https://pypi.python.org/pypi/pyvcloud
 
-.. |ver| image:: https://img.shields.io/pypi/v/vca-cli.svg
+.. |ver| image:: https://img.shields.io/pypi/v/pyvcloud.svg
     :alt: Stable Version
     :scale: 100%
     :target: https://pypi.python.org/pypi/pyvcloud

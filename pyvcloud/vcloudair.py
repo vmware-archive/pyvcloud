@@ -29,7 +29,7 @@ from pyvcloud.schema.vcd.v1_5.schemas.admin import vCloudEntities
 from pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities import AdminCatalogType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType, \
     vAppType, organizationListType, vdcType, catalogType, queryRecordViewType, \
-    networkType, vcloudType, taskType, diskType, vmsType, vdcTemplateListType
+    networkType, vcloudType, taskType, diskType, vmsType, vdcTemplateListType, mediaType
 from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 from pyvcloud.vcloudsession import VCS
 from pyvcloud.vapp import VAPP
@@ -721,11 +721,19 @@ class VCA(object):
                <Description>%s</Description>
             </Media>
             """ % (item_name, "51242131", description)
-            # self.response = Http.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), data=data, verify=self.verify, logger=self.logger)
-            # if self.response.status_code == requests.codes.created:
-            #     Log.debug(self.logger, self.response.content)
-            #     return True
-                # task = vCloudEntities.parseString(self.response.content, True)
+            self.response = Http.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), 
+                            data=data, verify=self.verify, logger=self.logger)
+            if self.response.status_code == requests.codes.created:
+                catalogItem = ET.fromstring(self.response.content)
+                entity = [child for child in catalogItem if child.get("type") == "application/vnd.vmware.vcloud.media+xml"][0]
+                href = entity.get('href')
+                self.response = Http.get(href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+                if self.response.status_code == requests.codes.ok:
+                    # Log.debug(self.logger, self.response.content)
+                    media = mediaType.parseString(self.response.content, True)
+                    link = filter(lambda link: link.get_rel() == 'upload:default', media.get_Files().get_File()[0].get_Link())[0]
+                    Log.debug(self.logger, link.get_href())
+                    return True
         return False
 
 
@@ -1119,3 +1127,15 @@ class VCA(object):
             return(False, 'disk not found')
         elif len(link) > 1:
             return(False, 'more than one disks found with that name, use the disk id')
+
+
+    #https://us-texas-1-14.vchs.vmware.com/api/compute/api/task/d298aec0-2b43-4dc0-8978-d73d6b17a20e/action/cancel
+    def cancel_task(self, task_url):
+        self.response = Http.post(task_url + '/action/cancel', headers=self.vcloud_session.get_vcloud_headers(), 
+            verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.no_content:
+            return True
+        else:
+            Log.error(self.logger, "can't cancel task")
+            return False
+

@@ -1,4 +1,4 @@
-# vCloud Air CLI 0.1
+# vCloud Air CLI 10
 # Copyright (c) 2014 VMware, Inc. All Rights Reserved.
 # This product is licensed to you under the
 # Apache License, Version 2.0 (the "License").
@@ -14,7 +14,7 @@ from setuptools import setup
 
 setup(
     name='vca-cli',
-    version='12rc12',
+    version='12',
     description='VMware vCloud CLI',
     url='https://github.com/vmware/vca-cli',
     author='VMware, Inc.',
@@ -28,7 +28,7 @@ setup(
         'xmltodict',
         'tabulate',
         'dateutils',
-        'pyvcloud == 13rc16'
+        'pyvcloud == 13'
     ],
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[

@@ -1059,9 +1059,9 @@ def vm(ctx, operation, vdc, vapp):
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation,
-                metavar='[info | list | create | delete | delete-item]',
+                metavar='[info | list | create | delete | delete-item | upload]',
                 type=click.Choice(['info', 'list',
-                                   'create', 'delete', 'delete-item']))
+                                   'create', 'delete', 'delete-item', 'upload']))
 @click.option('-v', '--vdc', default='', metavar='<vdc>',
               help='Virtual Data Center Name')
 @click.option('-c', '--catalog', 'catalog_name', default='',
@@ -1070,7 +1070,11 @@ def vm(ctx, operation, vdc, vapp):
               metavar='<catalog item>', help='Catalog Item Name')
 @click.option('-d', '--description', default='',
               metavar='<description>', help='Catalog Description')
-def catalog(ctx, operation, vdc, catalog_name, item_name, description):
+@click.option('-f', '--file', 'file_name',
+              default=None, metavar='<file>',
+              help='file to upload',
+              type=click.Path(exists=True))
+def catalog(ctx, operation, vdc, catalog_name, item_name, description, file_name):
     """Operations with Catalogs"""
     if vdc == '':
         vdc = ctx.obj['vdc']
@@ -1100,9 +1104,19 @@ def catalog(ctx, operation, vdc, catalog_name, item_name, description):
         else:
             ctx.obj['response'] = vca.response
             print_error("can't delete the catalog item", ctx)
-    elif 'list':
+    elif 'list' == operation:
         catalogs = vca.get_catalogs()
         print_catalogs(ctx, catalogs)
+    elif 'upload' == operation:
+        if file_name.endswith('.iso'):
+            result = vca.upload_media(catalog_name, item_name, file_name, description, True)
+            if result:
+                print_message('file successfull uploaded', ctx)
+            else:
+                ctx.obj['response'] = vca.response
+                print_error("can't upload file", ctx)
+        else:
+            print_message('not implemented, only .iso files are currently supported', ctx)
     else:
         print_message('not implemented', ctx)
 
@@ -1811,26 +1825,26 @@ def disk(ctx, operation, vdc, disk_name, disk_size, disk_id):
         print_message('not implemented', ctx)
 
 
-@cli.command()
-@click.pass_context
-@click.argument('operation', default=default_operation,
-                metavar='[list | info | cancel]', type=click.Choice(['list', 'info', 'cancel']))
-@click.option('-v', '--vdc', default='', metavar='<vdc>',
-              help='Virtual Data Center Name')
-@click.option('-i', '--id', 'task_id', default='', metavar='<task_id>',
-              help='Task Id')
-def task(ctx, operation, vdc, task_id):
-    """Operations with Tasks"""
-    if '' == vdc:
-        vdc = ctx.obj['vdc']
-    vca = _getVCA_vcloud_session(ctx)
-    if not vca:
-        print_error('User not authenticated or token expired', ctx)
-        return
-    if 'cancel' == operation:
-        result = vca.cancel_task(task_id)
-    else:
-        print_message('not implemented', ctx)
+# @cli.command()
+# @click.pass_context
+# @click.argument('operation', default=default_operation,
+#                 metavar='[list | info | cancel]', type=click.Choice(['list', 'info', 'cancel']))
+# @click.option('-v', '--vdc', default='', metavar='<vdc>',
+#               help='Virtual Data Center Name')
+# @click.option('-i', '--id', 'task_id', default='', metavar='<task_id>',
+#               help='Task Id')
+# def task(ctx, operation, vdc, task_id):
+#     """Operations with Tasks"""
+#     if '' == vdc:
+#         vdc = ctx.obj['vdc']
+#     vca = _getVCA_vcloud_session(ctx)
+#     if not vca:
+#         print_error('User not authenticated or token expired', ctx)
+#         return
+#     if 'cancel' == operation:
+#         result = vca.cancel_task(task_id)
+#     else:
+#         print_message('not implemented', ctx)
 
 
 @cli.command()
@@ -1842,28 +1856,34 @@ def example(ctx):
     table = []
     id += 1
     table.append([id, 'login to vCA On Demand',
-                  'vca login email@company.com --password mypassword'])
+                  'vca login email@company.com --password mypassword'
+                  ' --save-password'])
     id += 1
     table.append([id, 'login to a vCA On Demand instance',
                   'vca login email@company.com --password mypassword'
+                  ' --save-password'
                   ' --instance c40ba6b4-c158-49fb-b164-5c66f90344fa'])
     id += 1
     table.append([id, 'login to vCA Subscription',
                   'vca login email@company.com --password mypassword'
+                  ' --save-password'
                   ' --type subscription --host https://vchs.vmware.com'
-                  '--version 5.6'])
+                  ' --version 5.6'])
     id += 1
     table.append([id, 'login to vCloud Director standalone',
                   'vca login email@company.com --password mypassword'
+                  ' --save-password'
                   ' --type standalone --host https://p1v21-vcd.vchs.vmware.com'
                   ' --version 5.6 --org MyOrganization'])
     id += 1
     table.append([id, 'login with no SSL verification',
                   'vca --insecure login email@company.com'
-                  ' --password mypassword'])
+                  ' --password mypassword'
+                  ' --save-password'])
     id += 1
     table.append([id, 'prompt user for password',
-                  'vca login email@company.com'])
+                  'vca login email@company.com'
+                  ' --save-password'])
     id += 1
     table.append([id, 'show status',
                   'vca status'])
@@ -1912,7 +1932,12 @@ def example(ctx):
     id += 1
     table.append([id, 'delete catalog item',
                   'vca catalog delete-item --catalog mycatalog'
-                  '--item my_vapp_template'])
+                  ' --item my_vapp_template'])
+    id += 1
+    table.append([id, 'upload media file (ISO) to catalog',
+                  'vca catalog upload --catalog mycatalog'
+                  ' --item esxi.iso --description ESXi-iso'
+                  ' --file ~/VMware-VMvisor.iso'])
     id += 1
     table.append([id, 'list networks',
                   'vca network'])
@@ -1943,10 +1968,10 @@ def example(ctx):
     table.append([id, 'create multiple vapps',
                   'vca vapp create --vapp myvapp --vm myvm'
                   ' --catalog'
-                  ' \'Public Catalog\' --template '
-                  '\'Ubuntu Server 12.04 LTS (amd64 20150127)\''
-                  ' --network default-routed-network '
-                  '--mode pool --count 10'])
+                  ' \'Public Catalog\' --template'
+                  ' \'Ubuntu Server 12.04 LTS (amd64 20150127)\''
+                  ' --network default-routed-network'
+                  ' --mode pool --count 10'])
     id += 1
     table.append([id, 'create vapp and configure vm size',
                   'vca vapp create --vapp myvapp '
@@ -1974,35 +1999,35 @@ def example(ctx):
     id += 1
     table.append([id, 'insert ISO to vapp vm',
                   'vca vapp insert --vapp coreos1 --vm coreos1'
-                  ' --catalog default-catalog '
-                  '--media coreos1-config.iso'])
+                  ' --catalog default-catalog'
+                  ' --media coreos1-config.iso'])
     id += 1
     table.append([id, 'eject ISO from vapp vm',
                   'vca vapp eject --vapp coreos1 --vm coreos1'
-                  ' --catalog default-catalog '
-                  '--media coreos1-config.iso'])
+                  ' --catalog default-catalog'
+                  ' --media coreos1-config.iso'])
     id += 1
     table.append([id, 'attach disk to vapp vm',
-                  'vca vapp attach --vapp myvapp '
-                  '--vm myvm --disk mydisk'])
+                  'vca vapp attach --vapp myvapp'
+                  ' --vm myvm --disk mydisk'])
     id += 1
     table.append([id, 'detach disk from vapp vm',
-                  'vca vapp detach --vapp myvapp '
-                  '--vm myvm --disk mydisk'])
+                  'vca vapp detach --vapp myvapp'
+                  ' --vm myvm --disk mydisk'])
     id += 1
     table.append([id, 'list independent disks',
                   'vca vapp disk'])
     id += 1
     table.append([id, 'create independent disk of 100GB',
-                  'vca disk create --disk mydisk '
-                  '--size 100'])
+                  'vca disk create --disk mydisk'
+                  ' --size 100'])
     id += 1
     table.append([id, 'delete independent disk by name',
                   'vca disk delete --disk mydisk'])
     id += 1
     table.append([id, 'delete independent disk by id',
-                  'vca disk delete '
-                  '--id bce76ca7-29d0-4041-82d4-e4481804d5c4'])
+                  'vca disk delete'
+                  ' --id bce76ca7-29d0-4041-82d4-e4481804d5c4'])
     id += 1
     table.append([id, 'list vms',
                   'vca vm'])
@@ -2014,8 +2039,8 @@ def example(ctx):
                   'vca -j vm'])
     id += 1
     table.append([id, 'retrieve the IP of a vm',
-                  "IP=`vca -j vm -a ubu | jq -r "
-                  "'.vms[0].IPs[0]'` && echo $IP"])
+                  "IP=`vca -j vm -a ubu | jq -r"
+                  " '.vms[0].IPs[0]'` && echo $IP"])
     id += 1
     table.append([id, 'list networks',
                   'vca network'])
@@ -2023,10 +2048,10 @@ def example(ctx):
     table.append([id, 'create network',
                   'vca network create --network network_name'
                   ' --gateway gateway_name'
-                  ' --gateway-ip 192.168.117.1 '
-                  '--netmask 255.255.255.0'
-                  ' --dns1 192.168.117.1 '
-                  '--pool 192.168.117.2-192.168.117.100'])
+                  ' --gateway-ip 192.168.117.1'
+                  ' --netmask 255.255.255.0'
+                  ' --dns1 192.168.117.1'
+                  ' --pool 192.168.117.2-192.168.117.100'])
     id += 1
     table.append([id, 'delete network',
                   'vca network delete --network network_name'])
@@ -2044,25 +2069,25 @@ def example(ctx):
     table.append([id, 'unset syslog server on gateway',
                   'vca gateway set-syslog --gateway gateway_name'])
     id += 1
-    table.append([id, 'allocate external IP address in OnDemand',
+    table.append([id, 'allocate external IP address (OnDemand)',
                   'vca gateway add-ip'])
     id += 1
-    table.append([id, 'deallocate external IP address in OnDemand',
+    table.append([id, 'release external IP address (OnDemand)',
                   'vca gateway del-ip --ip 107.189.93.162'])
     id += 1
     table.append([id, 'list edge gateway NAT rules',
                   'vca nat'])
     id += 1
     table.append([id, 'add edge gateway DNAT rule',
-                  "vca nat add --type DNAT "
-                  "--original-ip 107.189.93.162"
-                  " --original-port 22 "
-                  "--translated-ip 192.168.109.2"
+                  "vca nat add --type DNAT"
+                  " --original-ip 107.189.93.162"
+                  " --original-port 22"
+                  " --translated-ip 192.168.109.2"
                   " --translated-port 22 --protocol tcp"])
     id += 1
     table.append([id, 'add edge gateway SNAT rule',
-                  "vca nat add --type SNAT "
-                  "--original-ip 192.168.109.0/24"
+                  "vca nat add --type SNAT"
+                  " --original-ip 192.168.109.0/24"
                   " --translated-ip 107.189.93.162"])
     id += 1
     table.append([id, 'add edge gateway rules from file',
@@ -2070,20 +2095,20 @@ def example(ctx):
     id += 1
     table.append([id, 'delete edge gateway NAT rule',
                   "vca nat delete --type DNAT "
-                  "--original-ip 107.189.93.162"
-                  " --original-port 22 "
-                  "--translated-ip 192.168.109.4"
-                  " --translated-port 22 "
-                  "--protocol tcp"])
+                  " --original-ip 107.189.93.162"
+                  " --original-port 22"
+                  " --translated-ip 192.168.109.4"
+                  " --translated-port 22"
+                  " --protocol tcp"])
     id += 1
     table.append([id, 'delete all edge gateway NAT rules',
                   "vca nat delete --all"])
     id += 1
     table.append([id, 'enable edge gateway firewall',
-                  "vca fw enable"])
+                  "vca firewall enable"])
     id += 1
     table.append([id, 'disable edge gateway firewall',
-                  "vca fw disable"])
+                  "vca firewall disable"])
     id += 1
     table.append([id, 'display DHCP configuration',
                   "vca dhcp"])
@@ -2119,12 +2144,12 @@ def example(ctx):
                   " --public-ip 107.189.123.101"])
     id += 1
     table.append([id, 'add VPN tunnel',
-                  "vca vpn add-tunnel --tunnel t1 "
-                  "--local-ip 107.189.123.101"
-                  " --local-network routed-116 "
-                  "--peer-ip 192.240.158.15"
+                  "vca vpn add-tunnel --tunnel t1"
+                  " --local-ip 107.189.123.101"
+                  " --local-network routed-116"
+                  " --peer-ip 192.240.158.15"
                   " --peer-network 192.168.110.0/24 "
-                  "--secret P8s3P...7v"])
+                  " --secret P8s3P...7v"])
     id += 1
     table.append([id, 'delete VPN tunnel',
                   "vca vpn del-tunnel --tunnel t1"])
@@ -2145,7 +2170,7 @@ def example(ctx):
                   "vca vpn del-network --tunnel t1"
                   " --peer-network 192.168.115.0/24"])
     id += 1
-    table.append([id, 'show the REST calls in the command',
+    table.append([id, 'send debug to $TMPDIR/pyvcloud.log',
                   'vca --debug vm'])
     id += 1
     table.append([id, 'show version',
@@ -2156,7 +2181,6 @@ def example(ctx):
     id += 1
     table.append([id, 'show command help',
                   'vca <command> --help'])
-
     print_table('vca-cli usage examples:', 'examples',
                 headers, table, ctx)
 

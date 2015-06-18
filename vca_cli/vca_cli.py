@@ -21,8 +21,6 @@ import os
 import yaml
 import pkg_resources
 import ConfigParser
-import logging
-import httplib
 import json
 import requests
 import xmltodict
@@ -38,14 +36,13 @@ from pyvcloud.helper import CommonUtils
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType
 from cryptography.fernet import Fernet
-from pyvcloud import _get_logger, Http, Log
+from pyvcloud import _get_logger, Log
 
 # TODO(???): when token expired, it doesn't seem to re-login
 # the first time, but it works the second time
 # TODO(???): list active tasks
 # issue: authentication fails in subscription use org if logged in
 #        previously to another account (workaround: vca logout first)
-# TODO(???): add --save-password to examples
 # TODO(???): adding a DNAT rule with type any fails
 # TODO(???): make network mode case insensitive (pool, dhcp)
 # TODO(???): identify primary ip from the gateway uplink information
@@ -2879,4 +2876,4 @@ def print_disks(ctx, disks):
 
 
 if __name__ == '__main__':
-    cli(obj={})
+    cli()

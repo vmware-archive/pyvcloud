@@ -325,8 +325,7 @@ Syntax, commands and arguments:
 
 Detailed syntax for a specific command:
 
-    
-    $vca vapp --help
+    $ vca vapp --help
     Usage: vca vapp [OPTIONS] [list | info | create | delete | power.on |
                     power.off | deploy | undeploy | customize |
                     insert | eject]
@@ -345,6 +344,4 @@ Detailed syntax for a specific command:
                                       Guest OS Customization script file
       -e, --media <media>             virtual media name (ISO)
       -h, --help                      Show this message and exit.
-      
-
 

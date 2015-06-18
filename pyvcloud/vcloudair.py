@@ -709,6 +709,7 @@ class VCA(object):
                         if self.response.status_code == requests.codes.no_content:
                             return True
         return False
+                        
 
     def get_gateways(self, vdc_name):
         """
@@ -833,6 +834,37 @@ class VCA(object):
                         for element in doc._children:
                             if element.tag == '{http://www.vmware.com/vcloud/v1.5}Entity':
                                 return element.attrib
+
+    def upload_media(self, catalog_name, media_name, media_description, iso_file):
+        """
+        Uploads an iso media file to the a given catalog.
+
+        :param catalog_name: (str): The name of the catalog where the media will be uploaded to.
+        :param media_name: (str): The name to give to the media uploaded to the catalog.
+        :param media_description: (str): The descrition to give to the media uploaded to the catalog.
+        :return: (bool) True if the media was uploaded successfully to the catalog, false if the updload failed.
+
+        **service type:** vcd
+
+        """
+        for catalog in self.get_catalogs():
+            namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"'
+            content_type = "application/vnd.vmware.vcloud.media+xml"
+            headers = self.vcloud_session.get_vcloud_headers()
+            headers["Content-Type"] = content_type
+            import os
+            if os.path.isfile(iso_file):
+                if catalog.name == catalog_name:
+                    postlink = "%s/%s" % (catalog.href, 'action/upload')
+                    body =  '<?xml version="1.0" encoding="UTF-8"?>'\
+                            '<Media %s'\
+                                ' name="%s" '\
+                                ' size="%s" '\
+                                ' imageType="iso"> '\
+                                '<Description>%s</Description>'\
+                            '</Media>' % (namespacedef, media_name, os.path.getsize(iso_file), media_description)
+                    print body
+        return False
 
     #todo: send DELETE
     def logout(self):

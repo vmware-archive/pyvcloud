@@ -176,18 +176,18 @@ def cli(ctx, profile, version, debug, json_output, xml_output, insecure):
             print(help_text)
 
 
-def _save_property(profile, property, value):
+def _save_property(profile, prop, value):
     config = ConfigParser.RawConfigParser()
     config.read(os.path.expanduser('~/.vcarc'))
     section = 'Profile-%s' % profile
     if not config.has_section(section):
         config.add_section(section)
-    if property == 'password' and value and len(value) > 0:
+    if prop == 'password' and value and len(value) > 0:
         cipher_suite = Fernet(crypto_key)
         cipher_text = cipher_suite.encrypt(value.encode('utf-8'))
-        config.set(section, property, cipher_text)
+        config.set(section, prop, cipher_text)
     else:
-        config.set(section, property, value)
+        config.set(section, prop, value)
 
     with open(os.path.expanduser('~/.vcarc'), 'w+') as configfile:
         config.write(configfile)
@@ -335,17 +335,17 @@ def status(ctx):
     vca = _getVCA_with_relogin(ctx)
     headers = ['Property', 'Value']
     table = []
-    for property in properties:
-        if property == 'password' and len(ctx.obj.get(property, [])) > 0:
-            table.append([property, '<encrypted>'])
+    for prop in properties:
+        if prop == 'password' and len(ctx.obj.get(prop, [])) > 0:
+            table.append([prop, '<encrypted>'])
             continue
-        if isinstance(ctx.obj[property], basestring):
+        if isinstance(ctx.obj[prop], basestring):
             table.append(
-                [property, (ctx.obj[property][:50] + '..')
-                 if len(ctx.obj[property]) >
-                    50 else ctx.obj[property]])
+                [prop, (ctx.obj[prop][:50] + '..')
+                 if len(ctx.obj[prop]) >
+                    50 else ctx.obj[prop]])
         else:
-            table.append([property, ctx.obj[property]])
+            table.append([prop, ctx.obj[prop]])
     table.append(["session", 'active' if (
         vca and vca.vcloud_session) else 'inactive'])
     table.append(['vca_cli_version', pkg_resources.require("vca-cli")[0].version])

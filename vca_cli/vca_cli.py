@@ -517,9 +517,10 @@ def vdc(ctx, operation, vdc):
                               links)
                 if len(vdcs) > 0:
                     vdc = vdcs[0].get_name()
-            table1 = [[details.get_name(), '*' if details.get_name()
-                       == vdc else ' '] for details in
-                      filter(lambda info: info.name and 
+            table1 = [[details.get_name(), 
+                      '*' if details.get_name() == vdc else ' '] 
+                      for details in
+                          filter(lambda info: info.name and 
                       (info.type_ == 'application/vnd.vmware.vcloud.vdc+xml'),
                              links)]
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)
@@ -791,8 +792,8 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
             else:
                 ctx.obj['response'] = the_vapp.response
                 print_error("can't customize vApp", ctx)
-    elif ('info' == operation or 'power.off' == operation
-          or 'power.on' == operation or 'delete' == operation):
+    elif ('info' == operation or 'power.off' == operation or 
+          'power.on' == operation or 'delete' == operation):
         the_vdc = vca.get_vdc(vdc)
         if the_vdc:
             the_vapp = vca.get_vapp(the_vdc, vapp)
@@ -1001,8 +1002,8 @@ def vm(ctx, operation, vdc, vapp):
                         vm_status = status_code[vm.get_status()]()
                         sections = vm.get_Section()
                         virtualHardwareSection = (
-                            filter(lambda section: section.__class__.__name__
-                                   == "VirtualHardwareSection_Type",
+                            filter(lambda section: 
+                section.__class__.__name__ == "VirtualHardwareSection_Type",
                                    sections)[0])
                         items = virtualHardwareSection.get_Item()
                         cpu = (
@@ -1019,8 +1020,8 @@ def vm(ctx, operation, vdc, vapp):
                             memory.get_ElementName().get_valueOf_().
                             split(" MB of memory")[0]) / 1024
                         operatingSystemSection = (
-                            filter(lambda section: section.__class__.__name__
-                                   == "OperatingSystemSection_Type",
+                            filter(lambda section: 
+                section.__class__.__name__ == "OperatingSystemSection_Type",
                                    sections)[0])
                         os = (operatingSystemSection.
                               get_Description().get_valueOf_())
@@ -1036,9 +1037,8 @@ def vm(ctx, operation, vdc, vapp):
                                             _url):
                                         ips.append(c.anyAttributes_.get(
                                             _url))
-                            elif (item.HostResource and item.ResourceSubType
-                                  and item.ResourceSubType.valueOf_
-                                    == 'vmware.cdrom.iso'):
+                            elif (item.HostResource and item.ResourceSubType and 
+                            item.ResourceSubType.valueOf_ == 'vmware.cdrom.iso'):
                                 if len(item.HostResource[0].valueOf_) > 0:
                                     cds.append(item.HostResource[0].valueOf_)
                         table1.append([vm.name, entity.name, vm_status,
@@ -2257,8 +2257,7 @@ def print_error(msg, ctx=None):
                         doc.attrib.get('message'), fg='red')
                     return
             elif response is not None:
-                click.secho(msg + ", "
-                            + response.content, fg='red')
+                click.secho(msg + ", " + response.content, fg='red')
                 return
         click.secho(msg, fg='red')
 
@@ -2568,8 +2567,8 @@ def print_networks(ctx, item_list):
                 if service.original_tagname_ == 'GatewayDhcpService':
                     for p in service.get_Pool():
                         if p.get_IsEnabled():
-                            dhcp_pools.append(p.get_LowIpAddress()
-                                              + '-' + p.get_HighIpAddress())
+                            dhcp_pools.append(p.get_LowIpAddress() + 
+                            '-' + p.get_HighIpAddress())
         config = item.get_Configuration()
         gateways = []
         netmasks = []
@@ -2583,8 +2582,8 @@ def print_networks(ctx, item_list):
             dns2.append(scope.get_Dns2())
             if scope.get_IpRanges() is not None:
                 for r in scope.get_IpRanges().get_IpRange():
-                    ranges.append(r.get_StartAddress() + '-'
-                                  + r.get_EndAddress())
+                    ranges.append(r.get_StartAddress() + '-' + 
+                                  r.get_EndAddress())
         table.append([
             item.get_name(),
             config.get_FenceMode(),

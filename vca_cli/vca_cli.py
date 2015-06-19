@@ -625,7 +625,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                         for vm in the_vapp.me.Children.Vm:
                             vms.append(vm.name)
                     table1.append([entity.name, _as_list(vms),
-                                   status[the_vapp.me.get_status()](),
+                                   status_code[the_vapp.me.get_status()](),
                                    'yes' if the_vapp.me.deployed
                                    else 'no', the_vapp.me.Description])
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)
@@ -946,7 +946,7 @@ def status15():
     return "Upload quarantine period has expired"
 
 
-status = {-1: statusn1,
+status_code = {-1: statusn1,
           0: status0,
           1: status1,
           2: status2,
@@ -1000,7 +1000,7 @@ def vm(ctx, operation, vdc, vapp):
                         continue
                     for vm in the_vapp.me.Children.Vm:
                         owner = the_vapp.me.get_Owner().get_User().get_name()
-                        vm_status = status[vm.get_status()]()
+                        vm_status = status_code[vm.get_status()]()
                         sections = vm.get_Section()
                         virtualHardwareSection = (
                             filter(lambda section: section.__class__.__name__
@@ -2350,9 +2350,14 @@ def task_table(task_xml):
     hours, remainder = divmod(total_seconds, 60 * 60)
     minutes, seconds = divmod(remainder, 60)
     table = []
-    table.append([localStartTime.strftime("%Y-%m-%d %H:%M:%S"),
-                  '{} mins {} secs'.format(minutes, seconds),
-                  task_dict["Task"].get('@status')])
+    if hours <= 0:
+        table.append([localStartTime.strftime("%Y-%m-%d %H:%M:%S"),
+                      '{} mins {} secs'.format(minutes, seconds),
+                      task_dict["Task"].get('@status')])
+    else:
+        table.append([localStartTime.strftime("%Y-%m-%d %H:%M:%S"),
+                      '{} hours {} mins {} secs'.format(hours, minutes, seconds),
+                      task_dict["Task"].get('@status')])
     return tabulate(table, headers=headers, tablefmt="orgtbl")
 
 

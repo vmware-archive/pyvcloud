@@ -683,7 +683,7 @@ class VAPP(object):
                      'reset_password_required': customization_section.get_ResetPasswordRequired()
                      }
                 )
-        Log.debug(self.logger, "details of VMs: %s" % result)                        
+        Log.debug(self.logger, "details of VMs: %s" % result)
         return result
         
     def modify_vm_memory(self, vm_name, new_size):

@@ -512,23 +512,21 @@ def vdc(ctx, operation, vdc):
             links = (vca.vcloud_session.organization.Link if
                      vca.vcloud_session.organization else [])
             if '' == vdc:
-                vdcs = filter(lambda info:
-                              info.name and info.type_
-                              == 'application/vnd.vmware.vcloud.vdc+xml',
+                vdcs = filter(lambda info: info.name and 
+                (info.type_ == 'application/vnd.vmware.vcloud.vdc+xml'),
                               links)
                 if len(vdcs) > 0:
                     vdc = vdcs[0].get_name()
             table1 = [[details.get_name(), '*' if details.get_name()
                        == vdc else ' '] for details in
-                      filter(lambda info:
-                             info.name and info.type_
-                             == 'application/vnd.vmware.vcloud.vdc+xml',
+                      filter(lambda info: info.name and 
+                      (info.type_ == 'application/vnd.vmware.vcloud.vdc+xml'),
                              links)]
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)
             vdcs = filter(lambda info:
-                          info.name == vdc and info.type_
-                          == 'application/vnd.vmware.vcloud.vdc+xml',
-                          links)
+                      info.name == vdc and 
+                      info.type_ == 'application/vnd.vmware.vcloud.vdc+xml',
+                      links)
             if len(vdcs) > 0:
                 _save_property(ctx.obj['profile'], 'vdc', vdc)
         print_table(

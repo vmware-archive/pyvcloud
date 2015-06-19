@@ -1146,11 +1146,11 @@ def catalog(ctx, operation, vdc, catalog_name, item_name, description, file_name
               default=None, metavar='<nat_rules_file>',
               help='NAT rules file',
               type=click.File('r'))
-@click.option('--all', is_flag=True, default=False,
+@click.option('-a', '--all', 'all_rules', is_flag=True, default=False,
               help='Delete all rules')
 def nat(ctx, operation, rule_type, original_ip, original_port,
         translated_ip, translated_port, protocol, nat_rules_file,
-        all):
+        all_rules):
     """Operations with Edge Gateway NAT Rules"""
     vca = _getVCA_vcloud_session(ctx)
     vdc = ctx.obj['vdc']
@@ -1197,7 +1197,7 @@ def nat(ctx, operation, rule_type, original_ip, original_port,
             print_error("can't operate with the edge gateway", ctx)
     elif 'delete':
         found_rule = False
-        if all:
+        if all_rules:
             gateways[0].del_all_nat_rules()
             found_rule = True
         else:

@@ -169,6 +169,9 @@ def cli(ctx=None, profile=None, version=None, debug=None, json_output=None,
         if ctx.invoked_subcommand is None:
             help_text = ctx.get_help()
             print(help_text)
+    if insecure:
+        print_warning('InsecureRequestWarning: Unverified HTTPS request is being made. Adding certificate verification is strongly advised.', ctx)
+        requests.packages.urllib3.disable_warnings()
 
 
 def _save_property(profile, prop, value):
@@ -2216,6 +2219,16 @@ def print_table(msg, obj, headers, table, ctx):
         click.echo(click.style(msg, fg='blue'))
         print(tabulate(table, headers=headers,
                        tablefmt="orgtbl"))
+
+
+def print_warning(msg, ctx):
+    if (ctx is not None and ctx.obj is not
+            None and ctx.obj['json_output']):
+        json_msg = {"Returncode": "1", "Details": msg}
+        print(json.dumps(json_msg, sort_keys=True,
+                         indent=4, separators=(',', ': ')))
+    else:
+        click.secho(msg, fg='yellow')
 
 
 def print_message(msg, ctx):

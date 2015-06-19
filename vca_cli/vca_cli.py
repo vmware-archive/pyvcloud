@@ -155,12 +155,6 @@ def cli(ctx=None, profile=None, version=None, debug=None, json_output=None,
     """VMware vCloud Air Command Line Interface."""
     _load_context(ctx, profile, json_output, xml_output, insecure)
     if debug:
-        # httplib.HTTPConnection.debuglevel = 1
-        # logging.basicConfig()
-        # logging.getLogger().setLevel(logging.DEBUG)
-        # requests_log = logging.getLogger("requests.packages.urllib3")
-        # requests_log.setLevel(logging.DEBUG)
-        # requests_log.propagate = True
         ctx.obj['debug'] = True
         ctx.obj['logger'] = _get_logger()
     else:
@@ -642,7 +636,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
             task = vca.create_vapp(vdc, vapp_name,
                                    template, catalog, vm_name=vm_name)
             if task:
-                display_progress(task, ctx.obj['json_output'],
+                display_progress(task, ctx,
                                  vca.vcloud_session.get_vcloud_headers())
             else:
                 ctx.obj['response'] = vca.response
@@ -656,7 +650,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                     % (vm_name), ctx)
                 task = the_vapp.customize_guest_os(vm_name, computer_name=vm_name)
                 if task:
-                    display_progress(task, ctx.obj['json_output'],
+                    display_progress(task, ctx,
                                      vca.vcloud_session.get_vcloud_headers())
                 else:
                     ctx.obj['response'] = the_vapp.response
@@ -668,7 +662,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                     % (cpu, vm_name, vapp_name), ctx)
                 task = the_vapp.modify_vm_cpu(vm_name, cpu)
                 if task:
-                    display_progress(task, ctx.obj['json_output'],
+                    display_progress(task, ctx,
                                      vca.vcloud_session.get_vcloud_headers())
                 else:
                     ctx.obj['response'] = the_vapp.response
@@ -680,7 +674,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                               % (ram, vm_name, vapp_name), ctx)
                 task = the_vapp.modify_vm_memory(vm_name, ram)
                 if task:
-                    display_progress(task, ctx.obj['json_output'],
+                    display_progress(task, ctx,
                                      vca.vcloud_session.get_vcloud_headers())
                 else:
                     ctx.obj['response'] = the_vapp.response
@@ -691,7 +685,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                               " pre-defined in the template", ctx)
                 task = the_vapp.disconnect_vms()
                 if task:
-                    display_progress(task, ctx.obj['json_output'],
+                    display_progress(task, ctx,
                                      vca.vcloud_session.get_vcloud_headers())
                 else:
                     ctx.obj['response'] = the_vapp.response
@@ -701,7 +695,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                               " pre-defined in the template", ctx)
                 task = the_vapp.disconnect_from_networks()
                 if task:
-                    display_progress(task, ctx.obj['json_output'],
+                    display_progress(task, ctx,
                                      vca.vcloud_session.get_vcloud_headers())
                 else:
                     ctx.obj['response'] = the_vapp.response
@@ -717,7 +711,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                         nets[0].name, nets[0].href)
                     if task:
                         display_progress(
-                            task, ctx.obj['json_output'],
+                            task, ctx,
                             vca.vcloud_session.get_vcloud_headers())
                     else:
                         ctx.obj['response'] = the_vapp.response
@@ -733,7 +727,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                         mac_address=None, ip_address=ip)
                     if task:
                         display_progress(
-                            task, ctx.obj['json_output'],
+                            task, ctx,
                             vca.vcloud_session.get_vcloud_headers())
                     else:
                         ctx.obj['response'] = the_vapp.response
@@ -743,7 +737,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
         print("deleting vApp '%s' from VDC '%s'" % (vapp, vdc))
         task = vca.delete_vapp(vdc, vapp)
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = vca.response
@@ -754,7 +748,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
         the_vapp = vca.get_vapp(the_vdc, vapp)
         task = the_vapp.deploy()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = the_vapp.response
@@ -765,7 +759,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
         the_vapp = vca.get_vapp(the_vdc, vapp)
         task = the_vapp.undeploy()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = the_vapp.response
@@ -779,12 +773,12 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
             print_message("uploading customization script", ctx)
             task = the_vapp.customize_guest_os(vm_name, cust_file.read())
             if task:
-                display_progress(task, ctx.obj['json_output'],
+                display_progress(task, ctx,
                                  vca.vcloud_session.get_vcloud_headers())
                 print_message("deploying and starting the vApp", ctx)
                 task = the_vapp.force_customization(vm_name)
                 if task:
-                    display_progress(task, ctx.obj['json_output'],
+                    display_progress(task, ctx,
                                      vca.vcloud_session.get_vcloud_headers())
                 else:
                     ctx.obj['response'] = the_vapp.response
@@ -810,7 +804,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                         task = the_vapp.delete()
                     if task:
                         display_progress(
-                            task, ctx.obj['json_output'],
+                            task, ctx,
                             vca.vcloud_session.get_vcloud_headers())
                     else:
                         ctx.obj['response'] = the_vapp.response
@@ -827,7 +821,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                 the_media = vca.get_media(catalog, media)
                 task = the_vapp.vm_media(vm_name, the_media, operation)
                 if task:
-                    display_progress(task, ctx.obj['json_output'],
+                    display_progress(task, ctx,
                                      vca.vcloud_session.get_vcloud_headers())
                 else:
                     ctx.obj['response'] = the_vapp.response
@@ -843,7 +837,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
         #                   " pre-defined in the template", ctx)
         #     task = the_vapp.disconnect_from_networks()
         #     if task:
-        #         display_progress(task, ctx.obj['json_output'],
+        #         display_progress(task, ctx,
         #                          vca.vcloud_session.get_vcloud_headers())
         #     else:
         #         ctx.obj['response'] = the_vapp.response
@@ -863,7 +857,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                         task = the_vapp.detach_disk_from_vm(vm_name, link[0])
                     if task:
                         display_progress(
-                            task, ctx.obj['json_output'],
+                            task, ctx,
                             vca.vcloud_session.get_vcloud_headers())
                     else:
                         ctx.obj['response'] = the_vapp.response
@@ -1081,7 +1075,7 @@ def catalog(ctx, operation, vdc, catalog_name, item_name, description, file_name
     if 'create' == operation:
         task = vca.create_catalog(catalog_name, description)
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = vca.response
@@ -1189,7 +1183,7 @@ def nat(ctx, operation, rule_type, original_ip, original_port,
                                      translated_port, protocol)
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1207,7 +1201,7 @@ def nat(ctx, operation, rule_type, original_ip, original_port,
         if found_rule:
             task = gateways[0].save_services_configuration()
             if task:
-                display_progress(task, ctx.obj['json_output'],
+                display_progress(task, ctx,
                                  vca.vcloud_session.get_vcloud_headers())
             else:
                 ctx.obj['response'] = gateways[0].response
@@ -1241,7 +1235,7 @@ def firewall(ctx, operation):
         gateways[0].enable_fw('enable' == operation)
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1284,7 +1278,7 @@ def dhcp(ctx, operation, network_name, pool):
                                   max_lease=None)
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1293,7 +1287,7 @@ def dhcp(ctx, operation, network_name, pool):
         gateways[0].delete_dhcp_pool(network_name)
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1302,7 +1296,7 @@ def dhcp(ctx, operation, network_name, pool):
         gateways[0].enable_dhcp('enable' == operation)
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1357,7 +1351,7 @@ def vpn(ctx, operation, network_name, public_ip, local_ip,
         gateways[0].enable_vpn('enable' == operation)
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1368,7 +1362,7 @@ def vpn(ctx, operation, network_name, public_ip, local_ip,
         gateways[0].add_vpn_endpoint(network_name, public_ip)
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1380,7 +1374,7 @@ def vpn(ctx, operation, network_name, public_ip, local_ip,
             return
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1391,7 +1385,7 @@ def vpn(ctx, operation, network_name, public_ip, local_ip,
             peer_ip, peer_network, secret)
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1403,7 +1397,7 @@ def vpn(ctx, operation, network_name, public_ip, local_ip,
             return
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1417,7 +1411,7 @@ def vpn(ctx, operation, network_name, public_ip, local_ip,
             return
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1431,7 +1425,7 @@ def vpn(ctx, operation, network_name, public_ip, local_ip,
             return
         task = gateways[0].save_services_configuration()
         if task:
-            display_progress(task, ctx.obj['json_output'],
+            display_progress(task, ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = gateways[0].response
@@ -1476,7 +1470,7 @@ def network(ctx, network_name, operation, gateway, gateway_ip,
     elif 'delete' == operation:
         result = vca.delete_vdc_network(ctx.obj['vdc'], network_name)
         if result[0]:
-            display_progress(result[1], ctx.obj['json_output'],
+            display_progress(result[1], ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = vca.response
@@ -1490,7 +1484,7 @@ def network(ctx, network_name, operation, gateway, gateway_ip,
             gateway_ip,
             netmask, dns1, dns2, dns_suffix)
         if result[0]:
-            display_progress(result[1], ctx.obj['json_output'],
+            display_progress(result[1], ctx,
                              vca.vcloud_session.get_vcloud_headers())
         else:
             ctx.obj['response'] = vca.response
@@ -1540,7 +1534,7 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
         if 'set-syslog' == operation:
             task = the_gateway.set_syslog_conf(ip)
             if task:
-                display_progress(task, ctx.obj['json_output'],
+                display_progress(task, ctx,
                                  vca.vcloud_session.get_vcloud_headers())
             else:
                 ctx.obj['response'] = gateways[0].response
@@ -1548,7 +1542,7 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
         elif 'add-ip' == operation:
             task = the_gateway.allocate_public_ip()
             if task:
-                display_progress(task, ctx.obj['json_output'],
+                display_progress(task, ctx,
                                  vca.vcloud_session.get_vcloud_headers())
             else:
                 ctx.obj['response'] = gateways[0].response
@@ -1556,7 +1550,7 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
         elif 'del-ip' == operation:
             task = the_gateway.deallocate_public_ip(ip)
             if task:
-                display_progress(task, ctx.obj['json_output'],
+                display_progress(task, ctx,
                                  vca.vcloud_session.get_vcloud_headers())
             else:
                 ctx.obj['response'] = gateways[0].response
@@ -1585,7 +1579,7 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
               default=None, metavar='<blueprint_file>',
               help='Local file name of the blueprint((TOSCA YAML)',
               type=click.Path(exists=True))
-def bp(ctx, operation, blueprint, blueprint_file):
+def blueprint(ctx, operation, blueprint, blueprint_file):
     """Operations with Blueprints"""
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
@@ -2358,7 +2352,7 @@ def task_table(task_xml):
     return tabulate(table, headers=headers, tablefmt="orgtbl")
 
 
-def display_progress(task, json, headers):
+def display_progress(task, ctx, headers):
     progress = task.get_Progress()
     status = task.get_status()
     rnd = 0
@@ -2394,13 +2388,13 @@ def display_progress(task, json, headers):
                 rnd += 1
             sys.stdout.flush()
             time.sleep(1)
-            response = requests.get(task.get_href(), headers=headers)
+            response = requests.get(task.get_href(), headers=headers, verify=ctx.obj['verify'])
             task = taskType.parseString(response.content, True)
             progress = task.get_Progress()
             status = task.get_status()
     sys.stdout.write("\r" + " " * 120)
     sys.stdout.flush()
-    if json:
+    if ctx.obj['json_output']:
         sys.stdout.write("\r" + task_json(response.content) + '\n')
     else:
         sys.stdout.write("\r" + task_table(response.content) + '\n')

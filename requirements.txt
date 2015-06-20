@@ -5,4 +5,4 @@ cryptography
 xmltodict
 tabulate
 dateutils
-pyvcloud == 13rc7
+pyvcloud == 14rc1

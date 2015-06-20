@@ -29,7 +29,7 @@ setup(
         'tabulate',
         'dateutils',
         'requests>=2.4.3',
-        'pyvcloud == 13'
+        'pyvcloud == 14rc1'
     ],
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[

@@ -647,6 +647,25 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                 return
             the_vdc = vca.get_vdc(vdc)
             the_vapp = vca.get_vapp(the_vdc, vapp_name)
+            if ((vm_name is not None) and
+                ((ctx.obj['service_version'] == "1.0") or
+                 (ctx.obj['service_version'] == "1.5") or
+                 (ctx.obj['service_version'] == "5.1") or
+                 (ctx.obj['service_version'] == "5.5"))
+               ):
+                if vm_name is not None:
+                    print_message(
+                        "setting VM name to '%s'"
+                        % (vm_name), ctx)
+                    task = the_vapp.modify_vm_name(1, vm_name)
+                    if task:
+                        display_progress(task, ctx,
+                                         vca.vcloud_session.get_vcloud_headers())
+                    else:
+                        ctx.obj['response'] = the_vapp.response
+                        print_error("can't set VM name", ctx)
+                        return
+                    the_vapp = vca.get_vapp(the_vdc, vapp_name)
             if vm_name is not None:
                 print_message(
                     "setting computer name for VM '%s'"
@@ -2369,6 +2388,7 @@ def display_progress(task, ctx, headers):
     progress = task.get_Progress()
     status = task.get_status()
     rnd = 0
+    response = None
     while status != "success":
         if status == "error":
             error = task.get_Error()
@@ -2407,11 +2427,12 @@ def display_progress(task, ctx, headers):
             status = task.get_status()
     sys.stdout.write("\r" + " " * 120)
     sys.stdout.flush()
-    if ctx.obj['json_output']:
-        sys.stdout.write("\r" + task_json(response.content) + '\n')
-    else:
-        sys.stdout.write("\r" + task_table(response.content) + '\n')
-    sys.stdout.flush()
+    if response is not None:
+        if ctx.obj['json_output']:
+            sys.stdout.write("\r" + task_json(response.content) + '\n')
+        else:
+            sys.stdout.write("\r" + task_table(response.content) + '\n')
+        sys.stdout.flush()
 
 
 def print_org_details(ctx, vca):

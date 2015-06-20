@@ -55,9 +55,11 @@ class VAPP(object):
         self.response = None
         self.logger = _get_logger() if log else None
 
+
     @property
     def name(self):
         return self.me.get_name()
+
 
     def execute(self, operation, http, body=None, targetVM=None):
         """
@@ -86,9 +88,9 @@ class VAPP(object):
                     headers['Content-type'] = 'application/vnd.vmware.vcloud.undeployVAppParams+xml'
                 elif body and body.startswith('<CreateSnapshotParams '):
                     headers['Content-type'] = 'application/vnd.vmware.vcloud.createSnapshotParams+xml'
-                self.response = Http.post(link[0].get_href(), data = body, headers=headers, verify=self.verify, logger=self.logger)
+                self.response = Http.post(link[0].get_href(), data=body, headers=headers, verify=self.verify, logger=self.logger)
             elif http == "put":
-                self.response = Http.put(link[0].get_href(), data = body, headers=self.headers, verify=self.verify, logger=self.logger)
+                self.response = Http.put(link[0].get_href(), data=body, headers=self.headers, verify=self.verify, logger=self.logger)
             else:
                 self.response = Http.delete(link[0].get_href(), headers=self.headers, verify=self.verify, logger=self.logger)
             if self.response.status_code == requests.codes.accepted:
@@ -96,6 +98,7 @@ class VAPP(object):
             else:
                 Log.debug(self.logger, "failed; response status=%d, content=%s" % (self.response.status_code, self.response.text))
                 return False
+
 
     def deploy(self, powerOn=True):
         """
@@ -111,6 +114,7 @@ class VAPP(object):
         body = CommonUtils.convertPythonObjToStr(deployVAppParams, name = "DeployVAppParams",
                 namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
         return self.execute("deploy", "post", body=body)
+
 
     def undeploy(self, action='powerOff'):
         """
@@ -140,13 +144,14 @@ class VAPP(object):
                 namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"')
         return self.execute("undeploy", "post", body=body)
 
+
     def reboot(self):
         """
         Reboot the vApp 
         :returns: (None) 
-  
         """
         self.execute("power:reboot", "post")
+
 
     def poweron(self):
         """
@@ -155,12 +160,14 @@ class VAPP(object):
         """
         return self.execute("power:powerOn", "post")
 
+
     def poweroff(self):
         """
         Power off the vApp
         :returns: (None)  
         """
         return self.execute("power:powerOff", "post")
+
 
     def shutdown(self):
         """
@@ -169,6 +176,7 @@ class VAPP(object):
         """
         return self.execute("power:shutdown", "post")
 
+
     def suspend(self):
         """
         Suspend the vApp
@@ -176,12 +184,14 @@ class VAPP(object):
         """
         self.execute("power:suspend", "post")
 
+
     def reset(self):
         """
         Reset the vApp
         :returns: (None) 
         """
         self.execute("power:reset", "post")
+
 
     def delete(self):
         """
@@ -243,6 +253,7 @@ class VAPP(object):
         networkConfigSection.set_Info(vAppType.cimString(valueOf_="Network config"))
         return networkConfigSection
 
+
     def connect_vms(self, network_name, connection_index,
                     connections_primary_index=None, ip_allocation_mode='DHCP',
                     mac_address=None, ip_address=None):
@@ -296,6 +307,7 @@ class VAPP(object):
                 if self.response.status_code == requests.codes.accepted:
                     return taskType.parseString(self.response.content, True)
 
+
     def disconnect_vms(self, network_name=None):
         """
         Disconnect the vm from the vapp network. 
@@ -337,6 +349,7 @@ class VAPP(object):
         task.set_Progress("100")
         return task
 
+
     def connect_to_network(self, network_name, network_href, fence_mode='bridged'):
         """
         Connect the vApp to an existing virtual network in the VDC.
@@ -370,6 +383,7 @@ class VAPP(object):
         if self.response.status_code == requests.codes.accepted:
             return taskType.parseString(self.response.content, True)
 
+
     def disconnect_from_networks(self):
         """
         Disconnect the vApp from currently connected virtual networks.
@@ -392,6 +406,7 @@ class VAPP(object):
         self.response = Http.put(link.get_href(), data=body, headers=self.headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.accepted:
             return taskType.parseString(self.response.content, True)
+
 
     def disconnect_from_network(self, network_name):
         """
@@ -423,6 +438,7 @@ class VAPP(object):
             if self.response.status_code == requests.codes.accepted:
                 return taskType.parseString(self.response.content, True)
 
+
     def attach_disk_to_vm(self, vm_name, disk_ref):
         """
         Attach a disk volume to a VM.
@@ -446,6 +462,7 @@ class VAPP(object):
                  </DiskAttachOrDetachParams>
                 """ % disk_ref.href
                 return self.execute("disk:attach", "post", body=body, targetVM=vms[0])
+
 
     def detach_disk_from_vm(self, vm_name, disk_ref):
         """
@@ -472,7 +489,6 @@ class VAPP(object):
                 return self.execute("disk:detach", "post", body=body, targetVM=vms[0])
 
 
-
     def vm_media(self, vm_name, media, operation):
         """
         Return a list of details for a media device attached to the VM. 
@@ -495,7 +511,6 @@ class VAPP(object):
                  </MediaInsertOrEjectParams>
                 """ % (media.get('name'), media.get('id'), media.get('href'))
                 return self.execute("media:%sMedia" % operation, "post", body=body, targetVM=vms[0])
-
 
 
     def customize_guest_os(self, vm_name, customization_script=None,
@@ -593,6 +608,7 @@ class VAPP(object):
                     else:
                         Log.debug(self.logger, "response status=%d, content=%s" % (self.response.status_code, self.response.text))
 
+
     def get_vms_network_info(self):
         """
         List details of the networks associated with each of the vms in the vApp
@@ -622,6 +638,7 @@ class VAPP(object):
             result.append(nw_connections)
         return result
 
+
     def customize_on_next_poweron(self):
         """
         Force the guest OS customization script to be run for the first VM in the vApp.
@@ -643,6 +660,7 @@ class VAPP(object):
 
         Log.error(self.logger, "link not found")
         return False
+
 
     def get_vms_details(self):
         """
@@ -685,26 +703,65 @@ class VAPP(object):
                 )
         Log.debug(self.logger, "details of VMs: %s" % result)
         return result
-        
+
+
+    def modify_vm_name(self, vm_index, vm_name):
+        """
+        Modify the name of a VM in a vApp
+
+        :param vm_index: (int):The index of the VM in the vApp 1==first VM
+        :param vm_name: (str): The new name of the VM.
+        :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request. \n
+                            if the task cannot be created a debug level log message is generated detailing the reason.
+
+        :raises: Exception: If the named VM cannot be located or another error occured.
+        """
+        children = self.me.get_Children()
+        if children:
+            assert len(children.get_Vm()) >= vm_index
+            vm = children.get_Vm()[vm_index-1]
+            assert vm
+            href = vm.get_href()
+            vm_name_old = vm.get_name()
+            Log.debug(self.logger, "VM name change (%s) %s -> %s" % (vm_index, vm_name_old, vm_name))
+            vm.set_name(vm_name)
+            vm.set_Section([])
+            output = StringIO()
+            vm.export(output,
+                0,
+                name_ = 'Vm',
+                namespacedef_ = 'xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:vmw="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"',
+                pretty_print = True)
+            body = output.getvalue()
+            headers = self.headers
+            headers['Content-type'] = 'application/vnd.vmware.vcloud.vm+xml'
+            self.response = Http.post(href+'/action/reconfigureVm', data=body, headers=headers, verify=self.verify, logger=self.logger)
+            if self.response.status_code == requests.codes.accepted:
+                return taskType.parseString(self.response.content, True)
+            else:
+                raise Exception(self.response.status_code)
+        raise Exception('can\'t find vm')
+
+
     def modify_vm_memory(self, vm_name, new_size):
         """
         Modify the virtual Memory allocation for VM.
-       
+
         :param vm_name: (str): The name of the vm to be customized.
         :param new_size: (int): The new memory allocation in MB.
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request. \n
                             if the task cannot be created a debug level log message is generated detailing the reason.
-     
+
         :raises: Exception: If the named VM cannot be located or another error occured.
         """
         children = self.me.get_Children()
         if children:
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
             if len(vms) == 1:
-                sections = vm.get_Section()                
-                virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]                
+                sections = vm.get_Section()
+                virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]
                 items = virtualHardwareSection.get_Item()
-                memory = filter(lambda item: item.get_Description().get_valueOf_() == "Memory Size", items)[0]                
+                memory = filter(lambda item: item.get_Description().get_valueOf_() == "Memory Size", items)[0]
                 href = memory.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href')
                 en = memory.get_ElementName()
                 en.set_valueOf_('%s MB of memory' % new_size)
@@ -728,13 +785,14 @@ class VAPP(object):
                     replace("vmw:", "").replace("class:", "rasd:").replace("ResourceType", "rasd:ResourceType")
                 headers = self.headers
                 headers['Content-type'] = 'application/vnd.vmware.vcloud.rasdItem+xml'
-                self.response = Http.put(href, data = body, headers=headers, verify=self.verify, logger=self.logger)
+                self.response = Http.put(href, data=body, headers=headers, verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.accepted:
                     return taskType.parseString(self.response.content, True)
                 else:
                     raise Exception(self.response.status_code)
         raise Exception('can\'t find vm')
-        
+
+
     def modify_vm_cpu(self, vm_name, cpus):
         """
         Modify the virtual CPU allocation for VM.
@@ -773,12 +831,13 @@ class VAPP(object):
                     replace("vmw:", "").replace("class:", "rasd:").replace("ResourceType", "rasd:ResourceType")
                 headers = self.headers
                 headers['Content-type'] = 'application/vnd.vmware.vcloud.rasdItem+xml'
-                self.response = Http.put(href, data = body, headers=headers, verify=self.verify, logger=self.logger)
+                self.response = Http.put(href, data=body, headers=headers, verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.accepted:
                     return taskType.parseString(self.response.content, True)
                 else:
                     raise Exception(self.response.status_code)
         raise Exception('can\'t find vm')
+
 
     def _get_vms(self):
         children = self.me.get_Children()
@@ -786,6 +845,7 @@ class VAPP(object):
             return children.get_Vm()
         else:
             return []
+
 
     def _modify_networkConnectionSection(self, section, new_connection,
                                          primary_index=None):
@@ -806,6 +866,7 @@ class VAPP(object):
             section.set_Info(info)
         if primary_index is not None:
             section.set_PrimaryNetworkConnectionIndex(primary_index)
+
 
     def _create_networkConnection(self, network_name, index, ip_allocation_mode,
                                   mac_address=None, ip_address=None):

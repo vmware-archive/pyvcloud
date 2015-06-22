@@ -390,52 +390,48 @@ class VCA(object):
         templateParams.set_Source(source)
         templateParams.set_AllEULAsAccepted("true")
 
-        if ((self.version == "1.0") or (self.version == "1.5") or
-           (self.version == "5.1") or (self.version == "5.5")):
-            if vm_name or vm_cpus or vm_memory:
-                params = vcloudType.SourcedVmInstantiationParamsType()
+
+        if vm_name or vm_cpus or vm_memory:
+            params = vcloudType.SourcedCompositionItemParamType()
+            if ((self.version == "1.0") or (self.version == "1.5") 
+                    or (self.version == "5.1") or (self.version == "5.5")):
+                pass
+            else:
                 params.set_Source(vcloudType.ReferenceType(href=vm_href))
                 templateParams.add_SourcedItem(params)
-                if vm_name:
-                    pass
-        else:
-            if vm_name or vm_cpus or vm_memory:
-                params = vcloudType.SourcedCompositionItemParamType()
-                params.set_Source(vcloudType.ReferenceType(href=vm_href))
-                templateParams.add_SourcedItem(params)
-                if vm_name:
-                   gen_params = vcloudType.VmGeneralParamsType()
-                   gen_params.set_Name(vm_name)
-                   params.set_VmGeneralParams(gen_params)
-                if vm_cpus or vm_memory:
-                    inst_param = vcloudType.InstantiationParamsType()
-                    hardware = vcloudType.VirtualHardwareSection_Type(id=None)
-                    hardware.original_tagname_ = "VirtualHardwareSection"
-                    hardware.set_Info(vAppType.cimString(valueOf_="Virtual hardware requirements"))
-                    inst_param.add_Section(hardware)
-                    params.set_InstantiationParams(inst_param)
-                    if vm_cpus:
-                        cpudata = vAppType.RASD_Type()
-                        cpudata.original_tagname_ = "ovf:Item"
-                        cpudata.set_required(None)
-                        cpudata.set_AllocationUnits(vAppType.cimString(valueOf_="hertz * 10^6"))
-                        cpudata.set_Description(vAppType.cimString(valueOf_="Number of Virtual CPUs"))
-                        cpudata.set_ElementName(vAppType.cimString(valueOf_="{0} virtual CPU(s)".format(vm_cpus)))
-                        cpudata.set_InstanceID(vAppType.cimInt(valueOf_=1))
-                        cpudata.set_ResourceType(3)
-                        cpudata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_cpus))
-                        hardware.add_Item(cpudata)
-                    if vm_memory:
-                        memorydata = vAppType.RASD_Type()
-                        memorydata.original_tagname_ = "ovf:Item"
-                        memorydata.set_required(None)
-                        memorydata.set_AllocationUnits(vAppType.cimString(valueOf_="byte * 2^20"))
-                        memorydata.set_Description(vAppType.cimString(valueOf_="Memory Size"))
-                        memorydata.set_ElementName(vAppType.cimString(valueOf_="{0} MB of memory".format(vm_memory)))
-                        memorydata.set_InstanceID(vAppType.cimInt(valueOf_=2))
-                        memorydata.set_ResourceType(4)
-                        memorydata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_memory))
-                        hardware.add_Item(memorydata)
+            if vm_name:
+               gen_params = vcloudType.VmGeneralParamsType()
+               gen_params.set_Name(vm_name)
+               params.set_VmGeneralParams(gen_params)
+            if vm_cpus or vm_memory:
+                inst_param = vcloudType.InstantiationParamsType()
+                hardware = vcloudType.VirtualHardwareSection_Type(id=None)
+                hardware.original_tagname_ = "VirtualHardwareSection"
+                hardware.set_Info(vAppType.cimString(valueOf_="Virtual hardware requirements"))
+                inst_param.add_Section(hardware)
+                params.set_InstantiationParams(inst_param)
+                if vm_cpus:
+                    cpudata = vAppType.RASD_Type()
+                    cpudata.original_tagname_ = "ovf:Item"
+                    cpudata.set_required(None)
+                    cpudata.set_AllocationUnits(vAppType.cimString(valueOf_="hertz * 10^6"))
+                    cpudata.set_Description(vAppType.cimString(valueOf_="Number of Virtual CPUs"))
+                    cpudata.set_ElementName(vAppType.cimString(valueOf_="{0} virtual CPU(s)".format(vm_cpus)))
+                    cpudata.set_InstanceID(vAppType.cimInt(valueOf_=1))
+                    cpudata.set_ResourceType(3)
+                    cpudata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_cpus))
+                    hardware.add_Item(cpudata)
+                if vm_memory:
+                    memorydata = vAppType.RASD_Type()
+                    memorydata.original_tagname_ = "ovf:Item"
+                    memorydata.set_required(None)
+                    memorydata.set_AllocationUnits(vAppType.cimString(valueOf_="byte * 2^20"))
+                    memorydata.set_Description(vAppType.cimString(valueOf_="Memory Size"))
+                    memorydata.set_ElementName(vAppType.cimString(valueOf_="{0} MB of memory".format(vm_memory)))
+                    memorydata.set_InstanceID(vAppType.cimInt(valueOf_=2))
+                    memorydata.set_ResourceType(4)
+                    memorydata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_memory))
+                    hardware.add_Item(memorydata)
 
         return templateParams
 

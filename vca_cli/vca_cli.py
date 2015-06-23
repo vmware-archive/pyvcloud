@@ -1636,7 +1636,7 @@ def blueprint(ctx, operation, blueprint, blueprint_file):
         try:
             b = score.blueprints.upload(blueprint_file, blueprint)
             if b is not None:
-                print_message("successfully uploaded blueprint('%s'"
+                print_message("successfully uploaded blueprint '%s'"
                               % b.get('id'), ctx)
         except Exception:
             print_error("failed to upload blueprint")

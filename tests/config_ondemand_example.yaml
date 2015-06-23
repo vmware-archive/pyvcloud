@@ -35,3 +35,4 @@ vcloud:
     fw_source_ip: Any
     fw_enable_logging: false
     custom_catalog: catalog-1
+    blueprint_path: /path/to/blueprint.yaml

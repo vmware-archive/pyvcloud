@@ -38,6 +38,10 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType
 from cryptography.fernet import Fernet
 from pyvcloud import _get_logger, Log
 
+from pyvcloud.score import Score, BlueprintsClient
+from dsl_parser.exceptions import *
+
+
 # TODO(???): when token expired, it doesn't seem to re-login
 # the first time, but it works the second time
 # TODO(???): list active tasks
@@ -1592,8 +1596,8 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation,
-                metavar='[list | info | upload | delete]',
-                type=click.Choice(['list', 'info', 'upload', 'delete']))
+                metavar='[list | info | validate | upload | delete]',
+                type=click.Choice(['list', 'info', 'validate', 'upload', 'delete']))
 @click.option('-b', '--blueprint', default='',
               metavar='<blueprint_id>',
               help='Name of the blueprint(to create')
@@ -1603,14 +1607,19 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
               type=click.Path(exists=True))
 def blueprint(ctx, operation, blueprint, blueprint_file):
     """Operations with Blueprints"""
-    vca = _getVCA_vcloud_session(ctx)
-    if not vca:
-        print_error('User not authenticated or token expired', ctx)
-        return
-    score = vca.get_score_service(ctx.obj['host_score'])
-    if not score:
-        print_error('Unable to access the blueprints service', ctx)
-        return
+    vca = None
+    score = None
+    if 'validate' != operation:
+        vca = _getVCA_vcloud_session(ctx)
+        if not vca:
+            print_error('User not authenticated or token expired', ctx)
+            return
+        score = vca.get_score_service(ctx.obj['host_score'])
+        if not score:
+            print_error('Unable to access the blueprints service', ctx)
+            return
+    else:
+        score = Score(ctx.obj['host_score'])
     if 'list' == operation:
         headers = ['Blueprint Id', 'Created']
         table = []
@@ -1632,6 +1641,24 @@ def blueprint(ctx, operation, blueprint, blueprint_file):
                              indent=4, separators=(',', ': ')))
         else:
             print_error("blueprint(not found")
+    elif 'validate' == operation:
+        try:
+            plan = score.blueprints.validate(blueprint_file)
+            print_message("the blueprint is valid", ctx)
+        except MissingRequiredInputError as mrie:
+            print_error('invalid blueprint: ' +
+                str(mrie)[str(mrie).rfind('}')+1:].strip())
+        except UnknownInputError as uie:
+            print_error('invalid blueprint: ' +
+                str(uie)[str(uie).rfind('}')+1:].strip())
+        except FunctionEvaluationError as fee:
+            print_error('invalid blueprint: ' +
+                str(fee)[str(fee).rfind('}')+1:].strip())
+        except DSLParsingException as dpe:
+            print_error('invalid blueprint: ' +
+                str(dpe)[str(dpe).rfind('}')+1:].strip())
+        except Exception as ex:
+            print_error('failed to validate %s:\n %s' %(blueprint_file, str(ex)))
     elif 'upload' == operation:
         try:
             b = score.blueprints.upload(blueprint_file, blueprint)

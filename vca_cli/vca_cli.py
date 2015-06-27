@@ -391,16 +391,27 @@ def instance(ctx, operation, instance):
     if not vca:
         return
     if 'list' == operation:
-        headers = ["Instance Id", "Region", "Description", "Plan Id"]
+        headers = ["Service Group", "Region", "Plan", "Instance Id"]
         instances = vca.instances
+        plans = vca.get_plans()
+        service_groups = vca.get_service_groups()
         items = instances if instances else []
-        table = [[item['id'], item['region'],
-                  item['description'],
-                  item['planId']] for item in items]
+        table = []
+        for item in items:
+            # plan_name = filter(lambda plan: plan['id']==item['planId'], plans)[0]['serviceName'].split('.')[-1]
+            plan_name = filter(lambda plan: plan['id']==item['planId'], plans)[0]['name']
+            service_group_name = filter(lambda sg: sg['id']==item['serviceGroupId'], service_groups['serviceGroup'])[0]['displayName']
+            table.append([
+                service_group_name,
+                item['region'].split('.')[0],
+                plan_name,
+                item['id']
+            ])
+        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
         print_table("Available instances for user '%s'"
                     "in '%s' profile:"
                     % (ctx.obj['user'], ctx.obj['profile']),
-                    'instances', headers, table, ctx)
+                    'instances', headers, sorted_table, ctx)
     elif 'info' == operation:
         print_message("info about instance %s" % instance, ctx)
 

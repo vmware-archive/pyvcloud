@@ -5,6 +5,7 @@ python:
 env:
     - TOX_ENV=flake8
 install:
+    - pip install -r requirements.txt
     - pip install tox
 script:
     - tox -e $TOX_ENV

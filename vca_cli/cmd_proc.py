@@ -15,8 +15,6 @@
 
 import os
 import ConfigParser
-import json
-import click
 from cryptography.fernet import Fernet
 from pyvcloud.vcloudair import VCA
 
@@ -33,10 +31,9 @@ class CmdProc:
         self.config = ConfigParser.RawConfigParser()
         self.vca = None
 
-
     def load_config(self, profile=None, profile_file='~/.vcarc'):
         self.config.read(os.path.expanduser(profile_file))
-        if profile != None:
+        if profile is not None:
             self.profile = profile
         else:
             section = 'Global'
@@ -46,12 +43,12 @@ class CmdProc:
                 self.profile = 'default'
         section = 'Profile-%s' % self.profile
         if self.config.has_section(section):
-            host=None
-            user=None
-            password=None
-            token=None
-            service_type=None
-            version=None
+            host = None
+            user = None
+            password = None
+            token = None
+            service_type = None
+            version = None
             if self.config.has_option(section, 'host'):
                 host = self.config.get(section, 'host')
             if self.config.has_option(section, 'user'):
@@ -67,29 +64,31 @@ class CmdProc:
                 service_type = self.config.get(section, 'service_type')
             if self.config.has_option(section, 'service_version'):
                 version = self.config.get(section, 'service_version')
-            self.vca = VCA(host=host, username=user, service_type=service_type, 
-                           version=version, verify=self.verify, log=self.debug)
-
+            self.vca = VCA(host=host, username=user,
+                           service_type=service_type, version=version,
+                           verify=self.verify, log=self.debug)
+            self.vca.password = password
+            self.vca.token = token
 
     def save_config(self, profile='default', profile_file='~/.vcarc'):
         with open(os.path.expanduser(profile_file), 'w+') as configfile:
             self.config.write(configfile)
 
-
     def login(self, host, username, password, version):
-        self.vca = VCA(host=host, username=username, version=version, verify=self.verify, log=self.debug)
+        self.vca = VCA(host=host, username=username, version=version,
+                       verify=self.verify, log=self.debug)
         service_type = self.vca.get_service_type()
         if service_type == VCA.VCA_SERVICE_TYPE_UNKNOWN:
             raise Exception('service type unknown')
         self.vca.service_type = service_type
         result = self.vca.login(password=password)
-        #todo: evaluate if vca requires get instances or get services upon login....
-        #if not, remove for speed
+#        todo: evaluate if vca requires get instances or
+#        get services upon login....
+#        if not, remove for speed
         if result:
             pass
-            #save config
+#            save config
         return result
-
 
     def logout(self):
         pass

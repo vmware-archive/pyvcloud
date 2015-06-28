@@ -19,26 +19,22 @@ import json
 
 class VcaCliUtils:
 
-
     def _print(self, message, cmd_proc, fg='black'):
         click.secho(message, fg=fg)
-
 
     def print_warning(self, message, cmd_proc):
         self._print(message, cmd_proc, fg='yellow')
 
-
     def print_message(self, message, cmd_proc):
         self._print(message, cmd_proc, fg='blue')
 
-
     def print_error(self, message, cmd_proc):
         msg = message
-        if cmd_proc != None and \
-           cmd_proc.vca != None and \
-           cmd_proc.vca.response != None and \
-           cmd_proc.vca.response.content != None and \
-           'message' in cmd_proc.vca.response.content:
-               json_message = json.loads(cmd_proc.vca.response.content)
-               msg += ': ' + json_message.get('message')
+        if cmd_proc is not None and \
+                cmd_proc.vca is not None and \
+                cmd_proc.vca.response is not None and \
+                cmd_proc.vca.response.content is not None and \
+                'message' in cmd_proc.vca.response.content:
+            json_message = json.loads(cmd_proc.vca.response.content)
+            msg += ': ' + json_message.get('message')
         self._print(msg, cmd_proc, fg='red')

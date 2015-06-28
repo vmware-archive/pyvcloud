@@ -85,7 +85,7 @@ def status(cmd_proc):
 @click.option('-v', '--version', 'service_version',
               default='5.7', metavar='[5.5 | 5.6 | 5.7]',
               type=click.Choice(['5.5', '5.6', '5.7']), help='')
-@click.option('-h', '--host', default='https://vca.vmware.com', 
+@click.option('-h', '--host', default='https://vca.vmware.com',
               help='')
 @click.option('-i', '--instance', default=None, help='Instance Id')
 @click.option('-o', '--org', default=None, help='Organization Name')
@@ -96,13 +96,14 @@ def login(cmd_proc, user, host, password, save_password,
     """Login to a vCloud service"""
     if not (host.startswith('https://') or host.startswith('http://')):
         host = 'https://' + host
-    if not (host_score.startswith('https://') or 
+    if not (host_score.startswith('https://') or
             host_score.startswith('http://')):
         host_score = 'https://' + host_score
     try:
         result = cmd_proc.login(host, user, password, version=service_version)
         if result:
-            utils.print_message('user logged in (type=%s)' % cmd_proc.vca.service_type, cmd_proc)
+            utils.print_message('user logged in (type=%s)' %
+                                cmd_proc.vca.service_type, cmd_proc)
         else:
             utils.print_error('can\'t login', cmd_proc)
     except Exception as e:

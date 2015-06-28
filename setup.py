@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
+import pip
 from pip.req import parse_requirements
-
-
-install_reqs = parse_requirements('requirements.txt')
-required = [str(ir.req) for ir in install_reqs]
-
+requirements = [
+    str(requirement.req)
+    for requirement in parse_requirements('requirements.txt', session=pip.download.PipSession())
+]
 
 setup(
     name='vca-cli',
@@ -14,7 +14,7 @@ setup(
     url='https://github.com/vmware/vca-cli',
     author='VMware, Inc.',
     author_email='pgomez@vmware.com',
-    install_requires=required,
+    install_requires=requirements,
     entry_points='''
         [console_scripts]
         vca=vca_cli.vca_cli:cli

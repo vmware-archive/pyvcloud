@@ -17,15 +17,17 @@ import os
 import click
 import pkg_resources
 import requests
+from cmd_proc import CmdProc
 from vca_cli_utils import VcaCliUtils
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 default_operation = 'list'
+utils = VcaCliUtils()
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
-@click.option('-p', '--profile', default='default',
+@click.option('-p', '--profile', default=None,
               metavar='<profile>', help='Profile id')
 @click.option('-f', '--profile-file', default='~/.vcarc',
               metavar='<file>', help='Profile file', type=click.Path())
@@ -51,19 +53,74 @@ def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
         help_text = ctx.get_help()
         print(help_text)
         return
-    utils = VcaCliUtils()
     if insecure:
         utils.print_warning('InsecureRequestWarning: ' +
                             'Unverified HTTPS request is being made. ' +
                             'Adding certificate verification is strongly ' +
-                            'advised.', ctx)
+                            'advised.')
         requests.packages.urllib3.disable_warnings()
     profile_file_fq = os.path.expanduser(profile_file)
-    utils.load_context(ctx, profile, profile_file_fq)
+    ctx.obj = CmdProc(profile=profile, profile_file=profile_file_fq,
+                      debug=debug, insecure=insecure)
+    ctx.obj.load_config(profile, profile_file)
 
 
 @cli.command()
-@click.pass_context
-def status(ctx):
+@click.pass_obj
+def status(cmd_proc):
     """Show current status"""
+    print 'host: ' + cmd_proc.host
+    print 'user: ' + cmd_proc.user
+    # print 'token: ' + cmd_proc.token
+    print 'pass: ' + cmd_proc.password
+
+
+@cli.command()
+@click.pass_obj
+@click.argument('user')
+@click.option('-p', '--password', prompt=True,
+              confirmation_prompt=False, hide_input=True, help='Password')
+@click.option('-s', '--save-password', is_flag=True,
+              default=False, help='Save Password')
+@click.option('-v', '--version', 'service_version',
+              default='5.7', metavar='[5.5 | 5.6 | 5.7]',
+              type=click.Choice(['5.5', '5.6', '5.7']), help='')
+@click.option('-h', '--host', default='https://vca.vmware.com', 
+              help='')
+@click.option('-i', '--instance', default=None, help='Instance Id')
+@click.option('-o', '--org', default=None, help='Organization Name')
+@click.option('-c', '--host-score', 'host_score',
+              default='https://score.vca.io', help='URL of the Score server')
+def login(cmd_proc, user, host, password, save_password,
+          service_version, instance, org, host_score):
+    """Login to a vCloud service"""
+    if not (host.startswith('https://') or host.startswith('http://')):
+        host = 'https://' + host
+    if not (host_score.startswith('https://') or 
+            host_score.startswith('http://')):
+        host_score = 'https://' + host_score
+    try:
+        result = cmd_proc.login(host, user, password, version=service_version)
+        if result:
+            utils.print_message('user logged in (type=%s)' % cmd_proc.vca.service_type, cmd_proc)
+        else:
+            utils.print_error('can\'t login', cmd_proc)
+    except Exception as e:
+        utils.print_error(str(e), cmd_proc)
+
+
+@cli.command()
+@click.pass_obj
+def logout(cmd_proc):
+    """Logout from a vCloud service"""
     pass
+    # vca = _getVCA(ctx)
+    # if vca:
+    #     vca.logout()
+    # _save_property(ctx.obj['profile'], 'token', 'None')
+    # _save_property(ctx.obj['profile'], 'session_token', 'None')
+    # _save_property(ctx.obj['profile'], 'org_url', 'None')
+    # _save_property(ctx.obj['profile'], 'session_uri', 'None')
+    # _save_property(ctx.obj['profile'], 'password', 'None')
+    # print_message('Logout successful '
+    #               'for profile \'%s\'' % ctx.obj['profile'], ctx)

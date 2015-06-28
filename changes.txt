@@ -1,0 +1,2 @@
+-h for --host instead of -H
+--standalone flag instead of --type

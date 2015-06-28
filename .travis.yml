@@ -3,7 +3,7 @@ sudo: false
 python:
   - "2.7"
 env:
-    - TOX_ENV=pep8
+    - TOX_ENV=flake8
 install:
     - pip install tox
 script:

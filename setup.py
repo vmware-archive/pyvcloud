@@ -1,12 +1,9 @@
 from setuptools import setup, find_packages
+from pip.req import parse_requirements
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
-
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
+install_reqs = parse_requirements('requirements.txt')
+required = [str(ir.req) for ir in install_reqs]
 
 
 setup(
@@ -14,7 +11,7 @@ setup(
     version='20rc1',
     packages=find_packages(),
     include_package_data=True,
-    url='https://github.com/vmware/pyvcloud',
+    url='https://github.com/vmware/vca-cli',
     author='VMware, Inc.',
     author_email='pgomez@vmware.com',
     install_requires=required,

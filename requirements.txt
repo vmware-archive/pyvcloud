@@ -1,1 +1,6 @@
-mock
+click>=4.0
+colorama>=0.3.3
+cryptography>=0.9.1
+requests>=2.7.0
+PyYAML==3.10
+pyvcloud>=14rc2

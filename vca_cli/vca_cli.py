@@ -145,6 +145,7 @@ def logout(cmd_proc):
     utils.print_message("User '%s' logged out, profile '%s'" %
                         (user, profile),
                         cmd_proc)
+#DELETE https://vchs.vmware.com/api/vchs/session
 
 
 @cli.command()
@@ -154,60 +155,101 @@ def logout(cmd_proc):
                 type=click.Choice(['list', 'info', 'use']))
 @click.option('-i', '--instance', default='', metavar='<instance>',
               help='Instance Id')
-def instance(cmd_proc, operation, instance):
+@click.option('-o', '--org', default='', metavar='<org>',
+              help='Organization Id')
+def instance(cmd_proc, operation, instance, org):
     """Operations with Instances"""
-    if cmd_proc.vca.service_type != VCA.VCA_SERVICE_TYPE_VCA:
-        utils.print_message('This service type doesn\'t support this command')
-        return
+    # if cmd_proc.vca.service_type != VCA.VCA_SERVICE_TYPE_VCA:
+    #     utils.print_message('This service type doesn\'t support this command')
+    #     return
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
         return
     if 'list' == operation:
-        headers = ["Service Group", "Region", "Plan", "Instance Id"]
-        instances = cmd_proc.vca.instances
-        plans = cmd_proc.vca.get_plans()
-        service_groups = cmd_proc.vca.get_service_groups()
-        items = instances if instances else []
+        headers = []
         table = []
-        for item in items:
-            plan_name = filter(lambda plan: plan['id'] == item['planId'],
-                               plans)[0]['name']
-            service_group = filter(lambda sg:
-                                   sg['id'] == item['serviceGroupId'],
-                                   service_groups['serviceGroup'])
-            service_group_name = '' if len(service_group) == 0 else \
-                                 service_group[0]['displayName']
-            table.append([
-                service_group_name,
-                item['region'].split('.')[0],
-                plan_name,
-                item['id']
-            ])
+        if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCA:
+            headers = ["Service Group", "Region", "Plan", "Instance Id"]
+            instances = cmd_proc.vca.instances
+            plans = cmd_proc.vca.get_plans()
+            service_groups = cmd_proc.vca.get_service_groups()
+            items = instances if instances else []
+            for item in items:
+                plan_name = filter(lambda plan: plan['id'] == item['planId'],
+                                   plans)[0]['name']
+                service_group = filter(lambda sg:
+                                       sg['id'] == item['serviceGroupId'],
+                                       service_groups['serviceGroup'])
+                service_group_name = '' if len(service_group) == 0 else \
+                                     service_group[0]['displayName']
+                table.append([
+                    service_group_name,
+                    item['region'].split('.')[0],
+                    plan_name,
+                    item['id']
+                ])
+        elif cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
+            headers = ["Service Group", "Region", "Plan", "Instance Id", "Type"]
+            services = cmd_proc.vca.services
+            table = []
+            for s in cmd_proc.vca.services.get_Service():
+                table.append(['', s.region, '', s.serviceId, s.serviceType])
         sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
         utils.print_table("Available instances for user '%s'"
                           ", profile '%s':" %
                           (cmd_proc.vca.username, cmd_proc.profile),
                           headers, sorted_table, cmd_proc)
     elif 'info' == operation:
-        instance_data = cmd_proc.vca.get_instance(instance)
-        utils.print_json('Instance details:', instance_data, cmd_proc)
-        # url = instance_data.get('apiUrl')
-        # headers = {}
-        # headers["x-vchs-authorization"] = cmd_proc.vca.token
-        # headers["Accept"] = "application/xml;version=" + '5.6'
-        # from pyvcloud import _get_logger, Http, Log
-        # response = Http.get('https://vchs.vmware.com' + "/api/vchs/services",
-        # headers=headers, verify=cmd_proc.vca.verify,
-        # logger=cmd_proc.vca.logger)
-        # if response.status_code == requests.codes.ok:
-        #     services = serviceType.parseString(response.content, True)
+        if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCA:
+            instance_data = cmd_proc.vca.get_instance(instance)
+            plan = cmd_proc.vca.get_plan(instance_data['planId'])
+            if cmd_proc.json_output:
+                json_object = {'instance':instance_data, 'plan':plan}
+                utils.print_json('Instance and Plan details', json_object,
+                                 cmd_proc)
+            else:
+                utils.print_json('Instance details:', instance_data, cmd_proc)
+                utils.print_json('Plan details:', plan, cmd_proc)
+        elif cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
+            headers = ["Instance Id", "Org", "Status"]
+            table = []
+            for vdc in cmd_proc.vca.get_vdc_references(instance):
+                table.append([instance, vdc.name, vdc.status])
+            utils.print_table('Instance details', headers, table,
+                             cmd_proc)
+    elif 'use' == operation:
+        if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
+            result = cmd_proc.vca.login_to_org(instance, org)
+            if result:
+                utils.print_message("Using organization '%s':'%s'"
+                              ", profile '%s'" %
+                              (instance, org, cmd_proc.profile), cmd_proc)
+            else:
+                cmd_proc.vca.response = None
+                utils.print_error("Unable to select organization '%s':'%s'"
+                              ", profile '%s'" %
+                              (instance, org, cmd_proc.profile), cmd_proc)
     else:
         utils.print_message('Not implemented')
+
+
+
+@cli.command()
+@click.pass_obj
+@click.argument('operation', default=default_operation,
+                metavar='[list | info]',
+                type=click.Choice(['list', 'info']))
+@click.option('-o', '--org', default='', metavar='<org>',
+              help='Organization Id')
+def org(cmd_proc, operation, org):
+    """Operations with Organizations"""
+    print org
 
 
 if __name__ == '__main__':
     pass
 else:
-    import vca_cli_gw  # NOQA
+    import vca_cli_compute  # NOQA
+    import vca_cli_network  # NOQA
     import vca_cli_bp  # NOQA

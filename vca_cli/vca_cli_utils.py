@@ -15,6 +15,7 @@
 
 import click
 import json
+import operator
 from tabulate import tabulate
 
 
@@ -42,13 +43,36 @@ class VcaCliUtils:
                 msg += ': ' + cmd_proc.vca.response.content
         self._print(msg, cmd_proc, fg='red')
 
-    def print_table(self, message, obj, headers, table, cmd_proc=None):
-        # if (ctx is not None and ctx.obj is not
-        #         None and ctx.obj['json_output']):
-        #     data = [dict(zip(headers, row)) for row in table]
-        #     print(json.dumps(
-        #         {"Errorcode": "0", "Details": msg, obj: data},
-        #         sort_keys=True, indent=4, separators=(',', ': ')))
-        # else:
-        click.echo(click.style(message, fg='blue'))
+    def print_table(self, message, headers, table, cmd_proc=None):
+        if cmd_proc is not None and cmd_proc.json_output:
+            json_obj = self.table_to_json(headers, table)
+            self._print_json(message, json_obj, cmd_proc)
+        elif cmd_proc is not None and cmd_proc.xml_output:
+            click.secho('Not implemented', fg='black')
+        else:
+            self._print_table(message, headers, table, cmd_proc)
+
+    def print_json(self, message, json_obj, cmd_proc=None):
+        if cmd_proc is not None and cmd_proc.json_output:
+            self._print_json(message, json_obj, cmd_proc)
+        elif cmd_proc is not None and cmd_proc.xml_output:
+            click.secho('Not implemented', fg='black')
+        else:
+            headers = ['Key', 'Value']
+            table = []
+            for key in json_obj.keys():
+                table.append([key, json_obj.get(key)])
+            sorted_table = sorted(table, key=operator.itemgetter(0),
+                                  reverse=False)
+            self._print_table(message, headers, sorted_table, cmd_proc)
+
+    def _print_table(self, message, headers, table, cmd_proc=None):
+        click.secho(message, fg='blue')
         print(tabulate(table, headers=headers, tablefmt="orgtbl"))
+
+    def _print_json(self, message, json_obj, cmd_proc=None):
+        click.secho(json.dumps(json_obj, sort_keys=True,
+                    indent=4, separators=(',', ': ')), fg='black')
+
+    def table_to_json(self, headers, table):
+        return [dict(zip(headers, row)) for row in table]

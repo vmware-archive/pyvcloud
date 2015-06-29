@@ -64,6 +64,7 @@ def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
         requests.packages.urllib3.disable_warnings()
     profile_file_fq = os.path.expanduser(profile_file)
     ctx.obj = CmdProc(profile=profile, profile_file=profile_file_fq,
+                      json_output=json_output, xml_output=xml_output,
                       debug=debug, insecure=insecure)
     ctx.obj.load_config(profile, profile_file)
 
@@ -76,16 +77,19 @@ def status(cmd_proc):
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
-    print 'profile_file:   ' + cmd_proc.profile_file
-    print 'profile:        ' + cmd_proc.profile
-    print 'host:           ' + cmd_proc.vca.host
-    print 'user:           ' + str(cmd_proc.vca.username)
+    headers = ['Key', 'Value']
+    table = []
+    table.append(['profile_file', cmd_proc.profile_file])
+    table.append(['profile', cmd_proc.profile])
+    table.append(['host', cmd_proc.vca.host])
+    table.append(['user', cmd_proc.vca.username])
     if cmd_proc.password is None or len(cmd_proc.password) == 0:
-        print 'pass:           ' + str(cmd_proc.password)
+        table.append(['password', str(cmd_proc.password)])
     else:
-        print 'pass:           ' + '<encrypted>'
-    print 'type:           ' + str(cmd_proc.vca.service_type)
-    print 'active session: ' + str(result)
+        table.append(['password', '<encrypted>'])
+    table.append(['type', cmd_proc.vca.service_type])
+    table.append(['active session', str(result)])
+    utils.print_table('Status:', headers, table, cmd_proc)
 
 
 @cli.command()
@@ -184,6 +188,26 @@ def instance(cmd_proc, operation, instance):
         utils.print_table("Available instances for user '%s'"
                           ", profile '%s':" %
                           (cmd_proc.vca.username, cmd_proc.profile),
-                          'instances', headers, sorted_table, cmd_proc)
+                          headers, sorted_table, cmd_proc)
+    elif 'info' == operation:
+        instance_data = cmd_proc.vca.get_instance(instance)
+        utils.print_json('Instance details:', instance_data, cmd_proc)
+        # url = instance_data.get('apiUrl')
+        # headers = {}
+        # headers["x-vchs-authorization"] = cmd_proc.vca.token
+        # headers["Accept"] = "application/xml;version=" + '5.6'
+        # from pyvcloud import _get_logger, Http, Log
+        # response = Http.get('https://vchs.vmware.com' + "/api/vchs/services",
+        # headers=headers, verify=cmd_proc.vca.verify,
+        # logger=cmd_proc.vca.logger)
+        # if response.status_code == requests.codes.ok:
+        #     services = serviceType.parseString(response.content, True)
     else:
         utils.print_message('Not implemented')
+
+
+if __name__ == '__main__':
+    pass
+else:
+    import vca_cli_gw  # NOQA
+    import vca_cli_bp  # NOQA

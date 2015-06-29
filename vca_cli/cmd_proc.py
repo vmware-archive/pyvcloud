@@ -23,11 +23,14 @@ class CmdProc:
     crypto_key = 'l1ZLY5hYPu4s2IXkTVxtndJ-L_k16rP1odagwhP_DsY='
 
     def __init__(self, profile=None, profile_file=None,
+                 json_output=False, xml_output=False,
                  debug=False, insecure=False):
         self.profile = profile
         self.profile_file = profile_file
         self.debug = debug
         self.verify = not insecure
+        self.json_output = json_output
+        self.xml_output = xml_output
         self.password = None
         self.config = ConfigParser.RawConfigParser()
         self.vca = None

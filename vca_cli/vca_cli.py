@@ -44,9 +44,10 @@ def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
         json_output=None, xml_output=None, insecure=None):
     """VMware vCloud Air Command Line Interface."""
     if version:
-        version = pkg_resources.require("vca-cli")[0].version
+        version_vca_cli = pkg_resources.require("vca-cli")[0].version
         version_pyvcloud = pkg_resources.require("pyvcloud")[0].version
-        msg = 'vca-cli version %s (pyvcloud: %s)' % (version, version_pyvcloud)
+        msg = 'vca-cli version %s (pyvcloud: %s)' % \
+              (version_vca_cli, version_pyvcloud)
         click.secho(msg, fg='blue')
         return
     if ctx.invoked_subcommand is None:
@@ -69,10 +70,20 @@ def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
 @click.pass_obj
 def status(cmd_proc):
     """Show current status"""
-    print 'host: ' + cmd_proc.host
-    print 'user: ' + cmd_proc.user
-    # print 'token: ' + cmd_proc.token
-    print 'pass: ' + cmd_proc.password
+    cmd_proc.save_config(cmd_proc.profile, cmd_proc.profile_file)
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)
+    print 'profile_file:   ' + cmd_proc.profile_file
+    print 'profile:        ' + cmd_proc.profile
+    print 'host:           ' + cmd_proc.vca.host
+    print 'user:           ' + str(cmd_proc.vca.username)
+    if cmd_proc.password is None or len(cmd_proc.password) == 0:
+        print 'pass:           ' + str(cmd_proc.password)
+    else:
+        print 'pass:           ' + '<encrypted>'
+    print 'type:           ' + str(cmd_proc.vca.service_type)
+    print 'active session: ' + str(result)
 
 
 @cli.command()
@@ -80,18 +91,18 @@ def status(cmd_proc):
 @click.argument('user')
 @click.option('-p', '--password', prompt=True,
               confirmation_prompt=False, hide_input=True, help='Password')
-@click.option('-s', '--save-password', is_flag=True,
-              default=False, help='Save Password')
+@click.option('-d', '--do-not-save-password', is_flag=True,
+              default=False, help='Do not save password')
 @click.option('-v', '--version', 'service_version',
               default='5.7', metavar='[5.5 | 5.6 | 5.7]',
               type=click.Choice(['5.5', '5.6', '5.7']), help='')
-@click.option('-h', '--host', default='https://vca.vmware.com',
+@click.option('-H', '--host', default='https://vca.vmware.com',
               help='')
 @click.option('-i', '--instance', default=None, help='Instance Id')
 @click.option('-o', '--org', default=None, help='Organization Name')
 @click.option('-c', '--host-score', 'host_score',
               default='https://score.vca.io', help='URL of the Score server')
-def login(cmd_proc, user, host, password, save_password,
+def login(cmd_proc, user, host, password, do_not_save_password,
           service_version, instance, org, host_score):
     """Login to a vCloud service"""
     if not (host.startswith('https://') or host.startswith('http://')):
@@ -100,28 +111,38 @@ def login(cmd_proc, user, host, password, save_password,
             host_score.startswith('http://')):
         host_score = 'https://' + host_score
     try:
-        result = cmd_proc.login(host, user, password, version=service_version)
+        result = cmd_proc.login(host, user, password, version=service_version,
+                                save_password=(not do_not_save_password))
         if result:
-            utils.print_message('user logged in (type=%s)' %
-                                cmd_proc.vca.service_type, cmd_proc)
+            utils.print_message('User logged in', cmd_proc)
+            if not do_not_save_password:
+                utils.print_warning('Password encrypted and saved ' +
+                                    'in local profile. Use ' +
+                                    '--do-not-save-password to disable it.',
+                                    cmd_proc)
         else:
-            utils.print_error('can\'t login', cmd_proc)
+            utils.print_error('Can\'t login', cmd_proc)
     except Exception as e:
-        utils.print_error(str(e), cmd_proc)
+        utils.print_error('Can\'t login: ' + str(e), cmd_proc)
 
 
 @cli.command()
 @click.pass_obj
 def logout(cmd_proc):
     """Logout from a vCloud service"""
-    pass
-    # vca = _getVCA(ctx)
-    # if vca:
-    #     vca.logout()
-    # _save_property(ctx.obj['profile'], 'token', 'None')
-    # _save_property(ctx.obj['profile'], 'session_token', 'None')
-    # _save_property(ctx.obj['profile'], 'org_url', 'None')
-    # _save_property(ctx.obj['profile'], 'session_uri', 'None')
-    # _save_property(ctx.obj['profile'], 'password', 'None')
-    # print_message('Logout successful '
-    #               'for profile \'%s\'' % ctx.obj['profile'], ctx)
+    cmd_proc.logout()
+    utils.print_message('Logout successful', cmd_proc)
+
+
+@cli.command()
+@click.pass_obj
+@click.argument('operation', default=default_operation,
+                metavar='[list | info]',
+                type=click.Choice(['list', 'info']))
+@click.option('-i', '--instance', default='', metavar='<instance>',
+              help='Instance Id')
+def instance(cmd_proc, operation, instance):
+    """Operations with Instances"""
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)

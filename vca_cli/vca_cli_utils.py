@@ -33,8 +33,10 @@ class VcaCliUtils:
         if cmd_proc is not None and \
                 cmd_proc.vca is not None and \
                 cmd_proc.vca.response is not None and \
-                cmd_proc.vca.response.content is not None and \
-                'message' in cmd_proc.vca.response.content:
-            json_message = json.loads(cmd_proc.vca.response.content)
-            msg += ': ' + json_message.get('message')
+                cmd_proc.vca.response.content is not None:
+            if 'message' in cmd_proc.vca.response.content:
+                json_message = json.loads(cmd_proc.vca.response.content)
+                msg += ': ' + json_message.get('message')
+            else:
+                msg += ': ' + cmd_proc.vca.response.content
         self._print(msg, cmd_proc, fg='red')

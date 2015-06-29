@@ -28,6 +28,7 @@ class CmdProc:
         self.profile_file = profile_file
         self.debug = debug
         self.verify = not insecure
+        self.password = None
         self.config = ConfigParser.RawConfigParser()
         self.vca = None
 
@@ -41,14 +42,14 @@ class CmdProc:
                 self.profile = self.config.get(section, 'profile')
             else:
                 self.profile = 'default'
+        host = 'vca.vmware.com'
+        user = None
+        password = None
+        token = None
+        service_type = None
+        version = None
         section = 'Profile-%s' % self.profile
         if self.config.has_section(section):
-            host = None
-            user = None
-            password = None
-            token = None
-            service_type = None
-            version = None
             if self.config.has_option(section, 'host'):
                 host = self.config.get(section, 'host')
             if self.config.has_option(section, 'user'):
@@ -64,17 +65,41 @@ class CmdProc:
                 service_type = self.config.get(section, 'service_type')
             if self.config.has_option(section, 'service_version'):
                 version = self.config.get(section, 'service_version')
-            self.vca = VCA(host=host, username=user,
-                           service_type=service_type, version=version,
-                           verify=self.verify, log=self.debug)
-            self.vca.password = password
-            self.vca.token = token
+        self.vca = VCA(host=host, username=user,
+                       service_type=service_type, version=version,
+                       verify=self.verify, log=self.debug)
+        self.password = password
+        self.vca.token = token
 
     def save_config(self, profile='default', profile_file='~/.vcarc'):
+        section = 'Global'
+        if not self.config.has_section(section):
+            self.config.add_section(section)
+        self.config.set(section, 'profile', profile)
+        section = 'Profile-%s' % profile
+        if not self.config.has_section(section):
+            self.config.add_section(section)
+        self.config.set(section, 'host', self.vca.host)
+        if self.vca.username is None:
+            self.config.remove_option(section, 'user')
+        else:
+            self.config.set(section, 'user', self.vca.username)
+        self.config.set(section, 'service_type', self.vca.service_type)
+        self.config.set(section, 'service_version', self.vca.version)
+        if self.vca.token is None:
+            self.config.remove_option(section, 'token')
+        else:
+            self.config.set(section, 'token', self.vca.token)
+        if self.password is not None and len(self.password) > 0:
+            cipher_suite = Fernet(self.crypto_key)
+            cipher_text = cipher_suite.encrypt(self.password.encode('utf-8'))
+            self.config.set(section, 'password', cipher_text)
+        else:
+            self.config.remove_option(section, 'password')
         with open(os.path.expanduser(profile_file), 'w+') as configfile:
             self.config.write(configfile)
 
-    def login(self, host, username, password, version):
+    def login(self, host, username, password, version, save_password=True):
         self.vca = VCA(host=host, username=username, version=version,
                        verify=self.verify, log=self.debug)
         service_type = self.vca.get_service_type()
@@ -86,9 +111,32 @@ class CmdProc:
 #        get services upon login....
 #        if not, remove for speed
         if result:
-            pass
-#            save config
+            if save_password:
+                self.password = password
+            self.save_config(self.profile, self.profile_file)
+        return result
+
+    def re_login(self):
+        if self.vca is None or \
+           (self.vca.token is None and self.password is None):
+            return False
+        result = False
+        try:
+            result = self.vca.login(token=self.vca.token)
+            if not result:
+                raise Exception('login with token failed')
+        except Exception:
+            if self.password is not None and len(self.password) > 0:
+                try:
+                    result = self.vca.login(password=self.password)
+                    self.save_config(self.profile, self.profile_file)
+                except Exception:
+                    return False
         return result
 
     def logout(self):
-        pass
+        assert self.vca is not None
+        self.vca.username = None
+        self.vca.token = None
+        self.password = None
+        self.save_config(self.profile, self.profile_file)

@@ -1,2 +1,1 @@
--h for --host instead of -H
---standalone flag instead of --type
+login with --do-not-save-password

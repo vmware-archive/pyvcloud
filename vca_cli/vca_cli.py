@@ -14,11 +14,13 @@
 
 
 import os
+import operator
 import click
 import pkg_resources
 import requests
 from cmd_proc import CmdProc
 from vca_cli_utils import VcaCliUtils
+from pyvcloud.vcloudair import VCA
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -111,6 +113,7 @@ def login(cmd_proc, user, host, password, do_not_save_password,
             host_score.startswith('http://')):
         host_score = 'https://' + host_score
     try:
+        cmd_proc.logout()
         result = cmd_proc.login(host, user, password, version=service_version,
                                 save_password=(not do_not_save_password))
         if result:
@@ -137,12 +140,44 @@ def logout(cmd_proc):
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
-                metavar='[list | info]',
-                type=click.Choice(['list', 'info']))
+                metavar='[list | info | use]',
+                type=click.Choice(['list', 'info', 'use']))
 @click.option('-i', '--instance', default='', metavar='<instance>',
               help='Instance Id')
 def instance(cmd_proc, operation, instance):
     """Operations with Instances"""
+    if cmd_proc.vca.service_type != VCA.VCA_SERVICE_TYPE_VCA:
+        utils.print_message('This service type doesn\'t support this command')
+        return
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
+        return
+    if 'list' == operation:
+        headers = ["Service Group", "Region", "Plan", "Instance Id"]
+        instances = cmd_proc.vca.instances
+        plans = cmd_proc.vca.get_plans()
+        service_groups = cmd_proc.vca.get_service_groups()
+        items = instances if instances else []
+        table = []
+        for item in items:
+            plan_name = filter(lambda plan: plan['id'] == item['planId'],
+                               plans)[0]['name']
+            service_group = filter(lambda sg:
+                                   sg['id'] == item['serviceGroupId'],
+                                   service_groups['serviceGroup'])
+            service_group_name = '' if len(service_group) == 0 else \
+                                 service_group[0]['displayName']
+            table.append([
+                service_group_name,
+                item['region'].split('.')[0],
+                plan_name,
+                item['id']
+            ])
+        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+        utils.print_table("Available instances for user '%s'"
+                          "in '%s' profile:" %
+                          (cmd_proc.vca.username, cmd_proc.profile),
+                          'instances', headers, sorted_table, cmd_proc)
+    else:
+        utils.print_message('Not implemented')

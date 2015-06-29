@@ -15,20 +15,21 @@
 
 import click
 import json
+from tabulate import tabulate
 
 
 class VcaCliUtils:
 
-    def _print(self, message, cmd_proc, fg='black'):
+    def _print(self, message, cmd_proc=None, fg='black'):
         click.secho(message, fg=fg)
 
-    def print_warning(self, message, cmd_proc):
+    def print_warning(self, message, cmd_proc=None):
         self._print(message, cmd_proc, fg='yellow')
 
-    def print_message(self, message, cmd_proc):
+    def print_message(self, message, cmd_proc=None):
         self._print(message, cmd_proc, fg='blue')
 
-    def print_error(self, message, cmd_proc):
+    def print_error(self, message, cmd_proc=None):
         msg = message
         if cmd_proc is not None and \
                 cmd_proc.vca is not None and \
@@ -40,3 +41,14 @@ class VcaCliUtils:
             else:
                 msg += ': ' + cmd_proc.vca.response.content
         self._print(msg, cmd_proc, fg='red')
+
+    def print_table(self, message, obj, headers, table, cmd_proc=None):
+        # if (ctx is not None and ctx.obj is not
+        #         None and ctx.obj['json_output']):
+        #     data = [dict(zip(headers, row)) for row in table]
+        #     print(json.dumps(
+        #         {"Errorcode": "0", "Details": msg, obj: data},
+        #         sort_keys=True, indent=4, separators=(',', ': ')))
+        # else:
+        click.echo(click.style(message, fg='blue'))
+        print(tabulate(table, headers=headers, tablefmt="orgtbl"))

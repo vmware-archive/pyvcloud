@@ -117,7 +117,9 @@ def login(cmd_proc, user, host, password, do_not_save_password,
         result = cmd_proc.login(host, user, password, version=service_version,
                                 save_password=(not do_not_save_password))
         if result:
-            utils.print_message('User logged in', cmd_proc)
+            utils.print_message("User '%s' logged in, profile '%s'" %
+                                (cmd_proc.vca.username, cmd_proc.profile),
+                                cmd_proc)
             if not do_not_save_password:
                 utils.print_warning('Password encrypted and saved ' +
                                     'in local profile. Use ' +
@@ -133,8 +135,12 @@ def login(cmd_proc, user, host, password, do_not_save_password,
 @click.pass_obj
 def logout(cmd_proc):
     """Logout from a vCloud service"""
+    user = cmd_proc.vca.username
+    profile = cmd_proc.profile
     cmd_proc.logout()
-    utils.print_message('Logout successful', cmd_proc)
+    utils.print_message("User '%s' logged out, profile '%s'" %
+                        (user, profile),
+                        cmd_proc)
 
 
 @cli.command()
@@ -176,7 +182,7 @@ def instance(cmd_proc, operation, instance):
             ])
         sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
         utils.print_table("Available instances for user '%s'"
-                          "in '%s' profile:" %
+                          ", profile '%s':" %
                           (cmd_proc.vca.username, cmd_proc.profile),
                           'instances', headers, sorted_table, cmd_proc)
     else:

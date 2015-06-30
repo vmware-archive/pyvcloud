@@ -76,3 +76,6 @@ class VcaCliUtils:
 
     def table_to_json(self, headers, table):
         return [dict(zip(headers, row)) for row in table]
+
+    def beautified(self, input_array):
+        return str(input_array).strip('[]').replace("'", "")

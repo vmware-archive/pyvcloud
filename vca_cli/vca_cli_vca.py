@@ -14,13 +14,38 @@
 
 
 import click
-from vca_cli import cli, utils
+import operator
+from vca_cli import cli, utils, default_operation
 
 
 @cli.command()
 @click.pass_obj
-def user(cmd_proc):
+@click.argument('operation', default=default_operation,
+                metavar='[list | info]',
+                type=click.Choice(['list', 'info']))
+def user(cmd_proc, operation):
     """Operations with Users"""
-    utils.print_message('user', cmd_proc)
-
 #  see https://wiki.eng.vmware.com/Praxis_IAM_API_Details
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)
+        return
+    if 'list' == operation:
+        headers = ['User Name', 'First', 'Last', 'Email', 'State', 'Roles']
+        table = []
+        for u in cmd_proc.vca.get_users():
+            roles = []
+            for r in u.get('roles').get('roles'):
+                roles.append(str(r.get('name')))
+            table.append([u.get('userName'), u.get('givenName'),
+                         u.get('familyName'), u.get('email'), u.get('state'),
+                          utils.beautified(roles)])
+        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+        utils.print_table("Available users in instance '%s'"
+                          ", profile '%s':" %
+                          (cmd_proc.instance, cmd_proc.profile),
+                          headers, sorted_table,
+                          cmd_proc)
+    elif 'info' == operation:
+        pass
+    cmd_proc.save_current_config()

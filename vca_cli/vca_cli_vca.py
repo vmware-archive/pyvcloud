@@ -17,10 +17,10 @@ import click
 from vca_cli import cli, utils
 
 
-# @cli.command()
-# @click.pass_obj
-# def blueprint(cmd_proc):
-#     """Operations with Blueprints"""
-#     utils.print_message('blueprint', cmd_proc)
+@cli.command()
+@click.pass_obj
+def user(cmd_proc):
+    """Operations with Users"""
+    utils.print_message('user', cmd_proc)
 
-# see https://wiki.eng.vmware.com/Praxis_IAM_API_Details
+#  see https://wiki.eng.vmware.com/Praxis_IAM_API_Details

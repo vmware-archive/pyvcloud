@@ -248,7 +248,8 @@ def instance(cmd_proc, operation, instance, org):
             if result:
                 cmd_proc.instance = instance
 # TODO: check instance->plan->serviceName == com.vmware.vchs.compute
-                cmd_proc.org = cmd_proc.vca.vcloud_session.organization.get_name()
+                cmd_proc.org = cmd_proc.vca.vcloud_session.organization.\
+                    get_name()
                 utils.print_message("Using instance:org '%s':'%s'"
                                     ", profile '%s'" %
                                     (instance, cmd_proc.org, cmd_proc.profile),
@@ -312,9 +313,10 @@ def org(cmd_proc, operation, org):
            cmd_proc.vca.vcloud_session.organization.get_name() == org:
             table = cmd_proc.org_to_table(cmd_proc.vca)
             headers = ["Type", "Name"]
-            utils.print_table("Details for instance:org '%s':'%s', profile '%s':" %
-                              (cmd_proc.instance, org, cmd_proc.profile),
-                              headers, table, None)
+            utils.print_table(
+                "Details for instance:org '%s':'%s', profile '%s':" %
+                (cmd_proc.instance, org, cmd_proc.profile),
+                headers, table, None)
             cmd_proc.org = org
         else:
             utils.print_error("Org not found '%s'" % org)
@@ -324,6 +326,7 @@ def org(cmd_proc, operation, org):
 if __name__ == '__main__':
     pass
 else:
+    import vca_cli_user  # NOQA
     import vca_cli_compute  # NOQA
     import vca_cli_network  # NOQA
     import vca_cli_bp  # NOQA

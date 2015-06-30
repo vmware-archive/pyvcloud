@@ -79,6 +79,11 @@ def status(cmd_proc):
         utils.print_error('Not logged in', cmd_proc)
     headers = ['Key', 'Value']
     table = []
+    table.append(['vca_cli_version',
+                 pkg_resources.require("vca-cli")[0].version])
+    table.append(['pyvcloud_version',
+                 pkg_resources.require("pyvcloud")[0].version])
+# sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
     table.append(['profile_file', cmd_proc.profile_file])
     table.append(['profile', cmd_proc.profile])
     table.append(['host', cmd_proc.vca.host])
@@ -117,6 +122,7 @@ def status(cmd_proc):
 def login(cmd_proc, user, host, password, do_not_save_password,
           service_version, instance, org, host_score):
     """Login to a vCloud service"""
+# TODO: implement login to instance and to org...
     if not (host.startswith('https://') or host.startswith('http://')):
         host = 'https://' + host
     if not (host_score.startswith('https://') or
@@ -237,17 +243,32 @@ def instance(cmd_proc, operation, instance, org):
         cmd_proc.instance = instance
         cmd_proc.org = org
     elif 'use' == operation:
-        if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
+        if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCA:
+            result = cmd_proc.vca.login_to_instance_sso(instance)
+            if result:
+                cmd_proc.instance = instance
+# TODO: check instance->plan->serviceName == com.vmware.vchs.compute
+                cmd_proc.org = cmd_proc.vca.vcloud_session.organization.get_name()
+                utils.print_message("Using instance:org '%s':'%s'"
+                                    ", profile '%s'" %
+                                    (instance, cmd_proc.org, cmd_proc.profile),
+                                    cmd_proc)
+            else:
+                utils.print_error("Unable to select instance '%s'"
+                                  ", profile '%s'" %
+                                  (instance, cmd_proc.profile),
+                                  cmd_proc)
+        elif cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
             result = cmd_proc.vca.login_to_org(instance, org)
             if result:
                 cmd_proc.instance = instance
                 cmd_proc.org = org
-                utils.print_message("Using organization '%s':'%s'"
+                utils.print_message("Using instance:org '%s':'%s'"
                                     ", profile '%s'" %
                                     (instance, org, cmd_proc.profile),
                                     cmd_proc)
             else:
-                utils.print_error("Unable to select organization '%s':'%s'"
+                utils.print_error("Unable to select instance:org '%s':'%s'"
                                   ", profile '%s'" %
                                   (instance, org, cmd_proc.profile),
                                   cmd_proc)
@@ -277,7 +298,7 @@ def org(cmd_proc, operation, org):
             table.append([cmd_proc.vca.vcloud_session.organization.get_name(),
                          '*'])
         sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
-        utils.print_table("Available Orgs in instance '%s'"
+        utils.print_table("Available orgs in instance '%s'"
                           ", profile '%s':" %
                           (cmd_proc.instance, cmd_proc.profile),
                           headers, sorted_table,
@@ -291,7 +312,7 @@ def org(cmd_proc, operation, org):
            cmd_proc.vca.vcloud_session.organization.get_name() == org:
             table = cmd_proc.org_to_table(cmd_proc.vca)
             headers = ["Type", "Name"]
-            utils.print_table("Details for org '%s':'%s', profile '%s':" %
+            utils.print_table("Details for instance:org '%s':'%s', profile '%s':" %
                               (cmd_proc.instance, org, cmd_proc.profile),
                               headers, table, None)
             cmd_proc.org = org
@@ -306,3 +327,4 @@ else:
     import vca_cli_compute  # NOQA
     import vca_cli_network  # NOQA
     import vca_cli_bp  # NOQA
+    import vca_cli_sql  # NOQA

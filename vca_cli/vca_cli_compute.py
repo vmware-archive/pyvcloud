@@ -19,6 +19,13 @@ from vca_cli import cli, utils
 
 @cli.command()
 @click.pass_obj
+def vdc(cmd_proc):
+    """Operations with Virtual Data Centers (vdc)"""
+    utils.print_message('vdc', cmd_proc)
+
+
+@cli.command()
+@click.pass_obj
 def vapp(cmd_proc):
     """Operations with vApps"""
     utils.print_message('vapp', cmd_proc)

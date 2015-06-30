@@ -151,7 +151,7 @@ def logout(cmd_proc):
     utils.print_message("User '%s' logged out, profile '%s'" %
                         (user, profile),
                         cmd_proc)
-#DELETE https://vchs.vmware.com/api/vchs/session
+# TODO: DELETE https://vchs.vmware.com/api/vchs/session
 
 
 @cli.command()
@@ -165,9 +165,9 @@ def logout(cmd_proc):
               help='Organization Id')
 def instance(cmd_proc, operation, instance, org):
     """Operations with Instances"""
-    # if cmd_proc.vca.service_type != VCA.VCA_SERVICE_TYPE_VCA:
-    #     utils.print_message('This service type doesn\'t support this command')
-    #     return
+# if cmd_proc.vca.service_type != VCA.VCA_SERVICE_TYPE_VCA:
+#     utils.print_message('This service type doesn\'t support this command')
+#     return
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
@@ -176,7 +176,8 @@ def instance(cmd_proc, operation, instance, org):
         headers = []
         table = []
         if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCA:
-            headers = ["Service Group", "Region", "Plan", "Instance Id", "Selected"]
+            headers = ['Service Group', 'Region', 'Plan', 'Instance Id',
+                       'Selected']
             instances = cmd_proc.vca.instances
             plans = cmd_proc.vca.get_plans()
             service_groups = cmd_proc.vca.get_service_groups()
@@ -198,23 +199,28 @@ def instance(cmd_proc, operation, instance, org):
                     selected
                 ])
         elif cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
-            headers = ["Service Group", "Region", "Plan", "Instance Id", "Selected", "Type"]
-            services = cmd_proc.vca.services
+            headers = ['Service Group', 'Region', 'Plan', 'Instance Id',
+                       'Selected', 'Type']
             table = []
             for s in cmd_proc.vca.services.get_Service():
                 selected = '*' if cmd_proc.instance == s.serviceId else ' '
-                table.append(['', s.region, '', s.serviceId, selected, s.serviceType])
+                table.append(['', s.region, '', s.serviceId, selected,
+                             s.serviceType])
         sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
         utils.print_table("Available instances for user '%s'"
                           ", profile '%s':" %
                           (cmd_proc.vca.username, cmd_proc.profile),
                           headers, sorted_table, cmd_proc)
     elif 'info' == operation:
+        if '' == instance:
+            instance = cmd_proc.instance
+        if '' == org:
+            org = cmd_proc.org
         if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCA:
             instance_data = cmd_proc.vca.get_instance(instance)
             plan = cmd_proc.vca.get_plan(instance_data['planId'])
             if cmd_proc.json_output:
-                json_object = {'instance':instance_data, 'plan':plan}
+                json_object = {'instance': instance_data, 'plan': plan}
                 utils.print_json('Instance and Plan details', json_object,
                                  cmd_proc)
             else:
@@ -227,7 +233,9 @@ def instance(cmd_proc, operation, instance, org):
                 selected = '*' if cmd_proc.org == vdc.name else ' '
                 table.append([instance, vdc.name, vdc.status, selected])
             utils.print_table('Instance details', headers, table,
-                             cmd_proc)
+                              cmd_proc)
+        cmd_proc.instance = instance
+        cmd_proc.org = org
     elif 'use' == operation:
         if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
             result = cmd_proc.vca.login_to_org(instance, org)
@@ -235,12 +243,14 @@ def instance(cmd_proc, operation, instance, org):
                 cmd_proc.instance = instance
                 cmd_proc.org = org
                 utils.print_message("Using organization '%s':'%s'"
-                              ", profile '%s'" %
-                              (instance, org, cmd_proc.profile), cmd_proc)
+                                    ", profile '%s'" %
+                                    (instance, org, cmd_proc.profile),
+                                    cmd_proc)
             else:
                 utils.print_error("Unable to select organization '%s':'%s'"
-                              ", profile '%s'" %
-                              (instance, org, cmd_proc.profile), cmd_proc)
+                                  ", profile '%s'" %
+                                  (instance, org, cmd_proc.profile),
+                                  cmd_proc)
     else:
         utils.print_message('Not implemented')
     cmd_proc.save_current_config()
@@ -259,11 +269,34 @@ def org(cmd_proc, operation, org):
     if not result:
         utils.print_error('Not logged in', cmd_proc)
         return
-    if cmd_proc.vca is not None and\
-       cmd_proc.vca.vcloud_session is not None:
-        utils.print_message(cmd_proc.vca.vcloud_session.organization.get_name())
-    else:
-        utils.print_error('Unable to get current organization', cmd_proc)
+    if 'list' == operation:
+        headers = ['Org', 'Selected']
+        table = []
+        if cmd_proc.vca is not None and\
+           cmd_proc.vca.vcloud_session is not None:
+            table.append([cmd_proc.vca.vcloud_session.organization.get_name(),
+                         '*'])
+        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+        utils.print_table("Available Orgs in instance '%s'"
+                          ", profile '%s':" %
+                          (cmd_proc.instance, cmd_proc.profile),
+                          headers, sorted_table,
+                          cmd_proc)
+    elif 'info' == operation:
+        if '' == org:
+            org = cmd_proc.org
+        if cmd_proc.vca is not None and \
+           cmd_proc.vca.vcloud_session is not None and \
+           cmd_proc.vca.vcloud_session.organization is not None and \
+           cmd_proc.vca.vcloud_session.organization.get_name() == org:
+            table = cmd_proc.org_to_table(cmd_proc.vca)
+            headers = ["Type", "Name"]
+            utils.print_table("Details for org '%s':'%s', profile '%s':" %
+                              (cmd_proc.instance, org, cmd_proc.profile),
+                              headers, table, None)
+            cmd_proc.org = org
+        else:
+            utils.print_error("Org not found '%s'" % org)
     cmd_proc.save_current_config()
 
 

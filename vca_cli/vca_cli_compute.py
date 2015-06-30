@@ -24,6 +24,7 @@ def vdc(cmd_proc):
     utils.print_message('vdc', cmd_proc)
 
 
+# TODO: user power-on instead of power.on, etc
 @cli.command()
 @click.pass_obj
 def vapp(cmd_proc):

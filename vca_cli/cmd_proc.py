@@ -202,15 +202,16 @@ class CmdProc:
             self.save_config(self.profile, self.profile_file)
         return result
 
-# todo: consider VCA and STANDALONE also (done VCHS)
+# todo: consider STANDALONE also (done VCHS, VCA)
     def re_login_vcloud_session(self):
-        Log.debug(self.logger, 'about to re-login vca =%s' % self.vca)
+        Log.debug(self.logger, 'about to re-login vcloud_session vca=%s' %
+                  self.vca)
         if self.vca.vcloud_session is not None:
-            Log.debug(self.logger, 'about to re-login vcloud_session =%s' %
+            Log.debug(self.logger, 'about to re-login vcloud_session=%s' %
                       self.vca.vcloud_session)
             if self.vca.vcloud_session.token is not None:
                 Log.debug(self.logger,
-                          'about to re-login vcloud_session token =%s' %
+                          'about to re-login vcloud_session token=%s' %
                           self.vca.vcloud_session.token)
         if self.vca.vcloud_session is not None and \
            self.vca.vcloud_session.token is not None:
@@ -219,7 +220,12 @@ class CmdProc:
             if not result:
                 Log.debug(self.logger,
                           'vcloud session invalid, getting a new one')
-                result = self.vca.login_to_org(self.instance, self.org)
+                if self.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS or \
+                   self.vca.service_type == 'subscription':
+                    result = self.vca.login_to_org(self.instance, self.org)
+                elif (self.vca.service_type == VCA.VCA_SERVICE_TYPE_VCA) or \
+                     (self.vca.service_type == 'ondemand'):
+                    result = self.vca.login_to_instance_sso(self.instance)
                 if result:
                     Log.debug(self.logger,
                               'successfully retrieved a new vcloud session')
@@ -228,7 +234,7 @@ class CmdProc:
             else:
                 Log.debug(self.logger, 'vcloud session is valid')
 
-# todo: consider VCA and STANDALONE also (done VCHS)
+# todo: consider STANDALONE also (done VCHS, VCA)
     def re_login(self):
         if self.vca is None or \
            (self.vca.token is None and self.password is None):

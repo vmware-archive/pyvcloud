@@ -27,11 +27,11 @@ from pyvcloud import _get_logger, Http, Log
 from dsl_parser import parser
 from dsl_parser.exceptions import *
 
-#todo: get events
-#todo: validate-blueprint
-#todo: get execution details
-#todo: cancel execution
-#todo: get outputs of deployment
+
+# todo: get events
+# todo: validate-blueprint
+# todo: get execution details
+# todo: get outputs of deployment
 class Score(object):
 
     def __init__(self, url, org_url=None, token=None, version='5.7', verify=True, log=False):
@@ -47,14 +47,12 @@ class Score(object):
         self.events = EventsClient(self)
         self.logger = _get_logger() if log else None
 
-
     def get_headers(self):
         headers = {}
         headers["x-vcloud-authorization"] = self.token
         headers["x-vcloud-org-url"] = self.org_url
         headers["x-vcloud-version"] = self.version
         return headers
-
 
     def ping(self):
         self.response = Http.get(self.url + '/blueprints', headers=self.get_headers(),
@@ -64,21 +62,17 @@ class Score(object):
 
 class BlueprintsClient(object):
 
-
     def __init__(self, score, log=False):
         self.score = score
         self.logger = _get_logger() if log else None
 
-
     def validate(self, blueprint_path):
         return parser.parse_from_path(blueprint_path)
-
 
     def list(self):
         self.score.response = Http.get(self.score.url + '/blueprints', headers=self.score.get_headers(), verify=self.score.verify, logger=self.logger)
         if self.score.response.status_code == requests.codes.ok:
             return json.loads(self.score.response.content)
-
 
     def get(self, blueprint_id):
         self.score.response = Http.get(self.score.url + '/blueprints/{0}'.format(blueprint_id), headers=self.score.get_headers(), verify=self.score.verify, logger=self.logger)
@@ -186,7 +180,7 @@ class ExecutionsClient(object):
             return json.loads(self.score.response.content)
         else:
             Log.error(self.logger, 'list executions returned %s' % self.score.response.status_code)
-            
+
     def start(self, deployment_id, workflow_id, parameters=None,
               allow_custom_parameters=False, force=False):
         assert deployment_id

@@ -38,7 +38,7 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType
 from cryptography.fernet import Fernet
 from pyvcloud import _get_logger, Log
 
-from pyvcloud.score import Score, BlueprintsClient
+from pyvcloud.score import Score
 from dsl_parser.exceptions import *
 
 
@@ -154,7 +154,7 @@ def _load_context(ctx, profile, json_output, xml_output, insecure):
 @click.option('-i', '--insecure', is_flag=True,
               help='Perform insecure SSL connections')
 @click.pass_context
-def cli(ctx=None, profile=None, version=None, debug=None, json_output=None, 
+def cli(ctx=None, profile=None, version=None, debug=None, json_output=None,
         xml_output=None, insecure=None):
     """VMware vCloud Air Command Line Interface."""
     _load_context(ctx, profile, json_output, xml_output, insecure)
@@ -274,8 +274,11 @@ def _getVCA_with_relogin(ctx):
 @click.pass_context
 @click.argument('user')
 @click.option('-t', '--type', 'service_type',
-              default='ondemand', metavar='[subscription | ondemand | standalone]',
-              type=click.Choice(['subscription', 'ondemand', 'vcd', 'standalone']), help='')
+              default='ondemand',
+              metavar='[subscription | ondemand | standalone]',
+              type=click.Choice(
+                  ['subscription', 'ondemand', 'vcd', 'standalone']),
+              help='')
 @click.option('-v', '--version', 'service_version',
               default='5.7', metavar='[5.5 | 5.6 | 5.7]',
               type=click.Choice(['5.5', '5.6', '5.7']), help='')
@@ -293,7 +296,7 @@ def login(ctx, user, host, password, service_type,
     """Login to a vCloud service"""
     if not (host.startswith('https://') or host.startswith('http://')):
         host = 'https://' + host
-    if not (host_score.startswith('https://') or 
+    if not (host_score.startswith('https://') or
             host_score.startswith('http://')):
         host_score = 'https://' + host_score
     result = _login_user_to_service(ctx, user, host,
@@ -513,22 +516,22 @@ def vdc(ctx, operation, vdc):
             links = (vca.vcloud_session.organization.Link if
                      vca.vcloud_session.organization else [])
             if '' == vdc:
-                vdcs = filter(lambda info: info.name and 
-                (info.type_ == 'application/vnd.vmware.vcloud.vdc+xml'),
+                vdcs = filter(lambda info: info.name and
+                              (info.type_ == 'application/vnd.vmware.vcloud.vdc+xml'),
                               links)
                 if len(vdcs) > 0:
                     vdc = vdcs[0].get_name()
-            table1 = [[details.get_name(), 
-                      '*' if details.get_name() == vdc else ' '] 
+            table1 = [[details.get_name(),
+                      '*' if details.get_name() == vdc else ' ']
                       for details in
-                          filter(lambda info: info.name and 
-                      (info.type_ == 'application/vnd.vmware.vcloud.vdc+xml'),
-                             links)]
+                          filter(lambda info: info.name and
+                                 (info.type_ == 'application/vnd.vmware.vcloud.vdc+xml'),
+                                 links)]
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)
             vdcs = filter(lambda info:
-                      info.name == vdc and 
-                      info.type_ == 'application/vnd.vmware.vcloud.vdc+xml',
-                      links)
+                          info.name == vdc and
+                          info.type_ == 'application/vnd.vmware.vcloud.vdc+xml',
+                          links)
             if len(vdcs) > 0:
                 _save_property(ctx.obj['profile'], 'vdc', vdc)
         print_table(
@@ -655,8 +658,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
                 ((ctx.obj['service_version'] == "1.0") or
                  (ctx.obj['service_version'] == "1.5") or
                  (ctx.obj['service_version'] == "5.1") or
-                 (ctx.obj['service_version'] == "5.5"))
-               ):
+                 (ctx.obj['service_version'] == "5.5"))):
                 if vm_name is not None:
                     print_message(
                         "setting VM name to '%s'"
@@ -812,7 +814,7 @@ def vapp(ctx, operation, vdc, vapp, catalog, template,
             else:
                 ctx.obj['response'] = the_vapp.response
                 print_error("can't customize vApp", ctx)
-    elif ('info' == operation or 'power.off' == operation or 
+    elif ('info' == operation or 'power.off' == operation or
           'power.on' == operation or 'delete' == operation):
         the_vdc = vca.get_vdc(vdc)
         if the_vdc:
@@ -966,23 +968,23 @@ def status15():
 
 
 status_code = {-1: statusn1,
-          0: status0,
-          1: status1,
-          2: status2,
-          3: status3,
-          4: status4,
-          5: status5,
-          6: status6,
-          7: status7,
-          8: status8,
-          9: status9,
-          10: status10,
-          11: status11,
-          12: status12,
-          13: status13,
-          14: status14,
-          15: status15,
-          }
+               0: status0,
+               1: status1,
+               2: status2,
+               3: status3,
+               4: status4,
+               5: status5,
+               6: status6,
+               7: status7,
+               8: status8,
+               9: status9,
+               10: status10,
+               11: status11,
+               12: status12,
+               13: status13,
+               14: status14,
+               15: status15,
+}
 
 
 @cli.command()
@@ -1022,8 +1024,8 @@ def vm(ctx, operation, vdc, vapp):
                         vm_status = status_code[vm.get_status()]()
                         sections = vm.get_Section()
                         virtualHardwareSection = (
-                            filter(lambda section: 
-                section.__class__.__name__ == "VirtualHardwareSection_Type",
+                            filter(lambda section:
+                                   section.__class__.__name__ == "VirtualHardwareSection_Type",
                                    sections)[0])
                         items = virtualHardwareSection.get_Item()
                         cpu = (
@@ -1040,8 +1042,8 @@ def vm(ctx, operation, vdc, vapp):
                             memory.get_ElementName().get_valueOf_().
                             split(" MB of memory")[0]) / 1024
                         operatingSystemSection = (
-                            filter(lambda section: 
-                section.__class__.__name__ == "OperatingSystemSection_Type",
+                            filter(lambda section:
+                                   section.__class__.__name__ == "OperatingSystemSection_Type",
                                    sections)[0])
                         os = (operatingSystemSection.
                               get_Description().get_valueOf_())
@@ -1057,8 +1059,8 @@ def vm(ctx, operation, vdc, vapp):
                                             _url):
                                         ips.append(c.anyAttributes_.get(
                                             _url))
-                            elif (item.HostResource and item.ResourceSubType and 
-                            item.ResourceSubType.valueOf_ == 'vmware.cdrom.iso'):
+                            elif (item.HostResource and item.ResourceSubType and
+                                  item.ResourceSubType.valueOf_ == 'vmware.cdrom.iso'):
                                 if len(item.HostResource[0].valueOf_) > 0:
                                     cds.append(item.HostResource[0].valueOf_)
                         table1.append([vm.name, entity.name, vm_status,
@@ -1647,18 +1649,18 @@ def blueprint(ctx, operation, blueprint, blueprint_file):
             print_message("the blueprint is valid", ctx)
         except MissingRequiredInputError as mrie:
             print_error('invalid blueprint: ' +
-                str(mrie)[str(mrie).rfind('}')+1:].strip())
+                        str(mrie)[str(mrie).rfind('}') + 1:].strip())
         except UnknownInputError as uie:
             print_error('invalid blueprint: ' +
-                str(uie)[str(uie).rfind('}')+1:].strip())
+                        str(uie)[str(uie).rfind('}') + 1:].strip())
         except FunctionEvaluationError as fee:
             print_error('invalid blueprint: ' +
-                str(fee)[str(fee).rfind('}')+1:].strip())
+                        str(fee)[str(fee).rfind('}') + 1:].strip())
         except DSLParsingException as dpe:
             print_error('invalid blueprint: ' +
-                str(dpe)[str(dpe).rfind('}')+1:].strip())
+                        str(dpe)[str(dpe).rfind('}') + 1:].strip())
         except Exception as ex:
-            print_error('failed to validate %s:\n %s' %(blueprint_file, str(ex)))
+            print_error('failed to validate %s:\n %s' % (blueprint_file, str(ex)))
     elif 'upload' == operation:
         try:
             b = score.blueprints.upload(blueprint_file, blueprint)
@@ -1697,8 +1699,12 @@ def blueprint(ctx, operation, blueprint, blueprint_file):
               type=click.File('r'))
 @click.option('-s', '--show-events', 'show_events',
               is_flag=True, default=False, help='Show events')
+@click.option('-e', '--execution', default=None,
+              metavar='<execution_id>', help='Execution Id')
+@click.option('--force', 'force_cancel',
+              is_flag=True, default=False, help='Force cancel execution')
 def dep(ctx, operation, deployment, blueprint,
-        input_file, workflow, show_events):
+        input_file, workflow, show_events, execution, force_cancel):
     """Operations with Deployments"""
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
@@ -1753,7 +1759,11 @@ def dep(ctx, operation, deployment, blueprint,
         e = score.executions.start(deployment, workflow)
         print_execution(e, ctx)
     elif 'cancel' == operation:
-        print('not implemented')
+        if not execution:
+            print_error("execution id is not specified")
+            return
+        e = score.executions.cancel(execution, force_cancel)
+        print_execution(e, ctx)
 
 
 @cli.command()
@@ -2622,8 +2632,8 @@ def print_networks(ctx, item_list):
                 if service.original_tagname_ == 'GatewayDhcpService':
                     for p in service.get_Pool():
                         if p.get_IsEnabled():
-                            dhcp_pools.append(p.get_LowIpAddress() + 
-                            '-' + p.get_HighIpAddress())
+                            dhcp_pools.append(p.get_LowIpAddress() +
+                                              '-' + p.get_HighIpAddress())
         config = item.get_Configuration()
         gateways = []
         netmasks = []
@@ -2637,7 +2647,7 @@ def print_networks(ctx, item_list):
             dns2.append(scope.get_Dns2())
             if scope.get_IpRanges() is not None:
                 for r in scope.get_IpRanges().get_IpRange():
-                    ranges.append(r.get_StartAddress() + '-' + 
+                    ranges.append(r.get_StartAddress() + '-' +
                                   r.get_EndAddress())
         table.append([
             item.get_name(),

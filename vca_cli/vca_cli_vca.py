@@ -16,15 +16,24 @@
 import click
 import operator
 from vca_cli import cli, utils, default_operation
+from pyvcloud.vcloudair import VCA
 
 
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
-                metavar='[list | info]',
-                type=click.Choice(['list', 'info']))
-def user(cmd_proc, operation):
+                metavar='[list | info | change-pass]',
+                type=click.Choice(['list', 'info', 'change-pass']))
+@click.option('-u', '--user', 'username', default='',
+              metavar='<user>', help='User')
+@click.option('-p', '--password', 'password', default='',
+              metavar='<password>', help='Password')
+def user(cmd_proc, operation, username, password):
     """Operations with Users"""
+    if cmd_proc.vca.service_type is not VCA.VCA_SERVICE_TYPE_VCA:
+        utils.print_message('Operation not supported '
+                            'in this service type')
+        return
 #  see https://wiki.eng.vmware.com/Praxis_IAM_API_Details
     result = cmd_proc.re_login()
     if not result:

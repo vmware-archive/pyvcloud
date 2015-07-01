@@ -13,6 +13,7 @@
 #
 
 
+import traceback
 import os
 import operator
 import ConfigParser
@@ -20,6 +21,10 @@ from cryptography.fernet import Fernet
 from pyvcloud.vcloudair import VCA
 from pyvcloud.vcloudsession import VCS
 from pyvcloud import _get_logger, Log
+from vca_cli_utils import VcaCliUtils
+
+
+utils = VcaCliUtils()
 
 
 class CmdProc:
@@ -38,8 +43,8 @@ class CmdProc:
         self.config = ConfigParser.RawConfigParser()
         self.vca = None
         self.instance = None
-        self.org = None
         self.logger = _get_logger() if debug else None
+        self.error_message = None
 
     def load_config(self, profile=None, profile_file='~/.vcarc'):
         self.config.read(os.path.expanduser(profile_file))
@@ -94,8 +99,8 @@ class CmdProc:
                        verify=self.verify, log=self.debug)
         self.password = password
         self.vca.token = token
+        self.vca.org = org
         self.instance = instance
-        self.org = org
         if session_token is not None:
             vcloud_session = VCS(url=session_uri,
                                  username=user,
@@ -107,15 +112,43 @@ class CmdProc:
                                  verify=self.verify,
                                  log=self.debug)
             vcloud_session.token = session_token
-            # vcloud_session.login(token=session_token)
             self.vca.vcloud_session = vcloud_session
         Log.debug(self.logger, 'restored vca %s' % self.vca)
         if self.vca.vcloud_session is not None:
             Log.debug(self.logger, 'restored vcloud_session %s' %
                       self.vca.vcloud_session)
+            Log.debug(self.logger, 'restored org=%s' % self.vca.org)
             if self.vca.vcloud_session.token is not None:
                 Log.debug(self.logger, 'restored vcloud_session token %s' %
                           self.vca.vcloud_session.token)
+
+    def print_profile_file(self):
+        headers = ['Profile', 'Host', 'Type', 'User',
+                   'Instance', 'Org', 'Selected']
+        table = []
+        for section in self.config.sections():
+            if section.startswith('Profile-'):
+                section_name = section.split('-')[1]
+                selected = '*' if section_name == self.profile else ''
+                host = self.config.get(section, 'host') \
+                    if self.config.has_option(section, 'host') else ''
+                service_type = self.config.get(section, 'service_type') \
+                    if self.config.has_option(section, 'service_type') else ''
+                user = self.config.get(section, 'user') \
+                    if self.config.has_option(section, 'user') else ''
+                instance = self.config.get(section, 'instance') \
+                    if self.config.has_option(section, 'instance') else ''
+                org = self.config.get(section, 'org') \
+                    if self.config.has_option(section, 'org') else ''
+                table.append([section_name,
+                              host,
+                              service_type,
+                              user,
+                              instance,
+                              org,
+                              selected])
+        utils.print_table('Profiles in file %s:' %
+                          self.profile_file, headers, table, self)
 
     def save_current_config(self):
         self.save_config(self.profile, self.profile_file)
@@ -158,15 +191,16 @@ class CmdProc:
             self.config.remove_option(section, 'instance')
         else:
             self.config.set(section, 'instance', self.instance)
-        if self.org is None:
-            self.config.remove_option(section, 'org')
-        else:
-            self.config.set(section, 'org', self.org)
         if self.vca is None or self.vca.vcloud_session is None:
+            self.config.remove_option(section, 'org')
             self.config.remove_option(section, 'org_url')
             self.config.remove_option(section, 'session_token')
             self.config.remove_option(section, 'session_uri')
         else:
+            if self.vca.org is None:
+                self.config.remove_option(section, 'org')
+            else:
+                self.config.set(section, 'org', self.vca.org)
             if self.vca.vcloud_session.url is None:
                 self.config.remove_option(section, 'session_uri')
             else:
@@ -185,24 +219,26 @@ class CmdProc:
         with open(os.path.expanduser(profile_file), 'w+') as configfile:
             self.config.write(configfile)
 
-    def login(self, host, username, password, version, save_password=True):
+    def login(self, host, username, password, instance, org, version,
+              save_password=True):
         self.vca = VCA(host=host, username=username, version=version,
                        verify=self.verify, log=self.debug)
         service_type = self.vca.get_service_type()
         if service_type == VCA.VCA_SERVICE_TYPE_UNKNOWN:
             raise Exception('service type unknown')
         self.vca.service_type = service_type
-        result = self.vca.login(password=password)
-#        todo: evaluate if vca requires get instances or
-#        get services upon login....
-#        if not, remove for speed
+        if VCA.VCA_SERVICE_TYPE_STANDALONE == service_type and \
+           org is None:
+            self.error_message = 'Org can\'t be null'
+            return False
+        result = self.vca.login(password=password, org=org)
         if result:
+            Log.debug(self.logger, 'logged in, org=%s' % self.vca.org)
             if save_password:
                 self.password = password
             self.save_config(self.profile, self.profile_file)
         return result
 
-# todo: consider STANDALONE also (done VCHS, VCA)
     def re_login_vcloud_session(self):
         Log.debug(self.logger, 'about to re-login vcloud_session vca=%s' %
                   self.vca)
@@ -220,11 +256,11 @@ class CmdProc:
             if not result:
                 Log.debug(self.logger,
                           'vcloud session invalid, getting a new one')
-                if self.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS or \
-                   self.vca.service_type == 'subscription':
-                    result = self.vca.login_to_org(self.instance, self.org)
-                elif (self.vca.service_type == VCA.VCA_SERVICE_TYPE_VCA) or \
-                     (self.vca.service_type == 'ondemand'):
+                if self.vca.service_type in [VCA.VCA_SERVICE_TYPE_VCHS,
+                                             'subscription']:
+                    result = self.vca.login_to_org(self.instance, self.vca.org)
+                elif self.vca.service_type in [VCA.VCA_SERVICE_TYPE_VCA,
+                                               'ondemand']:
                     result = self.vca.login_to_instance_sso(self.instance)
                 if result:
                     Log.debug(self.logger,
@@ -234,26 +270,38 @@ class CmdProc:
             else:
                 Log.debug(self.logger, 'vcloud session is valid')
 
-# todo: consider STANDALONE also (done VCHS, VCA)
     def re_login(self):
         if self.vca is None or \
            (self.vca.token is None and self.password is None):
             return False
         result = False
         try:
-            Log.debug(self.logger, 'about to re-login with token=%s' %
-                      self.vca.token)
-            result = self.vca.login(token=self.vca.token)
+            Log.debug(self.logger,
+                      'about to re-login with ' +
+                      'host=%s type=%s token=%s org=%s' %
+                      (self.vca.host, self.vca.service_type,
+                       self.vca.token, self.vca.org))
+            org_url = None if self.vca.vcloud_session is None else \
+                self.vca.vcloud_session.org_url
+            result = self.vca.login(token=self.vca.token,
+                                    org=self.vca.org,
+                                    org_url=org_url)
             if result:
                 Log.debug(self.logger, 'vca.login with token successful')
                 self.re_login_vcloud_session()
             else:
+                Log.debug(self.logger, 'vca.login with token failed %s' %
+                          self.vca.response.content)
                 raise Exception('login with token failed')
-        except Exception:
+        except Exception as e:
+            Log.error(self.logger, str(e))
+            tb = traceback.format_exc()
+            Log.error(self.logger, tb)
             if self.password is not None and len(self.password) > 0:
                 try:
                     Log.debug(self.logger, 'about to re-login with password')
-                    result = self.vca.login(password=self.password)
+                    result = self.vca.login(password=self.password,
+                                            org=self.vca.org)
                     if result:
                         Log.debug(self.logger,
                                   'about to re-login vcloud_session')
@@ -270,7 +318,6 @@ class CmdProc:
         self.vca = None
         self.password = None
         self.instance = None
-        self.org = None
         self.host = None
         self.service_type = None
         self.version = None

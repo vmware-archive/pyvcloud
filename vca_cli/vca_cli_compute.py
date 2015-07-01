@@ -20,7 +20,7 @@ from vca_cli import cli, utils
 @cli.command()
 @click.pass_obj
 def vdc(cmd_proc):
-    """Operations with Virtual Data Centers (vdc)"""
+    """Operations with Virtual Data Centers"""
     utils.print_message('vdc', cmd_proc)
 
 

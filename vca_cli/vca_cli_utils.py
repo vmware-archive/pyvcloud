@@ -41,6 +41,9 @@ class VcaCliUtils:
                 msg += ': ' + json_message.get('message')
             else:
                 msg += ': ' + cmd_proc.vca.response.content
+        if cmd_proc is not None and \
+                cmd_proc.error_message is not None:
+                msg += ': ' + cmd_proc.error_message
         self._print(msg, cmd_proc, fg='red')
 
     def print_table(self, message, headers, table, cmd_proc=None):

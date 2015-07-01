@@ -20,8 +20,14 @@
 #todo: pass parameters in the create vapp to optimize for speed, available from 6.3
 #todo: refactor returns, raise exceptions, document with release notes
 
+import sys
+import os
 import time
 import requests
+from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, \
+    FileTransferSpeed, FormatLabel, Percentage, \
+    ProgressBar, ReverseBar, RotatingMarker, \
+    SimpleProgress, Timer
 from StringIO import StringIO
 import json
 from xml.etree import ElementTree as ET
@@ -29,7 +35,7 @@ from pyvcloud.schema.vcd.v1_5.schemas.admin import vCloudEntities
 from pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities import AdminCatalogType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType, \
     vAppType, organizationListType, vdcType, catalogType, queryRecordViewType, \
-    networkType, vcloudType, taskType, diskType, vmsType, vdcTemplateListType
+    networkType, vcloudType, taskType, diskType, vmsType, vdcTemplateListType, mediaType
 from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 from pyvcloud.vcloudsession import VCS
 from pyvcloud.vapp import VAPP
@@ -42,9 +48,27 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import OrgVdcNetworkTyp
 from pyvcloud.score import Score
 from pyvcloud import _get_logger, Http, Log
 
+VCA_SERVICE_TYPE_ONDEMAND = 'ondemand'
+VCA_SERVICE_TYPE_SUBSCRIPTION = 'subscription'
+VCA_SERVICE_TYPE_STANDALONE = 'standalone'
+
 class VCA(object):
 
-    def __init__(self, host, username, service_type='ondemand', version='5.7', verify=True, log=False):
+    def __init__(self, host, username, service_type=VCA_SERVICE_TYPE_ONDEMAND, version='5.7', verify=True, log=False):
+        """
+        Create a VCA connection
+
+        :param host: (str): The vCloud Air Host. Varies by service type. 
+                            Valid values are https://vchs.vmware.com and https://iam.vchs.vmware.com
+        :param username: (str): The username for the vCloud Air Service. 
+        :param service_type: (str, optional): The type of vCloud Air Service. Valid values are ondemand, subscription, vcd.
+        :param version: (str, optional): The API version. Note: may vary by service type.
+        :verify: (bool, optional): Enforce strict ssl certificate checking.
+        :log: (bool, optional): enable logging for the connection.
+        :return: (bool): True if the user was successfully logged in, False otherwise.
+        
+        **service type:**  subscription, ondemand, vcd
+        """
         if not (host.startswith('https://') or host.startswith('http://')):
             host = 'https://' + host
         self.host = host
@@ -75,12 +99,17 @@ class VCA(object):
         """
         Request to login to vCloud Air
 
-        :param password: The password.
-        :param token: The token from a previous successful login, None if this is a new login request.
-        :return: True if the user was successfully logged in, False otherwise.
+        :param password: (str, optional): The password.
+        :param token: (str, optional): The token from a previous successful login, None if this is a new login request.
+        :param org: (str, optional): The organization identifier.
+        :param org_url: (str, optional): The org_url.
+        :return: (bool): True if the user was successfully logged in, False otherwise.
+        
+        **service type:**  subscription, ondemand, vcd
+
         """
 
-        if self.service_type == 'subscription':
+        if self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
             if token:
                 headers = {}
                 headers["x-vchs-authorization"] = token
@@ -103,7 +132,7 @@ class VCA(object):
                     return True
                 else:
                     return False
-        elif self.service_type == 'ondemand':
+        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
             if token:
                 self.token = token
                 self.instances = self.get_instances()
@@ -112,7 +141,6 @@ class VCA(object):
                 url = self.host + "/api/iam/login"
                 headers = {}
                 headers["Accept"] = "application/json;version=%s" % self.version
-                self.response = Http.post(url, headers=headers, verify=self.verify, logger=self.logger)
                 self.response = Http.post(url, headers=headers, auth=(self.username, password), verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.created:
                     self.token = self.response.headers["vchs-authorization"]
@@ -120,7 +148,7 @@ class VCA(object):
                     return True
                 else:
                     return False
-        elif self.service_type == 'vcd':
+        elif self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
             if token:
                 url = self.host + '/api/sessions'
                 vcloud_session = VCS(url, self.username, org, None, org_url, org_url, version=self.version, verify=self.verify, log=self.log)
@@ -144,6 +172,15 @@ class VCA(object):
 
     #ondemand
     def get_plans(self):
+        """
+        Request available plans available for an ondemand account. 
+
+        :return: (list of str): list of available plans in json format.
+        
+        **service type:**  ondemand
+
+        """
+
         headers = self._get_vcloud_headers()
         headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.sc.restapi.model.planlisttype" % self.version
         self.response = Http.get(self.host + "/api/sc/plans", headers=headers, verify=self.verify, logger=self.logger)
@@ -155,6 +192,14 @@ class VCA(object):
             return None
 
     def get_instances(self):
+        """
+        Request available instances 
+
+        :return: (list of str): list of available instances in json format.
+        
+        **service type:**  ondemand
+
+        """
         self.response = Http.get(self.host + "/api/sc/instances", headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
         if self.response.history and self.response.history[-1]:
             self.response = Http.get(self.response.history[-1].headers['location'], headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
@@ -164,10 +209,31 @@ class VCA(object):
             return None
 
     def delete_instance(self, instance):
+        """
+        Request to delete an existing instance 
+
+        :param instance: (str): The instance identifer.
+        :return: (): True if the user was successfully logged in, False otherwise.
+       
+        **service type:**  ondemand
+       
+        """
         self.response = Http.delete(self.host + "/api/sc/instances/" + instance, headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
         print self.response.status_code, self.response.content
 
     def login_to_instance(self, instance, password, token=None, org_url=None):
+        """
+        Request to login into a specific instance 
+
+        :param instance: (str): The instance identifer.
+        :param password: (str): The password.
+        :param token: (str, optional): The token from a previous successful login, None if this is a new login request.
+        :param org_url: (str, optional): 
+        :return: (bool): True if the login was successful, False otherwise.
+
+        **service type:**  ondemand
+        
+        """
         instances = filter(lambda i: i['id']==instance, self.instances)
         if len(instances)>0:
             if 'No Attributes' == instances[0]['instanceAttributes']:
@@ -184,6 +250,15 @@ class VCA(object):
 
     #subscription
     def get_vdc_references(self, serviceId):
+        """
+        Request a list of references to existing virtual data centers.
+
+        :param serviceId: (str): The service instance identifier.
+        :return: (list of ReferenceType): a list of :class:`<pyvcloud.schema.vcim.vchsType.VdcReferenceType` objects for the vdcs hosting the service.
+       
+        **service type:**  subscription
+
+        """
         serviceReferences = filter(lambda serviceReference: serviceReference.get_serviceId() == serviceId, self.services.get_Service())
         if len(serviceReferences) == 0:
             return []
@@ -192,6 +267,16 @@ class VCA(object):
         return vdcs.get_VdcRef()
 
     def get_vdc_reference(self, serviceId, vdcId):
+        """
+        Request a reference to a specific vdc context hosting a service.
+
+        :param serviceId: (str): The service identifier for the service.
+        :param vdcId: (str): The identifier for the virtual data center.
+        :return: (ReferenceType) a :class:`pyvcloud.schema.vcim.vchsType.VdcReferenceType` object representing the vdc.
+       
+        **service type:**  subscription
+
+        """
         vdcReferences = filter(lambda vdcRef: vdcRef.get_name() == vdcId, self.get_vdc_references(serviceId))
         if len(vdcReferences) == 0:
             return None
@@ -199,6 +284,19 @@ class VCA(object):
 
     #in subscription 1 org <-> 1 vdc
     def login_to_org(self, service, org_name):
+        """
+        Request to login into a specific organization.
+        An organization is a unit of administration for a collection of users, groups, and computing resources. 
+
+        :param service: (str): The service identifer.
+        :param org_name: (str): 
+        :return: (bool): True if the login was successful, False otherwise.
+
+        **service type:** ondemand, subscription, vcd
+
+        .. note:: for a subscription service,  1 org <-> 1 vdc
+
+        """
         vdcReference = self.get_vdc_reference(service, org_name)
         if vdcReference:
             link = filter(lambda link: link.get_type() == "application/xml;class=vnd.vmware.vchs.vcloudsession", vdcReference.get_Link())[0]
@@ -223,13 +321,13 @@ class VCA(object):
     #common
     def _get_vcloud_headers(self):
         headers = {}
-        if self.service_type == 'subscription':
+        if self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
             headers["Accept"] = "application/xml;version=" + self.version
             headers["x-vchs-authorization"] = self.token
-        elif self.service_type == 'ondemand':
+        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
             headers["Authorization"] = "Bearer %s" % self.token
             headers["Accept"] = "application/json;version=%s" % self.version
-        elif self.service_type == 'vcd':
+        elif self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
             # headers["x-vcloud-authorization"] = self.token
             pass
         return headers
@@ -238,6 +336,19 @@ class VCA(object):
         pass
 
     def get_vdc(self, vdc_name):
+        """
+        Request a reference to a specific Virtual Data Center.
+
+        A vdc is a logical construct that provides compute, network, and storage resources to an organization. 
+        Virtual machines can be created, stored, and operated within a vdc.
+        A vdc Data centers also provides storage for virtual media. 
+
+        :param vdc_name: (str): The virtual data center name.
+        :return: (VdcType) a :class:`.vcloud.vdcType.VdcType` object describing the vdc. (For example: subscription, ondemand)
+        
+        **service type:** ondemand, subscription, vcd
+
+        """
         if self.vcloud_session and self.vcloud_session.organization:
             refs = filter(lambda ref: ref.name == vdc_name and ref.type_ == 'application/vnd.vmware.vcloud.vdc+xml', self.vcloud_session.organization.Link)
             if len(refs) == 1:
@@ -247,12 +358,25 @@ class VCA(object):
                     return vdcType.parseString(self.response.content, True)
 
     def get_vapp(self, vdc, vapp_name):
+        """
+        Request a reference to a specific vapp.
+
+        A vApp is an application package containing 1 or more virtual machines and their required operating system. 
+
+        :param vdc: (VdcType): The virtual data center name.
+        :param vapp_name: (str): The name of the requested vapp.
+        :return: (VAPP): a :class:`pyvcloud.vapp.VAPP` object describing the vApp. 
+       
+        **service type:** ondemand, subscription, vcd
+
+        """
         refs = filter(lambda ref: ref.name == vapp_name and ref.type_ == 'application/vnd.vmware.vcloud.vApp+xml', vdc.ResourceEntities.ResourceEntity)
         if len(refs) == 1:
             self.response = Http.get(refs[0].href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
             if self.response.status_code == requests.codes.ok:
                 vapp = VAPP(vAppType.parseString(self.response.content, True), self.vcloud_session.get_vcloud_headers(), self.verify, self.log)
                 return vapp
+
 
     def _create_instantiateVAppTemplateParams(self, name, template_href,
                                               vm_name, vm_href, deploy,
@@ -266,46 +390,52 @@ class VCA(object):
         templateParams.set_Source(source)
         templateParams.set_AllEULAsAccepted("true")
 
-        if vm_name or vm_cpus or vm_memory:
-            params = vcloudType.SourcedCompositionItemParamType()
-            params.set_Source(vcloudType.ReferenceType(href=vm_href))
-            templateParams.add_SourcedItem(params)
-
-            if vm_name:
-                gen_params = vcloudType.VmGeneralParamsType()
-                gen_params.set_Name(vm_name)
-                params.set_VmGeneralParams(gen_params)
-
-            if vm_cpus or vm_memory:
-                inst_param = vcloudType.InstantiationParamsType()
-                hardware = vcloudType.VirtualHardwareSection_Type(id=None)
-                hardware.original_tagname_ = "VirtualHardwareSection"
-                hardware.set_Info(vAppType.cimString(valueOf_="Virtual hardware requirements"))
-                inst_param.add_Section(hardware)
-                params.set_InstantiationParams(inst_param)
-
-                if vm_cpus:
-                    cpudata = vAppType.RASD_Type()
-                    cpudata.original_tagname_ = "ovf:Item"
-                    cpudata.set_required(None)
-                    cpudata.set_AllocationUnits(vAppType.cimString(valueOf_="hertz * 10^6"))
-                    cpudata.set_Description(vAppType.cimString(valueOf_="Number of Virtual CPUs"))
-                    cpudata.set_ElementName(vAppType.cimString(valueOf_="{0} virtual CPU(s)".format(vm_cpus)))
-                    cpudata.set_InstanceID(vAppType.cimInt(valueOf_=1))
-                    cpudata.set_ResourceType(3)
-                    cpudata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_cpus))
-                    hardware.add_Item(cpudata)
-                if vm_memory:
-                    memorydata = vAppType.RASD_Type()
-                    memorydata.original_tagname_ = "ovf:Item"
-                    memorydata.set_required(None)
-                    memorydata.set_AllocationUnits(vAppType.cimString(valueOf_="byte * 2^20"))
-                    memorydata.set_Description(vAppType.cimString(valueOf_="Memory Size"))
-                    memorydata.set_ElementName(vAppType.cimString(valueOf_="{0} MB of memory".format(vm_memory)))
-                    memorydata.set_InstanceID(vAppType.cimInt(valueOf_=2))
-                    memorydata.set_ResourceType(4)
-                    memorydata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_memory))
-                    hardware.add_Item(memorydata)
+        if ((self.version == "1.0") or (self.version == "1.5") or
+           (self.version == "5.1") or (self.version == "5.5")):
+            if vm_name or vm_cpus or vm_memory:
+                params = vcloudType.SourcedVmInstantiationParamsType()
+                params.set_Source(vcloudType.ReferenceType(href=vm_href))
+                templateParams.add_SourcedItem(params)
+                if vm_name:
+                    pass
+        else:
+            if vm_name or vm_cpus or vm_memory:
+                params = vcloudType.SourcedCompositionItemParamType()
+                params.set_Source(vcloudType.ReferenceType(href=vm_href))
+                templateParams.add_SourcedItem(params)
+                if vm_name:
+                   gen_params = vcloudType.VmGeneralParamsType()
+                   gen_params.set_Name(vm_name)
+                   params.set_VmGeneralParams(gen_params)
+                if vm_cpus or vm_memory:
+                    inst_param = vcloudType.InstantiationParamsType()
+                    hardware = vcloudType.VirtualHardwareSection_Type(id=None)
+                    hardware.original_tagname_ = "VirtualHardwareSection"
+                    hardware.set_Info(vAppType.cimString(valueOf_="Virtual hardware requirements"))
+                    inst_param.add_Section(hardware)
+                    params.set_InstantiationParams(inst_param)
+                    if vm_cpus:
+                        cpudata = vAppType.RASD_Type()
+                        cpudata.original_tagname_ = "ovf:Item"
+                        cpudata.set_required(None)
+                        cpudata.set_AllocationUnits(vAppType.cimString(valueOf_="hertz * 10^6"))
+                        cpudata.set_Description(vAppType.cimString(valueOf_="Number of Virtual CPUs"))
+                        cpudata.set_ElementName(vAppType.cimString(valueOf_="{0} virtual CPU(s)".format(vm_cpus)))
+                        cpudata.set_InstanceID(vAppType.cimInt(valueOf_=1))
+                        cpudata.set_ResourceType(3)
+                        cpudata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_cpus))
+                        hardware.add_Item(cpudata)
+                    if vm_memory:
+                        memorydata = vAppType.RASD_Type()
+                        memorydata.original_tagname_ = "ovf:Item"
+                        memorydata.set_required(None)
+                        memorydata.set_AllocationUnits(vAppType.cimString(valueOf_="byte * 2^20"))
+                        memorydata.set_Description(vAppType.cimString(valueOf_="Memory Size"))
+                        memorydata.set_ElementName(vAppType.cimString(valueOf_="{0} MB of memory".format(vm_memory)))
+                        memorydata.set_InstanceID(vAppType.cimInt(valueOf_=2))
+                        memorydata.set_ResourceType(4)
+                        memorydata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_memory))
+                        hardware.add_Item(memorydata)
 
         return templateParams
 
@@ -338,6 +468,30 @@ class VCA(object):
                     network_name=None, network_mode='bridged', vm_name=None,
                     vm_cpus=None, vm_memory=None, deploy='false',
                     poweron='false'):
+        """
+        Create a new vApp in a virtual data center.
+
+        A vApp is an application package containing 1 or more virtual machines and their required operating system.
+
+
+        :param vdc_name: (str): The virtual data center name.
+        :param vapp_name: (str): The name of the new vapp.
+        :param template_name: (str): The name of a template from a catalog that will be used to create the vApp.
+        :param catalog_name: (str): The name of the catalog that contains the named template.
+        :param network_name: (str): The name of the network contained within the vApp.
+        :param network_mode: (str): The mode for the network contained within the vApp.
+        :param vm_name: (str, optional): The name of the Virtual Machine contained in the vApp.
+        :param vm_cpus: (str, optional): The number of virtual CPUs assigned to the VM. 
+        :param vm_memory: (str, optional): The amount of memory assigned to the VM, specified in MB.
+        :param deploy: (bool): True to deploy the vApp immediately after creation, False otherwise.
+        :param poweron: (bool): True to poweron the vApp immediately after deployment, False otherwise.
+        :return: (task): a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`, a handle to the asynchronous process executing the request. 
+
+        **service type:**. ondemand, subscription, vcd
+
+        .. note:: In this version of pyvcloud a maximum of 1 vm can be added to a vapp.
+
+        """
         self.vdc = self.get_vdc(vdc_name)
         if not self.vcloud_session or not self.vcloud_session.organization or not self.vdc:
             #"Select an organization and datacenter first"
@@ -366,7 +520,6 @@ class VCA(object):
                         vapp_name, entity.get("href"), vm_name=vm_name,
                         vm_href=vm_href, vm_cpus=vm_cpus, vm_memory=vm_memory,
                         deploy=deploy, power=poweron)
-
                     if network_name:
                         pass
                     output = StringIO()
@@ -391,6 +544,18 @@ class VCA(object):
         return False
 
     def block_until_completed(self, task):
+        """
+        Wait on a task until it has completed.
+        A task is an asynchronous process executing a request. 
+        The status of the task is checked at one second intervals until the task is completed.
+        No timeout.
+        
+        :param task: (task): A :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`  object that represents a running task.
+        :return: (bool) True if the task completed successfully, False if an error completed with an error.
+       
+        **service type:** ondemand, subscription, vcd
+
+        """
         progress = task.get_Progress()
         status = task.get_status()
         rnd = 0
@@ -417,6 +582,19 @@ class VCA(object):
         return True
 
     def delete_vapp(self, vdc_name, vapp_name):
+        """
+        Delete a specific vApp.
+
+        A vApp is an application package containing 1 or more virtual machines and their required operating system. 
+        The vApp is undeployed and removed.
+
+        :param vdc_name: (str): The virtual data center name.
+        :param vapp_name: (str): The name of the vapp to be deleted.
+        :return: (bool) True if the vapp was successfully deleted, false if the vapp was not found.
+       
+        **service type:** ondemand, subscription, vcd
+
+        """
         self.vdc = self.get_vdc(vdc_name)
         if not self.vcloud_session or not self.vcloud_session.organization or not self.vdc: return False
         vapp = self.get_vapp(self.vdc, vapp_name)
@@ -433,7 +611,24 @@ class VCA(object):
         if vapp: return vapp.delete()
         Log.debug(self.logger, "no vApp")
 
+
     def get_catalogs(self):
+        """
+        Request a list of the available Public and Organization catalogs in the vdc. 
+
+        A catalog contains one or more vApp templates and media images.
+      
+        :return: (list of CatalogType) a list of :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.catalogType.CatalogType` objects that describe the available catalogs.
+        
+        Each CatalogType contains a single :class:`.catalogType.CatalogItemsType` \n
+        which contains a list of :class:`.vcloud.catalogType.ReferenceType` objects. 
+        use get_name() on a CatalogType to retrieve the catalog name.
+        use get_name() on ReferenceType to retrieve the catalog item name.     
+
+        **service type:** ondemand, subscription, vcd
+
+        """
+        self.vcloud_session.login(token=self.vcloud_session.token)
         links = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.catalog+xml", self.vcloud_session.organization.Link)
         catalogs = []
         for link in links:
@@ -442,7 +637,20 @@ class VCA(object):
                 catalogs.append(catalogType.parseString(self.response.content, True))
         return catalogs
 
+
     def create_catalog(self, catalog_name, description):
+        """
+        Create a new catalog.
+
+        A catalog is a container for one or more vApp templates and media images.
+
+        :param catalog_name: (str): The name of the new catalog.
+        :param description: (str): A description for the new catalog.
+        :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the creation of the catalog.
+        
+        **service type:** ondemand, subscription, vcd
+
+        """
         refs = filter(lambda ref: ref.rel == 'add' and ref.type_ == 'application/vnd.vmware.admin.catalog+xml',
                              self.vcloud_session.organization.Link)
         if len(refs) == 1:
@@ -456,7 +664,19 @@ class VCA(object):
                 task = vCloudEntities.parseString(self.response.content, True)
                 return task.get_Tasks().get_Task()[0]
 
+
     def delete_catalog(self, catalog_name):
+        """
+        Delete a specific catalog.
+
+        A catalog is a container for one or more vApp templates and media images.
+
+        :param catalog_name: (str): The name of the catalog to delete.
+        :return: (bool) True if the catalog was successfully deleted, false if the vapp was not deleted (or found).
+        
+        **service type:**. ondemand, subscription, vcd
+
+        """
         admin_url = None
         if not self.vcloud_session or not self.vcloud_session.organization: return False
         if 'ondemand' == self.service_type:
@@ -482,8 +702,93 @@ class VCA(object):
                             return True
         return False
 
-    def delete_catalog_item(self, catalog_name, item_name):
+
+    def upload_media(self, catalog_name, item_name, media_file_name, description='', display_progress=False):
+        """
+        Uploads a media file (ISO) to a vCloud catalog
+
+        :param catalog_name: (str): The name of the catalog to upload the media.
+        :param item_name: (str): The name of the media file in the catalog.
+        :param media_file_name: (str): The name of the local media file to upload.
+        :return: (bool) True if the media file was successfully uploaded, false otherwise.
+
+        **service type:** ondemand, subscription, vcd
+
+        """
+        assert os.path.isfile(media_file_name)
+        statinfo = os.stat(media_file_name)
+        assert statinfo.st_size
         for catalog in self.get_catalogs():
+            if catalog_name != catalog.name:
+                continue
+            link = filter(lambda link: link.get_type() == "application/vnd.vmware.vcloud.media+xml" and link.get_rel() == 'add', catalog.get_Link())
+            assert len(link) == 1
+            Log.debug(self.logger, link[0].get_href())
+            data = """
+            <Media
+               xmlns="http://www.vmware.com/vcloud/v1.5"
+               name="%s"
+               size="%s"
+               imageType="iso">
+               <Description>%s</Description>
+            </Media>
+            """ % (item_name, statinfo.st_size, description)
+            self.response = Http.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), 
+                            data=data, verify=self.verify, logger=self.logger)
+            if self.response.status_code == requests.codes.created:
+                catalogItem = ET.fromstring(self.response.content)
+                entity = [child for child in catalogItem if child.get("type") == "application/vnd.vmware.vcloud.media+xml"][0]
+                href = entity.get('href')
+                self.response = Http.get(href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+                if self.response.status_code == requests.codes.ok:
+                    media = mediaType.parseString(self.response.content, True)
+                    link = filter(lambda link: link.get_rel() == 'upload:default', media.get_Files().get_File()[0].get_Link())[0]
+                    progress_bar = None
+                    if display_progress:
+                        widgets = ['Uploading file: ', Percentage(), ' ', Bar(),
+                                   ' ', ETA(), ' ', FileTransferSpeed()]
+                        progress_bar = ProgressBar(widgets=widgets, maxval=statinfo.st_size).start()
+                    f = open(media_file_name, 'rb')
+                    bytes_transferred = 0
+                    chunk_bytes = 1024*1024
+                    while bytes_transferred < statinfo.st_size:
+                        my_bytes = f.read(chunk_bytes)
+                        if len(my_bytes) <= chunk_bytes:
+                            headers = self.vcloud_session.get_vcloud_headers()
+                            headers['Content-Range'] = 'bytes %s-%s/%s' % (bytes_transferred, len(my_bytes)-1, statinfo.st_size)
+                            headers['Content-Length'] = str(len(my_bytes))
+                            self.response = Http.put(link.get_href(), headers=headers, 
+                                            data=my_bytes, verify=self.verify, logger=None)
+                            if self.response.status_code == requests.codes.ok:
+                                bytes_transferred += len(my_bytes)
+                                if display_progress:
+                                    progress_bar.update(bytes_transferred)
+                                Log.debug(self.logger, 'transferred %s of %s bytes' % (str(bytes_transferred), str(statinfo.st_size)))
+                            else:
+                                Log.debug(self.logger, 'file upload failed with error: [%s] %s' % (self.response.status_code, self.response.content))
+                                return False
+                    f.close()
+                    if display_progress:
+                        progress_bar.finish()
+                    return True
+        return False
+
+
+    def delete_catalog_item(self, catalog_name, item_name):
+        """
+        Request the deletion of an item from a catalog.
+        An item is a vApp template and media image stored in a catalog.
+
+        :param catalog_name: (str): The name of the catalog to delete.
+        :param item_name: (str): The name of the catalog item to delete.
+        :return: (bool) True if the catalog item was successfully deleted, false if the vapp was not deleted (or found).
+        
+        **service type:** ondemand, subscription, vcd
+
+        """
+        for catalog in self.get_catalogs():
+            if catalog_name != catalog.name:
+                continue
             if catalog.CatalogItems and catalog.CatalogItems.CatalogItem:
                 for item in catalog.CatalogItems.CatalogItem:
                     if item_name == item.name:
@@ -492,7 +797,17 @@ class VCA(object):
                             return True
         return False
 
+
     def get_gateways(self, vdc_name):
+        """
+        Request a list of the Gateways within a Virtual Data Center.
+
+        :param vdc_name: (str): The virtual data center name.
+        :return: (list of Gateway)  A list of :class:`.pyvcloud.gateway.Gateway` objects describing the available gateways.
+       
+        **service type:** ondemand, subscription, vcd
+
+        """
         gateways = []
         vdc = self.get_vdc(vdc_name)
         if not vdc: return gateways
@@ -508,7 +823,18 @@ class VCA(object):
                         gateways.append(gateway)
         return gateways
 
+
     def get_gateway(self, vdc_name, gateway_name):
+        """
+        Request the details of a specific Gateway Appliance within a Virtual Data Center.
+
+        :param vdc_name: (str): The virtual data center name.
+        :param gateway_name: (str): The requested gateway name.
+        :return: (Gateway)  A :class:`.pyvcloud.gateway.Gateway` object describing the requested gateway.
+
+        **service type:** ondemand, subscription, vcd
+
+        """
         gateway = None
         vdc = self.get_vdc(vdc_name)
         if not vdc: return gateway
@@ -526,6 +852,15 @@ class VCA(object):
         return gateway
 
     def get_networks(self, vdc_name):
+        """
+        Request a list of the Networks within a Virtual Data Center.
+
+        :param vdc_name: (str): The virtual data center name.
+        :return: (list of OrgVdcNetworkType)  A list of :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType.OrgVdcNetworkType` objects describing the available networks.
+        
+        **service type:** ondemand, subscription, vcd
+
+        """
         result = []
         vdc = self.get_vdc(vdc_name)
         if not vdc: return result
@@ -538,6 +873,16 @@ class VCA(object):
         return result
 
     def get_network(self, vdc_name, network_name):
+        """
+        Request the details of a specific Network within a Virtual Data Center.
+
+        :param vdc_name: (str): The virtual data center name.
+        :param network_name: (str): The name of the requested network.
+        :return: (OrgVdcNetworkType)  An :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType.OrgVdcNetworkType` object describing the requested network.
+       
+        **service type:** ondemand, subscription, vcd
+
+        """
         result = None
         networks = self.get_networks(vdc_name)
         for network in networks:
@@ -550,6 +895,19 @@ class VCA(object):
         return doc
 
     def get_media(self, catalog_name, media_name):
+        """
+        Request a media resource from a catalog. 
+
+        :param catalog_name: (str): The name of the catalog containing the media.
+        :param media_name: (str): The name of the requested media.
+        :return: (dict of str,str)  An dictionary describing the requested media.
+                                    Dictionary keys in include a 'name' key with a value containing the media name.
+                                    A 'href' key with a value containing a https url to the media.
+                                    And a 'type' key with a value indicating the type of media.
+       
+        **service type:** ondemand, subscription, vcd
+
+        """
         refs = filter(lambda ref: ref.name == catalog_name and ref.type_ == 'application/vnd.vmware.vcloud.catalog+xml', self.vcloud_session.organization.Link)
         if len(refs) == 1:
             self.response = Http.get(refs[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
@@ -571,12 +929,15 @@ class VCA(object):
         Request to logout from  vCloud Air.
 
         :return:
+    
+        **service type:** ondemand, subscription, vcd
+
         """
-        if self.service_type == 'subscription':
+        if self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
             pass
-        elif self.service_type == 'ondemand':
+        elif self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
             pass
-        elif self.service_type == 'vcd':
+        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
             pass
         self.token = None
         self.vcloud_session = None
@@ -584,6 +945,21 @@ class VCA(object):
     def create_vdc_network(self, vdc_name, network_name, gateway_name, start_address,
                            end_address, gateway_ip, netmask,
                            dns1, dns2, dns_suffix):
+        """
+        Request the creation of an new network within a vdc. 
+
+        :param vdc_name: (str): The name of the virtual data center.
+        :param network_name: (str): The name of the new network to be deleted.
+        :param gateway_name: (str): The name of an existing edge Gateway appliance that will manage the virtual network.
+        :param start_address: (str): The first ip address in a range of addresses for the network.
+        :param end_address: (str): The last ip address in a range of addresses for the network.
+        :return: (tuple of (bool, task or str))  Two values are returned, a bool success indicator and a \
+                 :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`  object if the bool value was True or a \
+                 str message indicating the reason for failure if the bool value was False.  
+
+        **service type:** ondemand, subscription, vcd
+
+        """
         vdc = self.get_vdc(vdc_name)
         gateway = ReferenceType(href=self.get_gateway(vdc_name, gateway_name).me.href)
         gateway.original_tagname_ = "EdgeGateway"
@@ -623,6 +999,18 @@ class VCA(object):
             return (False, self.response.content)
 
     def delete_vdc_network(self, vdc_name, network_name):
+        """
+        Request the deletion of an existing network within a vdc. 
+
+        :param vdc_name: (str): The name of the virtual data center.
+        :param network_name: (str): The name of the new network to be deleted.
+        :return: (tuple of (bool, task or str))  Two values are returned, a bool success indicator and a \
+                 :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`  object if the bool value was True or a \
+                 str message indicating the reason for failure if the bool value was False.  
+        
+        **service type:** ondemand, subscription, vcd
+
+        """
         netref = self.get_admin_network_href(vdc_name, network_name)
         if netref is None:
             return (False, 'network not found')
@@ -646,10 +1034,22 @@ class VCA(object):
 
     def get_score_service(self, score_service_url):
         if self.vcloud_session is None or self.vcloud_session.token is None:
+            Log.error(self.logger, "self.vcloud_session is None")
             return None
-        return Score(score_service_url, self.vcloud_session.org_url, self.vcloud_session.token, self.version, self.verify)
+        return Score(score_service_url, self.vcloud_session.org_url, self.vcloud_session.token, self.version, self.verify, self.log)
 
     def get_diskRefs(self, vdc):
+        """
+        Request a list of references to disk volumes in a vdc.
+
+        :param vdc: (str): The name of the virtual data center.
+        :return: (list of ResourceReferenceType)  A list of 
+                 :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.vdcType.ResourceReferenceType` objects. 
+        Use   get_name(), get_type() and get_href() methods on each list entry to return disk details.
+
+        **service type:** ondemand, subscription, vcd
+
+        """
         resourceEntities = vdc.get_ResourceEntities().get_ResourceEntity()
         return [resourceEntity for resourceEntity in resourceEntities
                     if resourceEntity.get_type() == "application/vnd.vmware.vcloud.disk+xml"]
@@ -681,6 +1081,16 @@ class VCA(object):
         return disk
 
     def get_disks(self, vdc_name):
+        """
+        Request a list of disks attached to a vdc. 
+
+        :param vdc_name: (str): The name of a virtual data center.
+        :return: (list of tuples of (DiskType, list of str)):  An list of tuples. \
+                  Each tuple contains a :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType.DiskType` object and a list of vms utilizing the disk. 
+        
+        **service type:** ondemand, subscription, vcd
+
+        """
         vdc = self.get_vdc(vdc_name)
         links = self.get_diskRefs(vdc)
         disks = []
@@ -698,6 +1108,17 @@ class VCA(object):
         return disks
 
     def add_disk(self, vdc_name, name, size):
+        """
+        Request the creation of an indepdent disk (not attached to a vApp). 
+
+        :param vdc_name: (str): The name of the virtual data center.
+        :param name: (str): The name of the new disk.
+        :param size: (str): The size of the new disk in MB.
+        :return: (tuple(bool, DiskType))  Two values are returned, a bool success indicator and a :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType.DiskType` object describing the disk resource.
+       
+        **service type:** ondemand, subscription, vcd
+
+        """
         data = """
                 <vcloud:DiskCreateParams xmlns:vcloud="http://www.vmware.com/vcloud/v1.5">
                     <vcloud:Disk name="%s" size="%s"/>
@@ -714,6 +1135,19 @@ class VCA(object):
             return(False, self.response.content)
 
     def delete_disk(self, vdc_name, name, id=None):
+        """
+        Request the deletion of an existing disk within a vdc. 
+
+        :param vdc_name: (str): The name of the virtual data center.
+        :param name: (str): The name of the new disk.
+        :param id: (str, optional): The id of the disk resource. 
+        :return: (tuple(bool, TaskType))  Two values are returned, a bool success indicator and a \
+                 :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`  object if the bool value was True or a \
+                 str message indicating the reason for failure if the bool value was False.  
+
+        **service type:** ondemand, subscription, vcd
+
+        """
         vdc = self.get_vdc(vdc_name)
         refs = self.get_diskRefs(vdc)
         link = []
@@ -732,3 +1166,15 @@ class VCA(object):
             return(False, 'disk not found')
         elif len(link) > 1:
             return(False, 'more than one disks found with that name, use the disk id')
+
+
+    #https://us-texas-1-14.vchs.vmware.com/api/compute/api/task/d298aec0-2b43-4dc0-8978-d73d6b17a20e/action/cancel
+    def cancel_task(self, task_url):
+        self.response = Http.post(task_url + '/action/cancel', headers=self.vcloud_session.get_vcloud_headers(), 
+            verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.no_content:
+            return True
+        else:
+            Log.error(self.logger, "can't cancel task")
+            return False
+

@@ -1,18 +1,22 @@
 vcloud:
-    service_type: standalone
-    username: *****@company.com
-    password: *****************
-    host: p1v21-vcd.vchs.vmware.com
+    service_type: subscription
+    username: email@company.com
+    password: '***************'
+    host: vchs.vmware.com
     version: '5.6'
     org: AppServices
     vdc: AppServices
     gateway: AppServices
+    service: '85-719'
+    instance: ''
     catalog: 'Public Catalog'
     template: 'Ubuntu Server 12.04 LTS (amd64 20150127)'
     vapp: myvapp
     vm: myvm
     network: AppServices-default-routed
     mode: pool
+    ip_address: 192.168.109.201
+    mac_address: ''
     memory: 1024
     memory_new: 2048
     cpus: 1
@@ -32,4 +36,4 @@ vcloud:
     fw_source_port: Any
     fw_source_ip: Any
     fw_enable_logging: false
-    custom_catalog: mycatalog
+    custom_catalog: catalog-1

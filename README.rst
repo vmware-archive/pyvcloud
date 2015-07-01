@@ -1,6 +1,8 @@
 pyvcloud
 ========
 
+|docs-latest| |pip| |ver| |build-status|
+
 Python SDK for VMware vCloud. It supports vCloud Air On Demand and Subscription. It also supports vCloud Director.
 
 ``Release early, release often.``
@@ -144,7 +146,7 @@ The SDK supports logging in to different type of services: vCloud Air Subscripti
     vapp = 'cts'
 
     #sample login sequence on vCloud Director standalone
-    vca = VCA(host=host, username=username, service_type='vcd', version='5.6', verify=True)
+    vca = VCA(host=host, username=username, service_type='standalone', version='5.6', verify=True)
 
     #first login, with password and org name
     result = vca.login(password=password, org=org)
@@ -192,4 +194,29 @@ To test pyvcloud::
     # customize credentials and other parameters
     nosetests --verbosity=2  --tc-format yaml --tc-file tests/config_standalone.yaml \
                 tests/vcloud_tests.py
+
+.. |build-status| image:: https://img.shields.io/travis/vmware/pyvcloud.svg?style=flat
+    :alt: build status
+    :scale: 100%
+    :target: https://travis-ci.org/vmware/pyvcloud/
+
+.. |docs| image:: https://readthedocs.org/projects/pyvcloud/badge/?version=stable
+    :alt: Documentation Status
+    :scale: 100%
+    :target: http://pyvcloud.readthedocs.org/en/stable/
+
+.. |docs-latest| image:: https://readthedocs.org/projects/pyvcloud/badge/?version=latest
+    :alt: Documentation Status
+    :scale: 100%
+    :target: http://pyvcloud.readthedocs.org/en/latest/
+
+.. |pip| image:: https://img.shields.io/pypi/dm/pyvcloud.svg
+    :alt: Download Status
+    :scale: 100%
+    :target: https://pypi.python.org/pypi/pyvcloud
+
+.. |ver| image:: https://img.shields.io/pypi/v/pyvcloud.svg
+    :alt: Stable Version
+    :scale: 100%
+    :target: https://pypi.python.org/pypi/pyvcloud
 

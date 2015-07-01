@@ -1,12 +1,11 @@
 ==============
-vCloud Air
+vchsType
 ==============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
 
-.. automodule:: vcloudair
-   :special-members: __init__
+.. automodule:: schema.vcim.vchsType
    :members:
    :undoc-members:
    :show-inheritance:

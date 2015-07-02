@@ -21,6 +21,7 @@ import requests
 from cmd_proc import CmdProc
 from vca_cli_utils import VcaCliUtils
 from pyvcloud.vcloudair import VCA
+from pyvcloud import Log
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -79,7 +80,6 @@ def status(cmd_proc, show_password):
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
-        return
     headers = ['Key', 'Value']
     table = []
     table.append(['vca_cli_version',
@@ -114,7 +114,6 @@ def profile(cmd_proc):
     cmd_proc.print_profile_file()
 
 
-#  TODO: login to a VDC
 @cli.command()
 @click.pass_obj
 @click.argument('user')
@@ -132,11 +131,13 @@ def profile(cmd_proc):
               help='Instance Id')
 @click.option('-o', '--org', default=None, metavar='<organization>',
               help='Organization Name')
+@click.option('-v', '--vdc', default=None, metavar='<vdc>',
+              help='Virtual Data Center Name')
 @click.option('-c', '--host-score', 'host_score',
               metavar='<host>',
               default='https://score.vca.io', help='URL of the Score server')
 def login(cmd_proc, user, host, password, do_not_save_password,
-          service_version, instance, org, host_score):
+          service_version, instance, org, vdc, host_score):
     """Login to a vCloud service"""
     if not (host.startswith('https://') or host.startswith('http://')):
         host = 'https://' + host
@@ -163,12 +164,58 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                 if instance is not None:
                     result = _use_instance(cmd_proc, instance)
                     if result:
+                        if vdc is not None:
+                            the_vdc = cmd_proc.vca.get_vdc(vdc)
+                            if the_vdc is not None:
+                                utils.print_message("Using vdc '%s' "
+                                                    "in profile '%s'" %
+                                                    (vdc, cmd_proc.profile),
+                                                    cmd_proc)
+                                cmd_proc.vca.vdc = vdc
+                            else:
+                                utils.print_error("Unable to select vdc "
+                                                  "'%s' in profile '%s'" %
+                                                  (vdc, cmd_proc.profile),
+                                                  cmd_proc)
                         cmd_proc.save_current_config()
             elif cmd_proc.vca.service_type in [VCA.VCA_SERVICE_TYPE_VCHS]:
                 if instance is not None or org is not None:
                     result = _use_instance_org(cmd_proc, instance, org)
                     if result:
+                        if vdc is not None:
+                            the_vdc = cmd_proc.vca.get_vdc(vdc)
+                            if the_vdc is not None:
+                                utils.print_message("Using vdc '%s' "
+                                                    "in profile '%s'" %
+                                                    (vdc, cmd_proc.profile),
+                                                    cmd_proc)
+                                cmd_proc.vca.vdc = vdc
+                            else:
+                                utils.print_error("Unable to select vdc "
+                                                  "'%s' in profile '%s'" %
+                                                  (vdc, cmd_proc.profile),
+                                                  cmd_proc)
                         cmd_proc.save_current_config()
+            elif cmd_proc.vca.service_type in \
+                 [VCA.VCA_SERVICE_TYPE_STANDALONE]:
+                if vdc is not None:
+                    Log.debug(cmd_proc.logger, 'Select vdc=%s' % vdc)
+                    cmd_proc.save_current_config()
+                    result = cmd_proc.re_login()
+                    the_vdc = cmd_proc.vca.get_vdc(vdc)
+                    Log.debug(cmd_proc.logger, 'Select vdc=%s' % the_vdc)
+                    if the_vdc is not None:
+                        utils.print_message("Using vdc '%s' "
+                                            "in profile '%s'" %
+                                            (vdc, cmd_proc.profile),
+                                            cmd_proc)
+                        cmd_proc.vca.vdc = vdc
+                    else:
+                        utils.print_error("Unable to select vdc "
+                                          "'%s' in profile '%s'" %
+                                          (vdc, cmd_proc.profile),
+                                          cmd_proc)
+                cmd_proc.save_current_config()
         else:
             utils.print_error('Can\'t login', cmd_proc)
     except Exception as e:
@@ -185,7 +232,6 @@ def logout(cmd_proc):
     utils.print_message("User '%s' logged out, profile '%s'" %
                         (user, profile),
                         cmd_proc)
-# TODO: DELETE https://vchs.vmware.com/api/vchs/session
 
 
 #  TODO: select first VDC

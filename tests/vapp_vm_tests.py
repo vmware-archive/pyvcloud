@@ -124,36 +124,36 @@ class TestVApp:
         assert the_vapp.me.get_status() == 4
 
 
-    # def test_0032(self):
-    #     """Power Off vApp"""
-    #     vdc_name = config['vcloud']['vdc']
-    #     vapp_name = config['vcloud']['vapp']
-    #     the_vdc = self.vca.get_vdc(vdc_name)
-    #     assert the_vdc
-    #     assert the_vdc.get_name() == vdc_name
-    #     the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
-    #     assert the_vapp
-    #     assert the_vapp.name == vapp_name
-    #     assert the_vapp.me.get_status() == 4
-    #     task = the_vapp.poweroff()
-    #     assert task
-    #     result = self.vca.block_until_completed(task)
-    #     assert result
-    #     the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
-    #     assert the_vapp != None
-    #     assert the_vapp.me.get_status() == 8
-    #
-    #
-    # def test_0099(self):
-    #     """Delete vApp"""
-    #     vdc_name = config['vcloud']['vdc']
-    #     vapp_name = config['vcloud']['vapp']
-    #     the_vdc = self.vca.get_vdc(vdc_name)
-    #     assert the_vdc
-    #     assert the_vdc.get_name() == vdc_name
-    #     task = self.vca.delete_vapp(vdc_name, vapp_name)
-    #     assert task
-    #     result = self.vca.block_until_completed(task)
-    #     assert result
-    #     the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
-    #     assert the_vapp == None
+    def test_0032(self):
+        """Power Off vApp"""
+        vdc_name = config['vcloud']['vdc']
+        vapp_name = config['vcloud']['vapp']
+        the_vdc = self.vca.get_vdc(vdc_name)
+        assert the_vdc
+        assert the_vdc.get_name() == vdc_name
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp
+        assert the_vapp.name == vapp_name
+        assert the_vapp.me.get_status() == 4
+        task = the_vapp.poweroff()
+        assert task
+        result = self.vca.block_until_completed(task)
+        assert result
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp != None
+        assert the_vapp.me.get_status() == 8
+
+
+    def test_0099(self):
+        """Delete vApp"""
+        vdc_name = config['vcloud']['vdc']
+        vapp_name = config['vcloud']['vapp']
+        the_vdc = self.vca.get_vdc(vdc_name)
+        assert the_vdc
+        assert the_vdc.get_name() == vdc_name
+        task = self.vca.delete_vapp(vdc_name, vapp_name)
+        assert task
+        result = self.vca.block_until_completed(task)
+        assert result
+        the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
+        assert the_vapp == None

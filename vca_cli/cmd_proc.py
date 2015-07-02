@@ -127,8 +127,8 @@ class CmdProc:
                           self.vca.vcloud_session.token)
 
     def print_profile_file(self):
-        headers = ['Profile', 'Host', 'Type', 'User',
-                   'Instance', 'Org', 'vdc', 'Selected']
+        headers = ['Profile', 'Selected', 'Host', 'Type', 'User',
+                   'Instance', 'Org', 'vdc']
         table = []
         for section in self.config.sections():
             if section.startswith('Profile-'):
@@ -147,13 +147,13 @@ class CmdProc:
                 vdc = self.config.get(section, 'vdc') \
                     if self.config.has_option(section, 'vdc') else ''
                 table.append([section_name,
+                              selected,
                               host,
                               service_type,
                               user,
                               instance,
                               org,
-                              vdc,
-                              selected])
+                              vdc])
         utils.print_table('Profiles in file %s:' %
                           self.profile_file, headers, table, self)
 
@@ -384,5 +384,37 @@ class CmdProc:
                       memory.get_Allocated(),
                       memory.get_Limit(), memory.get_Reserved(),
                       memory.get_Used(), memory.get_Overhead()])
+        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+        return sorted_table
+
+# TODO: add other gw services
+    def gateways_to_table(self, gateways):
+        table = []
+        for gateway in gateways:
+            interfaces = gateway.get_interfaces('uplink')
+            ext_interface_table = []
+            for interface in interfaces:
+                ext_interface_table.append(interface.get_Name())
+            interfaces = gateway.get_interfaces('internal')
+            interface_table = []
+            for interface in interfaces:
+                interface_table.append(interface.get_Name())
+            public_ips = gateway.get_public_ips()
+            public_ips_value = public_ips
+            if len(public_ips) > 2:
+                public_ips_value = (
+                    "%d IPs (list = 'vca gateway -g %s info')"
+                    % (len(public_ips), gateway.get_name()))
+            table.append([
+                gateway.get_name(),
+                str(public_ips_value).strip('[]').replace("'", ""),
+                'On' if gateway.is_dhcp_enabled() else 'Off',
+                'On' if gateway.is_fw_enabled() else 'Off',
+                'On' if gateway.is_nat_enabled() else 'Off',
+                'On' if gateway.is_vpn_enabled() else 'Off',
+                utils.beautified(interface_table),
+                gateway.get_syslog_conf(),
+                utils.beautified(ext_interface_table)
+            ])
         sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
         return sorted_table

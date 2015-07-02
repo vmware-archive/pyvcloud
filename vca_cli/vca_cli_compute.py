@@ -18,7 +18,6 @@ import operator
 from vca_cli import cli, utils, default_operation
 
 
-# TODO: add gateway information
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
@@ -69,11 +68,16 @@ def vdc(cmd_proc, operation, vdc):
             headers2 = ['Resource', 'Allocated',
                         'Limit', 'Reserved', 'Used', 'Overhead']
             table2 = cmd_proc.vdc_resources_to_table(the_vdc)
+            headers3 = ['Name', 'External IPs', 'DHCP', 'Firewall', 'NAT',
+                        'VPN', 'Routed Networks', 'Syslog', 'Uplinks']
+            table3 = cmd_proc.gateways_to_table(gateways)
             if cmd_proc.json_output:
                 json_object = {'vdc_entities':
                                utils.table_to_json(headers1, table1),
                                'vdc_resources':
-                               utils.table_to_json(headers2, table2)}
+                               utils.table_to_json(headers2, table2),
+                               'gateways':
+                               utils.table_to_json(headers3, table3)}
                 utils.print_json(json_object, cmd_proc=cmd_proc)
             else:
                 utils.print_table(
@@ -82,6 +86,8 @@ def vdc(cmd_proc, operation, vdc):
                     headers1, table1, cmd_proc)
                 utils.print_table("Compute capacity:",
                                   headers2, table2, cmd_proc)
+                utils.print_table('Gateways:',
+                                  headers3, table3, cmd_proc)
         else:
             utils.print_error("Unable to select vdc '%s' in profile '%s'" %
                               (vdc, cmd_proc.profile), cmd_proc)

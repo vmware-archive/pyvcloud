@@ -71,12 +71,15 @@ def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
 
 @cli.command()
 @click.pass_obj
-def status(cmd_proc):
+@click.option('-s', '--show-password', 'show_password', is_flag=True,
+              default=False, help='Show encrypted password')
+def status(cmd_proc, show_password):
     """Show current status"""
     cmd_proc.save_current_config()
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
+        return
     headers = ['Key', 'Value']
     table = []
     table.append(['vca_cli_version',
@@ -89,7 +92,8 @@ def status(cmd_proc):
     table.append(['user', cmd_proc.vca.username])
     table.append(['instance', cmd_proc.instance])
     table.append(['org', cmd_proc.vca.org])
-    if cmd_proc.password is None or len(cmd_proc.password) == 0:
+    if cmd_proc.password is None or len(cmd_proc.password) == 0 or \
+       show_password:
         table.append(['password', str(cmd_proc.password)])
     else:
         table.append(['password', '<encrypted>'])

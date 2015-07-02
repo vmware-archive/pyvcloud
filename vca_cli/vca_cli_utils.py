@@ -38,26 +38,33 @@ class VcaCliUtils:
                 cmd_proc.vca.response.content is not None:
             if 'message' in cmd_proc.vca.response.content:
                 json_message = json.loads(cmd_proc.vca.response.content)
-                msg += ': ' + json_message.get('message')
-            else:
-                msg += ': ' + cmd_proc.vca.response.content
+                msg = message + ': ' + json_message.get('message')
+        if cmd_proc is not None and \
+                cmd_proc.vca is not None and \
+                cmd_proc.vca.vcloud_session is not None and \
+                cmd_proc.vca.vcloud_session.response is not None and \
+                cmd_proc.vca.vcloud_session.response.content is not None:
+            if 'message' in cmd_proc.vca.vcloud_session.response.content:
+                json_message = json.loads(
+                    cmd_proc.vca.vcloud_session.response.content)
+                msg = message + ': ' + json_message.get('message')
         if cmd_proc is not None and \
                 cmd_proc.error_message is not None:
-                msg += ': ' + cmd_proc.error_message
+                msg = message + ': ' + cmd_proc.error_message
         self._print(msg, cmd_proc, fg='red')
 
     def print_table(self, message, headers, table, cmd_proc=None):
         if cmd_proc is not None and cmd_proc.json_output:
             json_obj = self.table_to_json(headers, table)
-            self._print_json(message, json_obj, cmd_proc)
+            self._print_json(json_obj)
         elif cmd_proc is not None and cmd_proc.xml_output:
             click.secho('Not implemented', fg='black')
         else:
             self._print_table(message, headers, table, cmd_proc)
 
-    def print_json(self, message, json_obj, cmd_proc=None):
+    def print_json(self, json_obj, message=None, cmd_proc=None):
         if cmd_proc is not None and cmd_proc.json_output:
-            self._print_json(message, json_obj, cmd_proc)
+            self._print_json(json_obj)
         elif cmd_proc is not None and cmd_proc.xml_output:
             click.secho('Not implemented', fg='black')
         else:
@@ -70,10 +77,11 @@ class VcaCliUtils:
             self._print_table(message, headers, sorted_table, cmd_proc)
 
     def _print_table(self, message, headers, table, cmd_proc=None):
-        click.secho(message, fg='blue')
+        if message is not None:
+            click.secho(message, fg='blue')
         print(tabulate(table, headers=headers, tablefmt="orgtbl"))
 
-    def _print_json(self, message, json_obj, cmd_proc=None):
+    def _print_json(self, json_obj):
         click.secho(json.dumps(json_obj, sort_keys=True,
                     indent=4, separators=(',', ': ')), fg='black')
 

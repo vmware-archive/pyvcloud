@@ -68,6 +68,7 @@ class CmdProc:
         org_url = None
         session_token = None
         session_uri = None
+        vdc = None
         if self.config.has_section(section):
             if self.config.has_option(section, 'host'):
                 host = self.config.get(section, 'host')
@@ -94,6 +95,8 @@ class CmdProc:
                 session_token = self.config.get(section, 'session_token')
             if self.config.has_option(section, 'session_uri'):
                 session_uri = self.config.get(section, 'session_uri')
+            if self.config.has_option(section, 'vdc'):
+                vdc = self.config.get(section, 'vdc')
         self.vca = VCA(host=host, username=user,
                        service_type=service_type, version=version,
                        verify=self.verify, log=self.debug)
@@ -113,6 +116,7 @@ class CmdProc:
                                  log=self.debug)
             vcloud_session.token = session_token
             self.vca.vcloud_session = vcloud_session
+            self.vca.vdc = vdc
         Log.debug(self.logger, 'restored vca %s' % self.vca)
         if self.vca.vcloud_session is not None:
             Log.debug(self.logger, 'restored vcloud_session %s' %
@@ -124,7 +128,7 @@ class CmdProc:
 
     def print_profile_file(self):
         headers = ['Profile', 'Host', 'Type', 'User',
-                   'Instance', 'Org', 'Selected']
+                   'Instance', 'Org', 'vdc', 'Selected']
         table = []
         for section in self.config.sections():
             if section.startswith('Profile-'):
@@ -140,12 +144,15 @@ class CmdProc:
                     if self.config.has_option(section, 'instance') else ''
                 org = self.config.get(section, 'org') \
                     if self.config.has_option(section, 'org') else ''
+                vdc = self.config.get(section, 'vdc') \
+                    if self.config.has_option(section, 'vdc') else ''
                 table.append([section_name,
                               host,
                               service_type,
                               user,
                               instance,
                               org,
+                              vdc,
                               selected])
         utils.print_table('Profiles in file %s:' %
                           self.profile_file, headers, table, self)
@@ -196,6 +203,7 @@ class CmdProc:
             self.config.remove_option(section, 'org_url')
             self.config.remove_option(section, 'session_token')
             self.config.remove_option(section, 'session_uri')
+            self.config.remove_option(section, 'vdc')
         else:
             if self.vca.org is None:
                 self.config.remove_option(section, 'org')
@@ -216,6 +224,10 @@ class CmdProc:
             else:
                 self.config.set(section, 'session_token',
                                 self.vca.vcloud_session.token)
+            if self.vca.vdc is None:
+                self.config.remove_option(section, 'vdc')
+            else:
+                self.config.set(section, 'vdc', self.vca.vdc)
         with open(os.path.expanduser(profile_file), 'w+') as configfile:
             self.config.write(configfile)
 
@@ -315,6 +327,7 @@ class CmdProc:
 
     def logout(self):
         assert self.vca is not None
+        self.vca.logout()
         self.vca = None
         self.password = None
         self.instance = None
@@ -338,4 +351,38 @@ class CmdProc:
         table.append(['Org Name', org_name])
         sorted_table = sorted(
             table, key=operator.itemgetter(0), reverse=False)
+        return sorted_table
+
+    def vdc_to_table(self, vdc, gateways):
+        table = []
+        for entity in vdc.get_ResourceEntities().ResourceEntity:
+            table.append([entity.type_.split('.')[-1].split('+')[0],
+                         entity.name])
+        for entity in vdc.get_AvailableNetworks().Network:
+            table.append([entity.type_.split('.')[-1].split('+')[0],
+                         entity.name])
+        for entity in vdc.get_VdcStorageProfiles().VdcStorageProfile:
+            table.append([entity.type_.split('.')[-1].split('+')[0],
+                         entity.name])
+        for gateway in gateways:
+            table.append(['gateway', gateway.get_name()])
+        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+        return sorted_table
+
+    def vdc_resources_to_table(self, vdc):
+        table = []
+        computeCapacity = vdc.get_ComputeCapacity()
+        cpu = computeCapacity.get_Cpu()
+        memory = computeCapacity.get_Memory()
+        # storageCapacity = vca.vdc.get_StorageCapacity()
+        table.append(
+            ['CPU (%s)' % cpu.get_Units(),
+             cpu.get_Allocated(), cpu.get_Limit(),
+             cpu.get_Reserved(), cpu.get_Used(),
+             cpu.get_Overhead()])
+        table.append(['Memory (%s)' % memory.get_Units(),
+                      memory.get_Allocated(),
+                      memory.get_Limit(), memory.get_Reserved(),
+                      memory.get_Used(), memory.get_Overhead()])
+        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
         return sorted_table

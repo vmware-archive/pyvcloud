@@ -110,6 +110,7 @@ def profile(cmd_proc):
     cmd_proc.print_profile_file()
 
 
+#  TODO: login to a VDC
 @cli.command()
 @click.pass_obj
 @click.argument('user')
@@ -183,6 +184,7 @@ def logout(cmd_proc):
 # TODO: DELETE https://vchs.vmware.com/api/vchs/session
 
 
+#  TODO: select first VDC
 def _use_instance(cmd_proc, instance):
     result = cmd_proc.vca.login_to_instance_sso(instance)
     if result:
@@ -203,6 +205,7 @@ def _use_instance(cmd_proc, instance):
     return result
 
 
+#  TODO: select first VDC
 def _use_instance_org(cmd_proc, instance, org):
     if instance is None or '' == instance:
         utils.print_message('Please provide a valid instance '
@@ -310,14 +313,13 @@ def instance(cmd_proc, operation, instance, org):
             plan = cmd_proc.vca.get_plan(instance_data['planId'])
             if cmd_proc.json_output:
                 json_object = {'instance': instance_data, 'plan': plan}
-                utils.print_json('Instance and Plan details', json_object,
+                utils.print_json(json_object, 'Instance and Plan details',
                                  cmd_proc)
             else:
-                utils.print_json('Instance details:', instance_data, cmd_proc)
-                utils.print_json('Plan details:', plan, cmd_proc)
+                utils.print_json(instance_data, 'Instance details:', cmd_proc)
+                utils.print_json(plan, 'Plan details:', cmd_proc)
         elif cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
             _list_orgs_in_instance(cmd_proc, instance)
-        # cmd_proc.instance = instance
     elif 'use' == operation:
         if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCA:
             _use_instance(cmd_proc, instance)

@@ -1,28 +1,26 @@
 vcloud:
-    service_type: subscription
+    service_type: vca
     username: email@company.com
     password: '***************'
-    host: vchs.vmware.com
-    version: '5.6'
-    org: AppServices
-    vdc: AppServices
-    gateway: AppServices
-    service: '85-719'
-    instance: ''
+    host: iam.vchs.vmware.com
+    version: '5.7'
+    org: ''
+    vdc: vdc-paco
+    gateway: gateway
+    service: ''
+    instance: 'd7a623de-1183-46a9-9b02-9043ca68f441'
     catalog: 'Public Catalog'
     template: 'Ubuntu Server 12.04 LTS (amd64 20150127)'
     vapp: myvapp
     vm: myvm
-    network: AppServices-default-routed
+    network: default-routed-network
     mode: pool
-    ip_address: 192.168.109.201
-    mac_address: ''
     memory: 1024
     memory_new: 2048
     cpus: 1
     cpus_new: 4
     nat_rule_type: DNAT
-    nat_original_ip: 192.240.158.81
+    nat_original_ip: 107.189.85.43
     nat_original_port: 80
     nat_translated_ip: 192.168.109.201
     nat_translated_port: 80
@@ -37,3 +35,4 @@ vcloud:
     fw_source_ip: Any
     fw_enable_logging: false
     custom_catalog: catalog-1
+    blueprint_path: /path/to/blueprint.yaml

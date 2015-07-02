@@ -37,6 +37,7 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationTyp
     vAppType, organizationListType, vdcType, catalogType, queryRecordViewType, \
     networkType, vcloudType, taskType, diskType, vmsType, vdcTemplateListType, mediaType
 from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
+from pyvcloud.schema.vcd.schemas.versioning import versionsType
 from pyvcloud.vcloudsession import VCS
 from pyvcloud.vapp import VAPP
 from pyvcloud.gateway import Gateway
@@ -48,13 +49,17 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import OrgVdcNetworkTyp
 from pyvcloud.score import Score
 from pyvcloud import _get_logger, Http, Log
 
-VCA_SERVICE_TYPE_ONDEMAND = 'ondemand'
-VCA_SERVICE_TYPE_SUBSCRIPTION = 'subscription'
-VCA_SERVICE_TYPE_STANDALONE = 'standalone'
 
 class VCA(object):
 
-    def __init__(self, host, username, service_type=VCA_SERVICE_TYPE_ONDEMAND, version='5.7', verify=True, log=False):
+
+    VCA_SERVICE_TYPE_STANDALONE = 'standalone'
+    VCA_SERVICE_TYPE_VCHS = 'vchs'
+    VCA_SERVICE_TYPE_VCA = 'vca'
+    VCA_SERVICE_TYPE_UNKNOWN = 'unknown'
+
+
+    def __init__(self, host, username, service_type=VCA_SERVICE_TYPE_VCA, version='5.7', verify=True, log=False):
         """
         Create a VCA connection
 
@@ -87,6 +92,42 @@ class VCA(object):
         self.log = log
         self.logger = _get_logger() if log else None
 
+
+    def get_service_type(self):
+        """
+        Returns the service type provided by the host (standalone, vchs or vca).
+
+        This method only uses the host variable, it doesn't require the
+        user to login.
+
+        :return: (str): The type of service provided by the host.
+        
+        **service type:** standalone, vchs, vca
+
+        """
+        
+        url = self.host + '/api/iam/login'
+        headers = {}
+        headers["Accept"] = "application/json;version=" + '5.7'
+        response = Http.post(url, headers=headers, auth=('_', '_'), verify=self.verify, logger=self.logger)
+        if response.status_code == requests.codes.unauthorized:
+            return VCA.VCA_SERVICE_TYPE_VCA
+        url = self.host + '/api/vchs/sessions'
+        headers = {}
+        headers["Accept"] = "application/xml;version=" + '5.6'
+        response = Http.post(url, headers=headers, auth=('_', '_'), verify=self.verify, logger=self.logger)
+        if response.status_code == requests.codes.unauthorized:
+            return VCA.VCA_SERVICE_TYPE_VCHS
+        url = self.host + '/api/versions'
+        response = Http.get(url, verify=self.verify, logger=self.logger)
+        if response.status_code == requests.codes.ok:
+            try:
+                supported_versions = versionsType.parseString(response.content, True)
+                return VCA.VCA_SERVICE_TYPE_STANDALONE
+            except:
+                pass
+        return VCA.VCA_SERVICE_TYPE_UNKNOWN
+
     def _get_services(self):
         headers = {}
         headers["x-vchs-authorization"] = self.token
@@ -105,11 +146,11 @@ class VCA(object):
         :param org_url: (str, optional): The org_url.
         :return: (bool): True if the user was successfully logged in, False otherwise.
         
-        **service type:**  subscription, ondemand, vcd
+        **service type:**  vca, vchs, standalone
 
         """
 
-        if self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
+        if self.service_type in [VCA.VCA_SERVICE_TYPE_VCHS, 'subscription']:
             if token:
                 headers = {}
                 headers["x-vchs-authorization"] = token
@@ -132,7 +173,7 @@ class VCA(object):
                     return True
                 else:
                     return False
-        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
+        elif self.service_type in [VCA.VCA_SERVICE_TYPE_VCA, 'ondemand']:
             if token:
                 self.token = token
                 self.instances = self.get_instances()
@@ -148,7 +189,7 @@ class VCA(object):
                     return True
                 else:
                     return False
-        elif self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
+        elif self.service_type in [VCA.VCA_SERVICE_TYPE_STANDALONE, 'vcd']:
             if token:
                 url = self.host + '/api/sessions'
                 vcloud_session = VCS(url, self.username, org, None, org_url, org_url, version=self.version, verify=self.verify, log=self.log)
@@ -170,14 +211,35 @@ class VCA(object):
             return False
         return False
 
-    #ondemand
+
+    def get_service_groups(self):
+        """
+        Request available service groups for a given company. 
+
+        :return: (list of str): list of available service groups.
+        
+        **service type:**  vca
+
+        """
+
+        headers = self._get_vcloud_headers()
+        headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.billing.serviceGroups" % self.version
+        self.response = Http.get(self.host + "/api/billing/service-groups", headers=headers, verify=self.verify, logger=self.logger)
+        if self.response.history and self.response.history[-1]:
+            self.response = Http.get(self.response.history[-1].headers['location'], headers=headers, verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.ok:
+            return json.loads(self.response.content)['serviceGroupList']
+        else:
+            raise Exception(self.response.status_code)
+
+
     def get_plans(self):
         """
-        Request available plans available for an ondemand account. 
+        Request plans available for an ondemand account. 
 
         :return: (list of str): list of available plans in json format.
         
-        **service type:**  ondemand
+        **service type:**  vca
 
         """
 
@@ -189,7 +251,51 @@ class VCA(object):
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['plans']
         else:
-            return None
+            raise Exception(self.response.status_code)
+
+
+    def get_plan(self, plan_id):
+        """
+        Request plan details. 
+
+        :return: (str): plan in json format
+        
+        **service type:**  vca
+
+        """
+
+        headers = self._get_vcloud_headers()
+        headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.sc.restapi.model.planlisttype" % self.version
+        self.response = Http.get(self.host + "/api/sc/plans/%s" % plan_id, headers=headers,
+                                 verify=self.verify, logger=self.logger)
+        if self.response.history and self.response.history[-1]:
+            self.response = Http.get(self.response.history[-1].headers['location'], headers=headers, verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.ok:
+            return json.loads(self.response.content)
+        else:
+            raise Exception(self.response.status_code)
+
+
+    def get_users(self):
+        """
+        Retrieves a collection of all users the authenticated API user has access to.
+
+        :return: (list of str): list of users.
+        
+        **service type:**  vca
+
+        """
+
+        headers = self._get_vcloud_headers()
+        headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.iam.api.schema.v2.classes.user.Users" % self.version
+        self.response = Http.get(self.host + "/api/iam/Users", headers=headers, verify=self.verify, logger=self.logger)
+        if self.response.history and self.response.history[-1]:
+            self.response = Http.get(self.response.history[-1].headers['location'], headers=headers, verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.ok:
+            return json.loads(self.response.content)['users']
+        else:
+            raise Exception(self.response.status_code)
+
 
     def get_instances(self):
         """
@@ -197,7 +303,7 @@ class VCA(object):
 
         :return: (list of str): list of available instances in json format.
         
-        **service type:**  ondemand
+        **service type:**  vca
 
         """
         self.response = Http.get(self.host + "/api/sc/instances", headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
@@ -206,7 +312,27 @@ class VCA(object):
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['instances']
         else:
-            return None
+            raise Exception(self.response.status_code)
+
+    def get_instance(self, instance_id):
+        """
+        Returns the details of a service instance 
+
+        :return: (str): instance information in json format.
+        
+        **service type:**  vca
+
+        """
+        self.response = Http.get(self.host + "/api/sc/instances/%s" % 
+                                 instance_id,
+                                 headers=self._get_vcloud_headers(), 
+                                 verify=self.verify, logger=self.logger)
+        if self.response.history and self.response.history[-1]:
+            self.response = Http.get(self.response.history[-1].headers['location'], headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.ok:
+            return json.loads(self.response.content)
+        else:
+            raise Exception(self.response.status_code)
 
     def delete_instance(self, instance):
         """
@@ -215,7 +341,7 @@ class VCA(object):
         :param instance: (str): The instance identifer.
         :return: (): True if the user was successfully logged in, False otherwise.
        
-        **service type:**  ondemand
+        **service type:**  vca
        
         """
         self.response = Http.delete(self.host + "/api/sc/instances/" + instance, headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
@@ -231,7 +357,7 @@ class VCA(object):
         :param org_url: (str, optional): 
         :return: (bool): True if the login was successful, False otherwise.
 
-        **service type:**  ondemand
+        **service type:**  vca
         
         """
         instances = filter(lambda i: i['id']==instance, self.instances)
@@ -248,6 +374,53 @@ class VCA(object):
                 return True
         return False
 
+    def login_to_instance_sso(self, instance, token=None, org_url=None):
+        """
+        Request to login into a specific instance 
+
+        :param instance: (str): The instance identifer.
+        :param token: (str, optional): The token from a previous successful login, None if this is a new login request.
+        :param org_url: (str, optional): 
+        :return: (bool): True if the login was successful, False otherwise.
+
+        **service type:**  vca
+        
+        """
+        Log.debug(self.logger, 'SSO to instance %s, org_url=%s' % (instance, org_url))
+        instances = filter(lambda i: i['id']==instance, self.instances)
+        if len(instances)>0:
+            if 'instanceAttributes' not in instances[0] or 'No Attributes' == instances[0]['instanceAttributes']:
+                return False
+            attributes = json.loads(instances[0]['instanceAttributes'])
+            session_uri = attributes['sessionUri']
+            org_name = attributes['orgName']
+            from urlparse import urlparse
+            parsed_uri = urlparse(session_uri)
+            region_fqdn = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+            headers = self._get_vcloud_headers()
+            headers['Accept'] = 'application/xml;version=5.7'
+            Log.debug(self.logger, 'SSO with region_fqdn=%s, session_uri=%s, org_name=%s, apiUrl=%s' % (region_fqdn, session_uri, org_name, instances[0]['apiUrl']))
+            if org_url is None:
+                org_url = instances[0]['apiUrl']
+            Log.debug(self.logger, headers)
+            self.response = Http.post(region_fqdn + 'api/sessions/vcloud/' + org_name,
+                                     headers=headers, verify=self.verify, logger=self.logger)
+            if self.response.status_code == requests.codes.ok:
+                Log.debug(self.logger, 'ok: ' + self.response.content)
+                Log.debug(self.logger, 'ok: ' + str(self.response.headers))
+                vcloud_session = VCS(session_uri, self.username, org_name, instance, instances[0]['apiUrl'], org_url, version=self.version, verify=self.verify, log=self.log)
+                token = self.response.headers['x-vcloud-authorization']
+                result = vcloud_session.login(token=token)
+                if result:
+                    self.vcloud_session = vcloud_session
+                    return True
+                else:
+                    return False
+            else:
+                Log.debug(self.logger, 'ko: ' + self.response.content)
+                return False
+        return False
+
     #subscription
     def get_vdc_references(self, serviceId):
         """
@@ -256,7 +429,7 @@ class VCA(object):
         :param serviceId: (str): The service instance identifier.
         :return: (list of ReferenceType): a list of :class:`<pyvcloud.schema.vcim.vchsType.VdcReferenceType` objects for the vdcs hosting the service.
        
-        **service type:**  subscription
+        **service type:**  vchs
 
         """
         serviceReferences = filter(lambda serviceReference: serviceReference.get_serviceId() == serviceId, self.services.get_Service())
@@ -274,7 +447,7 @@ class VCA(object):
         :param vdcId: (str): The identifier for the virtual data center.
         :return: (ReferenceType) a :class:`pyvcloud.schema.vcim.vchsType.VdcReferenceType` object representing the vdc.
        
-        **service type:**  subscription
+        **service type:**  vchs
 
         """
         vdcReferences = filter(lambda vdcRef: vdcRef.get_name() == vdcId, self.get_vdc_references(serviceId))
@@ -321,13 +494,13 @@ class VCA(object):
     #common
     def _get_vcloud_headers(self):
         headers = {}
-        if self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
+        if self.service_type == VCA.VCA_SERVICE_TYPE_VCHS or self.service_type == 'subscription':
             headers["Accept"] = "application/xml;version=" + self.version
             headers["x-vchs-authorization"] = self.token
-        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
+        elif self.service_type == VCA.VCA_SERVICE_TYPE_VCA or self.service_type == 'ondemand':
             headers["Authorization"] = "Bearer %s" % self.token
             headers["Accept"] = "application/json;version=%s" % self.version
-        elif self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
+        elif self.service_type == VCA.VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
             # headers["x-vcloud-authorization"] = self.token
             pass
         return headers
@@ -937,7 +1110,7 @@ class VCA(object):
             pass
         elif self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
             pass
-        elif self.service_type == VCA_SERVICE_TYPE_ONDEMAND:
+        elif self.service_type == VCA_SERVICE_TYPE_VCA or self.service_type == 'ondemand':
             pass
         self.token = None
         self.vcloud_session = None

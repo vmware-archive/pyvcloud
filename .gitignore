@@ -15,8 +15,4 @@ lib
 docs/_build
 *.xsd
 *.xjb
-tests/config_standalone.yaml
-tests/config_subscription.yaml
-tests/config_ondemand.yaml
-
 

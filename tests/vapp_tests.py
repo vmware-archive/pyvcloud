@@ -386,5 +386,3 @@ class TestVApp:
         assert result
         the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
         assert the_vapp == None
-
-

@@ -74,13 +74,15 @@ class TestVApp:
         vm_name = config['vcloud']['vm']
         catalog = config['vcloud']['catalog']
         template = config['vcloud']['template']
+        cpu = config['vcloud']['cpus_new']
+        memory = config['vcloud']['memory_new']
         the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
         task = self.vca.create_vapp(vdc_name, vapp_name, template, catalog, 
                                     vm_name=vm_name,
-                                    vm_cpus=3,
-                                    vm_memory=2048)
+                                    vm_cpus=cpu,
+                                    vm_memory=memory)
         assert task
         result = self.vca.block_until_completed(task)
         assert result

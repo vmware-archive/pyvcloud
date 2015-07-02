@@ -568,7 +568,11 @@ class VCA(object):
             params = vcloudType.SourcedCompositionItemParamType()
             if ((self.version == "1.0") or (self.version == "1.5") 
                     or (self.version == "5.1") or (self.version == "5.5")):
-                pass
+                message = 'Customization during instantiation is not ' +\
+                          'supported in this version, use vapp methods ' +\
+                          'to change vm name, cpu or memory'
+                Log.error(self.logger, message)
+                raise Exception(message)
             else:
                 params.set_Source(vcloudType.ReferenceType(href=vm_href))
                 templateParams.add_SourcedItem(params)
@@ -1102,11 +1106,11 @@ class VCA(object):
         **service type:** ondemand, subscription, vcd
 
         """
-        if self.service_type == VCA_SERVICE_TYPE_STANDALONE or self.service_type == 'vcd':
+        if self.service_type in [VCA.VCA_SERVICE_TYPE_STANDALONE, 'vcd']:
             pass
-        elif self.service_type == VCA_SERVICE_TYPE_SUBSCRIPTION:
+        elif self.service_type in [VCA.VCA_SERVICE_TYPE_VCHS, 'subscription']:
             pass
-        elif self.service_type == VCA_SERVICE_TYPE_VCA or self.service_type == 'ondemand':
+        elif self.service_type in [VCA.VCA_SERVICE_TYPE_VCA, 'ondemand']:
             pass
         self.token = None
         self.vcloud_session = None

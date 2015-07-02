@@ -45,7 +45,7 @@ class TestVCloud:
     def logout_from_vcloud(self):
         """Logout from vCloud"""
         print 'logout'
-        selfl.vca.logout()
+        self.vca.logout()
         self.vca = None
         assert self.vca is None
 
@@ -56,7 +56,7 @@ class TestVCloud:
     def test_0002(self):
         """Get VDC"""
         vdc_name = config['vcloud']['vdc']
-        the_vdc = self.vca.get_vdc(vdc_name)        
+        the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
 

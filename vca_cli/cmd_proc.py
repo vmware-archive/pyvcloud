@@ -456,4 +456,5 @@ class CmdProc:
 #     sorted_table = []
 #     for key in vm.keys():
 #         sorted_table.append([key, vm[key]])
-#     print_table("Details for VM '%s':" % vm.get('name'), 'vm',headers, sorted_table, ctx)
+#     print_table("Details for VM '%s':" % vm.get('name'),
+#'vm',headers, sorted_table, ctx)

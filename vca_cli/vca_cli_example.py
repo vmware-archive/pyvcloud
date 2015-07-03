@@ -53,8 +53,7 @@ def example(ctx):
     example_id += 1
     table.append([example_id, 'login to vCloud Director',
                   'vca login email@company.com --password mypassword'
-                  ' --host myvcloud.company.com --version 5.5 --org MyOrg'
-                 ])
+                  ' --host myvcloud.company.com --version 5.5 --org MyOrg'])
     example_id += 1
     table.append([example_id, 'login to vCloud Director and VDC',
                   'vca login email@company.com --password mypassword'

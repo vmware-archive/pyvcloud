@@ -164,6 +164,10 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                 if instance is not None:
                     result = _use_instance(cmd_proc, instance)
                     if result:
+                        if vdc is None:
+                            vdcs = cmd_proc.vca.get_vdc_names()
+                            if len(vdcs) > 0:
+                                vdc = vdcs[0]
                         if vdc is not None:
                             the_vdc = cmd_proc.vca.get_vdc(vdc)
                             if the_vdc is not None:
@@ -182,6 +186,10 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                 if instance is not None or org is not None:
                     result = _use_instance_org(cmd_proc, instance, org)
                     if result:
+                        if vdc is None:
+                            vdcs = cmd_proc.vca.get_vdc_names()
+                            if len(vdcs) > 0:
+                                vdc = vdcs[0]
                         if vdc is not None:
                             the_vdc = cmd_proc.vca.get_vdc(vdc)
                             if the_vdc is not None:
@@ -196,8 +204,12 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                                                   (vdc, cmd_proc.profile),
                                                   cmd_proc)
                         cmd_proc.save_current_config()
-            elif cmd_proc.vca.service_type in \
-                 [VCA.VCA_SERVICE_TYPE_STANDALONE]:
+            elif (cmd_proc.vca.service_type in
+                  [VCA.VCA_SERVICE_TYPE_STANDALONE]):
+                if vdc is None:
+                    vdcs = cmd_proc.vca.get_vdc_names()
+                    if len(vdcs) > 0:
+                        vdc = vdcs[0]
                 if vdc is not None:
                     Log.debug(cmd_proc.logger, 'Select vdc=%s' % vdc)
                     cmd_proc.save_current_config()
@@ -234,13 +246,10 @@ def logout(cmd_proc):
                         cmd_proc)
 
 
-#  TODO: select first VDC
 def _use_instance(cmd_proc, instance):
     result = cmd_proc.vca.login_to_instance_sso(instance)
     if result:
         cmd_proc.instance = instance
-# TODO: check instance->plan->serviceName == com.vmware.vchs.compute
-# TODO: is this needed?
         cmd_proc.vca.org = cmd_proc.vca.vcloud_session.organization.\
             get_name()
         utils.print_message("Using instance:org '%s':'%s'"
@@ -255,7 +264,6 @@ def _use_instance(cmd_proc, instance):
     return result
 
 
-#  TODO: select first VDC
 def _use_instance_org(cmd_proc, instance, org):
     if instance is None or '' == instance:
         utils.print_message('Please provide a valid instance '
@@ -371,10 +379,27 @@ def instance(cmd_proc, operation, instance, org):
         elif cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
             _list_orgs_in_instance(cmd_proc, instance)
     elif 'use' == operation:
+        result = False
         if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCA:
-            _use_instance(cmd_proc, instance)
+            result = _use_instance(cmd_proc, instance)
         elif cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
-            _use_instance_org(cmd_proc, instance, org)
+            result = _use_instance_org(cmd_proc, instance, org)
+        if result:
+            vdcs = cmd_proc.vca.get_vdc_names()
+            if len(vdcs) > 0:
+                vdc = vdcs[0]
+                the_vdc = cmd_proc.vca.get_vdc(vdc)
+                if the_vdc is not None:
+                    utils.print_message("Using vdc '%s' "
+                                        "in profile '%s'" %
+                                        (vdc, cmd_proc.profile),
+                                        cmd_proc)
+                    cmd_proc.vca.vdc = vdc
+                else:
+                    utils.print_error("Unable to select vdc "
+                                      "'%s' in profile '%s'" %
+                                      (vdc, cmd_proc.profile),
+                                      cmd_proc)
     else:
         utils.print_message('Not implemented')
     cmd_proc.save_current_config()
@@ -436,6 +461,22 @@ def org(cmd_proc, operation, instance, org):
                                 'instances')
         elif cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
             result = _use_instance_org(cmd_proc, instance, org)
+            if result:
+                vdcs = cmd_proc.vca.get_vdc_names()
+                if len(vdcs) > 0:
+                    vdc = vdcs[0]
+                    the_vdc = cmd_proc.vca.get_vdc(vdc)
+                    if the_vdc is not None:
+                        utils.print_message("Using vdc '%s' "
+                                            "in profile '%s'" %
+                                            (vdc, cmd_proc.profile),
+                                            cmd_proc)
+                        cmd_proc.vca.vdc = vdc
+                    else:
+                        utils.print_error("Unable to select vdc "
+                                          "'%s' in profile '%s'" %
+                                          (vdc, cmd_proc.profile),
+                                          cmd_proc)
         elif cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_STANDALONE:
             utils.print_message('Operation not supported in '
                                 'this service type. '

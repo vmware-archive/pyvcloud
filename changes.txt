@@ -1,1 +1,17 @@
-login with --do-not-save-password
+
+completed refactoring of commands:
+- login
+- logout
+- 
+
+commands to refactor:
+- 
+
+new commands:
+- profile
+
+new features:
+- automatically select the first vdc when changing instance or org
+- login with --do-not-save-password
+- login with instance, org and vdc
+- no need to enter service type

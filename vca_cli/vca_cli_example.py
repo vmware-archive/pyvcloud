@@ -21,7 +21,7 @@ from vca_cli import cli, utils
 @click.pass_context
 def example(ctx):
     """vCloud Air CLI Examples"""
-    headers = ['Id', 'Example', 'Flavour', 'Command']
+    headers = ['Id', 'Example', 'Flavor', 'Command']
     example_id = 0
     table = []
     example_id += 1

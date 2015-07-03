@@ -17,6 +17,7 @@ import click
 import json
 import operator
 from tabulate import tabulate
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.vcloudType import ErrorType
 
 
 class VcaCliUtils:
@@ -36,7 +37,11 @@ class VcaCliUtils:
                 cmd_proc.vca is not None and \
                 cmd_proc.vca.response is not None and \
                 cmd_proc.vca.response.content is not None:
-            if 'message' in cmd_proc.vca.response.content:
+            if '<Error xmlns=' in cmd_proc.vca.response.content:
+                error = ErrorType.parseString(cmd_proc.vca.response.content,
+                                              True)
+                msg = message + ': ' + error.get_message()
+            elif 'message' in cmd_proc.vca.response.content:
                 json_message = json.loads(cmd_proc.vca.response.content)
                 msg = message + ': ' + json_message.get('message')
         if cmd_proc is not None and \
@@ -44,9 +49,12 @@ class VcaCliUtils:
                 cmd_proc.vca.vcloud_session is not None and \
                 cmd_proc.vca.vcloud_session.response is not None and \
                 cmd_proc.vca.vcloud_session.response.content is not None:
-            if 'message' in cmd_proc.vca.vcloud_session.response.content:
-                json_message = json.loads(
-                    cmd_proc.vca.vcloud_session.response.content)
+            if '<Error xmlns=' in cmd_proc.vca.response.content:
+                error = ErrorType.parseString(cmd_proc.vca.response.content,
+                                              True)
+                msg = message + ': ' + error.get_message()
+            elif 'message' in cmd_proc.vca.response.content:
+                json_message = json.loads(cmd_proc.vca.response.content)
                 msg = message + ': ' + json_message.get('message')
         if cmd_proc is not None and \
                 cmd_proc.error_message is not None:

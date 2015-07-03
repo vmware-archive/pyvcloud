@@ -175,7 +175,7 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                                                     ", profile '%s'" %
                                                     (vdc, cmd_proc.profile),
                                                     cmd_proc)
-                                cmd_proc.vca.vdc = vdc
+                                cmd_proc.vdc_name = vdc
                             else:
                                 utils.print_error("Unable to select vdc "
                                                   "'%s', profile '%s'" %
@@ -197,7 +197,7 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                                                     ", profile '%s'" %
                                                     (vdc, cmd_proc.profile),
                                                     cmd_proc)
-                                cmd_proc.vca.vdc = vdc
+                                cmd_proc.vdc_name = vdc
                             else:
                                 utils.print_error("Unable to select vdc "
                                                   "'%s', profile '%s'" %
@@ -221,7 +221,7 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                                             ", profile '%s'" %
                                             (vdc, cmd_proc.profile),
                                             cmd_proc)
-                        cmd_proc.vca.vdc = vdc
+                        cmd_proc.vdc_name = vdc
                     else:
                         utils.print_error("Unable to select vdc "
                                           "'%s' , profile '%s'" %
@@ -394,7 +394,7 @@ def instance(cmd_proc, operation, instance, org):
                                         ", profile '%s'" %
                                         (vdc, cmd_proc.profile),
                                         cmd_proc)
-                    cmd_proc.vca.vdc = vdc
+                    cmd_proc.vdc_name = vdc
                 else:
                     utils.print_error("Unable to select vdc "
                                       "'%s' , profile '%s'" %
@@ -471,7 +471,7 @@ def org(cmd_proc, operation, instance, org):
                                             ", profile '%s'" %
                                             (vdc, cmd_proc.profile),
                                             cmd_proc)
-                        cmd_proc.vca.vdc = vdc
+                        cmd_proc.vdc_name = vdc
                     else:
                         utils.print_error("Unable to select vdc "
                                           "'%s' , profile '%s'" %

@@ -39,7 +39,7 @@ def vdc(cmd_proc, operation, vdc):
             links = (cmd_proc.vca.vcloud_session.organization.Link if
                      cmd_proc.vca.vcloud_session.organization else [])
             table1 = [[details.get_name(),
-                      '*' if details.get_name() == cmd_proc.vca.vdc else '']
+                      '*' if details.get_name() == cmd_proc.vdc_name else '']
                       for details in filter(lambda info: info.name and
                       (info.type_ == 'application/vnd.vmware.vcloud.vdc+xml'),
                       links)]
@@ -53,13 +53,13 @@ def vdc(cmd_proc, operation, vdc):
         if the_vdc is not None:
             utils.print_message("Using vdc '%s' in profile '%s'" %
                                 (vdc, cmd_proc.profile), cmd_proc)
-            cmd_proc.vca.vdc = vdc
+            cmd_proc.vdc_name = vdc
         else:
             utils.print_error("Unable to select vdc '%s' in profile '%s'" %
                               (vdc, cmd_proc.profile), cmd_proc)
     elif 'info' == operation:
         if vdc is None:
-            vdc = cmd_proc.vca.vdc
+            vdc = cmd_proc.vdc_name
         the_vdc = cmd_proc.vca.get_vdc(vdc)
         if the_vdc:
             gateways = cmd_proc.vca.get_gateways(vdc)
@@ -94,7 +94,6 @@ def vdc(cmd_proc, operation, vdc):
     cmd_proc.save_current_config()
 
 
-# TODO: user power-on instead of power.on, etc
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
@@ -146,7 +145,7 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
         utils.print_error('Not logged in', cmd_proc)
         return
     if vdc is None:
-        vdc = cmd_proc.vca.vdc
+        vdc = cmd_proc.vdc_name
     the_vdc = cmd_proc.vca.get_vdc(vdc)
     if 'list' == operation:
         headers = ['vApp', "VMs", "Status", "Deployed", "Description"]

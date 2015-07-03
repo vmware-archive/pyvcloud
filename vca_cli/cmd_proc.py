@@ -45,6 +45,7 @@ class CmdProc:
         self.instance = None
         self.logger = _get_logger() if debug else None
         self.error_message = None
+        self.vdc_name = None
 
     def load_config(self, profile=None, profile_file='~/.vcarc'):
         self.config.read(os.path.expanduser(profile_file))
@@ -116,7 +117,7 @@ class CmdProc:
                                  log=self.debug)
             vcloud_session.token = session_token
             self.vca.vcloud_session = vcloud_session
-            self.vca.vdc = vdc
+            self.vdc_name = vdc
         Log.debug(self.logger, 'restored vca %s' % self.vca)
         if self.vca.vcloud_session is not None:
             Log.debug(self.logger, 'restored vcloud_session %s' %
@@ -224,10 +225,10 @@ class CmdProc:
             else:
                 self.config.set(section, 'session_token',
                                 self.vca.vcloud_session.token)
-            if self.vca.vdc is None:
+            if self.vdc_name is None:
                 self.config.remove_option(section, 'vdc')
             else:
-                self.config.set(section, 'vdc', self.vca.vdc)
+                self.config.set(section, 'vdc', self.vdc_name)
         with open(os.path.expanduser(profile_file), 'w+') as configfile:
             self.config.write(configfile)
 
@@ -421,16 +422,19 @@ class CmdProc:
 
     def vapps_to_table(self, vdc):
         table = []
-        for entity in vdc.get_ResourceEntities().ResourceEntity:
-            if entity.type_ == 'application/vnd.vmware.vcloud.vApp+xml':
-                the_vapp = self.vca.get_vapp(vdc, entity.name)
-                vms = []
-                if the_vapp and the_vapp.me.Children:
-                    for vm in the_vapp.me.Children.Vm:
-                        vms.append(vm.name)
-                table.append([entity.name, utils.beautified(vms),
-                              self.vca.get_status(the_vapp.me.get_status()),
-                              'yes' if the_vapp.me.deployed
-                              else 'no', the_vapp.me.Description])
-        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+        if vdc is not None:
+            for entity in vdc.get_ResourceEntities().ResourceEntity:
+                if entity.type_ == 'application/vnd.vmware.vcloud.vApp+xml':
+                    the_vapp = self.vca.get_vapp(vdc, entity.name)
+                    vms = []
+                    if the_vapp and the_vapp.me.Children:
+                        for vm in the_vapp.me.Children.Vm:
+                            vms.append(vm.name)
+                    table.append([entity.name, utils.beautified(vms),
+                                  self.vca.get_status(the_vapp.me.get_status()
+                                                      ),
+                                 'yes' if the_vapp.me.deployed
+                                  else 'no', the_vapp.me.Description])
+        sorted_table = sorted(table, key=operator.itemgetter(0),
+                              reverse=False)
         return sorted_table

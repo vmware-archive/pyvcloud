@@ -8,7 +8,8 @@ completed refactoring of commands:
 - vdc
 
 commands to refactor:
-- 
+- vapp
+- vm
 
 new commands:
 - profile

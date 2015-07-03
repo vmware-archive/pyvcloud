@@ -438,3 +438,22 @@ class CmdProc:
         sorted_table = sorted(table, key=operator.itemgetter(0),
                               reverse=False)
         return sorted_table
+
+    def vapp_details_to_table(self, vapp):
+        pass
+# vms = []
+# details = the_vapp.get_vms_details()
+# for vm in details:
+#     vms.append(vm['name'])
+# sorted_table.append(['name', the_vapp.name])
+# sorted_table.append(['number of vms', len(details)])
+# sorted_table.append(['names of vms', vms])
+# print_table("Details for vApp '%s':" % vapp.name, 'vapp',
+#             headers, sorted_table, ctx)
+#
+# for vm in details:
+#     headers = ['attribute', 'value']
+#     sorted_table = []
+#     for key in vm.keys():
+#         sorted_table.append([key, vm[key]])
+#     print_table("Details for VM '%s':" % vm.get('name'), 'vm',headers, sorted_table, ctx)

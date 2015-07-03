@@ -21,64 +21,92 @@ from vca_cli import cli, utils
 @click.pass_context
 def example(ctx):
     """vCloud Air CLI Examples"""
-    headers = ['Id', 'Example', "Command"]
+    headers = ['Id', 'Example', 'Flavour', 'Command']
     example_id = 0
     table = []
     example_id += 1
-    table.append([example_id, 'login to vCA',
+    table.append([example_id, 'login to service', 'vCA',
                   'vca login email@company.com --password mypassword'])
     example_id += 1
-    table.append([example_id, 'login to a vCA instance',
+    table.append([example_id, 'login to an instance', 'vCA',
                   'vca login email@company.com --password mypassword'
                   ' --instance c40ba6b4-c158-49fb-b164-5c66f90344fa'])
     example_id += 1
-    table.append([example_id, 'login to a vCA virtual data center',
+    table.append([example_id, 'login to a virtual data center', 'vCA',
                   'vca login email@company.com --password mypassword'
                   ' --instance c40ba6b4-c158-49fb-b164-5c66f90344fa'
                   ' --vdc VDC1'])
     example_id += 1
-    table.append([example_id, 'login to vCA (vCHS)',
+    table.append([example_id, 'login to service', 'vCHS',
                   'vca login email@company.com --password mypassword'
                   ' --host vchs.vmware.com --version 5.6'])
     example_id += 1
-    table.append([example_id, 'login to vCA (vCHS) instance',
+    table.append([example_id, 'login to an instance', 'vCHS',
                   'vca login email@company.com --password mypassword'
                   ' --host vchs.vmware.com --version 5.6'
                   ' --instance 55-234 --org MyOrg'])
     example_id += 1
-    table.append([example_id, 'login to vCA (vCHS) virtual data center',
+    table.append([example_id, 'login to a virtual data center', 'vCHS',
                   'vca login email@company.com --password mypassword'
                   ' --host vchs.vmware.com --version 5.6'
                   ' --instance 55-234 --org MyOrg --vdc MyVDC'])
     example_id += 1
-    table.append([example_id, 'login to vCloud Director',
+    table.append([example_id, 'login to vCloud Director', 'Standalone',
                   'vca login email@company.com --password mypassword'
                   ' --host myvcloud.company.com --version 5.5 --org MyOrg'])
     example_id += 1
     table.append([example_id, 'login to vCloud Director and VDC',
+                  'Standalone',
                   'vca login email@company.com --password mypassword'
                   ' --host myvcloud.company.com --version 5.5 --org MyOrg'
                   ' --vdc MyVDC'])
     example_id += 1
-    table.append([example_id, 'show status',
+    table.append([example_id, 'list available instances', 'vCA, vCHS',
+                  'vca instance'])
+    example_id += 1
+    table.append([example_id, 'show details of instance', 'vCA, vCHS',
+                  'vca instance info --instance '
+                  'c40ba6b4-c158-49fb-b164-5c66f90344fa'])
+    example_id += 1
+    table.append([example_id, 'select an instance', 'vCA',
+                  'vca instance use --instance '
+                  'c40ba6b4-c158-49fb-b164-5c66f90344fa'])
+    example_id += 1
+    table.append([example_id, 'select an instance', 'vCHS',
+                  'vca instance use --instance '
+                  'M684216431-4470 --org M684216431-4470'])
+    example_id += 1
+    table.append([example_id, 'list organizations', 'All',
+                  'vca org'])
+    example_id += 1
+    table.append([example_id, 'show organization details', 'All',
+                  'vca org info'])
+    example_id += 1
+    table.append([example_id, 'select an organization', 'vCHS',
+                  'vca org use --instance 55-234 --org MyOrg '])
+    example_id += 1
+    table.append([example_id, 'show status', 'All',
                   'vca status'])
     example_id += 1
-    table.append([example_id, 'show status and password',
+    table.append([example_id, 'show status and password', 'All',
                   'vca status --show-password'])
     example_id += 1
-    table.append([example_id, 'show profiles',
+    table.append([example_id, 'list profiles', 'All',
                   'vca profile'])
     example_id += 1
-    table.append([example_id, 'send debug to $TMPDIR/pyvcloud.log',
+    table.append([example_id, 'switch to a profile', 'All',
+                  'vca --profile p1 <command>'])
+    example_id += 1
+    table.append([example_id, 'send debug to $TMPDIR/pyvcloud.log', 'All',
                   'vca --debug vm'])
     example_id += 1
-    table.append([example_id, 'show version',
+    table.append([example_id, 'show version', 'All',
                   'vca --version'])
     example_id += 1
-    table.append([example_id, 'show help',
+    table.append([example_id, 'show general help', 'All',
                   'vca --help'])
     example_id += 1
-    table.append([example_id, 'show command help',
+    table.append([example_id, 'show command help', 'All',
                   'vca <command> --help'])
     utils.print_table('vca-cli usage examples:',
                       headers, table)

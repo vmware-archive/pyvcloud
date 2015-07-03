@@ -172,13 +172,13 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                             the_vdc = cmd_proc.vca.get_vdc(vdc)
                             if the_vdc is not None:
                                 utils.print_message("Using vdc '%s' "
-                                                    "in profile '%s'" %
+                                                    ", profile '%s'" %
                                                     (vdc, cmd_proc.profile),
                                                     cmd_proc)
                                 cmd_proc.vca.vdc = vdc
                             else:
                                 utils.print_error("Unable to select vdc "
-                                                  "'%s' in profile '%s'" %
+                                                  "'%s', profile '%s'" %
                                                   (vdc, cmd_proc.profile),
                                                   cmd_proc)
                         cmd_proc.save_current_config()
@@ -194,13 +194,13 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                             the_vdc = cmd_proc.vca.get_vdc(vdc)
                             if the_vdc is not None:
                                 utils.print_message("Using vdc '%s' "
-                                                    "in profile '%s'" %
+                                                    ", profile '%s'" %
                                                     (vdc, cmd_proc.profile),
                                                     cmd_proc)
                                 cmd_proc.vca.vdc = vdc
                             else:
                                 utils.print_error("Unable to select vdc "
-                                                  "'%s' in profile '%s'" %
+                                                  "'%s', profile '%s'" %
                                                   (vdc, cmd_proc.profile),
                                                   cmd_proc)
                         cmd_proc.save_current_config()
@@ -218,13 +218,13 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                     Log.debug(cmd_proc.logger, 'Select vdc=%s' % the_vdc)
                     if the_vdc is not None:
                         utils.print_message("Using vdc '%s' "
-                                            "in profile '%s'" %
+                                            ", profile '%s'" %
                                             (vdc, cmd_proc.profile),
                                             cmd_proc)
                         cmd_proc.vca.vdc = vdc
                     else:
                         utils.print_error("Unable to select vdc "
-                                          "'%s' in profile '%s'" %
+                                          "'%s' , profile '%s'" %
                                           (vdc, cmd_proc.profile),
                                           cmd_proc)
                 cmd_proc.save_current_config()
@@ -391,13 +391,13 @@ def instance(cmd_proc, operation, instance, org):
                 the_vdc = cmd_proc.vca.get_vdc(vdc)
                 if the_vdc is not None:
                     utils.print_message("Using vdc '%s' "
-                                        "in profile '%s'" %
+                                        ", profile '%s'" %
                                         (vdc, cmd_proc.profile),
                                         cmd_proc)
                     cmd_proc.vca.vdc = vdc
                 else:
                     utils.print_error("Unable to select vdc "
-                                      "'%s' in profile '%s'" %
+                                      "'%s' , profile '%s'" %
                                       (vdc, cmd_proc.profile),
                                       cmd_proc)
     else:
@@ -468,13 +468,13 @@ def org(cmd_proc, operation, instance, org):
                     the_vdc = cmd_proc.vca.get_vdc(vdc)
                     if the_vdc is not None:
                         utils.print_message("Using vdc '%s' "
-                                            "in profile '%s'" %
+                                            ", profile '%s'" %
                                             (vdc, cmd_proc.profile),
                                             cmd_proc)
                         cmd_proc.vca.vdc = vdc
                     else:
                         utils.print_error("Unable to select vdc "
-                                          "'%s' in profile '%s'" %
+                                          "'%s' , profile '%s'" %
                                           (vdc, cmd_proc.profile),
                                           cmd_proc)
         elif cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_STANDALONE:

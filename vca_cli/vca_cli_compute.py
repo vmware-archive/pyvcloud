@@ -97,6 +97,69 @@ def vdc(cmd_proc, operation, vdc):
 # TODO: user power-on instead of power.on, etc
 @cli.command()
 @click.pass_obj
-def vapp(cmd_proc):
+@click.argument('operation', default=default_operation,
+                metavar='[list | info | create | delete | power-on'
+                        ' | power-off | deploy | undeploy | customize'
+                        ' | insert | eject | connect | disconnect'
+                        ' | attach | detach]',
+                type=click.Choice(
+                    ['list', 'info', 'create', 'delete', 'power.on',
+                     'power.off', 'deploy', 'undeploy', 'customize',
+                     'insert', 'eject', 'connect', 'disconnect',
+                     'attach', 'detach']))
+@click.option('-v', '--vdc', default=None,
+              metavar='<vdc>', help='Virtual Data Center Name')
+@click.option('-a', '--vapp', 'vapp', default='',
+              metavar='<vapp>', help='vApp name')
+@click.option('-c', '--catalog', default='',
+              metavar='<catalog>', help='Catalog name')
+@click.option('-t', '--template', default='',
+              metavar='<template>', help='Template name')
+@click.option('-n', '--network', default='',
+              metavar='<network>', help='Network name')
+@click.option('-m', '--mode', default='POOL',
+              metavar='[pool, dhcp, manual]', help='Network connection mode',
+              type=click.Choice(['POOL', 'pool', 'DHCP', 'dhcp', 'MANUAL',
+                                 'manual']))
+@click.option('-V', '--vm', 'vm_name', default='',
+              metavar='<vm>', help='VM name')
+@click.option('-f', '--file', 'cust_file',
+              default=None, metavar='<customization_file>',
+              help='Guest OS Customization script file', type=click.File('r'))
+@click.option('-e', '--media', default='',
+              metavar='<media>', help='Virtual media name (ISO)')
+@click.option('-d', '--disk', 'disk_name', default=None,
+              metavar='<disk_name>', help='Disk Name')
+@click.option('-o', '--count', 'count', default=1,
+              metavar='<count>', help='Number of vApps to create')
+@click.option('-p', '--cpu', 'cpu', default=None,
+              metavar='<virtual CPUs>', help='Virtual CPUs')
+@click.option('-r', '--ram', 'ram', default=None,
+              metavar='<MB RAM>', help='Memory in MB')
+@click.option('-i', '--ip', default='', metavar='<ip>', help='IP address')
+def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
+         network, mode, vm_name, cust_file,
+         media, disk_name, count, cpu, ram, ip):
     """Operations with vApps"""
-    utils.print_message('vapp', cmd_proc)
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)
+        return
+    if vdc is None:
+        vdc = cmd_proc.vca.vdc
+    the_vdc = cmd_proc.vca.get_vdc(vdc)
+    if 'list' == operation:
+        headers = ['vApp', "VMs", "Status", "Deployed", "Description"]
+        table = cmd_proc.vapps_to_table(the_vdc)
+        if cmd_proc.json_output:
+            json_object = {'vapps':
+                           utils.table_to_json(headers, table)}
+            utils.print_json(json_object, cmd_proc=cmd_proc)
+        else:
+            utils.print_table("Available vApps in '%s', profile '%s':" %
+                (vdc, cmd_proc.profile), headers, table, cmd_proc)
+    elif 'create' == operation:
+        utils.print_message('not implemented', ctx)
+    else:
+        utils.print_message('not implemented', ctx)
+    cmd_proc.save_current_config()

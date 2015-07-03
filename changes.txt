@@ -2,7 +2,10 @@
 completed refactoring of commands:
 - login
 - logout
-- 
+- status
+- instance
+- org
+- vdc
 
 commands to refactor:
 - 
@@ -15,3 +18,6 @@ new features:
 - login with --do-not-save-password
 - login with instance, org and vdc
 - no need to enter service type
+
+pending work:
+- actual session logout on VC

@@ -418,3 +418,19 @@ class CmdProc:
             ])
         sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
         return sorted_table
+    
+    def vapps_to_table(self, vdc):
+        table = []
+        for entity in vdc.get_ResourceEntities().ResourceEntity:
+            if entity.type_ == 'application/vnd.vmware.vcloud.vApp+xml':
+                the_vapp = self.vca.get_vapp(vdc, entity.name)
+                vms = []
+                if the_vapp and the_vapp.me.Children:
+                    for vm in the_vapp.me.Children.Vm:
+                        vms.append(vm.name)
+                table.append([entity.name, utils.beautified(vms),
+                              self.vca.get_status(the_vapp.me.get_status()),
+                              'yes' if the_vapp.me.deployed
+                              else 'no', the_vapp.me.Description])
+        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+        return sorted_table

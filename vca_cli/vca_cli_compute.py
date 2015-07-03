@@ -157,9 +157,10 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
             utils.print_json(json_object, cmd_proc=cmd_proc)
         else:
             utils.print_table("Available vApps in '%s', profile '%s':" %
-                (vdc, cmd_proc.profile), headers, table, cmd_proc)
+                              (vdc, cmd_proc.profile),
+                              headers, table, cmd_proc)
     elif 'create' == operation:
-        utils.print_message('not implemented', ctx)
+        utils.print_message('not implemented', cmd_proc)
     else:
-        utils.print_message('not implemented', ctx)
+        utils.print_message('not implemented', cmd_proc)
     cmd_proc.save_current_config()

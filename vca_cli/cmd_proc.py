@@ -418,7 +418,7 @@ class CmdProc:
             ])
         sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
         return sorted_table
-    
+
     def vapps_to_table(self, vdc):
         table = []
         for entity in vdc.get_ResourceEntities().ResourceEntity:

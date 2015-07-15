@@ -125,7 +125,7 @@ class BlueprintsClient(object):
             self.score.response = Http.put(url, headers=headers, params=query_params,
                                            data=f, verify=self.score.verify, logger=self.logger)
 
-        if self.score.response.status_code != 200:
+        if self.score.response.status_code != 201:
             raise Exception(self.score.response.status_code)
 
         return self.score.response.json()

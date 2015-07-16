@@ -61,6 +61,6 @@ setup(
     zip_safe=True,
     entry_points='''
         [console_scripts]
-        vca=vca_cli.vca_cli:cli
+        vca=vca_cli.vca_cli_impl:cli
     ''',
 )

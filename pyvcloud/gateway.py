@@ -223,16 +223,22 @@ class Gateway(object):
 
     def is_fw_enabled(self):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        if edgeGatewayServiceConfiguration is None:
+            return False
         services = filter(lambda service: service.__class__.__name__ == "FirewallServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
         return len(services) == 1 and services[0].get_IsEnabled()
 
     def is_dhcp_enabled(self):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        if edgeGatewayServiceConfiguration is None:
+            return False
         services = filter(lambda service: service.__class__.__name__ == "GatewayDhcpServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
         return len(services) == 1 and services[0].get_IsEnabled()
 
     def is_nat_enabled(self):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        if edgeGatewayServiceConfiguration is None:
+            return False
         services = filter(lambda service: service.__class__.__name__ == "NatServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
         return len(services) == 1 and services[0].get_IsEnabled()
 
@@ -244,6 +250,8 @@ class Gateway(object):
 
     def is_vpn_enabled(self):
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
+        if edgeGatewayServiceConfiguration is None:
+            return False
         services = filter(lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType", edgeGatewayServiceConfiguration.get_NetworkService())
         return len(services) == 1 and services[0].get_IsEnabled()
 

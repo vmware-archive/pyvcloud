@@ -58,6 +58,25 @@ class VCA(object):
     VCA_SERVICE_TYPE_VCA = 'vca'
     VCA_SERVICE_TYPE_UNKNOWN = 'unknown'
 
+    statuses = ['Could not be created',
+                'Unresolved',
+                'Resolved',
+                'Deployed',
+                'Suspended',
+                'Powered on',
+                'Waiting for user input',
+                'Unknown state',
+                'Unrecognized state',
+                'Powered off',
+                'Inconsistent state',
+                'Children do not all have the same status',
+                'Upload initiated, OVF descriptor pending',
+                'Upload initiated, copying contents',
+                'Upload initiated , disk contents pending',
+                'Upload has been quarantined',
+                'Upload quarantine period has expired'
+                ]
+
 
     def __init__(self, host, username, service_type=VCA_SERVICE_TYPE_VCA, version='5.7', verify=True, log=False):
         """
@@ -392,6 +411,14 @@ class VCA(object):
             if 'instanceAttributes' not in instances[0] or 'No Attributes' == instances[0]['instanceAttributes']:
                 return False
             attributes = json.loads(instances[0]['instanceAttributes'])
+            plans = self.get_plans()
+            service_name = filter(lambda plan: 
+                                  plan['id'] == instances[0]['planId'],
+                                  plans)[0]['serviceName']
+            if 'com.vmware.vchs.compute' != service_name:
+                Log.debug(self.logger, 'cannot select instance of plan %s'
+                          % service_name)
+                return False
             session_uri = attributes['sessionUri']
             org_name = attributes['orgName']
             from urlparse import urlparse
@@ -529,6 +556,24 @@ class VCA(object):
                 if self.response.status_code == requests.codes.ok:
                     # print self.response.content
                     return vdcType.parseString(self.response.content, True)
+
+    def get_vdc_names(self):
+        """
+        Returns a list of Virtual Data Centers in the Organization.
+
+        :param vdc_name: (str): The virtual data center name.
+        :return: (list of str) list of vdc names
+        
+        **service type:** vca, vchs, standalon
+
+        """
+        vdcs = []
+        if self.vcloud_session and self.vcloud_session.organization:
+            refs = filter(lambda ref: ref.type_ == 'application/vnd.vmware.vcloud.vdc+xml',
+                          self.vcloud_session.organization.Link)
+            for ref in refs:
+                vdcs.append(ref.name)
+        return vdcs
 
     def get_vapp(self, vdc, vapp_name):
         """
@@ -1096,7 +1141,7 @@ class VCA(object):
                             if element.tag == '{http://www.vmware.com/vcloud/v1.5}Entity':
                                 return element.attrib
 
-    #todo: send DELETE
+# TODO: DELETE https://vchs.vmware.com/api/vchs/session
     def logout(self):
         """
         Request to logout from  vCloud Air.
@@ -1351,3 +1396,6 @@ class VCA(object):
             Log.error(self.logger, "can't cancel task")
             return False
 
+
+    def get_status(self, code):
+        return self.statuses[code+1]

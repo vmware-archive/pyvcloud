@@ -29,12 +29,13 @@ MAX_LEASE = 7200
 
 class Gateway(object):
 
-    def __init__(self, gateway, headers, verify, log=False):
+    def __init__(self, gateway, headers, verify, busy, log=False):
         self.me = gateway
         self.headers = headers
         self.verify = verify
         self.response = None
         self.logger = _get_logger() if log else None
+        self.busy = busy
 
     def get_name(self):
         return self.me.get_name()
@@ -607,6 +608,9 @@ class Gateway(object):
         if self.response.status_code == requests.codes.ok:
             task = taskType.parseString(self.response.content, True)
             return task
+
+    def is_busy(self):
+        return self.busy
 
 def _create_protocols_type(protocol):
     all_protocols = {"Tcp": None, "Udp": None, "Icmp": None, "Any": None}

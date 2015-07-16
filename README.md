@@ -3,6 +3,9 @@ vca-cli
 
 [![Download Status](https://img.shields.io/pypi/dm/vca-cli.svg)](https://pypi.python.org/pypi/vca-cli) [![Stable Version](https://img.shields.io/pypi/v/vca-cli.svg)](https://pypi.python.org/pypi/vca-cli) [![Build Status](https://img.shields.io/travis/vmware/vca-cli.svg?style=flat)](https://travis-ci.org/vmware/vca-cli/)
 
+NOTE: due to changes in the service, use the --host argument to login on OnDemand:
+
+    $ vca login user@company.com --host vca.vmware.com --password $PASS --save-password
 
 Command Line Interface for VMware vCloud Air. It supports vCloud Air On Demand and Subscription. It also supports standalone vCloud Director.
 

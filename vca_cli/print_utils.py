@@ -4,7 +4,7 @@ import prettytable
 import six
 import sys
 
-from oslo.utils import encodeutils
+from oslo_utils import encodeutils
 
 
 def _print(pt, order):

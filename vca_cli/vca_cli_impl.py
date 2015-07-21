@@ -41,7 +41,7 @@ from pyvcloud import _get_logger, Log
 from pyvcloud.score import Score
 from dsl_parser.exceptions import *
 
-from vca_cli import print_utils
+import print_utils
 
 
 # TODO(???): when token expired, it doesn't seem to re-login
@@ -1645,7 +1645,7 @@ def blueprint(ctx, operation, blueprint, blueprint_file, include_plan):
                           % str(score.response.content), ctx)
             return
         print_utils.print_list(
-            blueprints, ['id', 'deployment_id', 'blueprint_id',
+            blueprints, ['id', 'blueprint_id',
                          'created_at', 'updated_at'],
             obj_is_dict=True)
     elif 'info' == operation:

@@ -5,6 +5,7 @@ cryptography
 xmltodict
 tabulate
 dateutils
+requests>=2.4.3
 pyvcloud == 14rc5
 oslo.utils
 PrettyTable>=0.7,<0.8

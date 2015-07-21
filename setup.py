@@ -10,28 +10,24 @@
 #
 
 
-from setuptools import setup
+from setuptools import setup, find_packages
+import os
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
 
 setup(
     name='vca-cli',
-    version='13rc6',
+    version='13rc9',
     description='VMware vCloud CLI',
     url='https://github.com/vmware/vca-cli',
     author='VMware, Inc.',
     author_email='pgomez@vmware.com',
-    packages=['vca_cli'],
-    install_requires=[
-        'click',
-        # Colorama is only required for Windows.
-        'colorama',
-        'cryptography',
-        'xmltodict',
-        'tabulate',
-        'dateutils',
-        'requests>=2.4.3',
-        'pyvcloud == 14rc5',
-        'cloudify-dsl-parser>=3.2'
-    ],
+    packages=find_packages(),
+    install_requires=required,
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[
         'Development Status :: 1 - Planning',

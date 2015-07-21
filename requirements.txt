@@ -6,3 +6,5 @@ xmltodict
 tabulate
 dateutils
 pyvcloud == 14rc5
+oslo.utils
+PrettyTable>=0.7,<0.8

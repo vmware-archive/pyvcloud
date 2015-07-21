@@ -41,6 +41,8 @@ from pyvcloud import _get_logger, Log
 from pyvcloud.score import Score
 from dsl_parser.exceptions import *
 
+import print_utils
+
 
 # TODO(???): when token expired, it doesn't seem to re-login
 # the first time, but it works the second time
@@ -1618,7 +1620,9 @@ def gateway(ctx, operation, service, org, vdc, gateway, ip):
               default=None, metavar='<blueprint_file>',
               help='Local file name of the blueprint((TOSCA YAML)',
               type=click.Path(exists=True))
-def blueprint(ctx, operation, blueprint, blueprint_file):
+@click.option('--include-plan', default=False, metavar="include_plan",
+              help="Include blueprint plan to INFO operation")
+def blueprint(ctx, operation, blueprint, blueprint_file, include_plan):
     """Operations with Blueprints"""
     vca = None
     score = None
@@ -1634,60 +1638,83 @@ def blueprint(ctx, operation, blueprint, blueprint_file):
     else:
         score = Score(ctx.obj['host_score'])
     if 'list' == operation:
-        headers = ['Blueprint Id', 'Created']
-        table = []
         blueprints = score.blueprints.list()
         if blueprints is None or len(blueprints) == 0:
-            print_message('no blueprints found', ctx)
+            ctx.obj['response'] = score.response
+            print_message('No blueprints found. Reason %s.'
+                          % str(score.response.content), ctx)
             return
-        for b in blueprints:
-            # print(b.get('id')
-            table.append([b.get('id'), b.get('created_at')[:-7]])
-        sorted_table = sorted(
-            table, key=operator.itemgetter(0), reverse=False)
-        print_table("Blueprints:", 'blueprints',
-                    headers, sorted_table, ctx)
+        print_utils.print_list(
+            blueprints, ['id', 'blueprint_id',
+                         'created_at', 'updated_at'],
+            obj_is_dict=True)
     elif 'info' == operation:
         b = score.blueprints.get(blueprint)
+        ctx.obj['response'] = score.response
         if b is not None:
-            print(json.dumps(b, sort_keys=False,
-                             indent=4, separators=(',', ': ')))
+            print_utils.print_list(
+                [b], ['id', 'created_at', 'updated_at'],
+                obj_is_dict=True)
+            if include_plan:
+                print_utils.print_dict(b['plan'])
         else:
-            print_error("blueprint(not found")
+            print_error("Blueprint not found. Reason: %s."
+                        % str(score.response.content))
     elif 'validate' == operation:
         try:
-            plan = score.blueprints.validate(blueprint_file)
-            print_message("the blueprint is valid", ctx)
+            score.blueprints.validate(blueprint_file)
+            print_message("The blueprint is valid.", ctx)
         except MissingRequiredInputError as mrie:
-            print_error('invalid blueprint: ' +
+            print_error('Invalid blueprint: ' +
                         str(mrie)[str(mrie).rfind('}') + 1:].strip())
         except UnknownInputError as uie:
-            print_error('invalid blueprint: ' +
+            print_error('Invalid blueprint: ' +
                         str(uie)[str(uie).rfind('}') + 1:].strip())
         except FunctionEvaluationError as fee:
-            print_error('invalid blueprint: ' +
+            print_error('Invalid blueprint: ' +
                         str(fee)[str(fee).rfind('}') + 1:].strip())
         except DSLParsingException as dpe:
-            print_error('invalid blueprint: ' +
+            print_error('Invalid blueprint: ' +
                         str(dpe)[str(dpe).rfind('}') + 1:].strip())
         except Exception as ex:
-            print_error('failed to validate %s:\n %s' % (blueprint_file, str(ex)))
+            print_error('Failed to validate %s:\n %s' % (blueprint_file, str(ex)))
     elif 'upload' == operation:
         try:
             b = score.blueprints.upload(blueprint_file, blueprint)
+            ctx.obj['response'] = score.response
             if b is not None:
-                print_message("successfully uploaded blueprint '%s'"
+                print_message("Successfully uploaded blueprint '%s'."
                               % b.get('id'), ctx)
+                print_utils.print_list(
+                    [b], ['id', 'created_at', 'updated_at'],
+                    obj_is_dict=True)
         except Exception:
-            print_error("failed to upload blueprint")
-            print_error(score.response.content)
+            print_error("Failed to upload blueprint. Reason: %s."
+                        % str(score.response.content), ctx)
     elif 'delete' == operation:
         b = score.blueprints.delete(blueprint)
+        ctx.obj['response'] = score.response
         if b:
             print_message("successfully deleted blueprint('%s'"
                           % blueprint, ctx)
         else:
-            print_error("failed to delete blueprint")
+            print_error("Failed to delete blueprint. Reason: %s."
+                        % str(score.response.content), ctx)
+
+
+def print_deployments(deployments):
+    for dep in deployments:
+        inputs_view = []
+        inputs_line = "%s : %s"
+        for i in range(len(dep['inputs'].keys())):
+            inputs_view.append(inputs_line % (
+                dep['inputs'].keys()[i],
+                dep['inputs'].values()[i]))
+        dep['inputs'] = "\n".join(inputs_view)
+        print_utils.print_list(
+            [dep],
+            ['blueprint_id', 'id', 'created_at', 'inputs'],
+            obj_is_dict=True)
 
 
 # TODO(???): issue: returns if session expired...
@@ -1714,8 +1741,8 @@ def blueprint(ctx, operation, blueprint, blueprint_file):
               metavar='<execution_id>', help='Execution Id')
 @click.option('--force', 'force_cancel',
               is_flag=True, default=False, help='Force cancel execution')
-def dep(ctx, operation, deployment, blueprint,
-        input_file, workflow, show_events, execution, force_cancel):
+def deployment(ctx, operation, deployment, blueprint,
+               input_file, workflow, show_events, execution, force_cancel):
     """Operations with Deployments"""
     vca = _getVCA_vcloud_session(ctx)
     if not vca:
@@ -1723,22 +1750,18 @@ def dep(ctx, operation, deployment, blueprint,
         return
     score = vca.get_score_service(ctx.obj['host_score'])
     if 'list' == operation:
-        headers = ['Blueprint Id', 'Deployment Id', 'Created']
-        table = []
         deployments = score.deployments.list()
-        if deployments is None or len(deployments) == 0:
-            print_message('no deployments found', ctx)
+        ctx.obj['response'] = score.response
+        if not deployments or len(deployments) == 0:
+            print_message('No deployments found. Reason: %s.'
+                          % str(score.response.content), ctx)
             return
-        for d in deployments:
-            if blueprint is None or blueprint == d.get('blueprint_id'):
-                table.append([d.get('blueprint_id'),
-                              d.get('id'), d.get('created_at')[:-7]])
-        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
-        print_table("deployments:", 'deployments', headers, sorted_table, ctx)
+        print_deployments(deployments)
     elif 'info' == operation:
         d = score.deployments.get(deployment)
         if d is not None:
             e = score.executions.list(deployment)
+            ctx.obj['response'] = score.response
             events = None
             if show_events and e is not None and len(e) > 0:
                 events = score.events.get(e[-1].get('id'))
@@ -1747,11 +1770,13 @@ def dep(ctx, operation, deployment, blueprint,
             print_error("deployment not found")
     elif 'delete' == operation:
         d = score.deployments.delete(deployment)
+        ctx.obj['response'] = score.response
         if d:
             print_message("successfully deleted deployment '%s'"
                           % deployment, ctx)
         else:
-            print_error("failed to delete deployment")
+            print_error("Failed to delete deployment. Reason: %s."
+                        % str(score.response.content), ctx)
     elif 'create' == operation:
         inputs = None
         if input_file:
@@ -1760,21 +1785,30 @@ def dep(ctx, operation, deployment, blueprint,
             blueprint, deployment,
             json.dumps(inputs, sort_keys=False,
                        indent=4, separators=(',', ': ')))
+        ctx.obj['response'] = score.response
         if d:
-            print_message("successfully created deployment '%s'"
+            print_message("Successfully created deployment '%s'."
                           % deployment, ctx)
+            print_deployments([d])
         else:
-            ctx.obj['response'] = score.response
-            print_error("failed to create deployment", ctx)
+            print_error("Failed to create deployment. Rreason: %s"
+                        % str(score.response.content), ctx)
     elif 'execute' == operation:
+        if not deployment or not workflow:
+            print_error("Deployment ID or Workflow ID "
+                        "was not specified.")
         e = score.executions.start(deployment, workflow)
-        print_execution(e, ctx)
+        ctx.obj['response'] = score.response
+        print_utils.print_dict(e) if e else print_message(
+            str(score.response.content), ctx)
     elif 'cancel' == operation:
         if not execution:
             print_error("execution id is not specified")
             return
         e = score.executions.cancel(execution, force_cancel)
-        print_execution(e, ctx)
+        ctx.obj['response'] = score.response
+        print_execution(e, ctx) if e else print_message(
+            str(score.response.content), ctx)
 
 
 @cli.command()
@@ -1799,9 +1833,11 @@ def events(ctx, execution, from_event, batch_size, show_logs):
     events = score.events.get(execution, from_event=from_event,
                               batch_size=batch_size,
                               include_logs=show_logs)
+    ctx.obj['response'] = score.response
     if not events or len(events) == 1:
-        print_error("Can't find events for execution: {}".format(
-            execution))
+        print_error("Can't find events for execution: {0}. "
+                    "Reason: {1}.".format(
+            execution, str(score.response.content)), ctx)
     else:
         print_table("Status:", 'status', events[0].keys(),
                     [e.values() for e in events[:-1]], ctx)
@@ -2830,8 +2866,10 @@ def print_deployment_info(deployment, executions, events, ctx=None):
     table.append(
         [deployment.get('blueprint_id'), deployment.get('id'),
          deployment.get('created_at')[:-7], _as_list(workflows)])
-    print_table("Deployment information:", 'deployment', headers, table, ctx)
-
+    print_table("Deployment information:\n-----------------------",
+                'deployment',
+                headers, table, ctx)
+    print("\n")
     headers = ['Workflow', 'Created', 'Status', 'Id']
     table = []
     if executions is None or len(executions) == 0:
@@ -2842,7 +2880,8 @@ def print_deployment_info(deployment, executions, events, ctx=None):
                       e.get('created_at')[:-7],
                       e.get('status'), e.get('id')])
     sorted_table = sorted(table, key=operator.itemgetter(1), reverse=False)
-    print_table("Workflow executions for deployment '%s'"
+    print_table("Workflow executions for deployment: '%s'"
+                "\n----------------------------------"
                 % deployment.get('id'), 'executions', headers, sorted_table,
                 ctx)
 

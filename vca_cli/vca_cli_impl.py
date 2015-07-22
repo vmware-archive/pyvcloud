@@ -284,7 +284,7 @@ def _getVCA_with_relogin(ctx):
 @click.option('-v', '--version', 'service_version',
               default='5.7', metavar='[5.5 | 5.6 | 5.7]',
               type=click.Choice(['5.5', '5.6', '5.7']), help='')
-@click.option('-H', '--host', default='https://iam.vchs.vmware.com', help='')
+@click.option('-H', '--host', default='https://vca.vmware.com', help='')
 @click.option('-p', '--password', prompt=True,
               confirmation_prompt=False, hide_input=True, help='Password')
 @click.option('-i', '--instance', default=None, help='Instance Id')

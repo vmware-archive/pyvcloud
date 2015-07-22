@@ -97,16 +97,18 @@ class Gateway(object):
     def _select_gateway_interface(self, interface):
         if interface:
             interface = interface.lower()
-            gatewayInterfaces = [i for i in self.get_interfaces('internal') if i.Name.lower()==interface]
+            gatewayInterfaces = [i for i in (self.get_interfaces('internal') + self.get_interfaces('uplink'))
+                                 if i.Name.lower() == interface]
         else:
             gatewayInterfaces = self.get_interfaces('uplink')
-        return gatewayInterfaces
+        if len(gatewayInterfaces):
+            return gatewayInterfaces[0]
+        return None
 
     def add_nat_rule(self, rule_type, original_ip, original_port, translated_ip, translated_port, protocol, interface=None):
-        gatewayInterfaces = self._select_gateway_interface(interface)
-        if len(gatewayInterfaces) == 0:
+        gatewayInterface = self._select_gateway_interface(interface)
+        if not gatewayInterface:
             return
-        gatewayInterface = gatewayInterfaces[0]
         natRules = self.get_nat_rules()
 
         maxId = 0
@@ -166,14 +168,14 @@ class Gateway(object):
             edgeGatewayServiceConfiguration.get_NetworkService().append(natService)
 
     def del_nat_rule(self, rule_type, original_ip, original_port, translated_ip, translated_port, protocol, interface=None):
-        gatewayInterfaces = self._select_gateway_interface(interface)
-        if len(gatewayInterfaces) == 0:
-            return False
-        gatewayInterface = gatewayInterfaces[0]
+        gatewayInterface = self._select_gateway_interface(interface)
+        if not gatewayInterface:
+            return
+        if not interface:
+            interface = gatewayInterface.get_Network().get_name()
+        interface = interface.lower()
         natRules = self.get_nat_rules()
         newRules = []
-        if interface:
-            interface = interface.lower()
         found_rule = False
         for natRule in natRules:
             if rule_type == natRule.get_RuleType():

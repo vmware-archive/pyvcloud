@@ -1,12 +1,16 @@
 sudo: false
 language: python
 python:
-  - "2.7"
+- '2.7'
 env:
-    - TOX_ENV=flake8
+  matrix:
+  - TOX_ENV=flake8
+  global:
+  - secure: kuASPp05IgwtEpvgSyEUurcE6jBS33XtI9wkfRhMFXi9/YRtAxlxHutgpJgg02BmlXAg0gR97HoXZ4cQmo4CKMb8D+AhBfDv+DfyLwym+SNjsXp9UXjP/oVvaV9Wtk2HQHFrDxYA8NWxvT9QalJteLKgP3cmlJklQTSKHZ6LbUA=
+  - secure: TXi5jJLsl7LmBewfl2WgQG5C1k5nwWsmsRixqupQNjHYDADlysx0J4cvBC/fz/lFB/MEUjTO2LBEtqj2RsI+9zwdaZclO6OZkhQVgVpv8f8vjEOqA+Oq2SQX6272dZ2a+/mhX9eakhNS+cvP1Du8z32OvvQukZOR9F7T7WFhRm8=
 install:
-    - pip install -r requirements.txt
-    - pip install tox
+- pip install -r requirements.txt
+- pip install tox
 script:
-    - tox -e $TOX_ENV
-
+- echo $MY_SECRET_ENV_2
+- tox -e $TOX_ENV

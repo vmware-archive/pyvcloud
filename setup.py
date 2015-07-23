@@ -21,7 +21,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='vca-cli',
-    version='13rc10',
+    version='13rc11',
     description='VMware vCloud CLI',
     url='https://github.com/vmware/vca-cli',
     author='VMware, Inc.',

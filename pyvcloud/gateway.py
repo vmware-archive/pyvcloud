@@ -94,11 +94,21 @@ class Gateway(object):
     def add_nat_rules(self):
         pass
 
-    def add_nat_rule(self, rule_type, original_ip, original_port, translated_ip, translated_port, protocol):
-        gatewayInterfaces = self.get_interfaces('uplink')
-        if len(gatewayInterfaces) == 0:
+    def _select_gateway_interface(self, interface):
+        if interface:
+            interface = interface.lower()
+            gatewayInterfaces = [i for i in (self.get_interfaces('internal') + self.get_interfaces('uplink'))
+                                 if i.Name.lower() == interface]
+        else:
+            gatewayInterfaces = self.get_interfaces('uplink')
+        if len(gatewayInterfaces):
+            return gatewayInterfaces[0]
+        return None
+
+    def add_nat_rule(self, rule_type, original_ip, original_port, translated_ip, translated_port, protocol, interface=None):
+        gatewayInterface = self._select_gateway_interface(interface)
+        if not gatewayInterface:
             return
-        gatewayInterface = gatewayInterfaces[0]
         natRules = self.get_nat_rules()
 
         maxId = 0
@@ -136,7 +146,6 @@ class Gateway(object):
         gatewayInterfaceReference.set_href(gatewayInterface.get_Network().get_href())
         gatewayInterfaceReference.set_type(gatewayInterface.get_Network().get_type())
         gatewayInterfaceReference.set_name(gatewayInterface.get_Network().get_name())
-
         gatewayRule.set_Interface(gatewayInterfaceReference)
         gatewayRule.set_OriginalIp(original_ip)
         gatewayRule.set_OriginalPort(original_port_modified)
@@ -157,21 +166,20 @@ class Gateway(object):
             natService.set_NatRule(natRules)
             edgeGatewayServiceConfiguration.get_NetworkService().append(natService)
 
-    def del_nat_rule(self, rule_type, original_ip, original_port, translated_ip, translated_port, protocol):
-        gatewayInterfaces = self.get_interfaces('uplink')
-        if len(gatewayInterfaces) == 0:
-            return False
-        gatewayInterface = gatewayInterfaces[0]
+    def del_nat_rule(self, rule_type, original_ip, original_port, translated_ip, translated_port, protocol, interface=None):
+        gatewayInterface = self._select_gateway_interface(interface)
+        if not gatewayInterface:
+            return
+        if not interface:
+            interface = gatewayInterface.get_Network().get_name()
+        interface = interface.lower()
         natRules = self.get_nat_rules()
         newRules = []
-
         found_rule = False
         for natRule in natRules:
-            # todo check if the network interface is the same
-            ruleId = natRule.get_Id()
             if rule_type == natRule.get_RuleType():
                 gatewayNatRule = natRule.get_GatewayNatRule()
-                # import sys; gatewayNatRule.export(sys.stdout, 0)
+                gateway_interface_name = gatewayNatRule.get_Interface().get_name().lower()
                 gateway_original_ip = gatewayNatRule.get_OriginalIp() if gatewayNatRule.get_OriginalIp() else 'any'
                 gateway_original_port = gatewayNatRule.get_OriginalPort() if gatewayNatRule.get_OriginalPort() else 'any'
                 gateway_translated_ip = gatewayNatRule.get_TranslatedIp() if gatewayNatRule.get_TranslatedIp() else 'any'
@@ -181,13 +189,13 @@ class Gateway(object):
                    original_port == gateway_original_port and \
                    translated_ip == gateway_translated_ip and \
                    translated_port == gateway_translated_port and \
-                   protocol == gateway_protocol:
+                   protocol == gateway_protocol and \
+                   interface == gateway_interface_name:
                     found_rule = True
                 else:
                     newRules.append(natRule)
             else:
                 newRules.append(natRule)
-        # return self._post_nat_rules(newRules)
         if found_rule:
             natService = None
             edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
@@ -199,17 +207,11 @@ class Gateway(object):
                 natService = NatServiceType()
                 natService.set_NatRule(newRules)
                 edgeGatewayServiceConfiguration.get_NetworkService().append(natService)
-            # import sys; self.me.export(sys.stdout, 0)
             return True
 
     def del_all_nat_rules(self):
-        gatewayInterfaces = self.get_interfaces('uplink')
-        if len(gatewayInterfaces) == 0:
-            return False
-        gatewayInterface = gatewayInterfaces[0]
         natRules = self.get_nat_rules()
         newRules = []
-
         natService = None
         edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
         natServices = filter(lambda service: service.__class__.__name__ == "NatServiceType", edgeGatewayServiceConfiguration.get_NetworkService())

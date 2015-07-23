@@ -8,7 +8,7 @@ env:
   global:
   - secure: LDmQYElpq2TULNXbrhOuGZCfZWsftcOI6mj3ucewGySVeaW2vItuT4WjwGjbsJmECcJ0tNJrybXIrW6VmwvvWceAgzgCOfGgh3Xd5ksgkx7jjScPyTdzYkVL5uuH5OQqGF+ZIa+sPzelye3imkLrR+bNvg+2ef8TFnGn+egp3Hw=
   - secure: SEbxyHgWm9DPnM0ZhS9wKVwGIWcwLqhZ7KzBhk3vT4vr3Ks2RlBzjlA+vFHzCjIBIMVAIISYelb8DNRF9Ennb9HbBkShB1HYg8ZmLsMPtGOQjLpv9NwCSRZ0Q5lyuaXMIyenWUn+R/UaYgs38aQ65zRbeyuVIru2+QgVpM5tho8=
-  - secure: HY12EyCAjqEt3thrHoLb32KLkW8jxUzSPV+VgWjhUZ+xjEgibOVRMbrH7c/5Jj3RVNSx9nysZvY9fqIXVRF2V9E3vIM7WQRE/OY6wD7TvB9CH7ZHuKegdjfwRR4vXdxoVcUwDLKd21czPDTxodZCc7yqYaZjRste0bl3UO6lp9U=
+  - secure: jc2gxWvNai+yQenobsHFnreAHwoc4DFVxHMjQFrhuD2rTgGCTkw4jiEtObqq8yC+DCpKM37Q5h0M+qwFElTEoHBfze1qWW8XUgVj/TgKtjeusHVM1vExclYxy1LmkZ/Aaw4gjP3S/Q9kIZow1zJqU5Ld++E17Vp7w/MM8JQMxa0=
 install:
 - pip install -r requirements.txt
 - pip install tox

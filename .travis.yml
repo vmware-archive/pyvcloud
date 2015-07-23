@@ -6,11 +6,12 @@ env:
   matrix:
   - TOX_ENV=flake8
   global:
-  - secure: kuASPp05IgwtEpvgSyEUurcE6jBS33XtI9wkfRhMFXi9/YRtAxlxHutgpJgg02BmlXAg0gR97HoXZ4cQmo4CKMb8D+AhBfDv+DfyLwym+SNjsXp9UXjP/oVvaV9Wtk2HQHFrDxYA8NWxvT9QalJteLKgP3cmlJklQTSKHZ6LbUA=
-  - secure: TXi5jJLsl7LmBewfl2WgQG5C1k5nwWsmsRixqupQNjHYDADlysx0J4cvBC/fz/lFB/MEUjTO2LBEtqj2RsI+9zwdaZclO6OZkhQVgVpv8f8vjEOqA+Oq2SQX6272dZ2a+/mhX9eakhNS+cvP1Du8z32OvvQukZOR9F7T7WFhRm8=
+  - secure: LDmQYElpq2TULNXbrhOuGZCfZWsftcOI6mj3ucewGySVeaW2vItuT4WjwGjbsJmECcJ0tNJrybXIrW6VmwvvWceAgzgCOfGgh3Xd5ksgkx7jjScPyTdzYkVL5uuH5OQqGF+ZIa+sPzelye3imkLrR+bNvg+2ef8TFnGn+egp3Hw=
+  - secure: SEbxyHgWm9DPnM0ZhS9wKVwGIWcwLqhZ7KzBhk3vT4vr3Ks2RlBzjlA+vFHzCjIBIMVAIISYelb8DNRF9Ennb9HbBkShB1HYg8ZmLsMPtGOQjLpv9NwCSRZ0Q5lyuaXMIyenWUn+R/UaYgs38aQ65zRbeyuVIru2+QgVpM5tho8=
+  - secure: HY12EyCAjqEt3thrHoLb32KLkW8jxUzSPV+VgWjhUZ+xjEgibOVRMbrH7c/5Jj3RVNSx9nysZvY9fqIXVRF2V9E3vIM7WQRE/OY6wD7TvB9CH7ZHuKegdjfwRR4vXdxoVcUwDLKd21czPDTxodZCc7yqYaZjRste0bl3UO6lp9U=
 install:
 - pip install -r requirements.txt
 - pip install tox
 script:
-- echo $MY_SECRET_ENV_2
 - tox -e $TOX_ENV
+- bash tests/login-vca.sh

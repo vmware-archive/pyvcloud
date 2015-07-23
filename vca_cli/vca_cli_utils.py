@@ -20,12 +20,11 @@ import json
 import operator
 import requests
 import xmltodict
-import collections
 import dateutil.parser
 from pyvcloud.helper import CommonUtils
 from datetime import datetime
 from tabulate import tabulate
-from pyvcloud.schema.vcd.v1_5.schemas.vcloud.vcloudType import parseString, ErrorType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.vcloudType import parseString
 
 
 class VcaCliUtils:
@@ -57,10 +56,13 @@ class VcaCliUtils:
                 cmd_proc.vca.vcloud_session.response is not None and \
                 cmd_proc.vca.vcloud_session.response.content is not None:
             if '<Error xmlns=' in cmd_proc.vca.vcloud_session.response.content:
-                error = parseString(cmd_proc.vca.vcloud_session.response.content, True)
+                error = parseString(cmd_proc.vca.vcloud_session.response.
+                                    content,
+                                    True)
                 msg = message + ': ' + error.get_message()
             elif 'message' in cmd_proc.vca.vcloud_session.response.content:
-                json_message = json.loads(cmd_proc.vca.vcloud_session.response.content)
+                json_message = json.loads(cmd_proc.vca.vcloud_session.response.
+                                          content)
                 msg = message + ': ' + json_message.get('message')
         if cmd_proc is not None and \
                 cmd_proc.error_message is not None:
@@ -152,14 +154,17 @@ class VcaCliUtils:
         sys.stdout.flush()
         if response is not None:
             if cmd_proc is not None and cmd_proc.json_output:
-                sys.stdout.write("\r" + self.task_to_json(response.content) + '\n')
+                sys.stdout.write("\r" +
+                                 self.task_to_json(response.content) + '\n')
             else:
-                sys.stdout.write("\r" + self.task_to_table(response.content) + '\n')
+                sys.stdout.write("\r" +
+                                 self.task_to_table(response.content) + '\n')
             sys.stdout.flush()
 
     def utc2local(self, utc):
         epoch = time.mktime(utc.timetuple())
-        offset = datetime.fromtimestamp(epoch) - datetime.utcfromtimestamp(epoch)
+        offset = datetime.fromtimestamp(epoch) -\
+            datetime.utcfromtimestamp(epoch)
         return utc + offset
 
     def remove_unwanted_keys_from_task(self, task_dict):
@@ -212,7 +217,7 @@ class VcaCliUtils:
                           task_dict["Task"].get('@status')])
         else:
             table.append([localStartTime.strftime("%Y-%m-%d %H:%M:%S"),
-                          '{} hours {} mins {} secs'.format(hours, minutes, seconds),
+                          '{} hours {} mins {} secs'.
+                          format(hours, minutes, seconds),
                           task_dict["Task"].get('@status')])
         return tabulate(table, headers=headers, tablefmt="orgtbl")
-

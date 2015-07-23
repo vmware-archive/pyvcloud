@@ -168,18 +168,20 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                                 (vapp_name, vdc, template, catalog), cmd_proc)
             task = None
             if vm_name is not None:
-                if ((cmd_proc.vca.version == "1.0") or
-                    (cmd_proc.vca.version == "1.5") or
-                    (cmd_proc.vca.version == "5.1") or
-                    (cmd_proc.vca.version == "5.5")):
+                if (cmd_proc.vca.version == "1.0") or \
+                   (cmd_proc.vca.version == "1.5") or \
+                   (cmd_proc.vca.version == "5.1") or \
+                   (cmd_proc.vca.version == "5.5"):
                     task = cmd_proc.vca.create_vapp(vdc, vapp_name,
-                                   template, catalog)
+                                                    template, catalog)
                 else:
                     task = cmd_proc.vca.create_vapp(vdc, vapp_name,
-                                   template, catalog, vm_name=vm_name)
+                                                    template, catalog,
+                                                    vm_name=vm_name)
             if task:
                 utils.display_progress(task, cmd_proc,
-                  cmd_proc.vca.vcloud_session.get_vcloud_headers())
+                                       cmd_proc.vca.vcloud_session.
+                                       get_vcloud_headers())
             else:
                 utils.print_error("can't create the vApp", cmd_proc)
                 return
@@ -197,7 +199,8 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                     task = the_vapp.modify_vm_name(1, vm_name)
                     if task:
                         utils.display_progress(task, cmd_proc,
-                            cmd_proc.vca.vcloud_session.get_vcloud_headers())
+                                               cmd_proc.vca.vcloud_session.
+                                               get_vcloud_headers())
                     else:
                         utils.print_error("can't set VM name", cmd_proc)
                         return
@@ -206,10 +209,12 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                 utils.print_message(
                     "setting computer name for VM '%s'"
                     % (vm_name), cmd_proc)
-                task = the_vapp.customize_guest_os(vm_name, computer_name=vm_name)
+                task = the_vapp.customize_guest_os(vm_name,
+                                                   computer_name=vm_name)
                 if task:
                     utils.display_progress(task, cmd_proc,
-                        cmd_proc.vca.vcloud_session.get_vcloud_headers())
+                                           cmd_proc.vca.vcloud_session.
+                                           get_vcloud_headers())
                 else:
                     utils.print_error("can't set computer name", cmd_proc)
                 the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
@@ -220,7 +225,8 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                 task = the_vapp.modify_vm_cpu(vm_name, cpu)
                 if task:
                     utils.display_progress(task, cmd_proc,
-                        cmd_proc.vca.vcloud_session.get_vcloud_headers())
+                                           cmd_proc.vca.vcloud_session.
+                                           get_vcloud_headers())
                 else:
                     utils.print_error("can't configure virtual CPUs", cmd_proc)
                 the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
@@ -295,7 +301,8 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
         task = cmd_proc.vca.delete_vapp(vdc, vapp)
         if task:
             utils.display_progress(task, cmd_proc,
-              cmd_proc.vca.vcloud_session.get_vcloud_headers())
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
         else:
             utils.print_error("can't delete the vApp", cmd_proc)
     else:

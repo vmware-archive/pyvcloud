@@ -6,9 +6,9 @@ env:
   matrix:
   - TOX_ENV=flake8
   global:
-  - secure: LDmQYElpq2TULNXbrhOuGZCfZWsftcOI6mj3ucewGySVeaW2vItuT4WjwGjbsJmECcJ0tNJrybXIrW6VmwvvWceAgzgCOfGgh3Xd5ksgkx7jjScPyTdzYkVL5uuH5OQqGF+ZIa+sPzelye3imkLrR+bNvg+2ef8TFnGn+egp3Hw=
-  - secure: SEbxyHgWm9DPnM0ZhS9wKVwGIWcwLqhZ7KzBhk3vT4vr3Ks2RlBzjlA+vFHzCjIBIMVAIISYelb8DNRF9Ennb9HbBkShB1HYg8ZmLsMPtGOQjLpv9NwCSRZ0Q5lyuaXMIyenWUn+R/UaYgs38aQ65zRbeyuVIru2+QgVpM5tho8=
-  - secure: jc2gxWvNai+yQenobsHFnreAHwoc4DFVxHMjQFrhuD2rTgGCTkw4jiEtObqq8yC+DCpKM37Q5h0M+qwFElTEoHBfze1qWW8XUgVj/TgKtjeusHVM1vExclYxy1LmkZ/Aaw4gjP3S/Q9kIZow1zJqU5Ld++E17Vp7w/MM8JQMxa0=
+  - secure: oKya58dGqE8NNzV8hbfZ6KqVWpIwKSFFDIfZ+owsyehQMLu+G6DK/v2arzP+H+en2b4lMPSvCJjw7S3VWUXhGlUppbYwr/38I25pFyZ7irCV3/Ar92bNcUEoCy5kottITH/FY2V/gB6H+7wL4a8nq/X4YhZM/rA6PsjfZWu69O4=
+  - secure: hySZ+fASk29+MYmDA2oY/cOM9Q6cNuwiKmVZDzdDRHUqk3JxjRFUu+mhZhenARsgoMcszdb7r0R+7zIwgaVZezhFuCREz0KtognFPf7lKnP7Bqa+lX1dc5MXRTS3PaAiuTa616oqZUkSeBQ8dVQbAy2/XhRIuUIySYiXSmeaKT0=
+  - secure: hbexu/pZJuFwmf3+Abv+nTFRyO9YJVZzlD4bIjN4yzypSiGRV4Kzr247DYQ0u1uMNuy/niKPw04EuldpVn09YbbwJqAwVQH35DwYM7qcPBhMmvG1JdCBUUtaU5BeLJugYMKOUrxci05zVFP/YLWfbxrzQQeBWszA5FGPxl5v38A=
 install:
 - pip install -r requirements.txt
 - pip install tox

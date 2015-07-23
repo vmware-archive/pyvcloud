@@ -30,7 +30,7 @@ from pyvcloud.vcloudair import VCA
               metavar='<password>', help='Password')
 def user(cmd_proc, operation, username, password):
     """Operations with Users"""
-    if cmd_proc.vca.service_type is not VCA.VCA_SERVICE_TYPE_VCA:
+    if cmd_proc.vca.service_type != VCA.VCA_SERVICE_TYPE_VCA:
         utils.print_message('Operation not supported '
                             'in this service type')
         return

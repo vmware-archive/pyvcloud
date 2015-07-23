@@ -247,6 +247,9 @@ class CmdProc:
         result = self.vca.login(password=password, org=org)
         if result:
             Log.debug(self.logger, 'logged in, org=%s' % self.vca.org)
+            if VCA.VCA_SERVICE_TYPE_STANDALONE == service_type:
+                result = self.vca.vcloud_session.login(token=self.vca.vcloud_session.token)
+                assert result
             if save_password:
                 self.password = password
             self.save_config(self.profile, self.profile_file)

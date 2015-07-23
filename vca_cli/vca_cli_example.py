@@ -26,38 +26,38 @@ def example(ctx):
     table = []
     example_id += 1
     table.append([example_id, 'login to service', 'vCA',
-                  'vca login email@company.com --password mypassword'])
+                  'vca login email@company.com --password ****'])
     example_id += 1
     table.append([example_id, 'login to an instance', 'vCA',
-                  'vca login email@company.com --password mypassword'
+                  'vca login email@company.com --password ****'
                   ' --instance c40ba6b4-c158-49fb-b164-5c66f90344fa'])
     example_id += 1
     table.append([example_id, 'login to a virtual data center', 'vCA',
-                  'vca login email@company.com --password mypassword'
+                  'vca login email@company.com --password ****'
                   ' --instance c40ba6b4-c158-49fb-b164-5c66f90344fa'
                   ' --vdc VDC1'])
     example_id += 1
     table.append([example_id, 'login to service', 'vCHS',
-                  'vca login email@company.com --password mypassword'
+                  'vca login email@company.com --password ****'
                   ' --host vchs.vmware.com --version 5.6'])
     example_id += 1
     table.append([example_id, 'login to an instance', 'vCHS',
-                  'vca login email@company.com --password mypassword'
+                  'vca login email@company.com --password ****'
                   ' --host vchs.vmware.com --version 5.6'
                   ' --instance 55-234 --org MyOrg'])
     example_id += 1
     table.append([example_id, 'login to a virtual data center', 'vCHS',
-                  'vca login email@company.com --password mypassword'
+                  'vca login email@company.com --password ****'
                   ' --host vchs.vmware.com --version 5.6'
                   ' --instance 55-234 --org MyOrg --vdc MyVDC'])
     example_id += 1
     table.append([example_id, 'login to vCloud Director', 'Standalone',
-                  'vca login email@company.com --password mypassword'
+                  'vca login email@company.com --password ****'
                   ' --host myvcloud.company.com --version 5.5 --org MyOrg'])
     example_id += 1
     table.append([example_id, 'login to vCloud Director and VDC',
                   'Standalone',
-                  'vca login email@company.com --password mypassword'
+                  'vca login email@company.com --password ****'
                   ' --host myvcloud.company.com --version 5.5 --org MyOrg'
                   ' --vdc MyVDC'])
     example_id += 1
@@ -71,6 +71,11 @@ def example(ctx):
     table.append([example_id, 'select an instance', 'vCA',
                   'vca instance use --instance '
                   'c40ba6b4-c158-49fb-b164-5c66f90344fa'])
+    example_id += 1
+    table.append([example_id, 'select an instance and VDC', 'vCA',
+                  'vca instance use --instance '
+                  'c40ba6b4-c158-49fb-b164-5c66f90344fa '
+                  '--vdc MyVDC'])
     example_id += 1
     table.append([example_id, 'select an instance', 'vCHS',
                   'vca instance use --instance '

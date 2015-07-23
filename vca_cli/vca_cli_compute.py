@@ -51,7 +51,7 @@ def vdc(cmd_proc, operation, vdc):
     elif 'use' == operation:
         the_vdc = cmd_proc.vca.get_vdc(vdc)
         if the_vdc is not None:
-            utils.print_message("Using vdc '%s' in profile '%s'" %
+            utils.print_message("Using vdc '%s', profile '%s'" %
                                 (vdc, cmd_proc.profile), cmd_proc)
             cmd_proc.vdc_name = vdc
         else:
@@ -120,7 +120,7 @@ def vdc(cmd_proc, operation, vdc):
               metavar='[pool, dhcp, manual]', help='Network connection mode',
               type=click.Choice(['POOL', 'pool', 'DHCP', 'dhcp', 'MANUAL',
                                  'manual']))
-@click.option('-V', '--vm', 'vm_name', default='',
+@click.option('-V', '--vm', 'vm_name', default=None,
               metavar='<vm>', help='VM name')
 @click.option('-f', '--file', 'cust_file',
               default=None, metavar='<customization_file>',
@@ -159,7 +159,145 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                               (vdc, cmd_proc.profile),
                               headers, table, cmd_proc)
     elif 'create' == operation:
-        utils.print_message('not implemented', cmd_proc)
+        for x in xrange(1, count + 1):
+            vapp_name = vapp
+            if count > 1:
+                vapp_name += '-' + str(x)
+            utils.print_message("creating vApp '%s' in VDC '%s'"
+                                " from template '%s' in catalog '%s'" %
+                                (vapp_name, vdc, template, catalog), cmd_proc)
+            task = None
+            if vm_name is not None:
+                if ((cmd_proc.vca.version == "1.0") or
+                    (cmd_proc.vca.version == "1.5") or
+                    (cmd_proc.vca.version == "5.1") or
+                    (cmd_proc.vca.version == "5.5")):
+                    task = cmd_proc.vca.create_vapp(vdc, vapp_name,
+                                   template, catalog)
+                else:
+                    task = cmd_proc.vca.create_vapp(vdc, vapp_name,
+                                   template, catalog, vm_name=vm_name)
+            if task:
+                utils.display_progress(task, cmd_proc,
+                  cmd_proc.vca.vcloud_session.get_vcloud_headers())
+            else:
+                utils.print_error("can't create the vApp", cmd_proc)
+                return
+            the_vdc = cmd_proc.vca.get_vdc(vdc)
+            the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
+            if ((vm_name is not None) and
+                ((cmd_proc.vca.version == "1.0") or
+                 (cmd_proc.vca.version == "1.5") or
+                 (cmd_proc.vca.version == "5.1") or
+                 (cmd_proc.vca.version == "5.5"))):
+                if vm_name is not None:
+                    utils.print_message(
+                        "setting VM name to '%s'"
+                        % (vm_name), cmd_proc)
+                    task = the_vapp.modify_vm_name(1, vm_name)
+                    if task:
+                        utils.display_progress(task, cmd_proc,
+                            cmd_proc.vca.vcloud_session.get_vcloud_headers())
+                    else:
+                        utils.print_error("can't set VM name", cmd_proc)
+                        return
+                    the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
+            if vm_name is not None:
+                utils.print_message(
+                    "setting computer name for VM '%s'"
+                    % (vm_name), cmd_proc)
+                task = the_vapp.customize_guest_os(vm_name, computer_name=vm_name)
+                if task:
+                    utils.display_progress(task, cmd_proc,
+                        cmd_proc.vca.vcloud_session.get_vcloud_headers())
+                else:
+                    utils.print_error("can't set computer name", cmd_proc)
+                the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
+            if cpu is not None:
+                utils.print_message(
+                    "configuring '%s' vCPUs for VM '%s', vApp '%s'"
+                    % (cpu, vm_name, vapp_name), cmd_proc)
+                task = the_vapp.modify_vm_cpu(vm_name, cpu)
+                if task:
+                    utils.display_progress(task, cmd_proc,
+                        cmd_proc.vca.vcloud_session.get_vcloud_headers())
+                else:
+                    utils.print_error("can't configure virtual CPUs", cmd_proc)
+                the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
+            # if ram is not None:
+            #     print_message("configuring '%s' MB of memory"
+            #                   " for VM '%s', vApp '%s'"
+            #                   % (ram, vm_name, vapp_name), ctx)
+            #     task = the_vapp.modify_vm_memory(vm_name, ram)
+            #     if task:
+            #         display_progress(task, ctx,
+            #                          vca.vcloud_session.get_vcloud_headers())
+            #     else:
+            #         ctx.obj['response'] = the_vapp.response
+            #         print_error("can't configure RAM", ctx)
+            #     the_vapp = vca.get_vapp(the_vdc, vapp_name)
+            # if '' != network:
+            #     print_message("disconnecting VM from networks"
+            #                   " pre-defined in the template", ctx)
+            #     task = the_vapp.disconnect_vms()
+            #     if task:
+            #         display_progress(task, ctx,
+            #                          vca.vcloud_session.get_vcloud_headers())
+            #     else:
+            #         ctx.obj['response'] = the_vapp.response
+            #         print_error("can't disconnect VM from networks", ctx)
+            #         return
+            #     print_message("disconnecting vApp from networks"
+            #                   " pre-defined in the template", ctx)
+            #     task = the_vapp.disconnect_from_networks()
+            #     if task:
+            #         display_progress(task, ctx,
+            #                          vca.vcloud_session.get_vcloud_headers())
+            #     else:
+            #         ctx.obj['response'] = the_vapp.response
+            #         print_error("can't disconnect vApp from networks", ctx)
+            #         return
+            #     nets = filter(lambda n: n.name == network,
+            #                   vca.get_networks(vdc))
+            #     if len(nets) == 1:
+            #         print_message(
+            #             "connecting vApp to network"
+            #             " '%s' with mode '%s'" % (network, mode), ctx)
+            #         task = the_vapp.connect_to_network(
+            #             nets[0].name, nets[0].href)
+            #         if task:
+            #             display_progress(
+            #                 task, ctx,
+            #                 vca.vcloud_session.get_vcloud_headers())
+            #         else:
+            #             ctx.obj['response'] = the_vapp.response
+            #             print_error("can't connect the vApp to the network",
+            #                         ctx)
+            #             return
+            #         print_message("connecting VM to network '%s'"
+            #                       " with mode '%s'" % (network, mode), ctx)
+            #         task = the_vapp.connect_vms(
+            #             nets[0].name,
+            #             connection_index=0,
+            #             ip_allocation_mode=mode.upper(),
+            #             mac_address=None, ip_address=ip)
+            #         if task:
+            #             display_progress(
+            #                 task, ctx,
+            #                 vca.vcloud_session.get_vcloud_headers())
+            #         else:
+            #             ctx.obj['response'] = the_vapp.response
+            #             print_error(
+            #                 "can't connect the VM to the network", ctx)
+    elif 'delete' == operation:
+        utils.print_message("deleting vApp '%s' from VDC '%s'" % (vapp, vdc),
+                            cmd_proc)
+        task = cmd_proc.vca.delete_vapp(vdc, vapp)
+        if task:
+            utils.display_progress(task, cmd_proc,
+              cmd_proc.vca.vcloud_session.get_vcloud_headers())
+        else:
+            utils.print_error("can't delete the vApp", cmd_proc)
     else:
         utils.print_message('not implemented', cmd_proc)
     cmd_proc.save_current_config()

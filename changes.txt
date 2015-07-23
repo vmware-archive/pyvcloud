@@ -11,6 +11,9 @@ commands to refactor:
 - vapp
 - vm
 
+commands in progress:
+- example
+
 new commands:
 - profile
 
@@ -19,6 +22,7 @@ new features:
 - login with --do-not-save-password
 - login with instance, org and vdc
 - no need to enter service type
+- use instance and vdc (vca type)
 
 pending work:
 - actual session logout on VC

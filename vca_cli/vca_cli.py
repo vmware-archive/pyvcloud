@@ -92,6 +92,7 @@ def status(cmd_proc, show_password):
     table.append(['user', cmd_proc.vca.username])
     table.append(['instance', cmd_proc.instance])
     table.append(['org', cmd_proc.vca.org])
+    table.append(['vdc', cmd_proc.vdc_name])
     if cmd_proc.password is None or len(cmd_proc.password) == 0 or \
        show_password:
         table.append(['password', str(cmd_proc.password)])
@@ -122,8 +123,8 @@ def profile(cmd_proc):
 @click.option('-d', '--do-not-save-password', is_flag=True,
               default=False, help='Do not save password')
 @click.option('-v', '--version', 'service_version',
-              default='5.7', metavar='[5.5 | 5.6 | 5.7]',
-              type=click.Choice(['5.5', '5.6', '5.7']), help='')
+              default='5.7', metavar='[5.1 | 5.5 | 5.6 | 5.7]',
+              type=click.Choice(['5.1', '5.5', '5.6', '5.7']), help='')
 @click.option('-H', '--host', default='https://vca.vmware.com',
               metavar='<host>',
               help='')
@@ -193,7 +194,7 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                         if vdc is not None:
                             the_vdc = cmd_proc.vca.get_vdc(vdc)
                             if the_vdc is not None:
-                                utils.print_message("Using vdc '%s' "
+                                utils.print_message("Using vdc '%s'"
                                                     ", profile '%s'" %
                                                     (vdc, cmd_proc.profile),
                                                     cmd_proc)
@@ -208,6 +209,7 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                   [VCA.VCA_SERVICE_TYPE_STANDALONE]):
                 if vdc is None:
                     vdcs = cmd_proc.vca.get_vdc_names()
+                    Log.debug(cmd_proc.logger, 'vdcs=%s' % vdcs)
                     if len(vdcs) > 0:
                         vdc = vdcs[0]
                 if vdc is not None:
@@ -217,7 +219,7 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                     the_vdc = cmd_proc.vca.get_vdc(vdc)
                     Log.debug(cmd_proc.logger, 'Select vdc=%s' % the_vdc)
                     if the_vdc is not None:
-                        utils.print_message("Using vdc '%s' "
+                        utils.print_message("Using vdc '%s'"
                                             ", profile '%s'" %
                                             (vdc, cmd_proc.profile),
                                             cmd_proc)
@@ -314,7 +316,9 @@ def _list_orgs_in_instance(cmd_proc, instance):
               help='Instance Id')
 @click.option('-o', '--org', default='', metavar='<organization>',
               help='Organization Id')
-def instance(cmd_proc, operation, instance, org):
+@click.option('-v', '--vdc', default=None, metavar='<vdc>',
+              help='Virtual Data Center Name')
+def instance(cmd_proc, operation, instance, org, vdc):
     """Operations with Instances"""
     if cmd_proc.vca.service_type not in \
        [VCA.VCA_SERVICE_TYPE_VCA, VCA.VCA_SERVICE_TYPE_VCHS]:
@@ -386,11 +390,12 @@ def instance(cmd_proc, operation, instance, org):
             result = _use_instance_org(cmd_proc, instance, org)
         if result:
             vdcs = cmd_proc.vca.get_vdc_names()
-            if len(vdcs) > 0:
+            if vdc is None and len(vdcs) > 0:
                 vdc = vdcs[0]
+            if vdc is not None:
                 the_vdc = cmd_proc.vca.get_vdc(vdc)
                 if the_vdc is not None:
-                    utils.print_message("Using vdc '%s' "
+                    utils.print_message("Using vdc '%s'"
                                         ", profile '%s'" %
                                         (vdc, cmd_proc.profile),
                                         cmd_proc)
@@ -467,7 +472,7 @@ def org(cmd_proc, operation, instance, org):
                     vdc = vdcs[0]
                     the_vdc = cmd_proc.vca.get_vdc(vdc)
                     if the_vdc is not None:
-                        utils.print_message("Using vdc '%s' "
+                        utils.print_message("Using vdc '%s'"
                                             ", profile '%s'" %
                                             (vdc, cmd_proc.profile),
                                             cmd_proc)

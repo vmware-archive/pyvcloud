@@ -392,7 +392,6 @@ class CmdProc:
         sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
         return sorted_table
 
-# TODO: add other gw services
     def gateways_to_table(self, gateways):
         table = []
         for gateway in gateways:
@@ -445,3 +444,15 @@ class CmdProc:
 
     def vapp_details_to_table(self, vapp):
         pass
+
+    def catalogs_to_table(self, catalogs):
+        table = []
+        for catalog in catalogs:
+            if catalog.CatalogItems and catalog.CatalogItems.CatalogItem:
+                for item in catalog.CatalogItems.CatalogItem:
+                    table.append([catalog.name, item.name])
+            else:
+                table.append([catalog.name, ''])
+        sorted_table = sorted(table, key=operator.itemgetter(0),
+                              reverse=False)
+        return sorted_table

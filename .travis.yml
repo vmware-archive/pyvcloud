@@ -11,7 +11,7 @@ env:
   - secure: hbexu/pZJuFwmf3+Abv+nTFRyO9YJVZzlD4bIjN4yzypSiGRV4Kzr247DYQ0u1uMNuy/niKPw04EuldpVn09YbbwJqAwVQH35DwYM7qcPBhMmvG1JdCBUUtaU5BeLJugYMKOUrxci05zVFP/YLWfbxrzQQeBWszA5FGPxl5v38A=
 install:
 - pip install -r requirements.txt
-- pip install tox
+- pip install -r dev-requirements.txt
 script:
 - tox -e $TOX_ENV
 - pip install .

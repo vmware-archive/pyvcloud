@@ -418,7 +418,7 @@ def instance(cmd_proc, operation, instance, org, vdc):
                                       cmd_proc)
                     sys.exit(1)
     else:
-        utils.print_message('Not implemented')
+        utils.print_error('not implemented')
         sys.exit(1)
     cmd_proc.save_current_config()
 

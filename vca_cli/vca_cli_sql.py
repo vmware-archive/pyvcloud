@@ -22,5 +22,5 @@ from vca_cli import cli, utils
 @click.pass_obj
 def sql(cmd_proc):
     """Operations with SQL Air Service"""
-    utils.print_message('Not implemented')
+    utils.print_error('Not implemented')
     sys.exit(1)

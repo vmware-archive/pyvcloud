@@ -8,11 +8,12 @@ completed refactoring of commands:
 - vdc
 
 commands to refactor:
-- vapp
 - vm
 
 commands in progress:
 - example
+- catalog
+- vapp
 
 new commands:
 - profile
@@ -27,3 +28,5 @@ new features:
 
 pending work:
 - actual session logout on VC
+- add other gw services to print gateway
+- add table of examples internal state

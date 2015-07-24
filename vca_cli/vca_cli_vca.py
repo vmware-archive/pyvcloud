@@ -57,6 +57,6 @@ def user(cmd_proc, operation, username, password):
                           headers, sorted_table,
                           cmd_proc)
     elif 'info' == operation:
-        utils.print_message('Not implemented')
+        utils.print_error('not implemented')
         sys.exit(1)
     cmd_proc.save_current_config()

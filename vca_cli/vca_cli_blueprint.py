@@ -22,5 +22,5 @@ from vca_cli import cli, utils
 @click.pass_obj
 def blueprint(cmd_proc):
     """Operations with Blueprints"""
-    utils.print_message('Not implemented')
+    utils.print_error('Not implemented')
     sys.exit(1)

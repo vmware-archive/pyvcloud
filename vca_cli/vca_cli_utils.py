@@ -25,6 +25,7 @@ from pyvcloud.helper import CommonUtils
 from datetime import datetime
 from tabulate import tabulate
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.vcloudType import parseString
+from pyvcloud import Http, Log
 
 
 class VcaCliUtils:
@@ -120,7 +121,7 @@ class VcaCliUtils:
                 self.print_error(CommonUtils.convertPythonObjToStr(
                                  error, name="Error"),
                                  cmd_proc=cmd_proc)
-                return
+                return None
             else:
                 # some task doesn't not report progress
                 if progress:
@@ -145,11 +146,16 @@ class VcaCliUtils:
                     rnd += 1
                 sys.stdout.flush()
                 time.sleep(1)
-                response = requests.get(task.get_href(), headers=headers,
-                                        verify=cmd_proc.verify)
-                task = parseString(response.content, True)
-                progress = task.get_Progress()
-                status = task.get_status()
+                response = Http.get(task.get_href(), headers=headers,
+                                    verify=cmd_proc.verify,
+                                    logger=cmd_proc.logger)
+                if response.status_code == requests.codes.ok:
+                    task = parseString(response.content, True)
+                    progress = task.get_Progress()
+                    status = task.get_status()
+                else:
+                    Log.error(cmd_proc.logger, "can't get task")
+                    return
         sys.stdout.write("\r" + " " * 120)
         sys.stdout.flush()
         if response is not None:

@@ -426,8 +426,8 @@ def instance(cmd_proc, operation, instance, org, vdc):
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
-                metavar='[list | info | use]',
-                type=click.Choice(['list', 'info', 'use']))
+                metavar='[list | info | use | list-templates]',
+                type=click.Choice(['list', 'info', 'use', 'list-templates']))
 @click.option('-i', '--instance', default='', metavar='<instance>',
               help='Instance Id')
 @click.option('-o', '--org', default='', metavar='<organization>',
@@ -446,7 +446,7 @@ def org(cmd_proc, operation, instance, org):
             sys.exit(1)
         headers = ['Org', 'Selected']
         table = []
-        if cmd_proc.vca is not None and\
+        if cmd_proc.vca is not None and \
            cmd_proc.vca.vcloud_session is not None:
             table.append([cmd_proc.vca.vcloud_session.organization.get_name(),
                          '*'])
@@ -506,6 +506,22 @@ def org(cmd_proc, operation, instance, org):
             utils.print_message('Operation not supported '
                                 'in this service type')
             sys.exit(1)
+    elif 'list-templates' == operation:
+        templates = cmd_proc.vca.get_vdc_templates()
+        headers = ['Template']
+        table = cmd_proc.vdc_template_to_table(templates)
+        if cmd_proc.json_output:
+            json_object = {'vdc-templates':
+                           utils.table_to_json(headers, table)}
+            utils.print_json(json_object, cmd_proc=cmd_proc)
+        else:
+            utils.print_table("Available VDC templates in org '%s', "
+                              "profile '%s':" %
+                              (cmd_proc.vca.org, cmd_proc.profile),
+                              headers, table, cmd_proc)
+    else:
+        utils.print_error('not implemented')
+        sys.exit(1)
     cmd_proc.save_current_config()
 
 

@@ -22,11 +22,14 @@ from vca_cli import cli, utils, default_operation
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
-                metavar='[list | use | info]',
-                type=click.Choice(['list', 'use', 'info']))
+                metavar='[list | use | info | create | delete]',
+                type=click.Choice(['list', 'use', 'info', 'create',
+                                   'delete']))
 @click.option('-v', '--vdc', default=None, metavar='<vdc>',
               help='Virtual Data Center Name')
-def vdc(cmd_proc, operation, vdc):
+@click.option('-t', '--template', default=None, metavar='<template>',
+              help='Virtual Data Center Template Name')
+def vdc(cmd_proc, operation, vdc, template):
     """Operations with Virtual Data Centers"""
     result = cmd_proc.re_login()
     if not result:
@@ -93,6 +96,24 @@ def vdc(cmd_proc, operation, vdc):
         else:
             utils.print_error("Unable to select vdc '%s' in profile '%s'" %
                               (vdc, cmd_proc.profile), cmd_proc)
+            sys.exit(1)
+    elif 'create' == operation:
+        task = cmd_proc.vca.create_vdc(vdc, template)
+        if task:
+            utils.display_progress(task, cmd_proc,
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
+        else:
+            utils.print_error("can't create the VDC", cmd_proc)
+            sys.exit(1)
+    elif 'delete' == operation:
+        result = cmd_proc.vca.delete_vdc(vdc)
+        if result[0]:
+            utils.display_progress(result[1], cmd_proc,
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
+        else:
+            utils.print_error("can't delete the VDC", cmd_proc)
             sys.exit(1)
     cmd_proc.save_current_config()
 
@@ -252,17 +273,17 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                                 " from template '%s' in catalog '%s'" %
                                 (vapp_name, vdc, template, catalog), cmd_proc)
             task = None
-            if vm_name is not None:
-                if (cmd_proc.vca.version == "1.0") or \
-                   (cmd_proc.vca.version == "1.5") or \
-                   (cmd_proc.vca.version == "5.1") or \
-                   (cmd_proc.vca.version == "5.5"):
-                    task = cmd_proc.vca.create_vapp(vdc, vapp_name,
-                                                    template, catalog)
-                else:
-                    task = cmd_proc.vca.create_vapp(vdc, vapp_name,
-                                                    template, catalog,
-                                                    vm_name=vm_name)
+            if ((vm_name is not None) and
+                ((cmd_proc.vca.version == "1.0") or
+                 (cmd_proc.vca.version == "1.5") or
+                 (cmd_proc.vca.version == "5.1") or
+                 (cmd_proc.vca.version == "5.5"))):
+                task = cmd_proc.vca.create_vapp(vdc, vapp_name,
+                                                template, catalog)
+            else:
+                task = cmd_proc.vca.create_vapp(vdc, vapp_name,
+                                                template, catalog,
+                                                vm_name=vm_name)
             if task:
                 utils.display_progress(task, cmd_proc,
                                        cmd_proc.vca.vcloud_session.
@@ -277,19 +298,18 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                  (cmd_proc.vca.version == "1.5") or
                  (cmd_proc.vca.version == "5.1") or
                  (cmd_proc.vca.version == "5.5"))):
-                if vm_name is not None:
-                    utils.print_message(
-                        "setting VM name to '%s'"
-                        % (vm_name), cmd_proc)
-                    task = the_vapp.modify_vm_name(1, vm_name)
-                    if task:
-                        utils.display_progress(task, cmd_proc,
-                                               cmd_proc.vca.vcloud_session.
-                                               get_vcloud_headers())
-                    else:
-                        utils.print_error("can't set VM name", cmd_proc)
-                        sys.exit(1)
-                    the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
+                utils.print_message(
+                    "setting VM name to '%s'"
+                    % (vm_name), cmd_proc)
+                task = the_vapp.modify_vm_name(1, vm_name)
+                if task:
+                    utils.display_progress(task, cmd_proc,
+                                           cmd_proc.vca.vcloud_session.
+                                           get_vcloud_headers())
+                else:
+                    utils.print_error("can't set VM name", cmd_proc)
+                    sys.exit(1)
+                the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
             if vm_name is not None:
                 utils.print_message(
                     "setting computer name for VM '%s'"

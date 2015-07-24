@@ -456,3 +456,11 @@ class CmdProc:
         sorted_table = sorted(table, key=operator.itemgetter(0),
                               reverse=False)
         return sorted_table
+
+    def vdc_template_to_table(self, templates):
+        table = []
+        for template in templates.get_VdcTemplate():
+            table.append([template.get_name()])
+        sorted_table = sorted(table, key=operator.itemgetter(0),
+                              reverse=False)
+        return sorted_table

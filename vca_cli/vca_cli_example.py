@@ -88,7 +88,41 @@ def example(ctx):
                   'vca org info'])
     example_id += 1
     table.append([example_id, 'select an organization', 'vCHS',
-                  'vca org use --instance 55-234 --org MyOrg '])
+                  'vca org use --instance 55-234 --org MyOrg'])
+    example_id += 1
+    table.append([example_id, 'list VDC templates', 'All',
+                  'vca org list-templates'])
+    example_id += 1
+    table.append([example_id, 'list VDC', 'All',
+                  'vca vdc'])
+    example_id += 1
+    table.append([example_id, 'select VDC', 'All',
+                  'vca vdc use --vdc vdc1'])
+    example_id += 1
+    table.append([example_id, 'create VDC', 'All',
+                  'vca vdc create --vdc vdc1 --template d2p3v29-new-tp'])
+    example_id += 1
+    table.append([example_id, 'delete VDC', 'All',
+                  'vca vdc delete --vdc vdc1'])
+    example_id += 1
+    table.append([example_id, 'list catalogs', 'All',
+                  'vca catalog'])
+    example_id += 1
+    table.append([example_id, 'create catalog', 'All',
+                  'vca catalog create --catalog mycatalog'])
+    example_id += 1
+    table.append([example_id, 'delete catalog', 'All',
+                  'vca catalog delete --catalog mycatalog'])
+    example_id += 1
+    table.append([example_id, 'delete catalog item', 'All',
+                  'vca catalog delete-item --catalog mycatalog'
+                  ' --item my_vapp_template'])
+    example_id += 1
+    table.append([example_id, 'upload media file (ISO) to catalog',
+                  'All',
+                  'vca catalog upload --catalog mycatalog'
+                  ' --item esxi.iso --description ESXi-iso'
+                  ' --file ~/VMware-VMvisor.iso'])
     example_id += 1
     table.append([example_id, 'show status', 'All',
                   'vca status'])

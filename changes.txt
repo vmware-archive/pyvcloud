@@ -23,6 +23,7 @@ new features:
 - login with instance, org and vdc
 - no need to enter service type
 - use instance and vdc (vca type)
+- commands exit with error code == 1 when fail
 
 pending work:
 - actual session logout on VC

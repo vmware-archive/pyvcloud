@@ -13,6 +13,7 @@
 #
 
 
+import sys
 import click
 import operator
 from vca_cli import cli, utils, default_operation
@@ -33,12 +34,12 @@ def user(cmd_proc, operation, username, password):
     if cmd_proc.vca.service_type != VCA.VCA_SERVICE_TYPE_VCA:
         utils.print_message('Operation not supported '
                             'in this service type')
-        return
+        sys.exit(1)
 #  see https://wiki.eng.vmware.com/Praxis_IAM_API_Details
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
-        return
+        sys.exit(1)
     if 'list' == operation:
         headers = ['User Name', 'First', 'Last', 'Email', 'State', 'Roles']
         table = []
@@ -56,5 +57,6 @@ def user(cmd_proc, operation, username, password):
                           headers, sorted_table,
                           cmd_proc)
     elif 'info' == operation:
-        pass
+        utils.print_message('Not implemented')
+        sys.exit(1)
     cmd_proc.save_current_config()

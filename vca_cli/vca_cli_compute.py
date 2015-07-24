@@ -13,6 +13,7 @@
 #
 
 
+import sys
 import click
 import operator
 from vca_cli import cli, utils, default_operation
@@ -30,7 +31,7 @@ def vdc(cmd_proc, operation, vdc):
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
-        return
+        sys.exit(1)
     if 'list' == operation:
         headers = ['Virtual Data Center', "Selected"]
         table = ['', '']
@@ -57,6 +58,7 @@ def vdc(cmd_proc, operation, vdc):
         else:
             utils.print_error("Unable to select vdc '%s' in profile '%s'" %
                               (vdc, cmd_proc.profile), cmd_proc)
+            sys.exit(1)
     elif 'info' == operation:
         if vdc is None:
             vdc = cmd_proc.vdc_name
@@ -91,6 +93,7 @@ def vdc(cmd_proc, operation, vdc):
         else:
             utils.print_error("Unable to select vdc '%s' in profile '%s'" %
                               (vdc, cmd_proc.profile), cmd_proc)
+            sys.exit(1)
     cmd_proc.save_current_config()
 
 
@@ -143,7 +146,7 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
-        return
+        sys.exit(1)
     if vdc is None:
         vdc = cmd_proc.vdc_name
     the_vdc = cmd_proc.vca.get_vdc(vdc)
@@ -184,7 +187,7 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                                        get_vcloud_headers())
             else:
                 utils.print_error("can't create the vApp", cmd_proc)
-                return
+                sys.exit(1)
             the_vdc = cmd_proc.vca.get_vdc(vdc)
             the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
             if ((vm_name is not None) and
@@ -203,7 +206,7 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                                                get_vcloud_headers())
                     else:
                         utils.print_error("can't set VM name", cmd_proc)
-                        return
+                        sys.exit(1)
                     the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
             if vm_name is not None:
                 utils.print_message(
@@ -217,6 +220,7 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                                            get_vcloud_headers())
                 else:
                     utils.print_error("can't set computer name", cmd_proc)
+                    sys.exit(1)
                 the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
             if cpu is not None:
                 utils.print_message(
@@ -229,6 +233,7 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                                            get_vcloud_headers())
                 else:
                     utils.print_error("can't configure virtual CPUs", cmd_proc)
+                    sys.exit(1)
                 the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp_name)
             # if ram is not None:
             #     print_message("configuring '%s' MB of memory"
@@ -305,6 +310,8 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                                    get_vcloud_headers())
         else:
             utils.print_error("can't delete the vApp", cmd_proc)
+            sys.exit(1)
     else:
         utils.print_message('not implemented', cmd_proc)
+        sys.exit(1)
     cmd_proc.save_current_config()

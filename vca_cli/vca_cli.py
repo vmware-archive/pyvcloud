@@ -13,6 +13,7 @@
 #
 
 
+import sys
 import os
 import operator
 import click
@@ -182,6 +183,7 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                                                   "'%s', profile '%s'" %
                                                   (vdc, cmd_proc.profile),
                                                   cmd_proc)
+                                sys.exit(1)
                         cmd_proc.save_current_config()
             elif cmd_proc.vca.service_type in [VCA.VCA_SERVICE_TYPE_VCHS]:
                 if instance is not None or org is not None:
@@ -204,6 +206,7 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                                                   "'%s', profile '%s'" %
                                                   (vdc, cmd_proc.profile),
                                                   cmd_proc)
+                                sys.exit(1)
                         cmd_proc.save_current_config()
             elif (cmd_proc.vca.service_type in
                   [VCA.VCA_SERVICE_TYPE_STANDALONE]):
@@ -229,11 +232,14 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                                           "'%s' , profile '%s'" %
                                           (vdc, cmd_proc.profile),
                                           cmd_proc)
+                        sys.exit(1)
                 cmd_proc.save_current_config()
         else:
             utils.print_error('Can\'t login', cmd_proc)
+            sys.exit(1)
     except Exception as e:
         utils.print_error('Can\'t login: ' + str(e), cmd_proc)
+        sys.exit(1)
 
 
 @cli.command()
@@ -241,11 +247,15 @@ def login(cmd_proc, user, host, password, do_not_save_password,
 def logout(cmd_proc):
     """Logout from a vCloud service"""
     user = cmd_proc.vca.username
+    if user is None:
+        utils.print_message('Not logged in', cmd_proc)
+        exit(0)
     profile = cmd_proc.profile
     cmd_proc.logout()
-    utils.print_message("User '%s' logged out, profile '%s'" %
-                        (user, profile),
-                        cmd_proc)
+    if user is not None:
+        utils.print_message("User '%s' logged out, profile '%s'" %
+                            (user, profile),
+                            cmd_proc)
 
 
 def _use_instance(cmd_proc, instance):
@@ -263,6 +273,7 @@ def _use_instance(cmd_proc, instance):
                           ", profile '%s'" %
                           (instance, cmd_proc.profile),
                           cmd_proc)
+        sys.exit(1)
     return result
 
 
@@ -323,11 +334,11 @@ def instance(cmd_proc, operation, instance, org, vdc):
     if cmd_proc.vca.service_type not in \
        [VCA.VCA_SERVICE_TYPE_VCA, VCA.VCA_SERVICE_TYPE_VCHS]:
         utils.print_message('This service type doesn\'t support this command')
-        return
+        sys.exit(1)
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
-        return
+        sys.exit(1)
     if 'list' == operation:
         headers = []
         table = []
@@ -405,8 +416,10 @@ def instance(cmd_proc, operation, instance, org, vdc):
                                       "'%s' , profile '%s'" %
                                       (vdc, cmd_proc.profile),
                                       cmd_proc)
+                    sys.exit(1)
     else:
         utils.print_message('Not implemented')
+        sys.exit(1)
     cmd_proc.save_current_config()
 
 
@@ -424,13 +437,13 @@ def org(cmd_proc, operation, instance, org):
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
-        return
+        sys.exit(1)
     if 'list' == operation:
         if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCHS:
             if '' == instance:
                 instance = cmd_proc.instance
             _list_orgs_in_instance(cmd_proc, instance)
-            return
+            sys.exit(1)
         headers = ['Org', 'Selected']
         table = []
         if cmd_proc.vca is not None and\
@@ -458,6 +471,7 @@ def org(cmd_proc, operation, instance, org):
                 headers, table, cmd_proc)
         else:
             utils.print_error("Org not found '%s'" % org)
+            sys.exit(1)
     elif 'use' == operation:
         if cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_VCA:
             utils.print_message('Operation not supported in '
@@ -482,6 +496,7 @@ def org(cmd_proc, operation, instance, org):
                                           "'%s' , profile '%s'" %
                                           (vdc, cmd_proc.profile),
                                           cmd_proc)
+                        sys.exit(1)
         elif cmd_proc.vca.service_type == VCA.VCA_SERVICE_TYPE_STANDALONE:
             utils.print_message('Operation not supported in '
                                 'this service type. '
@@ -490,6 +505,7 @@ def org(cmd_proc, operation, instance, org):
         else:
             utils.print_message('Operation not supported '
                                 'in this service type')
+            sys.exit(1)
     cmd_proc.save_current_config()
 
 

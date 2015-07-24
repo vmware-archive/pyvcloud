@@ -13,6 +13,7 @@
 #
 
 
+import sys
 import click
 from vca_cli import cli, utils
 
@@ -21,4 +22,5 @@ from vca_cli import cli, utils
 @click.pass_obj
 def sql(cmd_proc):
     """Operations with SQL Air Service"""
-    utils.print_message('sql', cmd_proc)
+    utils.print_message('Not implemented')
+    sys.exit(1)

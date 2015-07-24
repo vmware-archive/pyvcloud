@@ -131,8 +131,9 @@ def catalog(cmd_proc, operation, catalog_name, item_name, description,
                            utils.table_to_json(headers, table)}
             utils.print_json(json_object, cmd_proc=cmd_proc)
         else:
-            utils.print_table("Available catalogs and items, profile '%s':" %
-                              (cmd_proc.profile),
+            utils.print_table("Available catalogs and items in org '%s', "
+                              "profile '%s':" %
+                              (cmd_proc.vca.org, cmd_proc.profile),
                               headers, table, cmd_proc)
     elif 'create' == operation:
         task = cmd_proc.vca.create_catalog(catalog_name, description)
@@ -160,7 +161,8 @@ def catalog(cmd_proc, operation, catalog_name, item_name, description,
     elif 'upload' == operation:
         if file_name.endswith('.iso'):
             result = cmd_proc.vca.upload_media(catalog_name, item_name,
-                                               file_name, description, True)
+                                               file_name, description, True,
+                                               128*1024)
             if result:
                 utils.print_message('file successfull uploaded', cmd_proc)
             else:

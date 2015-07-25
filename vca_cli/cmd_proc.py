@@ -442,9 +442,6 @@ class CmdProc:
                               reverse=False)
         return sorted_table
 
-    def vapp_details_to_table(self, vapp):
-        pass
-
     def catalogs_to_table(self, catalogs):
         table = []
         for catalog in catalogs:
@@ -464,3 +461,18 @@ class CmdProc:
         sorted_table = sorted(table, key=operator.itemgetter(0),
                               reverse=False)
         return sorted_table
+
+    def vapp_details_to_table(self, vapp):
+        table = []
+        vms = []
+        details = vapp.get_vms_details()
+        for vm in details:
+            vms.append(vm['name'])
+        table.append(['vApp', 'name', vapp.name])
+        table.append(['vApp', 'number of VMs', len(details)])
+        table.append(['vApp', 'names of VMs', utils.beautified(vms)])
+
+        for vm in details:
+            for key in vm.keys():
+                table.append(['VM', key, vm[key]])
+        return table

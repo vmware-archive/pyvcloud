@@ -17,6 +17,7 @@ commands in progress:
 
 new commands:
 - profile
+- role
 
 new features:
 - automatically select the first vdc when changing instance or org
@@ -34,4 +35,5 @@ pending work:
 - list org as json (org_to_table)
 - list pending tasks, wait until finish
 - create/delete instances
+- add vapp network and mode to vapp list
 

@@ -23,19 +23,29 @@ from pyvcloud.vcloudair import VCA
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
-                metavar='[list | info | change-pass]',
-                type=click.Choice(['list', 'info', 'change-pass']))
+                metavar='[list | info | change-password | create | delete]',
+                type=click.Choice(['list', 'info', 'change-password',
+                                   'create', 'delete']))
 @click.option('-u', '--user', 'username', default='',
               metavar='<user>', help='User')
 @click.option('-p', '--password', 'password', default='',
               metavar='<password>', help='Password')
-def user(cmd_proc, operation, username, password):
+@click.option('-n', '--new-password', 'new_password', default='',
+              metavar='<new_password>', help='New Password')
+@click.option('-f', '--first', 'first_name', default='',
+              metavar='<first_name>', help='First Name')
+@click.option('-l', '--last', 'last_name', default='',
+              metavar='<last_name>', help='Last Name')
+@click.option('-r', '--role', 'role', default='',
+              metavar='<role>', help='Role')
+def user(cmd_proc, operation, username, password, new_password,
+         first_name, last_name,
+         role):
     """Operations with Users"""
     if cmd_proc.vca.service_type != VCA.VCA_SERVICE_TYPE_VCA:
         utils.print_message('Operation not supported '
                             'in this service type')
         sys.exit(1)
-#  see https://wiki.eng.vmware.com/Praxis_IAM_API_Details
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
@@ -59,4 +69,48 @@ def user(cmd_proc, operation, username, password):
     elif 'info' == operation:
         utils.print_error('not implemented')
         sys.exit(1)
+    elif 'create' == operation:
+        result = cmd_proc.vca.add_user(username, first_name, last_name, role)
+        print result
+    elif 'delete' == operation:
+        utils.print_error('not implemented', cmd_proc)
+        sys.exit(1)
+    elif 'change-password' == operation:
+        result = cmd_proc.vca.change_password(password, new_password)
+        print result
+    cmd_proc.save_current_config()
+
+
+@cli.command()
+@click.pass_obj
+@click.argument('operation', default=default_operation,
+                metavar='[list ]',
+                type=click.Choice(['list']))
+def role(cmd_proc, operation):
+    """Operations with Roles"""
+    if cmd_proc.vca.service_type != VCA.VCA_SERVICE_TYPE_VCA:
+        utils.print_message('Operation not supported '
+                            'in this service type')
+        sys.exit(1)
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)
+        sys.exit(1)
+    if 'list' == operation:
+        headers = ['Role Name', 'Description', 'Permissions']
+        table = []
+        for r in cmd_proc.vca.get_roles():
+            permissions = []
+            if len(r.get('rights')) > 0:
+                for p in r.get('rigths'):
+                    permissions.append(str(p.get('name')))
+            table.append([r.get('name'),
+                          r.get('description'),
+                          utils.beautified(permissions)])
+        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+        utils.print_table("Available roles in instance '%s'"
+                          ", profile '%s':" %
+                          (cmd_proc.instance, cmd_proc.profile),
+                          headers, sorted_table,
+                          cmd_proc)
     cmd_proc.save_current_config()

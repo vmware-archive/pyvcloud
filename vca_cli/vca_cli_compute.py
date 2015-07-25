@@ -253,6 +253,9 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
     if vdc is None:
         vdc = cmd_proc.vdc_name
     the_vdc = cmd_proc.vca.get_vdc(vdc)
+    if the_vdc is None:
+        utils.print_error("VDC not found '%s'" % vdc, cmd_proc)
+        sys.exit(1)
     if 'list' == operation:
         headers = ['vApp', "VMs", "Status", "Deployed", "Description"]
         table = cmd_proc.vapps_to_table(the_vdc)
@@ -481,6 +484,151 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                         sys.exit(1)
             else:
                 utils.print_error("vApp '%s' not found" % vapp, cmd_proc)
+                sys.exit(1)
+    elif 'customize' == operation:
+        utils.print_message("customizing VM '%s'"
+                            "in vApp '%s' in VDC '%s'" %
+                            (vm_name, vapp, vdc))
+        the_vdc = cmd_proc.vca.get_vdc(vdc)
+        the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp)
+        if the_vdc and the_vapp and cust_file:
+            utils.print_message("uploading customization script", cmd_proc)
+            task = the_vapp.customize_guest_os(vm_name, cust_file.read())
+            if task:
+                utils.display_progress(task, cmd_proc,
+                                       cmd_proc.vca.vcloud_session.
+                                       get_vcloud_headers())
+                utils.print_message("deploying and starting the vApp",
+                                    cmd_proc)
+                task = the_vapp.force_customization(vm_name)
+                if task:
+                    utils.display_progress(task, cmd_proc,
+                                           cmd_proc.vca.vcloud_session.
+                                           get_vcloud_headers())
+                else:
+                    utils.print_error("can't customize vApp", cmd_proc)
+                    sys.exit(1)
+            else:
+                utils.print_error("can't customize vApp", cmd_proc)
+                sys.exit(1)
+    elif 'insert' == operation or 'eject' == operation:
+        utils.print_message("%s media '%s', VM '%s'"
+                            " in vApp '%s' in VDC '%s'" %
+                            (operation, media, vm_name, vapp, vdc))
+        the_vdc = cmd_proc.vca.get_vdc(vdc)
+        if the_vdc:
+            the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp)
+            if the_vapp:
+                the_media = cmd_proc.vca.get_media(catalog, media)
+                task = the_vapp.vm_media(vm_name, the_media, operation)
+                if task:
+                    utils.display_progress(task, cmd_proc,
+                                           cmd_proc.vca.vcloud_session.
+                                           get_vcloud_headers())
+                else:
+                    utils.print_error("can't insert or eject media",
+                                      cmd_proc)
+                    sys.exit(1)
+    elif 'attach' == operation or 'detach' == operation:
+        utils.print_message("%s disk '%s', VM '%s'"
+                            " in vApp '%s' in VDC '%s'" %
+                            (operation, disk_name, vm_name, vapp, vdc))
+        the_vdc = cmd_proc.vca.get_vdc(vdc)
+        if the_vdc:
+            the_vapp = cmd_proc.vca.get_vapp(the_vdc, vapp)
+            if the_vapp:
+                link = filter(lambda link:
+                              link.get_name() == disk_name,
+                              cmd_proc.vca.get_diskRefs(the_vdc))
+                if len(link) == 1:
+                    if 'attach' == operation:
+                        task = the_vapp.attach_disk_to_vm(vm_name,
+                                                          link[0])
+                    else:
+                        task = the_vapp.detach_disk_from_vm(vm_name,
+                                                            link[0])
+                    if task:
+                        utils.display_progress(task, cmd_proc,
+                                               cmd_proc.vca.vcloud_session.
+                                               get_vcloud_headers())
+                    else:
+                        utils.print_error("can't attach or detach disk",
+                                          cmd_proc)
+                        sys.exit(1)
+                elif len(link) == 0:
+                    utils.print_error("disk not found", cmd_proc)
+                    sys.exit(1)
+                elif len(link) > 1:
+                    utils.print_error("more than one disk found with "
+                                      "the same name",
+                                      cmd_proc)
+                    sys.exit(1)
+    else:
+        utils.print_error('not implemented', cmd_proc)
+        sys.exit(1)
+    cmd_proc.save_current_config()
+
+
+@cli.command()
+@click.pass_obj
+@click.argument('operation', default=default_operation,
+                metavar='[list | create | delete]',
+                type=click.Choice(['list', 'create', 'delete']))
+@click.option('-v', '--vdc', default=None, metavar='<vdc>',
+              help='Virtual Data Center Name')
+@click.option('-d', '--disk', 'disk_name', default=None,
+              metavar='<disk_name>', help='Disk Name')
+@click.option('-s', '--size', 'disk_size', default=5,
+              metavar='<size>', help='Disk Size in GB', type=click.INT)
+@click.option('-i', '--id', 'disk_id', default=None,
+              metavar='<disk_id>', help='Disk Id')
+def disk(cmd_proc, operation, vdc, disk_name, disk_size, disk_id):
+    """Operations with Independent Disks"""
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)
+        sys.exit(1)
+    if vdc is None:
+        vdc = cmd_proc.vdc_name
+    the_vdc = cmd_proc.vca.get_vdc(vdc)
+    if the_vdc is None:
+        utils.print_error("VDC not found '%s'" % vdc, cmd_proc)
+        sys.exit(1)
+    if 'list' == operation:
+        headers = ['Disk', 'Size GB', 'Id', 'Owner']
+        disks = cmd_proc.vca.get_disks(vdc)
+        table = cmd_proc.disks_to_table(disks)
+        if cmd_proc.json_output:
+            json_object = {'disks':
+                           utils.table_to_json(headers, table)}
+            utils.print_json(json_object, cmd_proc=cmd_proc)
+        else:
+            utils.print_table("Available independent disks in '%s'"
+                              ", profile '%s':" %
+                              (vdc, cmd_proc.profile),
+                              headers, table, cmd_proc)
+    elif 'create' == operation:
+        assert disk_name, "Disk name can't be empty"
+        size = disk_size * cmd_proc.DISK_SIZE
+        result = cmd_proc.vca.add_disk(vdc, disk_name, size)
+        if result and len(result) > 0:
+            if result[0]:
+                utils.print_message('disk %s successfully created'
+                                    % disk_name, cmd_proc)
+            else:
+                utils.print_error('disk %s could not be created'
+                                  % disk_name, cmd_proc)
+    elif 'delete' == operation:
+        result = cmd_proc.vca.delete_disk(vdc, disk_name, disk_id)
+        if result and len(result) > 0:
+            if result[0]:
+                utils.print_message('disk %s successfully deleted'
+                                    % (disk_id if disk_id else disk_name),
+                                    cmd_proc)
+            else:
+                utils.print_error('disk %s could not be deleted: %s'
+                                  % (disk_name, result[1]),
+                                  cmd_proc)
                 sys.exit(1)
     else:
         utils.print_error('not implemented', cmd_proc)

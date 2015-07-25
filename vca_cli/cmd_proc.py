@@ -29,6 +29,7 @@ utils = VcaCliUtils()
 
 class CmdProc:
     crypto_key = 'l1ZLY5hYPu4s2IXkTVxtndJ-L_k16rP1odagwhP_DsY='
+    DISK_SIZE = 1000000000
 
     def __init__(self, profile=None, profile_file=None,
                  json_output=False, xml_output=False,
@@ -476,3 +477,15 @@ class CmdProc:
             for key in vm.keys():
                 table.append(['VM', key, vm[key]])
         return table
+
+    def disks_to_table(self, disks):
+        table = []
+        for disk in disks:
+            if len(disk) > 0:
+                table.append([disk[0].name,
+                              int(disk[0].size) / self.DISK_SIZE,
+                              disk[0].id,
+                              disk[0].get_Owner().get_User()])
+        sorted_table = sorted(table, key=operator.itemgetter(0),
+                              reverse=False)
+        return sorted_table

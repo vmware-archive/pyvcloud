@@ -23,24 +23,28 @@ from pyvcloud.vcloudair import VCA
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
-                metavar='[list | info | change-password | create | delete]',
+                metavar='[list | info | change-password | create | delete | '
+                        'validate]',
                 type=click.Choice(['list', 'info', 'change-password',
-                                   'create', 'delete']))
+                                   'create', 'delete', 'validate']))
 @click.option('-u', '--user', 'username', default='',
               metavar='<user>', help='User')
+@click.option('-i', '--id', 'user_id', default=None,
+              metavar='<user-id>', help='User Id')
 @click.option('-p', '--password', 'password', default='',
               metavar='<password>', help='Password')
 @click.option('-n', '--new-password', 'new_password', default='',
-              metavar='<new_password>', help='New Password')
+              metavar='<password>', help='New Password')
 @click.option('-f', '--first', 'first_name', default='',
-              metavar='<first_name>', help='First Name')
+              metavar='<first-name>', help='First Name')
 @click.option('-l', '--last', 'last_name', default='',
-              metavar='<last_name>', help='Last Name')
-@click.option('-r', '--role', 'role', default='',
-              metavar='<role>', help='Role')
-def user(cmd_proc, operation, username, password, new_password,
-         first_name, last_name,
-         role):
+              metavar='<last-name>', help='Last Name')
+@click.option('-r', '--roles', 'roles', default='',
+              metavar='<roles>', help='Comma-separated list of Roles')
+@click.option('-t', '--token', 'token', default='',
+              metavar='<token>', help='Token')
+def user(cmd_proc, operation, username, user_id, password, new_password,
+         first_name, last_name, roles, token):
     """Operations with Users"""
     if cmd_proc.vca.service_type != VCA.VCA_SERVICE_TYPE_VCA:
         utils.print_message('Operation not supported '
@@ -50,34 +54,43 @@ def user(cmd_proc, operation, username, password, new_password,
     if not result:
         utils.print_error('Not logged in', cmd_proc)
         sys.exit(1)
-    if 'list' == operation:
-        headers = ['User Name', 'First', 'Last', 'Email', 'State', 'Roles']
-        table = []
-        for u in cmd_proc.vca.get_users():
-            roles = []
-            for r in u.get('roles').get('roles'):
-                roles.append(str(r.get('name')))
-            table.append([u.get('userName'), u.get('givenName'),
-                         u.get('familyName'), u.get('email'), u.get('state'),
-                          utils.beautified(roles)])
-        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
-        utils.print_table("Available users in instance '%s'"
-                          ", profile '%s':" %
-                          (cmd_proc.instance, cmd_proc.profile),
-                          headers, sorted_table,
-                          cmd_proc)
-    elif 'info' == operation:
-        utils.print_error('not implemented')
+    try:
+        if 'list' == operation:
+            headers = ['User Name', 'First', 'Last', 'Email', 'State', 'Id', 'Roles']
+            table = []
+            for u in cmd_proc.vca.get_users():
+                roles = []
+                for r in u.get('roles').get('roles'):
+                    roles.append(str(r.get('name')))
+                table.append([u.get('userName'), u.get('givenName'),
+                              u.get('familyName'), u.get('email'), u.get('state'),
+                              u.get('id'),
+                              utils.beautified(roles)])
+            sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+            utils.print_table("Available users in instance '%s'"
+                              ", profile '%s':" %
+                              (cmd_proc.instance, cmd_proc.profile),
+                              headers, sorted_table,
+                              cmd_proc)
+        elif 'info' == operation:
+            cmd_proc.error_message='not implemented'
+            sys.exit(1)
+        elif 'create' == operation:
+            roles_array = roles.split(',')
+            result = cmd_proc.vca.add_user(username, first_name, last_name, roles_array)
+            utils.print_message("User '%s' successfully created" % username)
+        elif 'delete' == operation:
+            result = cmd_proc.vca.del_user(user_id)
+            print result
+        elif 'change-password' == operation:
+            result = cmd_proc.vca.change_password(password, new_password)
+            utils.print_message("Successfully changed password for user '%s" % cmd_proc.vca.username)
+        elif 'validate' == operation:
+            result = cmd_proc.vca.validate_user(username, password, token)
+            print result
+    except:
+        utils.print_error('An error has ocurred', cmd_proc)
         sys.exit(1)
-    elif 'create' == operation:
-        result = cmd_proc.vca.add_user(username, first_name, last_name, role)
-        print result
-    elif 'delete' == operation:
-        utils.print_error('not implemented', cmd_proc)
-        sys.exit(1)
-    elif 'change-password' == operation:
-        result = cmd_proc.vca.change_password(password, new_password)
-        print result
     cmd_proc.save_current_config()
 
 

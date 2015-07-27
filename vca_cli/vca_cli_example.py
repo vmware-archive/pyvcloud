@@ -102,10 +102,13 @@ def example(ctx):
     table.append([example_id, 'create VDC', 'All',
                   'vca vdc create --vdc vdc1 --template d2p3v29-new-tp'])
     example_id += 1
-    table.append([example_id, 'delete VDC', 'All',
+    table.append([example_id, 'delete VDC (will prompt to confirm)', 'All',
                   'vca vdc delete --vdc vdc1'])
     example_id += 1
-    table.append([example_id, 'list catalogs', 'All',
+    table.append([example_id, 'delete VDC without prompt', 'All',
+                  'vca vdc delete --vdc vdc1 --yes'])
+    example_id += 1
+    table.append([example_id, 'list catalogs and items', 'All',
                   'vca catalog'])
     example_id += 1
     table.append([example_id, 'create catalog', 'All',
@@ -123,6 +126,128 @@ def example(ctx):
                   'vca catalog upload --catalog mycatalog'
                   ' --item esxi.iso --description ESXi-iso'
                   ' --file ~/VMware-VMvisor.iso'])
+    example_id += 1
+    table.append([example_id, 'list vApps',
+                  'All',
+                  'vca vapp'])
+    example_id += 1
+    table.append([example_id, 'create vApp',
+                  'All',
+                  'vca vapp create --vapp myvapp --vm myvm'
+                  ' --catalog'
+                  ' \'Public Catalog\' --template \'Ubuntu'
+                  ' Server 12.04 LTS (amd64 20150127)\''])
+    example_id += 1
+    table.append([example_id, 'create vApp',
+                  'All',
+                  'vca vapp create -a myvapp -V myvm -c'
+                  ' mycatalog -t mytemplate'
+                  ' -n default-routed-network -m pool'])
+    example_id += 1
+    table.append([example_id, 'create vApp with manually assigned IP',
+                  'All',
+                  'vca vapp create -a myvapp -V myvm -c'
+                  ' mycatalog -t mytemplate'
+                  ' -n default-routed-network -mode manual'
+                  ' --ip 192.168.109.25'])
+    example_id += 1
+    table.append([example_id, 'create multiple vApps',
+                  'All',
+                  'vca vapp create -a myvapp -V myvm -c'
+                  ' mycatalog -t mytemplate'
+                  ' -n default-routed-network -m pool'
+                  ' --count 10'])
+    example_id += 1
+    table.append([example_id, 'create vApp and configure VM size',
+                  'All',
+                  'vca vapp create -a myvapp -V myvm -c'
+                  ' mycatalog -t mytemplate'
+                  ' -n default-routed-network -m pool'
+                  ' --cpu 4 --ram 4096'])
+    example_id += 1
+    table.append([example_id, 'delete vApp',
+                  'All',
+                  'vca vapp delete --vapp myvapp'])
+    example_id += 1
+    table.append([example_id, 'show vApp details in JSON',
+                  'All',
+                  'vca -j vapp info --vapp myvapp'])
+    example_id += 1
+    table.append([example_id, 'deploy vApp',
+                  'All',
+                  'vca vapp deploy --vapp ubu'])
+    example_id += 1
+    table.append([example_id, 'undeploy vApp',
+                  'All',
+                  'vca vapp undeploy --vapp ubu'])
+    example_id += 1
+    table.append([example_id, 'power on vApp',
+                  'All',
+                  'vca vapp power-on --vapp ubu'])
+    example_id += 1
+    table.append([example_id, 'power off vApp',
+                  'All',
+                  'vca vapp power-off --vapp ubu'])
+    example_id += 1
+    table.append([example_id, 'customize vApp VM',
+                  'All',
+                  'vca vapp customize --vapp ubu --vm ubu'
+                  ' --file add_public_ssh_key.sh'])
+    example_id += 1
+    table.append([example_id, 'insert ISO to vApp VM',
+                  'All',
+                  'vca vapp insert --vapp coreos1 --vm coreos1'
+                  ' --catalog default-catalog'
+                  ' --media coreos1-config.iso'])
+    example_id += 1
+    table.append([example_id, 'eject ISO from vApp VM',
+                  'All',
+                  'vca vapp eject --vapp coreos1 --vm coreos1'
+                  ' --catalog default-catalog'
+                  ' --media coreos1-config.iso'])
+    example_id += 1
+    table.append([example_id, 'attach disk to vApp VM',
+                  'All',
+                  'vca vapp attach --vapp myvapp'
+                  ' --vm myvm --disk mydisk'])
+    example_id += 1
+    table.append([example_id, 'detach disk from vApp VM',
+                  'All',
+                  'vca vapp detach --vapp myvapp'
+                  ' --vm myvm --disk mydisk'])
+    example_id += 1
+    table.append([example_id, 'list independent disks',
+                  'All',
+                  'vca vapp disk'])
+    example_id += 1
+    table.append([example_id, 'create independent disk of 100GB',
+                  'All',
+                  'vca disk create --disk mydisk'
+                  ' --size 100'])
+    example_id += 1
+    table.append([example_id, 'delete independent disk by name',
+                  'All',
+                  'vca disk delete --disk mydisk'])
+    example_id += 1
+    table.append([example_id, 'delete independent disk by id',
+                  'All',
+                  'vca disk delete'
+                  ' --id bce76ca7-29d0-4041-82d4-e4481804d5c4'])
+    example_id += 1
+    table.append([example_id, 'list user roles', 'vCA',
+                  'vca role'])
+    example_id += 1
+    table.append([example_id, 'list users', 'vCA',
+                  'vca user'])
+    example_id += 1
+    table.append([example_id, 'change current user password', 'vCA',
+                  'vca user change-password --password current-pass'
+                  ' --new-password new-pass'])
+    example_id += 1
+    table.append([example_id, 'create user', 'vCA',
+                  'vca user create --user usr@com.com --first Name'
+                  " --last Name --roles 'Virtual Infrastructure Administrator,"
+                  " Network Administrator'"])
     example_id += 1
     table.append([example_id, 'show status', 'All',
                   'vca status'])

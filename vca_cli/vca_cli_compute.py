@@ -29,7 +29,9 @@ from vca_cli import cli, utils, default_operation
               help='Virtual Data Center Name')
 @click.option('-t', '--template', default=None, metavar='<template>',
               help='Virtual Data Center Template Name')
-def vdc(cmd_proc, operation, vdc, template):
+@click.option('-y', '--yes', is_flag=True,
+              help='Confirm deletion of VDC')
+def vdc(cmd_proc, operation, vdc, template, yes):
     """Operations with Virtual Data Centers"""
     result = cmd_proc.re_login()
     if not result:
@@ -94,10 +96,14 @@ def vdc(cmd_proc, operation, vdc, template):
                 utils.print_table('Gateways:',
                                   headers3, table3, cmd_proc)
         else:
-            utils.print_error("Unable to select vdc '%s' in profile '%s'" %
+            utils.print_error("Unable to select VDC %s, profile '%s': "
+                              "VDC not found" %
                               (vdc, cmd_proc.profile), cmd_proc)
             sys.exit(1)
     elif 'create' == operation:
+        if vdc is None:
+            utils.print_error('please enter new VDC name')
+            sys.exit(1)
         task = cmd_proc.vca.create_vdc(vdc, template)
         if task:
             utils.display_progress(task, cmd_proc,
@@ -107,13 +113,27 @@ def vdc(cmd_proc, operation, vdc, template):
             utils.print_error("can't create the VDC", cmd_proc)
             sys.exit(1)
     elif 'delete' == operation:
-        result = cmd_proc.vca.delete_vdc(vdc)
-        if result[0]:
-            utils.display_progress(result[1], cmd_proc,
-                                   cmd_proc.vca.vcloud_session.
-                                   get_vcloud_headers())
+        if vdc is None:
+            vdc = cmd_proc.vdc_name
+        the_vdc = cmd_proc.vca.get_vdc(vdc)
+        if the_vdc:
+            if not yes:
+                confirmed = click.confirm("Do you want to delete VDC '%s'?\nThis will delete all its virtual machines and edge gateway and can't be undone" % vdc)
+                if not confirmed:
+                    utils.print_message('Action cancelled, VDC will not be deleted')
+                    sys.exit(0)
+            result = cmd_proc.vca.delete_vdc(vdc)
+            if result[0]:
+                utils.display_progress(result[1], cmd_proc,
+                                       cmd_proc.vca.vcloud_session.
+                                       get_vcloud_headers())
+            else:
+                utils.print_error("can't delete the VDC", cmd_proc)
+                sys.exit(1)
         else:
-            utils.print_error("can't delete the VDC", cmd_proc)
+            utils.print_error("Unable to delete VDC '%s', profile '%s': "
+                              "VDC not found" %
+                              (vdc, cmd_proc.profile), cmd_proc)
             sys.exit(1)
     cmd_proc.save_current_config()
 

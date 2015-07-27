@@ -6,6 +6,9 @@ completed refactoring of commands:
 - instance
 - org
 - vdc
+- disk
+- vapp
+
 
 commands to refactor:
 - vm
@@ -13,10 +16,10 @@ commands to refactor:
 commands in progress:
 - example
 - catalog
-- vapp
 
 new commands:
 - profile
+- user
 - role
 
 new features:
@@ -28,7 +31,7 @@ new features:
 - commands exit with error code == 1 when fail
 - list vdc templates, create and delete vdc
 
-pending work:
+pending:
 - actual session logout on VC
 - add other gw services to print gateway
 - add table of examples internal state
@@ -36,4 +39,6 @@ pending work:
 - list pending tasks, wait until finish
 - create/delete instances
 - add vapp network and mode to vapp list
+- review messages for consistency
+- metavar arg use - instead of _ (review all)
 

@@ -11,23 +11,23 @@
 
 
 from setuptools import setup, find_packages
-import os
-
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
+import pip
+from pip.req import parse_requirements
+requirements = [
+    str(requirement.req)
+    for requirement in parse_requirements('requirements.txt', session=pip.download.PipSession())
+]
 
 setup(
     name='vca-cli',
-    version='13',
+    version='14rc1',
     description='VMware vCloud CLI',
     url='https://github.com/vmware/vca-cli',
     author='VMware, Inc.',
     author_email='pgomez@vmware.com',
     packages=find_packages(),
-    install_requires=required,
+    include_package_data=True,
+    install_requires=requirements,
     license='License :: OSI Approved :: Apache Software License',
     classifiers=[
         'Development Status :: 1 - Planning',
@@ -57,6 +57,7 @@ setup(
     zip_safe=True,
     entry_points='''
         [console_scripts]
-        vca=vca_cli.vca_cli_impl:cli
-    ''',
+        vca=vca_cli.vca_cli:cli
+    '''
 )
+

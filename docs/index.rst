@@ -1,23 +1,12 @@
-.. vca-cli documentation master file, created by
-   sphinx-quickstart on Fri Apr  3 05:46:45 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. _home:
 
-Welcome to vca-cli's documentation!
-===================================
-Command Line Interface for VMware vCloud.
+VMware vCloud Command Line Interface
+====================================
 
-Contents:
+**vca-cli**, Command Line Interface for VMware vCloud.
 
-.. toctree::
-   :maxdepth: 2
+Description
+-----------
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+**vca-cli** is the Command Line Interface for vCloud, including vCloud Air and vCloud Director.
 

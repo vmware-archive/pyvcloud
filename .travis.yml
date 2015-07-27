@@ -1,10 +1,18 @@
-language: python
 sudo: false
+language: python
 python:
-  - "2.7"
+- '2.7'
 env:
-    - TOX_ENV=pep8
+  matrix:
+  - TOX_ENV=flake8
+  global:
+  - secure: oKya58dGqE8NNzV8hbfZ6KqVWpIwKSFFDIfZ+owsyehQMLu+G6DK/v2arzP+H+en2b4lMPSvCJjw7S3VWUXhGlUppbYwr/38I25pFyZ7irCV3/Ar92bNcUEoCy5kottITH/FY2V/gB6H+7wL4a8nq/X4YhZM/rA6PsjfZWu69O4=
+  - secure: hySZ+fASk29+MYmDA2oY/cOM9Q6cNuwiKmVZDzdDRHUqk3JxjRFUu+mhZhenARsgoMcszdb7r0R+7zIwgaVZezhFuCREz0KtognFPf7lKnP7Bqa+lX1dc5MXRTS3PaAiuTa616oqZUkSeBQ8dVQbAy2/XhRIuUIySYiXSmeaKT0=
+  - secure: hbexu/pZJuFwmf3+Abv+nTFRyO9YJVZzlD4bIjN4yzypSiGRV4Kzr247DYQ0u1uMNuy/niKPw04EuldpVn09YbbwJqAwVQH35DwYM7qcPBhMmvG1JdCBUUtaU5BeLJugYMKOUrxci05zVFP/YLWfbxrzQQeBWszA5FGPxl5v38A=
 install:
-    - pip install tox
+- pip install -r requirements.txt
+- pip install -r dev-requirements.txt
 script:
-    - tox -e $TOX_ENV
+- tox -e $TOX_ENV
+- pip install .
+- tests/login-vca.sh

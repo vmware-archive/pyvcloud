@@ -8,7 +8,7 @@ requirements = [
 
 setup(
     name='vca-cli',
-    version='20rc1',
+    version='14rc1',
     packages=find_packages(),
     include_package_data=True,
     url='https://github.com/vmware/vca-cli',

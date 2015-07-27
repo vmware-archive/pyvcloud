@@ -9,18 +9,18 @@ completed refactoring of commands:
 - disk
 - vapp
 
-
-commands to refactor:
-- vm
+new commands:
+- profile
+- user
+- role
 
 commands in progress:
 - example
 - catalog
 
-new commands:
-- profile
-- user
-- role
+commands to refactor:
+- vm
+- gateway
 
 new features:
 - automatically select the first vdc when changing instance or org

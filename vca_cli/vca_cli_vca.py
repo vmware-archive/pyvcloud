@@ -56,35 +56,40 @@ def user(cmd_proc, operation, username, user_id, password, new_password,
         sys.exit(1)
     try:
         if 'list' == operation:
-            headers = ['User Name', 'First', 'Last', 'Email', 'State', 'Id', 'Roles']
+            headers = ['User Name', 'First', 'Last', 'Email', 'State', 'Id',
+                       'Roles']
             table = []
             for u in cmd_proc.vca.get_users():
                 roles = []
                 for r in u.get('roles').get('roles'):
                     roles.append(str(r.get('name')))
                 table.append([u.get('userName'), u.get('givenName'),
-                              u.get('familyName'), u.get('email'), u.get('state'),
+                              u.get('familyName'), u.get('email'),
+                              u.get('state'),
                               u.get('id'),
                               utils.beautified(roles)])
-            sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
+            sorted_table = sorted(table, key=operator.itemgetter(0),
+                                  everse=False)
             utils.print_table("Available users in instance '%s'"
                               ", profile '%s':" %
                               (cmd_proc.instance, cmd_proc.profile),
                               headers, sorted_table,
                               cmd_proc)
         elif 'info' == operation:
-            cmd_proc.error_message='not implemented'
+            cmd_proc.error_message = 'not implemented'
             sys.exit(1)
         elif 'create' == operation:
             roles_array = roles.split(',')
-            result = cmd_proc.vca.add_user(username, first_name, last_name, roles_array)
+            result = cmd_proc.vca.add_user(username, first_name,
+                                           last_name, roles_array)
             utils.print_message("User '%s' successfully created" % username)
         elif 'delete' == operation:
             result = cmd_proc.vca.del_user(user_id)
             print result
         elif 'change-password' == operation:
             result = cmd_proc.vca.change_password(password, new_password)
-            utils.print_message("Successfully changed password for user '%s" % cmd_proc.vca.username)
+            utils.print_message("Successfully changed password for user '%s" %
+                                cmd_proc.vca.username)
         elif 'validate' == operation:
             result = cmd_proc.vca.validate_user(username, password, token)
             print result

@@ -118,9 +118,13 @@ def vdc(cmd_proc, operation, vdc, template, yes):
         the_vdc = cmd_proc.vca.get_vdc(vdc)
         if the_vdc:
             if not yes:
-                confirmed = click.confirm("Do you want to delete VDC '%s'?\nThis will delete all its virtual machines and edge gateway and can't be undone" % vdc)
+                confirmed = click.confirm("Do you want to delete VDC '%s'?\n"
+                                          "This will delete all its virtual "
+                                          "machines and edge gateway and "
+                                          "can't be undone" % vdc)
                 if not confirmed:
-                    utils.print_message('Action cancelled, VDC will not be deleted')
+                    utils.print_message('Action cancelled, '
+                                        'VDC will not be deleted')
                     sys.exit(0)
             result = cmd_proc.vca.delete_vdc(vdc)
             if result[0]:

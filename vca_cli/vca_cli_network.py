@@ -250,7 +250,6 @@ def firewall(cmd_proc, operation, vdc, gateway):
                               "VDC '%s', profile '%s':" %
                               (gateway, vdc, cmd_proc.profile),
                               headers, table, cmd_proc)
-        
     elif 'enable' == operation or 'disable' == operation:
         utils.print_message("%s firewall" % operation)
         the_gateway.enable_fw('enable' == operation)

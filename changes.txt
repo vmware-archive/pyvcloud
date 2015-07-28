@@ -8,6 +8,9 @@ completed refactoring of commands:
 - vdc
 - disk
 - vapp
+- catalog
+- vm
+- gateway
 
 new commands:
 - profile
@@ -16,11 +19,12 @@ new commands:
 
 commands in progress:
 - example
-- catalog
 
 commands to refactor:
-- vm
-- gateway
+- nat
+- vpn
+- firewall
+- dhcp
 
 new features:
 - automatically select the first vdc when changing instance or org
@@ -30,15 +34,4 @@ new features:
 - use instance and vdc (vca type)
 - commands exit with error code == 1 when fail
 - list vdc templates, create and delete vdc
-
-pending:
-- actual session logout on VC
-- add other gw services to print gateway
-- add table of examples internal state
-- list org as json (org_to_table)
-- list pending tasks, wait until finish
-- create/delete instances
-- add vapp network and mode to vapp list
-- review messages for consistency
-- metavar arg use - instead of _ (review all)
 

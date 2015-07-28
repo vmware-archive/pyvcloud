@@ -39,13 +39,11 @@ utils = VcaCliUtils()
 @click.option('-d', '--debug', is_flag=True, help='Enable debug')
 @click.option('-j', '--json', 'json_output',
               is_flag=True, help='Results as JSON object')
-@click.option('-x', '--xml', 'xml_output',
-              is_flag=True, help='Results as XML document')
 @click.option('-i', '--insecure', is_flag=True,
               help='Perform insecure SSL connections')
 @click.pass_context
 def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
-        json_output=None, xml_output=None, insecure=None):
+        json_output=None, insecure=None):
     """VMware vCloud Air Command Line Interface."""
     if version:
         version_vca_cli = pkg_resources.require("vca-cli")[0].version
@@ -65,6 +63,7 @@ def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
                             'advised.')
         requests.packages.urllib3.disable_warnings()
     profile_file_fq = os.path.expanduser(profile_file)
+    xml_output = False
     ctx.obj = CmdProc(profile=profile, profile_file=profile_file_fq,
                       json_output=json_output, xml_output=xml_output,
                       debug=debug, insecure=insecure)
@@ -94,6 +93,7 @@ def status(cmd_proc, show_password):
     table.append(['instance', cmd_proc.instance])
     table.append(['org', cmd_proc.vca.org])
     table.append(['vdc', cmd_proc.vdc_name])
+    table.append(['gateway', cmd_proc.gateway])
     if cmd_proc.password is None or len(cmd_proc.password) == 0 or \
        show_password:
         table.append(['password', str(cmd_proc.password)])
@@ -173,13 +173,14 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                         if vdc is not None:
                             the_vdc = cmd_proc.vca.get_vdc(vdc)
                             if the_vdc is not None:
-                                utils.print_message("Using vdc '%s' "
+                                utils.print_message("Using VDC '%s' "
                                                     ", profile '%s'" %
                                                     (vdc, cmd_proc.profile),
                                                     cmd_proc)
                                 cmd_proc.vdc_name = vdc
+                                cmd_proc.select_default_gateway()
                             else:
-                                utils.print_error("Unable to select vdc "
+                                utils.print_error("Unable to select VDC "
                                                   "'%s', profile '%s'" %
                                                   (vdc, cmd_proc.profile),
                                                   cmd_proc)
@@ -196,13 +197,14 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                         if vdc is not None:
                             the_vdc = cmd_proc.vca.get_vdc(vdc)
                             if the_vdc is not None:
-                                utils.print_message("Using vdc '%s'"
+                                utils.print_message("Using VDC '%s'"
                                                     ", profile '%s'" %
                                                     (vdc, cmd_proc.profile),
                                                     cmd_proc)
                                 cmd_proc.vdc_name = vdc
+                                cmd_proc.select_default_gateway()
                             else:
-                                utils.print_error("Unable to select vdc "
+                                utils.print_error("Unable to select VDC "
                                                   "'%s', profile '%s'" %
                                                   (vdc, cmd_proc.profile),
                                                   cmd_proc)
@@ -222,13 +224,14 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                     the_vdc = cmd_proc.vca.get_vdc(vdc)
                     Log.debug(cmd_proc.logger, 'Select vdc=%s' % the_vdc)
                     if the_vdc is not None:
-                        utils.print_message("Using vdc '%s'"
+                        utils.print_message("Using VDC '%s'"
                                             ", profile '%s'" %
                                             (vdc, cmd_proc.profile),
                                             cmd_proc)
                         cmd_proc.vdc_name = vdc
+                        cmd_proc.select_default_gateway()
                     else:
-                        utils.print_error("Unable to select vdc "
+                        utils.print_error("Unable to select VDC "
                                           "'%s' , profile '%s'" %
                                           (vdc, cmd_proc.profile),
                                           cmd_proc)
@@ -406,13 +409,14 @@ def instance(cmd_proc, operation, instance, org, vdc):
             if vdc is not None:
                 the_vdc = cmd_proc.vca.get_vdc(vdc)
                 if the_vdc is not None:
-                    utils.print_message("Using vdc '%s'"
+                    utils.print_message("Using VDC '%s'"
                                         ", profile '%s'" %
                                         (vdc, cmd_proc.profile),
                                         cmd_proc)
                     cmd_proc.vdc_name = vdc
+                    cmd_proc.select_default_gateway()
                 else:
-                    utils.print_error("Unable to select vdc "
+                    utils.print_error("Unable to select VDC "
                                       "'%s' , profile '%s'" %
                                       (vdc, cmd_proc.profile),
                                       cmd_proc)
@@ -486,13 +490,14 @@ def org(cmd_proc, operation, instance, org):
                     vdc = vdcs[0]
                     the_vdc = cmd_proc.vca.get_vdc(vdc)
                     if the_vdc is not None:
-                        utils.print_message("Using vdc '%s'"
+                        utils.print_message("Using VDC '%s'"
                                             ", profile '%s'" %
                                             (vdc, cmd_proc.profile),
                                             cmd_proc)
                         cmd_proc.vdc_name = vdc
+                        cmd_proc.select_default_gateway()
                     else:
-                        utils.print_error("Unable to select vdc "
+                        utils.print_error("Unable to select VDC "
                                           "'%s' , profile '%s'" %
                                           (vdc, cmd_proc.profile),
                                           cmd_proc)

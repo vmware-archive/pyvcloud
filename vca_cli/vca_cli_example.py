@@ -100,13 +100,13 @@ def example(ctx):
                   'vca vdc use --vdc vdc1'])
     example_id += 1
     table.append([example_id, 'create VDC', 'All',
-                  'vca vdc create --vdc vdc1 --template d2p3v29-new-tp'])
+                  'vca vdc create --vdc vdc2 --template d2p3v29-new-tp'])
     example_id += 1
     table.append([example_id, 'delete VDC (will prompt to confirm)', 'All',
-                  'vca vdc delete --vdc vdc1'])
+                  'vca vdc delete --vdc vdc2'])
     example_id += 1
     table.append([example_id, 'delete VDC without prompt', 'All',
-                  'vca vdc delete --vdc vdc1 --yes'])
+                  'vca vdc delete --vdc vdc2 --yes'])
     example_id += 1
     table.append([example_id, 'list catalogs and items', 'All',
                   'vca catalog'])
@@ -248,6 +248,31 @@ def example(ctx):
                   'vca user create --user usr@com.com --first Name'
                   " --last Name --roles 'Virtual Infrastructure Administrator,"
                   " Network Administrator'"])
+    example_id += 1
+    table.append([example_id, 'list edge gateways',
+                  'All',
+                  'vca gateway'])
+    example_id += 1
+    table.append([example_id, 'get details of edge gateway',
+                  'All',
+                  'vca gateway info'])
+    example_id += 1
+    table.append([example_id, 'set syslog server on gateway',
+                  'All',
+                  'vca gateway set-syslog'
+                  ' --ip 192.168.109.2'])
+    example_id += 1
+    table.append([example_id, 'unset syslog server on gateway',
+                  'All',
+                  'vca gateway set-syslog'])
+    example_id += 1
+    table.append([example_id, 'allocate external IP address',
+                  'vCA',
+                  'vca gateway add-ip'])
+    example_id += 1
+    table.append([example_id, 'release external IP address',
+                  'vCA',
+                  'vca gateway del-ip --ip 107.189.93.162'])
     example_id += 1
     table.append([example_id, 'show status', 'All',
                   'vca status'])

@@ -47,6 +47,7 @@ class CmdProc:
         self.logger = _get_logger() if debug else None
         self.error_message = None
         self.vdc_name = None
+        self.gateway = None
 
     def load_config(self, profile=None, profile_file='~/.vcarc'):
         self.config.read(os.path.expanduser(profile_file))
@@ -71,6 +72,7 @@ class CmdProc:
         session_token = None
         session_uri = None
         vdc = None
+        gateway = None
         if self.config.has_section(section):
             if self.config.has_option(section, 'host'):
                 host = self.config.get(section, 'host')
@@ -99,6 +101,8 @@ class CmdProc:
                 session_uri = self.config.get(section, 'session_uri')
             if self.config.has_option(section, 'vdc'):
                 vdc = self.config.get(section, 'vdc')
+            if self.config.has_option(section, 'gateway'):
+                gateway = self.config.get(section, 'gateway')
         self.vca = VCA(host=host, username=user,
                        service_type=service_type, version=version,
                        verify=self.verify, log=self.debug)
@@ -119,6 +123,7 @@ class CmdProc:
             vcloud_session.token = session_token
             self.vca.vcloud_session = vcloud_session
             self.vdc_name = vdc
+            self.gateway = gateway
         Log.debug(self.logger, 'restored vca %s' % self.vca)
         if self.vca.vcloud_session is not None:
             Log.debug(self.logger, 'restored vcloud_session %s' %
@@ -206,6 +211,7 @@ class CmdProc:
             self.config.remove_option(section, 'session_token')
             self.config.remove_option(section, 'session_uri')
             self.config.remove_option(section, 'vdc')
+            self.config.remove_option(section, 'gateway')
         else:
             if self.vca.org is None:
                 self.config.remove_option(section, 'org')
@@ -230,6 +236,10 @@ class CmdProc:
                 self.config.remove_option(section, 'vdc')
             else:
                 self.config.set(section, 'vdc', self.vdc_name)
+            if self.gateway is None:
+                self.config.remove_option(section, 'gateway')
+            else:
+                self.config.set(section, 'gateway', self.gateway)
         with open(os.path.expanduser(profile_file), 'w+') as configfile:
             self.config.write(configfile)
 
@@ -393,37 +403,6 @@ class CmdProc:
         sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
         return sorted_table
 
-    def gateways_to_table(self, gateways):
-        table = []
-        for gateway in gateways:
-            interfaces = gateway.get_interfaces('uplink')
-            ext_interface_table = []
-            for interface in interfaces:
-                ext_interface_table.append(interface.get_Name())
-            interfaces = gateway.get_interfaces('internal')
-            interface_table = []
-            for interface in interfaces:
-                interface_table.append(interface.get_Name())
-            public_ips = gateway.get_public_ips()
-            public_ips_value = public_ips
-            if len(public_ips) > 2:
-                public_ips_value = (
-                    "%d IPs (list = 'vca gateway -g %s info')"
-                    % (len(public_ips), gateway.get_name()))
-            table.append([
-                gateway.get_name(),
-                str(public_ips_value).strip('[]').replace("'", ""),
-                'On' if gateway.is_dhcp_enabled() else 'Off',
-                'On' if gateway.is_fw_enabled() else 'Off',
-                'On' if gateway.is_nat_enabled() else 'Off',
-                'On' if gateway.is_vpn_enabled() else 'Off',
-                utils.beautified(interface_table),
-                gateway.get_syslog_conf(),
-                utils.beautified(ext_interface_table)
-            ])
-        sorted_table = sorted(table, key=operator.itemgetter(0), reverse=False)
-        return sorted_table
-
     def vapps_to_table(self, vdc):
         table = []
         if vdc is not None:
@@ -457,6 +436,8 @@ class CmdProc:
 
     def vdc_template_to_table(self, templates):
         table = []
+        if len(templates) == 0:
+            return []
         for template in templates.get_VdcTemplate():
             table.append([template.get_name()])
         sorted_table = sorted(table, key=operator.itemgetter(0),
@@ -489,3 +470,152 @@ class CmdProc:
         sorted_table = sorted(table, key=operator.itemgetter(0),
                               reverse=False)
         return sorted_table
+
+    def vms_to_table(self, vdc, vapp):
+        table = []
+        if vdc is not None:
+            for entity in vdc.get_ResourceEntities().ResourceEntity:
+                if entity.type_ == 'application/vnd.vmware.vcloud.vApp+xml':
+                    if vapp is not None and \
+                       vapp != '' and \
+                       vapp != entity.name:
+                        continue
+                    the_vapp = self.vca.get_vapp(vdc, entity.name)
+                    if (not the_vapp or not the_vapp.me or
+                            not the_vapp.me.Children):
+                        continue
+                    for vm in the_vapp.me.Children.Vm:
+                        owner = the_vapp.me.get_Owner().get_User().get_name()
+                        vm_status = self.vca.get_status(vm.get_status())
+                        sections = vm.get_Section()
+                        virtualHardwareSection = (
+                            filter(lambda section:
+                                   section.__class__.__name__ ==
+                                   "VirtualHardwareSection_Type",
+                                   sections)[0])
+                        items = virtualHardwareSection.get_Item()
+                        cpu = (
+                            filter(lambda item: item.get_Description().
+                                   get_valueOf_() == "Number of Virtual CPUs",
+                                   items)[0])
+                        cpu_capacity = (
+                            cpu.get_ElementName().get_valueOf_().
+                            split(" virtual CPU(s)")[0])
+                        memory = filter(lambda item: item.get_Description().
+                                        get_valueOf_() == "Memory Size",
+                                        items)[0]
+                        memory_capacity = int(
+                            memory.get_ElementName().get_valueOf_().
+                            split(" MB of memory")[0]) / 1024
+                        operatingSystemSection = (
+                            filter(lambda section:
+                                   section.__class__.__name__ ==
+                                   "OperatingSystemSection_Type",
+                                   sections)[0])
+                        os = (operatingSystemSection.
+                              get_Description().get_valueOf_())
+                        ips = []
+                        networks = []
+                        cds = []
+                        _url = '{http://www.vmware.com/vcloud/v1.5}ipAddress'
+                        for item in items:
+                            if item.Connection:
+                                for c in item.Connection:
+                                    networks.append(c.valueOf_)
+                                    if c.anyAttributes_.get(
+                                            _url):
+                                        ips.append(c.anyAttributes_.get(
+                                            _url))
+                            elif (item.HostResource and
+                                  item.ResourceSubType and
+                                  item.ResourceSubType.valueOf_ ==
+                                  'vmware.cdrom.iso'):
+                                if len(item.HostResource[0].valueOf_) > 0:
+                                    cds.append(item.HostResource[0].valueOf_)
+                        table.append([vm.name, entity.name, vm_status,
+                                      utils.beautified(ips),
+                                      utils.beautified(networks),
+                                      cpu_capacity,
+                                      str(memory_capacity),
+                                      utils.beautified(cds),
+                                      os, owner])
+        sorted_table = sorted(table, key=operator.itemgetter(0),
+                              reverse=False)
+        return sorted_table
+
+    def select_default_gateway(self):
+        gateways = self.vca.get_gateways(self.vdc_name)
+        if len(gateways) > 0:
+            self.gateway = gateways[0].get_name()
+        else:
+            self.gateway = None
+
+    def gateways_to_table(self, gateways):
+        table = []
+        for gateway in gateways:
+            interfaces = gateway.get_interfaces('uplink')
+            ext_interface_table = []
+            for interface in interfaces:
+                ext_interface_table.append(interface.get_Name())
+            interfaces = gateway.get_interfaces('internal')
+            interface_table = []
+            for interface in interfaces:
+                interface_table.append(interface.get_Name())
+            public_ips = gateway.get_public_ips()
+            public_ips_value = public_ips
+            if len(public_ips) > 2:
+                public_ips_value = (
+                    "vca gateway info - to list IPs (%d)"
+                    % (len(public_ips)))
+            table.append([
+                gateway.get_name(),
+                utils.beautified(str(public_ips_value)),
+                'On' if gateway.is_dhcp_enabled() else 'Off',
+                'On' if gateway.is_fw_enabled() else 'Off',
+                'On' if gateway.is_nat_enabled() else 'Off',
+                'On' if gateway.is_vpn_enabled() else 'Off',
+                utils.beautified(interface_table),
+                gateway.get_syslog_conf(),
+                utils.beautified(ext_interface_table),
+                '*' if gateway.get_name() == self.gateway else ' '
+            ])
+        sorted_table = sorted(table,
+                              key=operator.itemgetter(0),
+                              reverse=False)
+        return sorted_table
+
+    def gateway_to_table(self, gateway):
+        table = []
+        table.append(['Name', gateway.me.name])
+        table.append(
+            ['DCHP Service', 'On' if gateway.is_dhcp_enabled() else 'Off'])
+        table.append(
+            ['Firewall Service', 'On' if gateway.is_fw_enabled() else 'Off'])
+        table.append(
+            ['NAT Service', 'On' if gateway.is_nat_enabled() else 'Off'])
+        table.append(
+            ['VPN Service', 'On' if gateway.is_vpn_enabled() else 'Off'])
+        table.append(
+            ['Syslog', gateway.get_syslog_conf()])
+        public_ips = gateway.get_public_ips()
+        table.append(
+            ['External IP #', len(public_ips)])
+        if len(public_ips) > 6:
+            table.append([
+                'External IPs',
+                utils.beautified(public_ips[0:6])])
+            table.append([
+                'External IPs',
+                utils.beautified(public_ips[6:])])
+        else:
+            table.append([
+                'External IPs',
+                utils.beautified(public_ips)])
+        interfaces = gateway.get_interfaces('uplink')
+        ext_interface_table = []
+        for interface in interfaces:
+            ext_interface_table.append(interface.get_Name())
+        table.append(
+            ['Uplinks',
+             utils.beautified(ext_interface_table)])
+        return table

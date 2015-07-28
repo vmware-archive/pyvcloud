@@ -60,6 +60,7 @@ def vdc(cmd_proc, operation, vdc, template, yes):
             utils.print_message("Using vdc '%s', profile '%s'" %
                                 (vdc, cmd_proc.profile), cmd_proc)
             cmd_proc.vdc_name = vdc
+            cmd_proc.select_default_gateway()
         else:
             utils.print_error("Unable to select vdc '%s' in profile '%s'" %
                               (vdc, cmd_proc.profile), cmd_proc)
@@ -118,10 +119,12 @@ def vdc(cmd_proc, operation, vdc, template, yes):
         the_vdc = cmd_proc.vca.get_vdc(vdc)
         if the_vdc:
             if not yes:
-                confirmed = click.confirm("Do you want to delete VDC '%s'?\n"
-                                          "This will delete all its virtual "
-                                          "machines and edge gateway and "
-                                          "can't be undone" % vdc)
+                confirmed = click.confirm("This will delete the VDC, its "
+                                          "edge gateway and all its virtual "
+                                          "machines.\n"
+                                          "The action can't be undone.\n"
+                                          "Do you want to delete VDC '%s'?"
+                                          % vdc)
                 if not confirmed:
                     utils.print_message('Action cancelled, '
                                         'VDC will not be deleted')
@@ -298,7 +301,8 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                 vapp_name += '-' + str(x)
             utils.print_message("creating vApp '%s' in VDC '%s'"
                                 " from template '%s' in catalog '%s'" %
-                                (vapp_name, vdc, template, catalog), cmd_proc)
+                                (vapp_name, vdc, template, catalog),
+                                cmd_proc)
             task = None
             if ((vm_name is not None) and
                 ((cmd_proc.vca.version == "1.0") or
@@ -509,6 +513,9 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
             else:
                 utils.print_error("vApp '%s' not found" % vapp, cmd_proc)
                 sys.exit(1)
+        else:
+            utils.print_error("VDC '%s' not found" % vdc, cmd_proc)
+            sys.exit(1)
     elif 'customize' == operation:
         utils.print_message("customizing VM '%s'"
                             "in vApp '%s' in VDC '%s'" %
@@ -535,6 +542,10 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
             else:
                 utils.print_error("can't customize vApp", cmd_proc)
                 sys.exit(1)
+        else:
+            utils.print_error("can't find the resource",
+                              cmd_proc)
+            sys.exit(1)
     elif 'insert' == operation or 'eject' == operation:
         utils.print_message("%s media '%s', VM '%s'"
                             " in vApp '%s' in VDC '%s'" %
@@ -553,6 +564,12 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                     utils.print_error("can't insert or eject media",
                                       cmd_proc)
                     sys.exit(1)
+            else:
+                utils.print_error("vApp '%s' not found" % vapp, cmd_proc)
+                sys.exit(1)
+        else:
+            utils.print_error("VDC '%s' not found" % vdc, cmd_proc)
+            sys.exit(1)
     elif 'attach' == operation or 'detach' == operation:
         utils.print_message("%s disk '%s', VM '%s'"
                             " in vApp '%s' in VDC '%s'" %
@@ -587,6 +604,12 @@ def vapp(cmd_proc, operation, vdc, vapp, catalog, template,
                                       "the same name",
                                       cmd_proc)
                     sys.exit(1)
+            else:
+                utils.print_error("vApp '%s' not found" % vapp, cmd_proc)
+                sys.exit(1)
+        else:
+            utils.print_error("VDC '%s' not found" % vdc, cmd_proc)
+            sys.exit(1)
     else:
         utils.print_error('not implemented', cmd_proc)
         sys.exit(1)
@@ -654,6 +677,46 @@ def disk(cmd_proc, operation, vdc, disk_name, disk_size, disk_id):
                                   % (disk_name, result[1]),
                                   cmd_proc)
                 sys.exit(1)
+    else:
+        utils.print_error('not implemented', cmd_proc)
+        sys.exit(1)
+    cmd_proc.save_current_config()
+
+
+@cli.command()
+@click.pass_obj
+@click.argument('operation', default=default_operation,
+                metavar='[list]',
+                type=click.Choice(
+                    ['list']))
+@click.option('-v', '--vdc', default=None,
+              metavar='<vdc>', help='Virtual Data Center Name')
+@click.option('-a', '--vapp', 'vapp', default=None,
+              metavar='<vapp>', help='vApp name')
+def vm(cmd_proc, operation, vdc, vapp):
+    """Operations with VMs"""
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)
+        sys.exit(1)
+    if vdc is None:
+        vdc = cmd_proc.vdc_name
+    the_vdc = cmd_proc.vca.get_vdc(vdc)
+    if the_vdc is None:
+        utils.print_error("VDC not found '%s'" % vdc, cmd_proc)
+        sys.exit(1)
+    if 'list' == operation:
+        headers = ['VM', "vApp", "Status", "IPs", "Networks",
+                   "vCPUs", "Memory (GB)", "CD/DVD", "OS", "Owner"]
+        table = cmd_proc.vms_to_table(the_vdc, vapp)
+        if cmd_proc.json_output:
+            json_object = {'vms':
+                           utils.table_to_json(headers, table)}
+            utils.print_json(json_object, cmd_proc=cmd_proc)
+        else:
+            utils.print_table("Available VMs in '%s', profile '%s':" %
+                              (vdc, cmd_proc.profile),
+                              headers, table, cmd_proc)
     else:
         utils.print_error('not implemented', cmd_proc)
         sys.exit(1)

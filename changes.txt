@@ -20,11 +20,11 @@ new commands:
 
 commands in progress:
 - example
+- firewall
 
 commands to refactor:
 - nat
 - vpn
-- firewall
 - dhcp
 
 new features:
@@ -35,4 +35,4 @@ new features:
 - use instance and vdc (vca type)
 - commands exit with error code == 1 when fail
 - list vdc templates, create and delete vdc
-
+- list firewall rules

@@ -662,3 +662,30 @@ class CmdProc:
                               key=operator.itemgetter(0),
                               reverse=False)
         return sorted_table
+
+    def firewall_rules_to_table(self, gateway):
+        def create_protocol_string(protocol):
+            if protocol.get_Any():
+                return 'any'
+            protocols = []
+            if protocol.get_Tcp():
+                protocols.append('tcp')
+            if protocol.get_Udp():
+                protocols.append('udp')
+            if protocol.get_Icmp():
+                protocols.append('icmp')
+            if protocol.get_Other():
+                protocols.append('other')
+            return utils.beautified(protocols)
+        table = []
+        for rule in gateway.get_fw_rules():
+            table.append([rule.get_SourceIp(),
+                          rule.get_SourcePortRange(),
+                          rule.get_DestinationIp(),
+                          rule.get_DestinationPortRange(),
+                          create_protocol_string(rule.get_Protocols()),
+                          'On' if rule.get_IsEnabled() == 1 else 'Off'])
+        sorted_table = sorted(table,
+                              key=operator.itemgetter(0),
+                              reverse=False)
+        return sorted_table

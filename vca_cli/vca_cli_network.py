@@ -15,6 +15,7 @@
 
 import sys
 import click
+import yaml
 from vca_cli import cli, utils, default_operation
 
 
@@ -352,6 +353,136 @@ def dhcp(cmd_proc, operation, vdc, gateway, network_name, pool):
         else:
             utils.print_error("can't '%s' the DHCP service" % operation,
                               cmd_proc)
+    else:
+        utils.print_error('not implemented', cmd_proc)
+        sys.exit(1)
+    cmd_proc.save_current_config()
+
+
+@cli.command()
+@click.pass_obj
+@click.argument('operation', default=default_operation,
+                metavar='[list | add | delete]',
+                type=click.Choice(['list', 'add', 'delete']))
+@click.option('-v', '--vdc', default=None,
+              metavar='<vdc>', help='Virtual Data Center Name')
+@click.option('-g', '--gateway', default=None, metavar='<gateway>',
+              help='Edge Gateway Name')
+@click.option('--type', 'rule_type', default='DNAT',
+              metavar='<type>', help='Rule type',
+              type=click.Choice(['DNAT', 'dnat', 'SNAT', 'snat']))
+@click.option('--original-ip', 'original_ip', default='',
+              metavar='<ip>', help='Original IP')
+@click.option('--original-port', 'original_port',
+              default='any', metavar='<port>',
+              help='Original Port')
+@click.option('--translated-ip', 'translated_ip',
+              default='', metavar='<ip>',
+              help='Translated IP')
+@click.option('--translated-port', 'translated_port',
+              default='any', metavar='<port>',
+              help='Translated Port')
+@click.option('--protocol', default='any',
+              metavar='<protocol>', help='Protocol',
+              type=click.Choice(['any', 'Any', 'tcp', 'udp']))
+@click.option('-n', '--network', 'network_name', default=None,
+              metavar='<network>', help='Network name')
+@click.option('-f', '--file', 'nat_rules_file',
+              default=None, metavar='<nat_rules_file>',
+              help='NAT rules file',
+              type=click.File('r'))
+@click.option('-a', '--all', 'all_rules', is_flag=True, default=False,
+              help='Delete all rules')
+def nat(cmd_proc, operation, vdc, gateway, rule_type, original_ip,
+        original_port, translated_ip, translated_port, protocol,
+        network_name, nat_rules_file, all_rules):
+    """Operations with Edge Gateway NAT Rules"""
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)
+        sys.exit(1)
+    if vdc is None:
+        vdc = cmd_proc.vdc_name
+    the_vdc = cmd_proc.vca.get_vdc(vdc)
+    if the_vdc is None:
+        utils.print_error("VDC not found '%s'" % vdc, cmd_proc)
+        sys.exit(1)
+    if gateway is None:
+        gateway = cmd_proc.gateway
+    the_gateway = cmd_proc.vca.get_gateway(vdc, gateway)
+    if the_gateway is None:
+        utils.print_error("gateway not found '%s'" % gateway, cmd_proc)
+        sys.exit(1)
+    if 'list' == operation:
+        headers = ["Rule Id", "Enabled", "Type", "Original IP",
+                   "Original Port", "Translated IP", "Translated Port",
+                   "Protocol", "Applied On"]
+        table = cmd_proc.nat_rules_to_table(the_gateway)
+        if cmd_proc.json_output:
+            json_object = {'nat-rules':
+                           utils.table_to_json(headers, table)}
+            utils.print_json(json_object, cmd_proc=cmd_proc)
+        else:
+            utils.print_table("NAT rules in gateway '%s', "
+                              "VDC '%s', profile '%s':" %
+                              (gateway, vdc, cmd_proc.profile),
+                              headers, table, cmd_proc)
+    elif 'add' == operation:
+        utils.print_message("add NAT rule")
+        if nat_rules_file:
+            rules = yaml.load(nat_rules_file)
+            if rules and rules[0]:
+                nat_rules = rules[0].get('NAT_rules')
+                for rule in nat_rules:
+                    the_gateway.add_nat_rule(rule.get('type').upper(),
+                                             rule.get('original_ip'),
+                                             rule.get('original_port'),
+                                             rule.get('translated_ip'),
+                                             rule.get('translated_port'),
+                                             rule.get('protocol'),
+                                             rule.get('network_name'))
+        else:
+            the_gateway.add_nat_rule(rule_type.upper(),
+                                     original_ip,
+                                     original_port,
+                                     translated_ip,
+                                     translated_port,
+                                     protocol,
+                                     network_name)
+        task = the_gateway.save_services_configuration()
+        if task:
+            utils.display_progress(task, cmd_proc,
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
+        else:
+            utils.print_error("can't add NAT rule", cmd_proc)
+            sys.exit(1)
+    elif 'delete' == operation:
+        utils.print_message("delete NAT rule")
+        found_rule = False
+        if all_rules:
+            the_gateway.del_all_nat_rules()
+            found_rule = True
+        else:
+            found_rule = the_gateway.del_nat_rule(rule_type.upper(),
+                                                  original_ip,
+                                                  original_port,
+                                                  translated_ip,
+                                                  translated_port,
+                                                  protocol,
+                                                  network_name)
+        if found_rule:
+            task = the_gateway.save_services_configuration()
+            if task:
+                utils.display_progress(task, cmd_proc,
+                                       cmd_proc.vca.vcloud_session.
+                                       get_vcloud_headers())
+            else:
+                utils.print_error("can't delete NAT rule", cmd_proc)
+                sys.exit(1)
+        else:
+            utils.print_error("rule doesn't exist in edge gateway", cmd_proc)
+            sys.exit(1)
     else:
         utils.print_error('not implemented', cmd_proc)
         sys.exit(1)

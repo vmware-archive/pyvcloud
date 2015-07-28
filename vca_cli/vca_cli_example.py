@@ -321,6 +321,48 @@ def example(ctx):
                   'All',
                   'vca dhcp delete --network net-117'])
     example_id += 1
+    table.append([example_id, 'list edge gateway NAT rules',
+                  'All',
+                  'vca nat'])
+    example_id += 1
+    table.append([example_id, 'add edge gateway DNAT rule',
+                  'All',
+                  "vca nat add --type dnat"
+                  " --original-ip 107.189.93.162"
+                  " --original-port 22"
+                  " --translated-ip 192.168.109.2"
+                  " --translated-port 22 --protocol tcp"])
+    example_id += 1
+    table.append([example_id, 'add edge gateway SNAT rule',
+                  'All',
+                  "vca nat add --type snat"
+                  " --original-ip 192.168.109.0/24"
+                  " --translated-ip 107.189.93.162"])
+    example_id += 1
+    table.append([example_id, 'add SNAT rule to network',
+                  'All',
+                  "vca nat add --type snat"
+                  " --original-ip 192.168.109.0/24"
+                  " --translated-ip 107.189.93.162"
+                  " --network net-109"])
+    example_id += 1
+    table.append([example_id, 'add edge gateway rules from file',
+                  'All',
+                  "vca nat add --file natrules.yaml"])
+    example_id += 1
+    table.append([example_id, 'delete edge gateway NAT rule',
+                  'All',
+                  "vca nat delete --type dnat "
+                  " --original-ip 107.189.93.162"
+                  " --original-port 22"
+                  " --translated-ip 192.168.109.4"
+                  " --translated-port 22"
+                  " --protocol tcp"])
+    example_id += 1
+    table.append([example_id, 'delete all edge gateway NAT rules',
+                  'All',
+                  "vca nat delete --all"])
+    example_id += 1
     table.append([example_id, 'list user roles', 'vCA',
                   'vca role'])
     example_id += 1

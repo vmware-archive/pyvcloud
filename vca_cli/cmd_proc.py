@@ -708,3 +708,26 @@ class CmdProc:
                               key=operator.itemgetter(0),
                               reverse=False)
         return sorted_table
+
+    def nat_rules_to_table(self, gateway):
+        table = []
+        rules = gateway.get_nat_rules()
+        if rules is None:
+            return table
+        for natRule in rules:
+            ruleId = natRule.get_Id()
+            enable = natRule.get_IsEnabled()
+            ruleType = natRule.get_RuleType()
+            gatewayNatRule = natRule.get_GatewayNatRule()
+            originalIp = gatewayNatRule.get_OriginalIp()
+            originalPort = gatewayNatRule.get_OriginalPort()
+            translatedIp = gatewayNatRule.get_TranslatedIp()
+            translatedPort = gatewayNatRule.get_TranslatedPort()
+            protocol = gatewayNatRule.get_Protocol()
+            interface = gatewayNatRule.get_Interface().get_name()
+            table.append([ruleId, str(enable), ruleType, originalIp,
+                          "any" if not originalPort else originalPort,
+                          translatedIp,
+                          "any" if not translatedPort else translatedPort,
+                          "any" if not protocol else protocol, interface])
+        return table

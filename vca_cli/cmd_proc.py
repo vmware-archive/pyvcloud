@@ -436,7 +436,7 @@ class CmdProc:
 
     def vdc_template_to_table(self, templates):
         table = []
-        if len(templates) == 0:
+        if templates is None:
             return []
         for template in templates.get_VdcTemplate():
             table.append([template.get_name()])
@@ -619,3 +619,46 @@ class CmdProc:
             ['Uplinks',
              utils.beautified(ext_interface_table)])
         return table
+
+    def networks_to_table(self, networks):
+        table = []
+        for item in networks:
+            dhcp_pools = []
+            if item.get_ServiceConfig() and len(
+                    item.get_ServiceConfig().get_NetworkService()) > 0:
+                for service in item.get_ServiceConfig().get_NetworkService():
+                    if service.original_tagname_ == 'GatewayDhcpService':
+                        for p in service.get_Pool():
+                            if p.get_IsEnabled():
+                                dhcp_pools.append(p.get_LowIpAddress() +
+                                                  '-' + p.get_HighIpAddress())
+            config = item.get_Configuration()
+            gateways = []
+            netmasks = []
+            ranges = []
+            dns1 = []
+            dns2 = []
+            for scope in config.get_IpScopes().get_IpScope():
+                gateways.append(scope.get_Gateway())
+                netmasks.append(scope.get_Netmask())
+                if scope.get_Dns1() is not None:
+                    dns1.append(scope.get_Dns1())
+                if scope.get_Dns2() is not None:
+                    dns2.append(scope.get_Dns2())
+                if scope.get_IpRanges() is not None:
+                    for r in scope.get_IpRanges().get_IpRange():
+                        ranges.append(r.get_StartAddress() + '-' +
+                                      r.get_EndAddress())
+            table.append([
+                item.get_name(),
+                config.get_FenceMode(),
+                utils.beautified(gateways),
+                utils.beautified(netmasks),
+                utils.beautified(dns1),
+                utils.beautified(dns2),
+                utils.beautified(ranges)
+            ])
+        sorted_table = sorted(table,
+                              key=operator.itemgetter(0),
+                              reverse=False)
+        return sorted_table

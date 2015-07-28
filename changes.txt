@@ -11,6 +11,7 @@ completed refactoring of commands:
 - catalog
 - vm
 - gateway
+- network
 
 new commands:
 - profile

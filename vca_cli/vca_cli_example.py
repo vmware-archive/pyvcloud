@@ -234,20 +234,38 @@ def example(ctx):
                   'vca disk delete'
                   ' --id bce76ca7-29d0-4041-82d4-e4481804d5c4'])
     example_id += 1
-    table.append([example_id, 'list user roles', 'vCA',
-                  'vca role'])
+    table.append([example_id, 'list VMs',
+                  'All',
+                  'vca vm'])
     example_id += 1
-    table.append([example_id, 'list users', 'vCA',
-                  'vca user'])
+    table.append([example_id, 'list VMs in a vApp',
+                  'All',
+                  'vca vm -a ubu'])
     example_id += 1
-    table.append([example_id, 'change current user password', 'vCA',
-                  'vca user change-password --password current-pass'
-                  ' --new-password new-pass'])
+    table.append([example_id, 'list VMs in JSON format',
+                  'All',
+                  'vca -j vm'])
     example_id += 1
-    table.append([example_id, 'create user', 'vCA',
-                  'vca user create --user usr@com.com --first Name'
-                  " --last Name --roles 'Virtual Infrastructure Administrator,"
-                  " Network Administrator'"])
+    table.append([example_id, 'retrieve the IP of a VM',
+                  'All',
+                  "IP=`vca -j vm -a ubu | jq -r"
+                  " '.vms[0].IPs[0]'` && echo $IP"])
+    example_id += 1
+    table.append([example_id, 'list networks',
+                  'All',
+                  'vca network'])
+    example_id += 1
+    table.append([example_id, 'create network',
+                  'All',
+                  'vca network create --network net-117'
+                  ' --gateway-ip 192.168.117.1'
+                  ' --netmask 255.255.255.0'
+                  ' --dns1 8.8.8.8'
+                  ' --pool 192.168.117.2-192.168.117.100'])
+    example_id += 1
+    table.append([example_id, 'delete network',
+                  'All',
+                  'vca network delete --network net-117'])
     example_id += 1
     table.append([example_id, 'list edge gateways',
                   'All',
@@ -273,6 +291,21 @@ def example(ctx):
     table.append([example_id, 'release external IP address',
                   'vCA',
                   'vca gateway del-ip --ip 107.189.93.162'])
+    example_id += 1
+    table.append([example_id, 'list user roles', 'vCA',
+                  'vca role'])
+    example_id += 1
+    table.append([example_id, 'list users', 'vCA',
+                  'vca user'])
+    example_id += 1
+    table.append([example_id, 'change current user password', 'vCA',
+                  'vca user change-password --password current-pass'
+                  ' --new-password new-pass'])
+    example_id += 1
+    table.append([example_id, 'create user', 'vCA',
+                  'vca user create --user usr@com.com --first Name'
+                  " --last Name --roles 'Virtual Infrastructure Administrator,"
+                  " Network Administrator'"])
     example_id += 1
     table.append([example_id, 'show status', 'All',
                   'vca status'])

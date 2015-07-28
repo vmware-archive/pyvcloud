@@ -119,3 +119,92 @@ def gateway(cmd_proc, operation, vdc, gateway, ip):
         utils.print_error('not implemented', cmd_proc)
         sys.exit(1)
     cmd_proc.save_current_config()
+
+
+@cli.command()
+@click.pass_obj
+@click.argument('operation', default=default_operation,
+                metavar='[list | info | create | delete]',
+                type=click.Choice(['list', 'info', 'create', 'delete']))
+@click.option('-v', '--vdc', default=None,
+              metavar='<vdc>', help='Virtual Data Center Name')
+@click.option('-g', '--gateway', default=None, metavar='<gateway>',
+              help='Edge Gateway Name')
+@click.option('-n', '--network', 'network_name', default='',
+              metavar='<network>', help='Network name')
+@click.option('-i', '--gateway-ip', 'gateway_ip', default='',
+              metavar='<gateway-ip>', help='Gateway IP')
+@click.option('-m', '--netmask', default='',
+              metavar='<netmask>', help='Network mask')
+@click.option('-1', '--dns1', default='',
+              metavar='<dns-1>', help='Primary DNS')
+@click.option('-2', '--dns2', default='',
+              metavar='<dns-2>', help='Secondary DNS')
+@click.option('-s', '--suffix', 'dns_suffix', default='',
+              metavar='<suffix>', help='DNS suffix')
+@click.option('-p', '--pool', default='',
+              metavar='<pool-range>', help='Static IP pool')
+def network(cmd_proc, operation, vdc, gateway, network_name, gateway_ip,
+            netmask, dns1, dns2, dns_suffix, pool):
+    """Operations with Networks"""
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)
+        sys.exit(1)
+    if vdc is None:
+        vdc = cmd_proc.vdc_name
+    the_vdc = cmd_proc.vca.get_vdc(vdc)
+    if the_vdc is None:
+        utils.print_error("VDC not found '%s'" % vdc, cmd_proc)
+        sys.exit(1)
+    if gateway is None:
+        gateway = cmd_proc.gateway
+    the_gateway = cmd_proc.vca.get_gateway(vdc, gateway)
+    if the_gateway is None:
+        utils.print_error("gateway not found '%s'" % gateway, cmd_proc)
+        sys.exit(1)
+    if 'list' == operation:
+        headers = ['Name', 'Mode', 'Gateway', 'Netmask', 'DNS 1', 'DNS 2',
+                   'Pool IP Range']
+        networks = cmd_proc.vca.get_networks(vdc)
+        table = cmd_proc.networks_to_table(networks)
+        if cmd_proc.json_output:
+            json_object = {'networks':
+                           utils.table_to_json(headers, table)}
+            utils.print_json(json_object, cmd_proc=cmd_proc)
+        else:
+            utils.print_table("Available networks in '%s', profile '%s':" %
+                              (vdc, cmd_proc.profile),
+                              headers, table, cmd_proc)
+    elif 'create' == operation:
+        utils.print_message("Creating network '%s' "
+                            "in VDC '%s'" %
+                            (network_name, vdc), cmd_proc)
+        start_address = pool.split('-')[0]
+        end_address = pool.split('-')[1]
+        result = cmd_proc.vca.create_vdc_network(vdc, network_name,
+                                                 gateway,
+                                                 start_address, end_address,
+                                                 gateway_ip,
+                                                 netmask, dns1, dns2,
+                                                 dns_suffix)
+        if result[0]:
+            utils.display_progress(result[1], cmd_proc,
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
+        else:
+            utils.print_error("can't create network", cmd_proc)
+            sys.exit(1)
+    elif 'delete' == operation:
+        result = cmd_proc.vca.delete_vdc_network(vdc, network_name)
+        if result[0]:
+            utils.display_progress(result[1], cmd_proc,
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
+        else:
+            utils.print_error("can't delete network", cmd_proc)
+            sys.exit(1)
+    else:
+        utils.print_error('not implemented', cmd_proc)
+        sys.exit(1)
+    cmd_proc.save_current_config()

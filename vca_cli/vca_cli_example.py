@@ -292,6 +292,35 @@ def example(ctx):
                   'vCA',
                   'vca gateway del-ip --ip 107.189.93.162'])
     example_id += 1
+    table.append([example_id, 'list edge gateway firewall rules',
+                  'All',
+                  'vca firewall'])
+    example_id += 1
+    table.append([example_id, 'enable edge gateway firewall',
+                  'All',
+                  'vca firewall enable'])
+    example_id += 1
+    table.append([example_id, 'disable edge gateway firewall',
+                  'All',
+                  'vca firewall disable'])
+    example_id += 1
+    table.append([example_id, 'enable DHCP service',
+                  'All',
+                  'vca dhcp enable'])
+    example_id += 1
+    table.append([example_id, 'disable DHCP service',
+                  'All',
+                  'vca dhcp disable'])
+    example_id += 1
+    table.append([example_id, 'add DHCP service to a network',
+                  'All',
+                  'vca dhcp add --network net-117 '
+                  '--pool 192.168.117.101-192.168.117.200'])
+    example_id += 1
+    table.append([example_id, 'remove DHCP service from a network',
+                  'All',
+                  'vca dhcp delete --network net-117'])
+    example_id += 1
     table.append([example_id, 'list user roles', 'vCA',
                   'vca role'])
     example_id += 1

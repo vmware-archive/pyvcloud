@@ -267,3 +267,92 @@ def firewall(cmd_proc, operation, vdc, gateway):
         utils.print_error('not implemented', cmd_proc)
         sys.exit(1)
     cmd_proc.save_current_config()
+
+
+@cli.command()
+@click.pass_obj
+@click.argument('operation', default=default_operation,
+                metavar='[list | add | delete | enable | disable]',
+                type=click.Choice(['list', 'add',
+                                   'delete', 'enable', 'disable']))
+@click.option('-v', '--vdc', default=None,
+              metavar='<vdc>', help='Virtual Data Center Name')
+@click.option('-g', '--gateway', default=None, metavar='<gateway>',
+              help='Edge Gateway Name')
+@click.option('-n', '--network', 'network_name', default='',
+              metavar='<network>', help='Network name')
+@click.option('-p', '--pool', default='',
+              metavar='<pool-range>', help='DHCP pool range')
+def dhcp(cmd_proc, operation, vdc, gateway, network_name, pool):
+    """Operations with Edge Gateway DHCP Service"""
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)
+        sys.exit(1)
+    if vdc is None:
+        vdc = cmd_proc.vdc_name
+    the_vdc = cmd_proc.vca.get_vdc(vdc)
+    if the_vdc is None:
+        utils.print_error("VDC not found '%s'" % vdc, cmd_proc)
+        sys.exit(1)
+    if gateway is None:
+        gateway = cmd_proc.gateway
+    the_gateway = cmd_proc.vca.get_gateway(vdc, gateway)
+    if the_gateway is None:
+        utils.print_error("gateway not found '%s'" % gateway, cmd_proc)
+        sys.exit(1)
+    if 'list' == operation:
+        headers = ['Network', 'IP Range From', 'To',
+                   'Enabled', 'Default lease', 'Max Lease']
+        table = cmd_proc.dhcp_to_table(the_gateway)
+        if cmd_proc.json_output:
+            json_object = {'dhcp-pools':
+                           utils.table_to_json(headers, table)}
+            utils.print_json(json_object, cmd_proc=cmd_proc)
+        else:
+            utils.print_table("DHCP pools in gateway '%s', "
+                              "VDC '%s', profile '%s':" %
+                              (gateway, vdc, cmd_proc.profile),
+                              headers, table, cmd_proc)
+    elif 'add' == operation:
+        utils.print_message("adding DHCP pool to network '%s'" %
+                            network_name,
+                            cmd_proc)
+        the_gateway.add_dhcp_pool(network_name, pool.split('-')[0],
+                                  pool.split('-')[1], default_lease=None,
+                                  max_lease=None)
+        task = the_gateway.save_services_configuration()
+        if task:
+            utils.display_progress(task, cmd_proc,
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
+        else:
+            utils.print_error("can't add DHCP pool", cmd_proc)
+            sys.exit(1)
+    elif 'delete' == operation:
+        utils.print_message("deleting all DHCP pools in network '%s'" %
+                            network_name)
+        the_gateway.delete_dhcp_pool(network_name)
+        task = the_gateway.save_services_configuration()
+        if task:
+            utils.display_progress(task, cmd_proc,
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
+        else:
+            utils.print_error("can't delete DHCP pool", cmd_proc)
+            sys.exit(1)
+    elif 'enable' == operation or 'disable' == operation:
+        utils.print_message("%s DHCP service" % operation)
+        the_gateway.enable_dhcp('enable' == operation)
+        task = the_gateway.save_services_configuration()
+        if task:
+            utils.display_progress(task, cmd_proc,
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
+        else:
+            utils.print_error("can't '%s' the DHCP service" % operation,
+                              cmd_proc)
+    else:
+        utils.print_error('not implemented', cmd_proc)
+        sys.exit(1)
+    cmd_proc.save_current_config()

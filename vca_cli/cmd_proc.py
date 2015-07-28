@@ -689,3 +689,22 @@ class CmdProc:
                               key=operator.itemgetter(0),
                               reverse=False)
         return sorted_table
+
+    def dhcp_to_table(self, gateway):
+        table = []
+        service = gateway.get_dhcp_service()
+        if service is None:
+            return table
+        for pool in gateway.get_dhcp_pools():
+            table.append([
+                pool.get_Network().get_name(),
+                pool.get_LowIpAddress(),
+                pool.get_HighIpAddress(),
+                'Yes' if pool.get_IsEnabled() == 1 else 'No',
+                pool.get_DefaultLeaseTime(),
+                pool.get_MaxLeaseTime()
+            ])
+        sorted_table = sorted(table,
+                              key=operator.itemgetter(0),
+                              reverse=False)
+        return sorted_table

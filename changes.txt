@@ -12,6 +12,8 @@ completed refactoring of commands:
 - vm
 - gateway
 - network
+- firewall
+- dhcp
 
 new commands:
 - profile
@@ -20,12 +22,10 @@ new commands:
 
 commands in progress:
 - example
-- firewall
+- nat
 
 commands to refactor:
-- nat
 - vpn
-- dhcp
 
 new features:
 - automatically select the first vdc when changing instance or org

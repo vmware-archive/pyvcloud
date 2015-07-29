@@ -731,3 +731,40 @@ class CmdProc:
                           "any" if not translatedPort else translatedPort,
                           "any" if not protocol else protocol, interface])
         return table
+
+    def vpn_endpoints_to_table(self, gateway):
+        table = []
+        service = gateway.get_vpn_service()
+        if service is None:
+            return table
+        for endpoint in service.get_Endpoint():
+            network = ''
+            for interface in gateway.get_interfaces('uplink'):
+                endpint_ref = endpoint.get_Network().get_href()
+                if_ref = interface.get_Network().get_href()
+                if endpint_ref == if_ref:
+                    network = interface.get_Network().get_name()
+            ip = endpoint.get_PublicIp()
+            table.append([network, ip])
+        return table
+
+    def vpn_tunnels_to_table(self, gateway):
+        table = []
+        service = gateway.get_vpn_service()
+        if service is None:
+            return table
+        for tunnel in service.get_Tunnel():
+            local_networks = []
+            for network in tunnel.get_LocalSubnet():
+                local_networks.append(network.get_Name())
+            peer_networks = []
+            for network in tunnel.get_PeerSubnet():
+                peer_networks.append(network.get_Name())
+            table.append([tunnel.get_Name(),
+                          tunnel.get_LocalIpAddress(),
+                          utils.beautified(local_networks),
+                          tunnel.get_PeerIpAddress(),
+                          utils.beautified(peer_networks),
+                          'Yes' if tunnel.get_IsEnabled() == 1 else 'No',
+                          'Yes' if tunnel.get_IsOperational() == 1 else 'No'])
+        return table

@@ -363,6 +363,61 @@ def example(ctx):
                   'All',
                   "vca nat delete --all"])
     example_id += 1
+    table.append([example_id, 'list edge gateway VPN config',
+                  'All',
+                  'vca vpn'])
+    example_id += 1
+    table.append([example_id, 'enable edge gateway VPN',
+                  'All',
+                  "vca vpn enable"])
+    example_id += 1
+    table.append([example_id, 'disable edge gateway VPN',
+                  'All',
+                  "vca vpn disable"])
+    example_id += 1
+    table.append([example_id, 'add VPN endpoint',
+                  'All',
+                  "vca vpn add-endpoint --network d1p10-ext"
+                  " --public-ip 107.189.123.101"])
+    example_id += 1
+    table.append([example_id, 'delete VPN endpoint',
+                  'All',
+                  "vca vpn del-endpoint --network d1p10-ext"
+                  " --public-ip 107.189.123.101"])
+    example_id += 1
+    table.append([example_id, 'add VPN tunnel',
+                  'All',
+                  "vca vpn add-tunnel --tunnel t1"
+                  " --local-ip 107.189.123.101"
+                  " --local-network net-116"
+                  " --peer-ip 192.240.158.15"
+                  " --peer-network 192.168.110.0/24 "
+                  " --secret P8s3P...7v"])
+    example_id += 1
+    table.append([example_id, 'delete VPN tunnel',
+                  'All',
+                  "vca vpn del-tunnel --tunnel t1"])
+    example_id += 1
+    table.append([example_id, 'add local network to VPN tunnel',
+                  'All',
+                  "vca vpn add-network --tunnel t1"
+                  " --local-network net-115"])
+    example_id += 1
+    table.append([example_id, 'add peer network to VPN tunnel',
+                  'All',
+                  "vca vpn add-network --tunnel t1"
+                  " --peer-network 192.168.117.0/24"])
+    example_id += 1
+    table.append([example_id, 'delete local network from VPN tunnel',
+                  'All',
+                  "vca vpn del-network --tunnel t1"
+                  " --local-network net-115"])
+    example_id += 1
+    table.append([example_id, 'delete peer network from VPN tunnel',
+                  'All',
+                  "vca vpn del-network --tunnel t1"
+                  " --peer-network 192.168.117.0/24"])
+    example_id += 1
     table.append([example_id, 'list user roles', 'vCA',
                   'vca role'])
     example_id += 1

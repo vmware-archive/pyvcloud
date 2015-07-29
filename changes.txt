@@ -15,6 +15,7 @@ completed refactoring of commands:
 - firewall
 - dhcp
 - nat
+- vpn
 
 new commands:
 - profile
@@ -25,7 +26,9 @@ commands in progress:
 - example
 
 commands to refactor:
-- vpn
+- blueprint
+- deployment
+- event
 
 new features:
 - automatically select the first vdc when changing instance or org

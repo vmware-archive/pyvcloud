@@ -17,6 +17,7 @@ import sys
 import click
 import yaml
 from vca_cli import cli, utils, default_operation
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.vcloudType import parseString
 
 
 @cli.command()
@@ -75,7 +76,9 @@ def gateway(cmd_proc, operation, vdc, gateway, ip):
                                        cmd_proc.vca.vcloud_session.
                                        get_vcloud_headers())
             else:
-                utils.print_error("can't set syslog server", cmd_proc)
+                error = parseString(the_gateway.response.content, True)
+                utils.print_error("can't set syslog server: " +
+                                  error.get_message(), cmd_proc)
                 sys.exit(1)
         elif 'add-ip' == operation:
             utils.print_message("allocating public IP for gateway '%s' "
@@ -87,7 +90,9 @@ def gateway(cmd_proc, operation, vdc, gateway, ip):
                                        cmd_proc.vca.vcloud_session.
                                        get_vcloud_headers())
             else:
-                utils.print_error("can't allocate public IP", cmd_proc)
+                error = parseString(the_gateway.response.content, True)
+                utils.print_error("can't allocate public IP: " +
+                                  error.get_message(), cmd_proc)
                 sys.exit(1)
         elif 'del-ip' == operation:
             utils.print_message("deallocating public IP '%s' from gateway "
@@ -99,7 +104,9 @@ def gateway(cmd_proc, operation, vdc, gateway, ip):
                                        cmd_proc.vca.vcloud_session.
                                        get_vcloud_headers())
             else:
-                utils.print_error("can't deallocate public IP", cmd_proc)
+                error = parseString(the_gateway.response.content, True)
+                utils.print_error("can't deallocate public IP: " +
+                                  error.get_message(), cmd_proc)
                 sys.exit(1)
         elif 'use' == operation:
             cmd_proc.gateway = gateway
@@ -261,12 +268,10 @@ def firewall(cmd_proc, operation, vdc, gateway):
                                    cmd_proc.vca.vcloud_session.
                                    get_vcloud_headers())
         else:
-            utils.print_error("can't '%s' the firewall" % operation,
-                              cmd_proc)
+            error = parseString(the_gateway.response.content, True)
+            utils.print_error("can't '%s' the firewall: " % operation +
+                              error.get_message(), cmd_proc)
             sys.exit(1)
-    else:
-        utils.print_error('not implemented', cmd_proc)
-        sys.exit(1)
     cmd_proc.save_current_config()
 
 
@@ -328,7 +333,9 @@ def dhcp(cmd_proc, operation, vdc, gateway, network_name, pool):
                                    cmd_proc.vca.vcloud_session.
                                    get_vcloud_headers())
         else:
-            utils.print_error("can't add DHCP pool", cmd_proc)
+            error = parseString(the_gateway.response.content, True)
+            utils.print_error("can't add DHCP pool: " +
+                              error.get_message(), cmd_proc)
             sys.exit(1)
     elif 'delete' == operation:
         utils.print_message("deleting all DHCP pools in network '%s'" %
@@ -351,11 +358,9 @@ def dhcp(cmd_proc, operation, vdc, gateway, network_name, pool):
                                    cmd_proc.vca.vcloud_session.
                                    get_vcloud_headers())
         else:
-            utils.print_error("can't '%s' the DHCP service" % operation,
-                              cmd_proc)
-    else:
-        utils.print_error('not implemented', cmd_proc)
-        sys.exit(1)
+            error = parseString(the_gateway.response.content, True)
+            utils.print_error("can't '%s' the DHCP service: " % operation +
+                              error.get_message(), cmd_proc)
     cmd_proc.save_current_config()
 
 
@@ -455,7 +460,9 @@ def nat(cmd_proc, operation, vdc, gateway, rule_type, original_ip,
                                    cmd_proc.vca.vcloud_session.
                                    get_vcloud_headers())
         else:
-            utils.print_error("can't add NAT rule", cmd_proc)
+            error = parseString(the_gateway.response.content, True)
+            utils.print_error("can't add NAT rule: " +
+                              error.get_message(), cmd_proc)
             sys.exit(1)
     elif 'delete' == operation:
         utils.print_message("delete NAT rule")
@@ -478,12 +485,117 @@ def nat(cmd_proc, operation, vdc, gateway, rule_type, original_ip,
                                        cmd_proc.vca.vcloud_session.
                                        get_vcloud_headers())
             else:
-                utils.print_error("can't delete NAT rule", cmd_proc)
+                error = parseString(the_gateway.response.content, True)
+                utils.print_error("can't delete NAT rule: " +
+                                  error.get_message(), cmd_proc)
                 sys.exit(1)
         else:
             utils.print_error("rule doesn't exist in edge gateway", cmd_proc)
             sys.exit(1)
-    else:
-        utils.print_error('not implemented', cmd_proc)
+    cmd_proc.save_current_config()
+
+
+@cli.command()
+@click.pass_obj
+@click.argument('operation', default=default_operation,
+                metavar='[list | enable | disable | add-endpoint'
+                        ' | del-endpoint | add-tunnel | del-tunnel'
+                        ' | add-network | del-network]',
+                type=click.Choice(
+                    ['list', 'enable', 'disable', 'add-endpoint',
+                     'del-endpoint', 'add-tunnel', 'del-tunnel',
+                     'add-network', 'del-network']))
+@click.option('-v', '--vdc', default=None,
+              metavar='<vdc>', help='Virtual Data Center Name')
+@click.option('-g', '--gateway', default=None, metavar='<gateway>',
+              help='Edge Gateway Name')
+@click.option('-n', '--network', 'network_name', default='',
+              metavar='<network>', help='Network name')
+@click.option('-p', '--public-ip', 'public_ip', default='',
+              metavar='<ip_address>', help='Public IP address')
+@click.option('-t', '--tunnel', default='',
+              metavar='<tunnel>', help='Tunnel name')
+@click.option('-i', '--local-ip', 'local_ip', default='',
+              metavar='<ip_address>', help='Local IP address')
+@click.option('-w', '--local-network', 'local_network', default=None,
+              metavar='<network>', help='Local network')
+@click.option('-e', '--peer-ip', 'peer_ip', default='',
+              metavar='<ip_address>', help='Peer IP address')
+@click.option('-k', '--peer-network', 'peer_network', default=None,
+              metavar='<network>', help='Peer network')
+@click.option('-s', '--secret', default='', metavar='<secret>',
+              help='Shared secret')
+def vpn(cmd_proc, operation, vdc, gateway, network_name, public_ip, local_ip,
+        local_network, peer_ip, peer_network, tunnel, secret):
+    """Operations with Edge Gateway VPN"""
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)
         sys.exit(1)
+    if vdc is None:
+        vdc = cmd_proc.vdc_name
+    the_vdc = cmd_proc.vca.get_vdc(vdc)
+    if the_vdc is None:
+        utils.print_error("VDC not found '%s'" % vdc, cmd_proc)
+        sys.exit(1)
+    if gateway is None:
+        gateway = cmd_proc.gateway
+    the_gateway = cmd_proc.vca.get_gateway(vdc, gateway)
+    if the_gateway is None:
+        utils.print_error("gateway not found '%s'" % gateway, cmd_proc)
+        sys.exit(1)
+    if 'list' == operation:
+        headers1 = ['EndPoint', 'Public IP']
+        table1 = cmd_proc.vpn_endpoints_to_table(the_gateway)
+        headers2 = ['Tunnel', 'Local IP', 'Local Networks', 'Peer IP',
+                    'Peer Networks', 'Enabled', 'Operational']
+        table2 = cmd_proc.vpn_tunnels_to_table(the_gateway)
+        if cmd_proc.json_output:
+            json_object = {'endpoints': table1, 'tunnels': table2}
+            utils.print_json(json_object, 'VPN config',
+                             cmd_proc)
+        else:
+            utils.print_table("VPN endpoints in gateway '%s', "
+                              "VDC '%s', profile '%s':" %
+                              (gateway, vdc, cmd_proc.profile),
+                              headers1, table1, cmd_proc)
+            utils.print_table("VPN tunnels in gateway '%s', "
+                              "VDC '%s', profile '%s':" %
+                              (gateway, vdc, cmd_proc.profile),
+                              headers2, table2, cmd_proc)
+    else:
+        if 'enable' == operation or 'disable' == operation:
+            utils.print_message("%s VPN service" % operation)
+            the_gateway.enable_vpn('enable' == operation)
+        elif 'add-endpoint' == operation:
+            utils.print_message("add VPN endpoint")
+            the_gateway.add_vpn_endpoint(network_name, public_ip)
+        elif 'del-endpoint' == operation:
+            utils.print_message("delete VPN endpoint")
+            the_gateway.del_vpn_endpoint(network_name, public_ip)
+        elif 'add-tunnel' == operation:
+            utils.print_message("add VPN tunnel")
+            the_gateway.add_vpn_tunnel(tunnel, local_ip, local_network,
+                                       peer_ip, peer_network, secret)
+        elif 'del-tunnel' == operation:
+            utils.print_message("delete VPN tunnel")
+            the_gateway.delete_vpn_tunnel(tunnel)
+        elif 'add-network' == operation:
+            utils.print_message("add network to VPN tunnel")
+            the_gateway.add_network_to_vpn_tunnel(tunnel, local_network,
+                                                  peer_network)
+        elif 'del-network' == operation:
+            utils.print_message("delete network from VPN tunnel")
+            the_gateway.delete_network_from_vpn_tunnel(tunnel, local_network,
+                                                       peer_network)
+        task = the_gateway.save_services_configuration()
+        if task:
+            utils.display_progress(task, cmd_proc,
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
+        else:
+            error = parseString(the_gateway.response.content, True)
+            utils.print_error("can't update VPN configuration: " +
+                              error.get_message(), cmd_proc)
+            sys.exit(1)
     cmd_proc.save_current_config()

@@ -433,6 +433,23 @@ def example(ctx):
                   " --last Name --roles 'Virtual Infrastructure Administrator,"
                   " Network Administrator'"])
     example_id += 1
+    table.append([example_id, 'list blueprints',
+                  'vCA',
+                  'vca blueprint'])
+    example_id += 1
+    table.append([example_id, 'upload blueprint',
+                  'vCA',
+                  'vca blueprint upload --blueprint helloworld '
+                  '--file helloworld/blueprint.yaml'])
+    example_id += 1
+    table.append([example_id, 'show details of a blueprint',
+                  'vCA',
+                  'vca blueprint info --blueprint helloworld'])
+    example_id += 1
+    table.append([example_id, 'delete blueprint',
+                  'vCA',
+                  'vca blueprint delete --blueprint helloworld'])
+    example_id += 1
     table.append([example_id, 'show status', 'All',
                   'vca status'])
     example_id += 1

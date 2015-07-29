@@ -33,7 +33,7 @@ class CmdProc:
 
     def __init__(self, profile=None, profile_file=None,
                  json_output=False, xml_output=False,
-                 debug=False, insecure=False):
+                 debug=False, insecure=False, host_score=None):
         self.profile = profile
         self.profile_file = profile_file
         self.debug = debug
@@ -48,6 +48,7 @@ class CmdProc:
         self.error_message = None
         self.vdc_name = None
         self.gateway = None
+        self.host_score = host_score
 
     def load_config(self, profile=None, profile_file='~/.vcarc'):
         self.config.read(os.path.expanduser(profile_file))
@@ -73,6 +74,7 @@ class CmdProc:
         session_uri = None
         vdc = None
         gateway = None
+        host_score = 'score.vca.io'
         if self.config.has_section(section):
             if self.config.has_option(section, 'host'):
                 host = self.config.get(section, 'host')
@@ -103,6 +105,9 @@ class CmdProc:
                 vdc = self.config.get(section, 'vdc')
             if self.config.has_option(section, 'gateway'):
                 gateway = self.config.get(section, 'gateway')
+            if self.config.has_option(section, 'host_score'):
+                host_score = self.config.get(section, 'host_score')
+        self.host_score = host_score
         self.vca = VCA(host=host, username=user,
                        service_type=service_type, version=version,
                        verify=self.verify, log=self.debug)
@@ -205,6 +210,10 @@ class CmdProc:
             self.config.remove_option(section, 'instance')
         else:
             self.config.set(section, 'instance', self.instance)
+        if self.host_score is None:
+            self.config.remove_option(section, 'host_score')
+        else:
+            self.config.set(section, 'host_score', self.host_score)
         if self.vca is None or self.vca.vcloud_session is None:
             self.config.remove_option(section, 'org')
             self.config.remove_option(section, 'org_url')
@@ -351,6 +360,7 @@ class CmdProc:
         self.service_type = None
         self.version = None
         self.session_uri = None
+        self.host_score = None
         self.save_config(self.profile, self.profile_file)
 
     def org_to_table(self, vca):
@@ -767,4 +777,10 @@ class CmdProc:
                           utils.beautified(peer_networks),
                           'Yes' if tunnel.get_IsEnabled() == 1 else 'No',
                           'Yes' if tunnel.get_IsOperational() == 1 else 'No'])
+        return table
+
+    def blueprints_to_table(self, blueprints):
+        table = []
+        for b in blueprints:
+            table.append([b.get('id'), b.get('created_at')[:-7]])
         return table

@@ -89,6 +89,7 @@ def status(cmd_proc, show_password):
     table.append(['profile_file', cmd_proc.profile_file])
     table.append(['profile', cmd_proc.profile])
     table.append(['host', cmd_proc.vca.host])
+    table.append(['host_score', cmd_proc.host_score])
     table.append(['user', cmd_proc.vca.username])
     table.append(['instance', cmd_proc.instance])
     table.append(['org', cmd_proc.vca.org])
@@ -162,6 +163,8 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                                     'in local profile. Use ' +
                                     '--do-not-save-password to disable it.',
                                     cmd_proc)
+            cmd_proc.host_score = host_score
+            cmd_proc.save_current_config()
             if cmd_proc.vca.service_type in [VCA.VCA_SERVICE_TYPE_VCA]:
                 if instance is not None:
                     result = _use_instance(cmd_proc, instance)
@@ -173,7 +176,7 @@ def login(cmd_proc, user, host, password, do_not_save_password,
                         if vdc is not None:
                             the_vdc = cmd_proc.vca.get_vdc(vdc)
                             if the_vdc is not None:
-                                utils.print_message("Using VDC '%s' "
+                                utils.print_message("Using VDC '%s'"
                                                     ", profile '%s'" %
                                                     (vdc, cmd_proc.profile),
                                                     cmd_proc)

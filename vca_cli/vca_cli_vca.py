@@ -69,7 +69,7 @@ def user(cmd_proc, operation, username, user_id, password, new_password,
                               u.get('id'),
                               utils.beautified(roles)])
             sorted_table = sorted(table, key=operator.itemgetter(0),
-                                  everse=False)
+                                  reverse=False)
             utils.print_table("Available users in instance '%s'"
                               ", profile '%s':" %
                               (cmd_proc.instance, cmd_proc.profile),

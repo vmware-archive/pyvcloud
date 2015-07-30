@@ -23,10 +23,12 @@ from pyvcloud.vcloudair import VCA
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
-                metavar='[list | info | change-password | create | delete | '
-                        'validate]',
-                type=click.Choice(['list', 'info', 'change-password',
-                                   'create', 'delete', 'validate']))
+                metavar='[list | info | create | delete | '
+                        'validate | change-password | '
+                        'reset-password]',
+                type=click.Choice(['list', 'info',
+                                   'create', 'delete', 'validate',
+                                   'change-password', 'reset-password']))
 @click.option('-u', '--user', 'username', default='',
               metavar='<user>', help='User')
 @click.option('-i', '--id', 'user_id', default=None,
@@ -85,14 +87,20 @@ def user(cmd_proc, operation, username, user_id, password, new_password,
             utils.print_message("User '%s' successfully created" % username)
         elif 'delete' == operation:
             result = cmd_proc.vca.del_user(user_id)
-            print result
+            utils.print_message("Successfully deleted user '%s'" %
+                                cmd_proc.vca.username)
         elif 'change-password' == operation:
             result = cmd_proc.vca.change_password(password, new_password)
-            utils.print_message("Successfully changed password for user '%s" %
-                                cmd_proc.vca.username)
+            utils.print_message("Successfully changed password for user '%s'"
+                                % cmd_proc.vca.username)
         elif 'validate' == operation:
             result = cmd_proc.vca.validate_user(username, password, token)
             print result
+        elif 'reset-password' == operation:
+            result = cmd_proc.vca.reset_password(user_id)
+            utils.print_message("Successfully reset password for user id"
+                                "'%s', check email to enter new password"
+                                % user_id)
     except:
         utils.print_error('An error has ocurred', cmd_proc)
         sys.exit(1)

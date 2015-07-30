@@ -52,11 +52,13 @@ class Score(object):
         headers["x-vcloud-version"] = self.version
         return headers
 
-    def ping(self):
-        self.response = Http.get(self.url + '/blueprints',
+    def get_status(self):
+        self.response = Http.get(self.url + '/status',
                                  headers=self.get_headers(),
                                  verify=self.verify, logger=self.logger)
-        return self.response.status_code
+        Log.debug(self.logger, self.response.status_code)
+        Log.debug(self.logger, self.response.content)
+        return self.response.content
 
 
 class BlueprintsClient(object):

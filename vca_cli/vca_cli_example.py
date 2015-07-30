@@ -450,6 +450,36 @@ def example(ctx):
                   'vCA',
                   'vca blueprint delete --blueprint helloworld'])
     example_id += 1
+    table.append([example_id, 'create deployment',
+                  'vCA',
+                  'vca deployment create --blueprint helloworld '
+                  '--deployment d1 --file inputs.yaml'])
+    table.append([example_id, 'list deployments',
+                  'vCA',
+                  'vca deployment'])
+    example_id += 1
+    table.append([example_id, 'show details of a deployment',
+                  'vCA',
+                  'vca deployment info --deployment d1'])
+    example_id += 1
+    table.append([example_id, 'execute deployment workflow',
+                  'vCA',
+                  'vca deployment execute --deployment d1 '
+                  '--workflow install'])
+    example_id += 1
+    table.append([example_id, 'delete deployment',
+                  'vCA',
+                  'vca deployment delete --deployment d1'])
+    example_id += 1
+    table.append([example_id, 'list workflow execution events',
+                  'vCA',
+                  'vca event list --id f98df6cf-08d8-47fa-947f-67c15337efae'])
+    example_id += 1
+    table.append([example_id, 'list workflow execution events',
+                  'vCA',
+                  'vca event list --id f98df6cf-08d8-47fa-947f-67c15337efae '
+                  '--show-logs'])
+    example_id += 1
     table.append([example_id, 'show status', 'All',
                   'vca status'])
     example_id += 1

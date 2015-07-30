@@ -784,3 +784,17 @@ class CmdProc:
         for b in blueprints:
             table.append([b.get('id'), b.get('created_at')[:-7]])
         return table
+
+    # def deployments_to_table(self, deployments):
+    #     table = []
+    #     for d in deployments:
+    #         inputs_view = []
+    #         inputs_line = "%s : %s"
+    #         for i in range(len(d['inputs'].keys())):
+    #             inputs_view.append(inputs_line % (
+    #                 d['inputs'].keys()[i],
+    #                 d['inputs'].values()[i]))
+    #         dep['inputs'] = "\n".join(inputs_view)
+    #         table.append([d.get('id'), d.get('blueprint_id'),
+    #                       d.get('created_at')[:-7]])
+    #     return table

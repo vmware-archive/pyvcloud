@@ -34,9 +34,9 @@ import collections
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
-                metavar='[list | info | validate | upload | delete]',
+                metavar='[list | info | validate | upload | delete | status]',
                 type=click.Choice(['list', 'info', 'validate', 'upload',
-                                   'delete']))
+                                   'delete', 'status']))
 @click.option('-b', '--blueprint', default='',
               metavar='<blueprint-id>',
               help='Name of the blueprint to create')
@@ -87,6 +87,9 @@ def blueprint(cmd_proc, operation, blueprint, blueprint_file, include_plan):
         except Exception as ex:
             utils.print_error('Failed to validate %s:\n %s' %
                               (blueprint_file, str(ex)))
+    elif 'status' == operation:
+        status = score.get_status()
+        print status
     elif 'list' == operation:
         blueprints = score.blueprints.list()
         if blueprints is None or len(blueprints) == 0:

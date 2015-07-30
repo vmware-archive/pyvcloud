@@ -29,10 +29,6 @@ from dsl_parser import parser
 from dsl_parser.exceptions import *
 
 
-# todo: get events
-# todo: validate-blueprint
-# todo: get execution details
-# todo: get outputs of deployment
 class Score(object):
 
     def __init__(self, url, org_url=None, token=None, version='5.7',
@@ -43,10 +39,10 @@ class Score(object):
         self.version = version
         self.verify = verify
         self.response = None
-        self.blueprints = BlueprintsClient(self)
-        self.deployments = DeploymentsClient(self)
-        self.executions = ExecutionsClient(self)
-        self.events = EventsClient(self)
+        self.blueprints = BlueprintsClient(self, log)
+        self.deployments = DeploymentsClient(self, log)
+        self.executions = ExecutionsClient(self, log)
+        self.events = EventsClient(self, log)
         self.logger = _get_logger() if log else None
 
     def get_headers(self):

@@ -308,12 +308,144 @@ class VCA(object):
         headers = self._get_vcloud_headers()
         headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.iam.api.schema.v2.classes.user.Users" % self.version
         self.response = Http.get(self.host + "/api/iam/Users", headers=headers, verify=self.verify, logger=self.logger)
-        if self.response.history and self.response.history[-1]:
-            self.response = Http.get(self.response.history[-1].headers['location'], headers=headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['users']
         else:
             raise Exception(self.response.status_code)
+
+
+    def add_user(self, email, given_name, family_name, roles):
+        """
+        Add user.
+
+        :return: .
+
+        **service type:**  vca
+
+        """
+
+        data = """
+        {
+            "schemas": [
+                "urn:scim:schemas:core:1.0"
+            ],
+            "state": "Active",
+            "email": "%s",
+            "familyName": "%s",
+            "givenName": "%s",
+            "roles": {
+                "roles": [
+        """ % (email, family_name, given_name)
+        first_role = True
+        for role in roles:
+            if first_role:
+                first_role = False
+            else:
+                data += ','
+            data += """
+                    {
+                        "name": "%s"
+                    }
+            """ % role.strip()
+        data += """
+                ]
+            },
+            "userName": "%s"
+        }
+        """ % email
+        headers = self._get_vcloud_headers()
+        headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.iam.api.schema.v2.classes.user.Users" % self.version
+        headers['Content-Type'] = "application/json;class=com.vmware.vchs.iam.api.schema.v2.classes.user.User;version=%s" % self.version
+        self.response = Http.post(self.host + "/api/iam/Users", headers=headers, data=data, verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.created:
+            return json.loads(self.response.content)
+        else:
+            raise Exception(self.response.status_code)
+
+
+    def del_user(self, user_id):
+        """
+        Delete user.
+
+        :return: .
+
+        **service type:**  vca
+
+        """
+
+        headers = self._get_vcloud_headers()
+        headers['Accept'] = "application/json"
+        self.response = Http.delete(self.host + "/api/iam/Users/" + user_id, headers=headers, verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.no_content:
+            return True
+        else:
+            Log.error(self.logger, self.response.status_code)
+            Log.error(self.logger, self.response.content)
+            raise Exception(self.response.status_code)
+
+
+    def change_password(self, current_password, new_password):
+        """
+        Change current user password.
+
+        :return: .
+
+        **service type:**  vca
+
+        """
+
+        data = """
+        {"currentPassword":"%s","newPassword":"%s"}
+        """ % (current_password, new_password)
+        headers = self._get_vcloud_headers()
+        headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.iam.api.schema.v2.classes.user.Password" % self.version
+        headers['Content-Type'] = "application/json;class=com.vmware.vchs.iam.api.schema.v2.classes.user.Password;version=%s" % self.version
+        self.response = Http.put(self.host + "/api/iam/Users/password", headers=headers, data=data, verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.no_content:
+            return True
+        else:
+            raise Exception(self.response.status_code)
+
+
+    def validate_user(self, email, new_password, token):
+        """
+        Validate user and set the initial password.
+
+        :return: .
+
+        **service type:**  vca
+
+        """
+
+        headers = {}
+        headers['Accept'] = "application/json;version=%s" % self.version
+        headers['Content-Type'] = "application/json"
+        self.response = Http.post(self.host + "/api/iam/access/%s" % token, headers=headers, auth=(email, new_password), verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.ok:
+            return True
+        else:
+            raise Exception(self.response.status_code)
+        
+
+
+    def get_roles(self):
+        """
+        Get role.
+
+        :return: .
+
+        **service type:**  vca
+
+        """
+
+        headers = self._get_vcloud_headers()
+        headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.iam.api.schema.v2.classes.user.Roles" % self.version
+        self.response = Http.get(self.host + "/api/iam/Roles", headers=headers, verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.ok:
+            return json.loads(self.response.content)['roles']
+        else:
+            raise Exception(self.response.status_code)
+        
 
 
     def get_instances(self):
@@ -554,7 +686,6 @@ class VCA(object):
             if len(refs) == 1:
                 self.response = Http.get(refs[0].href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
                 if self.response.status_code == requests.codes.ok:
-                    # print self.response.content
                     return vdcType.parseString(self.response.content, True)
 
     def get_vdc_names(self):
@@ -564,7 +695,7 @@ class VCA(object):
         :param vdc_name: (str): The virtual data center name.
         :return: (list of str) list of vdc names
         
-        **service type:** vca, vchs, standalon
+        **service type:** vca, vchs, standalone
 
         """
         vdcs = []
@@ -660,15 +791,21 @@ class VCA(object):
     def _get_vdc_templates(self):
         content_type = "application/vnd.vmware.admin.vdcTemplates+xml"
         link = filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link())
-        self.response = requests.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify)
+        if len(link) == 0:
+            return []
+        self.response = Http.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
-            return vdcTemplateListType.parseString(self.response.content, True)\
+            return vdcTemplateListType.parseString(self.response.content, True)
 
-    def create_vdc(self, vdc_name):
+    def create_vdc(self, vdc_name, vdc_template_name=None):
         vdcTemplateList = self._get_vdc_templates()
         content_type = "application/vnd.vmware.admin.vdcTemplate+xml"
-        vdcTemplate = filter(lambda link: link.get_type() == content_type, vdcTemplateList.get_VdcTemplate())
-        source = vcloudType.ReferenceType(href=vdcTemplate[0].get_href())
+        vdcTemplate = None
+        if vdc_template_name is None:
+            vdcTemplate = filter(lambda link: link.get_type() == content_type, vdcTemplateList.get_VdcTemplate())[0]
+        else:
+            vdcTemplate = filter(lambda link: (link.get_type() == content_type) and (link.get_name() == vdc_template_name), vdcTemplateList.get_VdcTemplate())[0]
+        source = vcloudType.ReferenceType(href=vdcTemplate.get_href())
 
         templateParams = vcloudType.InstantiateVAppTemplateParamsType()  # Too simple to add InstantiateVdcTemplateParamsType class
         templateParams.set_name(vdc_name)
@@ -677,10 +814,33 @@ class VCA(object):
                                                  namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5"')
         content_type = "application/vnd.vmware.vcloud.instantiateVdcTemplateParams+xml"
         link = filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link())
-        self.response = requests.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, data=body)
+        self.response = Http.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, data=body, logger=self.logger)
         if self.response.status_code == requests.codes.accepted:
             task = taskType.parseString(self.response.content, True)
             return task
+
+    def delete_vdc(self, vdc_name):
+        """
+        Request the deletion of an existing vdc.
+
+        :param vdc_name: (str): The name of the virtual data center.
+        :return: (tuple of (bool, task or str))  Two values are returned, a bool success indicator and a \
+                 :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`  object if the bool value was True or a \
+                 str message indicating the reason for failure if the bool value was False.
+
+        **service type:** standalone, vchs, vca
+
+        """
+        vdc = self.get_vdc(vdc_name)
+        if vdc is None:
+            return (False, 'VDC not found')
+        vdc.get_href()
+        self.response = Http.delete(vdc.get_href() + '?recursive=true&force=true', headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.accepted:
+            task = taskType.parseString(self.response.content, True)
+            return (True, task)
+        else:
+            return (False, self.response.content)
 
     def create_vapp(self, vdc_name, vapp_name, template_name, catalog_name,
                     network_name=None, network_mode='bridged', vm_name=None,
@@ -921,7 +1081,7 @@ class VCA(object):
         return False
 
 
-    def upload_media(self, catalog_name, item_name, media_file_name, description='', display_progress=False):
+    def upload_media(self, catalog_name, item_name, media_file_name, description='', display_progress=False, chunk_bytes=128*1024):
         """
         Uploads a media file (ISO) to a vCloud catalog
 
@@ -968,7 +1128,6 @@ class VCA(object):
                         progress_bar = ProgressBar(widgets=widgets, maxval=statinfo.st_size).start()
                     f = open(media_file_name, 'rb')
                     bytes_transferred = 0
-                    chunk_bytes = 1024*1024
                     while bytes_transferred < statinfo.st_size:
                         my_bytes = f.read(chunk_bytes)
                         if len(my_bytes) <= chunk_bytes:
@@ -1399,3 +1558,10 @@ class VCA(object):
 
     def get_status(self, code):
         return self.statuses[code+1]
+
+
+    def get_vdc_templates(self):
+        if self.vcloud_session.organization is None:
+            self.vcloud_session.login(token=self.vcloud_session.token)
+        vdcTemplateList = self._get_vdc_templates()
+        return vdcTemplateList

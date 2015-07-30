@@ -444,6 +444,11 @@ def example(ctx):
                   'vCA',
                   'vca blueprint'])
     example_id += 1
+    table.append([example_id, 'validate blueprint',
+                  'vCA',
+                  'vca blueprint validate '
+                  '--file helloworld/blueprint.yaml'])
+    example_id += 1
     table.append([example_id, 'upload blueprint',
                   'vCA',
                   'vca blueprint upload --blueprint helloworld '

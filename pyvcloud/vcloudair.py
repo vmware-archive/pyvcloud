@@ -425,7 +425,29 @@ class VCA(object):
             return True
         else:
             raise Exception(self.response.status_code)
-        
+
+
+    def reset_password(self, user_id):
+        """
+        Reset user password.
+
+        :return: .
+
+        **service type:**  vca
+
+        """
+        headers = self._get_vcloud_headers()
+        headers['Content-Type'] = "application/json;version=%s" % self.version
+        self.response = Http.put(self.host + 
+                                  "/api/iam/Users/%s/password/reset" %
+                                  user_id, headers=headers,
+                                  verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.no_content:
+            return True
+        else:
+            Log.error(self.logger, self.response.status_code)
+            Log.error(self.logger, self.response.content)
+            raise Exception(self.response.status_code)
 
 
     def get_roles(self):

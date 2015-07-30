@@ -437,7 +437,8 @@ def example(ctx):
                   'vca user delete --id 65737432-9159-418b-945d-e10264130ccb'])
     example_id += 1
     table.append([example_id, 'reset user password', 'vCA',
-                  'vca user reset-password --id 65737432-9159-418b-945d-e10264130ccb'])
+                  'vca user reset-password --id '
+                  '65737432-9159-418b-945d-e10264130ccb'])
     example_id += 1
     table.append([example_id, 'list blueprints',
                   'vCA',

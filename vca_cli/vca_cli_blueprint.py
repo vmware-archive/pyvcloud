@@ -161,9 +161,14 @@ def print_deployments(deployments):
         inputs_view = []
         inputs_line = "%s : %s"
         for i in range(len(dep['inputs'].keys())):
+            value = dep['inputs'].values()[i]
+            if 'password' in dep['inputs'].keys()[i]:
+                value = '************'
+            if len(value) > 50:
+                value = value[:50] + '...'
             inputs_view.append(inputs_line % (
                 dep['inputs'].keys()[i],
-                dep['inputs'].values()[i]))
+                value))
         dep['inputs'] = "\n".join(inputs_view)
         print_utils.print_list(
             [dep],

@@ -245,7 +245,8 @@ class VCA(object):
         headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.billing.serviceGroups" % self.version
         self.response = Http.get(self.host + "/api/billing/service-groups", headers=headers, verify=self.verify, logger=self.logger)
         if self.response.history and self.response.history[-1]:
-            self.response = Http.get(self.response.history[-1].headers['location'], headers=headers, verify=self.verify, logger=self.logger)
+            self.response = Http.get(self.response.history[-1].headers['location'],
+                                     headers=headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['serviceGroupList']
         else:
@@ -266,7 +267,8 @@ class VCA(object):
         headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.sc.restapi.model.planlisttype" % self.version
         self.response = Http.get(self.host + "/api/sc/plans", headers=headers, verify=self.verify, logger=self.logger)
         if self.response.history and self.response.history[-1]:
-            self.response = Http.get(self.response.history[-1].headers['location'], headers=headers, verify=self.verify, logger=self.logger)
+            self.response = Http.get(self.response.history[-1].headers['location'] + '/plans',
+                                     headers=headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['plans']
         else:
@@ -438,7 +440,7 @@ class VCA(object):
         """
         headers = self._get_vcloud_headers()
         headers['Content-Type'] = "application/json;version=%s" % self.version
-        self.response = Http.put(self.host + 
+        self.response = Http.put(self.host +
                                   "/api/iam/Users/%s/password/reset" %
                                   user_id, headers=headers,
                                   verify=self.verify, logger=self.logger)
@@ -467,7 +469,7 @@ class VCA(object):
             return json.loads(self.response.content)['roles']
         else:
             raise Exception(self.response.status_code)
-        
+
 
 
     def get_instances(self):
@@ -481,7 +483,8 @@ class VCA(object):
         """
         self.response = Http.get(self.host + "/api/sc/instances", headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
         if self.response.history and self.response.history[-1]:
-            self.response = Http.get(self.response.history[-1].headers['location'], headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
+            self.response = Http.get(self.response.history[-1].headers['location'] + '/instances',
+                                     headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['instances']
         else:
@@ -566,7 +569,7 @@ class VCA(object):
                 return False
             attributes = json.loads(instances[0]['instanceAttributes'])
             plans = self.get_plans()
-            service_name = filter(lambda plan: 
+            service_name = filter(lambda plan:
                                   plan['id'] == instances[0]['planId'],
                                   plans)[0]['serviceName']
             if 'com.vmware.vchs.compute' != service_name:
@@ -716,7 +719,7 @@ class VCA(object):
 
         :param vdc_name: (str): The virtual data center name.
         :return: (list of str) list of vdc names
-        
+
         **service type:** vca, vchs, standalone
 
         """

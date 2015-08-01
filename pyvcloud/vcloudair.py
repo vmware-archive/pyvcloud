@@ -83,7 +83,7 @@ class VCA(object):
         Create a VCA connection
 
         :param host: (str): The vCloud Air Host. Varies by service type.
-                            Valid values are https://vchs.vmware.com and https://iam.vchs.vmware.com
+                            Valid values are https://vchs.vmware.com and https://vca.vmware.com
         :param username: (str): The username for the vCloud Air Service.
         :param service_type: (str, optional): The type of vCloud Air Service. Valid values are ondemand, subscription, vcd.
         :param version: (str, optional): The API version. Note: may vary by service type.

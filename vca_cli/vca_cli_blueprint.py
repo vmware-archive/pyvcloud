@@ -164,7 +164,7 @@ def print_deployments(deployments):
             value = dep['inputs'].values()[i]
             if 'password' in dep['inputs'].keys()[i]:
                 value = '************'
-            if len(value) > 50:
+            if len(str(value)) > 50:
                 value = value[:50] + '...'
             inputs_view.append(inputs_line % (
                 dep['inputs'].keys()[i],

@@ -1567,7 +1567,7 @@ class VCA(object):
             return(False, 'more than one disks found with that name, use the disk id')
 
 
-        def cancel_task(self, task_url):
+    def cancel_task(self, task_url):
         self.response = Http.post(task_url + '/action/cancel', headers=self.vcloud_session.get_vcloud_headers(),
             verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.no_content:

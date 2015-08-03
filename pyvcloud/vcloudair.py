@@ -83,7 +83,7 @@ class VCA(object):
         Create a VCA connection
 
         :param host: (str): The vCloud Air Host. Varies by service type.
-                            Valid values are https://vchs.vmware.com and https://iam.vchs.vmware.com
+                            Valid values are https://vchs.vmware.com and https://vca.vmware.com
         :param username: (str): The username for the vCloud Air Service.
         :param service_type: (str, optional): The type of vCloud Air Service. Valid values are ondemand, subscription, vcd.
         :param version: (str, optional): The API version. Note: may vary by service type.
@@ -1570,7 +1570,6 @@ class VCA(object):
             return(False, 'more than one disks found with that name, use the disk id')
 
 
-    #https://us-texas-1-14.vchs.vmware.com/api/compute/api/task/d298aec0-2b43-4dc0-8978-d73d6b17a20e/action/cancel
     def cancel_task(self, task_url):
         self.response = Http.post(task_url + '/action/cancel', headers=self.vcloud_session.get_vcloud_headers(),
             verify=self.verify, logger=self.logger)

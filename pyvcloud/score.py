@@ -26,7 +26,6 @@ from pyvcloud import exceptions
 from pyvcloud import _get_logger, Http, Log
 
 from dsl_parser import parser
-from dsl_parser.exceptions import *
 
 
 class Score(object):
@@ -131,8 +130,8 @@ class BlueprintsClient(object):
                 application_file_name=None):
         query_params = {}
         if application_file_name is not None:
-            query_params['application_file_name'] = \
-                urllib.quote(application_file_name)
+            query_params['application_file_name'] = (
+                urllib.quote(application_file_name))
 
         uri = '/blueprints/{0}'.format(blueprint_id)
         url = '{0}{1}'.format(self.score.url, uri)
@@ -173,12 +172,15 @@ class DeploymentsClient(object):
             raise exceptions.from_response(self.score.response)
         return json.loads(self.score.response.content)
 
-    def delete(self, deployment_id):
-        self.score.response = Http.delete(self.score.url +
-                                          '/deployments/%s' % deployment_id,
-                                          headers=self.score.get_headers(),
-                                          verify=self.score.verify,
-                                          logger=self.logger)
+    def delete(self, deployment_id, force_delete=False):
+
+        self.score.response = Http.delete(
+            self.score.url + '/deployments/%s' % deployment_id,
+            params={"ignore_live_nodes": force_delete},
+            headers=self.score.get_headers(),
+            verify=self.score.verify,
+            logger=self.logger)
+
         if self.score.response.status_code != requests.codes.ok:
             raise exceptions.from_response(self.score.response)
         return json.loads(self.score.response.content)
@@ -243,7 +245,8 @@ class ExecutionsClient(object):
     def cancel(self, execution_id, force=False):
         data = {
             'execution_id': execution_id,
-            'force': str(force).lower()}
+            'force': force
+        }
         headers = self.score.get_headers()
         headers['Content-type'] = 'application/json'
         self.score.response = Http.put(self.score.url + '/executions',

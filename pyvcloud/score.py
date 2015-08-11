@@ -242,14 +242,15 @@ class ExecutionsClient(object):
 
     def cancel(self, execution_id, force=False):
         data = {
-            'execution_id': execution_id,
-            'force': str(force).lower()}
+            'force': force}
         headers = self.score.get_headers()
         headers['Content-type'] = 'application/json'
-        self.score.response = Http.put(self.score.url + '/executions',
-                                       headers=headers, data=json.dumps(data),
-                                       verify=self.score.verify,
-                                       logger=self.logger)
+        self.score.response = Http.post(
+            self.score.url + '/executions/' + execution_id,
+            headers=headers, data=json.dumps(data),
+            verify=self.score.verify,
+            logger=self.logger
+        )
         if self.score.response.status_code != requests.codes.ok:
             raise exceptions.from_response(self.score.response)
         return json.loads(self.score.response.content)

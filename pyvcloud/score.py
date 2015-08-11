@@ -226,8 +226,8 @@ class ExecutionsClient(object):
             'deployment_id': deployment_id,
             'workflow_id': workflow_id,
             'parameters': parameters,
-            'allow_custom_parameters': str(allow_custom_parameters).lower(),
-            'force': str(force).lower()
+            'allow_custom_parameters': allow_custom_parameters,
+            'force': force,
         }
         headers = self.score.get_headers()
         headers['Content-type'] = 'application/json'

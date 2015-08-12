@@ -39,7 +39,7 @@ def _authorize(cmd_proc):
         sys.exit(1)
     scoreclient = cmd_proc.vca.get_score_service(cmd_proc.host_score)
     if scoreclient is None:
-        utils.print_error('Unable to authorize to Score.',
+        utils.print_error('Unable to login to the blueprinting service.',
                           cmd_proc)
         sys.exit(1)
     return scoreclient
@@ -78,7 +78,7 @@ def blueprint(cmd_proc, operation, blueprint, blueprint_file, include_plan):
         _list_blueprints(cmd_proc, scoreclient)
 
     elif 'upload' == operation:
-        _upload(cmd_proc, blueprint_file, scoreclient)
+        _upload(cmd_proc, blueprint, blueprint_file, scoreclient)
 
     elif 'delete' == operation:
         _delete_blueprint(cmd_proc, blueprint, scoreclient)
@@ -133,7 +133,7 @@ def _delete_blueprint(cmd_proc, blueprint_id, scoreclient):
                           str(e), cmd_proc)
 
 
-def _upload(cmd_proc, blueprint_file, scoreclient):
+def _upload(cmd_proc, blueprint, blueprint_file, scoreclient):
     try:
         b = scoreclient.blueprints.upload(blueprint_file, blueprint)
         utils.print_message("Successfully uploaded blueprint '%s'." %
@@ -315,7 +315,8 @@ def deployment(cmd_proc, operation, deployment, blueprint,
         _list_deployments(cmd_proc, scoreclient)
 
     elif 'create' == operation:
-        _create_deplyment(cmd_proc, input_file, scoreclient)
+        _create_deployment(cmd_proc, blueprint, deployment, input_file,
+                           scoreclient)
 
     elif 'delete' == operation:
         _delete_deployment(cmd_proc, scoreclient, deployment, force_delete)
@@ -344,7 +345,8 @@ def _cancel(cmd_proc, execution, force_cancel, scoreclient):
                           .format(str(e)), cmd_proc)
 
 
-def _create_deplyment(cmd_proc, input_file, scoreclient):
+def _create_deployment(cmd_proc, blueprint, deployment, input_file,
+                      scoreclient):
     try:
         inputs = None
         if input_file:

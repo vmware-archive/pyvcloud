@@ -20,6 +20,7 @@ import json
 import operator
 from vca_cli import cli, utils, default_operation
 from pyvcloud.score import Score
+from pyvcloud import exceptions
 from dsl_parser.exceptions import \
     MissingRequiredInputError, \
     UnknownInputError, \
@@ -29,6 +30,19 @@ from pyvcloud import Log
 import print_utils
 from tabulate import tabulate
 import collections
+
+
+def _authorize(cmd_proc):
+    result = cmd_proc.re_login()
+    if not result:
+        utils.print_error('Not logged in', cmd_proc)
+        sys.exit(1)
+    scoreclient = cmd_proc.vca.get_score_service(cmd_proc.host_score)
+    if scoreclient is None:
+        utils.print_error('Unable to login to the blueprinting service.',
+                          cmd_proc)
+        sys.exit(1)
+    return scoreclient
 
 
 @cli.command()
@@ -49,53 +63,78 @@ import collections
               help="Include blueprint plan in INFO operation")
 def blueprint(cmd_proc, operation, blueprint, blueprint_file, include_plan):
     """Operations with Blueprints"""
-    score = None
+    scoreclient = None
     if 'validate' != operation:
-        result = cmd_proc.re_login()
-        if not result:
-            utils.print_error('Not logged in', cmd_proc)
-            sys.exit(1)
-        score = cmd_proc.vca.get_score_service(cmd_proc.host_score)
-        if score is None:
-            utils.print_error('Unable to access the blueprint service',
-                              cmd_proc)
-            sys.exit(1)
+        scoreclient = _authorize(cmd_proc)
     else:
-        score = Score(cmd_proc.host_score)
+        scoreclient = Score(cmd_proc.host_score)
         Log.debug(cmd_proc.logger, 'using host score: %s' %
                   cmd_proc.host_score)
     if 'validate' == operation:
-        try:
-            score.blueprints.validate(blueprint_file)
-            utils.print_message("The blueprint is valid.", cmd_proc)
-        except MissingRequiredInputError as mrie:
-            utils.print_error('Invalid blueprint: ' +
-                              str(mrie)[str(mrie).rfind('}') + 1:].
-                              strip())
-        except UnknownInputError as uie:
-            utils.print_error('Invalid blueprint: ' +
-                              str(uie)[str(uie).rfind('}') + 1:].
-                              strip())
-        except FunctionEvaluationError as fee:
-            utils.print_error('Invalid blueprint: ' +
-                              str(fee)[str(fee).rfind('}') + 1:].
-                              strip())
-        except DSLParsingException as dpe:
-            utils.print_error('Invalid blueprint: ' +
-                              str(dpe)[str(dpe).rfind('}') + 1:].
-                              strip())
-        except Exception as ex:
-            utils.print_error('Failed to validate %s:\n %s' %
-                              (blueprint_file, str(ex)))
-    elif 'status' == operation:
-        status = score.get_status()
-        print status
+        _validate(cmd_proc, blueprint_file, scoreclient)
     elif 'list' == operation:
-        blueprints = score.blueprints.list()
-        if blueprints is None or len(blueprints) == 0:
-            utils.print_message('No blueprints found. Reason %s.' %
-                                str(score.response.content), cmd_proc)
-            return
+        _list_blueprints(cmd_proc, scoreclient)
+    elif 'upload' == operation:
+        _upload(cmd_proc, blueprint, blueprint_file, scoreclient)
+    elif 'delete' == operation:
+        _delete_blueprint(cmd_proc, blueprint, scoreclient)
+    elif 'info' == operation:
+        _info_blueprint(cmd_proc, scoreclient,
+                        include_plan=include_plan)
+    elif 'status' == operation:
+        try:
+            scoreclient = _authorize(cmd_proc)
+            status = scoreclient.get_status()
+            print_utils.print_dict(json.loads(status))
+        except exceptions.ClientException as e:
+            utils.print_error("Unable to get blueprinting service status. "
+                              "Reason: {0}"
+                              .format(str(e)), cmd_proc)
+
+
+def _info_blueprint(cmd_proc, scoreclient, include_plan=False):
+    try:
+        b = scoreclient.blueprints.get(blueprint)
+        headers = ['Id', 'Created']
+        table = cmd_proc.blueprints_to_table([b])
+        if cmd_proc.json_output:
+            json_object = {'blueprint':
+                           utils.table_to_json(headers, table)}
+            utils.print_json(json_object, cmd_proc=cmd_proc)
+        else:
+            utils.print_table("Details of blueprint '%s', profile '%s':" %
+                              (blueprint, cmd_proc.profile),
+                              headers, table, cmd_proc)
+        if include_plan:
+            utils.print_json(b['plan'], "Blueprint plan", cmd_proc)
+    except exceptions.ClientException as e:
+                utils.print_error("Blueprint not found. Reason: %s." %
+                                  str(e))
+
+
+def _delete_blueprint(cmd_proc, blueprint_id, scoreclient):
+    try:
+        scoreclient.blueprints.delete(blueprint_id)
+        utils.print_message("successfully deleted blueprint '%s'" %
+                            blueprint_id, cmd_proc)
+    except exceptions.ClientException as e:
+        utils.print_error("Failed to delete blueprint. Reason: %s." %
+                          str(e), cmd_proc)
+
+
+def _upload(cmd_proc, blueprint, blueprint_file, scoreclient):
+    try:
+        b = scoreclient.blueprints.upload(blueprint_file, blueprint)
+        utils.print_message("Successfully uploaded blueprint '%s'." %
+                            b.get('id'), cmd_proc)
+    except exceptions.ClientException as e:
+        utils.print_error("Failed to upload blueprint. Reason: %s." %
+                          str(e), cmd_proc)
+
+
+def _list_blueprints(cmd_proc, scoreclient):
+    try:
+        blueprints = scoreclient.blueprints.list()
         headers = ['Id', 'Created']
         table = cmd_proc.blueprints_to_table(blueprints)
         if cmd_proc.json_output:
@@ -104,43 +143,36 @@ def blueprint(cmd_proc, operation, blueprint, blueprint_file, include_plan):
             utils.print_json(json_object, cmd_proc=cmd_proc)
         else:
             utils.print_table("Available blueprints, profile '%s':" %
-                              (cmd_proc.profile),
+                              cmd_proc.profile,
                               headers, table, cmd_proc)
-    elif 'upload' == operation:
-        try:
-            b = score.blueprints.upload(blueprint_file, blueprint)
-            if b is not None:
-                utils.print_message("Successfully uploaded blueprint '%s'." %
-                                    b.get('id'), cmd_proc)
-        except Exception:
-            utils.print_error("Failed to upload blueprint. Reason: %s." %
-                              str(score.response.content), cmd_proc)
-    elif 'delete' == operation:
-        b = score.blueprints.delete(blueprint)
-        if b:
-            utils.print_message("successfully deleted blueprint '%s'" %
-                                blueprint, cmd_proc)
-        else:
-            utils.print_error("Failed to delete blueprint. Reason: %s." %
-                              str(score.response.content), cmd_proc)
-    elif 'info' == operation:
-        b = score.blueprints.get(blueprint)
-        if b:
-            headers = ['Id', 'Created']
-            table = cmd_proc.blueprints_to_table([b])
-            if cmd_proc.json_output:
-                json_object = {'blueprint':
-                               utils.table_to_json(headers, table)}
-                utils.print_json(json_object, cmd_proc=cmd_proc)
-            else:
-                utils.print_table("Details of blueprint '%s', profile '%s':" %
-                                  (blueprint, cmd_proc.profile),
-                                  headers, table, cmd_proc)
-                if include_plan:
-                    print(b['plan'])
-        else:
-            utils.print_error("Blueprint not found. Reason: %s." %
-                              str(score.response.content))
+    except exceptions.ClientException as e:
+        utils.print_message('Unable to list blueprints. Reason %s.' %
+                            str(e), cmd_proc)
+
+
+def _validate(cmd_proc, blueprint_file, scoreclient):
+    try:
+        scoreclient.blueprints.validate(blueprint_file)
+        utils.print_message("The blueprint is valid.", cmd_proc)
+    except MissingRequiredInputError as mrie:
+        utils.print_error('Invalid blueprint: ' +
+                          str(mrie)[str(mrie).rfind('}') + 1:].
+                          strip())
+    except UnknownInputError as uie:
+        utils.print_error('Invalid blueprint: ' +
+                          str(uie)[str(uie).rfind('}') + 1:].
+                          strip())
+    except FunctionEvaluationError as fee:
+        utils.print_error('Invalid blueprint: ' +
+                          str(fee)[str(fee).rfind('}') + 1:].
+                          strip())
+    except DSLParsingException as dpe:
+        utils.print_error('Invalid blueprint: ' +
+                          str(dpe)[str(dpe).rfind('}') + 1:].
+                          strip())
+    except Exception as ex:
+        utils.print_error('Failed to validate %s:\n %s' %
+                          (blueprint_file, str(ex)))
 
 
 def print_table(msg, obj, headers, table, ctx):
@@ -258,73 +290,116 @@ def print_execution(execution, ctx=None):
               is_flag=True, default=False, help='Show events')
 @click.option('-e', '--execution', default=None,
               metavar='<execution-id>', help='Execution Id')
-@click.option('--force', 'force_cancel',
+@click.option('--force-cancel', 'force_cancel',
               is_flag=True, default=False, help='Force cancel execution')
+@click.option('--force-delete', 'force_delete',
+              is_flag=True, default=False, help='Force delete deployment')
 def deployment(cmd_proc, operation, deployment, blueprint,
-               input_file, workflow, show_events, execution, force_cancel):
+               input_file, workflow, show_events, execution,
+               force_cancel, force_delete):
     """Operations with Deployments"""
-    result = cmd_proc.re_login()
-    if not result:
-        utils.print_error('Not logged in', cmd_proc)
-        sys.exit(1)
-    score = cmd_proc.vca.get_score_service(cmd_proc.host_score)
-    if score is None:
-        utils.print_error('Unable to access the blueprint service',
-                          cmd_proc)
-        sys.exit(1)
+    scoreclient = _authorize(cmd_proc)
+
     if 'list' == operation:
-        deployments = score.deployments.list()
-        if deployments is None or len(deployments) == 0:
-            utils.print_message('No deployments found. Reason %s.' %
-                                str(score.response.content), cmd_proc)
-            return
-        print_deployments(deployments)
+        _list_deployments(cmd_proc, scoreclient)
+
     elif 'create' == operation:
+        _create_deployment(cmd_proc, blueprint, deployment, input_file,
+                           scoreclient)
+
+    elif 'delete' == operation:
+        _delete_deployment(cmd_proc, scoreclient, deployment, force_delete)
+
+    elif 'info' == operation:
+        _info_deployment(cmd_proc, scoreclient, deployment,
+                         show_events=show_events)
+
+    elif 'execute' == operation:
+        _execute_workflow(cmd_proc, deployment, workflow, scoreclient)
+
+    elif 'cancel' == operation:
+        _cancel(cmd_proc, execution, force_cancel, scoreclient)
+
+
+def _cancel(cmd_proc, execution, force_cancel, scoreclient):
+    if not execution:
+        utils.print_error("execution id is not specified")
+        return
+    try:
+        e = scoreclient.executions.cancel(execution, force_cancel)
+        print_execution(e, None) if e else utils.print_message(
+            str(scoreclient.response.content), cmd_proc)
+    except exceptions.ClientException as e:
+        utils.print_error("Failed to cancel workflow. Reasons: {0}."
+                          .format(str(e)), cmd_proc)
+
+
+def _create_deployment(cmd_proc, blueprint, deployment, input_file,
+                      scoreclient):
+    try:
         inputs = None
         if input_file:
             inputs = yaml.load(input_file)
-        d = score.deployments.create(
+        scoreclient.deployments.create(
             blueprint, deployment,
             json.dumps(inputs, sort_keys=False,
                        indent=4, separators=(',', ': ')))
-        if d:
-            utils.print_message("Successfully created deployment '%s'." %
-                                deployment, cmd_proc)
-        else:
+        utils.print_message("Successfully created deployment '%s'." %
+                            deployment, cmd_proc)
+    except exceptions.ClientException as e:
             utils.print_error("Failed to create deployment. Reason: %s" %
-                              str(score.response.content), cmd_proc)
-    elif 'delete' == operation:
-        d = score.deployments.delete(deployment)
-        if d:
-            utils.print_message("successfully deleted deployment '%s'" %
-                                deployment, cmd_proc)
-        else:
-            utils.print_error("Failed to delete deployment. Reason: %s." %
-                              str(score.response.content), cmd_proc)
-    elif 'info' == operation:
-        d = score.deployments.get(deployment)
-        if d is not None:
-            e = score.executions.list(deployment)
-            events = None
-            if show_events and e is not None and len(e) > 0:
-                events = score.events.get(e[-1].get('id'))
-            print_deployment_info(d, e, events)
-        else:
-            utils.print_error("deployment not found")
-    elif 'execute' == operation:
-        if not deployment or not workflow:
+                              str(e), cmd_proc)
+
+
+def _list_deployments(cmd_proc, scoreclient):
+    try:
+        deployments = scoreclient.deployments.list()
+        print_deployments(deployments)
+    except exceptions.ClientException as e:
+        utils.print_message('No deployments found. Reason %s.' %
+                            str(e), cmd_proc)
+
+
+def _delete_deployment(cmd_proc, scoreclient,
+                       deployment_to_delete, force_delete):
+    try:
+        scoreclient.deployments.delete(deployment_to_delete,
+                                       force_delete=force_delete)
+        utils.print_message("successfully deleted deployment '%s'" %
+                            deployment_to_delete, cmd_proc)
+    except exceptions.ClientException as e:
+        utils.print_error("Failed to delete deployment. Reason: %s." %
+                          str(e), cmd_proc)
+
+
+def _info_deployment(cmd_proc, scoreclient, deployment_to_show,
+                     show_events=False):
+    try:
+        d = scoreclient.deployments.get(deployment_to_show)
+        e = scoreclient.executions.list(deployment_to_show)
+        events = None
+        if show_events and e is not None and len(e) > 0:
+            events = scoreclient.events.get(e[-1].get('id'))
+        print_deployment_info(d, e, events)
+    except exceptions.ClientException as e:
+        utils.print_error("Failed to get deployment info. Reason: %s." %
+                          str(e), cmd_proc)
+
+
+def _execute_workflow(cmd_proc, deployment_for_exection,
+                      workflow, scoreclient):
+    try:
+        if not deployment_for_exection or not workflow:
             utils.print_error("Deployment ID or Workflow ID "
                               "was not specified.")
-        e = score.executions.start(deployment, workflow)
-        print_utils.print_dict(e) if e else utils.print_message(
-            str(score.response.content), cmd_proc)
-    elif 'cancel' == operation:
-        if not execution:
-            utils.print_error("execution id is not specified")
             return
-        e = score.executions.cancel(execution, force_cancel)
-        print_execution(e, None) if e else utils.print_message(
-            str(score.response.content), cmd_proc)
+        e = scoreclient.executions.start(
+            deployment_for_exection, workflow)
+        print_utils.print_dict(e) if e else utils.print_message(
+            str(scoreclient.response.content), cmd_proc)
+    except exceptions.ClientException as e:
+            utils.print_error("Failed to execute workflow. Reasons: {0}."
+                              .format(str(e)), cmd_proc)
 
 
 @cli.command()
@@ -345,26 +420,19 @@ def deployment(cmd_proc, operation, deployment, blueprint,
               help='Show logs for event')
 def event(cmd_proc, operation, execution, from_event, batch_size, show_logs):
     """Operations with Blueprint Events"""
-    result = cmd_proc.re_login()
-    if not result:
-        utils.print_error('Not logged in', cmd_proc)
-        sys.exit(1)
-    score = cmd_proc.vca.get_score_service(cmd_proc.host_score)
-    if score is None:
-        utils.print_error('Unable to access the blueprint service',
-                          cmd_proc)
-        sys.exit(1)
+    scoreclient = _authorize(cmd_proc)
+
     if 'list' == operation:
-        events = score.events.get(execution, from_event=from_event,
-                                  batch_size=batch_size,
-                                  include_logs=show_logs)
-        if not events or len(events) == 1:
-            utils.print_error("Can't find events for execution: {0}. "
-                              "Reason: {1}.".
-                              format(execution, str(score.response.content)),
-                              cmd_proc)
-        else:
+        try:
+            events = scoreclient.events.get(execution, from_event=from_event,
+                                            batch_size=batch_size,
+                                            include_logs=show_logs)
             print_table("Status:", 'status', events[0].keys(),
                         [e.values() for e in events[:-1]], None)
             utils.print_message("Total events: {}".format(events[-1]),
                                 cmd_proc)
+        except exceptions.ClientException as e:
+                utils.print_error("Can't find events for execution: {0}. "
+                                  "Reason: {1}.".
+                                  format(execution, str(e)),
+                                  cmd_proc)

@@ -50,7 +50,7 @@ def _authorize(cmd_proc):
                                    'delete', 'status']))
 @click.option('-b', '--blueprint', 'blueprint_id', default='',
               metavar='<blueprint-id>',
-              help='Name of the blueprint to create',)
+              help='Name of the blueprint to create')
 @click.option('-f', '--file', 'blueprint_file',
               default=None, metavar='<blueprint-file>',
               help='Local file name of the blueprint to upload',
@@ -302,9 +302,11 @@ def print_execution(execution, ctx=None):
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
-                metavar='[list | info | create | delete | execute | cancel]',
-                type=click.Choice(['list', 'info',
-                                   'create', 'delete', 'execute', 'cancel']))
+                metavar='[list | info | create | delete | execute | cancel '
+                        '| output]',
+                type=click.Choice(['list', 'info', 'create', 'delete',
+                                   'execute', 'cancel', 'output'
+                                   ]))
 @click.option('-w', '--workflow', default=None,
               metavar='<workflow-id>', help='Workflow Id')
 @click.option('-d', '--deployment', 'deployment_id', default='',
@@ -355,7 +357,7 @@ def _run_deployment_operation(
         'delete': _delete_deployment,
         'execute': _execute_workflow,
         'cancel': _cancel,
-        'outputs': _outputs,
+        'output': _outputs,
     }
 
     method = operation_mapping.get(operation, operation_unknown)
@@ -373,7 +375,7 @@ def _outputs(cmd_proc, operation, deployment_id, blueprint_id,
         utils.print_json(deployment_outputs)
 
     except exceptions.ClientException as e:
-        utils.print_error("Failed to get deployment outputs. Reason: {0}, {1}"
+        utils.print_error("Failed to get deployment output. Reason: {0}, {1}"
                           .format(str(e), scoreclient.response.content),
                           cmd_proc)
 

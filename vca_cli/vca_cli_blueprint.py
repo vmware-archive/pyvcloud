@@ -355,12 +355,27 @@ def _run_deployment_operation(
         'delete': _delete_deployment,
         'execute': _execute_workflow,
         'cancel': _cancel,
+        'outputs': _outputs,
     }
 
     method = operation_mapping.get(operation, operation_unknown)
     method(cmd_proc, operation, deployment_id, blueprint_id,
            input_file, workflow, show_events, execution,
            force_cancel, force_delete, scoreclient)
+
+
+def _outputs(cmd_proc, operation, deployment_id, blueprint_id,
+             input_file, workflow, show_events, execution,
+             force_cancel, force_delete, scoreclient):
+    try:
+
+        deployment_outputs = scoreclient.deployments.outputs(deployment_id)
+        utils.print_json(deployment_outputs)
+
+    except exceptions.ClientException as e:
+        utils.print_error("Failed to get deployment outputs. Reason: {0}, {1}"
+                          .format(str(e), scoreclient.response.content),
+                          cmd_proc)
 
 
 def _cancel(cmd_proc, operation, deployment_id, blueprint_id,

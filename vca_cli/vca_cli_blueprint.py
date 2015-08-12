@@ -340,10 +340,7 @@ def _create_deployment(cmd_proc, blueprint, deployment, input_file,
         inputs = None
         if input_file:
             inputs = yaml.load(input_file)
-        scoreclient.deployments.create(
-            blueprint, deployment,
-            json.dumps(inputs, sort_keys=False,
-                       indent=4, separators=(',', ': ')))
+        scoreclient.deployments.create(blueprint, deployment, inputs)
         utils.print_message("Successfully created deployment '%s'." %
                             deployment, cmd_proc)
     except exceptions.ClientException as e:

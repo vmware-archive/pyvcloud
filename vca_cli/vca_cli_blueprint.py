@@ -70,37 +70,26 @@ def blueprint(cmd_proc, operation, blueprint, blueprint_file, include_plan):
         scoreclient = Score(cmd_proc.host_score)
         Log.debug(cmd_proc.logger, 'using host score: %s' %
                   cmd_proc.host_score)
-
     if 'validate' == operation:
         _validate(cmd_proc, blueprint_file, scoreclient)
-
     elif 'list' == operation:
         _list_blueprints(cmd_proc, scoreclient)
-
     elif 'upload' == operation:
         _upload(cmd_proc, blueprint, blueprint_file, scoreclient)
-
     elif 'delete' == operation:
         _delete_blueprint(cmd_proc, blueprint, scoreclient)
-
     elif 'info' == operation:
         _info_blueprint(cmd_proc, scoreclient,
                         include_plan=include_plan)
-
-
-@cli.command()
-@click.pass_obj
-@click.argument('operation', default=default_operation,
-                metavar='[status]',
-                type=click.Choice(['status']))
-def score(cmd_proc):
-    try:
-        scoreclient = _authorize(cmd_proc)
-        status = scoreclient.get_status()
-        print_utils.print_dict(status)
-    except exceptions.ClientException as e:
-        utils.print_error("Unable to get Score status. Reason: {0}"
-                          .format(str(e)), cmd_proc)
+    elif 'status' == operation:
+        try:
+            scoreclient = _authorize(cmd_proc)
+            status = scoreclient.get_status()
+            print_utils.print_dict(json.loads(status))
+        except exceptions.ClientException as e:
+            utils.print_error("Unable to get blueprinting service status. "
+                              "Reason: {0}"
+                              .format(str(e)), cmd_proc)
 
 
 def _info_blueprint(cmd_proc, scoreclient, include_plan=False):

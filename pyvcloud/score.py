@@ -203,6 +203,19 @@ class DeploymentsClient(object):
             raise exceptions.from_response(self.score.response)
         return json.loads(self.score.response.content)
 
+    def outputs(self, deployment_id):
+        headers = self.score.get_headers()
+        self.score.response = Http.get(self.score.url +
+                                       '/deployments/%s/outputs'
+                                       % deployment_id,
+                                       headers=headers,
+                                       verify=self.score.verify,
+                                       logger=self.logger)
+
+        if self.score.response.status_code != requests.codes.ok:
+            raise exceptions.from_response(self.score.response)
+        return json.loads(self.score.response.content)
+
 
 class ExecutionsClient(object):
 

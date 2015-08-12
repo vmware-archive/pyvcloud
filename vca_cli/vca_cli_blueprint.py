@@ -335,7 +335,7 @@ def _cancel(cmd_proc, execution, force_cancel, scoreclient):
 
 
 def _create_deployment(cmd_proc, blueprint, deployment, input_file,
-                      scoreclient):
+                       scoreclient):
     try:
         inputs = None
         if input_file:

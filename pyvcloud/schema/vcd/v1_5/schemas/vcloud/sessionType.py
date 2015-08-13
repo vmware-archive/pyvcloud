@@ -91,7 +91,7 @@ def parsexml_(*args, **kwargs):
 
 try:
     from generatedssuper import GeneratedsSuper
-except ImportError, exp:
+except ImportError as exp:
 
     class GeneratedsSuper(object):
         tzoff_pattern = re_.compile(r'(\+|-)((0\d|1[0-3]):[0-5]\d|14:00)$')
@@ -1077,7 +1077,7 @@ class ErrorType(VCloudExtensibleType):
             already_processed.add('majorErrorCode')
             try:
                 self.majorErrorCode = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(ErrorType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -1656,7 +1656,7 @@ class ResourceReferenceType(ReferenceType):
             already_processed.add('status')
             try:
                 self.status = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(ResourceReferenceType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -1781,7 +1781,7 @@ class ContainerType(ResourceType):
             already_processed.add('total')
             try:
                 self.total = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -1792,14 +1792,14 @@ class ContainerType(ResourceType):
             already_processed.add('pageSize')
             try:
                 self.pageSize = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('page', node)
         if value is not None and 'page' not in already_processed:
             already_processed.add('page')
             try:
                 self.page = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('xsi:type', node)
         if value is not None and 'xsi:type' not in already_processed:
@@ -1927,7 +1927,7 @@ class CapacityType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Allocated')
             self.Allocated = ival_
@@ -1935,7 +1935,7 @@ class CapacityType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Limit')
             self.Limit = ival_
@@ -2043,7 +2043,7 @@ class CapacityWithUsageType(CapacityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Reserved')
             self.Reserved = ival_
@@ -2051,7 +2051,7 @@ class CapacityWithUsageType(CapacityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Used')
             self.Used = ival_
@@ -2059,7 +2059,7 @@ class CapacityWithUsageType(CapacityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Overhead')
             self.Overhead = ival_
@@ -3114,7 +3114,7 @@ class MetadataNumberValue(MetadataTypedValue):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Value')
             self.Value = ival_
@@ -3606,7 +3606,7 @@ class FileUploadParamsType(VCloudExtensibleType):
             already_processed.add('fileSize')
             try:
                 self.fileSize = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(FileUploadParamsType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -4345,7 +4345,7 @@ class ResourceEntityType(EntityType):
             already_processed.add('status')
             try:
                 self.status = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(ResourceEntityType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -4559,14 +4559,14 @@ class FileType(EntityType):
             already_processed.add('bytesTransferred')
             try:
                 self.bytesTransferred = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('size', node)
         if value is not None and 'size' not in already_processed:
             already_processed.add('size')
             try:
                 self.size = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(FileType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -4844,7 +4844,7 @@ class TaskType(EntityType):
             already_processed.add('expiryTime')
             try:
                 self.expiryTime = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (expiryTime): %s' % exp)
         value = find_attr_value_('cancelRequested', node)
         if value is not None and 'cancelRequested' not in already_processed:
@@ -4860,7 +4860,7 @@ class TaskType(EntityType):
             already_processed.add('startTime')
             try:
                 self.startTime = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (startTime): %s' % exp)
         value = find_attr_value_('operation', node)
         if value is not None and 'operation' not in already_processed:
@@ -4871,7 +4871,7 @@ class TaskType(EntityType):
             already_processed.add('endTime')
             try:
                 self.endTime = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (endTime): %s' % exp)
         value = find_attr_value_('serviceNamespace', node)
         if value is not None and 'serviceNamespace' not in already_processed:
@@ -4906,7 +4906,7 @@ class TaskType(EntityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Progress')
             self.Progress = ival_

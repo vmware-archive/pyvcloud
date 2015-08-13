@@ -91,7 +91,7 @@ def parsexml_(*args, **kwargs):
 
 try:
     from generatedssuper import GeneratedsSuper
-except ImportError, exp:
+except ImportError as exp:
 
     class GeneratedsSuper(object):
         tzoff_pattern = re_.compile(r'(\+|-)((0\d|1[0-3]):[0-5]\d|14:00)$')
@@ -1333,7 +1333,7 @@ class VmQuestionAnswerType(GeneratedsSuper):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'ChoiceId')
             self.ChoiceId = ival_
@@ -1431,7 +1431,7 @@ class VmQuestionAnswerChoiceType(GeneratedsSuper):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Id')
             self.Id = ival_
@@ -1953,7 +1953,7 @@ class ErrorType(VCloudExtensibleType):
             already_processed.add('majorErrorCode')
             try:
                 self.majorErrorCode = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(ErrorType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -2533,7 +2533,7 @@ class ResourceReferenceType(ReferenceType):
             already_processed.add('status')
             try:
                 self.status = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(ResourceReferenceType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -2659,7 +2659,7 @@ class ContainerType(ResourceType):
             already_processed.add('total')
             try:
                 self.total = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -2670,14 +2670,14 @@ class ContainerType(ResourceType):
             already_processed.add('pageSize')
             try:
                 self.pageSize = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('page', node)
         if value is not None and 'page' not in already_processed:
             already_processed.add('page')
             try:
                 self.page = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('xsi:type', node)
         if value is not None and 'xsi:type' not in already_processed:
@@ -2805,7 +2805,7 @@ class CapacityType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Allocated')
             self.Allocated = ival_
@@ -2813,7 +2813,7 @@ class CapacityType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Limit')
             self.Limit = ival_
@@ -2921,7 +2921,7 @@ class CapacityWithUsageType(CapacityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Reserved')
             self.Reserved = ival_
@@ -2929,7 +2929,7 @@ class CapacityWithUsageType(CapacityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Used')
             self.Used = ival_
@@ -2937,7 +2937,7 @@ class CapacityWithUsageType(CapacityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Overhead')
             self.Overhead = ival_
@@ -3993,7 +3993,7 @@ class MetadataNumberValue(MetadataTypedValue):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Value')
             self.Value = ival_
@@ -4485,7 +4485,7 @@ class FileUploadParamsType(VCloudExtensibleType):
             already_processed.add('fileSize')
             try:
                 self.fileSize = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(FileUploadParamsType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -5644,7 +5644,7 @@ class VdcType(EntityType):
             already_processed.add('status')
             try:
                 self.status = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(VdcType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -5681,7 +5681,7 @@ class VdcType(EntityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'NicQuota')
             self.NicQuota = ival_
@@ -5689,7 +5689,7 @@ class VdcType(EntityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'NetworkQuota')
             self.NetworkQuota = ival_
@@ -5697,7 +5697,7 @@ class VdcType(EntityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'UsedNetworkCount')
             self.UsedNetworkCount = ival_
@@ -5705,7 +5705,7 @@ class VdcType(EntityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'VmQuota')
             self.VmQuota = ival_
@@ -6793,7 +6793,7 @@ class DhcpServiceType(NetworkServiceType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'DefaultLeaseTime')
             self.DefaultLeaseTime = ival_
@@ -6801,7 +6801,7 @@ class DhcpServiceType(NetworkServiceType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'MaxLeaseTime')
             self.MaxLeaseTime = ival_
@@ -7171,7 +7171,7 @@ class NatRuleType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Id')
             self.Id = ival_
@@ -7634,7 +7634,7 @@ class NatOneToOneVmRuleType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'VmNicId')
             self.VmNicId = ival_
@@ -7774,7 +7774,7 @@ class NatPortForwardingRuleType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'ExternalPort')
             self.ExternalPort = ival_
@@ -7787,7 +7787,7 @@ class NatPortForwardingRuleType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'InternalPort')
             self.InternalPort = ival_
@@ -7940,7 +7940,7 @@ class NatVmRuleType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'ExternalPort')
             self.ExternalPort = ival_
@@ -7952,7 +7952,7 @@ class NatVmRuleType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'VmNicId')
             self.VmNicId = ival_
@@ -7960,7 +7960,7 @@ class NatVmRuleType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'InternalPort')
             self.InternalPort = ival_
@@ -8209,7 +8209,7 @@ class VmSelectionType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'VmNicId')
             self.VmNicId = ival_
@@ -8514,7 +8514,7 @@ class FirewallRuleType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Port')
             self.Port = ival_
@@ -8536,7 +8536,7 @@ class FirewallRuleType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'SourcePort')
             self.SourcePort = ival_
@@ -8958,7 +8958,7 @@ class IpsecVpnTunnelType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Mtu')
             self.Mtu = ival_
@@ -10020,7 +10020,7 @@ class DhcpPoolServiceType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'DefaultLeaseTime')
             self.DefaultLeaseTime = ival_
@@ -10028,7 +10028,7 @@ class DhcpPoolServiceType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'MaxLeaseTime')
             self.MaxLeaseTime = ival_
@@ -11912,7 +11912,7 @@ class GatewayIpsecVpnTunnelType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Mtu')
             self.Mtu = ival_
@@ -13589,7 +13589,7 @@ class OrgVdcNetworkType(NetworkType):
             already_processed.add('status')
             try:
                 self.status = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(OrgVdcNetworkType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -13712,7 +13712,7 @@ class GatewayType(EntityType):
             already_processed.add('status')
             try:
                 self.status = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(GatewayType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -14211,7 +14211,7 @@ class GatewayInterfaceType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 fval_ = float(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires float or double: %s' % exp)
             fval_ = self.gds_validate_float(fval_, node, 'InRateLimit')
             self.InRateLimit = fval_
@@ -14219,7 +14219,7 @@ class GatewayInterfaceType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 fval_ = float(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires float or double: %s' % exp)
             fval_ = self.gds_validate_float(fval_, node, 'OutRateLimit')
             self.OutRateLimit = fval_
@@ -15261,7 +15261,7 @@ class VdcStorageProfileType(EntityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Limit')
             self.Limit = ival_
@@ -15379,7 +15379,7 @@ class ResourceEntityType(EntityType):
             already_processed.add('status')
             try:
                 self.status = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('xsi:type', node)
         if value is not None and 'xsi:type' not in already_processed:
@@ -15597,14 +15597,14 @@ class FileType(EntityType):
             already_processed.add('bytesTransferred')
             try:
                 self.bytesTransferred = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('size', node)
         if value is not None and 'size' not in already_processed:
             already_processed.add('size')
             try:
                 self.size = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(FileType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -16286,7 +16286,7 @@ class File_Type(GeneratedsSuper):
             already_processed.add('chunkSize')
             try:
                 self.chunkSize = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('id', node)
         if value is not None and 'id' not in already_processed:
@@ -16297,7 +16297,7 @@ class File_Type(GeneratedsSuper):
             already_processed.add('size')
             try:
                 self.size = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         self.anyAttributes_ = {}
         for name, value in attrs.items():
@@ -18281,7 +18281,7 @@ class VirtualDiskDesc_Type(GeneratedsSuper):
             already_processed.add('populatedSize')
             try:
                 self.populatedSize = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('diskId', node)
         if value is not None and 'diskId' not in already_processed:
@@ -18425,7 +18425,7 @@ class OperatingSystemSection_Type(Section_Type):
             already_processed.add('id')
             try:
                 self.id = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(OperatingSystemSection_Type, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -18943,7 +18943,7 @@ class InstallSection_Type(Section_Type):
             already_processed.add('initialBootStopDelay')
             try:
                 self.initialBootStopDelay = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(InstallSection_Type, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -22628,7 +22628,7 @@ class CIM_VirtualSystemSettingData_Type(GeneratedsSuper):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'AutomaticRecoveryAction')
             self.AutomaticRecoveryAction = ival_
@@ -22637,7 +22637,7 @@ class CIM_VirtualSystemSettingData_Type(GeneratedsSuper):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'AutomaticShutdownAction')
             self.AutomaticShutdownAction = ival_
@@ -22646,7 +22646,7 @@ class CIM_VirtualSystemSettingData_Type(GeneratedsSuper):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'AutomaticStartupAction')
             self.AutomaticStartupAction = ival_
@@ -23473,7 +23473,7 @@ class CIM_ResourceAllocationSettingData_Type(GeneratedsSuper):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'ConsumerVisibility')
             self.ConsumerVisibility = ival_
@@ -23511,7 +23511,7 @@ class CIM_ResourceAllocationSettingData_Type(GeneratedsSuper):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'MappingBehavior')
             self.MappingBehavior = ival_
@@ -23549,7 +23549,7 @@ class CIM_ResourceAllocationSettingData_Type(GeneratedsSuper):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'ResourceType')
             self.ResourceType = ival_
@@ -24471,7 +24471,7 @@ class PlatformSection_Type(Section_Type):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Timezone')
             self.Timezone = ival_
@@ -24888,7 +24888,7 @@ class BootOrderSection_Type(Section_Type):
             already_processed.add('instanceId')
             try:
                 self.instanceId = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('type', node)
         if value is not None and 'type' not in already_processed:
@@ -25840,7 +25840,7 @@ class DiskType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Size')
             self.Size = ival_
@@ -26270,7 +26270,7 @@ class IconType(GeneratedsSuper):
             already_processed.add('width')
             try:
                 self.width = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('fileRef', node)
         if value is not None and 'fileRef' not in already_processed:
@@ -26281,7 +26281,7 @@ class IconType(GeneratedsSuper):
             already_processed.add('height')
             try:
                 self.height = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         self.anyAttributes_ = {}
         for name, value in attrs.items():
@@ -26864,14 +26864,14 @@ class ItemType(GeneratedsSuper):
             already_processed.add('stopDelay')
             try:
                 self.stopDelay = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('order', node)
         if value is not None and 'order' not in already_processed:
             already_processed.add('order')
             try:
                 self.order = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('startAction', node)
         if value is not None and 'startAction' not in already_processed:
@@ -26882,7 +26882,7 @@ class ItemType(GeneratedsSuper):
             already_processed.add('startDelay')
             try:
                 self.startDelay = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('waitingForGuest', node)
         if value is not None and 'waitingForGuest' not in already_processed:
@@ -27928,7 +27928,7 @@ class TaskType(EntityType):
             already_processed.add('expiryTime')
             try:
                 self.expiryTime = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (expiryTime): %s' % exp)
         value = find_attr_value_('cancelRequested', node)
         if value is not None and 'cancelRequested' not in already_processed:
@@ -27944,7 +27944,7 @@ class TaskType(EntityType):
             already_processed.add('startTime')
             try:
                 self.startTime = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (startTime): %s' % exp)
         value = find_attr_value_('operation', node)
         if value is not None and 'operation' not in already_processed:
@@ -27955,7 +27955,7 @@ class TaskType(EntityType):
             already_processed.add('endTime')
             try:
                 self.endTime = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (endTime): %s' % exp)
         value = find_attr_value_('serviceNamespace', node)
         if value is not None and 'serviceNamespace' not in already_processed:
@@ -27990,7 +27990,7 @@ class TaskType(EntityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Progress')
             self.Progress = ival_
@@ -29117,7 +29117,7 @@ class DeployVAppParamsType(VCloudExtensibleType):
             already_processed.add('deploymentLeaseSeconds')
             try:
                 self.deploymentLeaseSeconds = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(DeployVAppParamsType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -29251,7 +29251,7 @@ class InstantiateVmHardwareCustomizationParamsType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'NumberOfCpus')
             self.NumberOfCpus = ival_
@@ -29259,7 +29259,7 @@ class InstantiateVmHardwareCustomizationParamsType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'CoresPerSocket')
             self.CoresPerSocket = ival_
@@ -29267,7 +29267,7 @@ class InstantiateVmHardwareCustomizationParamsType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'MemorySize')
             self.MemorySize = ival_
@@ -30702,14 +30702,14 @@ class SnapshotType(VCloudExtensibleType):
             already_processed.add('size')
             try:
                 self.size = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('created', node)
         if value is not None and 'created' not in already_processed:
             already_processed.add('created')
             try:
                 self.created = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (created): %s' % exp)
         super(SnapshotType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -31125,7 +31125,7 @@ class GuestCustomizationSectionType(Section_Type):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'AdminAutoLogonCount')
             self.AdminAutoLogonCount = ival_
@@ -31448,7 +31448,7 @@ class NetworkConnectionSectionType(Section_Type):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'PrimaryNetworkConnectionIndex')
             self.PrimaryNetworkConnectionIndex = ival_
@@ -31641,7 +31641,7 @@ class NetworkConnectionType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'NetworkConnectionIndex')
             self.NetworkConnectionIndex = ival_
@@ -31872,7 +31872,7 @@ class LeaseSettingsSectionType(Section_Type):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'DeploymentLeaseInSeconds')
             self.DeploymentLeaseInSeconds = ival_
@@ -31880,7 +31880,7 @@ class LeaseSettingsSectionType(Section_Type):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'StorageLeaseInSeconds')
             self.StorageLeaseInSeconds = ival_
@@ -33294,7 +33294,7 @@ class OperatingSystemInfoType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'OperatingSystemId')
             self.OperatingSystemId = ival_
@@ -33302,7 +33302,7 @@ class OperatingSystemInfoType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'DefaultHardDiskAdapterType')
             self.DefaultHardDiskAdapterType = ival_
@@ -33310,7 +33310,7 @@ class OperatingSystemInfoType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'MinimumHardDiskSizeGigabytes')
             self.MinimumHardDiskSizeGigabytes = ival_
@@ -33318,7 +33318,7 @@ class OperatingSystemInfoType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'MinimumMemoryMegabytes')
             self.MinimumMemoryMegabytes = ival_
@@ -33354,7 +33354,7 @@ class OperatingSystemInfoType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'MaximumCpuCount')
             self.MaximumCpuCount = ival_
@@ -33362,7 +33362,7 @@ class OperatingSystemInfoType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'MinimumHardwareVersion')
             self.MinimumHardwareVersion = ival_
@@ -33410,7 +33410,7 @@ class OperatingSystemInfoType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'cimOsId')
             self.cimOsId = ival_
@@ -33418,7 +33418,7 @@ class OperatingSystemInfoType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'CimVersion')
             self.CimVersion = ival_
@@ -33554,7 +33554,7 @@ class OperatingSystemFamilyInfoType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'OperatingSystemFamilyId')
             self.OperatingSystemFamilyId = ival_

@@ -251,7 +251,7 @@ def print_deployment_info(deployment, executions, events, ctx=None):
                 'deployment',
                 headers, table, ctx)
     print("\n")
-    headers = ['Workflow', 'Created', 'Status', 'Id']
+    headers = ['Workflow', 'Created', 'Status', 'Execution Id']
     table = []
     if executions is None or len(executions) == 0:
         utils.print_message('no executions found', ctx)

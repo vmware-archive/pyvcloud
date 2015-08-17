@@ -407,7 +407,7 @@ def _create_deployment(cmd_proc, operation, deployment_id, blueprint_id,
             inputs = yaml.load(input_file)
         scoreclient.deployments.create(blueprint_id, deployment_id, inputs)
         utils.print_message("Successfully created deployment '{0}'.".format(
-            deployment), cmd_proc)
+            deployment_id), cmd_proc)
     except exceptions.ClientException as e:
             utils.print_error("Failed to create deployment. Reason: {0}, {1}"
                               .format(str(e), scoreclient.response.content),

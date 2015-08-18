@@ -77,7 +77,7 @@ def vdc(cmd_proc, operation, vdc, template, yes):
                         'Limit', 'Reserved', 'Used', 'Overhead']
             table2 = cmd_proc.vdc_resources_to_table(the_vdc)
             headers3 = ['Name', 'External IPs', 'DHCP', 'Firewall', 'NAT',
-                        'VPN', 'Routed Networks', 'Syslog', 'Uplinks']
+                        'VPN', 'Networks', 'Syslog', 'Uplinks', 'Selected']
             table3 = cmd_proc.gateways_to_table(gateways)
             if cmd_proc.json_output:
                 json_object = {'vdc_entities':

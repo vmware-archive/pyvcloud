@@ -123,7 +123,7 @@ When the *password* argument is omitted, `vca-cli` will prompt the user for the 
     $ vca --insecure login email@company.com --password ******** \
           --host vcdhost.domain.com --org myorg --version 5.6
 
-vCloud Air (vCA), example of login and access to a VDC:
+vCloud Air (vCA) example of login and access to a VDC:
 
     $ vca login email@company.com --password ********
     User 'email@company.com' logged in, profile 'default'
@@ -159,9 +159,9 @@ vCloud Air (vCA), example of login and access to a VDC:
     | CPU (MHz)   |           0 |  130000 |          0 |      0 |          0 |
     | Memory (MB) |           0 |  102400 |          0 |      0 |          0 |
     Gateways:
-    |         | Name   | External IPs   | DHCP   | Firewall   | NAT   | VPN                    | Routed Networks   | Syslog       | Uplinks   |
-    |---------+--------+----------------+--------+------------+-------+------------------------+-------------------+--------------+-----------|
-    | gateway |        | Off            | On     | Off        | Off   | default-routed-network |                   | d4p14v14-ext | *         |
+    | Name    | External IPs                  | DHCP   | Firewall   | NAT   | VPN   | Networks                        | Syslog   | Uplinks      | Selected   |
+    |---------+-------------------------------+--------+------------+-------+-------+---------------------------------+----------+--------------+------------|
+    | gateway | 107.189.88.182, 107.189.90.65 | On     | Off        | On    | Off   | net-101, default-routed-network |          | d4p14v14-ext | *          |
 
 Login and access the VDC in one command:
 

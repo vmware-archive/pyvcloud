@@ -3,15 +3,9 @@ vca-cli
 
 [![Download Status](https://img.shields.io/pypi/dm/vca-cli.svg)](https://pypi.python.org/pypi/vca-cli) [![Stable Version](https://img.shields.io/pypi/v/vca-cli.svg)](https://pypi.python.org/pypi/vca-cli) [![Build Status](https://img.shields.io/travis/vmware/vca-cli.svg?style=flat)](https://travis-ci.org/vmware/vca-cli/)
 
-NOTE: due to changes in the service, use the --host argument to login on OnDemand:
+Command Line Interface for VMware vCloud Air. It supports vCloud Air (vCA & vCHS) and standalone vCloud Director.
 
-    $ vca login user@company.com --host vca.vmware.com --password $PASS --save-password
-
-Command Line Interface for VMware vCloud Air. It supports vCloud Air On Demand and Subscription. It also supports standalone vCloud Director.
-
-> Release early, release often.
-
-This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version. See the [documentation](http://vca-cli.readthedocs.org) for a detailed description of each command. More information about commands and usage can be found in the [vca-cli wiki](https://github.com/vmware/vca-cli/wiki). The [networking section](https://github.com/vmware/vca-cli/wiki/Networking) documents all the operations related to networks, edge gateway and network services. See the [release notes](https://github.com/vmware/vca-cli/wiki/ReleaseNotes) for what's new.
+This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version. More information about commands and usage can be found in the [vca-cli wiki](https://github.com/vmware/vca-cli/wiki). See the [release notes](https://github.com/vmware/vca-cli/wiki/ReleaseNotes) for what's new.
 
 `vca-cli` uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMware vCloud. 
 
@@ -66,7 +60,7 @@ Display the version installed:
 
     $ vca --version
     
-    vca-cli version 12 (pyvcloud: 13)
+    vca-cli version 14 (pyvcloud: 14)
 
 Installation with virtualenv:
 -----------------------------
@@ -95,38 +89,40 @@ And to upgrade a pre-release:
 
 You might need to run the previous command with `sudo` on Ubuntu and CentOS, if not using `virtualenv`.
 
+SSL warnings:
+------------
+
+In some cases, it is necessary to install additional packages to avoid SSL warnings:
+
+    $ sudo pip install pyopenssl ndg-httpsclient pyasn1
+
 Usage:
 ======
 
 Login and Logout:
 -----------------
 
-When the *password* argument is omitted, `vca-cli` will prompt the user for the password. Use the `--save-password` to cache the password (encrypted) and automatically re-login when the token expires. Below are some examples:
+When the *password* argument is omitted, `vca-cli` will prompt the user for the password. By default `vca-cli` caches the password (encrypted) and automatically re-login when the token expires. Below are some examples:
 
     
-    # vCA On Demand, password prompt
+    # vCA, password prompt
     vca login user@domain.com
     Password: ***************
     
-    # vCA On Demand
-    $ vca login user@domain.com --password ******** --save-password
+    # vCA
+    $ vca login user@domain.com --password ******** 
     
-    # same as:
-    $ vca login user@domain.com --password ******** --save-password \
-             --host iam.vchs.vmware.com --type ondemand --version 5.7
-    
-    # vCA Subscription
-    $ vca login user@domain.com --password ******** --save-password \
-             --host vchs.vmware.com --type subscription --version 5.6
+    # vCHS
+    $ vca login user@domain.com --password ******** \
+             --host vchs.vmware.com --version 5.6
     
     # vCloud Director Standalone
-    $ vca login user@domain.com --password ******** --save-password \
-             --host vcdhost.domain.com --org myorg --type standalone --version 5.6
+    $ vca login user@domain.com --password ******** \
+             --host vcdhost.domain.com --org myorg --version 5.6
     
     # vCloud Director with insecure SSL certificate
-    $ vca login user@domain.com --password ******** --save-password \
-             --host vcdhost.domain.com --org myorg --type standalone --version 5.6 \
-             --insecure
+    $ vca --insecure login user@domain.com --password ******** \
+          --host vcdhost.domain.com --org myorg --version 5.6
 
 vCloud Air On Demand, login to a specific instance and get the details of the instance (organization):
 
@@ -135,157 +131,192 @@ vCloud Air On Demand, login to a specific instance and get the details of the in
     Login successful for profile 'default'
     
     $ vca instance
-    Available instances for user 'email@company.com' in 'default' profile:
-    | Instance Id                          | Region                            | Plan Id                              |
-    |--------------------------------------+-----------------------------------+--------------------------------------|
-    | fbf278f0-065d-4028-96d4-6ece56789751 | us-virginia-1-4.vchs.vmware.com   | feda2919-32cb-4efd-a4e5-c5953733df33 |
-    | c40ba6b4-c158-49fb-b164-5c66f90344fa | us-california-1-3.vchs.vmware.com | 41400e74-4445-49ef-90a4-98da4ccfb16c |
-    | 7d275413-bc0b-4bbf-8c7b-b9522777beec | uk-slough-1-6.vchs.vmware.com     | 62155213-e5fc-448d-a46a-770c57c5dd31 |
+    Available instances for user 'email@company.com', profile 'default':
+    | Service Group   | Region            | Plan                           | Instance Id                                                  | Selected   |
+    |-----------------+-------------------+--------------------------------+--------------------------------------------------------------+------------|
+    | M748916508      | au-south-1-15     | Virtual Private Cloud OnDemand | 5f444142-9479-48a7-a70a-c8964a35c5ce                         |            |
+    | M748916508      | us-virginia-1-4   | Virtual Private Cloud OnDemand | d7a623de-1183-46a9-9b02-9043ca68f441                         |            |
+    | M748916508      | us-california-1-3 | Virtual Private Cloud OnDemand | b50d1558-db46-4afb-97d1-2c4d23e4b8a9                         |            |
+    | M748916508      | uk-slough-1-6     | Virtual Private Cloud OnDemand | ab45a63a-f01c-41e8-9e02-acbb4be05a0d                         |            |
+    | M748916508      | de-germany-1-16   | Virtual Private Cloud OnDemand | 95e04439-7dcc-42e3-90ec-36ef2e4b0757                         |            |
+    | M748916508      | us-texas-1-14     | Virtual Private Cloud OnDemand | 5a872845-6a7e-4e1d-b92a-99c45844417d                         |            |
+    | M748916508      | us-california-1-3 | Object Storage powered by EMC  | d1099f7b-34ee-4723-a113-802622aaf3f1:os.vca.vmware.4562.6481 |            |
     
-    $ vca login user@domain.com --password ******** --instance c40ba6b4-c158-49fb-b164-5c66f90344fa
-    Login successful for profile 'default'
+    $ vca instance use --instance 5a872845-6a7e-4e1d-b92a-99c45844417d
+    Using instance:org '5a872845-6a7e-4e1d-b92a-99c45844417d':'e01d04b3-2d86-442e-84a7-4ff194ae9a3d', profile 'default'
+    Using VDC 'vdc1', profile 'default'
     
-    $ vca org info
-    Details for org 'a6545fcb-d68a-489f-afff-2ea055104cc1':
-    | Type       | Name                   |
-    |------------+------------------------|
-    | catalog    | Public Catalog         |
-    | catalog    | default-catalog        |
-    | orgNetwork | default-routed-network |
-    | orgNetwork | default-routed-network |
-    | vdc        | VDC1                   |
-    | vdc        | VDC2                   |
-    
+    $ vca-cli-prod  vca vdc info
+    Details of Virtual Data Center 'vdc1', profile 'od':
+    | Type              | Name                   |
+    |-------------------+------------------------|
+    | gateway           | gateway                |
+    | network           | default-routed-network |
+    | vdcStorageProfile | SSD-Accelerated        |
+    | vdcStorageProfile | Standard               |
+    Compute capacity:
+    | Resource    |   Allocated |   Limit |   Reserved |   Used |   Overhead |
+    |-------------+-------------+---------+------------+--------+------------|
+    | CPU (MHz)   |           0 |  130000 |          0 |      0 |          0 |
+    | Memory (MB) |           0 |  102400 |          0 |      0 |          0 |
+    Gateways:
+    |         | Name   | External IPs   | DHCP   | Firewall   | NAT   | VPN                    | Routed Networks   | Syslog       | Uplinks   |
+    |---------+--------+----------------+--------+------------+-------+------------------------+-------------------+--------------+-----------|
+    | gateway |        | Off            | On     | Off        | Off   | default-routed-network |                   | d4p14v14-ext | *         |
 
 Connection status:
 
     
     $ vca status
-    
     Status:
-    | Property         | Value                                                |
-    |------------------+------------------------------------------------------|
-    | gateway          |                                                      |
-    | host             | https://iam.vchs.vmware.com                          |
-    | host_score       | https://score.vca.io                                 |
-    | instance         | d7a623de-1183-46a9-9b02-9043ca68f441                 |
-    | org              |                                                      |
-    | org_url          | https://us-virginia-1-4.vchs.vmware.com/api/comput.. |
-    | password         | <encrypted>                                          |
-    | pyvcloud_version | 13rc14                                               |
-    | service          | 85-719                                               |
-    | service_type     | ondemand                                             |
-    | service_version  | 5.7                                                  |
-    | session          | active                                               |
-    | session_token    | 523823d5754f43ad85cbb72333e8343b                     |
-    | session_uri      | https://us-virginia-1-4.vchs.vmware.com/api/comput.. |
-    | token            | eyJhbGciOiJSUzI1NiJ9.eyJqdGkiOiI2MzVlZGQ4Ni1iMTNhL.. |
-    | user             | vca_sas_oda@vmware.com                               |
-    | vca_cli_version  | 12rc9                                                |
-    | vdc              | vdc-tmp                                              |
-    | verify           | True                                                 |
+    | Key              | Value                                                          |
+    |------------------+----------------------------------------------------------------|
+    | vca_cli_version  | 14                                                             |
+    | pyvcloud_version | 14                                                             |
+    | profile_file     | /Users/francisco/.vcarc                                        |
+    | profile          | od                                                             |
+    | host             | https://vca.vmware.com                                         |
+    | host_score       | https://score.vca.io                                           |
+    | user             | email@company.com                                              |
+    | instance         | 5a872845-6a7e-4e1d-b92a-99c45844417d                           |
+    | org              | e01d04b3-2d86-442e-84a7-4ff194ae9a3d                           |
+    | vdc              | vdc1                                                           |
+    | gateway          | gateway                                                        |
+    | password         | <encrypted>                                                    |
+    | type             | vca                                                            |
+    | version          | 5.7                                                            |
+    | org_url          | https://us-texas-1-14.vchs.vmware.com/api/compute/api/sessions |
+    | active session   | True                                                           |
 
 Logout:
 
     
     $ vca logout
     Logout successful for profile 'default'
-    
 
 Examples and Help:
 ------------------
 
 `vca-cli` provides a list of examples with the `example` command:
 
-    $ vca example
     
+    $ vca example
     vca-cli usage examples:
-    |   Id | Example                                 | Command                                                                                                                                                                                     |
-    |------+-----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-    |    1 | login to vCA On Demand                  | vca login email@company.com --password mypassword --save-password                                                                                                                           |
-    |    2 | login to a vCA On Demand instance       | vca login email@company.com --password mypassword --save-password --instance c40ba6b4-c158-49fb-b164-5c66f90344fa                                                                           |
-    |    3 | login to vCA Subscription               | vca login email@company.com --password mypassword --save-password --type subscription --host https://vchs.vmware.com --version 5.6                                                          |
-    |    4 | login to vCloud Director standalone     | vca login email@company.com --password mypassword --save-password --type standalone --host https://p1v21-vcd.vchs.vmware.com --version 5.6 --org MyOrganization                             |
-    |    5 | login with no SSL verification          | vca --insecure login email@company.com --password mypassword --save-password                                                                                                                |
-    |    6 | prompt user for password                | vca login email@company.com --save-password                                                                                                                                                 |
-    |    7 | show status                             | vca status                                                                                                                                                                                  |
-    |    8 | logout                                  | vca logout                                                                                                                                                                                  |
-    |    9 | list organizations                      | vca org                                                                                                                                                                                     |
-    |   10 | select organization                     | vca org use --org MyOrg                                                                                                                                                                     |
-    |   11 | select organization in subscription     | vca org use --org MyOrg --service ServiceId                                                                                                                                                 |
-    |   12 | show current organization               | vca org info                                                                                                                                                                                |
-    |   13 | select and show organization            | vca org info --org MyOrg                                                                                                                                                                    |
-    |   14 | show current organization in XML        | vca --xml org info                                                                                                                                                                          |
-    |   15 | show current organization in JSON       | vca --json org info                                                                                                                                                                         |
-    |   16 | list virtual data centers               | vca vdc                                                                                                                                                                                     |
-    |   17 | select virtual data centers             | vca vdc use --vdc VDC1                                                                                                                                                                      |
-    |   18 | show virtual data center                | vca vdc info                                                                                                                                                                                |
-    |   19 | list catalogs                           | vca catalog                                                                                                                                                                                 |
-    |   20 | create catalog                          | vca catalog create --catalog mycatalog                                                                                                                                                      |
-    |   21 | delete catalog                          | vca catalog delete --catalog mycatalog                                                                                                                                                      |
-    |   22 | delete catalog item                     | vca catalog delete-item --catalog mycatalog --item my_vapp_template                                                                                                                         |
-    |   23 | upload media file (ISO) to catalog      | vca catalog upload --catalog mycatalog --item esxi.iso --description ESXi-iso --file ~/VMware-VMvisor.iso                                                                                   |
-    |   24 | list networks                           | vca network                                                                                                                                                                                 |
-    |   25 | list vapps                              | vca vapp                                                                                                                                                                                    |
-    |   26 | create vapp                             | vca vapp create -a coreos2 -V coreos2 -c default-catalog -t coreos_template -n default-routed-network -m pool                                                                               |
-    |   27 | create vapp                             | vca vapp create --vapp myvapp --vm myvm --catalog 'Public Catalog' --template 'Ubuntu Server 12.04 LTS (amd64 20150127)' --network default-routed-network --mode pool                       |
-    |   28 | create vapp with manually assigned IP   | vca vapp create --vapp myvapp --vm myvm --catalog 'Public Catalog' --template 'Ubuntu Server 12.04 LTS (amd64 20150127)' --network default-routed-network --mode manual --ip 192.168.109.25 |
-    |   29 | create multiple vapps                   | vca vapp create --vapp myvapp --vm myvm --catalog 'Public Catalog' --template 'Ubuntu Server 12.04 LTS (amd64 20150127)' --network default-routed-network --mode pool --count 10            |
-    |   30 | create vapp and configure vm size       | vca vapp create --vapp myvapp --vm myvm --catalog 'Public Catalog' --template 'Ubuntu Server 12.04 LTS (amd64 20150127)' --network default-routed-network --mode pool --cpu 4 --ram 4096    |
-    |   31 | delete vapp                             | vca vapp delete -a coreos2                                                                                                                                                                  |
-    |   32 | show vapp details in XML                | vca -x vapp info -a coreos2                                                                                                                                                                 |
-    |   33 | deploy vapp                             | vca vapp deploy --vapp ubu                                                                                                                                                                  |
-    |   34 | undeploy vapp                           | vca vapp undeploy --vapp ubu                                                                                                                                                                |
-    |   35 | customize vapp vm                       | vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh                                                                                                                         |
-    |   36 | insert ISO to vapp vm                   | vca vapp insert --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso                                                                                            |
-    |   37 | eject ISO from vapp vm                  | vca vapp eject --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso                                                                                             |
-    |   38 | attach disk to vapp vm                  | vca vapp attach --vapp myvapp --vm myvm --disk mydisk                                                                                                                                       |
-    |   39 | detach disk from vapp vm                | vca vapp detach --vapp myvapp --vm myvm --disk mydisk                                                                                                                                       |
-    |   40 | list independent disks                  | vca vapp disk                                                                                                                                                                               |
-    |   41 | create independent disk of 100GB        | vca disk create --disk mydisk --size 100                                                                                                                                                    |
-    |   42 | delete independent disk by name         | vca disk delete --disk mydisk                                                                                                                                                               |
-    |   43 | delete independent disk by id           | vca disk delete --id bce76ca7-29d0-4041-82d4-e4481804d5c4                                                                                                                                   |
-    |   44 | list vms                                | vca vm                                                                                                                                                                                      |
-    |   45 | list vms in a vapp                      | vca vm -a ubu                                                                                                                                                                               |
-    |   46 | list vms in JSON format                 | vca -j vm                                                                                                                                                                                   |
-    |   47 | retrieve the IP of a vm                 | IP=`vca -j vm -a ubu | jq -r '.vms[0].IPs[0]'` && echo $IP                                                                                                                                  |
-    |   48 | list networks                           | vca network                                                                                                                                                                                 |
-    |   49 | create network                          | vca network create --network network_name --gateway gateway_name --gateway-ip 192.168.117.1 --netmask 255.255.255.0 --dns1 192.168.117.1 --pool 192.168.117.2-192.168.117.100               |
-    |   50 | delete network                          | vca network delete --network network_name                                                                                                                                                   |
-    |   51 | list edge gateways                      | vca gateway                                                                                                                                                                                 |
-    |   52 | get details of edge gateways            | vca gateway info --gateway gateway_name                                                                                                                                                     |
-    |   53 | set syslog server on gateway            | vca gateway set-syslog --gateway gateway_name --ip 192.168.109.2                                                                                                                            |
-    |   54 | unset syslog server on gateway          | vca gateway set-syslog --gateway gateway_name                                                                                                                                               |
-    |   55 | allocate external IP address (OnDemand) | vca gateway add-ip                                                                                                                                                                          |
-    |   56 | release external IP address (OnDemand)  | vca gateway del-ip --ip 107.189.93.162                                                                                                                                                      |
-    |   57 | list edge gateway NAT rules             | vca nat                                                                                                                                                                                     |
-    |   58 | add edge gateway DNAT rule              | vca nat add --type DNAT --original-ip 107.189.93.162 --original-port 22 --translated-ip 192.168.109.2 --translated-port 22 --protocol tcp                                                   |
-    |   59 | add edge gateway SNAT rule              | vca nat add --type SNAT --original-ip 192.168.109.0/24 --translated-ip 107.189.93.162                                                                                                       |
-    |   60 | add edge gateway rules from file        | vca nat add --file natrules.yaml                                                                                                                                                            |
-    |   61 | delete edge gateway NAT rule            | vca nat delete --type DNAT  --original-ip 107.189.93.162 --original-port 22 --translated-ip 192.168.109.4 --translated-port 22 --protocol tcp                                               |
-    |   62 | delete all edge gateway NAT rules       | vca nat delete --all                                                                                                                                                                        |
-    |   63 | enable edge gateway firewall            | vca firewall enable                                                                                                                                                                         |
-    |   64 | disable edge gateway firewall           | vca firewall disable                                                                                                                                                                        |
-    |   65 | display DHCP configuration              | vca dhcp                                                                                                                                                                                    |
-    |   66 | enable DHCP service                     | vca dhcp enable                                                                                                                                                                             |
-    |   67 | disable DHCP service                    | vca dhcp disable                                                                                                                                                                            |
-    |   68 | add DHCP service to a network           | vca dhcp add --network routed-211 --pool 192.168.211.101-192.168.211.200                                                                                                                    |
-    |   69 | delete all DHCP pools from a network    | vca dhcp delete --network routed-211                                                                                                                                                        |
-    |   70 | list edge gateway VPN config            | vca vpn                                                                                                                                                                                     |
-    |   71 | enable edge gateway VPN                 | vca vpn enable                                                                                                                                                                              |
-    |   72 | disable edge gateway VPN                | vca vpn disable                                                                                                                                                                             |
-    |   73 | add VPN endpoint                        | vca vpn add-endpoint --network d1p10-ext --public-ip 107.189.123.101                                                                                                                        |
-    |   74 | delete VPN endpoint                     | vca vpn del-endpoint --network d1p10-ext --public-ip 107.189.123.101                                                                                                                        |
-    |   75 | add VPN tunnel                          | vca vpn add-tunnel --tunnel t1 --local-ip 107.189.123.101 --local-network routed-116 --peer-ip 192.240.158.15 --peer-network 192.168.110.0/24  --secret P8s3P...7v                          |
-    |   76 | delete VPN tunnel                       | vca vpn del-tunnel --tunnel t1                                                                                                                                                              |
-    |   77 | add local network to VPN tunnel         | vca vpn add-network --tunnel t1 --local-network routed-115                                                                                                                                  |
-    |   78 | add peer network to VPN tunnel          | vca vpn add-network --tunnel t1 --peer-network 192.168.115.0/24                                                                                                                             |
-    |   79 | delete local network from VPN tunnel    | vca vpn del-network --tunnel t1 --local-network routed-115                                                                                                                                  |
-    |   80 | delete peer network from VPN tunnel     | vca vpn del-network --tunnel t1 --peer-network 192.168.115.0/24                                                                                                                             |
-    |   81 | send debug to $TMPDIR/pyvcloud.log      | vca --debug vm                                                                                                                                                                              |
-    |   82 | show version                            | vca --version                                                                                                                                                                               |
-    |   83 | show help                               | vca --help                                                                                                                                                                                  |
-    |   84 | show command help                       | vca <command> --help                                                                                                                                                                        |
+    |   Id | Example                               | Flavor     | Command                                                                                                                                                         |
+    |------+---------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+    |    1 | login to service                      | vCA        | vca login email@company.com --password ****                                                                                                                     |
+    |    2 | login to an instance                  | vCA        | vca login email@company.com --password **** --instance c40ba6b4-c158-49fb-b164-5c66f90344fa                                                                     |
+    |    3 | login to a virtual data center        | vCA        | vca login email@company.com --password **** --instance c40ba6b4-c158-49fb-b164-5c66f90344fa --vdc VDC1                                                          |
+    |    4 | login to service                      | vCHS       | vca login email@company.com --password **** --host vchs.vmware.com --version 5.6                                                                                |
+    |    5 | login to an instance                  | vCHS       | vca login email@company.com --password **** --host vchs.vmware.com --version 5.6 --instance 55-234 --org MyOrg                                                  |
+    |    6 | login to a virtual data center        | vCHS       | vca login email@company.com --password **** --host vchs.vmware.com --version 5.6 --instance 55-234 --org MyOrg --vdc MyVDC                                      |
+    |    7 | login to vCloud Director              | Standalone | vca login email@company.com --password **** --host myvcloud.company.com --version 5.5 --org MyOrg                                                               |
+    |    8 | login to vCloud Director and VDC      | Standalone | vca login email@company.com --password **** --host myvcloud.company.com --version 5.5 --org MyOrg --vdc MyVDC                                                   |
+    |    9 | use service with insecure SSL certs   | All        | vca --insecure login email@company.com --password **** --host myvcloud.company.com --version 5.5 --org MyOrg                                                    |
+    |   10 | list available instances              | vCA, vCHS  | vca instance                                                                                                                                                    |
+    |   11 | show details of instance              | vCA, vCHS  | vca instance info --instance c40ba6b4-c158-49fb-b164-5c66f90344fa                                                                                               |
+    |   12 | select an instance                    | vCA        | vca instance use --instance c40ba6b4-c158-49fb-b164-5c66f90344fa                                                                                                |
+    |   13 | select an instance and VDC            | vCA        | vca instance use --instance c40ba6b4-c158-49fb-b164-5c66f90344fa --vdc MyVDC                                                                                    |
+    |   14 | select an instance                    | vCHS       | vca instance use --instance M684216431-4470 --org M684216431-4470                                                                                               |
+    |   15 | list organizations                    | All        | vca org                                                                                                                                                         |
+    |   16 | show organization details             | All        | vca org info                                                                                                                                                    |
+    |   17 | select an organization                | vCHS       | vca org use --instance 55-234 --org MyOrg                                                                                                                       |
+    |   18 | list VDC templates                    | All        | vca org list-templates                                                                                                                                          |
+    |   19 | list VDC                              | All        | vca vdc                                                                                                                                                         |
+    |   20 | select VDC                            | All        | vca vdc use --vdc vdc1                                                                                                                                          |
+    |   21 | create VDC                            | All        | vca vdc create --vdc vdc2 --template d2p3v29-new-tp                                                                                                             |
+    |   22 | delete VDC (will prompt to confirm)   | All        | vca vdc delete --vdc vdc2                                                                                                                                       |
+    |   23 | delete VDC without prompt             | All        | vca vdc delete --vdc vdc2 --yes                                                                                                                                 |
+    |   24 | list catalogs and items               | All        | vca catalog                                                                                                                                                     |
+    |   25 | create catalog                        | All        | vca catalog create --catalog mycatalog                                                                                                                          |
+    |   26 | delete catalog                        | All        | vca catalog delete --catalog mycatalog                                                                                                                          |
+    |   27 | delete catalog item                   | All        | vca catalog delete-item --catalog mycatalog --item my_vapp_template                                                                                             |
+    |   28 | upload media file (ISO) to catalog    | All        | vca catalog upload --catalog mycatalog --item esxi.iso --description ESXi-iso --file ~/VMware-VMvisor.iso                                                       |
+    |   29 | list vApps                            | All        | vca vapp                                                                                                                                                        |
+    |   30 | create vApp                           | All        | vca vapp create --vapp myvapp --vm myvm --catalog 'Public Catalog' --template 'Ubuntu Server 12.04 LTS (amd64 20150127)'                                        |
+    |   31 | create vApp                           | All        | vca vapp create -a myvapp -V myvm -c mycatalog -t mytemplate -n default-routed-network -m pool                                                                  |
+    |   32 | create vApp with manually assigned IP | All        | vca vapp create -a myvapp -V myvm -c mycatalog -t mytemplate -n default-routed-network -mode manual --ip 192.168.109.25                                         |
+    |   33 | create multiple vApps                 | All        | vca vapp create -a myvapp -V myvm -c mycatalog -t mytemplate -n default-routed-network -m pool --count 10                                                       |
+    |   34 | create vApp and configure VM size     | All        | vca vapp create -a myvapp -V myvm -c mycatalog -t mytemplate -n default-routed-network -m pool --cpu 4 --ram 4096                                               |
+    |   35 | delete vApp                           | All        | vca vapp delete --vapp myvapp                                                                                                                                   |
+    |   36 | show vApp details in JSON             | All        | vca -j vapp info --vapp myvapp                                                                                                                                  |
+    |   37 | deploy vApp                           | All        | vca vapp deploy --vapp ubu                                                                                                                                      |
+    |   38 | undeploy vApp                         | All        | vca vapp undeploy --vapp ubu                                                                                                                                    |
+    |   39 | power on vApp                         | All        | vca vapp power-on --vapp ubu                                                                                                                                    |
+    |   40 | power off vApp                        | All        | vca vapp power-off --vapp ubu                                                                                                                                   |
+    |   41 | customize vApp VM                     | All        | vca vapp customize --vapp ubu --vm ubu --file add_public_ssh_key.sh                                                                                             |
+    |   42 | insert ISO to vApp VM                 | All        | vca vapp insert --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso                                                                |
+    |   43 | eject ISO from vApp VM                | All        | vca vapp eject --vapp coreos1 --vm coreos1 --catalog default-catalog --media coreos1-config.iso                                                                 |
+    |   44 | attach disk to vApp VM                | All        | vca vapp attach --vapp myvapp --vm myvm --disk mydisk                                                                                                           |
+    |   45 | detach disk from vApp VM              | All        | vca vapp detach --vapp myvapp --vm myvm --disk mydisk                                                                                                           |
+    |   46 | list independent disks                | All        | vca disk                                                                                                                                                        |
+    |   47 | create independent disk of 100GB      | All        | vca disk create --disk mydisk --size 100                                                                                                                        |
+    |   48 | delete independent disk by name       | All        | vca disk delete --disk mydisk                                                                                                                                   |
+    |   49 | delete independent disk by id         | All        | vca disk delete --id bce76ca7-29d0-4041-82d4-e4481804d5c4                                                                                                       |
+    |   50 | list VMs                              | All        | vca vm                                                                                                                                                          |
+    |   51 | list VMs in a vApp                    | All        | vca vm -a ubu                                                                                                                                                   |
+    |   52 | list VMs in JSON format               | All        | vca -j vm                                                                                                                                                       |
+    |   53 | retrieve the IP of a VM               | All        | IP=`vca -j vm -a ubu | jq -r '.vms[0].IPs[0]'` && echo $IP                                                                                                      |
+    |   54 | list networks                         | All        | vca network                                                                                                                                                     |
+    |   55 | create network                        | All        | vca network create --network net-117 --gateway-ip 192.168.117.1 --netmask 255.255.255.0 --dns1 8.8.8.8 --pool 192.168.117.2-192.168.117.100                     |
+    |   56 | delete network                        | All        | vca network delete --network net-117                                                                                                                            |
+    |   57 | list edge gateways                    | All        | vca gateway                                                                                                                                                     |
+    |   58 | get details of edge gateway           | All        | vca gateway info                                                                                                                                                |
+    |   59 | set syslog server on gateway          | All        | vca gateway set-syslog --ip 192.168.109.2                                                                                                                       |
+    |   60 | unset syslog server on gateway        | All        | vca gateway set-syslog                                                                                                                                          |
+    |   61 | allocate external IP address          | vCA        | vca gateway add-ip                                                                                                                                              |
+    |   62 | release external IP address           | vCA        | vca gateway del-ip --ip 107.189.93.162                                                                                                                          |
+    |   63 | list edge gateway firewall rules      | All        | vca firewall                                                                                                                                                    |
+    |   64 | enable edge gateway firewall          | All        | vca firewall enable                                                                                                                                             |
+    |   65 | disable edge gateway firewall         | All        | vca firewall disable                                                                                                                                            |
+    |   66 | enable DHCP service                   | All        | vca dhcp enable                                                                                                                                                 |
+    |   67 | disable DHCP service                  | All        | vca dhcp disable                                                                                                                                                |
+    |   68 | add DHCP service to a network         | All        | vca dhcp add --network net-117 --pool 192.168.117.101-192.168.117.200                                                                                           |
+    |   69 | remove DHCP service from a network    | All        | vca dhcp delete --network net-117                                                                                                                               |
+    |   70 | list edge gateway NAT rules           | All        | vca nat                                                                                                                                                         |
+    |   71 | add edge gateway DNAT rule            | All        | vca nat add --type dnat --original-ip 107.189.93.162 --original-port 22 --translated-ip 192.168.109.2 --translated-port 22 --protocol tcp                       |
+    |   72 | add edge gateway SNAT rule            | All        | vca nat add --type snat --original-ip 192.168.109.0/24 --translated-ip 107.189.93.162                                                                           |
+    |   73 | add SNAT rule to network              | All        | vca nat add --type snat --original-ip 192.168.109.0/24 --translated-ip 107.189.93.162 --network net-109                                                         |
+    |   74 | add edge gateway rules from file      | All        | vca nat add --file natrules.yaml                                                                                                                                |
+    |   75 | delete edge gateway NAT rule          | All        | vca nat delete --type dnat  --original-ip 107.189.93.162 --original-port 22 --translated-ip 192.168.109.4 --translated-port 22 --protocol tcp                   |
+    |   76 | delete all edge gateway NAT rules     | All        | vca nat delete --all                                                                                                                                            |
+    |   77 | list edge gateway VPN config          | All        | vca vpn                                                                                                                                                         |
+    |   78 | enable edge gateway VPN               | All        | vca vpn enable                                                                                                                                                  |
+    |   79 | disable edge gateway VPN              | All        | vca vpn disable                                                                                                                                                 |
+    |   80 | add VPN endpoint                      | All        | vca vpn add-endpoint --network d1p10-ext --public-ip 107.189.123.101                                                                                            |
+    |   81 | delete VPN endpoint                   | All        | vca vpn del-endpoint --network d1p10-ext --public-ip 107.189.123.101                                                                                            |
+    |   82 | add VPN tunnel                        | All        | vca vpn add-tunnel --tunnel t1 --local-ip 107.189.123.101 --local-network net-116 --peer-ip 192.240.158.15 --peer-network 192.168.110.0/24  --secret P8s3P...7v |
+    |   83 | delete VPN tunnel                     | All        | vca vpn del-tunnel --tunnel t1                                                                                                                                  |
+    |   84 | add local network to VPN tunnel       | All        | vca vpn add-network --tunnel t1 --local-network net-115                                                                                                         |
+    |   85 | add peer network to VPN tunnel        | All        | vca vpn add-network --tunnel t1 --peer-network 192.168.117.0/24                                                                                                 |
+    |   86 | delete local network from VPN tunnel  | All        | vca vpn del-network --tunnel t1 --local-network net-115                                                                                                         |
+    |   87 | delete peer network from VPN tunnel   | All        | vca vpn del-network --tunnel t1 --peer-network 192.168.117.0/24                                                                                                 |
+    |   88 | list user roles                       | vCA        | vca role                                                                                                                                                        |
+    |   89 | list users                            | vCA        | vca user                                                                                                                                                        |
+    |   90 | change current user password          | vCA        | vca user change-password --password current-pass --new-password new-pass                                                                                        |
+    |   91 | create user                           | vCA        | vca user create --user usr@com.com --first Name --last Name --roles 'Virtual Infrastructure Administrator, Network Administrator'                               |
+    |   92 | delete user                           | vCA        | vca user delete --id 65737432-9159-418b-945d-e10264130ccb                                                                                                       |
+    |   93 | reset user password                   | vCA        | vca user reset-password --id 65737432-9159-418b-945d-e10264130ccb                                                                                               |
+    |   94 | list blueprints                       | vCA        | vca blueprint                                                                                                                                                   |
+    |   95 | validate blueprint                    | vCA        | vca blueprint validate --file helloworld/blueprint.yaml                                                                                                         |
+    |   96 | upload blueprint                      | vCA        | vca blueprint upload --blueprint helloworld --file helloworld/blueprint.yaml                                                                                    |
+    |   97 | show details of a blueprint           | vCA        | vca blueprint info --blueprint helloworld                                                                                                                       |
+    |   98 | delete blueprint                      | vCA        | vca blueprint delete --blueprint helloworld                                                                                                                     |
+    |   99 | create deployment                     | vCA        | vca deployment create --blueprint helloworld --deployment d1 --file inputs.yaml                                                                                 |
+    |   99 | list deployments                      | vCA        | vca deployment                                                                                                                                                  |
+    |  100 | show details of a deployment          | vCA        | vca deployment info --deployment d1                                                                                                                             |
+    |  101 | execute deployment workflow           | vCA        | vca deployment execute --deployment d1 --workflow install                                                                                                       |
+    |  102 | delete deployment                     | vCA        | vca deployment delete --deployment d1                                                                                                                           |
+    |  103 | list workflow execution events        | vCA        | vca event list --id f98df6cf-08d8-47fa-947f-67c15337efae                                                                                                        |
+    |  104 | list workflow execution events        | vCA        | vca event list --id f98df6cf-08d8-47fa-947f-67c15337efae --show-logs                                                                                            |
+    |  105 | show status                           | All        | vca status                                                                                                                                                      |
+    |  106 | show status and password              | All        | vca status --show-password                                                                                                                                      |
+    |  107 | list profiles                         | All        | vca profile                                                                                                                                                     |
+    |  108 | switch to a profile                   | All        | vca --profile p1 <command>                                                                                                                                      |
+    |  109 | send debug to $TMPDIR/pyvcloud.log    | All        | vca --debug vm                                                                                                                                                  |
+    |  110 | show version                          | All        | vca --version                                                                                                                                                   |
+    |  111 | show general help                     | All        | vca --help                                                                                                                                                      |
+    |  112 | show command help                     | All        | vca <command> --help                                                                                                                                            |
 
 Syntax, commands and arguments:
 
@@ -294,57 +325,66 @@ Syntax, commands and arguments:
     Usage: vca [OPTIONS] COMMAND [ARGS]...
     
       VMware vCloud Air Command Line Interface.
-      
+    
     Options:
-      -p, --profile <profile>  Profile id
-      -v, --version            Show version
-      -d, --debug              Enable debug
-      -j, --json               Results as JSON object
-      -x, --xml                Results as XML document
-      -i, --insecure           Perform insecure SSL connections
-      -h, --help               Show this message and exit.
-      
+      -p, --profile <profile>    Profile id
+      -f, --profile-file <file>  Profile file
+      -v, --version              Show version
+      -d, --debug                Enable debug
+      -j, --json                 Results as JSON object
+      -i, --insecure             Perform insecure SSL connections
+      -h, --help                 Show this message and exit.
+    
     Commands:
-      bp        Operations with Blueprints
-      catalog   Operations with Catalogs
-      dep       Operations with Deployments
-      dhcp      Operations with Edge Gateway DHCP Service
-      example   vCloud Air CLI Examples
-      firewall  Operations with Edge Gateway Firewall Rules
-      gateway   Operations with Edge Gateway
-      instance  Operations with Instances
-      login     Login to a vCloud service
-      logout    Logout from a vCloud service
-      nat       Operations with Edge Gateway NAT Rules
-      network   Operations with Networks
-      org       Operations with Organizations
-      plan      Operations with Instances
-      status    Show current status
-      vapp      Operations with vApps
-      vdc       Operations with Virtual Data Centers (vdc)
-      vm        Operations with Virtual Machines (VMs)
-      vpn       Operations with Edge Gateway VPN
-          
+      blueprint   Operations with Blueprints
+      catalog     Operations with Catalogs
+      deployment  Operations with Deployments
+      dhcp        Operations with Edge Gateway DHCP Service
+      disk        Operations with Independent Disks
+      event       Operations with Blueprint Events
+      example     vCloud Air CLI Examples
+      firewall    Operations with Edge Gateway Firewall Service
+      gateway     Operations with Edge Gateway
+      instance    Operations with Instances
+      login       Login to a vCloud service
+      logout      Logout from a vCloud service
+      nat         Operations with Edge Gateway NAT Rules
+      network     Operations with Networks
+      org         Operations with Organizations
+      profile     Show profiles
+      role        Operations with Roles
+      status      Show current status
+      user        Operations with Users
+      vapp        Operations with vApps
+      vdc         Operations with Virtual Data Centers
+      vm          Operations with VMs
+      vpn         Operations with Edge Gateway VPN
 
 Detailed syntax for a specific command:
 
+    
     $ vca vapp --help
-    Usage: vca vapp [OPTIONS] [list | info | create | delete | power.on |
-                    power.off | deploy | undeploy | customize |
-                    insert | eject]
-                    
+    Usage: vca vapp [OPTIONS] [list | info | create | delete | power-on | power-
+                    off | deploy | undeploy | customize | insert | eject | connect
+                    | disconnect | attach | detach]
+    
       Operations with vApps
-      
+    
     Options:
-      -v, --vdc <vdc>                 Virtual Data Center Id
+      -v, --vdc <vdc>                 Virtual Data Center Name
       -a, --vapp <vapp>               vApp name
-      -c, --catalog <catalog>         catalog name
-      -t, --template <template>       template name
+      -c, --catalog <catalog>         Catalog name
+      -t, --template <template>       Template name
       -n, --network <network>         Network name
-      -m, --mode [POOL, DHCP]         Network connection mode
+      -m, --mode [pool, dhcp, manual]
+                                      Network connection mode
       -V, --vm <vm>                   VM name
       -f, --file <customization_file>
                                       Guest OS Customization script file
-      -e, --media <media>             virtual media name (ISO)
+      -e, --media <media>             Virtual media name (ISO)
+      -d, --disk <disk_name>          Disk Name
+      -o, --count <count>             Number of vApps to create
+      -p, --cpu <virtual CPUs>        Virtual CPUs
+      -r, --ram <MB RAM>              Memory in MB
+      -i, --ip <ip>                   IP address
       -h, --help                      Show this message and exit.
-

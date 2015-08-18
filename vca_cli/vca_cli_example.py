@@ -61,6 +61,10 @@ def example(ctx):
                   ' --host myvcloud.company.com --version 5.5 --org MyOrg'
                   ' --vdc MyVDC'])
     example_id += 1
+    table.append([example_id, 'use service with insecure SSL certs', 'All',
+                  'vca --insecure login email@company.com --password ****'
+                  ' --host myvcloud.company.com --version 5.5 --org MyOrg'])
+    example_id += 1
     table.append([example_id, 'list available instances', 'vCA, vCHS',
                   'vca instance'])
     example_id += 1
@@ -218,7 +222,7 @@ def example(ctx):
     example_id += 1
     table.append([example_id, 'list independent disks',
                   'All',
-                  'vca vapp disk'])
+                  'vca disk'])
     example_id += 1
     table.append([example_id, 'create independent disk of 100GB',
                   'All',

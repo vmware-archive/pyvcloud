@@ -166,7 +166,8 @@ vCloud Air (vCA) example of login and access to a VDC:
 
 Login and access the VDC in one command:
 
-    $ vca login email@company.com --password ******** --instance 5a872845-6a7e-4e1d-b92a-99c45844417d \
+    $ vca login email@company.com --password ******** \
+                --instance 5a872845-6a7e-4e1d-b92a-99c45844417d \
                 --vdc vdc1
     User 'email@company.com' logged in, profile 'default'
     Password encrypted and saved in local profile. Use --do-not-save-password to disable it.

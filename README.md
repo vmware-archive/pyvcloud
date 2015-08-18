@@ -104,7 +104,6 @@ Login and Logout:
 
 When the *password* argument is omitted, `vca-cli` will prompt the user for the password. By default `vca-cli` caches the password (encrypted) and automatically re-login when the token expires. Below are some examples:
 
-    
     # vCA, password prompt
     vca login user@domain.com
     Password: ***************
@@ -114,11 +113,11 @@ When the *password* argument is omitted, `vca-cli` will prompt the user for the 
     
     # vCHS
     $ vca login user@domain.com --password ******** \
-             --host vchs.vmware.com --version 5.6
+                --host vchs.vmware.com --version 5.6
     
     # vCloud Director Standalone
     $ vca login user@domain.com --password ******** \
-             --host vcdhost.domain.com --org myorg --version 5.6
+                --host vcdhost.domain.com --org myorg --version 5.6
     
     # vCloud Director with insecure SSL certificate
     $ vca --insecure login user@domain.com --password ******** \
@@ -126,7 +125,6 @@ When the *password* argument is omitted, `vca-cli` will prompt the user for the 
 
 vCloud Air On Demand, login to a specific instance and get the details of the instance (organization):
 
-    
     $ vca login user@domain.com --password ********
     Login successful for profile 'default'
     
@@ -166,7 +164,6 @@ vCloud Air On Demand, login to a specific instance and get the details of the in
 
 Connection status:
 
-    
     $ vca status
     Status:
     | Key              | Value                                                          |
@@ -190,7 +187,6 @@ Connection status:
 
 Logout:
 
-    
     $ vca logout
     Logout successful for profile 'default'
 
@@ -199,7 +195,6 @@ Examples and Help:
 
 `vca-cli` provides a list of examples with the `example` command:
 
-    
     $ vca example
     vca-cli usage examples:
     |   Id | Example                               | Flavor     | Command                                                                                                                                                         |

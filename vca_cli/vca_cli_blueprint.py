@@ -238,7 +238,8 @@ def print_deployments(deployments):
             obj_is_dict=True)
 
 
-def print_deployment_info(deployment, executions, events, ctx=None):
+def print_deployment_info(deployment, executions, events, execution_id,
+                          ctx=None):
     headers = ['Blueprint Id', 'Deployment Id', 'Created', 'Workflows']
     table = []
     workflows = []
@@ -272,10 +273,11 @@ def print_deployment_info(deployment, executions, events, ctx=None):
             if isinstance(
                     event, collections.Iterable) and 'event_type' in event:
                 table.append(
-                    [event.get('event_type'), event.get('timestamp'),
+                    [event.get('event_type'), event.get('timestamp')[:-9],
                      event.get('message').get('text')])
-        print_table("Events for workflow '%s'" %
-                    deployment.get('workflow_id'), 'events',
+        print('\n')
+        print_table("Events for execution id '%s'" %
+                    execution_id, 'events',
                     headers, table, ctx)
 
 
@@ -320,32 +322,32 @@ def print_execution(execution, ctx=None):
               type=click.File('r'))
 @click.option('-s', '--show-events', 'show_events',
               is_flag=True, default=False, help='Show events')
-@click.option('-e', '--execution', default=None,
+@click.option('-e', '--execution', 'execution_id', default=None,
               metavar='<execution-id>', help='Execution Id')
 @click.option('--force-cancel', 'force_cancel',
               is_flag=True, default=False, help='Force cancel execution')
 @click.option('--force-delete', 'force_delete',
               is_flag=True, default=False, help='Force delete deployment')
 def deployment(cmd_proc, operation, deployment_id, blueprint_id,
-               input_file, workflow, show_events, execution,
+               input_file, workflow, show_events, execution_id,
                force_cancel, force_delete):
     """Operations with Deployments"""
     scoreclient = _authorize(cmd_proc)
 
     _run_deployment_operation(
         cmd_proc, operation, deployment_id, blueprint_id,
-        input_file, workflow, show_events, execution,
+        input_file, workflow, show_events, execution_id,
         force_cancel, force_delete, scoreclient)
 
 
 def _run_deployment_operation(
         cmd_proc, operation, deployment_id, blueprint_id,
-        input_file, workflow, show_events, execution,
+        input_file, workflow, show_events, execution_id,
         force_cancel, force_delete, scoreclient):
 
     def operation_unknown(
             cmd_proc, operation, deployment_id, blueprint_id,
-            input_file, workflow, show_events, execution,
+            input_file, workflow, show_events, execution_id,
             force_cancel, force_delete, scoreclient):
         utils.print_error("Operation '{0}' not supported.".format(
             operation), cmd_proc)
@@ -362,12 +364,12 @@ def _run_deployment_operation(
 
     method = operation_mapping.get(operation, operation_unknown)
     method(cmd_proc, operation, deployment_id, blueprint_id,
-           input_file, workflow, show_events, execution,
+           input_file, workflow, show_events, execution_id,
            force_cancel, force_delete, scoreclient)
 
 
 def _outputs(cmd_proc, operation, deployment_id, blueprint_id,
-             input_file, workflow, show_events, execution,
+             input_file, workflow, show_events, execution_id,
              force_cancel, force_delete, scoreclient):
     try:
 
@@ -381,14 +383,14 @@ def _outputs(cmd_proc, operation, deployment_id, blueprint_id,
 
 
 def _cancel(cmd_proc, operation, deployment_id, blueprint_id,
-            input_file, workflow, show_events, execution,
+            input_file, workflow, show_events, execution_id,
             force_cancel, force_delete, scoreclient):
 
-    if not execution:
+    if not execution_id:
         utils.print_error("Execution id is not specified.")
         return
     try:
-        e = scoreclient.executions.cancel(execution, force_cancel)
+        e = scoreclient.executions.cancel(execution_id, force_cancel)
         print_execution(e, None) if e else utils.print_message(
             str(scoreclient.response.content), cmd_proc)
     except exceptions.ClientException as e:
@@ -398,7 +400,7 @@ def _cancel(cmd_proc, operation, deployment_id, blueprint_id,
 
 
 def _create_deployment(cmd_proc, operation, deployment_id, blueprint_id,
-                       input_file, workflow, show_events, execution,
+                       input_file, workflow, show_events, execution_id,
                        force_cancel, force_delete,
                        scoreclient):
     try:
@@ -415,7 +417,7 @@ def _create_deployment(cmd_proc, operation, deployment_id, blueprint_id,
 
 
 def _list_deployments(cmd_proc, operation, deployment_id, blueprint_id,
-                      input_file, workflow, show_events, execution,
+                      input_file, workflow, show_events, execution_id,
                       force_cancel, force_delete, scoreclient):
 
     try:
@@ -429,7 +431,7 @@ def _list_deployments(cmd_proc, operation, deployment_id, blueprint_id,
 
 
 def _delete_deployment(cmd_proc, operation, deployment_id, blueprint_id,
-                       input_file, workflow, show_events, execution,
+                       input_file, workflow, show_events, execution_id,
                        force_cancel, force_delete, scoreclient):
     try:
         scoreclient.deployments.delete(deployment_id,
@@ -443,15 +445,24 @@ def _delete_deployment(cmd_proc, operation, deployment_id, blueprint_id,
 
 
 def _info_deployment(cmd_proc, operation, deployment_id, blueprint_id,
-                     input_file, workflow, show_events, execution,
+                     input_file, workflow, show_events, execution_id,
                      force_cancel, force_delete, scoreclient):
     try:
         d = scoreclient.deployments.get(deployment_id)
         e = scoreclient.executions.list(deployment_id)
         events = None
+        e_id = None
         if show_events and e is not None and len(e) > 0:
-            events = scoreclient.events.get(e[-1].get('id'))
-        print_deployment_info(d, e, events)
+            table = []
+            for execution in e:
+                table.append([execution.get('created_at'),
+                              execution.get('id')])
+            sorted_table = sorted(table,
+                                  key=operator.itemgetter(1),
+                                  reverse=False)
+            e_id = sorted_table[0][1] if execution_id is None else execution_id
+            events = scoreclient.events.get(e_id)
+        print_deployment_info(d, e, events, e_id)
     except exceptions.ClientException as e:
         utils.print_error("Failed to get deployment info. Reason: {0}, {1}"
                           .format(str(e), scoreclient.response.content),
@@ -459,7 +470,7 @@ def _info_deployment(cmd_proc, operation, deployment_id, blueprint_id,
 
 
 def _execute_workflow(cmd_proc, operation, deployment_id, blueprint_id,
-                      input_file, workflow, show_events, execution,
+                      input_file, workflow, show_events, execution_id,
                       force_cancel, force_delete, scoreclient):
     try:
         if not deployment_id or not workflow:
@@ -481,7 +492,7 @@ def _execute_workflow(cmd_proc, operation, deployment_id, blueprint_id,
 @click.argument('operation', default=default_operation,
                 metavar='[list]',
                 type=click.Choice(['list']))
-@click.option('-i', '--id', 'execution', metavar='<execution-id>',
+@click.option('-i', '--id', 'execution_id', metavar='<execution-id>',
               required=True, help='Execution Id')
 @click.option('-f', '--from', 'from_event',
               default=0, metavar='<from_event>',
@@ -492,13 +503,15 @@ def _execute_workflow(cmd_proc, operation, deployment_id, blueprint_id,
 @click.option('-l', '--show-logs', 'show_logs',
               is_flag=True, default=False,
               help='Show logs for event')
-def event(cmd_proc, operation, execution, from_event, batch_size, show_logs):
+def event(cmd_proc, operation, execution_id, from_event, batch_size,
+          show_logs):
     """Operations with Blueprint Events"""
     scoreclient = _authorize(cmd_proc)
 
     if 'list' == operation:
         try:
-            events = scoreclient.events.get(execution, from_event=from_event,
+            events = scoreclient.events.get(execution_id,
+                                            from_event=from_event,
                                             batch_size=batch_size,
                                             include_logs=show_logs)
             print_events(events)
@@ -507,7 +520,7 @@ def event(cmd_proc, operation, execution, from_event, batch_size, show_logs):
         except exceptions.ClientException as e:
                 utils.print_error("Can't find events for execution: {0}. "
                                   "Reason: {1}.".
-                                  format(execution, str(e)),
+                                  format(execution_id, str(e)),
                                   cmd_proc)
 
 

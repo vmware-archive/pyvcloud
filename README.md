@@ -151,6 +151,7 @@ vCloud Air (vCA) example of login and access to a VDC:
     |-------------------+------------------------|
     | gateway           | gateway                |
     | network           | default-routed-network |
+    | network           | net-101                |
     | vdcStorageProfile | SSD-Accelerated        |
     | vdcStorageProfile | Standard               |
     Compute capacity:

@@ -105,28 +105,29 @@ Login and Logout:
 When the *password* argument is omitted, `vca-cli` will prompt the user for the password. By default `vca-cli` caches the password (encrypted) and automatically re-login when the token expires. Below are some examples:
 
     # vCA, password prompt
-    vca login user@domain.com
+    vca login email@company.com
     Password: ***************
     
     # vCA
-    $ vca login user@domain.com --password ******** 
+    $ vca login email@company.com --password ******** 
     
     # vCHS
-    $ vca login user@domain.com --password ******** \
+    $ vca login email@company.com --password ******** \
                 --host vchs.vmware.com --version 5.6
     
     # vCloud Director Standalone
-    $ vca login user@domain.com --password ******** \
+    $ vca login email@company.com --password ******** \
                 --host vcdhost.domain.com --org myorg --version 5.6
     
     # vCloud Director with insecure SSL certificate
-    $ vca --insecure login user@domain.com --password ******** \
+    $ vca --insecure login email@company.com --password ******** \
           --host vcdhost.domain.com --org myorg --version 5.6
 
-vCloud Air On Demand, login to a specific instance and get the details of the instance (organization):
+vCloud Air (vCA), example of login and access to a VDC:
 
-    $ vca login user@domain.com --password ********
-    Login successful for profile 'default'
+    $ vca login email@company.com --password ********
+    User 'email@company.com' logged in, profile 'default'
+    Password encrypted and saved in local profile. Use --do-not-save-password to disable it.
     
     $ vca instance
     Available instances for user 'email@company.com', profile 'default':
@@ -144,7 +145,7 @@ vCloud Air On Demand, login to a specific instance and get the details of the in
     Using instance:org '5a872845-6a7e-4e1d-b92a-99c45844417d':'e01d04b3-2d86-442e-84a7-4ff194ae9a3d', profile 'default'
     Using VDC 'vdc1', profile 'default'
     
-    $ vca-cli-prod  vca vdc info
+    $ vca vdc info
     Details of Virtual Data Center 'vdc1', profile 'od':
     | Type              | Name                   |
     |-------------------+------------------------|
@@ -162,6 +163,15 @@ vCloud Air On Demand, login to a specific instance and get the details of the in
     |---------+--------+----------------+--------+------------+-------+------------------------+-------------------+--------------+-----------|
     | gateway |        | Off            | On     | Off        | Off   | default-routed-network |                   | d4p14v14-ext | *         |
 
+Login and access the VDC in one command:
+
+    $ vca login email@company.com --password ******** --instance 5a872845-6a7e-4e1d-b92a-99c45844417d \
+                --vdc vdc1
+    User 'email@company.com' logged in, profile 'default'
+    Password encrypted and saved in local profile. Use --do-not-save-password to disable it.
+    Using instance:org '5a872845-6a7e-4e1d-b92a-99c45844417d':'e01d04b3-2d86-442e-84a7-4ff194ae9a3d', profile 'default'
+    Using VDC 'vdc1', profile 'default'
+
 Connection status:
 
     $ vca status
@@ -171,7 +181,7 @@ Connection status:
     | vca_cli_version  | 14                                                             |
     | pyvcloud_version | 14                                                             |
     | profile_file     | /Users/francisco/.vcarc                                        |
-    | profile          | od                                                             |
+    | profile          | default                                                        |
     | host             | https://vca.vmware.com                                         |
     | host_score       | https://score.vca.io                                           |
     | user             | email@company.com                                              |

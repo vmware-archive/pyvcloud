@@ -29,6 +29,7 @@ from pyvcloud import Log
 import print_utils
 from tabulate import tabulate
 import collections
+import sys
 
 
 def _authorize(cmd_proc):
@@ -113,6 +114,9 @@ def _info_blueprint(cmd_proc, operation,
                     include_plan, scoreclient):
     try:
         b = scoreclient.blueprints.get(blueprint_id)
+        if blueprint_id is None or len(blueprint_id) == 0:
+            utils.print_error('specify blueprint id')
+            sys.exit(1)
         headers = ['Id', 'Created']
         table = cmd_proc.blueprints_to_table([b])
         if cmd_proc.json_output:
@@ -121,7 +125,7 @@ def _info_blueprint(cmd_proc, operation,
             utils.print_json(json_object, cmd_proc=cmd_proc)
         else:
             utils.print_table("Details of blueprint '%s', profile '%s':" %
-                              (blueprint, cmd_proc.profile),
+                              (blueprint_id, cmd_proc.profile),
                               headers, table, cmd_proc)
         if include_plan:
             utils.print_json(b['plan'], "Blueprint plan", cmd_proc)

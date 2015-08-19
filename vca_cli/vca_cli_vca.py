@@ -49,8 +49,8 @@ def user(cmd_proc, operation, username, user_id, password, new_password,
          first_name, last_name, roles, token):
     """Operations with Users"""
     if cmd_proc.vca.service_type != VCA.VCA_SERVICE_TYPE_VCA:
-        utils.print_message('Operation not supported '
-                            'in this service type')
+        utils.print_error('Operation not supported '
+                          'in this service type')
         sys.exit(1)
     result = cmd_proc.re_login()
     if not result:

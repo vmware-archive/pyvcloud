@@ -99,6 +99,7 @@ class BlueprintsClient(object):
         return json.loads(self.score.response.content)
 
     def upload(self, blueprint_path, blueprint_id):
+        self.validate(blueprint_path)
         tempdir = tempfile.mkdtemp()
         try:
             tar_path = self._tar_blueprint(blueprint_path, tempdir)

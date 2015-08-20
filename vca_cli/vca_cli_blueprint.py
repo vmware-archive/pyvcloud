@@ -462,8 +462,8 @@ def _info_deployment(cmd_proc, operation, deployment_id, blueprint_id,
                 table.append([execution.get('created_at'),
                               execution.get('id')])
             sorted_table = sorted(table,
-                                  key=operator.itemgetter(1),
-                                  reverse=False)
+                                  key=operator.itemgetter(0),
+                                  reverse=True)
             e_id = sorted_table[0][1] if execution_id is None else execution_id
             events = scoreclient.events.get(e_id)
         print_deployment_info(d, e, events, e_id)

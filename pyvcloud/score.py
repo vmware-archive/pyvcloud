@@ -20,12 +20,17 @@ import tempfile
 import shutil
 import tarfile
 import urllib
+import contextlib
 
 from os.path import expanduser
 from pyvcloud import exceptions
 from pyvcloud import _get_logger, Http, Log
 
 from dsl_parser import parser
+
+
+CONTENT_DISPOSITION_HEADER = 'content-disposition'
+DEFAULT_BUFFER_SIZE = 8192
 
 
 class Score(object):
@@ -87,6 +92,44 @@ class BlueprintsClient(object):
         if self.score.response.status_code != requests.codes.ok:
             raise exceptions.from_response(self.score.response)
         return json.loads(self.score.response.content)
+
+    def _write_response_stream_to_file(self, streamed_response, output_file=None,
+                                       buffer_size=DEFAULT_BUFFER_SIZE):
+        if not output_file:
+            if CONTENT_DISPOSITION_HEADER not in streamed_response.headers:
+                raise RuntimeError(
+                    'Cannot determine attachment filename: {0} header not'
+                    ' found in response headers'.format(
+                        CONTENT_DISPOSITION_HEADER))
+            output_file = streamed_response.headers[
+                CONTENT_DISPOSITION_HEADER].split('filename=')[1]
+
+        if os.path.exists(output_file):
+            raise OSError("Output file '{0}' already exists".format(output_file))
+
+        with open(output_file, 'wb') as f:
+            for chunk in streamed_response.bytes_stream(buffer_size):
+                if chunk:
+                    f.write(chunk)
+                    f.flush()
+
+        return output_file
+
+    def download(self, blueprint_id, output_file=None):
+        self.score.response = Http.get(
+            self.score.url +
+            '/blueprints/%s/archive' % blueprint_id,
+            headers=self.score.get_headers(),
+            verify=self.score.verify,
+            logger=self.logger)
+
+        if self.score.response.status_code != requests.codes.ok:
+            raise exceptions.from_response(self.score.response)
+
+        with contextlib.closing(self.score.response) as streamed_response:
+            output_file = self._write_response_stream_to_file(
+                streamed_response, output_file)
+            return output_file
 
     def delete(self, blueprint_id):
         self.score.response = Http.delete(self.score.url +

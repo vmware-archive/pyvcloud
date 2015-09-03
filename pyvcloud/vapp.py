@@ -238,7 +238,7 @@ class VAPP(object):
         return self.execute("snapshot:removeAll", "post")
 
     @staticmethod
-    def create_networkConfigSection(network_name, network_href, fence_mode):
+    def create_networkConfigSection(network_name, network_href, fence_mode, prev_network_config_section=None):
         parentNetwork = vcloudType.ReferenceType(href=network_href, name=network_name)
         configuration = vcloudType.NetworkConfigurationType()
         configuration.set_ParentNetwork(parentNetwork)
@@ -248,7 +248,11 @@ class VAPP(object):
         networkConfig.set_Configuration(configuration)
         info = vcloudType.Msg_Type()
         info.set_valueOf_("Configuration parameters for logical networks")
-        networkConfigSection = vcloudType.NetworkConfigSectionType()
+        networkConfigSection = None
+        if prev_network_config_section is None:
+            networkConfigSection = vcloudType.NetworkConfigSectionType()
+        else:
+            networkConfigSection = prev_network_config_section
         networkConfigSection.add_NetworkConfig(networkConfig)
         networkConfigSection.set_Info(vAppType.cimString(valueOf_="Network config"))
         return networkConfigSection
@@ -362,14 +366,13 @@ class VAPP(object):
         """
         vApp_NetworkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
         link = [link for link in vApp_NetworkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]
-        networkConfigSection = VAPP.create_networkConfigSection(network_name, network_href, fence_mode)
         for networkConfig in vApp_NetworkConfigSection.get_NetworkConfig():
             if networkConfig.get_networkName() == network_name:
                 task = TaskType()
                 task.set_status("success")
                 task.set_Progress("100")
                 return task
-            networkConfigSection.add_NetworkConfig(networkConfig)
+        networkConfigSection = VAPP.create_networkConfigSection(network_name, network_href, fence_mode, vApp_NetworkConfigSection)
         output = StringIO()
         networkConfigSection.export(output,
             0,

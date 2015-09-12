@@ -1133,7 +1133,9 @@ class VCA(object):
                <Description>%s</Description>
             </Media>
             """ % (item_name, statinfo.st_size, description)
-            self.response = Http.post(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(),
+            headers=self.vcloud_session.get_vcloud_headers()
+            headers['Content-Type'] = 'application/vnd.vmware.vcloud.media+xml'
+            self.response = Http.post(link[0].get_href(), headers=headers,
                             data=data, verify=self.verify, logger=self.logger)
             if self.response.status_code == requests.codes.created:
                 catalogItem = ET.fromstring(self.response.content)

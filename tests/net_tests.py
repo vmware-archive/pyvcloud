@@ -85,11 +85,6 @@ class TestNet:
         assert the_vapp
         assert the_vapp.name == vapp_name
         
-        # print('deploy vApp')
-        # task = the_vapp.deploy()
-        # assert task
-        # result = self.vca.block_until_completed(task)
-        
         print('disconnect vms')
         task = the_vapp.disconnect_vms()
         assert task
@@ -100,7 +95,7 @@ class TestNet:
         assert task
         result = self.vca.block_until_completed(task)
         assert result
-        
+
         index = 0
         the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
         nets = filter(lambda n: n.name == network_name,
@@ -120,12 +115,13 @@ class TestNet:
             task = the_vapp.connect_vms(
                 nets[0].name,
                 connection_index=index,
+                connections_primary_index=0,
                 ip_allocation_mode=mode.upper(),
                 mac_address=None, ip_address=ip)
             assert task
             result = self.vca.block_until_completed(task)
             assert result
-        
+
         index = index + 1
         nets = filter(lambda n: n.name == network_name2,
                       self.vca.get_networks(vdc_name))
@@ -144,12 +140,13 @@ class TestNet:
             task = the_vapp.connect_vms(
                 nets[0].name,
                 connection_index=index,
+                connections_primary_index=0,
                 ip_allocation_mode=mode.upper(),
                 mac_address=None, ip_address=ip)
             assert task
             result = self.vca.block_until_completed(task)
             assert result
-        
+
         index = index + 1
         nets = filter(lambda n: n.name == network_name3,
                       self.vca.get_networks(vdc_name))
@@ -168,23 +165,30 @@ class TestNet:
             task = the_vapp.connect_vms(
                 nets[0].name,
                 connection_index=index,
+                connections_primary_index=0,
                 ip_allocation_mode=mode.upper(),
                 mac_address=None, ip_address=ip)
             assert task
             result = self.vca.block_until_completed(task)
             assert result
 
-        print('undeploy vApp')
-        task = the_vapp.undeploy()
-        assert task
-        result = self.vca.block_until_completed(task)
-        
-        print('guest customization')
+        print('status=%s' % the_vapp.me.get_status())
+        if (4 == the_vapp.me.get_status()):
+            print('undeploy vApp')
+            task = the_vapp.undeploy()
+            if task is not None:
+                result = self.vca.block_until_completed(task)
+
+        print('set guest customization')
         task = the_vapp.customize_guest_os(vm_name)
         assert task
         result = self.vca.block_until_completed(task)
         print('force customization')
         task = the_vapp.force_customization(vm_name)
-        assert task
-        result = self.vca.block_until_completed(task)
+        print task
+        if task is not None:
+            result = self.vca.block_until_completed(task)
+        task = the_vapp.deploy()
+        if task is not None:
+            result = self.vca.block_until_completed(task)
 

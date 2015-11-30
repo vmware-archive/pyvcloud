@@ -86,7 +86,7 @@ class Gateway(object):
                                                  namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ')
         content_type = "application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml"
         link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
-        self.response = Http.post(link[0].get_href(), data=body, headers=self.headers, logger=self.logger)
+        self.response = Http.post(link[0].get_href(), data=body, headers=self.headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.accepted:
             task = taskType.parseString(self.response.content, True)
             return task

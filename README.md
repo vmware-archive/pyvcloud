@@ -51,7 +51,7 @@ Install `pip`:
 
 Install `vca-cli`
 
-    $ sudo pip install vca-cli
+    $ sudo -H pip install vca-cli
 
 Verify Installation:
 --------------------

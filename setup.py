@@ -20,7 +20,7 @@ requirements = [
 
 setup(
     name='vca-cli',
-    version='14',
+    version='15',
     description='VMware vCloud CLI',
     url='https://github.com/vmware/vca-cli',
     author='VMware, Inc.',

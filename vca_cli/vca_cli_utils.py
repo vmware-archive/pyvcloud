@@ -48,7 +48,7 @@ class VcaCliUtils:
             if '<Error xmlns=' in cmd_proc.vca.response.content:
                 error = parseString(cmd_proc.vca.response.content, True)
                 msg = message + ': ' + error.get_message()
-            elif 'message' in cmd_proc.vca.response.content:
+            elif 'message' in cmd_proc.vca.response.content and '<Error' not in cmd_proc.vca.response.content:
                 json_message = json.loads(cmd_proc.vca.response.content)
                 msg = message + ': ' + json_message.get('message')
         if cmd_proc is not None and \
@@ -61,7 +61,7 @@ class VcaCliUtils:
                                     content,
                                     True)
                 msg = message + ': ' + error.get_message()
-            elif 'message' in cmd_proc.vca.vcloud_session.response.content:
+            elif 'message' in cmd_proc.vca.vcloud_session.response.content and '<Error' not in cmd_proc.vca.vcloud_session.response.content:
                 json_message = json.loads(cmd_proc.vca.vcloud_session.response.
                                           content)
                 msg = message + ': ' + json_message.get('message')

@@ -221,13 +221,33 @@ def network(cmd_proc, operation, vdc, gateway, network_name, gateway_ip,
 @cli.command()
 @click.pass_obj
 @click.argument('operation', default=default_operation,
-                metavar='[list | enable | disable]',
-                type=click.Choice(['list', 'enable', 'disable']))
+                metavar='[list | enable | disable | add | delete]',
+                type=click.Choice(['list', 'enable', 'disable', 'add', 'delete']))
 @click.option('-v', '--vdc', default=None,
               metavar='<vdc>', help='Virtual Data Center Name')
 @click.option('-g', '--gateway', default=None, metavar='<gateway>',
               help='Edge Gateway Name')
-def firewall(cmd_proc, operation, vdc, gateway):
+@click.option('--enable/--disable', 'is_enable', default=True,
+              help='Firewall rule enabled')
+@click.option('--description', 'description', default=None,
+              metavar='<description>', help='Rule description')
+@click.option('--policy', 'policy', default='allow',
+              metavar='<policy>', help='Rule policy (drop or allow)')
+@click.option('--protocol', 'protocol', default='Tcp',
+              metavar='<protocol>', help='Rule protocol (Tcp, Udp, Icmp, Any)')
+@click.option('--dest-port', 'dest_port', default='',
+              metavar='<dest_port>', help='Destination port')
+@click.option('--dest-ip', 'dest_ip', default='',
+              metavar='<dest_ip>', help='Destination IP/range')
+@click.option('--source-port', 'source_port', default='',
+              metavar='<source_port>', help='Source port')
+@click.option('--source-ip', 'source_ip', default='',
+              metavar='<source_ip>', help='Source IP/range')
+@click.option('--logging/--no-logging', 'enable_logging', default=True,
+              help='Enable logging for rule')
+def firewall(cmd_proc, operation, vdc, gateway, is_enable, description, policy,
+             protocol, dest_port, dest_ip, source_port, source_ip,
+             enable_logging):
     """Operations with Edge Gateway Firewall Service"""
     result = cmd_proc.re_login()
     if not result:
@@ -272,6 +292,38 @@ def firewall(cmd_proc, operation, vdc, gateway):
             utils.print_error("can't '%s' the firewall: " % operation +
                               error.get_message(), cmd_proc)
             sys.exit(1)
+    elif 'add' == operation:
+        utils.print_message("add firewall rule")
+        # FIXME: rules file
+        the_gateway.add_fw_rule(is_enable, description, policy, protocol,
+                                dest_port, dest_ip, source_port, source_ip,
+                                enable_logging)
+        task = the_gateway.save_services_configuration()
+        if task:
+            utils.display_progress(task, cmd_proc,
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
+        else:
+            error = parseString(the_gateway.response.content, True)
+            utils.print_error("can't add firewall rule: " +
+                              error.get_message(), cmd_proc)
+            sys.exit(1)
+    elif 'delete' == operation:
+        utils.print_message("delete firewall rule")
+        # FIXME: rules file
+        the_gateway.delete_fw_rule(protocol, dest_port, dest_ip,
+                                   source_port, source_ip)
+        task = the_gateway.save_services_configuration()
+        if task:
+            utils.display_progress(task, cmd_proc,
+                                   cmd_proc.vca.vcloud_session.
+                                   get_vcloud_headers())
+        else:
+            error = parseString(the_gateway.response.content, True)
+            utils.print_error("can't delete firewall rule: " +
+                              error.get_message(), cmd_proc)
+            sys.exit(1)
+        
     cmd_proc.save_current_config()
 
 

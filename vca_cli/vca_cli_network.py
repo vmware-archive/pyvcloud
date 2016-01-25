@@ -222,7 +222,8 @@ def network(cmd_proc, operation, vdc, gateway, network_name, gateway_ip,
 @click.pass_obj
 @click.argument('operation', default=default_operation,
                 metavar='[list | enable | disable | add | delete]',
-                type=click.Choice(['list', 'enable', 'disable', 'add', 'delete']))
+                type=click.Choice(['list', 'enable', 'disable', 'add',
+                'delete']))
 @click.option('-v', '--vdc', default=None,
               metavar='<vdc>', help='Virtual Data Center Name')
 @click.option('-g', '--gateway', default=None, metavar='<gateway>',
@@ -255,10 +256,10 @@ def firewall(cmd_proc, operation, vdc, gateway, is_enable, description, policy,
              protocol, dest_port, dest_ip, source_port, source_ip,
              enable_logging, fw_rules_file):
     """Operations with Edge Gateway Firewall Service"""
-    
+
     def proto(name):
         return name[0].upper() + name[1:].lower()
-    
+
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
@@ -314,14 +315,18 @@ def firewall(cmd_proc, operation, vdc, gateway, is_enable, description, policy,
                     the_gateway.add_fw_rule(rule.get('is_enable', is_enable),
                                             rule.get('description', None),
                                             rule.get('policy', policy),
-                                            proto(rule.get('protocol', protocol)),
+                                            proto(
+                                              rule.get('protocol', protocol)
+                                            ),
                                             rule.get('dest_port'),
                                             rule.get('dest_ip'),
                                             rule.get('source_port'),
                                             rule.get('source_ip'),
-                                            rule.get('enable_logging', enable_logging))
+                                            rule.get('enable_logging',
+                                                     enable_logging))
         else:
-            the_gateway.add_fw_rule(is_enable, description, policy, proto(protocol),
+            the_gateway.add_fw_rule(is_enable, description, policy,
+                                    proto(protocol),
                                     dest_port, dest_ip, source_port, source_ip,
                                     enable_logging)
         task = the_gateway.save_services_configuration()
@@ -342,7 +347,9 @@ def firewall(cmd_proc, operation, vdc, gateway, is_enable, description, policy,
                 fw_rules = rules[0].get('Firewall_rules')
                 for rule in fw_rules:
                     # Take default for protocol cmdline switch (or its default)
-                    the_gateway.delete_fw_rule(proto(rule.get('protocol', protocol)),
+                    the_gateway.delete_fw_rule(proto(
+                                                 rule.get('protocol', protocol)
+                                               ),
                                                str(rule.get('dest_port')),
                                                rule.get('dest_ip'),
                                                str(rule.get('source_port')),
@@ -360,7 +367,7 @@ def firewall(cmd_proc, operation, vdc, gateway, is_enable, description, policy,
             utils.print_error("can't delete firewall rule: " +
                               error.get_message(), cmd_proc)
             sys.exit(1)
-        
+
     cmd_proc.save_current_config()
 
 

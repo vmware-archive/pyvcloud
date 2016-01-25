@@ -223,7 +223,7 @@ def network(cmd_proc, operation, vdc, gateway, network_name, gateway_ip,
 @click.argument('operation', default=default_operation,
                 metavar='[list | enable | disable | add | delete]',
                 type=click.Choice(['list', 'enable', 'disable', 'add',
-                'delete']))
+                                   'delete']))
 @click.option('-v', '--vdc', default=None,
               metavar='<vdc>', help='Virtual Data Center Name')
 @click.option('-g', '--gateway', default=None, metavar='<gateway>',

@@ -25,8 +25,6 @@ from os.path import expanduser
 from pyvcloud import exceptions
 from pyvcloud import _get_logger, Http, Log
 
-from dsl_parser import parser
-
 
 class Score(object):
 
@@ -67,6 +65,7 @@ class BlueprintsClient(object):
         self.logger = _get_logger() if log else None
 
     def validate(self, blueprint_path):
+        from dsl_parser import parser
         return parser.parse_from_path(blueprint_path)
 
     def list(self):

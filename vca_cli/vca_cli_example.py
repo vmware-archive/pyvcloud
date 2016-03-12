@@ -308,6 +308,27 @@ def example(ctx):
                   'All',
                   'vca firewall disable'])
     example_id += 1
+    table.append([example_id, 'add edge gateway firewall rule',
+                  'All',
+                  "vca firewall add --protocol tcp"
+                  " --dest-port 123 --dest-ip any"
+                  " --source-port 456 --source-ip any"
+                  " --description 'My awesome rule'"])
+    example_id += 1
+    table.append([example_id, 'delete edge gateway firewall rule',
+                  'All',
+                  "vca firewall delete --protocol tcp"
+                  " --dest-port 123 --dest-ip any"
+                  " --source-port 456 --source-ip any"])
+    example_id += 1
+    table.append([example_id, 'add edge gateway firewall rules from file',
+                  'All',
+                  "vca firewall add --file fwrules.yaml"])
+    example_id += 1
+    table.append([example_id, 'delete edge gateway firewall rules from file',
+                  'All',
+                  "vca firewall delete --file fwrules.yaml"])
+    example_id += 1
     table.append([example_id, 'enable DHCP service',
                   'All',
                   'vca dhcp enable'])
@@ -350,7 +371,7 @@ def example(ctx):
                   " --translated-ip 107.189.93.162"
                   " --network net-109"])
     example_id += 1
-    table.append([example_id, 'add edge gateway rules from file',
+    table.append([example_id, 'add edge gateway NAT rules from file',
                   'All',
                   "vca nat add --file natrules.yaml"])
     example_id += 1

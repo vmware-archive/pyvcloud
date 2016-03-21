@@ -542,8 +542,15 @@ class CmdProc:
                                   'vmware.cdrom.iso'):
                                 if len(item.HostResource[0].valueOf_) > 0:
                                     cds.append(item.HostResource[0].valueOf_)
+
+                        networkConnectionSection = filter(lambda section: section.__class__.__name__ == "NetworkConnectionSectionType", sections)[0]
+                        primary_index = networkConnectionSection.get_PrimaryNetworkConnectionIndex()
+                        connections = networkConnectionSection.get_NetworkConnection()
+                        macs = [connection.get_MACAddress() for connection in connections]
+
                         table.append([vm.name, entity.name, vm_status,
                                       utils.beautified(ips),
+                                      utils.beautified(macs),
                                       utils.beautified(networks),
                                       cpu_capacity,
                                       str(memory_capacity),

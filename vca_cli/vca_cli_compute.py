@@ -706,7 +706,7 @@ def vm(cmd_proc, operation, vdc, vapp):
         utils.print_error("VDC not found '%s'" % vdc, cmd_proc)
         sys.exit(1)
     if 'list' == operation:
-        headers = ['VM', "vApp", "Status", "IPs", "Networks",
+        headers = ['VM', "vApp", "Status", "IPs", "MACs", "Networks",
                    "vCPUs", "Memory (GB)", "CD/DVD", "OS", "Owner"]
         table = cmd_proc.vms_to_table(the_vdc, vapp)
         if cmd_proc.json_output:

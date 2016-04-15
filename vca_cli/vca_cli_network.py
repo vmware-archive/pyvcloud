@@ -286,8 +286,9 @@ def firewall(cmd_proc, operation, vdc, gateway, is_enable, description, policy,
             utils.print_json(json_object, cmd_proc=cmd_proc)
         else:
             utils.print_table("Firewall rules in gateway '%s', "
-                              "VDC '%s', profile '%s':" %
-                              (gateway, vdc, cmd_proc.profile),
+                              "VDC '%s', profile '%s' (firewall is %s):" %
+                              (gateway, vdc, cmd_proc.profile,
+                              'On' if the_gateway.is_fw_enabled() else 'Off'),
                               headers, table, cmd_proc)
     elif 'enable' == operation or 'disable' == operation:
         utils.print_message("%s firewall" % operation)

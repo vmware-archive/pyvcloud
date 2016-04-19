@@ -125,8 +125,8 @@ def profile(cmd_proc):
 @click.option('-d', '--do-not-save-password', is_flag=True,
               default=False, help='Do not save password')
 @click.option('-V', '--version', 'service_version',
-              default='5.7', metavar='[5.1 | 5.5 | 5.6 | 5.7]',
-              type=click.Choice(['5.1', '5.5', '5.6', '5.7']), help='')
+              default='5.7', metavar='[5.1 | 5.5 | 5.6 | 5.7 | 5.8 | 5.9 | 6.0 | 7.0 | 9.0]',
+              type=click.Choice(['5.1', '5.5', '5.6', '5.7', '5.8', '5.9', '6.0', '7.0', '9.0']), help='')
 @click.option('-H', '--host', default='https://vca.vmware.com',
               metavar='<host>',
               help='')

@@ -129,7 +129,7 @@ class VCA(object):
         headers = {}
         headers["Accept"] = "application/json;version=" + '5.7'
         response = Http.post(url, headers=headers, auth=('_', '_'), verify=self.verify, logger=self.logger)
-        if response.status_code != 404 and response.status_code != 406:
+        if response.status_code < 401 or response.status_code > 499:
             return VCA.VCA_SERVICE_TYPE_VCA
         url = self.host + '/api/vchs/sessions'
         headers = {}

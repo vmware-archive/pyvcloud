@@ -45,7 +45,7 @@ class VCS(object):
         headers["x-vcloud-authorization"] = self.token
         headers["Accept"] = "application/*+xml;version=" + self.version
         return headers
-        
+
     def login(self, password=None, token=None):
         if token:
             headers = {}

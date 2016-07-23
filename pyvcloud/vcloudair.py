@@ -129,7 +129,7 @@ class VCA(object):
         headers = {}
         headers["Accept"] = "application/json;version=" + '5.7'
         response = Http.post(url, headers=headers, auth=('_', '_'), verify=self.verify, logger=self.logger)
-        if response.status_code != 404:
+        if response.status_code < 401 or response.status_code > 499:
             return VCA.VCA_SERVICE_TYPE_VCA
         url = self.host + '/api/vchs/sessions'
         headers = {}
@@ -438,7 +438,7 @@ class VCA(object):
         """
         headers = self._get_vcloud_headers()
         headers['Content-Type'] = "application/json;version=%s" % self.version
-        self.response = Http.put(self.host + 
+        self.response = Http.put(self.host +
                                   "/api/iam/Users/%s/password/reset" %
                                   user_id, headers=headers,
                                   verify=self.verify, logger=self.logger)
@@ -467,7 +467,7 @@ class VCA(object):
             return json.loads(self.response.content)['roles']
         else:
             raise Exception(self.response.status_code)
-        
+
 
 
     def get_instances(self):
@@ -566,7 +566,7 @@ class VCA(object):
                 return False
             attributes = json.loads(instances[0]['instanceAttributes'])
             plans = self.get_plans()
-            service_name = filter(lambda plan: 
+            service_name = filter(lambda plan:
                                   plan['id'] == instances[0]['planId'],
                                   plans)[0]['serviceName']
             if 'com.vmware.vchs.compute' != service_name:
@@ -716,7 +716,7 @@ class VCA(object):
 
         :param vdc_name: (str): The virtual data center name.
         :return: (list of str) list of vdc names
-        
+
         **service type:** vca, vchs, standalone
 
         """

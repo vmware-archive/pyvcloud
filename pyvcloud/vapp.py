@@ -64,14 +64,14 @@ class VAPP(object):
     def execute(self, operation, http, body=None, targetVM=None):
         """
         Execute an operation against a VM as an Asychronous Task.
-       
+
         :param operation: (str): The command to execute
         :param http: (str): The http operation.
         :param body: (str, optional): a body for the http request
         :param targetVM: (str, optional): The name of the VM that will be the target of the request.
         :return: (TaskType or Bool) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request. \n
                 Or False if the request failed, error and debug level messages are logged.
-     
+
         """
         vApp = targetVM if targetVM else self.me
         link = filter(lambda link: link.get_rel() == operation, vApp.get_Link())
@@ -102,11 +102,11 @@ class VAPP(object):
 
     def deploy(self, powerOn=True):
         """
-        Deploy the vapp 
+        Deploy the vapp
 
         :param powerOn: (bool, optional): Power on the vApp and its contained VMs after deployment.
         :return: (bool): True if the user was vApp was successfully deployed, False otherwise.
-        
+
         """
         powerOnValue = 'true' if powerOn else 'false'
         deployVAppParams = vcloudType.DeployVAppParamsType()
@@ -118,11 +118,11 @@ class VAPP(object):
 
     def undeploy(self, action='powerOff'):
         """
-        Undeploy the vapp 
+        Undeploy the vapp
 
         :param action: (bool, optional): Power on the vApp and its contained VMs after deployment.
 
-                                       *  The valid values of action are 
+                                       *  The valid values of action are
 
                                        -  **powerOff** (Power off the VMs. This is the default action if
                                           this attribute is missing or empty),
@@ -135,7 +135,7 @@ class VAPP(object):
                                        -  **default** (Use the actions, order, and delay specified in the StartupSection).
 
         :returns: (bool): True if the user was vApp was successfully deployed, False otherwise.
-        
+
         """
         undeployVAppParams = vcloudType.UndeployVAppParamsType()
 
@@ -147,16 +147,16 @@ class VAPP(object):
 
     def reboot(self):
         """
-        Reboot the vApp 
-        :returns: (None) 
+        Reboot the vApp
+        :returns: (None)
         """
         self.execute("power:reboot", "post")
 
 
     def poweron(self):
         """
-        Power on the vApp 
-        :returns: (None) 
+        Power on the vApp
+        :returns: (None)
         """
         return self.execute("power:powerOn", "post")
 
@@ -164,7 +164,7 @@ class VAPP(object):
     def poweroff(self):
         """
         Power off the vApp
-        :returns: (None)  
+        :returns: (None)
         """
         return self.execute("power:powerOff", "post")
 
@@ -172,7 +172,7 @@ class VAPP(object):
     def shutdown(self):
         """
         Shutdown the vApp
-        :returns: (None)  
+        :returns: (None)
         """
         return self.execute("power:shutdown", "post")
 
@@ -180,7 +180,7 @@ class VAPP(object):
     def suspend(self):
         """
         Suspend the vApp
-        :returns: (None) 
+        :returns: (None)
         """
         self.execute("power:suspend", "post")
 
@@ -188,7 +188,7 @@ class VAPP(object):
     def reset(self):
         """
         Reset the vApp
-        :returns: (None) 
+        :returns: (None)
         """
         self.execute("power:reset", "post")
 
@@ -199,7 +199,7 @@ class VAPP(object):
 
         Note: The vApp must be undeployed and power it off before it is deleted.
 
-        :returns: (None) 
+        :returns: (None)
         """
         return self.execute("remove", "delete")
 
@@ -207,9 +207,9 @@ class VAPP(object):
     def create_snapshot(self):
         """
         Create a new snapshot of the vApp state.
-       
+
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
-     
+
         """
         snapshot_name = '{}_snapshot_{}'.format(self.name, int(round(time.time() * 1000)))
         createSnapshotParams = vcloudType.CreateSnapshotParamsType()
@@ -222,18 +222,18 @@ class VAPP(object):
     def revert_snapshot(self):
         """
         Revert to a previous vApp snapshot.
-       
+
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
-     
+
         """
         return self.execute("snapshot:revertToCurrent", "post")
 
     def delete_snapshot(self):
         """
         Delete an existing snapshot.
-       
+
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
-     
+
         """
         return self.execute("snapshot:removeAll", "post")
 
@@ -265,11 +265,11 @@ class VAPP(object):
         Attach vms to a virtual network.
 
         something helpful.
-       
+
         :param network_name: (str): The network name to connect the VM to.
-        :param connection_index: (str): Virtual slot number associated with this NIC. First slot number is 0. 
+        :param connection_index: (str): Virtual slot number associated with this NIC. First slot number is 0.
         :param connections_primary_index: (str): Virtual slot number associated with the NIC that should be considered this \n
-                  virtual machine's primary network connection. Defaults to slot 0. 
+                  virtual machine's primary network connection. Defaults to slot 0.
         :param ip_allocation_mode: (str, optional): IP address allocation mode for this connection.
 
                                  * One of:
@@ -280,13 +280,13 @@ class VAPP(object):
 
                                   - MANUAL (The IP address is assigned manually in the IpAddress element.)
 
-                                  - NONE (No IP addressing mode specified.) 
+                                  - NONE (No IP addressing mode specified.)
 
-        :param mac_address: (str):    the MAC address associated with the NIC. 
-        :param ip_address: (str):     the IP address assigned to this NIC. 
+        :param mac_address: (str):    the MAC address associated with the NIC.
+        :param ip_address: (str):     the IP address assigned to this NIC.
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
 
-        
+
         """
         children = self.me.get_Children()
         if children:
@@ -314,11 +314,11 @@ class VAPP(object):
 
     def disconnect_vms(self, network_name=None):
         """
-        Disconnect the vm from the vapp network. 
+        Disconnect the vm from the vapp network.
 
         :param network_name: (string): The name of the vApp network. If None, then disconnect from all the networks.
         :return: (bool): True if the user was vApp was successfully deployed, False otherwise.
-            
+
         """
         children = self.me.get_Children()
         if children:
@@ -357,12 +357,12 @@ class VAPP(object):
     def connect_to_network(self, network_name, network_href, fence_mode='bridged'):
         """
         Connect the vApp to an existing virtual network in the VDC.
-       
+
         :param network_name: (str): The name of the virtual network.
         :param network_href: (str): A uri that points to the network resource.
-        :param fence_mode: (str, optional): 
+        :param fence_mode: (str, optional):
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
-     
+
         """
         vApp_NetworkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
         link = [link for link in vApp_NetworkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]
@@ -390,7 +390,7 @@ class VAPP(object):
     def disconnect_from_networks(self):
         """
         Disconnect the vApp from currently connected virtual networks.
-       
+
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
 
         """
@@ -414,12 +414,12 @@ class VAPP(object):
     def disconnect_from_network(self, network_name):
         """
         Disconnect the vApp from an existing virtual network in the VDC.
-       
+
         :param network_name: (str): The name of the virtual network.
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
- 
+
         """
- 
+
         networkConfigSection = [section for section in self.me.get_Section() if section.__class__.__name__ == "NetworkConfigSectionType"][0]
         link = [link for link in networkConfigSection.get_Link() if link.get_type() == "application/vnd.vmware.vcloud.networkConfigSection+xml"][0]
         found = -1
@@ -447,7 +447,7 @@ class VAPP(object):
         Attach a disk volume to a VM.
 
         The volume must have been previously added to the VDC.
-       
+
         :param vm_name: (str): The name of the vm that the disk will be attached to.
         :param disk_ref: (str): The url of a disk resource.
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
@@ -472,7 +472,7 @@ class VAPP(object):
         Detach a disk volume from a VM.
 
         The volume must have been previously attached to the VM.
-       
+
         :param vm_name: (str): The name of the vm that the disk will be attached to.
         :param disk_ref: (str): The url of a disk resource.
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
@@ -494,10 +494,10 @@ class VAPP(object):
 
     def vm_media(self, vm_name, media, operation):
         """
-        Return a list of details for a media device attached to the VM. 
+        Return a list of details for a media device attached to the VM.
         :param vm_name: (str): The name of the vm.
         :param media_name: (str): The name of the attached media.
-  
+
         :return: (dict) a dictionary containing media details. \n
          Dictionary keys 'name','type','href'
         """
@@ -522,15 +522,15 @@ class VAPP(object):
         """
         Associate a customization script with a guest OS and execute the script.
         The VMware tools must be installed in the Guest OS.
-       
+
         :param vm_name: (str): The name of the vm to be customized.
         :param customization_script: (str, Optional): The path to a file on the local file system containing the customization script.
         :param computer_name: (str, Optional): A new value for the the computer name. A default value for the template is used if a value is not set.
         :param admin_password: (str, Optional): A password value for the admin/root user. A password is autogenerated if a value is not supplied.
-        :param reset_password_required: (bool): Force the user to reset the password on first login.  
+        :param reset_password_required: (bool): Force the user to reset the password on first login.
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request. \n
                             if the task cannot be created a debug level log message is generated detailing the reason.
-     
+
         """
         children = self.me.get_Children()
         if children:
@@ -579,12 +579,12 @@ class VAPP(object):
         A customization script must have been previously associated with the VM
         using the pyvcloud customize_guest_os method or using the vCD console
         The VMware tools must be installed in the Guest OS.
-       
+
         :param vm_name: (str): The name of the vm to be customized.
         :param power_on (bool): Wether to power the vm on after customization or not
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.b\n
                             if the task cannot be created a debug level log message is generated detailing the reason.
- 
+
         """
         children = self.me.get_Children()
         if children:
@@ -615,11 +615,11 @@ class VAPP(object):
     def get_vms_network_info(self):
         """
         List details of the networks associated with each of the vms in the vApp
-       
+
         :return: (list) a list, one entry per vm, each vm entry contains a list, one entry per network, \n
          each network entry contains a dictionary of properties for the network. \n
-         Dictionary keys 'network_name', 'ip', 'mac', 'is_connected', 'is_primary', 'allocation_mode' 
-      
+         Dictionary keys 'network_name', 'ip', 'mac', 'is_connected', 'is_primary', 'allocation_mode'
+
         """
         result = []
         vms = self._get_vms()
@@ -631,7 +631,8 @@ class VAPP(object):
             connections = networkConnectionSection.get_NetworkConnection()
             for connection in connections:
                 nw_connections.append(
-                    {'network_name': connection.get_network(),
+                    {'name': vm.name,
+                     'network_name': connection.get_network(),
                      'ip': connection.get_IpAddress(),
                      'mac': connection.get_MACAddress(),
                      'is_connected': connection.get_IsConnected(),
@@ -648,7 +649,7 @@ class VAPP(object):
         A customization script must have been previously associated with the VM
         using the pyvcloud customize_guest_os method or using the vCD console
         The VMware tools must be installed in the Guest OS.
-       
+
         :return: (bool) True if the request was accepted, False otherwise. If False an error level log message is generated.
 
         """
@@ -667,8 +668,8 @@ class VAPP(object):
 
     def get_vms_details(self):
         """
-        Return a list the details for all VMs contained in the vApp. 
-        
+        Return a list the details for all VMs contained in the vApp.
+
         :return: (list) a list, one entry per vm containing a (dict) of properties for the VM. \n
          Dictionary keys 'name','status','cpus','memory','memory_mb','os','owner','admin_password','reset_password_required'
         """
@@ -799,20 +800,20 @@ class VAPP(object):
     def modify_vm_cpu(self, vm_name, cpus):
         """
         Modify the virtual CPU allocation for VM.
-       
+
         :param vm_name: (str): The name of the vm to be customized.
         :param cpus: (int): The number of virtual CPUs allocated to the VM.
         :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request. \n
                             if the task cannot be created a debug level log message is generated detailing the reason.
-     
+
         :raises: Exception: If the named VM cannot be located or another error occured.
         """
         children = self.me.get_Children()
         if children:
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
             if len(vms) == 1:
-                sections = vm.get_Section()                
-                virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]                
+                sections = vm.get_Section()
+                virtualHardwareSection = filter(lambda section: section.__class__.__name__== "VirtualHardwareSection_Type", sections)[0]
                 items = virtualHardwareSection.get_Item()
                 cpu = filter(lambda item: (item.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href') != None and item.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href').endswith('/virtualHardwareSection/cpu')), items)[0]
                 href = cpu.get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}href')

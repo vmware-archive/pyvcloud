@@ -7,11 +7,9 @@ from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, Gat
 
 class TestVApp:
 
-
     def __init__(self):
         self.vca = None
         self.login_to_vcloud()
-
 
     def login_to_vcloud(self):
         """Login to vCloud"""
@@ -23,12 +21,21 @@ class TestVApp:
         org = config['vcloud']['org']
         service = config['vcloud']['service']
         instance = config['vcloud']['instance']
-        self.vca = VCA(host=host, username=username, service_type=service_type, version=version, verify=True, log=True)
+        self.vca = VCA(
+            host=host,
+            username=username,
+            service_type=service_type,
+            version=version,
+            verify=True,
+            log=True)
         assert self.vca
         if VCA.VCA_SERVICE_TYPE_STANDALONE == service_type:
             result = self.vca.login(password=password, org=org)
             assert result
-            result = self.vca.login(token=self.vca.token, org=org, org_url=self.vca.vcloud_session.org_url)
+            result = self.vca.login(
+                token=self.vca.token,
+                org=org,
+                org_url=self.vca.vcloud_session.org_url)
             assert result
         elif VCA.VCA_SERVICE_TYPE_VCHS == service_type:
             result = self.vca.login(password=password)
@@ -40,11 +47,15 @@ class TestVApp:
         elif VCA.VCA_SERVICE_TYPE_VCA == service_type:
             result = self.vca.login(password=password)
             assert result
-            result = self.vca.login_to_instance(password=password, instance=instance, token=None, org_url=None)
+            result = self.vca.login_to_instance(
+                password=password, instance=instance, token=None, org_url=None)
             assert result
-            result = self.vca.login_to_instance(password=None, instance=instance, token=self.vca.vcloud_session.token, org_url=self.vca.vcloud_session.org_url)
+            result = self.vca.login_to_instance(
+                password=None,
+                instance=instance,
+                token=self.vca.vcloud_session.token,
+                org_url=self.vca.vcloud_session.org_url)
             assert result
-
 
     def logout_from_vcloud(self):
         """Logout from vCloud"""
@@ -53,19 +64,16 @@ class TestVApp:
         self.vca = None
         assert self.vca is None
 
-
     def test_0001(self):
         """Loggin in to vCloud"""
         assert self.vca.token
 
-
     def test_0002(self):
         """Get VDC"""
         vdc_name = config['vcloud']['vdc']
-        the_vdc = self.vca.get_vdc(vdc_name)        
+        the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
-
 
     def test_0003(self):
         """Create vApp"""
@@ -79,7 +87,7 @@ class TestVApp:
         the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
-        task = self.vca.create_vapp(vdc_name, vapp_name, template, catalog, 
+        task = self.vca.create_vapp(vdc_name, vapp_name, template, catalog,
                                     vm_name=vm_name,
                                     vm_cpus=cpu,
                                     vm_memory=memory)
@@ -91,7 +99,6 @@ class TestVApp:
         assert the_vapp
         assert the_vapp.name == vapp_name
 
-
     def test_0004(self):
         """Validate vApp State is powered off (8)"""
         vdc_name = config['vcloud']['vdc']
@@ -102,7 +109,6 @@ class TestVApp:
         the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
         assert the_vapp
         assert the_vapp.me.get_status() == 8
-
 
     def test_0031(self):
         """Power On vApp"""
@@ -120,9 +126,8 @@ class TestVApp:
         result = self.vca.block_until_completed(task)
         assert result
         the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
-        assert the_vapp != None
+        assert the_vapp is not None
         assert the_vapp.me.get_status() == 4
-
 
     def test_0032(self):
         """Power Off vApp"""
@@ -140,9 +145,8 @@ class TestVApp:
         result = self.vca.block_until_completed(task)
         assert result
         the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
-        assert the_vapp != None
+        assert the_vapp is not None
         assert the_vapp.me.get_status() == 8
-
 
     def test_0099(self):
         """Delete vApp"""
@@ -156,4 +160,4 @@ class TestVApp:
         result = self.vca.block_until_completed(task)
         assert result
         the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
-        assert the_vapp == None
+        assert the_vapp is None

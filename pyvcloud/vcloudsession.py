@@ -22,9 +22,20 @@ import logging
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType
 from pyvcloud import _get_logger, Http
 
+
 class VCS(object):
 
-    def __init__(self, url, username, org, instance, api_url, org_url, version='5.7', verify=True, log=False):
+    def __init__(
+            self,
+            url,
+            username,
+            org,
+            instance,
+            api_url,
+            org_url,
+            version='5.7',
+            verify=True,
+            log=False):
         self.url = url
         self.username = username
         self.token = None
@@ -51,21 +62,38 @@ class VCS(object):
             headers = {}
             headers["x-vcloud-authorization"] = token
             headers["Accept"] = "application/*+xml;version=" + self.version
-            self.response = Http.get(self.org_url, headers=headers, verify=self.verify, logger=self.logger)
+            self.response = Http.get(
+                self.org_url,
+                headers=headers,
+                verify=self.verify,
+                logger=self.logger)
             if self.response.status_code == requests.codes.ok:
                 self.token = token
-                self.organization = organizationType.parseString(self.response.content, True)
+                self.organization = organizationType.parseString(
+                    self.response.content, True)
                 return True
             else:
                 return False
         else:
             headers = {}
             headers["Accept"] = "application/*+xml;version=" + self.version
-            self.response = Http.post(self.url, headers=headers, auth=(self.username + "@" + self.org, password), verify=self.verify, logger=self.logger)
+            self.response = Http.post(
+                self.url,
+                headers=headers,
+                auth=(
+                    self.username +
+                    "@" +
+                    self.org,
+                    password),
+                verify=self.verify,
+                logger=self.logger)
             if self.response.status_code == requests.codes.ok:
                 self.token = self.response.headers["x-vcloud-authorization"]
-                self.session = sessionType.parseString(self.response.content, True)
-                self.org_url = filter(lambda link: link.type_ == 'application/vnd.vmware.vcloud.org+xml', self.session.Link)[0].href
+                self.session = sessionType.parseString(
+                    self.response.content, True)
+                self.org_url = filter(
+                    lambda link: link.type_ == 'application/vnd.vmware.vcloud.org+xml',
+                    self.session.Link)[0].href
                 return True
             else:
                 return False

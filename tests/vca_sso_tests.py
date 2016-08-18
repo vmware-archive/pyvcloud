@@ -6,7 +6,6 @@ from pyvcloud.vcloudair import VCA
 
 class TestVCASSO:
 
-
     def __init__(self):
         self.vca = None
         self.instance = None
@@ -19,7 +18,13 @@ class TestVCASSO:
         host = config['vcloud']['host']
         version = config['vcloud']['version']
         self.instance = config['vcloud']['instance']
-        self.vca = VCA(host=host, username=username, service_type='vca', version=version, verify=True, log=True)
+        self.vca = VCA(
+            host=host,
+            username=username,
+            service_type='vca',
+            version=version,
+            verify=True,
+            log=True)
         assert self.vca
         result = self.vca.login(password=password)
         assert result

@@ -26,15 +26,17 @@ See `changes log <http://pyvcloud.readthedocs.org/en/latest/changes.html>`_ for 
 Installation
 ============
 
-The Python SDK requires the libxml2 and libxslt libraries, see `lxml <http://lxml.de/installation.html>`_ for more details. On Debian/Ubuntu, you can install the libraries with this command::
+The Python SDK requires the libxml2 and libxslt libraries, see `lxml <http://lxml.de/installation.html>`_ for more details. 
 
-    sudo apt-get install libxml2-dev libxslt-dev
-    
-Of course, a Python dev environment is required::
+On Debian/Ubuntu, you can install `lxml` and Python development dependencies with this command:
 
-    sudo apt-get install python-dev python-pip
+    sudo apt-get install libxml2-dev libxslt-dev python-dev python-pip
 
-The Python SDK can be installed with the following command::
+On RHEL-based distributions:
+
+    sudo yum install libxslt-devel libxml2-devel python-devel python-pip
+
+The Python SDK can then be installed with the following command:
 
     pip install pyvcloud
     

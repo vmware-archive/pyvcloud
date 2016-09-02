@@ -658,7 +658,8 @@ class VAPP(object):
                       vm.get_Link())
         if link:
             self.response = Http.post(link[0].get_href(), data=None,
-                                      headers=self.headers, logger=self.logger)
+                                      verify=self.verify, headers=self.headers,
+                                      logger=self.logger)
             if self.response.status_code == requests.codes.no_content:
                 return True
 

@@ -1453,6 +1453,8 @@ class VCA(object):
 
         """
         resourceEntities = vdc.get_ResourceEntities().get_ResourceEntity()
+        for res in resourceEntities:
+            Log.error(self.logger, "Ressource: " + res.get_name())
         return [resourceEntity for resourceEntity in resourceEntities
                     if resourceEntity.get_type() == "application/vnd.vmware.vcloud.disk+xml"]
 
@@ -1509,7 +1511,7 @@ class VCA(object):
             disks.append([disk, vms])
         return disks
 
-    def add_disk(self, vdc_name, name, size):
+    def add_disk(self, vdc_name, name, size, busType=None, busSubType=None, description=None):
         """
         Request the creation of an indepdent disk (not attached to a vApp).
 
@@ -1521,15 +1523,27 @@ class VCA(object):
         **service type:** ondemand, subscription, vcd
 
         """
-        data = """
-                <vcloud:DiskCreateParams xmlns:vcloud="http://www.vmware.com/vcloud/v1.5">
-                    <vcloud:Disk name="%s" size="%s"/>
-                </vcloud:DiskCreateParams>
-            """ % (name, size)
+        disk = DiskCreateParamsType(Disk=DiskType()) 
+        disk.Disk.name  = name
+        disk.Disk.size = size
+        if description != None:
+                disk.Disk.set_Description(description)
+        if busType != None and busSubType != None:
+                disk.Disk.busType = busType
+                disk.Disk.busSubType = busSubType
+
+        storageProfile = VdcStorageProfileType()
+        storageProfile.set_href("https://fraportal.aticloud.aero/api/vdcStorageProfile/df512980-6a36-46aa-a595-5e8139edb2db")
+        storageProfile.set_name("vm-storage-profile-tier4")
+
+        disk.Disk.set_StorageProfile(storageProfile)
+
+        body = CommonUtils.convertPythonObjToStr(disk, name="DiskCreateParams", namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5"')
+
         vdc = self.get_vdc(vdc_name)
         content_type = "application/vnd.vmware.vcloud.diskCreateParams+xml"
         link = filter(lambda link: link.get_type() == content_type, vdc.get_Link())
-        self.response = Http.post(link[0].get_href(), data=data, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+        self.response = Http.post(link[0].get_href(), data=body, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.created:
             disk = self._parse_disk(self.response.content)
             return(True, disk)

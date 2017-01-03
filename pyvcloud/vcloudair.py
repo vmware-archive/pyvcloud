@@ -1511,7 +1511,7 @@ class VCA(object):
             disks.append([disk, vms])
         return disks
 
-    def add_disk(self, vdc_name, name, size, busType=None, busSubType=None, description=None):
+    def add_disk(self, vdc_name, name, size, busType=None, busSubType=None, description=None, storageProfileName=None):
         """
         Request the creation of an indepdent disk (not attached to a vApp).
 
@@ -1532,18 +1532,26 @@ class VCA(object):
                 disk.Disk.busType = busType
                 disk.Disk.busSubType = busSubType
 
-        storageProfile = VdcStorageProfileType()
-        storageProfile.set_href("https://fraportal.aticloud.aero/api/vdcStorageProfile/df512980-6a36-46aa-a595-5e8139edb2db")
-        storageProfile.set_name("vm-storage-profile-tier4")
-
-        disk.Disk.set_StorageProfile(storageProfile)
-
-        body = CommonUtils.convertPythonObjToStr(disk, name="DiskCreateParams", namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5"')
-
         vdc = self.get_vdc(vdc_name)
+
+        if storageProfileName != None:
+            content_type = "application/vnd.vmware.vcloud.vdcStorageProfile+xml" 
+            storage_profile = filter(lambda storage_profile: storage_profile.get_name() == storageProfileName, vdc.get_VdcStorageProfiles().get_VdcStorageProfile())
+
+            if len(storage_profile) != 1:
+                return(False, self.response.content)
+
+            storageProfile = VdcStorageProfileType()
+            storageProfile.set_href(storage_profile[0].get_href())
+            storageProfile.set_name(storage_profile[0].get_name())
+
+            disk.Disk.set_StorageProfile(storageProfile)
+
+        data = CommonUtils.convertPythonObjToStr(disk, name="DiskCreateParams", namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5"')
+
         content_type = "application/vnd.vmware.vcloud.diskCreateParams+xml"
         link = filter(lambda link: link.get_type() == content_type, vdc.get_Link())
-        self.response = Http.post(link[0].get_href(), data=body, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+        self.response = Http.post(link[0].get_href(), data=data, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.created:
             disk = self._parse_disk(self.response.content)
             return(True, disk)

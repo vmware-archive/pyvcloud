@@ -1453,8 +1453,6 @@ class VCA(object):
 
         """
         resourceEntities = vdc.get_ResourceEntities().get_ResourceEntity()
-        for res in resourceEntities:
-            Log.error(self.logger, "Ressource: " + res.get_name())
         return [resourceEntity for resourceEntity in resourceEntities
                     if resourceEntity.get_type() == "application/vnd.vmware.vcloud.disk+xml"]
 

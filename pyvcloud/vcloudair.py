@@ -1511,7 +1511,7 @@ class VCA(object):
             disks.append([disk, vms])
         return disks
 
-    def add_disk(self, vdc_name, name, size, busType=None, busSubType=None, description=None, storageProfileName=None):
+    def add_disk(self, vdc_name, name, size, bus_type=None, bus_sub_type=None, description=None, storage_profile_name=None):
         """
         Request the creation of an indepdent disk (not attached to a vApp).
 
@@ -1528,24 +1528,24 @@ class VCA(object):
         disk.Disk.size = size
         if description != None:
                 disk.Disk.set_Description(description)
-        if busType != None and busSubType != None:
-                disk.Disk.busType = busType
-                disk.Disk.busSubType = busSubType
+        if bus_type != None and bus_sub_type != None:
+                disk.Disk.busType = bus_type
+                disk.Disk.busSubType = bus_sub_type
 
         vdc = self.get_vdc(vdc_name)
 
-        if storageProfileName != None:
+        if storage_profile_name != None:
             content_type = "application/vnd.vmware.vcloud.vdcStorageProfile+xml" 
-            storage_profile = filter(lambda storage_profile: storage_profile.get_name() == storageProfileName, vdc.get_VdcStorageProfiles().get_VdcStorageProfile())
+            storage_profile = filter(lambda storage_profile: storage_profile.get_name() == storage_profile_name, vdc.get_VdcStorageProfiles().get_VdcStorageProfile())
 
             if len(storage_profile) != 1:
                 return(False, self.response.content)
 
-            storageProfile = VdcStorageProfileType()
-            storageProfile.set_href(storage_profile[0].get_href())
-            storageProfile.set_name(storage_profile[0].get_name())
+            storage_profile_type = VdcStorageProfileType()
+            storage_profile_type.set_href(storage_profile[0].get_href())
+            storage_profile_type.set_name(storage_profile[0].get_name())
 
-            disk.Disk.set_StorageProfile(storageProfile)
+            disk.Disk.set_StorageProfile(storage_profile_type)
 
         data = CommonUtils.convertPythonObjToStr(disk, name="DiskCreateParams", namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5"')
 

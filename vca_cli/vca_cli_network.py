@@ -277,7 +277,7 @@ def firewall(cmd_proc, operation, vdc, gateway, is_enable, description, policy,
         utils.print_error("gateway not found '%s'" % gateway, cmd_proc)
         sys.exit(1)
     if 'list' == operation:
-        headers = ['Description','Source IP', 'Source Port', 'Destination IP',
+        headers = ['Description', 'Source IP', 'Source Port', 'Destination IP',
                    'Destination Port', 'Protocol', 'Enabled']
         table = cmd_proc.firewall_rules_to_table(the_gateway)
         if cmd_proc.json_output:

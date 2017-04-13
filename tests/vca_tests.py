@@ -6,7 +6,6 @@ from os import environ
 
 class TestVCA:
 
-
     def __init__(self):
         self.vca = None
         self.login_to_vcloud()

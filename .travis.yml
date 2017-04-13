@@ -1,6 +1,7 @@
 language: python
 python:
 - '2.7'
+
 script:
 - pip install -r test-requirements.txt
 - nosetests --verbosity=2 --tc-format yaml --tc-file tests/config_vca.yaml tests/vca_tests.py

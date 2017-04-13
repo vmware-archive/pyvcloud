@@ -69,7 +69,7 @@ class TestCatalog:
     def test_0002(self):
         """Get VDC"""
         vdc_name = config['vcloud']['vdc']
-        the_vdc = self.vca.get_vdc(vdc_name)        
+        the_vdc = self.vca.get_vdc(vdc_name)
         assert the_vdc
         assert the_vdc.get_name() == vdc_name
 
@@ -133,5 +133,3 @@ class TestCatalog:
         the_vdc = self.vca.get_vdc(vdc_name)
         catalogs = self.vca.get_catalogs()
         assert not self.catalog_exists(custom_catalog, catalogs)
-
-

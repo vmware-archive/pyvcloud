@@ -18,7 +18,7 @@ class TestVDC:
         host = config['vcloud']['host']
         version = config['vcloud']['version']
         instance = config['vcloud']['instance']
-        self.vca = VCA(host=host, username=username, service_type=service_type, version=version, verify=True, log=True)
+        self.vca = VCA(host=host, username=username, service_type=service_type, version=version, verify=False, log=True)
         assert self.vca
         if self.vca.VCA_SERVICE_TYPE_STANDALONE == service_type:
             raise Exception('not-supported')
@@ -35,7 +35,7 @@ class TestVDC:
     def logout_from_vcloud(self):
         """Logout from vCloud"""
         print 'logout'
-        selfl.vca.logout()
+        self.vca.logout()
         self.vca = None
         assert self.vca is None
 
@@ -43,9 +43,6 @@ class TestVDC:
         """Loggin in to vCloud"""
         assert self.vca.token
 
-
     def test_0002(self):
         """Get VDC Templates"""
         templates = self.vca.get_vdc_templates()
-
-

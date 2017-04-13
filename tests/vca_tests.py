@@ -2,7 +2,7 @@ from nose.tools import with_setup
 from testconfig import config
 from pyvcloud import vcloudair
 from pyvcloud.vcloudair import VCA
-
+from os import environ
 
 class TestVCA:
 
@@ -11,24 +11,22 @@ class TestVCA:
         self.vca = None
         self.login_to_vcloud()
 
-
     def login_to_vcloud(self):
         """Login to vCloud"""
-        username = config['vcloud']['username']
-        password = config['vcloud']['password']
+        username = environ['VCLOUD_USERNAME']
+        password = environ['VCLOUD_PASSWORD']
         service_type = config['vcloud']['service_type']
         host = config['vcloud']['host']
         version = config['vcloud']['version']
         self.vca = VCA(host=host, username=username, service_type=service_type, version=version, verify=True, log=True)
         assert self.vca
-        if vcloudair.VCA_SERVICE_TYPE_STANDALONE == service_type:
+        if self.vca.VCA_SERVICE_TYPE_STANDALONE == service_type:
             raise Exception('not-supported')
-        elif vcloudair.VCA_SERVICE_TYPE_SUBSCRIPTION == service_type:
+        elif self.vca.VCA_SERVICE_TYPE_VCHS == service_type:
             raise Exception('not-supported')
-        elif vcloudair.VCA_SERVICE_TYPE_ONDEMAND == service_type:
+        elif self.vca.VCA_SERVICE_TYPE_VCA == service_type:
             result = self.vca.login(password=password)
             assert result
-
 
     def logout_from_vcloud(self):
         """Logout from vCloud"""
@@ -40,7 +38,6 @@ class TestVCA:
     def test_0001(self):
         """Loggin in to vCloud"""
         assert self.vca.token
-
 
     def test_0002(self):
         """Get Service Groups"""
@@ -60,11 +57,8 @@ class TestVCA:
         assert instances
         assert len(instances)>=0
 
-
     def test_0005(self):
         """Get Users"""
         users = self.vca.get_users()
         assert users
         assert len(users)>=0
-
-

@@ -1,0 +1,4 @@
+vcloud:
+    service_type: vca
+    host: vca.vmware.com
+    version: '5.7'

@@ -1,6 +1,13 @@
+sudo: false
 language: python
 python:
 - '2.7'
+env:
+  matrix:
+  - TOX_ENV=flake8
+install:
+- pip install -r requirements.txt
+- pip install -r dev-requirements.txt
 script:
-- pip install -r test-requirements.txt
+- pip install .
 - nosetests --verbosity=2 tests/pyvcloud_tests.py

@@ -55,9 +55,10 @@ setup(
     test_suite='tests',
     tests_require=[],
     zip_safe=True,
-    entry_points='''
-        [console_scripts]
-        vca=vca_cli.vca_cli:cli
-        vcd=vca_cli.vca_cli:cli
-    '''
+    entry_points={
+        'console_scripts': [
+            'vca=vca_cli.vca_cli:cli',
+            'vcd=vca_cli.vca_cli:cli'
+        ],
+    }
 )

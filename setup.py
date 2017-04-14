@@ -58,7 +58,7 @@ setup(
     entry_points={
         'console_scripts': [
             'vca=vca_cli.vca_cli:cli',
-            'vcd=vca_cli.vca_cli:cli'
+            'vcd=vca_cli.vca_cli:cli',
         ],
     }
 )

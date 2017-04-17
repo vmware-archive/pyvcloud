@@ -245,7 +245,8 @@ class VCA(object):
         headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.billing.serviceGroups" % self.version
         self.response = Http.get(self.host + "/api/billing/service-groups", headers=headers, verify=self.verify, logger=self.logger)
         if self.response.history and self.response.history[-1]:
-            self.response = Http.get(self.response.history[-1].headers['location'], headers=headers, verify=self.verify, logger=self.logger)
+            self.response = Http.get(self.response.history[-1].headers['location'],
+                                     headers=headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['serviceGroupList']
         else:
@@ -266,7 +267,8 @@ class VCA(object):
         headers['Accept'] = "application/json;version=%s;class=com.vmware.vchs.sc.restapi.model.planlisttype" % self.version
         self.response = Http.get(self.host + "/api/sc/plans", headers=headers, verify=self.verify, logger=self.logger)
         if self.response.history and self.response.history[-1]:
-            self.response = Http.get(self.response.history[-1].headers['location'], headers=headers, verify=self.verify, logger=self.logger)
+            self.response = Http.get(self.response.history[-1].headers['location'] + '/plans',
+                                     headers=headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['plans']
         else:
@@ -481,7 +483,8 @@ class VCA(object):
         """
         self.response = Http.get(self.host + "/api/sc/instances", headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
         if self.response.history and self.response.history[-1]:
-            self.response = Http.get(self.response.history[-1].headers['location'], headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
+            self.response = Http.get(self.response.history[-1].headers['location'] + '/instances',
+                                     headers=self._get_vcloud_headers(), verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
             return json.loads(self.response.content)['instances']
         else:

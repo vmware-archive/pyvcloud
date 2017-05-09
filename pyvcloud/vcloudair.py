@@ -1967,7 +1967,7 @@ class VCA(object):
         Request a list of the Storage Profiles within a Virtual Data Center.
 
         :param vdc_name: (str): The virtual data center name.
-        :return: (list of VdcStorageProfileType)  A list of :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType.VdcStorageProfileType` objects describing the available Storage Profiles.
+        :return: (list of QueryResultOrgVdcStorageProfileRecordType)  A list of :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.queryRecordViewType.QueryResultOrgVdcStorageProfileRecordType` objects describing the available Storage Profiles.
 
         **service type:** ondemand, subscription, vcd
 
@@ -1976,19 +1976,22 @@ class VCA(object):
         vdc = self.get_vdc(vdc_name)
         if not vdc:
             return result
-        profiles = vdc.get_VdcStorageProfiles().get_VdcStorageProfile()
-        for p in profiles:
-            self.response = Http.get(
-                p.get_href(),
-                headers=self.vcloud_session.get_vcloud_headers(),
-                verify=self.verify,
-                logger=self.logger)
-            if self.response.status_code == requests.codes.ok:
-                profile = diskType.parseString(self.response.content, True)
-                result.append(profile)
-            else:
-                error = errorType.parseString(self.response.content, True)
-                raise Exception(error.message)
+
+        self.response = Http.get(
+            self.host + '/api/query?type=orgVdcStorageProfile&format=records',
+            headers=self.vcloud_session.get_vcloud_headers(),
+            verify=self.verify,
+            logger=self.logger)
+        if self.response.status_code == requests.codes.ok:
+            queryResultRecords = queryRecordViewType.parseString(
+                self.response.content, True)
+            if queryResultRecords.get_Record():
+                for record in queryResultRecords.get_Record():
+                    result.append(record)
+        else:
+            error = errorType.parseString(self.response.content, True)
+            raise Exception(error.message)
+
         return result
 
     def get_storage_profile(self, vdc_name, profile_name):

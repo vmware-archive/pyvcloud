@@ -461,6 +461,7 @@ class CmdProc:
         for vm in details:
             vms.append(vm['name'])
         table.append(['vApp', 'name', vapp.name])
+        table.append(['vApp', 'id', vapp.me.get_id().split(':')[-1]])
         table.append(['vApp', 'number of VMs', len(details)])
         table.append(['vApp', 'names of VMs', utils.beautified(vms)])
 

@@ -38,6 +38,7 @@ class VCS(object):
             log=False):
         self.url = url
         self.username = username
+        self.user_id = None
         self.token = None
         self.org = org
         self.instance = instance
@@ -103,5 +104,27 @@ class VCS(object):
             return self.organization.Link
         elif self.session:
             return self.session.Link
+        else:
+            return False
+
+    def update_session_data(self, token):
+        headers = {}
+        headers["x-vcloud-authorization"] = token
+        headers["Accept"] = "application/*+xml;version=" + self.version
+        self.response = Http.get(self.url, headers=headers, verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.ok:
+            self.session = sessionType.parseString(self.response.content, True)
+            self.org_url = filter(lambda link: link.type_ == 'application/vnd.vmware.vcloud.org+xml', self.session.Link)[0].href
+            self.username = self.session.get_user()
+            self.user_id = self.session.get_userId().split(':')[-1]
+            self.org = self.session.get_org()
+            self.org_id = self.org_url.split('/')[-1]
+            self.response = Http.get(self.org_url, headers=headers, verify=self.verify, logger=self.logger)
+            if self.response.status_code == requests.codes.ok:
+                self.token = token
+                self.organization = organizationType.parseString(self.response.content, True)
+                return True
+            else:
+                return False
         else:
             return False

@@ -15,4 +15,5 @@ lib
 docs/_build
 *.xsd
 *.xjb
-
+schema-files
+schema-files.zip

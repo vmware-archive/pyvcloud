@@ -48,17 +48,17 @@ The Python SDK can then be installed with the following command:
 
     pip install --user pyvcloud
 
-*pyvcloud* can also be installed with `virtualenv <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_
+**pyvcloud** can also be installed with `virtualenv <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_
 
 Examples
 ========
 
 See the `examples <https://github.com/vmware/pyvcloud/blob/master/examples>`_ directory for sample code.
 
-Development
-===========
+Development and Test
+====================
 
-To test the current code, check it out from github and install it with:
+To run the source code, check it out from GitHub and install it with:
 
 .. code:: bash
 
@@ -75,10 +75,7 @@ To log the requests, add the ``log=True`` parameter to the VCA constructor. The 
               verify=False,
               log=True)
 
-Testing
-=======
-
-To test pyvcloud:
+To test **pyvcloud**:
 
 .. code:: bash
 

@@ -2395,8 +2395,8 @@ class VCA(object):
 
     def _parse_metadata_entry(self, domain, visibility, key,
             value, metadata_type='MetadataStringValue'):
-        domain_element = '<Domain visibility="%s">%s</Domain>' %
-                         (visibility, domain)
+        domain_element = '<Domain visibility="%s">%s</Domain>' \
+                         % (visibility, domain)
         metadata_value = """
         <MetadataEntry xmlns="http://www.vmware.com/vcloud/v1.5">
             %s

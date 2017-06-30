@@ -102,7 +102,7 @@ def parsexml_(*args, **kwargs):
 
 try:
     from generatedssuper import GeneratedsSuper
-except ImportError, exp:
+except ImportError as exp:
 
     class GeneratedsSuper(object):
         tzoff_pattern = re_.compile(r'(\+|-)((0\d|1[0-3]):[0-5]\d|14:00)$')
@@ -1039,7 +1039,7 @@ class QueryResultOrgRecordType(QueryResultRecordType):
             already_processed.add('numberOfVdcs')
             try:
                 self.numberOfVdcs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('displayName', node)
         if value is not None and 'displayName' not in already_processed:
@@ -1054,7 +1054,7 @@ class QueryResultOrgRecordType(QueryResultRecordType):
             already_processed.add('numberOfDisks')
             try:
                 self.numberOfDisks = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isReadOnly', node)
         if value is not None and 'isReadOnly' not in already_processed:
@@ -1079,14 +1079,14 @@ class QueryResultOrgRecordType(QueryResultRecordType):
             already_processed.add('deployedVMQuota')
             try:
                 self.deployedVMQuota = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('storedVMQuota', node)
         if value is not None and 'storedVMQuota' not in already_processed:
             already_processed.add('storedVMQuota')
             try:
                 self.storedVMQuota = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('canPublishCatalogs', node)
         if value is not None and 'canPublishCatalogs' not in already_processed:
@@ -1102,21 +1102,21 @@ class QueryResultOrgRecordType(QueryResultRecordType):
             already_processed.add('numberOfVApps')
             try:
                 self.numberOfVApps = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfCatalogs', node)
         if value is not None and 'numberOfCatalogs' not in already_processed:
             already_processed.add('numberOfCatalogs')
             try:
                 self.numberOfCatalogs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfGroups', node)
         if value is not None and 'numberOfGroups' not in already_processed:
             already_processed.add('numberOfGroups')
             try:
                 self.numberOfGroups = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(QueryResultOrgRecordType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -1432,14 +1432,14 @@ class QueryResultOrgVdcRecordType(QueryResultRecordType):
             already_processed.add('numberOfStorageProfiles')
             try:
                 self.numberOfStorageProfiles = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('memoryUsedMB', node)
         if value is not None and 'memoryUsedMB' not in already_processed:
             already_processed.add('memoryUsedMB')
             try:
                 self.memoryUsedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('orgName', node)
         if value is not None and 'orgName' not in already_processed:
@@ -1459,14 +1459,14 @@ class QueryResultOrgVdcRecordType(QueryResultRecordType):
             already_processed.add('storageAllocationMB')
             try:
                 self.storageAllocationMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfVAppTemplates', node)
         if value is not None and 'numberOfVAppTemplates' not in already_processed:
             already_processed.add('numberOfVAppTemplates')
             try:
                 self.numberOfVAppTemplates = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isEnabled', node)
         if value is not None and 'isEnabled' not in already_processed:
@@ -1482,14 +1482,14 @@ class QueryResultOrgVdcRecordType(QueryResultRecordType):
             already_processed.add('cpuLimitMhz')
             try:
                 self.cpuLimitMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('memoryAllocationMB', node)
         if value is not None and 'memoryAllocationMB' not in already_processed:
             already_processed.add('memoryAllocationMB')
             try:
                 self.memoryAllocationMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isBusy', node)
         if value is not None and 'isBusy' not in already_processed:
@@ -1509,7 +1509,7 @@ class QueryResultOrgVdcRecordType(QueryResultRecordType):
             already_processed.add('cpuUsedMhz')
             try:
                 self.cpuUsedMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('status', node)
         if value is not None and 'status' not in already_processed:
@@ -1520,7 +1520,7 @@ class QueryResultOrgVdcRecordType(QueryResultRecordType):
             already_processed.add('memoryLimitMB')
             try:
                 self.memoryLimitMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('providerVdc', node)
         if value is not None and 'providerVdc' not in already_processed:
@@ -1531,21 +1531,21 @@ class QueryResultOrgVdcRecordType(QueryResultRecordType):
             already_processed.add('numberOfDatastores')
             try:
                 self.numberOfDatastores = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfVApps', node)
         if value is not None and 'numberOfVApps' not in already_processed:
             already_processed.add('numberOfVApps')
             try:
                 self.numberOfVApps = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('storageUsedMB', node)
         if value is not None and 'storageUsedMB' not in already_processed:
             already_processed.add('storageUsedMB')
             try:
                 self.storageUsedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -1556,28 +1556,28 @@ class QueryResultOrgVdcRecordType(QueryResultRecordType):
             already_processed.add('numberOfDisks')
             try:
                 self.numberOfDisks = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('storageLimitMB', node)
         if value is not None and 'storageLimitMB' not in already_processed:
             already_processed.add('storageLimitMB')
             try:
                 self.storageLimitMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfMedia', node)
         if value is not None and 'numberOfMedia' not in already_processed:
             already_processed.add('numberOfMedia')
             try:
                 self.numberOfMedia = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('cpuAllocationMhz', node)
         if value is not None and 'cpuAllocationMhz' not in already_processed:
             already_processed.add('cpuAllocationMhz')
             try:
                 self.cpuAllocationMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(QueryResultOrgVdcRecordType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -1824,7 +1824,7 @@ class QueryResultMediaRecordType(QueryResultRecordType):
             already_processed.add('storageB')
             try:
                 self.storageB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isPublished', node)
         if value is not None and 'isPublished' not in already_processed:
@@ -1877,7 +1877,7 @@ class QueryResultMediaRecordType(QueryResultRecordType):
             already_processed.add('creationDate')
             try:
                 self.creationDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (creationDate): %s' % exp)
         value = find_attr_value_('catalogName', node)
         if value is not None and 'catalogName' not in already_processed:
@@ -2200,7 +2200,7 @@ class QueryResultVAppTemplateRecordType(QueryResultRecordType):
             already_processed.add('creationDate')
             try:
                 self.creationDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (creationDate): %s' % exp)
         value = find_attr_value_('catalogName', node)
         if value is not None and 'catalogName' not in already_processed:
@@ -2473,7 +2473,7 @@ class QueryResultVAppRecordType(QueryResultRecordType):
             already_processed.add('creationDate')
             try:
                 self.creationDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (creationDate): %s' % exp)
         value = find_attr_value_('isExpired', node)
         if value is not None and 'isExpired' not in already_processed:
@@ -2774,14 +2774,14 @@ class QueryResultVMRecordType(QueryResultRecordType):
             already_processed.add('memoryMB')
             try:
                 self.memoryMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfCpus', node)
         if value is not None and 'numberOfCpus' not in already_processed:
             already_processed.add('numberOfCpus')
             try:
                 self.numberOfCpus = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('vdc', node)
         if value is not None and 'vdc' not in already_processed:
@@ -2792,7 +2792,7 @@ class QueryResultVMRecordType(QueryResultRecordType):
             already_processed.add('hardwareVersion')
             try:
                 self.hardwareVersion = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isBusy', node)
         if value is not None and 'isBusy' not in already_processed:
@@ -3751,7 +3751,7 @@ class QueryResultCatalogRecordType(QueryResultRecordType):
             already_processed.add('numberOfVAppTemplates')
             try:
                 self.numberOfVAppTemplates = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('orgName', node)
         if value is not None and 'orgName' not in already_processed:
@@ -3775,7 +3775,7 @@ class QueryResultCatalogRecordType(QueryResultRecordType):
             already_processed.add('numberOfMedia')
             try:
                 self.numberOfMedia = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('owner', node)
         if value is not None and 'owner' not in already_processed:
@@ -3786,7 +3786,7 @@ class QueryResultCatalogRecordType(QueryResultRecordType):
             already_processed.add('creationDate')
             try:
                 self.creationDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (creationDate): %s' % exp)
         value = find_attr_value_('isShared', node)
         if value is not None and 'isShared' not in already_processed:
@@ -4122,14 +4122,14 @@ class QueryResultAdminVdcRecordType(QueryResultRecordType):
             already_processed.add('numberOfStorageProfiles')
             try:
                 self.numberOfStorageProfiles = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('memoryUsedMB', node)
         if value is not None and 'memoryUsedMB' not in already_processed:
             already_processed.add('memoryUsedMB')
             try:
                 self.memoryUsedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('orgName', node)
         if value is not None and 'orgName' not in already_processed:
@@ -4149,14 +4149,14 @@ class QueryResultAdminVdcRecordType(QueryResultRecordType):
             already_processed.add('storageAllocationMB')
             try:
                 self.storageAllocationMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfVAppTemplates', node)
         if value is not None and 'numberOfVAppTemplates' not in already_processed:
             already_processed.add('numberOfVAppTemplates')
             try:
                 self.numberOfVAppTemplates = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isEnabled', node)
         if value is not None and 'isEnabled' not in already_processed:
@@ -4172,14 +4172,14 @@ class QueryResultAdminVdcRecordType(QueryResultRecordType):
             already_processed.add('cpuLimitMhz')
             try:
                 self.cpuLimitMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('memoryAllocationMB', node)
         if value is not None and 'memoryAllocationMB' not in already_processed:
             already_processed.add('memoryAllocationMB')
             try:
                 self.memoryAllocationMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isBusy', node)
         if value is not None and 'isBusy' not in already_processed:
@@ -4199,7 +4199,7 @@ class QueryResultAdminVdcRecordType(QueryResultRecordType):
             already_processed.add('cpuUsedMhz')
             try:
                 self.cpuUsedMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('networkPool', node)
         if value is not None and 'networkPool' not in already_processed:
@@ -4214,7 +4214,7 @@ class QueryResultAdminVdcRecordType(QueryResultRecordType):
             already_processed.add('memoryLimitMB')
             try:
                 self.memoryLimitMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('providerVdc', node)
         if value is not None and 'providerVdc' not in already_processed:
@@ -4225,7 +4225,7 @@ class QueryResultAdminVdcRecordType(QueryResultRecordType):
             already_processed.add('numberOfVApps')
             try:
                 self.numberOfVApps = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('org', node)
         if value is not None and 'org' not in already_processed:
@@ -4236,7 +4236,7 @@ class QueryResultAdminVdcRecordType(QueryResultRecordType):
             already_processed.add('storageUsedMB')
             try:
                 self.storageUsedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -4247,28 +4247,28 @@ class QueryResultAdminVdcRecordType(QueryResultRecordType):
             already_processed.add('numberOfDisks')
             try:
                 self.numberOfDisks = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('storageLimitMB', node)
         if value is not None and 'storageLimitMB' not in already_processed:
             already_processed.add('storageLimitMB')
             try:
                 self.storageLimitMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfMedia', node)
         if value is not None and 'numberOfMedia' not in already_processed:
             already_processed.add('numberOfMedia')
             try:
                 self.numberOfMedia = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('cpuAllocationMhz', node)
         if value is not None and 'cpuAllocationMhz' not in already_processed:
             already_processed.add('cpuAllocationMhz')
             try:
                 self.cpuAllocationMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(QueryResultAdminVdcRecordType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -4531,7 +4531,7 @@ class QueryResultVMWProviderVdcRecordType(QueryResultRecordType):
             already_processed.add('numberOfVdcs')
             try:
                 self.numberOfVdcs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('status', node)
         if value is not None and 'status' not in already_processed:
@@ -4542,21 +4542,21 @@ class QueryResultVMWProviderVdcRecordType(QueryResultRecordType):
             already_processed.add('numberOfStorageProfiles')
             try:
                 self.numberOfStorageProfiles = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('vcpuRatingMhz', node)
         if value is not None and 'vcpuRatingMhz' not in already_processed:
             already_processed.add('vcpuRatingMhz')
             try:
                 self.vcpuRatingMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('storageUsedMB', node)
         if value is not None and 'storageUsedMB' not in already_processed:
             already_processed.add('storageUsedMB')
             try:
                 self.storageUsedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -4567,7 +4567,7 @@ class QueryResultVMWProviderVdcRecordType(QueryResultRecordType):
             already_processed.add('memoryLimitMB')
             try:
                 self.memoryLimitMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isEnabled', node)
         if value is not None and 'isEnabled' not in already_processed:
@@ -4583,49 +4583,49 @@ class QueryResultVMWProviderVdcRecordType(QueryResultRecordType):
             already_processed.add('storageLimitMB')
             try:
                 self.storageLimitMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfDatastores', node)
         if value is not None and 'numberOfDatastores' not in already_processed:
             already_processed.add('numberOfDatastores')
             try:
                 self.numberOfDatastores = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('cpuLimitMhz', node)
         if value is not None and 'cpuLimitMhz' not in already_processed:
             already_processed.add('cpuLimitMhz')
             try:
                 self.cpuLimitMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('memoryUsedMB', node)
         if value is not None and 'memoryUsedMB' not in already_processed:
             already_processed.add('memoryUsedMB')
             try:
                 self.memoryUsedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('cpuUsedMhz', node)
         if value is not None and 'cpuUsedMhz' not in already_processed:
             already_processed.add('cpuUsedMhz')
             try:
                 self.cpuUsedMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('cpuAllocationMhz', node)
         if value is not None and 'cpuAllocationMhz' not in already_processed:
             already_processed.add('cpuAllocationMhz')
             try:
                 self.cpuAllocationMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('memoryAllocationMB', node)
         if value is not None and 'memoryAllocationMB' not in already_processed:
             already_processed.add('memoryAllocationMB')
             try:
                 self.memoryAllocationMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isBusy', node)
         if value is not None and 'isBusy' not in already_processed:
@@ -4641,7 +4641,7 @@ class QueryResultVMWProviderVdcRecordType(QueryResultRecordType):
             already_processed.add('storageAllocationMB')
             try:
                 self.storageAllocationMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isDeleted', node)
         if value is not None and 'isDeleted' not in already_processed:
@@ -5162,28 +5162,28 @@ class QueryResultUserRecordType(QueryResultRecordType):
             already_processed.add('deployedVMQuota')
             try:
                 self.deployedVMQuota = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('storedVMQuota', node)
         if value is not None and 'storedVMQuota' not in already_processed:
             already_processed.add('storedVMQuota')
             try:
                 self.storedVMQuota = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfStoredVMs', node)
         if value is not None and 'numberOfStoredVMs' not in already_processed:
             already_processed.add('numberOfStoredVMs')
             try:
                 self.numberOfStoredVMs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfDeployedVMs', node)
         if value is not None and 'numberOfDeployedVMs' not in already_processed:
             already_processed.add('numberOfDeployedVMs')
             try:
                 self.numberOfDeployedVMs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('identityProviderType', node)
         if value is not None and 'identityProviderType' not in already_processed:
@@ -5333,14 +5333,14 @@ class QueryResultStrandedUserRecordType(QueryResultRecordType):
             already_processed.add('numberOfStoredVMs')
             try:
                 self.numberOfStoredVMs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfDeployedVMs', node)
         if value is not None and 'numberOfDeployedVMs' not in already_processed:
             already_processed.add('numberOfDeployedVMs')
             try:
                 self.numberOfDeployedVMs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isInSync', node)
         if value is not None and 'isInSync' not in already_processed:
@@ -5765,14 +5765,14 @@ class QueryResultEventRecordType(QueryResultRecordType):
             already_processed.add('eventStatus')
             try:
                 self.eventStatus = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('timeStamp', node)
         if value is not None and 'timeStamp' not in already_processed:
             already_processed.add('timeStamp')
             try:
                 self.timeStamp = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (timeStamp): %s' % exp)
         value = find_attr_value_('serviceNamespace', node)
         if value is not None and 'serviceNamespace' not in already_processed:
@@ -6126,7 +6126,7 @@ class QueryResultDatastoreRecordType(QueryResultRecordType):
             already_processed.add('storageUsedMB')
             try:
                 self.storageUsedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -6146,14 +6146,14 @@ class QueryResultDatastoreRecordType(QueryResultRecordType):
             already_processed.add('requestedStorageMB')
             try:
                 self.requestedStorageMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('storageMB', node)
         if value is not None and 'storageMB' not in already_processed:
             already_processed.add('storageMB')
             try:
                 self.storageMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('moref', node)
         if value is not None and 'moref' not in already_processed:
@@ -6172,14 +6172,14 @@ class QueryResultDatastoreRecordType(QueryResultRecordType):
             already_processed.add('numberOfProviderVdcs')
             try:
                 self.numberOfProviderVdcs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('provisionedStorageMB', node)
         if value is not None and 'provisionedStorageMB' not in already_processed:
             already_processed.add('provisionedStorageMB')
             try:
                 self.provisionedStorageMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isDeleted', node)
         if value is not None and 'isDeleted' not in already_processed:
@@ -6304,7 +6304,7 @@ class QueryResultNetworkPoolRecordType(QueryResultRecordType):
             already_processed.add('networkPoolType')
             try:
                 self.networkPoolType = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -6508,7 +6508,7 @@ class QueryResultPortgroupRecordType(QueryResultRecordType):
             already_processed.add('scopeType')
             try:
                 self.scopeType = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('vcName', node)
         if value is not None and 'vcName' not in already_processed:
@@ -6811,7 +6811,7 @@ class QueryResultCellRecordType(QueryResultRecordType):
             already_processed.add('isVMwareVc')
             try:
                 self.isVMwareVc = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('primaryIp', node)
         if value is not None and 'primaryIp' not in already_processed:
@@ -6822,14 +6822,14 @@ class QueryResultCellRecordType(QueryResultRecordType):
             already_processed.add('isActive')
             try:
                 self.isActive = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('buildDate', node)
         if value is not None and 'buildDate' not in already_processed:
             already_processed.add('buildDate')
             try:
                 self.buildDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (buildDate): %s' % exp)
         super(QueryResultCellRecordType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -7334,7 +7334,7 @@ class QueryResultHostRecordType(QueryResultRecordType):
             already_processed.add('numberOfVMs')
             try:
                 self.numberOfVMs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isEnabled', node)
         if value is not None and 'isEnabled' not in already_processed:
@@ -7350,7 +7350,7 @@ class QueryResultHostRecordType(QueryResultRecordType):
             already_processed.add('state')
             try:
                 self.state = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isPendingUpgrade', node)
         if value is not None and 'isPendingUpgrade' not in already_processed:
@@ -7668,7 +7668,7 @@ class QueryResultAdminVAppRecordType(QueryResultRecordType):
             already_processed.add('numberOfVMs')
             try:
                 self.numberOfVMs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isEnabled', node)
         if value is not None and 'isEnabled' not in already_processed:
@@ -7684,7 +7684,7 @@ class QueryResultAdminVAppRecordType(QueryResultRecordType):
             already_processed.add('cpuAllocationMhz')
             try:
                 self.cpuAllocationMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('vdcName', node)
         if value is not None and 'vdcName' not in already_processed:
@@ -7712,7 +7712,7 @@ class QueryResultAdminVAppRecordType(QueryResultRecordType):
             already_processed.add('memoryAllocationMB')
             try:
                 self.memoryAllocationMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('org', node)
         if value is not None and 'org' not in already_processed:
@@ -7732,7 +7732,7 @@ class QueryResultAdminVAppRecordType(QueryResultRecordType):
             already_processed.add('creationDate')
             try:
                 self.creationDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (creationDate): %s' % exp)
         value = find_attr_value_('isVdcEnabled', node)
         if value is not None and 'isVdcEnabled' not in already_processed:
@@ -7757,7 +7757,7 @@ class QueryResultAdminVAppRecordType(QueryResultRecordType):
             already_processed.add('storageKB')
             try:
                 self.storageKB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(QueryResultAdminVAppRecordType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -8173,7 +8173,7 @@ class QueryResultAdminVMRecordType(QueryResultRecordType):
             already_processed.add('vmToolsVersion')
             try:
                 self.vmToolsVersion = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('datastoreName', node)
         if value is not None and 'datastoreName' not in already_processed:
@@ -8184,7 +8184,7 @@ class QueryResultAdminVMRecordType(QueryResultRecordType):
             already_processed.add('memoryMB')
             try:
                 self.memoryMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('moref', node)
         if value is not None and 'moref' not in already_processed:
@@ -8195,7 +8195,7 @@ class QueryResultAdminVMRecordType(QueryResultRecordType):
             already_processed.add('hardwareVersion')
             try:
                 self.hardwareVersion = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('org', node)
         if value is not None and 'org' not in already_processed:
@@ -8287,7 +8287,7 @@ class QueryResultAdminVMRecordType(QueryResultRecordType):
             already_processed.add('numberOfCpus')
             try:
                 self.numberOfCpus = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('vdc', node)
         if value is not None and 'vdc' not in already_processed:
@@ -8913,7 +8913,7 @@ class QueryResultProviderVdcResourcePoolRelationRecordType(QueryResultRecordType
             already_processed.add('cpuReservationLimitMhz')
             try:
                 self.cpuReservationLimitMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('providerVdc', node)
         if value is not None and 'providerVdc' not in already_processed:
@@ -8924,7 +8924,7 @@ class QueryResultProviderVdcResourcePoolRelationRecordType(QueryResultRecordType
             already_processed.add('numberOfVMs')
             try:
                 self.numberOfVMs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isEnabled', node)
         if value is not None and 'isEnabled' not in already_processed:
@@ -8940,21 +8940,21 @@ class QueryResultProviderVdcResourcePoolRelationRecordType(QueryResultRecordType
             already_processed.add('cpuReservationAllocationMhz')
             try:
                 self.cpuReservationAllocationMhz = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('memoryReservationLimitMB', node)
         if value is not None and 'memoryReservationLimitMB' not in already_processed:
             already_processed.add('memoryReservationLimitMB')
             try:
                 self.memoryReservationLimitMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('memoryReservationAllocationMB', node)
         if value is not None and 'memoryReservationAllocationMB' not in already_processed:
             already_processed.add('memoryReservationAllocationMB')
             try:
                 self.memoryReservationAllocationMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isPrimary', node)
         if value is not None and 'isPrimary' not in already_processed:
@@ -9183,7 +9183,7 @@ class QueryResultDatastoreProviderVdcRelationRecordType(QueryResultRecordType):
             already_processed.add('storageUsedMB')
             try:
                 self.storageUsedMB = float(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad float/double attribute (storageUsedMB): %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -9207,14 +9207,14 @@ class QueryResultDatastoreProviderVdcRelationRecordType(QueryResultRecordType):
             already_processed.add('requestedStorageMB')
             try:
                 self.requestedStorageMB = float(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad float/double attribute (requestedStorageMB): %s' % exp)
         value = find_attr_value_('storageMB', node)
         if value is not None and 'storageMB' not in already_processed:
             already_processed.add('storageMB')
             try:
                 self.storageMB = float(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad float/double attribute (storageMB): %s' % exp)
         value = find_attr_value_('moref', node)
         if value is not None and 'moref' not in already_processed:
@@ -9233,7 +9233,7 @@ class QueryResultDatastoreProviderVdcRelationRecordType(QueryResultRecordType):
             already_processed.add('provisionedStorageMB')
             try:
                 self.provisionedStorageMB = float(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad float/double attribute (provisionedStorageMB): %s' % exp)
         value = find_attr_value_('datastore', node)
         if value is not None and 'datastore' not in already_processed:
@@ -9457,7 +9457,7 @@ class QueryResultAdminUserRecordType(QueryResultRecordType):
             already_processed.add('deployedVMQuotaRank')
             try:
                 self.deployedVMQuotaRank = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -9477,7 +9477,7 @@ class QueryResultAdminUserRecordType(QueryResultRecordType):
             already_processed.add('deployedVMQuota')
             try:
                 self.deployedVMQuota = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('identityProviderType', node)
         if value is not None and 'identityProviderType' not in already_processed:
@@ -9488,28 +9488,28 @@ class QueryResultAdminUserRecordType(QueryResultRecordType):
             already_processed.add('storedVMQuota')
             try:
                 self.storedVMQuota = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfStoredVMs', node)
         if value is not None and 'numberOfStoredVMs' not in already_processed:
             already_processed.add('numberOfStoredVMs')
             try:
                 self.numberOfStoredVMs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('storedVMQuotaRank', node)
         if value is not None and 'storedVMQuotaRank' not in already_processed:
             already_processed.add('storedVMQuotaRank')
             try:
                 self.storedVMQuotaRank = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfDeployedVMs', node)
         if value is not None and 'numberOfDeployedVMs' not in already_processed:
             already_processed.add('numberOfDeployedVMs')
             try:
                 self.numberOfDeployedVMs = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('org', node)
         if value is not None and 'org' not in already_processed:
@@ -10103,7 +10103,7 @@ class QueryResultAdminCatalogRecordType(QueryResultRecordType):
             already_processed.add('numberOfMedia')
             try:
                 self.numberOfMedia = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('owner', node)
         if value is not None and 'owner' not in already_processed:
@@ -10118,14 +10118,14 @@ class QueryResultAdminCatalogRecordType(QueryResultRecordType):
             already_processed.add('creationDate')
             try:
                 self.creationDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (creationDate): %s' % exp)
         value = find_attr_value_('numberOfTemplates', node)
         if value is not None and 'numberOfTemplates' not in already_processed:
             already_processed.add('numberOfTemplates')
             try:
                 self.numberOfTemplates = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isShared', node)
         if value is not None and 'isShared' not in already_processed:
@@ -10388,7 +10388,7 @@ class QueryResultAdminCatalogItemRecordType(QueryResultRecordType):
             already_processed.add('creationDate')
             try:
                 self.creationDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (creationDate): %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -10698,7 +10698,7 @@ class QueryResultCatalogItemRecordType(QueryResultRecordType):
             already_processed.add('creationDate')
             try:
                 self.creationDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (creationDate): %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -11019,7 +11019,7 @@ class QueryResultAdminMediaRecordType(QueryResultRecordType):
             already_processed.add('storageB')
             try:
                 self.storageB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isPublished', node)
         if value is not None and 'isPublished' not in already_processed:
@@ -11072,7 +11072,7 @@ class QueryResultAdminMediaRecordType(QueryResultRecordType):
             already_processed.add('creationDate')
             try:
                 self.creationDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (creationDate): %s' % exp)
         value = find_attr_value_('isVdcEnabled', node)
         if value is not None and 'isVdcEnabled' not in already_processed:
@@ -11458,7 +11458,7 @@ class QueryResultAdminVAppTemplateRecordType(QueryResultRecordType):
             already_processed.add('creationDate')
             try:
                 self.creationDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (creationDate): %s' % exp)
         value = find_attr_value_('isVdcEnabled', node)
         if value is not None and 'isVdcEnabled' not in already_processed:
@@ -11972,14 +11972,14 @@ class QueryResultTaskRecordType(QueryResultRecordType):
             already_processed.add('startDate')
             try:
                 self.startDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (startDate): %s' % exp)
         value = find_attr_value_('endDate', node)
         if value is not None and 'endDate' not in already_processed:
             already_processed.add('endDate')
             try:
                 self.endDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (endDate): %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -12243,14 +12243,14 @@ class QueryResultAdminTaskRecordType(QueryResultRecordType):
             already_processed.add('startDate')
             try:
                 self.startDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (startDate): %s' % exp)
         value = find_attr_value_('endDate', node)
         if value is not None and 'endDate' not in already_processed:
             already_processed.add('endDate')
             try:
                 self.endDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (endDate): %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -12552,14 +12552,14 @@ class QueryResultBlockingTaskRecordType(QueryResultRecordType):
             already_processed.add('expirationTime')
             try:
                 self.expirationTime = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (expirationTime): %s' % exp)
         value = find_attr_value_('creationDate', node)
         if value is not None and 'creationDate' not in already_processed:
             already_processed.add('creationDate')
             try:
                 self.creationDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (creationDate): %s' % exp)
         super(QueryResultBlockingTaskRecordType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -12835,7 +12835,7 @@ class QueryResultDiskRecordType(QueryResultRecordType):
             already_processed.add('sizeB')
             try:
                 self.sizeB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isAttached', node)
         if value is not None and 'isAttached' not in already_processed:
@@ -13260,7 +13260,7 @@ class QueryResultAdminDiskRecordType(QueryResultRecordType):
             already_processed.add('sizeB')
             try:
                 self.sizeB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isAttached', node)
         if value is not None and 'isAttached' not in already_processed:
@@ -13551,7 +13551,7 @@ class QueryResultConditionRecordType(QueryResultRecordType):
             already_processed.add('occurenceDate')
             try:
                 self.occurenceDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (occurenceDate): %s' % exp)
         value = find_attr_value_('summary', node)
         if value is not None and 'summary' not in already_processed:
@@ -13794,14 +13794,14 @@ class QueryResultAdminEventRecordType(QueryResultRecordType):
             already_processed.add('eventStatus')
             try:
                 self.eventStatus = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('timeStamp', node)
         if value is not None and 'timeStamp' not in already_processed:
             already_processed.add('timeStamp')
             try:
                 self.timeStamp = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (timeStamp): %s' % exp)
         value = find_attr_value_('org', node)
         if value is not None and 'org' not in already_processed:
@@ -13956,7 +13956,7 @@ class QueryResultStrandedItemRecordType(QueryResultRecordType):
             already_processed.add('deletionDate')
             try:
                 self.deletionDate = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (deletionDate): %s' % exp)
         value = find_attr_value_('vimObjectType', node)
         if value is not None and 'vimObjectType' not in already_processed:
@@ -13979,7 +13979,7 @@ class QueryResultStrandedItemRecordType(QueryResultRecordType):
             already_processed.add('numberOfPurgeAttempts')
             try:
                 self.numberOfPurgeAttempts = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(QueryResultStrandedItemRecordType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -14162,7 +14162,7 @@ class QueryResultAdminServiceRecordType(QueryResultRecordType):
             already_processed.add('priority')
             try:
                 self.priority = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isAuthorizationEnabled', node)
         if value is not None and 'isAuthorizationEnabled' not in already_processed:
@@ -14620,7 +14620,7 @@ class QueryResultOrgVdcStorageProfileRecordType(QueryResultRecordType):
             already_processed.add('storageUsedMB')
             try:
                 self.storageUsedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -14640,7 +14640,7 @@ class QueryResultOrgVdcStorageProfileRecordType(QueryResultRecordType):
             already_processed.add('storageLimitMB')
             try:
                 self.storageLimitMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isDefaultStorageProfile', node)
         if value is not None and 'isDefaultStorageProfile' not in already_processed:
@@ -14660,7 +14660,7 @@ class QueryResultOrgVdcStorageProfileRecordType(QueryResultRecordType):
             already_processed.add('numberOfConditions')
             try:
                 self.numberOfConditions = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('vdc', node)
         if value is not None and 'vdc' not in already_processed:
@@ -14859,7 +14859,7 @@ class QueryResultAdminOrgVdcStorageProfileRecordType(QueryResultRecordType):
             already_processed.add('storageUsedMB')
             try:
                 self.storageUsedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -14879,7 +14879,7 @@ class QueryResultAdminOrgVdcStorageProfileRecordType(QueryResultRecordType):
             already_processed.add('storageLimitMB')
             try:
                 self.storageLimitMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isDefaultStorageProfile', node)
         if value is not None and 'isDefaultStorageProfile' not in already_processed:
@@ -14899,7 +14899,7 @@ class QueryResultAdminOrgVdcStorageProfileRecordType(QueryResultRecordType):
             already_processed.add('numberOfConditions')
             try:
                 self.numberOfConditions = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('vdc', node)
         if value is not None and 'vdc' not in already_processed:
@@ -15095,7 +15095,7 @@ class QueryResultProviderVdcStorageProfileRecordType(QueryResultRecordType):
             already_processed.add('storageUsedMB')
             try:
                 self.storageUsedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -15110,7 +15110,7 @@ class QueryResultProviderVdcStorageProfileRecordType(QueryResultRecordType):
             already_processed.add('storageTotalMB')
             try:
                 self.storageTotalMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isEnabled', node)
         if value is not None and 'isEnabled' not in already_processed:
@@ -15126,21 +15126,21 @@ class QueryResultProviderVdcStorageProfileRecordType(QueryResultRecordType):
             already_processed.add('storageProvisionedMB')
             try:
                 self.storageProvisionedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfConditions', node)
         if value is not None and 'numberOfConditions' not in already_processed:
             already_processed.add('numberOfConditions')
             try:
                 self.numberOfConditions = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('storageRequestedMB', node)
         if value is not None and 'storageRequestedMB' not in already_processed:
             already_processed.add('storageRequestedMB')
             try:
                 self.storageRequestedMB = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('storageProfileMoref', node)
         if value is not None and 'storageProfileMoref' not in already_processed:
@@ -16836,14 +16836,14 @@ class QueryResultEdgeGatewayRecordType(QueryResultRecordType):
             already_processed.add('numberOfExtNetworks')
             try:
                 self.numberOfExtNetworks = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('numberOfOrgNetworks', node)
         if value is not None and 'numberOfOrgNetworks' not in already_processed:
             already_processed.add('numberOfOrgNetworks')
             try:
                 self.numberOfOrgNetworks = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isBusy', node)
         if value is not None and 'isBusy' not in already_processed:
@@ -17062,7 +17062,7 @@ class QueryResultOrgVdcNetworkRecordType(QueryResultRecordType):
             already_processed.add('linkType')
             try:
                 self.linkType = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isIpScopeInherited', node)
         if value is not None and 'isIpScopeInherited' not in already_processed:
@@ -17575,7 +17575,7 @@ class QueryResultResourcePoolVMRecordType(QueryResultRecordType):
             already_processed.add('hardwareVersion')
             try:
                 self.hardwareVersion = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('isDeployed', node)
         if value is not None and 'isDeployed' not in already_processed:
@@ -17745,7 +17745,7 @@ class QueryResultToCloudTunnelRecordType(QueryResultRecordType):
             already_processed.add('destinationPort')
             try:
                 self.destinationPort = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('org', node)
         if value is not None and 'org' not in already_processed:
@@ -18186,7 +18186,7 @@ class ErrorType(VCloudExtensibleType):
             already_processed.add('majorErrorCode')
             try:
                 self.majorErrorCode = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(ErrorType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -18765,7 +18765,7 @@ class ResourceReferenceType(ReferenceType):
             already_processed.add('status')
             try:
                 self.status = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(ResourceReferenceType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -18890,7 +18890,7 @@ class ContainerType(ResourceType):
             already_processed.add('total')
             try:
                 self.total = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
@@ -18901,14 +18901,14 @@ class ContainerType(ResourceType):
             already_processed.add('pageSize')
             try:
                 self.pageSize = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('page', node)
         if value is not None and 'page' not in already_processed:
             already_processed.add('page')
             try:
                 self.page = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('xsi:type', node)
         if value is not None and 'xsi:type' not in already_processed:
@@ -19036,7 +19036,7 @@ class CapacityType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Allocated')
             self.Allocated = ival_
@@ -19044,7 +19044,7 @@ class CapacityType(VCloudExtensibleType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Limit')
             self.Limit = ival_
@@ -19152,7 +19152,7 @@ class CapacityWithUsageType(CapacityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Reserved')
             self.Reserved = ival_
@@ -19160,7 +19160,7 @@ class CapacityWithUsageType(CapacityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Used')
             self.Used = ival_
@@ -19168,7 +19168,7 @@ class CapacityWithUsageType(CapacityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Overhead')
             self.Overhead = ival_
@@ -20223,7 +20223,7 @@ class MetadataNumberValue(MetadataTypedValue):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Value')
             self.Value = ival_
@@ -20715,7 +20715,7 @@ class FileUploadParamsType(VCloudExtensibleType):
             already_processed.add('fileSize')
             try:
                 self.fileSize = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(FileUploadParamsType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
@@ -21630,7 +21630,7 @@ class TaskType(EntityType):
             already_processed.add('expiryTime')
             try:
                 self.expiryTime = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (expiryTime): %s' % exp)
         value = find_attr_value_('cancelRequested', node)
         if value is not None and 'cancelRequested' not in already_processed:
@@ -21646,7 +21646,7 @@ class TaskType(EntityType):
             already_processed.add('startTime')
             try:
                 self.startTime = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (startTime): %s' % exp)
         value = find_attr_value_('operation', node)
         if value is not None and 'operation' not in already_processed:
@@ -21657,7 +21657,7 @@ class TaskType(EntityType):
             already_processed.add('endTime')
             try:
                 self.endTime = self.gds_parse_datetime(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise ValueError('Bad date-time attribute (endTime): %s' % exp)
         value = find_attr_value_('serviceNamespace', node)
         if value is not None and 'serviceNamespace' not in already_processed:
@@ -21692,7 +21692,7 @@ class TaskType(EntityType):
             sval_ = child_.text
             try:
                 ival_ = int(sval_)
-            except (TypeError, ValueError), exp:
+            except (TypeError, ValueError) as exp:
                 raise_parse_error(child_, 'requires integer: %s' % exp)
             ival_ = self.gds_validate_integer(ival_, node, 'Progress')
             self.Progress = ival_
@@ -22375,14 +22375,14 @@ class QueryResultType(ResourceType):
             already_processed.add('pageSize')
             try:
                 self.pageSize = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         value = find_attr_value_('page', node)
         if value is not None and 'page' not in already_processed:
             already_processed.add('page')
             try:
                 self.page = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
         super(QueryResultType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):

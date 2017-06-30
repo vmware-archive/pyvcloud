@@ -52,7 +52,6 @@ from pyvcloud import _get_logger, Http, Log
 
 class VCA(object):
 
-
     VCA_SERVICE_TYPE_STANDALONE = 'standalone'
     VCA_SERVICE_TYPE_VCHS = 'vchs'
     VCA_SERVICE_TYPE_VCA = 'vca'
@@ -748,6 +747,60 @@ class VCA(object):
                 vapp = VAPP(vAppType.parseString(self.response.content, True), self.vcloud_session.get_vcloud_headers(), self.verify, self.log)
                 return vapp
 
+    def get_vapp_metadata(self, vapp_href, domain=None, key=None):
+        url = vapp_href + '/metadata'
+        if domain is not None:
+            url += '/%s/%s' % (domain, key)
+        self.response = Http.get(url, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.ok:
+            return self.response.content
+        return None
+
+    def _parse_metadata_entry(self, domain, visibility, key, value, metadata_type='MetadataStringValue'):
+        domain_element = '<Domain visibility="%s">%s</Domain>' % (visibility, domain)
+        metadata_value = """
+        <MetadataEntry xmlns="http://www.vmware.com/vcloud/v1.5">
+            %s
+            <Key>%s</Key>
+            <TypedValue xsi:type="%s">
+                <Value>%s</Value>
+            </TypedValue>
+        </MetadataEntry >
+        """ % (domain_element, key, metadata_type, value)
+        return metadata_value
+
+    def add_vapp_metadata(self, vapp_href, domain, visibility, key, value, metadata_type='MetadataStringValue'):
+        metadata_value = self._parse_metadata_entry(domain, visibility, key, value, metadata_type)
+        metadata = """
+        <Metadata
+            xmlns="http://www.vmware.com/vcloud/v1.5"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            type="application/vnd.vmware.vcloud.metadata+xml">
+            %s
+        </Metadata>
+        """ % metadata_value
+        self.response = Http.post(vapp_href+'/metadata', \
+            headers=self.vcloud_session.get_vcloud_headers(), \
+            verify=self.verify, logger=self.logger, \
+            data=metadata)
+        if self.response.status_code in [requests.codes.ok, requests.codes.accepted]:
+            return taskType.parseString(self.response.content, True)
+        return None
+
+    def del_vapp_metadata(self, vapp_href, key):
+        self.response = Http.delete(vapp_href+'/metadata/'+key, \
+            headers=self.vcloud_session.get_vcloud_headers(), \
+            verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.accepted:
+            return taskType.parseString(self.response.content, True)
+        return None
+
+    def query_by_metadata(self, query, object_type='vApp'):
+        url = '%s/api/query?type=%s&format=records&%s' % (self.host, object_type, query)
+        self.response = Http.get(url, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+        if self.response.status_code == requests.codes.ok:
+            return self.response.content
+        return None
 
     def _create_instantiateVAppTemplateParams(self, name, template_href,
                                               vm_name, vm_href, deploy,

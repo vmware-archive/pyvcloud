@@ -3,9 +3,7 @@ pyvcloud
 
 |docs-latest| |pip| |ver| |build-status|
 
-Python SDK for VMware vCloud. It supports vCloud Air On Demand and Subscription. It also supports vCloud Director.
-
-``Release early, release often.``
+Python SDK for VMware vCloud Director and vCloud Air.
 
 This project is under development, the classes, methods and parameters might change over time. This README usually reflects the syntax of the latest version.
 
@@ -13,20 +11,23 @@ Sample usage:
 
 Import modules and instantiate a vCloud Air object::
 
-    from pyvcloud.vcloudair import VCA
-    vca = VCA(host, user, service_type, service_version, verify)
+``` python
+from pyvcloud.vcloudair import VCA
+vca = VCA(host, user, service_type, service_version, verify)
+```
 
 Login to a vCloud Director instance::
 
-    result = vca.login(password=password, org=org)
- 
-   
+``` python
+result = vca.login(password=password, org=org)
+```
+
 See `changes log <http://pyvcloud.readthedocs.org/en/latest/changes.html>`_ for a list of changes.
 
 Installation
 ============
 
-The Python SDK requires the libxml2 and libxslt libraries, see `lxml <http://lxml.de/installation.html>`_ for more details. 
+The Python SDK requires the libxml2 and libxslt libraries, see `lxml <http://lxml.de/installation.html>`_ for more details.
 
 On Debian/Ubuntu, you can install `lxml` and Python development dependencies with this command:
 
@@ -38,10 +39,9 @@ On RHEL-based distributions:
 
 The Python SDK can then be installed with the following command:
 
-    pip install pyvcloud
-    
-Use of `virtualenv <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_ is recommended.
+    pip install --user pyvcloud
 
+`pyvcloud` can also be installed with `virtualenv <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_
 
 Usage
 =====
@@ -68,9 +68,9 @@ The SDK supports logging in to different type of services: vCloud Air Subscripti
         the_vdc = vca.get_vdc(vdc)
         for x in range(1, 5):
             print datetime.datetime.now(), the_vdc.get_name(), vca.vcloud_session.token
-            the_vdc = vca.get_vdc(vdc)       
+            the_vdc = vca.get_vdc(vdc)
             if the_vdc: print the_vdc.get_name(), vca.vcloud_session.token
-            else: print False                
+            else: print False
             the_vapp = vca.get_vapp(the_vdc, vapp)
             if the_vapp: print the_vapp.me.name
             else: print False
@@ -105,7 +105,7 @@ The SDK supports logging in to different type of services: vCloud Air Subscripti
     test_vcloud_session(vca, vdc, vapp)
 
 
-    ### On Demand            
+    ### On Demand
     host='iam.vchs.vmware.com'
     username = os.environ['VCAUSER']
     password = os.environ['PASSWORD']
@@ -129,7 +129,7 @@ The SDK supports logging in to different type of services: vCloud Air Subscripti
     result = vca.login_to_instance(instance=instance, password=None, token=vca.vcloud_session.token, org_url=vca.vcloud_session.org_url)
     print_vca(vca)
 
-    #this tests the vca token        
+    #this tests the vca token
     result = vca.login(token=vca.token)
     if result: print result, vca.instances
     else: print False
@@ -161,7 +161,7 @@ The SDK supports logging in to different type of services: vCloud Air Subscripti
     #this tests the vcloud session token
     test_vcloud_session(vca, vdc, vapp)
 
-    
+
 Development
 ===========
 
@@ -179,7 +179,7 @@ To debug a python session, add this code::
     requests_log = logging.getLogger("requests.packages.urllib3")
     requests_log.setLevel(logging.DEBUG)
     requests_log.propagate = True
-    
+
 
 Testing
 =======
@@ -221,4 +221,3 @@ To test pyvcloud::
     :alt: Stable Version
     :scale: 100%
     :target: https://pypi.python.org/pypi/pyvcloud
-

@@ -24,7 +24,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='pyvcloud',
-    version='16',
+    version='17',
     description='VMware vCloud Python SDK',
     long_description=read('README.rst'),
     url='https://github.com/vmware/pyvcloud',

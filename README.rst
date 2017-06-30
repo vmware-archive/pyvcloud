@@ -7,17 +7,17 @@ Python SDK for VMware vCloud Director and vCloud Air.
 
 This project is under development, the classes, methods and parameters might change over time. This README usually reflects the syntax of the latest version.
 
-Sample usage:
+Sample Usage
+============
 
-Import modules and instantiate a vCloud Air object::
+Import modules and instantiate a vCloud Air object:
 
 .. code:: python
 
     from pyvcloud.vcloudair import VCA
     vca = VCA(host, user, service_type, service_version, verify)
 
-
-Login to a vCloud Director instance::
+Login to a vCloud Director instance:
 
 .. code:: python
 
@@ -51,10 +51,10 @@ The Python SDK can then be installed with the following command:
 
 pyvcloud can also be installed with `virtualenv <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_
 
-Usage
-=====
+Examples
+========
 
-The SDK supports logging in to different type of services: vCloud Air Subscription, vCloud Air On Demand and vCloud Director Standalone. See the following `code <https://github.com/vmware/pyvcloud/blob/master/examples/examples.py>`_ as an example::
+The SDK supports logging in to different type of services: vCloud Air Subscription, vCloud Air On Demand and vCloud Director Standalone. See the following `code <https://github.com/vmware/pyvcloud/blob/master/examples/examples.py>`_ as an example:
 
 .. code:: python
 
@@ -175,28 +175,27 @@ The SDK supports logging in to different type of services: vCloud Air Subscripti
 Development
 ===========
 
-To test the current code, check it out from github and install it with::
+To test the current code, check it out from github and install it with:
 
 .. code:: bash
 
     python setup.py develop
 
-To debug a python session, add this code::
+To log the requests, add the ``log=True`` parameter to the VCA constructor. The log is appended to file ``$TMPDIR/pyvcloud.log``.
 
-    import logging
-    import httplib
-    httplib.HTTPConnection.debuglevel = 1
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.DEBUG)
-    requests_log = logging.getLogger("requests.packages.urllib3")
-    requests_log.setLevel(logging.DEBUG)
-    requests_log.propagate = True
+.. code:: python
 
+    conn = VCA(host=host,
+               username=username,
+               service_type='vcd',
+               version='5.7',
+               verify=False,
+               log=True)
 
 Testing
 =======
 
-To test pyvcloud::
+To test pyvcloud:
 
 .. code:: bash
 
@@ -210,6 +209,7 @@ To test pyvcloud::
     # customize credentials and other parameters
     nosetests --verbosity=2  --tc-format yaml --tc-file tests/config_standalone.yaml \
                 tests/vcloud_tests.py
+
 
 .. |build-status| image:: https://img.shields.io/travis/vmware/pyvcloud.svg?style=flat
     :alt: build status

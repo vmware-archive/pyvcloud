@@ -8,11 +8,9 @@ from pyvcloud.helper import CommonUtils
 
 class TestNet:
 
-
     def __init__(self):
         self.vca = None
         self.login_to_vcloud()
-
 
     def login_to_vcloud(self):
         """Login to vCloud"""
@@ -24,12 +22,21 @@ class TestNet:
         org = config['vcloud']['org']
         service = config['vcloud']['service']
         instance = config['vcloud']['instance']
-        self.vca = VCA(host=host, username=username, service_type=service_type, version=version, verify=True, log=True)
+        self.vca = VCA(
+            host=host,
+            username=username,
+            service_type=service_type,
+            version=version,
+            verify=True,
+            log=True)
         assert self.vca
         if VCA.VCA_SERVICE_TYPE_STANDALONE == service_type:
             result = self.vca.login(password=password, org=org)
             assert result
-            result = self.vca.login(token=self.vca.token, org=org, org_url=self.vca.vcloud_session.org_url)
+            result = self.vca.login(
+                token=self.vca.token,
+                org=org,
+                org_url=self.vca.vcloud_session.org_url)
             assert result
         elif VCA.VCA_SERVICE_TYPE_VCHS == service_type:
             result = self.vca.login(password=password)
@@ -41,11 +48,15 @@ class TestNet:
         elif VCA.VCA_SERVICE_TYPE_VCA == service_type:
             result = self.vca.login(password=password)
             assert result
-            result = self.vca.login_to_instance(password=password, instance=instance, token=None, org_url=None)
+            result = self.vca.login_to_instance(
+                password=password, instance=instance, token=None, org_url=None)
             assert result
-            result = self.vca.login_to_instance(password=None, instance=instance, token=self.vca.vcloud_session.token, org_url=self.vca.vcloud_session.org_url)
+            result = self.vca.login_to_instance(
+                password=None,
+                instance=instance,
+                token=self.vca.vcloud_session.token,
+                org_url=self.vca.vcloud_session.org_url)
             assert result
-
 
     def logout_from_vcloud(self):
         """Logout from vCloud"""
@@ -54,11 +65,9 @@ class TestNet:
         self.vca = None
         assert self.vca is None
 
-
     def test_0001(self):
         """Loggin in to vCloud"""
         assert self.vca.token
-
 
     def test_0003(self):
         """Get Networks"""
@@ -67,7 +76,6 @@ class TestNet:
         networks = self.vca.get_networks(vdc_name)
         for network in networks:
             print(network)
-
 
     def test_0004(self):
         """ Connect to Networks"""
@@ -84,7 +92,7 @@ class TestNet:
         the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
         assert the_vapp
         assert the_vapp.name == vapp_name
-        
+
         print('disconnect vms')
         task = the_vapp.disconnect_vms()
         assert task
@@ -103,15 +111,15 @@ class TestNet:
         mode = 'POOL'
         if len(nets) == 1:
             print("connecting vApp to network"
-                                " '%s' with mode '%s'" %
-                                (network_name, mode))
+                  " '%s' with mode '%s'" %
+                  (network_name, mode))
             task = the_vapp.connect_to_network(
                 nets[0].name, nets[0].href)
             assert task
             result = self.vca.block_until_completed(task)
             assert result
             the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
-            ip=None
+            ip = None
             task = the_vapp.connect_vms(
                 nets[0].name,
                 connection_index=index,
@@ -128,15 +136,15 @@ class TestNet:
         mode = 'POOL'
         if len(nets) == 1:
             print("connecting vApp to network"
-                                " '%s' with mode '%s'" %
-                                (network_name2, mode))
+                  " '%s' with mode '%s'" %
+                  (network_name2, mode))
             task = the_vapp.connect_to_network(
                 nets[0].name, nets[0].href)
             assert task
             result = self.vca.block_until_completed(task)
             assert result
             the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
-            ip=None
+            ip = None
             task = the_vapp.connect_vms(
                 nets[0].name,
                 connection_index=index,
@@ -153,15 +161,15 @@ class TestNet:
         mode = 'POOL'
         if len(nets) == 1:
             print("connecting vApp to network"
-                                " '%s' with mode '%s'" %
-                                (network_name3, mode))
+                  " '%s' with mode '%s'" %
+                  (network_name3, mode))
             task = the_vapp.connect_to_network(
                 nets[0].name, nets[0].href)
             assert task
             result = self.vca.block_until_completed(task)
             assert result
             the_vapp = self.vca.get_vapp(the_vdc, vapp_name)
-            ip=None
+            ip = None
             task = the_vapp.connect_vms(
                 nets[0].name,
                 connection_index=index,
@@ -191,4 +199,3 @@ class TestNet:
         task = the_vapp.deploy()
         if task is not None:
             result = self.vca.block_until_completed(task)
-

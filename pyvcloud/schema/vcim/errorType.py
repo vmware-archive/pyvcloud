@@ -102,7 +102,7 @@ def parsexml_(*args, **kwargs):
 
 try:
     from generatedssuper import GeneratedsSuper
-except ImportError, exp:
+except ImportError as exp:
 
     class GeneratedsSuper(object):
         tzoff_pattern = re_.compile(r'(\+|-)((0\d|1[0-3]):[0-5]\d|14:00)$')
@@ -775,7 +775,7 @@ class ErrorType(GeneratedsSuper):
             already_processed.add('majorErrorCode')
             try:
                 self.majorErrorCode = int(value)
-            except ValueError, exp:
+            except ValueError as exp:
                 raise_parse_error(node, 'Bad integer attribute: %s' % exp)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
         pass

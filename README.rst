@@ -11,16 +11,18 @@ Sample usage:
 
 Import modules and instantiate a vCloud Air object::
 
-``` python
-from pyvcloud.vcloudair import VCA
-vca = VCA(host, user, service_type, service_version, verify)
-```
+.. code:: python
+
+    from pyvcloud.vcloudair import VCA
+    vca = VCA(host, user, service_type, service_version, verify)
+
 
 Login to a vCloud Director instance::
 
-``` python
-result = vca.login(password=password, org=org)
-```
+.. code:: python
+
+    result = vca.login(password=password, org=org)
+
 
 See `changes log <http://pyvcloud.readthedocs.org/en/latest/changes.html>`_ for a list of changes.
 
@@ -31,22 +33,30 @@ The Python SDK requires the libxml2 and libxslt libraries, see `lxml <http://lxm
 
 On Debian/Ubuntu, you can install `lxml` and Python development dependencies with this command:
 
+.. code:: bash
+
     sudo apt-get install libxml2-dev libxslt-dev python-dev python-pip
 
 On RHEL-based distributions:
+
+.. code:: bash
 
     sudo yum install libxslt-devel libxml2-devel python-devel python-pip
 
 The Python SDK can then be installed with the following command:
 
+.. code:: bash
+
     pip install --user pyvcloud
 
-`pyvcloud` can also be installed with `virtualenv <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_
+pyvcloud can also be installed with `virtualenv <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_
 
 Usage
 =====
 
 The SDK supports logging in to different type of services: vCloud Air Subscription, vCloud Air On Demand and vCloud Director Standalone. See the following `code <https://github.com/vmware/pyvcloud/blob/master/examples/examples.py>`_ as an example::
+
+.. code:: python
 
     import time, datetime, os
     from pyvcloud.vcloudair import VCA
@@ -167,7 +177,9 @@ Development
 
 To test the current code, check it out from github and install it with::
 
-    pip install --edit .
+.. code:: bash
+
+    python setup.py develop
 
 To debug a python session, add this code::
 
@@ -186,11 +198,13 @@ Testing
 
 To test pyvcloud::
 
+.. code:: bash
+
     git clone https://github.com/vmware/pyvcloud.git
     cd pyvcloud
     virtualenv .venv
     source .venv/bin/activate
-    pip install --edit .
+    python setup.py develop
     pip install -r test-requirements.txt
     cp tests/config_example.yaml tests/config_standalone.yaml
     # customize credentials and other parameters

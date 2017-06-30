@@ -4,4 +4,4 @@ import pkg_resources
 
 def test_0001():
     """Check version"""
-    assert '17' == pkg_resources.require("pyvcloud")[0].version
+    assert '17.0.1' == pkg_resources.require("pyvcloud")[0].version

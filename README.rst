@@ -1,7 +1,7 @@
 pyvcloud
 ========
 
-|docs-latest| |pip| |ver| |build-status|
+|docs-latest| |ver| |build-status|
 
 Python SDK for VMware vCloud Director and vCloud Air.
 
@@ -105,11 +105,6 @@ To test **pyvcloud**:
     :alt: Documentation Status
     :scale: 100%
     :target: http://pyvcloud.readthedocs.org/en/latest/
-
-.. |pip| image:: https://img.shields.io/pypi/dm/pyvcloud.svg
-    :alt: Download Status
-    :scale: 100%
-    :target: https://pypi.python.org/pypi/pyvcloud
 
 .. |ver| image:: https://img.shields.io/pypi/v/pyvcloud.svg
     :alt: Stable Version

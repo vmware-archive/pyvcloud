@@ -9,13 +9,14 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-
-from setuptools import setup, find_packages
 import pip
 from pip.req import parse_requirements
+from setuptools import find_packages
+from setuptools import setup
 requirements = [
     str(requirement.req)
-    for requirement in parse_requirements('requirements.txt', session=pip.download.PipSession())
+    for requirement in parse_requirements('requirements.txt',
+                                          session=pip.download.PipSession())
 ]
 
 setup(

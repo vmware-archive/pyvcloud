@@ -43,61 +43,6 @@ from dsl_parser.exceptions import *
 
 import print_utils
 
-
-# TODO(???): when token expired, it doesn't seem to re-login
-# the first time, but it works the second time
-# TODO(???): list active tasks
-# issue: authentication fails in subscription use org if logged in
-#        previously to another account (workaround: vca logout first)
-# TODO(???): adding a DNAT rule with type any fails
-# TODO(???): make network mode case insensitive (pool, dhcp)
-# TODO(???): identify primary ip from the gateway uplink information
-# TODO(???): add disk, validate that disk name doesn't exist
-# TODO(???): make sure that all the options in commands are
-#            in the same order, when possible
-# TODO(???): example of allocate and deallocate public ip on demand
-# TODO(???): dhcp doesn't show 'isolated' networks
-# TODO(???): dep show output
-# TODO(???): dhcp fails when disabled
-# TODO(???): print(nat rules in yaml format
-# TODO(???): return OS -1 on error
-# TODO(???): configure http agent
-# TODO(???): vca status after vca logout fails in line 213
-# TODO(???): vca status fails if ~/.vcarc is not found
-# TODO(???): upload/download ovf to/from catalog
-# TODO(???): beautify array outputs
-# TODO(???): score display output
-# TODO(???): capture error when login on demand to instance and
-#            instance id is not correct
-# TODO(???): command to configure/customize computer-name,
-#            cpu, memory, disk of a vm
-# TODO(???): configure DHCP on gateway for network with range
-# TODO(???): configure POOL on network with range
-# TODO(???): display DHCP configuration on gateway details
-# TODO(???): delete template
-# TODO(???): allocate external IP on demand
-# TODO(???): revisit and review how session token can be reused
-# TODO(???): reuse vcloud session token between calls
-# TODO(???): http://click.pocoo.org/3/utils/#showing-progress-bars
-# TODO(???): http://click.pocoo.org/3/utils/#screen-clearing
-# TODO(???): print vApp in json format
-# TODO(???): include network config during the instantiation to
-#            instantiate vm and connect in one shot
-# TODO(???): list tasks
-# TODO(???): catalogs, details
-# TODO(???): replace network config instead of adding
-# TODO(???): configurable profile file ~/.vcarc
-# TODO(???): make sure default sub-operation is list...
-# TODO(???): consider add the selectors --service --org, --vdc,
-#             --gateway... at the root and pass by ctx
-# TODO(???): command to update session to avoid timeouts, if possible
-# TODO(???): OnDemand create instance and create vdc, use templates
-# TODO(???): OnDemand plan command, billing mettering and instance creation
-# TODO(???): store and display status of the vcloud org_url
-# TODO(???): catch exceptions
-# TODO(???): vapp command returns nothing no error when session
-#            is inactive on subscription
-
 properties = ['session_token', 'org', 'org_url',
               'service', 'vdc', 'instance',
               'service_type', 'service_version',

@@ -11,6 +11,3 @@ PrettyTable>=0.7,<0.8
 six
 pytz
 oslo.utils
-oslo.i18n
-monotonic
-iso8601

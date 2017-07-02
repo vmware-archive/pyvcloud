@@ -126,7 +126,8 @@ def profile(cmd_proc):
               default=False, help='Do not save password')
 @click.option('-V', '--version', 'service_version',
               default='5.7', metavar='[5.1 | 5.5 | 5.6 | 5.7 | 27.0]',
-              type=click.Choice(['5.1', '5.5', '5.6', '5.7', '27.0']), help='')
+              type=click.Choice(['5.1', '5.5', '5.6', '5.7', '27.0']),
+              help='vCD API version')
 @click.option('-H', '--host', default='https://vca.vmware.com',
               metavar='<host>',
               help='')
@@ -540,5 +541,4 @@ else:
     import vca_cli_compute  # NOQA
     import vca_cli_network  # NOQA
     import vca_cli_blueprint  # NOQA
-#    import vca_cli_sql  # NOQA
     import vca_cli_example  # NOQA

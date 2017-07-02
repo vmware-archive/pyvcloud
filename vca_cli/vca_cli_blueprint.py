@@ -20,11 +20,6 @@ import operator
 from vca_cli import cli, utils, default_operation
 from pyvcloud.score import Score
 from pyvcloud import exceptions
-from dsl_parser.exceptions import \
-    MissingRequiredInputError, \
-    UnknownInputError, \
-    FunctionEvaluationError, \
-    DSLParsingException
 from pyvcloud import Log
 import print_utils
 from tabulate import tabulate
@@ -188,22 +183,6 @@ def _validate(cmd_proc, operation,
     try:
         scoreclient.blueprints.validate(blueprint_file)
         utils.print_message("The blueprint is valid.", cmd_proc)
-    except MissingRequiredInputError as mrie:
-        utils.print_error('Invalid blueprint: ' +
-                          str(mrie)[str(mrie).rfind('}') + 1:].
-                          strip())
-    except UnknownInputError as uie:
-        utils.print_error('Invalid blueprint: ' +
-                          str(uie)[str(uie).rfind('}') + 1:].
-                          strip())
-    except FunctionEvaluationError as fee:
-        utils.print_error('Invalid blueprint: ' +
-                          str(fee)[str(fee).rfind('}') + 1:].
-                          strip())
-    except DSLParsingException as dpe:
-        utils.print_error('Invalid blueprint: ' +
-                          str(dpe)[str(dpe).rfind('}') + 1:].
-                          strip())
     except Exception as ex:
         utils.print_error('Failed to validate %s:\n %s' %
                           (blueprint_file, str(ex)))

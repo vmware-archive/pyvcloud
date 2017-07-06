@@ -18,8 +18,10 @@ import requests
 import json
 from xml.etree import ElementTree as ET
 from pyvcloud import _get_logger, Http
-from pyvcloud.schema.vcd.v1_5.schemas.vcloud import organizationListType, queryRecordViewType
-from pyvcloud.schema.vcd.v1_5.schemas.vcloud.vcloudType import QueryResultRecordsType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud import organizationListType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud import queryRecordViewType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.vcloudType import \
+     QueryResultRecordsType
 
 class System(object):
 
@@ -42,6 +44,9 @@ class System(object):
             return orgs
         else:
             raise Exception(self.response.status_code)
+
+    def add_org(self, org_name):
+        pass
 
     def get_extensions(self):
         content_type = 'application/vnd.vmware.admin.vmwExtension+xml'

@@ -22641,31 +22641,34 @@ class CIM_VirtualSystemSettingData_Type(GeneratedsSuper):
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
         if nodeName_ == 'AutomaticRecoveryAction':
             sval_ = child_.text
-            try:
-                ival_ = int(sval_)
-            except (TypeError, ValueError) as exp:
-                raise_parse_error(child_, 'requires integer: %s' % exp)
-            ival_ = self.gds_validate_integer(ival_, node, 'AutomaticRecoveryAction')
-            self.AutomaticRecoveryAction = ival_
-            self.validate_AutomaticRecoveryAction(self.AutomaticRecoveryAction)    # validate type AutomaticRecoveryAction
+            if sval_ is not None:
+                try:
+                    ival_ = int(sval_)
+                except (TypeError, ValueError) as exp:
+                    raise_parse_error(child_, 'requires integer: %s' % exp)
+                ival_ = self.gds_validate_integer(ival_, node, 'AutomaticRecoveryAction')
+                self.AutomaticRecoveryAction = ival_
+                self.validate_AutomaticRecoveryAction(self.AutomaticRecoveryAction)    # validate type AutomaticRecoveryAction
         elif nodeName_ == 'AutomaticShutdownAction':
             sval_ = child_.text
-            try:
-                ival_ = int(sval_)
-            except (TypeError, ValueError) as exp:
-                raise_parse_error(child_, 'requires integer: %s' % exp)
-            ival_ = self.gds_validate_integer(ival_, node, 'AutomaticShutdownAction')
-            self.AutomaticShutdownAction = ival_
-            self.validate_AutomaticShutdownAction(self.AutomaticShutdownAction)    # validate type AutomaticShutdownAction
+            if sval_ is not None:
+                try:
+                    ival_ = int(sval_)
+                except (TypeError, ValueError) as exp:
+                    raise_parse_error(child_, 'requires integer: %s' % exp)
+                ival_ = self.gds_validate_integer(ival_, node, 'AutomaticShutdownAction')
+                self.AutomaticShutdownAction = ival_
+                self.validate_AutomaticShutdownAction(self.AutomaticShutdownAction)    # validate type AutomaticShutdownAction
         elif nodeName_ == 'AutomaticStartupAction':
             sval_ = child_.text
-            try:
-                ival_ = int(sval_)
-            except (TypeError, ValueError) as exp:
-                raise_parse_error(child_, 'requires integer: %s' % exp)
-            ival_ = self.gds_validate_integer(ival_, node, 'AutomaticStartupAction')
-            self.AutomaticStartupAction = ival_
-            self.validate_AutomaticStartupAction(self.AutomaticStartupAction)    # validate type AutomaticStartupAction
+            if sval_ is not None:
+                try:
+                    ival_ = int(sval_)
+                except (TypeError, ValueError) as exp:
+                    raise_parse_error(child_, 'requires integer: %s' % exp)
+                ival_ = self.gds_validate_integer(ival_, node, 'AutomaticStartupAction')
+                self.AutomaticStartupAction = ival_
+                self.validate_AutomaticStartupAction(self.AutomaticStartupAction)    # validate type AutomaticStartupAction
         elif nodeName_ == 'AutomaticStartupActionDelay':
             obj_ = cimDateTime.factory()
             obj_.build(child_)
@@ -23486,13 +23489,14 @@ class CIM_ResourceAllocationSettingData_Type(GeneratedsSuper):
             obj_.original_tagname_ = 'Connection'
         elif nodeName_ == 'ConsumerVisibility':
             sval_ = child_.text
-            try:
-                ival_ = int(sval_)
-            except (TypeError, ValueError) as exp:
-                raise_parse_error(child_, 'requires integer: %s' % exp)
-            ival_ = self.gds_validate_integer(ival_, node, 'ConsumerVisibility')
-            self.ConsumerVisibility = ival_
-            self.validate_ConsumerVisibility(self.ConsumerVisibility)    # validate type ConsumerVisibility
+            if sval_ is not None:
+                try:
+                    ival_ = int(sval_)
+                except (TypeError, ValueError) as exp:
+                    raise_parse_error(child_, 'requires integer: %s' % exp)
+                ival_ = self.gds_validate_integer(ival_, node, 'ConsumerVisibility')
+                self.ConsumerVisibility = ival_
+                self.validate_ConsumerVisibility(self.ConsumerVisibility)    # validate type ConsumerVisibility
         elif nodeName_ == 'Description':
             class_obj_ = self.get_class_obj_(child_, cimString)
             obj_ = class_obj_.factory()
@@ -23524,13 +23528,14 @@ class CIM_ResourceAllocationSettingData_Type(GeneratedsSuper):
             obj_.original_tagname_ = 'Limit'
         elif nodeName_ == 'MappingBehavior':
             sval_ = child_.text
-            try:
-                ival_ = int(sval_)
-            except (TypeError, ValueError) as exp:
-                raise_parse_error(child_, 'requires integer: %s' % exp)
-            ival_ = self.gds_validate_integer(ival_, node, 'MappingBehavior')
-            self.MappingBehavior = ival_
-            self.validate_MappingBehavior(self.MappingBehavior)    # validate type MappingBehavior
+            if sval_ is not None:
+                try:
+                    ival_ = int(sval_)
+                except (TypeError, ValueError) as exp:
+                    raise_parse_error(child_, 'requires integer: %s' % exp)
+                ival_ = self.gds_validate_integer(ival_, node, 'MappingBehavior')
+                self.MappingBehavior = ival_
+                self.validate_MappingBehavior(self.MappingBehavior)    # validate type MappingBehavior
         elif nodeName_ == 'OtherResourceType':
             class_obj_ = self.get_class_obj_(child_, cimString)
             obj_ = class_obj_.factory()
@@ -23562,13 +23567,14 @@ class CIM_ResourceAllocationSettingData_Type(GeneratedsSuper):
             obj_.original_tagname_ = 'ResourceSubType'
         elif nodeName_ == 'ResourceType':
             sval_ = child_.text
-            try:
-                ival_ = int(sval_)
-            except (TypeError, ValueError) as exp:
-                raise_parse_error(child_, 'requires integer: %s' % exp)
-            ival_ = self.gds_validate_integer(ival_, node, 'ResourceType')
-            self.ResourceType = ival_
-            self.validate_ResourceType(self.ResourceType)    # validate type ResourceType
+            if sval_ is not None:
+                try:
+                    ival_ = int(sval_)
+                except (TypeError, ValueError) as exp:
+                    raise_parse_error(child_, 'requires integer: %s' % exp)
+                ival_ = self.gds_validate_integer(ival_, node, 'ResourceType')
+                self.ResourceType = ival_
+                self.validate_ResourceType(self.ResourceType)    # validate type ResourceType
         elif nodeName_ == 'VirtualQuantity':
             obj_ = cimUnsignedLong.factory()
             obj_.build(child_)

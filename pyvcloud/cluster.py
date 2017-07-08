@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import requests
 import json
-from pyvcloud import _get_logger, Http
+from pyvcloud import _get_logger
+from pyvcloud import Http
+import requests
 from urlparse import urlparse
+
 
 class Cluster(object):
 
@@ -32,8 +34,10 @@ class Cluster(object):
 
     def ping(self):
         self.response = Http.get(self.api_url,
-                                 headers=self.vcloud_session.get_vcloud_headers(),
-                                 verify=self.verify, logger=self.logger)
+                                 headers=self.vcloud_session.
+                                 get_vcloud_headers(),
+                                 verify=self.verify,
+                                 logger=self.logger)
         return self.response.status_code
 
     def get_clusters(self):
@@ -45,11 +49,14 @@ class Cluster(object):
         else:
             raise Exception(self.response.status_code)
 
-    def create_cluster(self, name, worker_count=2):
+    def create_cluster(self, vdc, network_name, name, node_count=2):
         headers = self.vcloud_session.get_vcloud_headers()
-        data = {'name': name, 'worker_count': worker_count}
-        self.response = Http.post(self.api_url, headers=headers, data=json.dumps(data),
-                                 verify=self.verify, logger=self.logger)
+        data = {'name': name, 'node_count': node_count, 'vdc': vdc,
+                'network': network_name}
+        self.response = Http.post(self.api_url,
+                                  headers=headers, data=json.dumps(data),
+                                  verify=self.verify,
+                                  logger=self.logger)
         if self.response.status_code == requests.codes.accepted:
             return json.loads(self.response.content)
         else:
@@ -57,7 +64,11 @@ class Cluster(object):
 
     def delete_cluster(self, cluster_id):
         url = '%s/%s' % (self.api_url, cluster_id)
-        self.response = Http.delete(url, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+        self.response = Http.delete(url,
+                                    headers=self.vcloud_session.
+                                    get_vcloud_headers(),
+                                    verify=self.verify,
+                                    logger=self.logger)
         if self.response.status_code == requests.codes.accepted:
             return json.loads(self.response.content)
         else:

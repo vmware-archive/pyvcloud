@@ -2442,5 +2442,6 @@ class VCA(object):
             headers=self.vcloud_session.get_vcloud_headers(),
             verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
-            return self.response.content
+            return queryRecordViewType.parseString(
+                self.response.content, True)
         return None

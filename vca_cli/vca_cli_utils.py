@@ -21,6 +21,7 @@ import operator
 import requests
 import xmltodict
 import dateutil.parser
+import os
 from pyvcloud.helper import CommonUtils
 from datetime import datetime
 from tabulate import tabulate
@@ -116,10 +117,11 @@ class VcaCliUtils:
         status = task.get_status()
         rnd = 0
         response = None
+        rows, columns = os.popen('stty size', 'r').read().split()
         while status != "success":
             if status == "error":
                 error = task.get_Error()
-                sys.stdout.write('\r' + ' ' * 180 + '\r')
+                sys.stdout.write('\r' + ' ' * int(columns) + '\r')
                 sys.stdout.flush()
                 self.print_error(CommonUtils.convertPythonObjToStr(
                                  error, name="Error"),
@@ -128,12 +130,12 @@ class VcaCliUtils:
             else:
                 # some task doesn't not report progress
                 if progress:
-                    sys.stdout.write("\rprogress : [" + "*" *
+                    sys.stdout.write("\rprogress: [" + "*" *
                                      int(progress) + " " *
                                      (40 - int(progress - 1)) + "] " +
                                      str(progress) + " %")
                 else:
-                    sys.stdout.write("\rprogress : ")
+                    sys.stdout.write("\rprogress: ")
                     if rnd % 4 == 0:
                         sys.stdout.write(
                             "[" + "*" * 10 + " " * 30 + "]")
@@ -147,7 +149,8 @@ class VcaCliUtils:
                         sys.stdout.write(
                             "[" + " " * 30 + "*" * 10 + "]")
                     rnd += 1
-                sys.stdout.write(' %s' % task.get_operation())
+                msg = ' %s' % task.get_operation()
+                sys.stdout.write(msg + ' ' * (int(columns)-52-len(msg)) + '\r')
                 sys.stdout.flush()
                 time.sleep(1)
                 response = Http.get(task.get_href(), headers=headers,
@@ -160,7 +163,8 @@ class VcaCliUtils:
                 else:
                     Log.error(cmd_proc.logger, "can't get task")
                     return
-        sys.stdout.write("\r" + " " * 180)
+            rows, columns = os.popen('stty size', 'r').read().split()
+        sys.stdout.write("\r" + " " * int(columns) + '\r')
         sys.stdout.flush()
         if response is not None:
             if cmd_proc is not None and cmd_proc.json_output:

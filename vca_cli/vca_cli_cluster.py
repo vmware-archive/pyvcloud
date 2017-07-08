@@ -28,36 +28,48 @@ from vca_cli import utils
                 metavar='[list | info | create | delete]',
                 type=click.Choice(['list', 'info', 'create',
                                    'delete']))
-@click.option('-n', '--name', 'cluster_name', default='',
+@click.option('-c', '--cluster-name', 'cluster_name', default='',
               metavar='<cluster-name>', help='Cluster Name')
 @click.option('-i', '--id', 'cluster_id', default='',
               metavar='<cluster-id>', help='Cluster Id')
-@click.option('-w', '--workers', 'worker_count', default=2,
-              metavar='<workers>', help='Number of worker nodes to create')
-def cluster(cmd_proc, operation, cluster_name, cluster_id, worker_count):
+@click.option('-N', '--nodes', 'node_count', default=2,
+              metavar='<nodes>', help='Number of nodes to create')
+@click.option('-v', '--vdc', default=None,
+              metavar='<vdc>', help='Virtual Data Center Name')
+@click.option('-n', '--network', 'network_name', default='',
+              metavar='<network>', help='Network name')
+def cluster(cmd_proc, operation, cluster_name, cluster_id, node_count, vdc,
+            network_name):
     """Operations with Container Service Extension"""
     result = cmd_proc.re_login()
     if not result:
         utils.print_error('Not logged in', cmd_proc)
+        sys.exit(1)
+    if vdc is None:
+        vdc = cmd_proc.vdc_name
+    the_vdc = cmd_proc.vca.get_vdc(vdc)
+    if the_vdc is None:
+        utils.print_error("VDC not found '%s'" % vdc, cmd_proc)
         sys.exit(1)
     if cmd_proc.vca.vcloud_session and \
        cmd_proc.vca.vcloud_session.organization:
         cse = Cluster(session=cmd_proc.vca.vcloud_session,
                       verify=cmd_proc.verify, log=cmd_proc.vca.log)
         if 'list' == operation:
-            headers = ['Name', "Id", "Masters", "Nodes", "VMs"]
+            headers = ['Name', "Id", "Masters", "Nodes", "VMs", "VDC"]
             table1 = []
             clusters = cse.get_clusters()
             for cluster in clusters:
                 names = ''
                 for mn in cluster['master_nodes']:
-                    names += ' ' + mn['cse.node.name']
-                for wn in cluster['worker_nodes']:
-                    names += ' ' + wn['cse.node.name']
-                table1.append([cluster['name'], cluster['id'],
+                    names += ' ' + mn['name']
+                for n in cluster['nodes']:
+                    names += ' ' + n['name']
+                table1.append([cluster['name'], cluster['cluster_id'],
                               len(cluster['master_nodes']),
-                              len(cluster['worker_nodes']),
-                              names.strip()])
+                              len(cluster['nodes']),
+                              names.strip(),
+                              cluster['vdc']])
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)
             utils.print_table(
                 "Available clusters in org '%s', profile '%s':" %
@@ -66,7 +78,7 @@ def cluster(cmd_proc, operation, cluster_name, cluster_id, worker_count):
         elif 'create' == operation:
             utils.print_message("creating cluster '%s'" %
                                 (cluster_name))
-            r = cse.create_cluster(cluster_name, worker_count)
+            r = cse.create_cluster(vdc, network_name, cluster_name, node_count)
             if 'task_id' in r:
                 t = Task(session=cmd_proc.vca.vcloud_session,
                          verify=cmd_proc.verify,

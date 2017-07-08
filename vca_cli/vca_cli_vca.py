@@ -13,11 +13,13 @@
 #
 
 
-import sys
 import click
 import operator
-from vca_cli import cli, utils, default_operation
 from pyvcloud.vcloudair import VCA
+import sys
+from vca_cli import cli
+from vca_cli import default_operation
+from vca_cli import utils
 
 
 @cli.command()
@@ -95,13 +97,13 @@ def user(cmd_proc, operation, username, user_id, password, new_password,
                                 % cmd_proc.vca.username)
         elif 'validate' == operation:
             result = cmd_proc.vca.validate_user(username, password, token)
-            print result
+            print(result)
         elif 'reset-password' == operation:
             result = cmd_proc.vca.reset_password(user_id)
             utils.print_message("Successfully reset password for user id"
                                 "'%s', check email to enter new password"
                                 % user_id)
-    except:
+    except Exception:
         utils.print_error('An error has ocurred', cmd_proc)
         sys.exit(1)
     cmd_proc.save_current_config()

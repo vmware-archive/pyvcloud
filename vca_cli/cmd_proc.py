@@ -13,21 +13,22 @@
 #
 
 
-import traceback
-import os
-import operator
 import ConfigParser
 from cryptography.fernet import Fernet
+import operator
+import os
+from pyvcloud import _get_logger
+from pyvcloud import Log
 from pyvcloud.vcloudair import VCA
 from pyvcloud.vcloudsession import VCS
-from pyvcloud import _get_logger, Log
+import traceback
 from vca_cli_utils import VcaCliUtils
 
 
 utils = VcaCliUtils()
 
 
-class CmdProc:
+class CmdProc(object):
     crypto_key = 'l1ZLY5hYPu4s2IXkTVxtndJ-L_k16rP1odagwhP_DsY='
     DISK_SIZE = 1000000000
 
@@ -544,10 +545,17 @@ class CmdProc:
                                 if len(item.HostResource[0].valueOf_) > 0:
                                     cds.append(item.HostResource[0].valueOf_)
 
-                        networkConnectionSection = filter(lambda section: section.__class__.__name__ == "NetworkConnectionSectionType", sections)[0]
-                        primary_index = networkConnectionSection.get_PrimaryNetworkConnectionIndex()
-                        connections = networkConnectionSection.get_NetworkConnection()
-                        macs = [connection.get_MACAddress() for connection in connections]
+                        networkConnectionSection = filter(
+                            lambda section:
+                                section.__class__.__name__ ==
+                                "NetworkConnectionSectionType",
+                            sections)[0]
+                        networkConnectionSection \
+                            .get_PrimaryNetworkConnectionIndex()
+                        connections = networkConnectionSection \
+                            .get_NetworkConnection()
+                        macs = [connection.get_MACAddress() for connection
+                                in connections]
 
                         table.append([vm.name, entity.name, vm_status,
                                       utils.beautified(ips),

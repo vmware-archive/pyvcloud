@@ -14,17 +14,19 @@
 
 
 import click
-import yaml
+import collections
 import json
 import operator
-from vca_cli import cli, utils, default_operation
-from pyvcloud.score import Score
+import print_utils
 from pyvcloud import exceptions
 from pyvcloud import Log
-import print_utils
-from tabulate import tabulate
-import collections
+from pyvcloud.score import Score
 import sys
+from tabulate import tabulate
+from vca_cli import cli
+from vca_cli import default_operation
+from vca_cli import utils
+import yaml
 
 
 def _authorize(cmd_proc):

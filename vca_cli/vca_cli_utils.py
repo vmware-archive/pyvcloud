@@ -13,22 +13,23 @@
 #
 
 
-import sys
-import time
 import click
+from datetime import datetime
+import dateutil.parser
 import json
 import operator
-import requests
-import xmltodict
-import dateutil.parser
 from pyvcloud.helper import CommonUtils
-from datetime import datetime
-from tabulate import tabulate
+from pyvcloud import Http
+from pyvcloud import Log
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.vcloudType import parseString
-from pyvcloud import Http, Log
+import requests
+import sys
+from tabulate import tabulate
+import time
+import xmltodict
 
 
-class VcaCliUtils:
+class VcaCliUtils(object):
 
     def _print(self, message, cmd_proc=None, fg='black'):
         click.secho(message, fg=fg)

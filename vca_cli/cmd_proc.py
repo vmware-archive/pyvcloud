@@ -697,7 +697,8 @@ class CmdProc:
             return utils.beautified(protocols)
         table = []
         for rule in gateway.get_fw_rules():
-            table.append([rule.get_SourceIp(),
+            table.append([rule.get_Description(),
+                          rule.get_SourceIp(),
                           rule.get_SourcePortRange(),
                           rule.get_DestinationIp(),
                           rule.get_DestinationPortRange(),

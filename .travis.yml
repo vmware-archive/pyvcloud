@@ -15,4 +15,3 @@ install:
 script:
 - tox -e $TOX_ENV
 - pip install .
-#- tests/login-vca.sh

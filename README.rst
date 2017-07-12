@@ -90,6 +90,7 @@ To test **pyvcloud**:
     nosetests --verbosity=2  --tc-format yaml --tc-file tests/config_standalone.yaml \
                 tests/vcloud_tests.py
 
+
 .. |build-status| image:: https://img.shields.io/travis/vmware/pyvcloud.svg?style=flat
     :alt: build status
     :scale: 100%

@@ -96,11 +96,6 @@ To test **pyvcloud**:
     :scale: 100%
     :target: https://travis-ci.org/vmware/pyvcloud/
 
-.. |docs| image:: https://readthedocs.org/projects/pyvcloud/badge/?version=stable
-    :alt: Documentation Status
-    :scale: 100%
-    :target: http://pyvcloud.readthedocs.org/en/stable/
-
 .. |docs-latest| image:: https://readthedocs.org/projects/pyvcloud/badge/?version=latest
     :alt: Documentation Status
     :scale: 100%

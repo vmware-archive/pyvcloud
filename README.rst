@@ -87,8 +87,7 @@ To test **pyvcloud**:
     pip install -r test-requirements.txt
     cp tests/config.yaml my_config.yaml
     # customize credentials and other parameters
-    nosetests --verbosity=2  --tc-format yaml --tc-file my_config.yaml \
-                tests/00010_vcd_login.py
+    nosetests --verbosity=2  --tc-format yaml --tc-file my_config.yaml tests/00010_vcd_login.py
 
 See `.gitlab-ci.yml <.gitlab-ci.yml>`_ for current tests.
 

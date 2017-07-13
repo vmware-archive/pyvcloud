@@ -8,8 +8,4 @@ test:
   - python setup.py install
   - pip install -r test-requirements.txt
   - nosetests tests/00005_pyvcloud.py
-  - nosetests --tc-format yaml --tc-file tests/config.yaml
-    --tc=vcloud.host:$VCD_HOST
-    --tc=vcloud.username:$VCD_USERNAME
-    --tc=vcloud.password:$VCD_PASS
-    tests/00010_vcd_login.py
+  - nosetests tests/00010_vcd_login.py --tc-format yaml --tc-file tests/config.yaml --tc=vcloud.host:$VCD_HOST --tc=vcloud.username:$VCD_USERNAME --tc=vcloud.password:$VCD_PASS

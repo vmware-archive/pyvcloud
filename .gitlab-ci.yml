@@ -4,5 +4,3 @@ test:
   script:
   - pip install -r requirements.txt
   - pip list --format=columns
-  - python --version
-  - pwd

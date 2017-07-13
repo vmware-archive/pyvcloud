@@ -5,7 +5,7 @@ variables:
 
 test:
   script:
-  - pip install -r requirements.txt
+  - python setup.py install
   - pip install -r test-requirements.txt
   - nosetests tests/00005_pyvcloud.py
   - nosetests --tc-format yaml --tc-file tests/config.yaml

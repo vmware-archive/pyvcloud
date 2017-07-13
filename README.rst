@@ -90,7 +90,7 @@ To test **pyvcloud**:
     nosetests --verbosity=2  --tc-format yaml --tc-file my_config.yaml \
                 tests/00010_vcd_login.py
 
-See `.gitlab-ci.yml<.gitlab-ci.yml>`_ for current test cases.
+See `.gitlab-ci.yml<https://github.com/vmware/pyvcloud/blob/master/.gitlab-ci.yml>`_ for current tests.
 
 .. |build-status| image:: https://img.shields.io/travis/vmware/pyvcloud.svg?style=flat
     :alt: build status

@@ -2288,7 +2288,7 @@ class VCA(object):
             disks.append([disk, vms])
         return disks
 
-    def add_disk(self, vdc_name, name, size):
+    def add_disk(self, vdc_name, name, size, bus_type=None, bus_sub_type=None, description=None, storage_profile_name=None):
         """
         Request the creation of an indepdent disk (not attached to a vApp).
 
@@ -2300,12 +2300,32 @@ class VCA(object):
         **service type:** ondemand, subscription, vcd
 
         """
-        data = """
-                <vcloud:DiskCreateParams xmlns:vcloud="http://www.vmware.com/vcloud/v1.5">
-                    <vcloud:Disk name="%s" size="%s"/>
-                </vcloud:DiskCreateParams>
-            """ % (name, size)
+        disk = DiskCreateParamsType(Disk=DiskType()) 
+        disk.Disk.name  = name
+        disk.Disk.size = size
+        if description != None:
+                disk.Disk.set_Description(description)
+        if bus_type != None and bus_sub_type != None:
+                disk.Disk.busType = bus_type
+                disk.Disk.busSubType = bus_sub_type
+
         vdc = self.get_vdc(vdc_name)
+
+        if storage_profile_name != None:
+            content_type = "application/vnd.vmware.vcloud.vdcStorageProfile+xml" 
+            storage_profile = filter(lambda storage_profile: storage_profile.get_name() == storage_profile_name, vdc.get_VdcStorageProfiles().get_VdcStorageProfile())
+
+            if len(storage_profile) != 1:
+                return(False, self.response.content)
+
+            storage_profile_type = VdcStorageProfileType()
+            storage_profile_type.set_href(storage_profile[0].get_href())
+            storage_profile_type.set_name(storage_profile[0].get_name())
+
+            disk.Disk.set_StorageProfile(storage_profile_type)
+
+        data = CommonUtils.convertPythonObjToStr(disk, name="DiskCreateParams", namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5"')
+
         content_type = "application/vnd.vmware.vcloud.diskCreateParams+xml"
         link = filter(lambda link: link.get_type() ==
                       content_type, vdc.get_Link())

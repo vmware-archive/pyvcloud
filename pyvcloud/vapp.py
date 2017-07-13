@@ -657,7 +657,8 @@ class VAPP(object):
             if self.response.status_code == requests.codes.accepted:
                 return taskType.parseString(self.response.content, True)
 
-    def attach_disk_to_vm(self, vm_name, disk_ref):
+
+    def attach_disk_to_vm(self, vm_name, disk_ref, bus_number=None, unit_number=None):
         """
         Attach an independant disk volume to a VM.
 
@@ -677,10 +678,17 @@ class VAPP(object):
                  <DiskAttachOrDetachParams xmlns="http://www.vmware.com/vcloud/v1.5">
                      <Disk type="application/vnd.vmware.vcloud.disk+xml"
                          href="%s" />
-                 </DiskAttachOrDetachParams>
                 """ % disk_ref.href
-                return self.execute(
-                    "disk:attach", "post", body=body, targetVM=vms[0])
+                if bus_number is not None and unit_number is not None:
+                    body += """
+                          <BusNumber>%s</BusNumber>
+                          <UnitNumber>%s</UnitNumber>
+                    """ % (bus_number, unit_number)
+                body += """
+                </DiskAttachOrDetachParams>
+                """
+                return self.execute("disk:attach", "post", body=body, targetVM=vms[0])
+
 
     def detach_disk_from_vm(self, vm_name, disk_ref):
         """

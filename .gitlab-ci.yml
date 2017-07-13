@@ -3,6 +3,7 @@ image: python:2.7
 test:
   script:
   - pip install -r requirements.txt
+  - pip install -r test-requirements.txt
   - nosetests --tc-format yaml --tc-file tests/config.yaml
     --tc=vcloud.host:$VCD_HOST
     --tc=vcloud.username:$VCD_USERNAME

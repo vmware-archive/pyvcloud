@@ -1,7 +1,0 @@
-vcloud:
-    service_type: standalone
-    host: vcd.cpsbu.eng.vmware.com
-    version: '27.0'
-    verify: False
-    org: 'System'
-    ext_name: 'cse'

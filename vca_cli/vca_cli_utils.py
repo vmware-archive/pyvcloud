@@ -18,6 +18,7 @@ from datetime import datetime
 import dateutil.parser
 import json
 import operator
+import os
 from pyvcloud.helper import CommonUtils
 from pyvcloud import Http
 from pyvcloud import Log
@@ -117,10 +118,11 @@ class VcaCliUtils(object):
         status = task.get_status()
         rnd = 0
         response = None
+        rows, columns = os.popen('stty size', 'r').read().split()
         while status != "success":
             if status == "error":
                 error = task.get_Error()
-                sys.stdout.write('\r' + ' ' * 120 + '\r')
+                sys.stdout.write('\r' + ' ' * int(columns) + '\r')
                 sys.stdout.flush()
                 self.print_error(CommonUtils.convertPythonObjToStr(
                                  error, name="Error"),
@@ -129,25 +131,27 @@ class VcaCliUtils(object):
             else:
                 # some task doesn't not report progress
                 if progress:
-                    sys.stdout.write("\rprogress : [" + "*" *
+                    sys.stdout.write("\rprogress: [" + "*" *
                                      int(progress) + " " *
-                                     (100 - int(progress - 1)) + "] " +
+                                     (40 - int(progress - 1)) + "] " +
                                      str(progress) + " %")
                 else:
-                    sys.stdout.write("\rprogress : ")
+                    sys.stdout.write("\rprogress: ")
                     if rnd % 4 == 0:
                         sys.stdout.write(
-                            "[" + "*" * 25 + " " * 75 + "]")
+                            "[" + "*" * 10 + " " * 30 + "]")
                     elif rnd % 4 == 1:
                         sys.stdout.write(
-                            "[" + " " * 25 + "*" * 25 + " " * 50 + "]")
+                            "[" + " " * 10 + "*" * 10 + " " * 20 + "]")
                     elif rnd % 4 == 2:
                         sys.stdout.write(
-                            "[" + " " * 50 + "*" * 25 + " " * 25 + "]")
+                            "[" + " " * 20 + "*" * 10 + " " * 10 + "]")
                     elif rnd % 4 == 3:
                         sys.stdout.write(
-                            "[" + " " * 75 + "*" * 25 + "]")
+                            "[" + " " * 30 + "*" * 10 + "]")
                     rnd += 1
+                msg = ' %s' % task.get_operation()
+                sys.stdout.write(msg + ' ' * (int(columns)-52-len(msg)) + '\r')
                 sys.stdout.flush()
                 time.sleep(1)
                 response = Http.get(task.get_href(), headers=headers,
@@ -160,7 +164,8 @@ class VcaCliUtils(object):
                 else:
                     Log.error(cmd_proc.logger, "can't get task")
                     return
-        sys.stdout.write("\r" + " " * 120)
+            rows, columns = os.popen('stty size', 'r').read().split()
+        sys.stdout.write("\r" + " " * int(columns) + '\r')
         sys.stdout.flush()
         if response is not None:
             if cmd_proc is not None and cmd_proc.json_output:

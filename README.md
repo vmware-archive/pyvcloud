@@ -3,7 +3,7 @@ vca-cli
 
 [![Stable Version](https://img.shields.io/pypi/v/vca-cli.svg)](https://pypi.python.org/pypi/vca-cli) [![Build Status](https://img.shields.io/travis/vmware/vca-cli.svg?style=flat)](https://travis-ci.org/vmware/vca-cli/)
 
-Command Line Interface for VMware vCloud Air. It supports vCloud Air (vCA & vCHS) and standalone vCloud Director.
+Command Line Interface for VMware vCloud Director. It also supports vCloud Air (vCA & vCHS).
 
 This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version. More information about commands and usage can be found in the [vca-cli wiki](https://github.com/vmware/vca-cli/wiki). See the [release notes](https://github.com/vmware/vca-cli/wiki/ReleaseNotes) for what's new.
 

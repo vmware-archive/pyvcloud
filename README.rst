@@ -85,11 +85,12 @@ To test **pyvcloud**:
     source .venv/bin/activate
     python setup.py develop
     pip install -r test-requirements.txt
-    cp tests/config_example.yaml tests/config_standalone.yaml
+    cp tests/config.yaml my_config.yaml
     # customize credentials and other parameters
-    nosetests --verbosity=2  --tc-format yaml --tc-file tests/config_standalone.yaml \
-                tests/vcloud_tests.py
+    nosetests --verbosity=2  --tc-format yaml --tc-file my_config.yaml \
+                tests/00010_vcd_login.py
 
+See `.gitlab-ci.yml<.gitlab-ci.yml>`_ for current test cases.
 
 .. |build-status| image:: https://img.shields.io/travis/vmware/pyvcloud.svg?style=flat
     :alt: build status

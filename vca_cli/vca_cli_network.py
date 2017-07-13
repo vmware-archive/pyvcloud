@@ -12,12 +12,13 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-
-import sys
 import click
-import yaml
-from vca_cli import cli, utils, default_operation
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud.vcloudType import parseString
+import sys
+from vca_cli import cli
+from vca_cli import default_operation
+from vca_cli import utils
+import yaml
 
 
 @cli.command()
@@ -277,7 +278,7 @@ def firewall(cmd_proc, operation, vdc, gateway, is_enable, description, policy,
         utils.print_error("gateway not found '%s'" % gateway, cmd_proc)
         sys.exit(1)
     if 'list' == operation:
-        headers = ['Source IP', 'Source Port', 'Destination IP',
+        headers = ['Description', 'Source IP', 'Source Port', 'Destination IP',
                    'Destination Port', 'Protocol', 'Enabled']
         table = cmd_proc.firewall_rules_to_table(the_gateway)
         if cmd_proc.json_output:
@@ -318,8 +319,8 @@ def firewall(cmd_proc, operation, vdc, gateway, is_enable, description, policy,
                                             rule.get('description', None),
                                             rule.get('policy', policy),
                                             proto(
-                                              rule.get('protocol', protocol)
-                                            ),
+                                                rule.get('protocol', protocol)
+                                                ),
                                             rule.get('dest_port'),
                                             rule.get('dest_ip'),
                                             rule.get('source_port'),
@@ -350,7 +351,7 @@ def firewall(cmd_proc, operation, vdc, gateway, is_enable, description, policy,
                 for rule in fw_rules:
                     # Take default for protocol cmdline switch (or its default)
                     the_gateway.delete_fw_rule(proto(
-                                                 rule.get('protocol', protocol)
+                                               rule.get('protocol', protocol)
                                                ),
                                                str(rule.get('dest_port')),
                                                rule.get('dest_ip'),

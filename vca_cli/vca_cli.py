@@ -12,17 +12,16 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-
-import sys
-import os
-import operator
 import click
-import pkg_resources
-import requests
 from cmd_proc import CmdProc
-from vca_cli_utils import VcaCliUtils
-from pyvcloud.vcloudair import VCA
+import operator
+import os
+import pkg_resources
 from pyvcloud import Log
+from pyvcloud.vcloudair import VCA
+import requests
+import sys
+from vca_cli_utils import VcaCliUtils
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -541,9 +540,9 @@ def org(cmd_proc, operation, instance, org):
 if __name__ == '__main__':
     pass
 else:
-    import vca_cli_vca  # NOQA
-    import vca_cli_compute  # NOQA
-    import vca_cli_network  # NOQA
-    import vca_cli_blueprint  # NOQA
-    import vca_cli_cluster  # NOQA
-    import vca_cli_example  # NOQA
+    import vca_cli_blueprint # NOQA
+    import vca_cli_cluster # NOQA
+    import vca_cli_compute # NOQA
+    import vca_cli_example # NOQA
+    import vca_cli_network # NOQA
+    import vca_cli_vca # NOQA

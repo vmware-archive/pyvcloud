@@ -14,7 +14,8 @@
 
 
 import click
-from vca_cli import cli, utils
+from vca_cli import cli
+from vca_cli import utils
 
 
 @cli.command()

@@ -12,11 +12,12 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-
-import sys
 import click
 import operator
-from vca_cli import cli, utils, default_operation
+import sys
+from vca_cli import cli
+from vca_cli import default_operation
+from vca_cli import utils
 
 
 @cli.command()

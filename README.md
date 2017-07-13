@@ -1,20 +1,20 @@
 vca-cli
 =======
 
-[![Download Status](https://img.shields.io/pypi/dm/vca-cli.svg)](https://pypi.python.org/pypi/vca-cli) [![Stable Version](https://img.shields.io/pypi/v/vca-cli.svg)](https://pypi.python.org/pypi/vca-cli) [![Build Status](https://img.shields.io/travis/vmware/vca-cli.svg?style=flat)](https://travis-ci.org/vmware/vca-cli/)
+[![Stable Version](https://img.shields.io/pypi/v/vca-cli.svg)](https://pypi.python.org/pypi/vca-cli) [![Build Status](https://img.shields.io/travis/vmware/vca-cli.svg?style=flat)](https://travis-ci.org/vmware/vca-cli/)
 
 Command Line Interface for VMware vCloud Air. It supports vCloud Air (vCA & vCHS) and standalone vCloud Director.
 
 This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version. More information about commands and usage can be found in the [vca-cli wiki](https://github.com/vmware/vca-cli/wiki). See the [release notes](https://github.com/vmware/vca-cli/wiki/ReleaseNotes) for what's new.
 
-`vca-cli` uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), Python SDK for VMware vCloud. 
+`vca-cli` uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), a Python SDK for VMware vCloud Director.
 
 Installation:
 =============
 
 In general, `vca-cli` can be installed with:
 
-    $ pip install vca-cli
+    $ pip install --user vca-cli
 
 `vca-cli` requires a Python environment already installed, if the previous command fails, follow the instructions below.
 
@@ -24,14 +24,14 @@ Ubuntu:
 The following instructions have been tested with Ubuntu 12.04:
 
     $ sudo apt-get update
-    
+
     $ sudo apt-get install -y build-essential libffi-dev libssl-dev \
                               libxml2-dev libxslt-dev python-dev
-    
+
     $ wget https://bootstrap.pypa.io/get-pip.py
-    
+
     $ sudo python get-pip.py
-    
+
     $ sudo pip install vca-cli
 
 Mac OS X:
@@ -59,7 +59,7 @@ Verify Installation:
 Display the version installed:
 
     $ vca --version
-    
+
     vca-cli version 14 (pyvcloud: 14)
 
 Installation with virtualenv:
@@ -107,18 +107,18 @@ When the *password* argument is omitted, `vca-cli` will prompt the user for the 
     # vCA, password prompt
     vca login email@company.com
     Password: ***************
-    
+
     # vCA
-    $ vca login email@company.com --password ******** 
-    
+    $ vca login email@company.com --password ********
+
     # vCHS
     $ vca login email@company.com --password ******** \
                 --host vchs.vmware.com --version 5.6
-    
+
     # vCloud Director Standalone
     $ vca login email@company.com --password ******** \
                 --host vcdhost.domain.com --org myorg --version 5.6
-    
+
     # vCloud Director with insecure SSL certificate
     $ vca --insecure login email@company.com --password ******** \
           --host vcdhost.domain.com --org myorg --version 5.6
@@ -128,7 +128,7 @@ vCloud Air (vCA) example of login and access to a VDC:
     $ vca login email@company.com --password ********
     User 'email@company.com' logged in, profile 'default'
     Password encrypted and saved in local profile. Use --do-not-save-password to disable it.
-    
+
     $ vca instance
     Available instances for user 'email@company.com', profile 'default':
     | Service Group   | Region            | Plan                           | Instance Id                                                  | Selected   |
@@ -140,11 +140,11 @@ vCloud Air (vCA) example of login and access to a VDC:
     | M748916508      | de-germany-1-16   | Virtual Private Cloud OnDemand | 95e04439-7dcc-42e3-90ec-36ef2e4b0757                         |            |
     | M748916508      | us-texas-1-14     | Virtual Private Cloud OnDemand | 5a872845-6a7e-4e1d-b92a-99c45844417d                         |            |
     | M748916508      | us-california-1-3 | Object Storage powered by EMC  | d1099f7b-34ee-4723-a113-802622aaf3f1:os.vca.vmware.4562.6481 |            |
-    
+
     $ vca instance use --instance 5a872845-6a7e-4e1d-b92a-99c45844417d
     Using instance:org '5a872845-6a7e-4e1d-b92a-99c45844417d':'e01d04b3-2d86-442e-84a7-4ff194ae9a3d', profile 'default'
     Using VDC 'vdc1', profile 'default'
-    
+
     $ vca vdc info
     Details of Virtual Data Center 'vdc1', profile 'od':
     | Type              | Name                   |
@@ -331,12 +331,12 @@ Examples and Help:
 
 Syntax, commands and arguments:
 
-    
+
     $ vca --help
     Usage: vca [OPTIONS] COMMAND [ARGS]...
-    
+
       VMware vCloud Air Command Line Interface.
-    
+
     Options:
       -p, --profile <profile>    Profile id
       -f, --profile-file <file>  Profile file
@@ -345,7 +345,7 @@ Syntax, commands and arguments:
       -j, --json                 Results as JSON object
       -i, --insecure             Perform insecure SSL connections
       -h, --help                 Show this message and exit.
-    
+
     Commands:
       blueprint   Operations with Blueprints
       catalog     Operations with Catalogs
@@ -373,14 +373,14 @@ Syntax, commands and arguments:
 
 Detailed syntax for a specific command:
 
-    
+
     $ vca vapp --help
     Usage: vca vapp [OPTIONS] [list | info | create | delete | power-on | power-
                     off | deploy | undeploy | customize | insert | eject | connect
                     | disconnect | attach | detach]
-    
+
       Operations with vApps
-    
+
     Options:
       -v, --vdc <vdc>                 Virtual Data Center Name
       -a, --vapp <vapp>               vApp name

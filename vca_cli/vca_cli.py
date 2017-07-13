@@ -540,9 +540,9 @@ def org(cmd_proc, operation, instance, org):
 if __name__ == '__main__':
     pass
 else:
-    import vca_cli_blueprint # NOQA
-    import vca_cli_cluster # NOQA
-    import vca_cli_compute # NOQA
-    import vca_cli_example # NOQA
-    import vca_cli_network # NOQA
-    import vca_cli_vca # NOQA
+    import vca_cli_blueprint  # NOQA
+    import vca_cli_cluster  # NOQA
+    import vca_cli_compute  # NOQA
+    import vca_cli_example  # NOQA
+    import vca_cli_network  # NOQA
+    import vca_cli_vca  # NOQA

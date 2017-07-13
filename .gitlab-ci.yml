@@ -7,5 +7,5 @@ test:
   - nosetests --tc-format yaml --tc-file tests/config.yaml
     --tc=vcloud.host:$VCD_HOST
     --tc=vcloud.username:$VCD_USERNAME
-    --tc=vcloud.password:$
+    --tc=vcloud.password:$VCD_PASSWORD
     tests/00010_vcd_login.py

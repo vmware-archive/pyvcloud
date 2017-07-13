@@ -13,4 +13,4 @@ install:
 - pip install -r test-requirements.txt
 
 script:
-- nosetests --verbosity=2 tests/pyvcloud_tests.py
+- nosetests tests/00005_pyvcloud.py

@@ -12,8 +12,8 @@ class TestVCA:
 
     def login_to_vcloud(self):
         """Login to vCloud"""
-        username = environ['VCLOUD_USERNAME']
-        password = environ['VCLOUD_PASSWORD']
+        username = config['vcloud']['username']
+        password = config['vcloud']['password']
         service_type = config['vcloud']['service_type']
         host = config['vcloud']['host']
         version = config['vcloud']['version']

@@ -18,7 +18,12 @@ class TestVDC:
         host = config['vcloud']['host']
         version = config['vcloud']['version']
         org = config['vcloud']['org']
-        self.vca = VCA(host=host, username=username, service_type=service_type, version=version, verify=config['vcloud']['verify'], log=True)
+        self.vca = VCA(host=host,
+                       username=username,
+                       service_type=service_type,
+                       version=version,
+                       verify=config['vcloud']['verify'],
+                       log=True)
         assert self.vca
         result = self.vca.login(password=password, org=org)
         assert result

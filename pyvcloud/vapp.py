@@ -933,6 +933,18 @@ class VAPP(object):
                 status = VCLOUD_STATUS_MAP[vm.get_status()]
                 owner = self.me.get_Owner().get_User().get_name()
                 sections = vm.get_Section()
+                env_properties = []
+                e = vm.get_Environment()
+                if e:
+                    es = e.get_Section()
+                    property_section = filter(lambda section: section.__class__.__name__ == 'PropertySection_Type', es)[0]
+                    if property_section:
+                        props = property_section.get_Property()
+                        for prop in props:
+                            env_properties.append({
+                                  prop.anyAttributes_['{http://schemas.dmtf.org/ovf/environment/1}key']:
+                                  prop.anyAttributes_['{http://schemas.dmtf.org/ovf/environment/1}value']}
+                                  )
                 virtualHardwareSection = filter(
                     lambda section: section.__class__.__name__ == "VirtualHardwareSection_Type",
                     sections)[0]
@@ -975,7 +987,8 @@ class VAPP(object):
                      'os': os,
                      'owner': owner,
                      'admin_password': customization_section.get_AdminPassword(),
-                     'reset_password_required': customization_section.get_ResetPasswordRequired()
+                     'reset_password_required': customization_section.get_ResetPasswordRequired(),
+                     'env_properties': env_properties
                      }
                 )
         Log.debug(self.logger, "details of VMs: %s" % result)

@@ -28,7 +28,7 @@ from vca_cli import utils
                 metavar='[list | info | create | delete]',
                 type=click.Choice(['list', 'info', 'create',
                                    'delete']))
-@click.option('-c', '--cluster-name', 'cluster_name', default='',
+@click.option('-c', '--name', 'cluster_name', default='',
               metavar='<cluster-name>', help='Cluster Name')
 @click.option('-i', '--id', 'cluster_id', default='',
               metavar='<cluster-id>', help='Cluster Id')

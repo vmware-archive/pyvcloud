@@ -56,7 +56,7 @@ def cluster(cmd_proc, operation, cluster_name, cluster_id, node_count, vdc,
         cse = Cluster(session=cmd_proc.vca.vcloud_session,
                       verify=cmd_proc.verify, log=cmd_proc.vca.log)
         if 'list' == operation:
-            headers = ['Name', "Id", "Masters", "Nodes", "VMs", "VDC"]
+            headers = ['Name', 'Id', 'Masters', 'Nodes', 'VMs', 'VDC']
             table1 = []
             clusters = cse.get_clusters()
             for cluster in clusters:
@@ -65,11 +65,12 @@ def cluster(cmd_proc, operation, cluster_name, cluster_id, node_count, vdc,
                     names += ' ' + mn['name']
                 for n in cluster['nodes']:
                     names += ' ' + n['name']
-                table1.append([cluster['name'], cluster['cluster_id'],
-                              len(cluster['master_nodes']),
-                              len(cluster['nodes']),
-                              names.strip(),
-                              cluster['vdc']])
+                table1.append([cluster['name'],
+                               cluster['cluster_id'],
+                               len(cluster['master_nodes']),
+                               len(cluster['nodes']),
+                               names.strip(),
+                               cluster['vdc']])
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)
             utils.print_table(
                 "Available clusters in org '%s', profile '%s':" %
@@ -78,8 +79,9 @@ def cluster(cmd_proc, operation, cluster_name, cluster_id, node_count, vdc,
         elif 'create' == operation:
             utils.print_message("creating cluster '%s'" %
                                 (cluster_name))
-            r = cse.create_cluster(vdc, network_name, cluster_name, node_count)
-            if 'task_id' in r:
+            try:
+                r = cse.create_cluster(vdc, network_name,
+                                       cluster_name, node_count)
                 t = Task(session=cmd_proc.vca.vcloud_session,
                          verify=cmd_proc.verify,
                          log=cmd_proc.vca.log)
@@ -87,14 +89,14 @@ def cluster(cmd_proc, operation, cluster_name, cluster_id, node_count, vdc,
                 utils.display_progress(task, cmd_proc,
                                        cmd_proc.vca.vcloud_session.
                                        get_vcloud_headers())
-            else:
-                utils.print_error("can't create the cluster", cmd_proc)
+            except Exception:
+                utils.print_error("can't create cluster", cmd_proc, cse)
                 sys.exit(1)
         elif 'delete' == operation:
-            utils.print_message("deleting cluster '%s'" %
+            utils.print_message("deleting cluster with id '%s'" %
                                 (cluster_id))
-            r = cse.delete_cluster(cluster_id)
-            if 'task_id' in r:
+            try:
+                r = cse.delete_cluster(cluster_id)
                 t = Task(session=cmd_proc.vca.vcloud_session,
                          verify=cmd_proc.verify,
                          log=cmd_proc.vca.log)
@@ -102,8 +104,8 @@ def cluster(cmd_proc, operation, cluster_name, cluster_id, node_count, vdc,
                 utils.display_progress(task, cmd_proc,
                                        cmd_proc.vca.vcloud_session.
                                        get_vcloud_headers())
-            else:
-                utils.print_error("can't delete the cluster", cmd_proc)
+            except Exception:
+                utils.print_error("can't delete cluster", cmd_proc, cse)
                 sys.exit(1)
         else:
             utils.print_error('not implemented', cmd_proc)

@@ -19,7 +19,9 @@ def print_vca(vca):
     else:
         print 'vca: ', vca
 
-host='vcd.cpsbu.eng.vmware.com'
+host = 'vcd.cpsbu.eng.vmware.com'
+if len(sys.argv)>0:
+    host = sys.argv[1]
 username = 'usr1'
 password = os.environ['PASSWORD']
 org = 'org1'

@@ -13,15 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pyvcloud import _get_logger
+from pyvcloud import Http
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud import tasksListType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 import requests
-import json
-from pyvcloud import _get_logger, Http
 from urlparse import urlparse
-from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType, tasksListType
+
 
 class Task(object):
 
-    statuses = ['running', 'success', 'error', 'aborted', 'queued']
+    statuses = ['running',
+                'success',
+                'error',
+                'aborted',
+                'queued',
+                'canceled',
+                'preRunning']
 
     def __init__(self, session, verify, log=False):
         self.vcloud_session = session
@@ -31,17 +39,35 @@ class Task(object):
 
     def get_tasks(self, status=statuses[0]):
         if self.vcloud_session and self.vcloud_session.organization:
-            refs = filter(lambda ref: ref.type_ == 'application/vnd.vmware.vcloud.tasksList+xml', self.vcloud_session.organization.Link)
+            refs = filter(lambda ref:
+                    ref.type_ == 'application/vnd.vmware.vcloud.tasksList+xml',
+                    self.vcloud_session.organization.Link)
             if len(refs) == 1:
-                self.response = Http.get(refs[0].href, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+                self.response = Http.get(refs[0].href,
+                    headers=self.vcloud_session.get_vcloud_headers(),
+                    verify=self.verify,
+                    logger=self.logger)
                 if self.response.status_code == requests.codes.ok:
-                    return tasksListType.parseString(self.response.content, True)
+                    return tasksListType.parseString(self.response.content,
+                                                     True)
                 else:
                     raise Exception(self.response.status_code)
-        return []
+        return None
 
-    #status in ['running', 'success', 'error']
-    def create_or_update_task(self, status, namespace, operation_name, operation_description, owner_href, owner_name, owner_type, user_id, user_name, progress, org_id=None, task_id=None):
+    def create_or_update_task(self,
+                              status,
+                              namespace,
+                              operation_name,
+                              operation_description,
+                              owner_href,
+                              owner_name,
+                              owner_type,
+                              user_id,
+                              user_name,
+                              progress,
+                              details,
+                              org_id=None,
+                              task_id=None):
         if self.vcloud_session:
             o = urlparse(self.vcloud_session.url)
             api_url = '%s://%s%s' % (o.scheme, o.netloc, '/api')
@@ -59,21 +85,39 @@ class Task(object):
                    operationName="{operation_name}"
                    {progress_indicator}
                    name="task">
-                   <Owner href="{owner_href}" name="{owner_name}" type="{owner_type}"/>
-                   <User href="{api_url}/admin/user/{user_id}" name="{user_name}" type="application/vnd.vmware.admin.user+xml"/>
+                   <Owner href="{owner_href}" name="{owner_name}"
+                          type="{owner_type}"/>
+                   <User href="{api_url}/admin/user/{user_id}"
+                         name="{user_name}"
+                         type="application/vnd.vmware.admin.user+xml"/>
+                   <Details>"{details}"</Details>
                 </Task>
-            """.format(status=status, namespace=namespace,
-                       operation_description=operation_description, operation_name=operation_name,
+            """.format(status=status,
+                       namespace=namespace,
+                       operation_description=operation_description,
+                       operation_name=operation_name,
                        progress_indicator=progress_indicator,
                        api_url=api_url,
-                       owner_href=owner_href, owner_name=owner_name, owner_type=owner_type,
-                       user_id=user_id, user_name=user_name)
+                       details=details,
+                       owner_href=owner_href,
+                       owner_name=owner_name,
+                       owner_type=owner_type,
+                       user_id=user_id,
+                       user_name=user_name)
             if task_id is None:
                 link = '%s/tasksList/%s' % (api_url, org_id)
-                self.response = Http.post(link, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger, data=data)
+                self.response = Http.post(link,
+                    headers=self.vcloud_session.get_vcloud_headers(),
+                    verify=self.verify,
+                    logger=self.logger,
+                    data=data)
             else:
                 link = '%s/task/%s' % (api_url, task_id)
-                self.response = Http.put(link, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger, data=data)
+                self.response = Http.put(link,
+                    headers=self.vcloud_session.get_vcloud_headers(),
+                    verify=self.verify,
+                    logger=self.logger,
+                    data=data)
             if self.response.status_code == requests.codes.ok:
                 return taskType.parseString(self.response.content, True)
             else:
@@ -84,7 +128,10 @@ class Task(object):
         if self.vcloud_session:
             o = urlparse(self.vcloud_session.url)
             link = '%s://%s%s/%s' % (o.scheme, o.netloc, '/api/task', task_id)
-            self.response = Http.get(link, headers=self.vcloud_session.get_vcloud_headers(), verify=self.verify, logger=self.logger)
+            self.response = Http.get(link,
+                headers=self.vcloud_session.get_vcloud_headers(),
+                verify=self.verify,
+                logger=self.logger)
             if self.response.status_code == requests.codes.ok:
                 return taskType.parseString(self.response.content, True)
             else:

@@ -68,11 +68,15 @@ def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
                       json_output=json_output, xml_output=xml_output,
                       debug=debug, insecure=insecure_connection)
     ctx.obj.load_config(profile, profile_file)
-    if ctx.obj.verify == False:
-        utils.print_warning('InsecureRequestWarning: ' +
-                            'Unverified HTTPS request is being made. ' +
-                            'Adding certificate verification is strongly ' +
-                            'advised.')
+    if ctx.obj.verify is False:
+        if 'VCA_CLI_WARNINGS' in os.environ.keys() and \
+                os.environ['VCA_CLI_WARNINGS'] == '0':
+            pass
+        else:
+            utils.print_warning('InsecureRequestWarning: '
+                                'Unverified HTTPS request is being made. '
+                                'Adding certificate verification is strongly '
+                                'advised.')
         requests.packages.urllib3.disable_warnings()
 
 

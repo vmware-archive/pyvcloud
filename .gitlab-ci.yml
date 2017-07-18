@@ -6,5 +6,7 @@ variables:
 test:
   script:
   - python setup.py install
+  - pip list
   - pip install -r test-requirements.txt
+  - pip list
   - nosetests tests/00010_vcd_login.py --tc-format yaml --tc-file tests/config.yaml --tc=vcloud.host:$VCD_HOST --tc=vcloud.username:$VCD_USERNAME --tc=vcloud.password:$VCD_PASS

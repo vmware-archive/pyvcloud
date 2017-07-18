@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # VMware vCloud Python SDK
 # Copyright (c) 2014 VMware, Inc. All Rights Reserved.
 #
@@ -13,50 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools import setup, find_packages
-import os
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
+from setuptools import setup
 
 setup(
-    name='pyvcloud',
-    version='18.0.3',
-    description='VMware vCloud Python SDK',
-    long_description=read('README.rst'),
-    url='https://github.com/vmware/pyvcloud',
-    author='VMware, Inc.',
-    author_email='pgomez@vmware.com',
-    packages=find_packages(),
-    install_requires=required,
-    license='License :: OSI Approved :: Apache Software License',
-    classifiers=[
-        'Development Status :: 1 - Planning',
-        'License :: OSI Approved :: Apache Software License',
-        'Intended Audience :: Information Technology',
-        'Intended Audience :: System Administrators',
-        'Intended Audience :: Developers',
-        'Environment :: No Input/Output (Daemon)',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: System :: Distributed Computing',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX',
-        'Operating System :: Unix',
-        'Operating System :: MacOS',
-    ],
-    keywords='pyvcloud vcloud vcloudair vmware',
-    platforms=['Windows', 'Linux', 'Solaris', 'Mac OS-X', 'Unix'],
-    test_suite='tests',
-    tests_require=[],
-    zip_safe=True
+    setup_requires=['pbr>=1.9', 'setuptools>=17.1'],
+    pbr=True,
 )

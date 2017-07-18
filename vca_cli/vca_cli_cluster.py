@@ -56,25 +56,28 @@ def cluster(cmd_proc, operation, cluster_name, cluster_id, node_count, vdc,
         cse = Cluster(session=cmd_proc.vca.vcloud_session,
                       verify=cmd_proc.verify, log=cmd_proc.vca.log)
         if 'list' == operation:
-            headers = ['Name', 'Id', 'Masters', 'Nodes', 'VMs', 'VDC']
+            headers = ['Name', 'Id', 'Status', 'Leader IP', 'Masters', 'Nodes']
             table1 = []
-            clusters = cse.get_clusters()
+            try:
+                clusters = cse.get_clusters()
+            except Exception:
+                utils.print_error("can't get list of clusters", cmd_proc, cse)
+                sys.exit(1)
+            n = 1
             for cluster in clusters:
-                names = ''
-                for mn in cluster['master_nodes']:
-                    names += ' ' + mn['name']
-                for n in cluster['nodes']:
-                    names += ' ' + n['name']
+                cluster['name'] = 'k8s-cluster-%s' % n
+                n += 1
                 table1.append([cluster['name'],
                                cluster['cluster_id'],
+                               cluster['status'],
+                               cluster['leader_endpoint'],
                                len(cluster['master_nodes']),
                                len(cluster['nodes']),
-                               names.strip(),
-                               cluster['vdc']])
+                               ])
             table = sorted(table1, key=operator.itemgetter(0), reverse=False)
             utils.print_table(
-                "Available clusters in org '%s', profile '%s':" %
-                (cmd_proc.vca.org, cmd_proc.profile),
+                "Available clusters in VDC '%s', profile '%s':" %
+                (vdc, cmd_proc.profile),
                 headers, table, cmd_proc)
         elif 'create' == operation:
             utils.print_message("creating cluster '%s'" %

@@ -34,11 +34,10 @@ class CmdProc(object):
 
     def __init__(self, profile=None, profile_file=None,
                  json_output=False, xml_output=False,
-                 debug=False, insecure=False, host_score=None):
+                 debug=False, insecure=None):
         self.profile = profile
         self.profile_file = profile_file
         self.debug = debug
-        self.verify = not insecure
         self.json_output = json_output
         self.xml_output = xml_output
         self.password = None
@@ -49,7 +48,8 @@ class CmdProc(object):
         self.error_message = None
         self.vdc_name = None
         self.gateway = None
-        self.host_score = host_score
+        self.insecure = insecure
+        self.verify = True
 
     def load_config(self, profile=None, profile_file='~/.vcarc'):
         self.config.read(os.path.expanduser(profile_file))
@@ -75,10 +75,15 @@ class CmdProc(object):
         session_uri = None
         vdc = None
         gateway = None
-        host_score = 'score.vca.io'
+        verify = True
         if self.config.has_section(section):
             if self.config.has_option(section, 'host'):
                 host = self.config.get(section, 'host')
+            if self.insecure is not None:
+                verify = not self.insecure
+            else:
+                if self.config.has_option(section, 'verify'):
+                    verify = self.config.get(section, 'verify') == 'True'
             if self.config.has_option(section, 'user'):
                 user = self.config.get(section, 'user')
             if self.config.has_option(section, 'password'):
@@ -106,9 +111,7 @@ class CmdProc(object):
                 vdc = self.config.get(section, 'vdc')
             if self.config.has_option(section, 'gateway'):
                 gateway = self.config.get(section, 'gateway')
-            if self.config.has_option(section, 'host_score'):
-                host_score = self.config.get(section, 'host_score')
-        self.host_score = host_score
+        self.verify = verify
         self.vca = VCA(host=host, username=user,
                        service_type=service_type, version=version,
                        verify=self.verify, log=self.debug)
@@ -140,7 +143,7 @@ class CmdProc(object):
                           self.vca.vcloud_session.token)
 
     def print_profile_file(self):
-        headers = ['Profile', 'Selected', 'Host', 'Type', 'User',
+        headers = ['Profile', 'Selected', 'Host', 'Insecure', 'Type', 'User',
                    'Instance', 'Org', 'vdc']
         table = []
         for section in self.config.sections():
@@ -149,6 +152,8 @@ class CmdProc(object):
                 selected = '*' if section_name == self.profile else ''
                 host = self.config.get(section, 'host') \
                     if self.config.has_option(section, 'host') else ''
+                insecure = not self.config.get(section, 'verify') \
+                    if self.config.has_option(section, 'verify') else ''
                 service_type = self.config.get(section, 'service_type') \
                     if self.config.has_option(section, 'service_type') else ''
                 user = self.config.get(section, 'user') \
@@ -162,6 +167,7 @@ class CmdProc(object):
                 table.append([section_name,
                               selected,
                               host,
+                              insecure,
                               service_type,
                               user,
                               instance,
@@ -211,10 +217,6 @@ class CmdProc(object):
             self.config.remove_option(section, 'instance')
         else:
             self.config.set(section, 'instance', self.instance)
-        if self.host_score is None:
-            self.config.remove_option(section, 'host_score')
-        else:
-            self.config.set(section, 'host_score', self.host_score)
         if self.vca is None or self.vca.vcloud_session is None:
             self.config.remove_option(section, 'org')
             self.config.remove_option(section, 'org_url')
@@ -250,6 +252,7 @@ class CmdProc(object):
                 self.config.remove_option(section, 'gateway')
             else:
                 self.config.set(section, 'gateway', self.gateway)
+        self.config.set(section, 'verify', self.verify)
         with open(os.path.expanduser(profile_file), 'w+') as configfile:
             self.config.write(configfile)
 
@@ -361,7 +364,6 @@ class CmdProc(object):
         self.service_type = None
         self.version = None
         self.session_uri = None
-        self.host_score = None
         self.save_config(self.profile, self.profile_file)
 
     def org_to_table(self, vca):
@@ -795,23 +797,3 @@ class CmdProc(object):
                           'Yes' if tunnel.get_IsEnabled() == 1 else 'No',
                           'Yes' if tunnel.get_IsOperational() == 1 else 'No'])
         return table
-
-    def blueprints_to_table(self, blueprints):
-        table = []
-        for b in blueprints:
-            table.append([b.get('id'), b.get('created_at')[:-7]])
-        return table
-
-    # def deployments_to_table(self, deployments):
-    #     table = []
-    #     for d in deployments:
-    #         inputs_view = []
-    #         inputs_line = "%s : %s"
-    #         for i in range(len(d['inputs'].keys())):
-    #             inputs_view.append(inputs_line % (
-    #                 d['inputs'].keys()[i],
-    #                 d['inputs'].values()[i]))
-    #         dep['inputs'] = "\n".join(inputs_view)
-    #         table.append([d.get('id'), d.get('blueprint_id'),
-    #                       d.get('created_at')[:-7]])
-    #     return table

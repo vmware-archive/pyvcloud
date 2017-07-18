@@ -33,7 +33,7 @@ import xmltodict
 class VcaCliUtils(object):
 
     def _print(self, message, cmd_proc=None, fg='black'):
-        click.secho(message, fg=fg)
+        click.secho(message, fg=fg, err=(fg in ['yellow', 'red']))
 
     def print_warning(self, message, cmd_proc=None):
         self._print(message, cmd_proc, fg='yellow')
@@ -74,8 +74,12 @@ class VcaCliUtils(object):
                 cmd_proc.error_message is not None:
                 msg = message + ': ' + cmd_proc.error_message
         if module is not None and \
-                module.response is not None:
+                module.response is not None and \
+                'message' in module.response.json():
                 msg = message + ': ' + module.response.json().get('message')
+        if (msg == 'Not logged in'):
+            msg += \
+              ', try the --insecure flag when using self-signed certificates.'
         self._print(msg, cmd_proc, fg='red')
 
     def print_table(self, message, headers, table, cmd_proc=None):

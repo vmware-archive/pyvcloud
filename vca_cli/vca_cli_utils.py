@@ -33,7 +33,7 @@ import xmltodict
 class VcaCliUtils(object):
 
     def _print(self, message, cmd_proc=None, fg='black'):
-        click.secho(message, fg=fg)
+        click.secho(message, fg=fg, err=(fg in ['yellow', 'red']))
 
     def print_warning(self, message, cmd_proc=None):
         self._print(message, cmd_proc, fg='yellow')
@@ -41,7 +41,7 @@ class VcaCliUtils(object):
     def print_message(self, message, cmd_proc=None):
         self._print(message, cmd_proc, fg='blue')
 
-    def print_error(self, message, cmd_proc=None):
+    def print_error(self, message, cmd_proc=None, module=None):
         msg = message
         if cmd_proc is not None and \
                 cmd_proc.vca is not None and \
@@ -73,6 +73,13 @@ class VcaCliUtils(object):
         if cmd_proc is not None and \
                 cmd_proc.error_message is not None:
                 msg = message + ': ' + cmd_proc.error_message
+        if module is not None and \
+                module.response is not None and \
+                'message' in module.response.json():
+                msg = message + ': ' + module.response.json().get('message')
+        if (msg == 'Not logged in'):
+            msg += \
+              ', try the --insecure flag when using self-signed certificates.'
         self._print(msg, cmd_proc, fg='red')
 
     def print_table(self, message, headers, table, cmd_proc=None):
@@ -124,6 +131,8 @@ class VcaCliUtils(object):
                 error = task.get_Error()
                 sys.stdout.write('\r' + ' ' * int(columns) + '\r')
                 sys.stdout.flush()
+                self.print_error(task.get_operation(),
+                                 cmd_proc=cmd_proc)
                 self.print_error(CommonUtils.convertPythonObjToStr(
                                  error, name="Error"),
                                  cmd_proc=cmd_proc)

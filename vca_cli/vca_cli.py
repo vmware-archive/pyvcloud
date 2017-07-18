@@ -38,11 +38,13 @@ utils = VcaCliUtils()
 @click.option('-d', '--debug', is_flag=True, help='Enable debug')
 @click.option('-j', '--json', 'json_output',
               is_flag=True, help='Results as JSON object')
-@click.option('-i', '--insecure', is_flag=True,
+@click.option('-i', '--insecure', is_flag=True, default=None,
               help='Perform insecure SSL connections')
+@click.option('-s', '--secure', is_flag=True, default=None,
+              help='Perform secure SSL connections')
 @click.pass_context
 def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
-        json_output=None, insecure=None):
+        json_output=None, insecure=None, secure=None):
     """VMware vCloud Air Command Line Interface."""
     if version:
         version_vca_cli = pkg_resources.require("vca-cli")[0].version
@@ -55,18 +57,23 @@ def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
         help_text = ctx.get_help()
         print(help_text)
         return
-    if insecure:
+    profile_file_fq = os.path.expanduser(profile_file)
+    xml_output = False
+    insecure_connection = None
+    if secure is True:
+        insecure_connection = False
+    elif insecure is True:
+        insecure_connection = True
+    ctx.obj = CmdProc(profile=profile, profile_file=profile_file_fq,
+                      json_output=json_output, xml_output=xml_output,
+                      debug=debug, insecure=insecure_connection)
+    ctx.obj.load_config(profile, profile_file)
+    if ctx.obj.verify == False:
         utils.print_warning('InsecureRequestWarning: ' +
                             'Unverified HTTPS request is being made. ' +
                             'Adding certificate verification is strongly ' +
                             'advised.')
         requests.packages.urllib3.disable_warnings()
-    profile_file_fq = os.path.expanduser(profile_file)
-    xml_output = False
-    ctx.obj = CmdProc(profile=profile, profile_file=profile_file_fq,
-                      json_output=json_output, xml_output=xml_output,
-                      debug=debug, insecure=insecure)
-    ctx.obj.load_config(profile, profile_file)
 
 
 @cli.command()

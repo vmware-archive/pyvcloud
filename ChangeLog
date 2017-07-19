@@ -1,0 +1,330 @@
+CHANGES
+=======
+
+* migrated to pbr
+* migrated to pbr
+* ci
+* flake
+
+18.0.1
+------
+
+* 18.0.1
+* cse
+* cse
+* cluster-id
+* cse
+* removed-old-impl
+* cse
+* wip
+* flake8
+* merged-pr-45
+* cse-support
+* cleanup
+* missing modules
+* Fix short name for version option
+* cluster-cse
+* vapp id
+
+18
+--
+
+* 18
+* setup
+* v18
+* vcd 8.20
+* added vcd as entry point
+* Update vca\_cli\_network.py
+* Expend API versions up to 9.0
+* Add MAC info to VM list
+* Use -V for server version in login command
+* Add description to firewall rules list
+* cfy dsl parser dependency
+
+17
+--
+
+* v17
+
+16
+--
+
+* flake8 error
+* v16
+* shows firewall status with rules
+* Perhaps the last one?
+* Fix more flake issues
+* Fix more flake issues
+* Resolve flake issues
+* Update readme with new examples
+* Update examples
+* Add file management for vca firewall and allow lowercase strings
+* Stop treating XML errors as json
+* Add firewall add/delete one rule at a time. Will support rules files shortly
+
+15
+--
+
+* updated dependencies
+* correction
+* adding needed modules
+* fixed list events for last execution
+* blueprint-id
+* readme
+* readme
+* readme
+* readme
+* readme
+* readme
+
+14
+--
+
+* 14
+* Fix short name for version option
+* deployment id
+* 14rc3
+* fixed deployment column title
+* fixed output verb in deployment command
+* SCOR-143: Implement deployment outputs feature
+* Improve Score CLI usage implementation
+* Got rid of redundant json dumps
+* fixed indentation
+* blueprint and deployment id missing, status as sub-command of blueprint
+* blueprint and deployment id missing
+* Improve Score user experience
+* truncate inputs
+* deployment output
+* 14rc2
+* added score status
+* validate blueprint example
+* user passwd reset
+* user passwd reset
+* user passwd reset
+* 14rc1
+* blueprint cmd
+* vpn cmd
+* nat cmd
+* refactored dhcp cmd
+* firewall command
+* firewall command
+* refactored network cmd
+* refactored gateway cmd
+* wip
+* refactoring, wip
+* 14rc1
+* wip
+
+13
+--
+
+* v13
+* indep disk
+* vapp
+* vdc management
+* catalog
+* catalog
+* exit codes
+* misc fixes
+* misc fixes
+* req fixes
+* pep8 fixes
+* pep8 fixes
+* added login test
+* test env
+* vapp cmd in progress
+* pyvcloud 14rc6
+* pyvcloud 14rc6
+* updated default OnDemand host
+* added requirements.txt
+* fixed imports. removed deployment\_id from blueprint list
+* Update README.md
+* Improve user experience for Score users
+* fix flake8
+* fix flake8
+* examples
+* examples
+* fixed vapp issue
+* vapp list
+* vapp list
+* select default vdc
+* login to vdc done
+* finished vdc command
+* finished vdc command
+* added vdc info
+* 13rc6
+* re-login done
+* SCOR-56 Implement cancel workflow execution on score, pyvcloud and vca-cli Style fixes
+* users
+* vca relogin
+* sso
+* sso
+* sso
+* improved session relogin
+* improved vchs re-login
+* modules
+* modularize it
+* login improved
+* login improved
+* login improved
+* flake8 fixes
+* progress login
+* requirements
+* requirements
+* wip
+* wip
+* wip
+* wip
+* wip
+* Update README.md
+* tox
+* tox
+* travis
+* initial squeleton
+* .venvr
+* initial version
+* improved instance list
+* #SCOR-17 blueprint validation
+* Got rid of redundant brackets
+* test ci
+* Update requirements.txt
+* 13rc4
+* fixed vapp create issue vCD<5.6
+* #21 display ssl warning one time only
+* changed bp to blueprint #21 fixed insecure option for display progress
+* fixed landscape checks
+* wip
+* fixed landscape checks
+* fixed landscape checks
+* fixed landscape checks
+* fixed landscape checks
+* fixed landscape checks
+* readme
+* readme
+* readme
+* readme
+* readme
+* readme
+
+12
+--
+
+* 12
+* 12rc12
+* set computer name
+* fixed vm connection issue
+* readme
+* readme
+* use standalone instead of vcd
+* fixed instantiation issue added manual assignment of static IP
+* improved bp processing
+* improved bp processing
+* fixed login issue
+* fixed login issue
+* fixed block for task
+* merged with PR #19
+* increase version number
+* readme
+* readme
+* readme
+* install notes
+* Travis CI. Add TOX testing
+* SCOR-13 Add Events support to vca-cli Style fixes
+* SCOR-13 Add Events support to vca-cli
+* SCOR-13 Add Events support to vca-cli
+* pool example
+* cpu and ram in vapp create
+* solved issue #12
+* support latest pyvcloud
+* - Added dateutils as a requirement for setup - Changed the date conversion to utilize dateutil.parser instead to   resolve issue #12 https://github.com/vmware/vca-cli/issues/12
+* network mode case insensitive
+* fixed bp log
+* fixed dependencies
+* 12rc2
+* add/del public ip
+* changed default ondemand host
+
+11
+--
+
+* v11
+* docs
+* docs
+* 11rc1
+* added docs
+
+10
+--
+
+* 10
+* independent disks
+* disk management I
+* enable/disable dhcp service
+* enable/disable dhcp service
+* 10rc5
+* 10rc3
+* 10rc2
+* using dash for args
+
+9
+-
+
+* 9
+* networking
+* networking
+* dhcp, network and vpn services
+* wip
+* wip
+
+8
+-
+
+* 8
+* display error message from server
+* doc
+* doc
+* v6
+* install
+* install
+* v5
+* readme
+* v4
+* v3
+* examples
+* examples
+* examples
+* examples
+* v2
+* v1.1
+* v1.1
+* vm name
+* vm name
+* wip
+* scripts
+* v0.9.1
+* readme
+* v0.5
+* list all templates
+* v0.3
+* support types of services
+* v0.2
+* json
+* notes
+* notes
+* update doc
+* update doc
+* update doc
+* readme update
+* readme update
+* readme update
+* added license
+* list vms attached to independent disk
+* disk management
+* list catalogs and templates
+* added list catalogs
+* non blocking vapp create
+* vapp operations
+* added main source code file
+* initial commit
+* initial commit
+* Initial commit

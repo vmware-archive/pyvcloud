@@ -44,7 +44,7 @@ utils = VcaCliUtils()
 @click.pass_context
 def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
         json_output=None, insecure=None):
-    """VMware vCloud Air Command Line Interface."""
+    """VMware vCloud Command Line Interface."""
     if version:
         version_vca_cli = pkg_resources.require("vca-cli")[0].version
         version_pyvcloud = pkg_resources.require("pyvcloud")[0].version
@@ -544,7 +544,6 @@ def org(cmd_proc, operation, instance, org):
 if __name__ == '__main__':
     pass
 else:
-    import vca_cli_blueprint  # NOQA
     import vca_cli_cluster  # NOQA
     import vca_cli_compute  # NOQA
     import vca_cli_example  # NOQA

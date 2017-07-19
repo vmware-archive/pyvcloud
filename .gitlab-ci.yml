@@ -2,7 +2,6 @@ image: python:2.7
 
 test:
   script:
-  - pip list --format=columns
   - pip install .
-  - pip list --format=columns
   - pip install -r dev-requirements.txt
+  - vcd --version

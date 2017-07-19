@@ -46,8 +46,9 @@ class Log(object):
 class Http(object):
 
     @staticmethod
-    def _log_request(logger, data=None, headers=None):
+    def _log_request(logger, data=None, headers=None, url=None):
         if logger is not None:
+            logger.debug('url=%s' % url)
             if headers is not None:
                 for header in headers:
                     logger.debug(
@@ -60,6 +61,11 @@ class Http(object):
     @staticmethod
     def _log_response(logger, response):
         if logger is not None:
+            for header in response.headers:
+                logger.debug(
+                    'response header: %s: %s',
+                    header,
+                    response.headers[header])
             logger.debug('[%d] %s', response.status_code, response.text)
 
     @staticmethod
@@ -67,7 +73,7 @@ class Http(object):
         if logger is not None:
             Http._log_request(
                 logger, data=data, headers=kwargs.get(
-                    'headers', None))
+                    'headers', None), url=url)
         response = requests.get(url, data=data, **kwargs)
         Http._log_response(logger, response)
         return response
@@ -77,7 +83,7 @@ class Http(object):
         if logger is not None:
             Http._log_request(
                 logger, data=data, headers=kwargs.get(
-                    'headers', None))
+                    'headers', None), url=url)
         response = requests.post(url, data=data, json=json, **kwargs)
         Http._log_response(logger, response)
         return response
@@ -87,7 +93,7 @@ class Http(object):
         if logger is not None:
             Http._log_request(
                 logger, data=data, headers=kwargs.get(
-                    'headers', None))
+                    'headers', None), url=url)
         response = requests.put(url, data=data, **kwargs)
         Http._log_response(logger, response)
         return response
@@ -97,7 +103,7 @@ class Http(object):
         if logger is not None:
             Http._log_request(
                 logger, data=data, headers=kwargs.get(
-                    'headers', None))
+                    'headers', None), url=url)
         response = requests.delete(url, data=data, **kwargs)
         Http._log_response(logger, response)
         return response

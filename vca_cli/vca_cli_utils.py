@@ -78,8 +78,8 @@ class VcaCliUtils(object):
                 'message' in module.response.json():
                 msg = message + ': ' + module.response.json().get('message')
         if (msg == 'Not logged in'):
-            msg += ', try the --insecure flag when using self-signed'
-            'certificates.'
+            msg += ', try the --insecure flag when using self-signed ' \
+                   'certificates.'
         self._print(msg, cmd_proc, fg='red')
 
     def print_table(self, message, headers, table, cmd_proc=None):

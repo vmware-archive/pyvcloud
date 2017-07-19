@@ -38,13 +38,12 @@ utils = VcaCliUtils()
 @click.option('-d', '--debug', is_flag=True, help='Enable debug')
 @click.option('-j', '--json', 'json_output',
               is_flag=True, help='Results as JSON object')
-@click.option('-i', '--insecure', is_flag=True, default=None,
+@click.option('-i/-s', '--insecure/--secure', is_flag=True, default=None,
+              required=False,
               help='Perform insecure SSL connections')
-@click.option('-s', '--secure', is_flag=True, default=None,
-              help='Perform secure SSL connections')
 @click.pass_context
 def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
-        json_output=None, insecure=None, secure=None):
+        json_output=None, insecure=None):
     """VMware vCloud Air Command Line Interface."""
     if version:
         version_vca_cli = pkg_resources.require("vca-cli")[0].version
@@ -59,14 +58,9 @@ def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
         return
     profile_file_fq = os.path.expanduser(profile_file)
     xml_output = False
-    insecure_connection = None
-    if secure is True:
-        insecure_connection = False
-    elif insecure is True:
-        insecure_connection = True
     ctx.obj = CmdProc(profile=profile, profile_file=profile_file_fq,
                       json_output=json_output, xml_output=xml_output,
-                      debug=debug, insecure=insecure_connection)
+                      debug=debug, insecure=insecure)
     ctx.obj.load_config(profile, profile_file)
     if ctx.obj.verify is False:
         if 'VCA_CLI_WARNINGS' in os.environ.keys() and \
@@ -99,7 +93,6 @@ def status(cmd_proc, show_password):
     table.append(['profile_file', cmd_proc.profile_file])
     table.append(['profile', cmd_proc.profile])
     table.append(['host', cmd_proc.vca.host])
-    table.append(['host_score', cmd_proc.host_score])
     table.append(['user', cmd_proc.vca.username])
     table.append(['instance', cmd_proc.instance])
     table.append(['org', cmd_proc.vca.org])

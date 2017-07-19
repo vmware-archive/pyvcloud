@@ -143,7 +143,7 @@ class CmdProc(object):
                           self.vca.vcloud_session.token)
 
     def print_profile_file(self):
-        headers = ['Profile', 'Selected', 'Host', 'Insecure', 'Type', 'User',
+        headers = ['Profile', 'Selected', 'Host', 'Verify', 'Type', 'User',
                    'Instance', 'Org', 'vdc']
         table = []
         for section in self.config.sections():
@@ -152,7 +152,7 @@ class CmdProc(object):
                 selected = '*' if section_name == self.profile else ''
                 host = self.config.get(section, 'host') \
                     if self.config.has_option(section, 'host') else ''
-                insecure = not self.config.get(section, 'verify') \
+                insecure = self.config.get(section, 'verify') \
                     if self.config.has_option(section, 'verify') else ''
                 service_type = self.config.get(section, 'service_type') \
                     if self.config.has_option(section, 'service_type') else ''

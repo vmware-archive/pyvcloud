@@ -7,6 +7,8 @@ Python SDK for VMware vCloud Director and vCloud Air.
 
 This project is under development, the classes, methods and parameters might change over time. This README usually reflects the syntax of the latest version.
 
+New vCD support is located under `pyvcloud/vcd <pyvcloud/vcd>`_ directory.
+
 Sample Usage
 ============
 

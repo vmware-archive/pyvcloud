@@ -128,7 +128,12 @@ def version(ctx):
               help='Show encrypted password')
 def status(ctx, show_password):
     """Show current status"""
-    pass
+    try:
+        raise Exception('not implemented')
+    except Exception as e:
+        click.secho('%s' % e,
+                    fg='red', err=True)
+
 
 @cli.command()
 @click.pass_context
@@ -220,6 +225,8 @@ def logout(ctx):
 if __name__ == '__main__':
     cli()
 else:
-    import vcd_cluster  # NOQA
-    import vcd_org  #NOQA
-    import vcd_profile  # NOQA
+    import cluster  # NOQA
+    import extension  # NOQA
+    import org  #NOQA
+    import profile  # NOQA
+    import task  # NOQA

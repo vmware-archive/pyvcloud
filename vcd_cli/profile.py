@@ -17,9 +17,9 @@ import json
 import os
 from profiles import Profiles
 import traceback
-from vcd_cli import as_metavar
-from vcd_cli import cli
-from vcd_cli import OPERATIONS
+from vcd_cli.vcd import as_metavar
+from vcd_cli.vcd import cli
+from vcd_cli.vcd import OPERATIONS
 import yaml
 
 

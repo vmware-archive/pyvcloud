@@ -17,24 +17,9 @@ from lxml import etree
 from pyvcloud.vcd.client import QueryResultFormat
 import sys
 import traceback
-from vcd_cli import as_metavar
-from vcd_cli import cli
-from vcd_cli import OPERATIONS
-
-def ddump(r):
-    print(etree.tostring(r, pretty_print=True))
-    print('---')
-
-def _print(r):
-    root = r
-    # print('%s %s %s'% (root.tag, root.attrib['id'], root.attrib['name']))
-    print(root.tag)
-    print(root.attrib['name'])
-    print(root.attrib['status'])
-    print(root.attrib['orgName'])
-    if 'objectName' in root.attrib: print(root.attrib['objectName'])
-    print(root.attrib['ownerName'])
-    print('---')
+from vcd_cli.vcd import as_metavar
+from vcd import cli
+from vcd_cli.vcd import OPERATIONS
 
 
 @cli.command()
@@ -47,18 +32,11 @@ def _print(r):
 @click.argument('name',
                 metavar='[name]',
                 required=False)
-def org(ctx, operation, name):
-    """Operations with Organizations"""
+def extension(ctx, operation, name):
+    """Operations with Service Extensions"""
     try:
-        print('tasks list:\n')
-        client = ctx.obj['client']
-        q = client.get_typed_query('task', equality_filter=('name', 'CLUSTER_CREATE'), query_result_format=QueryResultFormat.ID_RECORDS)
-        qr = q.execute()
-        n = 0
-        for r in qr:
-            n += 1
-            _print(r)
+        raise Exception('not implemented')
     except Exception as e:
         tb = traceback.format_exc()
-        click.secho('can\'t retrieve organization: %s' % e,
+        click.secho('%s' % e,
                     fg='red', err=True)

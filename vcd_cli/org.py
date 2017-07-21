@@ -13,9 +13,13 @@
 #
 
 import click
-from vcd_cli import as_metavar
-from vcd_cli import cli
-from vcd_cli import OPERATIONS
+from lxml import etree
+from pyvcloud.vcd.client import QueryResultFormat
+import sys
+import traceback
+from vcd_cli.vcd import as_metavar
+from vcd_cli.vcd import cli
+from vcd_cli.vcd import OPERATIONS
 
 
 
@@ -29,25 +33,18 @@ from vcd_cli import OPERATIONS
 @click.argument('name',
                 metavar='[name]',
                 required=False)
-@click.option('-N',
-              '--nodes',
-              'node_count',
-              default=2,
-              metavar='<nodes>',
-              help='Number of nodes to create')
-@click.option('-v',
-              '--vdc',
-              'vdc_name',
-              default=None,
-              metavar='<vdc>',
-              help='Virtual Data Center Name')
-@click.option('-n',
-              '--network',
-              'network_name',
-              default=None,
-              metavar='<network>',
-              help='Network name')
-def cluster(ctx, operation, name, node_count,
-            vdc_name, network_name):
-    """Operations with Container Service Extension"""
-    print('cluster %s %s' % (operation, name))
+def org(ctx, operation, name):
+    """Operations with Organizations"""
+    try:
+        client = ctx.obj['client']
+        if operation == 'info':
+            my_org = client.get_org()
+            click.secho('name: %s' % my_org.attrib['name'])
+            click.secho('full name: %s ' % my_org.FullName)
+            click.secho('id: %s ' % my_org.attrib['id'].split(':')[-1])
+        else:
+            raise Exception('not implemented')
+    except Exception as e:
+        tb = traceback.format_exc()
+        click.secho('can\'t retrieve organization: %s' % e,
+                    fg='red', err=True)

@@ -20,6 +20,9 @@ import traceback
 from vcd_cli.vcd import as_metavar
 from vcd_cli.vcd import cli
 from vcd_cli.vcd import OPERATIONS
+from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import get_links
+from pyvcloud.vcd.client import RelationType
 
 
 
@@ -40,11 +43,22 @@ def org(ctx, operation, name):
         if operation == 'info':
             my_org = client.get_org()
             click.secho('name: %s' % my_org.attrib['name'])
-            click.secho('full name: %s ' % my_org.FullName)
             click.secho('id: %s ' % my_org.attrib['id'].split(':')[-1])
+            click.secho('full name: %s ' % my_org.FullName)
+            click.secho('description: %s ' % my_org.Description)
+            click.secho('virtual datacenters:')
+            for link in get_links(my_org, RelationType.DOWN, EntityType.VDC.value):
+                print('  - %s' % link.name)
+            click.secho('organization networks:')
+            for link in get_links(my_org, RelationType.DOWN, EntityType.ORG_NETWORK.value):
+                print('  - %s' % link.name)
+            click.secho('catalogs:')
+            for link in get_links(my_org, RelationType.DOWN, EntityType.CATALOG.value):
+                print('  - %s' % link.name)
         else:
             raise Exception('not implemented')
     except Exception as e:
         tb = traceback.format_exc()
         click.secho('can\'t retrieve organization: %s' % e,
                     fg='red', err=True)
+        print(tb)

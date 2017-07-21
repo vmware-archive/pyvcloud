@@ -104,6 +104,7 @@ def cli(ctx=None, debug=None,
             #             fg='blue')
             ctx.obj = {}
             ctx.obj['client'] = client
+            ctx.obj['profiles'] = profiles
         except Exception as e:
             tb = traceback.format_exc()
             click.secho('can\'t restore session, please re-login:\n%s' % tb,
@@ -151,11 +152,6 @@ def status(ctx, show_password):
               envvar='VCD_PASSWORD',
               hide_input=True,
               help='Password')
-@click.option('-d',
-              '--do-not-save-password',
-              is_flag=True,
-              default=False,
-              help='Do not save password for expired sessions')
 @click.option('-V',
               '--version',
               'api_version',
@@ -175,8 +171,8 @@ def status(ctx, show_password):
               default=False,
               help='Do not display warnings when not verifying SSL ' + \
                    'certificates')
-def login(ctx, user, host, password, do_not_save_password,
-          api_version, org, verify_ssl_certs, disable_warnings):
+def login(ctx, user, host, password, api_version, org,
+          verify_ssl_certs, disable_warnings):
     """Login to vCloud"""
     if not verify_ssl_certs:
         if disable_warnings:
@@ -197,8 +193,9 @@ def login(ctx, user, host, password, do_not_save_password,
     try:
         client.set_credentials(BasicLoginCredentials(user, org, password))
         wkep = {}
-        for ep in _WellKnownEndpoint:
-            wkep[ep.name] = client._session_endpoints[ep]
+        for endpoint in _WellKnownEndpoint:
+            if endpoint in client._session_endpoints:
+                wkep[endpoint.name] = client._session_endpoints[endpoint]
         profiles = Profiles.load()
         profiles.update(host, org, user,
             client._session.headers['x-vcloud-authorization'],

@@ -13,16 +13,25 @@
 #
 
 import click
+from vcd_cli.vcd import as_metavar
 from vcd_cli.vcd import cli
-from vcd_cli.profiles import Profiles
-import yaml
+from vcd_cli.vcd import CONTEXT_SETTINGS
+from pyvcloud.vcd.extension import Extension
+from vcd_cli.utils import stderr
+from vcd_cli.utils import stdout
 
 
-@cli.command(short_help='manage profiles')
+@cli.group(short_help='manage system settings')
 @click.pass_context
-def profile(ctx):
-    """Manage user profiles
+def system(ctx):
+    """Manage system settings in vCloud Director.
 
-    """
-    profiles = Profiles.load()
-    click.echo(yaml.dump(profiles.data, default_flow_style=False))
+    """  # NOQA
+    pass
+
+
+if __name__ == '__main__':
+    pass
+else:
+    import amqp  #NOQA
+    import extension  # NOQA

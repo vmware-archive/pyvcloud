@@ -18,7 +18,8 @@ import os
 import traceback
 import yaml
 
-PROFILE_PATH = '~/.vcd-cli.yaml'
+VCD_CLI_USER_PATH = '~/.vcd-cli'
+PROFILE_PATH = VCD_CLI_USER_PATH + '/profiles.yaml'
 
 class Profiles(object):
 
@@ -28,25 +29,27 @@ class Profiles(object):
 
     @staticmethod
     def load(path=PROFILE_PATH):
-        profile_path = os.path.expanduser(path)
-        p = Profiles()
-        p.data = {'active': None}
         try:
+            profile_path = os.path.expanduser(path)
+            p = Profiles()
+            p.data = {'active': None}
             with open(profile_path, 'r') as f:
                 p.data = yaml.load(f)
         except:
             pass
-            # logger.error(traceback.format_exc())
         p.path = profile_path
         return p
 
     def save(self):
         try:
+            parent_dir = os.path.dirname(self.path)
+            if not os.path.exists(parent_dir):
+                os.makedirs(parent_dir)
             stream = file(self.path, 'w')
             yaml.dump(self.data, stream, default_flow_style=False)
         except:
-            pass
-            # logger.error(traceback.format_exc())
+            import traceback
+            traceback.print_exc()
 
     def update(self, host, org, user, token, api_version, wkep, verify,
                disable_warnings, debug, name='default'):
@@ -75,13 +78,16 @@ class Profiles(object):
 
     def get(self, prop, name='default'):
         value = None
-        for p in self.data['profiles']:
-            if p['name'] == name:
-                value = p[prop]
+        if 'profiles' in self.data.keys():
+            for p in self.data['profiles']:
+                if p['name'] == name:
+                    value = p[prop]
         return value
 
     def set(self, prop, value, name='default'):
         value = None
+        if 'profiles' not in self.data.keys():
+            self.data['profiles'] = {}
         for p in self.data['profiles']:
             if p['name'] == name:
                 p[prop] = value

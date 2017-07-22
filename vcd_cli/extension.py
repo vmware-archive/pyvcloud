@@ -13,61 +13,99 @@
 #
 
 import click
-from lxml import etree
-from pyvcloud.vcd.client import QueryResultFormat, _TypedQuery, RelationType, ExtensionServiceQuery
-import sys
-import traceback
-from vcd_cli.vcd import as_metavar
-from vcd import cli
-from vcd_cli.vcd import OPERATIONS
+from pyvcloud.vcd.extension import Extension
+from vcd_cli.system import system
+from vcd_cli.utils import as_metavar
+from vcd_cli.utils import restore_session
+from vcd_cli.utils import stderr
+from vcd_cli.utils import stdout
+from vcd_cli.vcd import cli
 
-def ddump(r):
-    print etree.tostring(r, pretty_print=True)
-    print '------------------------'
-    pass
 
-@cli.command(short_help='manage extensions')
+@system.group(short_help='manage extensions')
 @click.pass_context
-@click.argument('operation',
-                default=None,
-                type=click.Choice(OPERATIONS),
-                metavar=as_metavar(OPERATIONS)
-                )
-@click.argument('name',
-                metavar='[name]',
-                required=False)
-def extension(ctx, operation, name):
-    """Manages Extension Services on vCloud Director
-    """
+def extension(ctx):
+    """Manages Extension Services in vCloud Director.
+
+\b
+    Examples
+        vcd system extension list
+            List available extension services.
+\b
+        vcd system extension register cse cse cse vcdext '/api/cluster, /api/cluster/.*, /api/cluster/.*/.*'
+            Register a new extension service named 'cse'.
+\b
+        vcd system extension unregister cse
+            Unregister an extension service named 'cse'.
+\b
+        vcd system extension info cse
+            Get details of an extension service named 'cse'.
+    """  # NOQA
+    if ctx.invoked_subcommand is not None:
+        try:
+            restore_session(ctx)
+            ctx.obj['ext'] = Extension(ctx.obj['client'])
+        except Exception as e:
+            stderr(e, ctx)
+
+
+@extension.command(short_help='list extensions')
+@click.pass_context
+def list(ctx):
     try:
-        client = ctx.obj['client']
-        # admin = client.get_admin()
-        # ddump(admin)
-        # client.get_query_list()
-        # q = get_typed_query('')
-        # q = client.get_typed_query('')
-        # ext = client.get_extension()
-        # ddump(ext)
-        # print(ext.Link)
-        # es = client.get_linked_resource(ext, RelationType.DOWN, 'application/vnd.vmware.admin.extensionServices+xml')
-        # tmp = client.get_resource('https://bos1-vcd-sp-static-199-4.eng.vmware.com/api/admin/extension/service')
-        # es = client.get_linked_resource(tmp, 'down:services', 'application/vnd.vmware.vcloud.query.records+xml')
-        # q = client.get_resource(ext.get('href')+'/query')
-        # ddump(q)
-        # q = _TypedQuery('application/vnd.vmware.vcloud.query.records+xml', client, QueryResultFormat.REFERENCES)
-        # q.execute()
-        # ql = client.get_query_list()
-        # admin_href = ctx.obj['profiles'].get('wkep')['ADMIN']
-        # q = client.get_resource(admin_href + 'extension/service/query')
-        q = ExtensionServiceQuery('?', client, 'idrecords')
-        records = q.execute()
-        for r in records:
-            print(r.get('name'), r.get('exchange'), r.get('enabled'))
-
-
-        # raise Exception('not implemented')
+        ext = ctx.obj['ext']
+        stdout(ext.list_extensions(), ctx)
     except Exception as e:
-        print(traceback.format_exc())
-        # click.secho('%s' % e,
-                    # fg='red', err=True)
-        ctx.fail('%s' % e)
+        stderr(e, ctx)
+
+
+@extension.command(short_help='show extension details')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+def info(ctx, name):
+    try:
+        ext = ctx.obj['ext']
+        stdout(ext.get_extension(name), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@extension.command(short_help='register new extension')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+@click.argument('namespace',
+                metavar='<namespace>',
+                required=True)
+@click.argument('routing-key',
+                metavar='<routing-key>',
+                required=True)
+@click.argument('exchange',
+                metavar='<exchange>',
+                required=True)
+@click.argument('patterns',
+                metavar='<patterns>',
+                required=True)
+def register(ctx, name, namespace, routing_key, exchange, patterns):
+    try:
+        ext = ctx.obj['ext']
+        r = ext.add_extension(name, namespace, routing_key, exchange,
+                              patterns.split(','))
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@extension.command(short_help='unregister extension')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+def unregister(ctx, name):
+    try:
+        ext = Extension(ctx.obj['client'])
+        ext.delete_extension(name)
+    except Exception as e:
+        stderr(e, ctx)

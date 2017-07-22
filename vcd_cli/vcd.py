@@ -24,6 +24,12 @@ from pyvcloud.vcd.client import QueryResultFormat
 import requests
 import traceback
 import yaml
+from vcd_cli.utils import stderr
+from vcd_cli.utils import stdout
+from colorama import Fore, Back, Style
+from vcd_cli.utils import as_metavar
+from vcd_cli.utils import restore_session
+
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 API_CURRENT_VERSIONS = ['5.5',
@@ -41,20 +47,9 @@ API_CURRENT_VERSIONS = ['5.5',
                         '27.0',
                         '28.0',
                         '29.0']
-OPERATIONS = ['list',
-              'create',
-              'delete',
-              'info']
 
-
-def as_metavar(values):
-    result = ''
-    for v in values:
-        if len(result) > 0:
-            result += '|'
-        result += v
-    result = '[%s]' % result
-    return result
+def load_user_plugins():
+    pass
 
 
 @click.group(context_settings=CONTEXT_SETTINGS,
@@ -71,159 +66,32 @@ def as_metavar(values):
 @click.pass_context
 def cli(ctx=None, debug=None,
         json_output=None):
-    """VMware vCloud Command Line Interface."""
+    """VMware vCloud Director Command Line Interface."""
     if ctx.invoked_subcommand is None:
         click.secho(ctx.get_help())
         return
-    if ctx.invoked_subcommand not in ['login', 'profile']:
-        profiles = Profiles.load()
-        token = profiles.get('token')
-        if token is None or len(token) == 0:
-            click.secho('not logged in', fg='red', err=True)
-            ctx.exit(1)
-        if not profiles.get('verify'):
-            if profiles.get('disable_warnings'):
-                pass
-            else:
-                click.secho('InsecureRequestWarning: '
-                            'Unverified HTTPS request is being made. '
-                            'Adding certificate verification is strongly '
-                            'advised.', fg='yellow', err=True)
-            requests.packages.urllib3.disable_warnings()
-        client = Client(profiles.get('host'),
-                        api_version=profiles.get('api_version'),
-                        verify_ssl_certs=profiles.get('verify'),
-                        log_file='vcd.log',
-                        log_headers=True,
-                        log_bodies=True
-                       )
-        try:
-            client.rehydrate(profiles)
-            # logger.debug('restored session as %s' % \
-            #             profiles.get('user'),
-            #             fg='blue')
-            ctx.obj = {}
-            ctx.obj['client'] = client
-            ctx.obj['profiles'] = profiles
-        except Exception as e:
-            tb = traceback.format_exc()
-            click.secho('can\'t restore session, please re-login:\n%s' % tb,
-                        fg='red', err=True)
 
 
-
-@cli.command()
+@cli.command(short_help='show version')
 @click.pass_context
 def version(ctx):
-    """Show version"""
-    click.secho('vcd-cli, VMware vCloud Command Line Interface, version %s' %
-                pkg_resources.require("vca-cli")[0].version)
+    """Show vcd-cli version"""
+    ver = pkg_resources.require("vca-cli")[0].version
+    ver_obj = {'product': 'vcd-cli',
+               'description': 'VMware vCloud Director Command Line Interface',
+               'version': ver}
+    if not ctx.find_root().params['json_output']:
+        ver_obj = '%s, %s, %s' % (ver_obj['product'],
+                                  ver_obj['description'],
+                                  ver_obj['version'])
+    stdout(ver_obj, ctx)
 
-@cli.command()
-@click.pass_context
-@click.option('-s',
-              '--show-password',
-              'show_password',
-              is_flag=True,
-              default=False,
-              help='Show encrypted password')
-def status(ctx, show_password):
-    """Show current status"""
-    try:
-        raise Exception('not implemented')
-    except Exception as e:
-        click.secho('%s' % e,
-                    fg='red', err=True)
-
-
-@cli.command()
-@click.pass_context
-@click.argument('host',
-                metavar='host')
-@click.argument('org',
-                metavar='organization')
-@click.argument('user',
-                metavar='user')
-@click.option('-p',
-              '--password',
-              prompt=True,
-              metavar='<password>',
-              confirmation_prompt=False,
-              envvar='VCD_PASSWORD',
-              hide_input=True,
-              help='Password')
-@click.option('-V',
-              '--version',
-              'api_version',
-              default=API_CURRENT_VERSIONS[-1],
-              metavar=as_metavar(API_CURRENT_VERSIONS),
-              type=click.Choice(API_CURRENT_VERSIONS),
-              help='API version')
-@click.option('-s/-i',
-              '--verify-ssl-certs/--no-verify-ssl-certs',
-              required=False,
-              default=True,
-              help='Verify SSL certificates')
-@click.option('-w',
-              '--disable-warnings',
-              is_flag=True,
-              required=False,
-              default=False,
-              help='Do not display warnings when not verifying SSL ' + \
-                   'certificates')
-def login(ctx, user, host, password, api_version, org,
-          verify_ssl_certs, disable_warnings):
-    """Login to vCloud"""
-    if not verify_ssl_certs:
-        if disable_warnings:
-            pass
-        else:
-            click.secho('InsecureRequestWarning: '
-                        'Unverified HTTPS request is being made. '
-                        'Adding certificate verification is strongly '
-                        'advised.', fg='yellow', err=True)
-        requests.packages.urllib3.disable_warnings()
-    client = Client(host,
-                    api_version=api_version,
-                    verify_ssl_certs=verify_ssl_certs,
-                    log_file='vcd.log',
-                    log_headers=True,
-                    log_bodies=True
-                   )
-    try:
-        client.set_credentials(BasicLoginCredentials(user, org, password))
-        wkep = {}
-        for endpoint in _WellKnownEndpoint:
-            if endpoint in client._session_endpoints:
-                wkep[endpoint.name] = client._session_endpoints[endpoint]
-        profiles = Profiles.load()
-        profiles.update(host, org, user,
-            client._session.headers['x-vcloud-authorization'],
-            api_version,
-            wkep,
-            verify_ssl_certs,
-            disable_warnings,
-            debug=True)
-        click.secho('%s logged in' % (user), fg='blue')
-    except Exception as e:
-        tb = traceback.format_exc()
-        click.secho('can\'t log in:\n%s' % tb, fg='red', err=True)
-
-
-@cli.command()
-@click.pass_context
-def logout(ctx):
-    """Logout from vCloud"""
-    profiles = Profiles.load()
-    profiles.set('token', '')
-    click.secho('%s logged out' % (profiles.get('user')), fg='blue')
 
 
 if __name__ == '__main__':
     cli()
 else:
-    import cluster  # NOQA
-    import extension  # NOQA
-    import org  #NOQA
+    import login  #NOQA
     import profile  # NOQA
-    import task  # NOQA
+    import system  #NOQA
+    load_user_plugins()

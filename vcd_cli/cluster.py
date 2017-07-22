@@ -15,18 +15,12 @@
 import click
 from vcd_cli.vcd import as_metavar
 from vcd_cli.vcd import cli
-from vcd_cli.vcd import OPERATIONS
 import traceback
 
 
 
-@cli.command()
+@cli.command(short_help='cluster management')
 @click.pass_context
-@click.argument('operation',
-                default=None,
-                type=click.Choice(OPERATIONS),
-                metavar=as_metavar(OPERATIONS)
-                )
 @click.argument('name',
                 metavar='[name]',
                 required=False)
@@ -48,7 +42,7 @@ import traceback
               default=None,
               metavar='<network>',
               help='Network name')
-def cluster(ctx, operation, name, node_count,
+def cluster(ctx, name, node_count,
             vdc_name, network_name):
     """Operations with Container Service Extension"""
     try:

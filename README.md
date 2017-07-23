@@ -48,7 +48,7 @@ $ vca login 'email@company.com' --password 'p@$$w0rd' \
 
 # vCloud Director
 $ vca login 'email@company.com' --password 'p@$$w0rd' \
-            --host vcdhost.domain.com --org myorg
+            --host vcdhost.domain.com --org my-org
 
 # vCloud Director with self-signed SSL certificate
 $ vca -i login 'email@company.com' --password 'p@$$w0rd' \
@@ -57,7 +57,7 @@ $ vca -i login 'email@company.com' --password 'p@$$w0rd' \
 
 Access to a virtual datacenter:
 
-```shell
+```
 $ vca vdc info
 Details of Virtual Data Center 'vdc1', profile 'od':
 | Type              | Name                   |
@@ -80,7 +80,7 @@ Gateways:
 
 Logout:
 
-```shell
+```
 $ vca logout
 Logout successful for profile 'default'
 ```

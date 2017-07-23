@@ -21,7 +21,7 @@ In general, `vca-cli` can be installed with:
 Check installation with:
 
 ``` shell
-    $ vcd --version
+    $ vca --version
 
     vca-cli version 18 (pyvcloud: 18.0.2)
 ```
@@ -135,84 +135,35 @@ Logout:
     $ vca logout
     Logout successful for profile 'default'
 
-Examples and Help:
-------------------
 
-`vca-cli` provides a list of examples with the `example` command:
+vCloud Air Support
+---
 
-``` shell
-    $ vcd example
+We are transitioning to a new `vcd-cli` tool that eventually will replace `vca-cli`. The new `vcd-cli` will continue to support vCloud Air.
+
+To login to vCloud Air with the new `vcd-cli`:
+
+- Locate the `vCloud Director API URL` link in the vCloud Air console, for example: `https://p1v17-vcd.vchs.vmware.com:443/cloud/org/20-162/`
+- Identify the organization name at the end of the URL, `20-162` in the example.
+- Use your email and password in the `login` command.
+
+The general syntax of the `login` command is:
+
+```shell
+$ vcd login [OPTIONS] host organization user
 ```
 
-Syntax, commands and arguments:
+Sample login on a vCA subscription service:
 
-``` shell
-    $ vcd --help
-    Usage: vca [OPTIONS] COMMAND [ARGS]...
-
-      VMware vCloud Air Command Line Interface.
-
-    Options:
-      -p, --profile <profile>    Profile id
-      -f, --profile-file <file>  Profile file
-      -v, --version              Show version
-      -d, --debug                Enable debug
-      -j, --json                 Results as JSON object
-      -i, --insecure             Perform insecure SSL connections
-      -h, --help                 Show this message and exit.
-
-    Commands:
-      blueprint   Operations with Blueprints
-      catalog     Operations with Catalogs
-      deployment  Operations with Deployments
-      dhcp        Operations with Edge Gateway DHCP Service
-      disk        Operations with Independent Disks
-      event       Operations with Blueprint Events
-      example     vCloud Air CLI Examples
-      firewall    Operations with Edge Gateway Firewall Service
-      gateway     Operations with Edge Gateway
-      instance    Operations with Instances
-      login       Login to a vCloud service
-      logout      Logout from a vCloud service
-      nat         Operations with Edge Gateway NAT Rules
-      network     Operations with Networks
-      org         Operations with Organizations
-      profile     Show profiles
-      role        Operations with Roles
-      status      Show current status
-      user        Operations with Users
-      vapp        Operations with vApps
-      vdc         Operations with Virtual Data Centers
-      vm          Operations with VMs
-      vpn         Operations with Edge Gateway VPN
+```shell
+$ vcd login p1v17-vcd.vchs.vmware.com 20-162 'user@company.com' \
+      --password 'p@$$w0rd' --version 17.0
 ```
 
-Detailed syntax for a specific command:
+Sample login on a vCA on-demand service:
 
-``` shell
-    $ vcd vapp --help
-    Usage: vca vapp [OPTIONS] [list | info | create | delete | power-on | power-
-                    off | deploy | undeploy | customize | insert | eject | connect
-                    | disconnect | attach | detach]
-
-      Operations with vApps
-
-    Options:
-      -v, --vdc <vdc>                 Virtual Data Center Name
-      -a, --vapp <vapp>               vApp name
-      -c, --catalog <catalog>         Catalog name
-      -t, --template <template>       Template name
-      -n, --network <network>         Network name
-      -m, --mode [pool, dhcp, manual]
-                                      Network connection mode
-      -V, --vm <vm>                   VM name
-      -f, --file <customization_file>
-                                      Guest OS Customization script file
-      -e, --media <media>             Virtual media name (ISO)
-      -d, --disk <disk_name>          Disk Name
-      -o, --count <count>             Number of vApps to create
-      -p, --cpu <virtual CPUs>        Virtual CPUs
-      -r, --ram <MB RAM>              Memory in MB
-      -i, --ip <ip>                   IP address
-      -h, --help                      Show this message and exit.
+```shell
+$ vcd login us-texas-1-14.vchs.vmware.com/api/compute \
+      ad96259e-2d36-44ad-9dd7-4586d45b43ca  'user@company.com' \
+      --password 'p@$$w0rd' --version 17.0
 ```

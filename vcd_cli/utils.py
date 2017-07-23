@@ -22,7 +22,7 @@ from vcd_cli.profiles import Profiles
 import requests
 from pyvcloud.vcd.client import Client
 
-def as_table(obj_list):
+def as_table(obj_list, header=None):
     if len(obj_list) == 0:
         return ''
     else:

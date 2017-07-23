@@ -163,6 +163,7 @@ $ vcd login p1v17-vcd.vchs.vmware.com 20-162 'user@company.com' \
 Sample login on a vCA on-demand service:
 
 ```shell
-$ vcd login us-texas-1-14.vchs.vmware.com/api/compute ad96259e-2d36-44ad-9dd7-4586d45b43ca  'user@company.com' \
+$ vcd login us-texas-1-14.vchs.vmware.com/api/compute ad96259e-2d36-44ad-9dd7-4586d45b43ca \
+      'user@company.com' \
       --password 'p@$$w0rd' --version 17.0
 ```

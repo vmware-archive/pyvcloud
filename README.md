@@ -1,7 +1,7 @@
 vcd-cli
 =======
 
-[![Stable Version](https://img.shields.io/pypi/v/vca-cli.svg)](https://pypi.python.org/pypi/vca-cli) [![Build Status](https://img.shields.io/travis/vmware/vca-cli.svg?style=flat)](https://travis-ci.org/vmware/vca-cli/)
+[![Stable Version](https://img.shields.io/pypi/v/vca-cli.svg)](https://pypi.python.org/pypi/vca-cli) [![Build Status](https://img.shields.io/travis/vmware/vcd-cli.svg?style=flat)](https://travis-ci.org/vmware/vcd-cli/)
 
 Command Line Interface for VMware vCloud Director.
 
@@ -34,7 +34,7 @@ Usage:
 
 Login:
 
-When the *password* argument is omitted, `vca-cli` will prompt the user for the password. By default `vca-cli` caches the password (encrypted) and automatically re-login when the token expires. Below are some examples:
+When the *password* argument is omitted, `vca-cli` prompts the user for the password. By default `vca-cli` caches the password (encrypted) and automatically re-login when the token expires. Below are some examples:
 
 ```shell
 # vCA
@@ -102,14 +102,14 @@ The general syntax of the `login` command is:
 $ vcd login [OPTIONS] host organization user
 ```
 
-Sample login on a vCA subscription service:
+Sample login to a vCA subscription service:
 
 ```shell
 $ vcd login p1v17-vcd.vchs.vmware.com 20-162 'user@company.com' \
             --password 'p@$$w0rd' --version 17.0
 ```
 
-Sample login on a vCA on-demand service:
+Sample login to a vCA on-demand service:
 
 ```shell
 $ vcd login us-texas-1-14.vchs.vmware.com/api/compute ad96259e-2d36-44ad-9dd7-4586d45b43ca \

@@ -32,8 +32,7 @@ See [vcd-cli wiki](https://github.com/vmware/vcd-cli/wiki) for additional instal
 Usage:
 ======
 
-Login and Logout:
------------------
+Login:
 
 When the *password* argument is omitted, `vca-cli` will prompt the user for the password. By default `vca-cli` caches the password (encrypted) and automatically re-login when the token expires. Below are some examples:
 

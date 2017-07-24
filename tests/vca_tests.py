@@ -1,11 +1,11 @@
-from nose.tools import with_setup
+from __future__ import print_function
+
 from testconfig import config
-from pyvcloud import vcloudair
+
 from pyvcloud.vcloudair import VCA
-from os import environ
+
 
 class TestVCA:
-
     def __init__(self):
         self.vca = None
         self.login_to_vcloud()
@@ -35,8 +35,8 @@ class TestVCA:
 
     def logout_from_vcloud(self):
         """Logout from vCloud"""
-        print 'logout'
-        selfl.vca.logout()
+        print('logout')
+        self.vca.logout()
         self.vca = None
         assert self.vca is None
 

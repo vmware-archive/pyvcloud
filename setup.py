@@ -18,11 +18,7 @@
 
 from setuptools import setup
 
-with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
-
 setup(
     setup_requires=['pbr>=1.9', 'setuptools>=17.1'],
     pbr=True,
-    install_requires=requirements,
 )

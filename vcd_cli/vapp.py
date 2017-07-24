@@ -28,21 +28,18 @@ from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 
 
-@cli.group(short_help='work with virtual datacenters')
+@cli.group(short_help='manage vApps')
 @click.pass_context
-def vdc(ctx):
-    """Work with virtual datacenters in vCloud Director.
+def vapp(ctx):
+    """Manage vApps in vCloud Director.
 
 \b
     Examples
-        vcd vdc list
-            Get list of virtual datacenters in current organization.
+        vcd vapp list
+            Get list of vApps in current virtual datacente3r.
 \b
-        vcd vdc info my-vdc
-            Get details of the virtual datacenter 'my-vdc'.
-\b
-        vcd vdc use my-vdc
-            Set virtual datacenter 'my-vdc' as default.
+        vcd vapp info my-vapp
+            Get details of the vApp 'my-vapp'.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -51,13 +48,14 @@ def vdc(ctx):
             stderr(e, ctx)
 
 
-@vdc.command(short_help='show virtual datacenter details')
+@vapp.command(short_help='show vApp details')
 @click.pass_context
 @click.argument('name',
                 metavar='<name>',
                 required=True)
 def info(ctx, name):
     try:
+        raise Exception('not implemented')
         client = ctx.obj['client']
         in_use_org_name = ctx.obj['profiles'].get('org_in_use')
         in_use_vdc = ctx.obj['profiles'].get('vdc_in_use')
@@ -81,10 +79,11 @@ def info(ctx, name):
         stderr(e, ctx)
 
 
-@vdc.command(short_help='list of virtual datacenters')
+@vapp.command(short_help='list of vApps')
 @click.pass_context
 def list(ctx):
     try:
+        raise Exception('not implemented')
         client = ctx.obj['client']
         in_use_org_name = ctx.obj['profiles'].get('org_in_use')
         in_use_vdc = ctx.obj['profiles'].get('vdc_in_use')
@@ -99,31 +98,5 @@ def list(ctx):
                                    'in_use': in_use_vdc == v.name})
                 break;
         stdout(result, ctx)
-    except Exception as e:
-        stderr(e, ctx)
-
-@vdc.command(short_help='set active virtual datacenter')
-@click.pass_context
-@click.argument('name',
-                metavar='<name>',
-                required=True)
-def use(ctx, name):
-    try:
-        client = ctx.obj['client']
-        in_use_org_name = ctx.obj['profiles'].get('org_in_use')
-        orgs = client.get_org_list()
-        result = {}
-        vdc_resource = None
-        for org in orgs.findall('{http://www.vmware.com/vcloud/v1.5}Org'):
-            if org.get('name') == in_use_org_name:
-                resource = client.get_resource(org.get('href'))
-                for v in get_links(resource, media_type=EntityType.VDC.value):
-                    if v.name == name:
-                        vdc_resource = client.get_resource(v.href)
-                        ctx.obj['profiles'].set('org_in_use', str(in_use_org_name))
-                        ctx.obj['profiles'].set('vdc_in_use', str(name))
-                        stdout('now using org: \'%s\', vdc: \'%s\'.' % (in_use_org_name, name), ctx)
-                        return
-        raise Exception('not found')
     except Exception as e:
         stderr(e, ctx)

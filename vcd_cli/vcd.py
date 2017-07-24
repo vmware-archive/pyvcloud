@@ -95,5 +95,6 @@ else:
     import org  #NOQA
     import profile  # NOQA
     import system  #NOQA
+    import vapp  #NOQA
     import vdc  #NOQA
     load_user_plugins()

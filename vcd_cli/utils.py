@@ -22,6 +22,7 @@ from vcd_cli.profiles import Profiles
 import requests
 from pyvcloud.vcd.client import Client
 
+
 def as_table(obj_list, header=None):
     if len(obj_list) == 0:
         return ''
@@ -98,8 +99,12 @@ def stderr(exception, ctx=None):
     else:
         message = exception.__class__.__name__
     if ctx is not None and ctx.find_root().params['json_output']:
-        message = '{"error": "%s"}' % str(message)
-        message = highlight(unicode(message, 'UTF-8'), lexers.JsonLexer(), formatters.TerminalFormatter())
+        message = {'error': str(message)}
+        text = json.dumps(message,
+                          sort_keys=True,
+                          indent=4,
+                          separators=(',', ': '))
+        message = highlight(unicode(text, 'UTF-8'), lexers.JsonLexer(), formatters.TerminalFormatter())
         click.echo(message)
         sys.exit(1)
     else:

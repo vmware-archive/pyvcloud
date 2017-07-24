@@ -92,6 +92,8 @@ if __name__ == '__main__':
     cli()
 else:
     import login  #NOQA
+    import org  #NOQA
     import profile  # NOQA
     import system  #NOQA
+    import vdc  #NOQA
     load_user_plugins()

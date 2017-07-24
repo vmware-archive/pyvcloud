@@ -17,6 +17,8 @@ from vcd_cli.vcd import cli
 from vcd_cli.vcd import API_CURRENT_VERSIONS
 from vcd_cli.vcd import CONTEXT_SETTINGS
 from pyvcloud.vcd.client import Client
+from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import _WellKnownEndpoint
 from pyvcloud.vcd.extension import Extension
@@ -64,8 +66,13 @@ import traceback
               default=False,
               help='Do not display warnings when not verifying SSL ' + \
                    'certificates')
+@click.option('-v',
+              '--vdc',
+              required=False,
+              default=None,
+              help='virtual datacenter')
 def login(ctx, user, host, password, api_version, org,
-          verify_ssl_certs, disable_warnings):
+          verify_ssl_certs, disable_warnings, vdc):
     """Login to vCloud Director
 
     """
@@ -92,15 +99,39 @@ def login(ctx, user, host, password, api_version, org,
             if endpoint in client._session_endpoints:
                 wkep[endpoint.name] = client._session_endpoints[endpoint]
         profiles = Profiles.load()
+        logged_in_org = client.get_org()
+        in_use_vdc = ''
+        if vdc is None:
+            for v in get_links(logged_in_org, media_type=EntityType.VDC.value):
+                in_use_vdc = v.name
+                break
+        else:
+            for v in get_links(logged_in_org, media_type=EntityType.VDC.value):
+                if vdc == v.name:
+                    in_use_vdc = v.name
+                    break
+            if len(in_use_vdc) == 0:
+                raise Exception('VDC not found')
         profiles.update(host, org, user,
             client._session.headers['x-vcloud-authorization'],
             api_version,
             wkep,
             verify_ssl_certs,
             disable_warnings,
+            vdc=in_use_vdc,
             debug=True)
-        stdout('%s logged in' % (user), ctx)
+        if ctx.find_root().params['json_output']:
+            stdout({'user': user, 'org': org,
+                    'vdc': in_use_vdc, 'logged_in': True}, ctx)
+        else:
+            stdout('%s logged in, org: \'%s\', vdc: \'%s\'' % \
+                   (user, org, in_use_vdc), ctx)
     except Exception as e:
+        try:
+            profiles = Profiles.load()
+            profiles.set('token', '')
+        except:
+            pass
         if not ctx.find_root().params['json_output']:
             click.secho('can\'t log in', fg='red', err=True)
         stderr(e, ctx)

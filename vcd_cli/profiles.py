@@ -52,7 +52,7 @@ class Profiles(object):
             traceback.print_exc()
 
     def update(self, host, org, user, token, api_version, wkep, verify,
-               disable_warnings, debug, name='default'):
+               disable_warnings, vdc, debug, name='default'):
         if self.data is None:
             self.data = {}
         if 'profiles' not in self.data:
@@ -68,6 +68,8 @@ class Profiles(object):
         profile['debug'] = debug
         profile['disable_warnings'] = disable_warnings
         profile['wkep'] = wkep
+        profile['org_in_use'] = str(org)
+        profile['vdc_in_use'] = str(vdc)
         tmp = [profile]
         for p in self.data['profiles']:
             if p['name'] != name:
@@ -85,7 +87,6 @@ class Profiles(object):
         return value
 
     def set(self, prop, value, name='default'):
-        value = None
         if 'profiles' not in self.data.keys():
             self.data['profiles'] = {}
         for p in self.data['profiles']:

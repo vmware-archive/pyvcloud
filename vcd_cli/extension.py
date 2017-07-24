@@ -25,7 +25,7 @@ from vcd_cli.vcd import cli
 @system.group(short_help='manage extensions')
 @click.pass_context
 def extension(ctx):
-    """Manages Extension Services in vCloud Director.
+    """Manage Extension Services in vCloud Director.
 
 \b
     Examples

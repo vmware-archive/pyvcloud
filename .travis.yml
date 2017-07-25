@@ -11,7 +11,7 @@ env:
   - TOX_ENV=flake8
 
 install:
-  - python setup.py install
+  - pip install .
   - pip install -r test-requirements.txt
 
 script:

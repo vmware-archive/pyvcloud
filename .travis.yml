@@ -14,4 +14,3 @@ install:
 - pip install -r test-requirements.txt
 
 script:
-- nosetests tests/00010_vcd_login.py

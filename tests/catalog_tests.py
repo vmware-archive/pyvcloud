@@ -1,12 +1,10 @@
-from nose.tools import with_setup
+from __future__ import print_function
 from testconfig import config
-from pyvcloud import vcloudair
+
 from pyvcloud.vcloudair import VCA
-import time
 
 
 class TestCatalog:
-
     def __init__(self):
         self.vca = None
         self.login_to_vcloud()
@@ -59,12 +57,13 @@ class TestCatalog:
 
     def logout_from_vcloud(self):
         """Logout from vCloud"""
-        print 'logout'
-        selfl.vca.logout()
+        print('logout')
+        self.vca.logout()
         self.vca = None
         assert self.vca is None
 
-    def catalog_exists(self, catalog_name, catalogs):
+    @staticmethod
+    def catalog_exists(catalog_name, catalogs):
         for catalog in catalogs:
             if catalog.name == catalog_name:
                 return True

@@ -1,13 +1,11 @@
-from nose.tools import with_setup
+from __future__ import print_function
 from testconfig import config
-from pyvcloud import vcloudair
-from pyvcloud.vcloudair import VCA
+
 from pyvcloud.system import System
-from os import environ
-from xml.etree import ElementTree as ET
+from pyvcloud.vcloudair import VCA
+
 
 class TestExtensions:
-
     def __init__(self):
         self.vca = None
         self.login_to_vcloud()
@@ -21,15 +19,16 @@ class TestExtensions:
         version = config['vcloud']['version']
         verify = config['vcloud']['verify']
         org = config['vcloud']['org']
-        self.vca = VCA(host=host, username=username, service_type=service_type, version=version, verify=verify, log=True)
+        self.vca = VCA(host=host, username=username, service_type=service_type, version=version, verify=verify,
+                       log=True)
         assert self.vca
         result = self.vca.login(password=password, org=org)
         assert result
 
     def logout_from_vcloud(self):
         """Logout from vCloud"""
-        print 'logout'
-        selfl.vca.logout()
+        print('logout')
+        self.vca.logout()
         self.vca = None
         assert self.vca is None
 

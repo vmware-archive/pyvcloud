@@ -1,3 +1,4 @@
+from __future__ import print_function
 from nose.tools import with_setup
 from testconfig import config
 from pyvcloud import vcloudair
@@ -31,7 +32,7 @@ class TestVCASSO:
 
     def logout_from_vcloud(self):
         """Logout from vCloud"""
-        print 'logout'
+        print('logout')
         self.vca.logout()
         self.vca = None
         assert self.vca is None

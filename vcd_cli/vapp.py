@@ -13,16 +13,8 @@
 #
 
 import click
-from lxml import etree
-from pyvcloud.vcd.client import QueryResultFormat
-from pyvcloud.vcd.client import get_links
-from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.utils import vdc_to_object
-import sys
-import traceback
-from vcd_cli.vcd import as_metavar
+from pyvcloud.vcd.utils import vapp_to_dict
 from vcd_cli.vcd import cli
-from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -44,6 +36,9 @@ def vapp(ctx):
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)
+            if not ctx.obj['profiles'].get('vdc_in_use') or \
+               not ctx.obj['profiles'].get('vdc_href'):
+                raise Exception('select a virtual datacenter')
         except Exception as e:
             stderr(e, ctx)
 
@@ -55,26 +50,21 @@ def vapp(ctx):
                 required=True)
 def info(ctx, name):
     try:
-        raise Exception('not implemented')
         client = ctx.obj['client']
-        in_use_org_name = ctx.obj['profiles'].get('org_in_use')
-        in_use_vdc = ctx.obj['profiles'].get('vdc_in_use')
-        orgs = client.get_org_list()
-        result = {}
-        vdc_resource = None
-        for org in orgs.findall('{http://www.vmware.com/vcloud/v1.5}Org'):
-            if org.get('name') == in_use_org_name:
-                resource = client.get_resource(org.get('href'))
-                for v in get_links(resource, media_type=EntityType.VDC.value):
-                    if v.name == name:
-                        vdc_resource = client.get_resource(v.href)
-                        result = vdc_to_object(vdc_resource)
-                        result['in_use'] = in_use_vdc == name
-                        result['org'] = in_use_org_name
-                        break;
-        if vdc_resource is None:
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc_resource = client.get_resource(vdc_href)
+        result = []
+        if hasattr(vdc_resource, 'ResourceEntities') and \
+           hasattr(vdc_resource.ResourceEntities, 'ResourceEntity'):
+            for vapp in vdc_resource.ResourceEntities.ResourceEntity:
+                if vapp.get('name') == name:
+                    vapp_resource = client.get_resource(vapp.get('href'))
+                    result.append(vapp_to_dict(vapp_resource))
+        if len(result) == 0:
             raise Exception('not found')
-        stdout(result, ctx)
+        elif len(result) > 1:
+            raise Exception('more than one found, use the vapp-id')
+        stdout(result[0], ctx)
     except Exception as e:
         stderr(e, ctx)
 
@@ -83,20 +73,17 @@ def info(ctx, name):
 @click.pass_context
 def list(ctx):
     try:
-        raise Exception('not implemented')
         client = ctx.obj['client']
-        in_use_org_name = ctx.obj['profiles'].get('org_in_use')
-        in_use_vdc = ctx.obj['profiles'].get('vdc_in_use')
-        orgs = client.get_org_list()
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc_resource = client.get_resource(vdc_href)
         result = []
-        for org in orgs.findall('{http://www.vmware.com/vcloud/v1.5}Org'):
-            if org.get('name') == in_use_org_name:
-                resource = client.get_resource(org.get('href'))
-                for v in get_links(resource, media_type=EntityType.VDC.value):
-                    result.append({'name': v.name,
-                                   'org': in_use_org_name,
-                                   'in_use': in_use_vdc == v.name})
-                break;
+        if hasattr(vdc_resource, 'ResourceEntities') and \
+           hasattr(vdc_resource.ResourceEntities, 'ResourceEntity'):
+            for vapp in vdc_resource.ResourceEntities.ResourceEntity:
+                result.append({'name': vapp.get('name'),
+                               'type': vapp.get('type').split('+')[0].
+                               split('.')[-1],
+                               'vapp_id': vapp.get('href').split('/')[-1]})
         stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)

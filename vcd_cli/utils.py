@@ -73,7 +73,7 @@ def restore_session(ctx):
     ctx.obj['profiles'] = profiles
 
 
-def stdout(obj, ctx=None):
+def stdout(obj, ctx=None, alt_text=None):
     o = obj
     if ctx is not None and ctx.find_root().params['json_output']:
         if isinstance(obj, basestring):
@@ -85,26 +85,29 @@ def stdout(obj, ctx=None):
         click.echo(highlight(unicode(text, 'UTF-8'), lexers.JsonLexer(),
                              formatters.TerminalFormatter()))
     else:
-        if isinstance(obj, basestring):
+        if alt_text is not None:
+            text = alt_text
+        elif isinstance(obj, basestring):
             text = o
         elif not isinstance(obj, list):
-            text = as_table([{'property': k, 'value': v} for k,v in obj.iteritems()])
+            text = as_table([{'property': k, 'value': v} for k,v in sorted(obj.iteritems())])
         else:
             text = as_table(obj)
         click.echo(text)
 
 def stderr(exception, ctx=None):
-    if len(exception.message) > 0:
+    if exception.message:
         message = exception.message
     else:
-        message = exception.__class__.__name__
+        message = str(exception)
     if ctx is not None and ctx.find_root().params['json_output']:
         message = {'error': str(message)}
         text = json.dumps(message,
                           sort_keys=True,
                           indent=4,
                           separators=(',', ': '))
-        message = highlight(unicode(text, 'UTF-8'), lexers.JsonLexer(), formatters.TerminalFormatter())
+        message = highlight(unicode(text, 'UTF-8'), lexers.JsonLexer(),
+                            formatters.TerminalFormatter())
         click.echo(message)
         sys.exit(1)
     else:

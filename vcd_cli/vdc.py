@@ -17,7 +17,7 @@ from lxml import etree
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.utils import vdc_to_object
+from pyvcloud.vcd.utils import vdc_to_dict
 import sys
 import traceback
 from vcd_cli.vcd import as_metavar
@@ -64,13 +64,13 @@ def info(ctx, name):
         orgs = client.get_org_list()
         result = {}
         vdc_resource = None
-        for org in orgs.findall('{http://www.vmware.com/vcloud/v1.5}Org'):
+        for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             if org.get('name') == in_use_org_name:
                 resource = client.get_resource(org.get('href'))
                 for v in get_links(resource, media_type=EntityType.VDC.value):
                     if v.name == name:
                         vdc_resource = client.get_resource(v.href)
-                        result = vdc_to_object(vdc_resource)
+                        result = vdc_to_dict(vdc_resource)
                         result['in_use'] = in_use_vdc == name
                         result['org'] = in_use_org_name
                         break;
@@ -90,7 +90,7 @@ def list(ctx):
         in_use_vdc = ctx.obj['profiles'].get('vdc_in_use')
         orgs = client.get_org_list()
         result = []
-        for org in orgs.findall('{http://www.vmware.com/vcloud/v1.5}Org'):
+        for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             if org.get('name') == in_use_org_name:
                 resource = client.get_resource(org.get('href'))
                 for v in get_links(resource, media_type=EntityType.VDC.value):
@@ -114,14 +114,14 @@ def use(ctx, name):
         orgs = client.get_org_list()
         result = {}
         vdc_resource = None
-        for org in orgs.findall('{http://www.vmware.com/vcloud/v1.5}Org'):
+        for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             if org.get('name') == in_use_org_name:
                 resource = client.get_resource(org.get('href'))
                 for v in get_links(resource, media_type=EntityType.VDC.value):
                     if v.name == name:
                         vdc_resource = client.get_resource(v.href)
-                        ctx.obj['profiles'].set('org_in_use', str(in_use_org_name))
                         ctx.obj['profiles'].set('vdc_in_use', str(name))
+                        ctx.obj['profiles'].set('vdc_href', str(v.href))
                         stdout('now using org: \'%s\', vdc: \'%s\'.' % (in_use_org_name, name), ctx)
                         return
         raise Exception('not found')

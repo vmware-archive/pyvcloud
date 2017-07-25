@@ -91,6 +91,7 @@ def version(ctx):
 if __name__ == '__main__':
     cli()
 else:
+    import cluster  #NOQA
     import login  #NOQA
     import org  #NOQA
     import profile  # NOQA

@@ -100,32 +100,38 @@ def login(ctx, user, host, password, api_version, org,
                 wkep[endpoint.name] = client._session_endpoints[endpoint]
         profiles = Profiles.load()
         logged_in_org = client.get_org()
+        org_href = logged_in_org.get('href')
+        vdc_href = ''
         in_use_vdc = ''
         if vdc is None:
             for v in get_links(logged_in_org, media_type=EntityType.VDC.value):
                 in_use_vdc = v.name
+                vdc_href = v.href
                 break
         else:
             for v in get_links(logged_in_org, media_type=EntityType.VDC.value):
                 if vdc == v.name:
                     in_use_vdc = v.name
+                    vdc_href = v.href
                     break
             if len(in_use_vdc) == 0:
                 raise Exception('VDC not found')
-        profiles.update(host, org, user,
+        profiles.update(host,
+            org,
+            user,
             client._session.headers['x-vcloud-authorization'],
             api_version,
             wkep,
             verify_ssl_certs,
             disable_warnings,
             vdc=in_use_vdc,
+            org_href=org_href,
+            vdc_href=vdc_href,
             debug=True)
-        if ctx.find_root().params['json_output']:
-            stdout({'user': user, 'org': org,
-                    'vdc': in_use_vdc, 'logged_in': True}, ctx)
-        else:
-            stdout('%s logged in, org: \'%s\', vdc: \'%s\'' % \
-                   (user, org, in_use_vdc), ctx)
+        alt_text = '%s logged in, org: \'%s\', vdc: \'%s\'' % \
+                   (user, org, in_use_vdc)
+        stdout({'user': user, 'org': org,
+                'vdc': in_use_vdc, 'logged_in': True}, ctx, alt_text)
     except Exception as e:
         try:
             profiles = Profiles.load()

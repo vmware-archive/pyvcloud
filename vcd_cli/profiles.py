@@ -52,7 +52,8 @@ class Profiles(object):
             traceback.print_exc()
 
     def update(self, host, org, user, token, api_version, wkep, verify,
-               disable_warnings, vdc, debug, name='default'):
+               disable_warnings, vdc, org_href, vdc_href,
+               debug, name='default'):
         if self.data is None:
             self.data = {}
         if 'profiles' not in self.data:
@@ -70,6 +71,8 @@ class Profiles(object):
         profile['wkep'] = wkep
         profile['org_in_use'] = str(org)
         profile['vdc_in_use'] = str(vdc)
+        profile['org_href'] = str(org_href)
+        profile['vdc_href'] = str(vdc_href)
         tmp = [profile]
         for p in self.data['profiles']:
             if p['name'] != name:

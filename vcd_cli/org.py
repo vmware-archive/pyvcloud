@@ -17,7 +17,7 @@ from lxml import etree
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.utils import org_to_object
+from pyvcloud.vcd.utils import org_to_dict
 import sys
 import traceback
 from vcd_cli.vcd import as_metavar
@@ -63,10 +63,10 @@ def info(ctx, name):
         in_use_org_name = ctx.obj['profiles'].get('org_in_use')
         orgs = client.get_org_list()
         result = {}
-        for org in orgs.findall('{http://www.vmware.com/vcloud/v1.5}Org'):
+        for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             if name == org.get('name'):
                 resource = client.get_resource(org.get('href'))
-                result = org_to_object(resource)
+                result = org_to_dict(resource)
                 result['logged_in'] = logged_in_org_name == \
                                       org.get('name')
                 result['in_use'] = in_use_org_name == \
@@ -87,7 +87,7 @@ def list(ctx):
         in_use_org_name = ctx.obj['profiles'].get('org_in_use')
         orgs = client.get_org_list()
         result = []
-        for org in orgs.findall('{http://www.vmware.com/vcloud/v1.5}Org'):
+        for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             result.append({'name': org.get('name'),
                            'logged_in': logged_in_org_name == \
                                         org.get('name'),
@@ -107,15 +107,19 @@ def use(ctx, name):
         client = ctx.obj['client']
         orgs = client.get_org_list()
         result = {}
-        for org in orgs.findall('{http://www.vmware.com/vcloud/v1.5}Org'):
+        for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             if name == org.get('name'):
                 resource = client.get_resource(org.get('href'))
                 in_use_vdc = ''
+                vdc_href = ''
                 for v in get_links(resource, media_type=EntityType.VDC.value):
                     in_use_vdc = v.name
+                    vdc_href = v.href
                     break
                 ctx.obj['profiles'].set('org_in_use', str(name))
-                ctx.obj['profiles'].set('vdc_in_use', in_use_vdc)
+                ctx.obj['profiles'].set('org_href', str(org.get('href')))
+                ctx.obj['profiles'].set('vdc_in_use', str(in_use_vdc))
+                ctx.obj['profiles'].set('vdc_href', str(vdc_href))
                 stdout('now using org: \'%s\', vdc: \'%s\'.' % (name, in_use_vdc), ctx)
                 return
         raise Exception('not found')

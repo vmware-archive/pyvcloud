@@ -3,9 +3,23 @@ image: python:2.7
 variables:
   VCD_PASS: $VCD_PASSWORD
 
-test:
+stages:
+  - test
+  - deploy
+
+unit_test:
+  stage: test
   script:
-  - pip install .
-  - pip install -r test-requirements.txt
-  - pip list --format=columns
-  - nosetests tests/00010_vcd_login.py --tc-format yaml --tc-file tests/config.yaml --tc=vcloud.host:$VCD_HOST --tc=vcloud.username:$VCD_USERNAME --tc=vcloud.password:$VCD_PASS
+    - pip install .
+    - pip install -r test-requirements.txt
+    - pip list --format=columns
+    - nosetests tests/00010_vcd_login.py --tc-format yaml --tc-file tests/config.yaml --tc=vcloud.host:$VCD_HOST --tc=vcloud.username:$VCD_USERNAME --tc=vcloud.password:$VCD_PASS
+
+deploy:
+  stage: deploy
+  script:
+    - rm -rf build dist
+    - python setup.py sdist bdist_wheel
+    - twine upload dist/*
+  dependencies:
+    - unit_test

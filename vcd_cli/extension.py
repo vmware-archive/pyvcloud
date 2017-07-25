@@ -95,6 +95,8 @@ def register(ctx, name, namespace, routing_key, exchange, patterns):
         r = ext.add_extension(name, namespace, routing_key, exchange,
                               patterns.split(','))
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         stderr(e, ctx)
 
 

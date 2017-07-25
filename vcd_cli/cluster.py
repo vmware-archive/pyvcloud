@@ -37,7 +37,6 @@ def cluster(ctx):
 \b
         vcd cluster delete 692a7b81-bb75-44cf-9070-523a4b304733
             Deletes a kubernetes cluster by id.
-
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -117,7 +116,14 @@ def create(ctx, name, node_count, network_name, wait):
 @click.argument('cluster_id',
                 metavar='<cluster-id>',
                 required=True)
-def delete(ctx, cluster_id):
+@click.option('-w',
+              '--wait',
+              'wait',
+              is_flag=True,
+              default=False,
+              required=False,
+              help='Wait until finish')
+def delete(ctx, cluster_id, wait):
     try:
         client = ctx.obj['client']
         cluster = Cluster(client)

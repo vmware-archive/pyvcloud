@@ -1,6 +1,19 @@
 CHANGES
 =======
 
+* minor changes
+* enhancements to client, rehydrate session
+* vcd
+* Adding back requirements.txt in travis.yml
+* Added requirements in setup.py
+* Fix travis test run
+* Cleanup tests and fix typo
+* client: Introduce library suitable for efficient vCD API access
+* new impl
+* improved logging
+* removed sqlair
+* readme
+* gitlab ci tests
 * gl
 * gl
 * pbr

@@ -1,4 +1,4 @@
-# VMware vCloud Python SDK
+# VMware vCloud Director Python SDK
 # Copyright (c) 2017 VMware, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
+from datetime import timedelta
 from lxml import etree
 from lxml import objectify
 from flufl.enum import Enum
-from datetime import datetime, timedelta
+import json
 import time
 import logging
 import requests
@@ -47,6 +49,7 @@ class BasicLoginCredentials(object):
 class RelationType(Enum):
     ALTERNATE = 'alternate'
     DOWN = 'down'
+    DOWN_EXTENSIBILITY = 'down:extensibility'
     NEXT_PAGE = 'nextPage'
     ADD = 'add'
     POWER_REBOOT = 'power:reboot'
@@ -55,6 +58,21 @@ class RelationType(Enum):
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
 
+class EntityType(Enum):
+    ADMIN = 'application/vnd.vmware.admin.vcloud+xml'
+    ADMIN_SERVICE = 'application/vnd.vmware.admin.service+xml'
+    API_EXTENSIBILITY = 'application/vnd.vmware.vcloud.apiextensibility+xml'
+    CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
+    EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
+    EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
+    ORG = 'application/vnd.vmware.vcloud.org+xml'
+    ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
+    ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
+    QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
+    VAPP = 'application/vnd.vmware.vcloud.vApp+xml'
+    VAPP_TEMPLATE = 'application/vnd.vmware.vcloud.vAppTemplate+xml'
+    VDC = 'application/vnd.vmware.vcloud.vdc+xml'
+
 class QueryResultFormat(Enum):
     RECORDS = ('application/vnd.vmware.vcloud.query.records+xml', 'records')
     ID_RECORDS = ('application/vnd.vmware.vcloud.query.idrecords+xml', 'idrecords')
@@ -62,12 +80,15 @@ class QueryResultFormat(Enum):
 
 class _WellKnownEndpoint(Enum):
     #ENTITY_RESOLVER = ()
-    #LOGGED_IN_ORG = ()
-    #ORG_LIST = ()
-    QUERY_LIST = (RelationType.DOWN, 'application/vnd.vmware.vcloud.query.queryList+xml')
-    ADMIN = (RelationType.DOWN, 'application/vnd.vmware.admin.vcloud+xml')
-    #API_EXTENSIBILITY = ()
-    #EXTENSION = ()
+    LOGGED_IN_ORG = (RelationType.DOWN, EntityType.ORG.value)
+    ORG_VDC = (RelationType.DOWN, EntityType.VDC.value)
+    ORG_NETWORK = (RelationType.DOWN, EntityType.ORG_NETWORK.value)
+    ORG_CATALOG = (RelationType.DOWN, EntityType.CATALOG.value)
+    QUERY_LIST = (RelationType.DOWN, EntityType.QUERY_LIST.value)
+    ADMIN = (RelationType.DOWN, EntityType.ADMIN.value)
+    API_EXTENSIBILITY = (RelationType.DOWN_EXTENSIBILITY, EntityType.API_EXTENSIBILITY.value)
+    EXTENSION = (RelationType.DOWN, EntityType.EXTENSION.value)
+    ORG_LIST = (RelationType.DOWN, EntityType.ORG_LIST.value)
 
 class MultipleRecordsException(Exception):
     pass
@@ -209,6 +230,15 @@ class Client(object):
 
     def __init__(self, uri, api_version='6.0', verify_ssl_certs=True, log_file=None, log_headers=False, log_bodies=False):
         self._uri = uri
+        if len(self._uri) > 0:
+            if self._uri[-1] == '/':
+                self._uri += 'api'
+            else:
+                self._uri += '/api'
+            if not (self._uri.startswith('https://') or \
+                    self._uri.startswith('http://')):
+                self._uri = 'https://' + self._uri
+
         self._api_version = api_version
         self._session_endpoints = None
         self._session = None
@@ -255,6 +285,18 @@ class Client(object):
         self._session = new_session
         self._session.headers['x-vcloud-authorization'] = response.headers['x-vcloud-authorization']
 
+    def rehydrate(self, profiles):
+        self._session = requests.Session()
+        self._session.headers['x-vcloud-authorization'] = profiles.get('token')
+        wkep = profiles.get('wkep')
+        self._session_endpoints = {}
+        for endpoint in _WellKnownEndpoint:
+            if endpoint.name in wkep:
+                self._session_endpoints[endpoint] = wkep[endpoint.name]
+
+    def get_api_uri(self):
+        return self._uri
+
     def get_task_monitor(self):
         if self._task_monitor is None:
             self._task_monitor = _TaskMonitor(self)
@@ -278,15 +320,24 @@ class Client(object):
             headers['Content-Type'] = media_type
         headers['Accept'] = ('application/*+xml' if accept_type is None else accept_type) + ';version=' + self._api_version
 
-        data = None if contents is None else etree.tostring(contents)
+        if contents is None:
+            data = None
+        else:
+            if isinstance(contents, dict):
+                data = json.dumps(contents)
+            else:
+                data = etree.tostring(contents)
 
         response = session.request(method, uri, data=data, headers=headers, auth=auth, verify=self._verify_ssl_certs)
 
+        if self._log_headers or self._log_bodies:
+            self._logger.debug("Request uri: %s", uri)
         if self._log_headers:
             self._logger.debug("Request headers: %s, %s", session.headers, headers)
         if self._log_bodies and data is not None:
             self._logger.debug("Request body: %s", data)
         if self._log_headers:
+            self._logger.debug("Response status code: %s", response.status_code)
             self._logger.debug("Response headers: %s", response.headers)
         if self._log_bodies and _response_has_content(response):
             self._logger.debug("Response body: %s", response.content)
@@ -348,6 +399,30 @@ class Client(object):
         """
         return self._get_wk_resource(_WellKnownEndpoint.QUERY_LIST)
 
+    def get_org(self):
+        """
+        Returns the logged in org.
+        """
+        return self._get_wk_resource(_WellKnownEndpoint.LOGGED_IN_ORG)
+
+    def get_extensibility(self):
+        """
+        Returns the 'extensibility' resource type.
+        """
+        return self._get_wk_resource(_WellKnownEndpoint.API_EXTENSIBILITY)
+
+    def get_extension(self):
+        """
+        Returns the 'extension' resource type.
+        """
+        return self._get_wk_resource(_WellKnownEndpoint.EXTENSION)
+
+    def get_org_list(self):
+        """
+        Returns the list of organizations.
+        """
+        return self._get_wk_resource(_WellKnownEndpoint.ORG_LIST)
+
     def _get_query_list_map(self):
         if self._query_list_map is None:
             self._query_list_map = {}
@@ -389,7 +464,7 @@ def find_link(resource, rel, media_type, fail_if_absent=True):
     else:
         raise MultipleLinksException(resource.get('href'), rel, media_type)
 
-def get_links(resource, rel, media_type=None):
+def get_links(resource, rel=RelationType.DOWN, media_type=None):
     """
      * Returns all the links of the specified rel and type in the specified resource
      * @param resource the resource with the link
@@ -398,7 +473,7 @@ def get_links(resource, rel, media_type=None):
      * @return the links (could be an empty list)
     """
     links = []
-    for link in resource.Link:
+    for link in resource.findall('{http://www.vmware.com/vcloud/v1.5}Link'):
         link_rel = link.get('rel')
         link_media_type = link.get('type')
         if link_rel == rel.value:
@@ -406,7 +481,6 @@ def get_links(resource, rel, media_type=None):
                 links.append(Link(link))
             elif media_type is not None and link_media_type == media_type:
                 links.append(Link(link))
-
     return links;
 
 class Link(object):
@@ -417,6 +491,7 @@ class Link(object):
         self.rel = link_elem.get('rel')
         self.media_type = link_elem.get('type')
         self.href = link_elem.get('href')
+        self.name = link_elem.get('name') if 'name' in link_elem.attrib else None
 
 class _AbstractQuery(object):
 

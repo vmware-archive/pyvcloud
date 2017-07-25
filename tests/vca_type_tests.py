@@ -1,11 +1,7 @@
-from nose.tools import with_setup
-from testconfig import config
-from pyvcloud import vcloudair
 from pyvcloud.vcloudair import VCA
 
 
 class TestVCAType:
-
     def test_0001(self):
         """Identify vCloud Director Standalone"""
         vca = VCA(host='https://p1v21-vcd.vchs.vmware.com',

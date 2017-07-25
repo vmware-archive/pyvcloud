@@ -1,12 +1,11 @@
-from nose.tools import with_setup
+from __future__ import print_function
+
 from testconfig import config
-from pyvcloud import vcloudair
+
 from pyvcloud.vcloudair import VCA
-from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType, NatServiceType, FirewallRuleType, ProtocolsType
 
 
 class TestVApp:
-
     def __init__(self):
         self.vca = None
         self.login_to_vcloud()
@@ -59,8 +58,8 @@ class TestVApp:
 
     def logout_from_vcloud(self):
         """Logout from vCloud"""
-        print 'logout'
-        selfl.vca.logout()
+        print('logout')
+        self.vca.logout()
         self.vca = None
         assert self.vca is None
 

@@ -27,13 +27,13 @@ class Cluster(object):
         method = 'GET'
         uri = self._uri
         response = self.client._do_request_prim(
-                    method,
-                    uri,
-                    self.client._session,
-                    contents=None,
-                    media_type=None,
-                    accept_type='application/*+json',
-                    auth=None)
+            method,
+            uri,
+            self.client._session,
+            contents=None,
+            media_type=None,
+            accept_type='application/*+json',
+            auth=None)
         if response.status_code == requests.codes.ok:
             return json.loads(response.content)
         else:
@@ -45,12 +45,12 @@ class Cluster(object):
         data = {'name': name, 'node_count': node_count, 'vdc': vdc,
                 'network': network_name}
         response = self.client._do_request_prim(
-                    method,
-                    uri,
-                    self.client._session,
-                    contents=data,
-                    media_type=None,
-                    accept_type='application/*+json')
+            method,
+            uri,
+            self.client._session,
+            contents=data,
+            media_type=None,
+            accept_type='application/*+json')
         if response.status_code == requests.codes.accepted:
             return json.loads(response.content)
         else:
@@ -60,10 +60,10 @@ class Cluster(object):
         method = 'DELETE'
         uri = '%s/%s' % (self._uri, cluster_id)
         response = self.client._do_request_prim(
-                    method,
-                    uri,
-                    self.client._session,
-                    accept_type='application/*+json')
+            method,
+            uri,
+            self.client._session,
+            accept_type='application/*+json')
         if response.status_code == requests.codes.accepted:
             return json.loads(response.content)
         else:

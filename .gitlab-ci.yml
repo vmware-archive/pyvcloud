@@ -10,9 +10,9 @@ stages:
 unit_test:
   stage: test
   script:
-    - pip install .
     - pip install -r test-requirements.txt
-    - pip list --format=columns
+    - tox -e flake8 pyvcloud/vcd
+    - pip install .
     - nosetests tests/00010_vcd_login.py --tc-format yaml --tc-file tests/config.yaml --tc=vcloud.host:$VCD_HOST --tc=vcloud.username:$VCD_USERNAME --tc=vcloud.password:$VCD_PASS
 
 deploy:

@@ -13,74 +13,79 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyvcloud.vcd.client import QueryResultFormat
-from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import get_links
 
 
-def to_dict(obj, attributes):
-    result = {}
-    for attr in attributes:
-        if attr in obj.attrib:
-            result[attr] = obj.get(attr)
-    return result
+def extract_id(urn):
+    if urn is None:
+        return None
+    if ':' in urn:
+        return urn.split(':')[-1]
+    else:
+        return urn
 
 
 def org_to_dict(org):
     result = {}
     result['name'] = org.get('name')
-    result['id'] =  org.get('id')
+    result['id'] = extract_id(org.get('id'))
     result['full_name'] = str('%s' % org.FullName)
     result['description'] = str('%s' % org.Description)
     result['vdcs'] = [str(n.name) for n in
-        get_links(org, media_type=EntityType.VDC.value)]
+                      get_links(org, media_type=EntityType.VDC.value)]
     result['org_networks'] = [str(n.name) for n in
-        get_links(org, media_type=EntityType.ORG_NETWORK.value)]
+                              get_links(org, media_type=EntityType.
+                                        ORG_NETWORK.value)]
     result['catalogs'] = [str(n.name) for n in
-        get_links(org, media_type=EntityType.CATALOG.value)]
+                          get_links(org, media_type=EntityType.CATALOG.value)]
     return result
 
 
 def vdc_to_dict(vdc):
     result = {}
     result['name'] = vdc.get('name')
-    result['id'] = vdc.get('id')
-    result['is_enabled'] = bool(vdc.IsEnabled)
-    result['networks'] = []
+    result['id'] = extract_id(vdc.get('id'))
+    if hasattr(vdc, 'IsEnabled'):
+        result['is_enabled'] = bool(vdc.IsEnabled)
     if hasattr(vdc, 'AvailableNetworks') and \
        hasattr(vdc.AvailableNetworks, 'Network'):
+        result['networks'] = []
         for n in vdc.AvailableNetworks.Network:
             result['networks'].append(n.get('name'))
-    result['cpu_capacity'] = {
-        'units': str(vdc.ComputeCapacity.Cpu.Units),
-        'allocated': str(vdc.ComputeCapacity.Cpu.Allocated),
-        'limit': str(vdc.ComputeCapacity.Cpu.Limit),
-        'reserved': str(vdc.ComputeCapacity.Cpu.Reserved),
-        'used': str(vdc.ComputeCapacity.Cpu.Used),
-        'overhead': str(vdc.ComputeCapacity.Cpu.Overhead)
-    }
-    result['mem_capacity'] = {
-        'units': str(vdc.ComputeCapacity.Memory.Units),
-        'allocated': str(vdc.ComputeCapacity.Memory.Allocated),
-        'limit': str(vdc.ComputeCapacity.Memory.Limit),
-        'reserved': str(vdc.ComputeCapacity.Memory.Reserved),
-        'used': str(vdc.ComputeCapacity.Memory.Used),
-        'overhead': str(vdc.ComputeCapacity.Memory.Overhead)
-    }
-    result['allocation_model'] = str(vdc.AllocationModel)
-    result['vm_quota'] = int(vdc.VmQuota)
-    result['supported_hw'] = []
+    if hasattr(vdc, 'ComputeCapacity'):
+        result['cpu_capacity'] = {
+            'units': str(vdc.ComputeCapacity.Cpu.Units),
+            'allocated': str(vdc.ComputeCapacity.Cpu.Allocated),
+            'limit': str(vdc.ComputeCapacity.Cpu.Limit),
+            'reserved': str(vdc.ComputeCapacity.Cpu.Reserved),
+            'used': str(vdc.ComputeCapacity.Cpu.Used),
+            'overhead': str(vdc.ComputeCapacity.Cpu.Overhead)
+        }
+        result['mem_capacity'] = {
+            'units': str(vdc.ComputeCapacity.Memory.Units),
+            'allocated': str(vdc.ComputeCapacity.Memory.Allocated),
+            'limit': str(vdc.ComputeCapacity.Memory.Limit),
+            'reserved': str(vdc.ComputeCapacity.Memory.Reserved),
+            'used': str(vdc.ComputeCapacity.Memory.Used),
+            'overhead': str(vdc.ComputeCapacity.Memory.Overhead)
+        }
+    if hasattr(vdc, 'AllocationModel'):
+        result['allocation_model'] = str(vdc.AllocationModel)
+    if hasattr(vdc, 'VmQuota'):
+        result['vm_quota'] = int(vdc.VmQuota)
     if hasattr(vdc, 'Capabilities') and \
        hasattr(vdc.Capabilities, 'SupportedHardwareVersions') and \
-       hasattr(vdc.Capabilities.SupportedHardwareVersions, \
+       hasattr(vdc.Capabilities.SupportedHardwareVersions,
                'SupportedHardwareVersion'):
-        for n in vdc.Capabilities.SupportedHardwareVersions. \
-                 SupportedHardwareVersion:
+        result['supported_hw'] = []
+        for n in vdc.Capabilities.SupportedHardwareVersions.\
+                SupportedHardwareVersion:
             result['supported_hw'].append(str(n))
-    result['vapps'] = []
-    result['vapp_templates'] = []
     if hasattr(vdc, 'ResourceEntities') and \
        hasattr(vdc.ResourceEntities, 'ResourceEntity'):
+        result['vapps'] = []
+        result['vapp_templates'] = []
         for n in vdc.ResourceEntities.ResourceEntity:
             if n.get('type') == EntityType.VAPP.value:
                 result['vapps'].append(n.get('name'))
@@ -92,13 +97,52 @@ def vdc_to_dict(vdc):
 def vapp_to_dict(vapp):
     result = {}
     result['name'] = vapp.get('name')
-    result['id'] =  vapp.get('id')
-    result['owner'] = []
+    result['id'] = extract_id(vapp.get('id'))
+    if 'ownerName' in vapp:
+        result['owner'] = [vapp.get('ownerName')]
     if hasattr(vapp, 'Owner') and hasattr(vapp.Owner, 'User'):
+        result['owner'] = []
         for user in vapp.Owner.User:
             result['owner'].append(user.get('name'))
-    result['vms'] = []
     if hasattr(vapp, 'Children') and hasattr(vapp.Children, 'Vm'):
+        result['vms'] = []
         for user in vapp.Children.Vm:
             result['vms'].append(user.get('name'))
+    result['status'] = vapp.get('status')
+    return result
+
+
+def task_to_dict(task):
+    result = {}
+    result['name'] = task.get('name')
+    result['id'] = extract_id(task.get('id'))
+    result['objectName'] = task.get('objectName')
+    result['status'] = task.get('status')
+    result['endDate'] = task.get('endDate')
+    result['orgName'] = task.get('orgName')
+    return result
+
+
+def to_dict(obj, attributes=None):
+    result = {}
+    for attr in obj.attrib:
+        flag = False
+        if attributes:
+            if attr in attributes:
+                flag = True
+        else:
+            flag = True
+        if flag:
+            if attr == 'id':
+                result[attr] = extract_id(obj.get(attr))
+            else:
+                result[attr] = obj.get(attr)
+    return result
+
+
+def to_camel_case(name, names):
+    result = name
+    for n in names:
+        if name.lower() == n.lower():
+            return n
     return result

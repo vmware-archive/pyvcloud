@@ -12,7 +12,10 @@ env:
 
 install:
   - pip install .
-  - pip install -r dev-requirements.txt
+  - pip install -r test-requirements.txt
 
 script:
   - tox -e $TOX_ENV
+  - pip list --format=columns | grep pyvcloud
+  - vca --version
+  - vcd version

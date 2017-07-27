@@ -14,21 +14,17 @@
 
 import click
 from vcd_cli.vcd import cli
-from vcd_cli.vcd import API_CURRENT_VERSIONS
-from vcd_cli.vcd import CONTEXT_SETTINGS
+from pyvcloud.vcd.client import API_CURRENT_VERSIONS
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import _WellKnownEndpoint
-from pyvcloud.vcd.extension import Extension
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.profiles import Profiles
 from vcd_cli.utils import as_metavar
-from vcd_cli.utils import restore_session
 import requests
-import traceback
 
 
 @cli.command(short_help='login to vCD')
@@ -64,7 +60,7 @@ import traceback
               is_flag=True,
               required=False,
               default=False,
-              help='Do not display warnings when not verifying SSL ' + \
+              help='Do not display warnings when not verifying SSL ' +
                    'certificates')
 @click.option('-v',
               '--vdc',
@@ -74,6 +70,22 @@ import traceback
 def login(ctx, user, host, password, api_version, org,
           verify_ssl_certs, disable_warnings, vdc):
     """Login to vCloud Director
+
+\b
+    Login to a vCloud Director service.
+\b
+    Examples
+        vcd login vcd.vmware.com org1 usr1
+            Log in to host 'vcd.vmware.com'.
+\b
+        vcd login test.mysp.com org1 usr -i -w
+            Log in to a host with self-signed SSL certificate.
+\b
+    Environment Variables
+        VCD_PASSWORD
+            If this environment variable is set, the command will use its value
+            as the password for login and will not ask for one. The --password
+            option has precedence over the environment variable.
 
     """
     if not verify_ssl_certs:
@@ -91,7 +103,7 @@ def login(ctx, user, host, password, api_version, org,
                     log_file='vcd.log',
                     log_headers=True,
                     log_bodies=True
-                   )
+                    )
     try:
         client.set_credentials(BasicLoginCredentials(user, org, password))
         wkep = {}
@@ -117,17 +129,17 @@ def login(ctx, user, host, password, api_version, org,
             if len(in_use_vdc) == 0:
                 raise Exception('VDC not found')
         profiles.update(host,
-            org,
-            user,
-            client._session.headers['x-vcloud-authorization'],
-            api_version,
-            wkep,
-            verify_ssl_certs,
-            disable_warnings,
-            vdc=in_use_vdc,
-            org_href=org_href,
-            vdc_href=vdc_href,
-            debug=True)
+                        org,
+                        user,
+                        client._session.headers['x-vcloud-authorization'],
+                        api_version,
+                        wkep,
+                        verify_ssl_certs,
+                        disable_warnings,
+                        vdc=in_use_vdc,
+                        org_href=org_href,
+                        vdc_href=vdc_href,
+                        debug=True)
         alt_text = '%s logged in, org: \'%s\', vdc: \'%s\'' % \
                    (user, org, in_use_vdc)
         stdout({'user': user, 'org': org,

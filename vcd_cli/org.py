@@ -1,4 +1,3 @@
-# vCloud CLI 0.1
 #
 # Copyright (c) 2014 VMware, Inc. All Rights Reserved.
 #
@@ -13,16 +12,10 @@
 #
 
 import click
-from lxml import etree
-from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.utils import org_to_dict
-import sys
-import traceback
-from vcd_cli.vcd import as_metavar
 from vcd_cli.vcd import cli
-from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -67,10 +60,8 @@ def info(ctx, name):
             if name == org.get('name'):
                 resource = client.get_resource(org.get('href'))
                 result = org_to_dict(resource)
-                result['logged_in'] = logged_in_org_name == \
-                                      org.get('name')
-                result['in_use'] = in_use_org_name == \
-                                      org.get('name')
+                result['logged_in'] = logged_in_org_name == org.get('name')
+                result['in_use'] = in_use_org_name == org.get('name')
                 stdout(result, ctx)
                 return
         raise Exception('not found')
@@ -89,9 +80,8 @@ def list(ctx):
         result = []
         for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             result.append({'name': org.get('name'),
-                           'logged_in': logged_in_org_name == \
-                                        org.get('name'),
-                            'in_use': in_use_org_name == org.get('name')})
+                           'logged_in': logged_in_org_name == org.get('name'),
+                           'in_use': in_use_org_name == org.get('name')})
         stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)
@@ -106,7 +96,6 @@ def use(ctx, name):
     try:
         client = ctx.obj['client']
         orgs = client.get_org_list()
-        result = {}
         for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             if name == org.get('name'):
                 resource = client.get_resource(org.get('href'))
@@ -120,7 +109,9 @@ def use(ctx, name):
                 ctx.obj['profiles'].set('org_href', str(org.get('href')))
                 ctx.obj['profiles'].set('vdc_in_use', str(in_use_vdc))
                 ctx.obj['profiles'].set('vdc_href', str(vdc_href))
-                stdout('now using org: \'%s\', vdc: \'%s\'.' % (name, in_use_vdc), ctx)
+                message = 'now using org: \'%s\', vdc: \'%s\'.' % \
+                          (name, in_use_vdc)
+                stdout({'org': name, 'vdc': in_use_vdc}, ctx, message)
                 return
         raise Exception('not found')
     except Exception as e:

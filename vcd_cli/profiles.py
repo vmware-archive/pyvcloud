@@ -12,14 +12,12 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-import click
-import json
 import os
-import traceback
 import yaml
 
 VCD_CLI_USER_PATH = '~/.vcd-cli'
 PROFILE_PATH = VCD_CLI_USER_PATH + '/profiles.yaml'
+
 
 class Profiles(object):
 

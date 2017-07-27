@@ -12,23 +12,25 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-import json
 import click
+from colorama import Fore
+import json
+from pygments import formatters
+from pygments import highlight
+from pygments import lexers
+from pyvcloud.vcd.client import Client
 from tabulate import tabulate
-from colorama import Fore, Back, Style
-from pygments import highlight, lexers, formatters
+import requests
 import sys
 from vcd_cli.profiles import Profiles
-import requests
-from pyvcloud.vcd.client import Client
 
 
-def as_table(obj_list, header=None):
+def as_table(obj_list, header=None, show_id=False):
     if len(obj_list) == 0:
         return ''
     else:
         headers = sorted(obj_list[0].keys())
-        if 'id' in headers:
+        if not show_id and 'id' in headers:
             headers.remove('id')
         table = []
         for obj in obj_list:
@@ -66,14 +68,14 @@ def restore_session(ctx):
                     log_file='vcd.log',
                     log_headers=True,
                     log_bodies=True
-                   )
+                    )
     client.rehydrate(profiles)
     ctx.obj = {}
     ctx.obj['client'] = client
     ctx.obj['profiles'] = profiles
 
 
-def stdout(obj, ctx=None, alt_text=None):
+def stdout(obj, ctx=None, alt_text=None, show_id=False):
     o = obj
     if ctx is not None and ctx.find_root().params['json_output']:
         if isinstance(obj, basestring):
@@ -90,10 +92,12 @@ def stdout(obj, ctx=None, alt_text=None):
         elif isinstance(obj, basestring):
             text = o
         elif not isinstance(obj, list):
-            text = as_table([{'property': k, 'value': v} for k,v in sorted(obj.iteritems())])
+            text = as_table([{'property': k, 'value': v} for k, v in
+                            sorted(obj.iteritems())], show_id=show_id)
         else:
-            text = as_table(obj)
+            text = as_table(obj, show_id=show_id)
         click.echo(text)
+
 
 def stderr(exception, ctx=None):
     if exception.message:
@@ -117,3 +121,14 @@ def stderr(exception, ctx=None):
         else:
             click.echo(message)
             sys.exit(1)
+
+
+def tabulate_names(names, columns=4):
+    result = []
+    row = None
+    for n in range(len(names)):
+        if n % columns == 0:
+            row = [''] * columns
+            result.append(row)
+        row[n % columns] = names[n]
+    return result

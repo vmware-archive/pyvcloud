@@ -83,7 +83,7 @@ def list(ctx):
                 result.append({'name': vapp.get('name'),
                                'type': vapp.get('type').split('+')[0].
                                split('.')[-1],
-                               'vapp_id': vapp.get('href').split('/')[-1]})
-        stdout(result, ctx)
+                               'id': vapp.get('href').split('/')[-1]})
+        stdout(result, ctx, show_id=True)
     except Exception as e:
         stderr(e, ctx)

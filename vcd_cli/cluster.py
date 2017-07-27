@@ -13,13 +13,11 @@
 #
 
 import click
-from vcd_cli.utils import as_metavar
 from vcd_cli.vcd import cli
 from pyvcloud.vcd.cluster import Cluster
 from vcd_cli.utils import stdout
 from vcd_cli.utils import stderr
 from vcd_cli.utils import restore_session
-import traceback
 
 
 @cli.group(short_help='manage clusters')
@@ -58,13 +56,13 @@ def list(ctx):
         clusters = cluster.get_clusters()
         for c in clusters:
             result.append({'name': c['name'],
-                           'cluster_id': c['cluster_id'],
+                           'id': c['cluster_id'],
                            'status': c['status'],
                            'leader_endpoint': c['leader_endpoint'],
                            'leaders': len(c['master_nodes']),
                            'nodes': len(c['nodes'])
                            })
-        stdout(result, ctx)
+        stdout(result, ctx, show_id=True)
     except Exception as e:
         stderr(e, ctx)
 
@@ -106,8 +104,6 @@ def create(ctx, name, node_count, network_name, wait):
                     node_count)
         stdout(result, ctx)
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         stderr(e, ctx)
 
 
@@ -130,6 +126,4 @@ def delete(ctx, cluster_id, wait):
         result = cluster.delete_cluster(cluster_id)
         stdout(result, ctx)
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         stderr(e, ctx)

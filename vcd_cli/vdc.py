@@ -13,16 +13,10 @@
 #
 
 import click
-from lxml import etree
-from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.utils import vdc_to_dict
-import sys
-import traceback
-from vcd_cli.vcd import as_metavar
 from vcd_cli.vcd import cli
-from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -63,7 +57,6 @@ def info(ctx, name):
         in_use_vdc = ctx.obj['profiles'].get('vdc_in_use')
         orgs = client.get_org_list()
         result = {}
-        vdc_resource = None
         for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             if org.get('name') == in_use_org_name:
                 resource = client.get_resource(org.get('href'))
@@ -73,7 +66,7 @@ def info(ctx, name):
                         result = vdc_to_dict(vdc_resource)
                         result['in_use'] = in_use_vdc == name
                         result['org'] = in_use_org_name
-                        break;
+                        break
         if vdc_resource is None:
             raise Exception('not found')
         stdout(result, ctx)
@@ -97,10 +90,11 @@ def list(ctx):
                     result.append({'name': v.name,
                                    'org': in_use_org_name,
                                    'in_use': in_use_vdc == v.name})
-                break;
+                break
         stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)
+
 
 @vdc.command(short_help='set active virtual datacenter')
 @click.pass_context
@@ -112,17 +106,19 @@ def use(ctx, name):
         client = ctx.obj['client']
         in_use_org_name = ctx.obj['profiles'].get('org_in_use')
         orgs = client.get_org_list()
-        result = {}
-        vdc_resource = None
         for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             if org.get('name') == in_use_org_name:
                 resource = client.get_resource(org.get('href'))
                 for v in get_links(resource, media_type=EntityType.VDC.value):
                     if v.name == name:
-                        vdc_resource = client.get_resource(v.href)
+                        client.get_resource(v.href)
                         ctx.obj['profiles'].set('vdc_in_use', str(name))
                         ctx.obj['profiles'].set('vdc_href', str(v.href))
-                        stdout('now using org: \'%s\', vdc: \'%s\'.' % (in_use_org_name, name), ctx)
+                        message = 'now using org: \'%s\', vdc: \'%s\'.' % \
+                                  (in_use_org_name, name)
+                        stdout({'org': in_use_org_name, 'vdc': vdc},
+                               ctx,
+                               message)
                         return
         raise Exception('not found')
     except Exception as e:

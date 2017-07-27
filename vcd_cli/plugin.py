@@ -12,22 +12,6 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-import click
-from vcd_cli.vcd import cli
 
-
-@cli.group(short_help='manage system settings')
-@click.pass_context
-def system(ctx):
-    """Manage system settings in vCloud Director."""  # NOQA
-
-    if ctx.invoked_subcommand is None:
-        click.secho(ctx.get_help())
-        return
-
-
-if __name__ == '__main__':
+def load_user_plugins():
     pass
-else:
-    import amqp  # NOQA
-    import extension  # NOQA

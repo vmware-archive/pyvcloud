@@ -13,18 +13,14 @@
 #
 
 import click
-from lxml import etree
 from pyvcloud.vcd.client import QueryResultFormat
-import sys
-import traceback
 from vcd_cli.vcd import as_metavar
-from vcd import cli
+from vcd_cli.vcd import cli
+from vcd_cli.utils import stdout
+from vcd_cli.utils import stderr
+
 from vcd_cli.vcd import OPERATIONS
 
-
-def ddump(r):
-    print(etree.tostring(r, pretty_print=True))
-    print('---')
 
 def _print(r):
     root = r
@@ -33,7 +29,8 @@ def _print(r):
     print(root.attrib['name'])
     print(root.attrib['status'])
     print(root.attrib['orgName'])
-    if 'objectName' in root.attrib: print(root.attrib['objectName'])
+    if 'objectName' in root.attrib:
+        print(root.attrib['objectName'])
     print(root.attrib['ownerName'])
     print('---')
 
@@ -54,15 +51,16 @@ def task(ctx, operation, name):
         if operation == 'list':
             print('tasks list:\n')
             client = ctx.obj['client']
-            q = client.get_typed_query('task', equality_filter=('name', 'CLUSTER_CREATE'), query_result_format=QueryResultFormat.ID_RECORDS)
+            q = client.get_typed_query('task', equality_filter=('name',
+                                       'CLUSTER_CREATE'),
+                                       query_result_format=QueryResultFormat.
+                                       ID_RECORDS)
             qr = q.execute()
             n = 0
             for r in qr:
                 n += 1
-                _print(r)
+                stdout(r, ctx)
         else:
             raise Exception('not implemented')
     except Exception as e:
-        tb = traceback.format_exc()
-        click.secho('%s' % e,
-                    fg='red', err=True)
+        stderr(e, ctx)

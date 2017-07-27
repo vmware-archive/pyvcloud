@@ -13,15 +13,9 @@
 #
 
 import click
-from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session
-from vcd_cli.vcd import cli
 from vcd_cli.system import system
-from vcd_cli.vcd import CONTEXT_SETTINGS
-from pyvcloud.vcd.extension import Extension
 from vcd_cli.utils import stderr
-from vcd_cli.utils import stdout
-from vcd_cli.profiles import Profiles
 
 
 @system.group(short_help='manage AMQP settings')
@@ -39,6 +33,7 @@ def amqp(ctx):
             restore_session(ctx)
         except Exception as e:
             stderr(e, ctx)
+
 
 @amqp.command(short_help='show AMQP settings')
 @click.pass_context

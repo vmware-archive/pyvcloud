@@ -25,71 +25,56 @@ from vcd_cli.utils import tabulate_names
 from tabulate import tabulate
 
 
-@cli.command(short_help='search resources')
+@cli.command(short_help='show resource details')
 @click.pass_context
 @click.argument('resource_type',
                 metavar='[resource-type]',
                 required=False)
-@click.option('-f',
-              '--filter',
-              'query_filter',
-              required=False,
-              metavar='[query-filter]',
-              help='query filter')
-def search(ctx, resource_type, query_filter):
-    """Search for resources in vCloud Director.
+@click.argument('resource-id',
+                metavar='[resource-id]',
+                required=False)
+def info(ctx, resource_type, resource_id):
+    """Display details of a resource in vCloud Director.
 
 \b
     Description
-        Search for resources of the provided type. Resource type is not case
-        sensitive. When invoked without a resource type, list the available
-        types to search for. Admin types are only allowed when the user is
-        the system administrator.
-\b
-        Filters can be applied to the search.
+        Display details of a resource with the provided type and id.
+        Resource type is not case sensitive. When invoked without a resource
+        type, list the available types. Admin resources are only allowed when
+        the user is the system administrator.
 \b
     Examples
-        vcd search
-            lists available resource types.
+        vcd info task ffb96443-d7f3-4200-825d-0f297388ebc0
+            Get details of task by id.
 \b
-        vcd search task
-            Search for all tasks in current organization.
+        vcd info vapp c48a4e1a-7bd9-4177-9c67-4c330016b99f
+            Get details of vApp by id
 \b
-        vcd search task --filter 'status==running'
-            Search for running tasks in current organization.
-\b
-        vcd search admintask --filter 'status=running'
-            Search for running tasks in all organizations, system administrator only.
-\b
-        vcd search task --filter 'id==ffb96443-d7f3-4200-825d-0f297388ebc0'
-            Search for a task by id
-\b
-        vcd search vapp
-            Search for vApps.
-\b
-        vcd search vm
-            Search for virtual machines.
-    """  # NOQA
+    See Also
+        Several 'vcd' commands provide the id of a resource, including the
+        'vcd search' command.
+    """
     try:
-        if resource_type is None:
+        if resource_type is None or resource_id is None:
             click.secho(ctx.get_help())
             click.echo('\nAvailable resource types:')
             click.echo(tabulate(tabulate_names(RESOURCE_TYPES, 4)))
             return
         restore_session(ctx)
         client = ctx.obj['client']
-        result = []
         q = client.get_typed_query(to_camel_case(resource_type,
                                                  RESOURCE_TYPES),
                                    query_result_format=QueryResultFormat.
                                    ID_RECORDS,
-                                   qfilter=query_filter)
+                                   qfilter='id==%s' % resource_id)
         records = list(q.execute())
         if len(records) == 0:
-            result = 'not found'
-        else:
-            for r in records:
-                result.append(to_dict(r, resource_type))
+            raise Exception('not found')
+        elif len(records) > 1:
+            raise Exception('multiple found')
+        result = to_dict(records[0], resource_type)
         stdout(result, ctx, show_id=True)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         stderr(e, ctx)

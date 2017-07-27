@@ -13,43 +13,12 @@
 #
 
 import click
-import json
 import pkg_resources
-from profiles import Profiles
-from pyvcloud.vcd.client import _get_session_endpoints
-from pyvcloud.vcd.client import _WellKnownEndpoint
-from pyvcloud.vcd.client import BasicLoginCredentials
-from pyvcloud.vcd.client import Client
-from pyvcloud.vcd.client import QueryResultFormat
-import requests
-import traceback
-import yaml
-from vcd_cli.utils import stderr
+from vcd_cli.plugin import load_user_plugins
 from vcd_cli.utils import stdout
-from colorama import Fore, Back, Style
-from vcd_cli.utils import as_metavar
-from vcd_cli.utils import restore_session
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
-API_CURRENT_VERSIONS = ['5.5',
-                        '5.6',
-                        '6.0',
-                        '13.0',
-                        '17.0',
-                        '20.0',
-                        '21.0',
-                        '22.0',
-                        '23.0',
-                        '24.0',
-                        '25.0',
-                        '26.0',
-                        '27.0',
-                        '28.0',
-                        '29.0']
-
-def load_user_plugins():
-    pass
 
 
 @click.group(context_settings=CONTEXT_SETTINGS,
@@ -80,22 +49,22 @@ def version(ctx):
     ver_obj = {'product': 'vcd-cli',
                'description': 'VMware vCloud Director Command Line Interface',
                'version': ver}
-    if not ctx.find_root().params['json_output']:
-        ver_obj = '%s, %s, %s' % (ver_obj['product'],
-                                  ver_obj['description'],
-                                  ver_obj['version'])
-    stdout(ver_obj, ctx)
-
+    ver_str = '%s, %s, %s' % (ver_obj['product'],
+                              ver_obj['description'],
+                              ver_obj['version'])
+    stdout(ver_obj, ctx, ver_str)
 
 
 if __name__ == '__main__':
     cli()
 else:
-    import cluster  #NOQA
-    import login  #NOQA
-    import org  #NOQA
+    import cluster  # NOQA
+    import info  # NOQA
+    import login  # NOQA
+    import org  # NOQA
     import profile  # NOQA
-    import system  #NOQA
-    import vapp  #NOQA
-    import vdc  #NOQA
+    import search  # NOQA
+    import system  # NOQA
+    import vapp  # NOQA
+    import vdc  # NOQA
     load_user_plugins()

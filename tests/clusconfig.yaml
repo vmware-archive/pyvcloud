@@ -1,0 +1,3 @@
+vcloud:
+  uri: https://bos1-vcd-sp-static-199-30.eng.vmware.com
+  verify: False

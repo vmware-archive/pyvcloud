@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+* flake+tests
+* gitlab
+* gitlab
+* gitlab
+* wip
+* travis-docker
+* travis fix
 * fixed requirements
 * minor changes
 * enhancements to client, rehydrate session

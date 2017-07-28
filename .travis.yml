@@ -15,6 +15,6 @@ install:
   - pip install -r test-requirements.txt
 
 script:
-  - tox -e $TOX_ENV pyvcloud/vcd
+  - tox -e $TOX_ENV
   - pip list --format=columns | grep pyvcloud
   - python -c 'import pkg_resources; print(pkg_resources.require("pyvcloud")[0].version)'

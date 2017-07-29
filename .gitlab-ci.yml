@@ -11,7 +11,7 @@ unit_test:
   stage: test
   script:
     - pip install -r test-requirements.txt
-    - tox -e flake8 pyvcloud/vcd
+    - tox -e flake8
     - pip install .
     - nosetests tests/00010_vcd_login.py --tc-format yaml --tc-file tests/config.yaml --tc=vcloud.host:$VCD_HOST --tc=vcloud.username:$VCD_USERNAME --tc=vcloud.password:$VCD_PASS
 

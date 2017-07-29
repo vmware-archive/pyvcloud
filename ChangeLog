@@ -1,6 +1,32 @@
 CHANGES
 =======
 
+* deps
+* tests
+* search and info commands added
+* doc
+* setup
+* cse-support
+* cluster
+* vapp
+* vdc
+* readme
+* readme
+* readme
+* readme
+* readme
+* readme
+* readme
+* readme
+* vcd
+* vcd
+* new-impl
+* vcd
+* rehydrate
+* removed blueprint command
+* verify ssl flags
+* tox
+* tox
 * tox
 * gl
 * fix setup

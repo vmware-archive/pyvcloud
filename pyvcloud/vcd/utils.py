@@ -113,23 +113,41 @@ def vapp_to_dict(vapp):
 
 
 def task_to_dict(task):
-    result = {}
-    result['name'] = task.get('name')
-    result['id'] = extract_id(task.get('id'))
-    result['objectName'] = task.get('objectName')
-    result['status'] = task.get('status')
-    result['endDate'] = task.get('endDate')
-    result['orgName'] = task.get('orgName')
+    result = to_dict(task)
+    if hasattr(task, 'Owner'):
+        result['owner_name'] = task.Owner.get('name')
+        result['owner_href'] = task.Owner.get('href')
+        result['owner_type'] = task.Owner.get('type')
+    if hasattr(task, 'User'):
+        result['user'] = task.User.get('name')
+    if hasattr(task, 'Organization'):
+        result['organization'] = task.Organization.get('name')
+    if hasattr(task, 'Details'):
+        result['details'] = task.Details
     return result
 
+def filter_attributes(resource_type):
+    attributes = None
+    if resource_type in ['task', 'adminTask']:
+        attributes = ['id', 'name', 'objectName', 'status',
+                      'startDate']
+    return attributes
 
-def to_dict(obj, attributes=None):
+def to_dict(obj, attributes=None, resource_type=None):
     result = {}
+    attributes_res = filter_attributes(resource_type)
+    if attributes:
+        for attr in attributes:
+            result[attr] = None
+    if attributes_res:
+        for attr in attributes_res:
+            result[attr] = None
     for attr in obj.attrib:
         flag = False
         if attributes:
-            if attr in attributes:
-                flag = True
+            flag = attr in attributes
+        elif attributes_res:
+            flag = attr in attributes_res
         else:
             flag = True
         if flag:

@@ -58,7 +58,7 @@ def search(ctx, resource_type, query_filter):
         vcd search task --filter 'status==running'
             Search for running tasks in current organization.
 \b
-        vcd search admintask --filter 'status=running'
+        vcd search admintask --filter 'status==running'
             Search for running tasks in all organizations, system administrator only.
 \b
         vcd search task --filter 'id==ffb96443-d7f3-4200-825d-0f297388ebc0'
@@ -79,8 +79,8 @@ def search(ctx, resource_type, query_filter):
         restore_session(ctx)
         client = ctx.obj['client']
         result = []
-        q = client.get_typed_query(to_camel_case(resource_type,
-                                                 RESOURCE_TYPES),
+        resource_type_cc = to_camel_case(resource_type, RESOURCE_TYPES)
+        q = client.get_typed_query(resource_type_cc,
                                    query_result_format=QueryResultFormat.
                                    ID_RECORDS,
                                    qfilter=query_filter)
@@ -89,7 +89,7 @@ def search(ctx, resource_type, query_filter):
             result = 'not found'
         else:
             for r in records:
-                result.append(to_dict(r, resource_type))
+                result.append(to_dict(r, resource_type=resource_type_cc))
         stdout(result, ctx, show_id=True)
     except Exception as e:
         stderr(e, ctx)

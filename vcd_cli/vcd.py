@@ -65,6 +65,7 @@ else:
     import profile  # NOQA
     import search  # NOQA
     import system  # NOQA
+    import task  # NOQA
     import vapp  # NOQA
     import vdc  # NOQA
     load_user_plugins()

@@ -1,4 +1,3 @@
-# vCloud CLI 0.1
 #
 # Copyright (c) 2014 VMware, Inc. All Rights Reserved.
 #
@@ -13,54 +12,75 @@
 #
 
 import click
-from pyvcloud.vcd.client import QueryResultFormat
-from vcd_cli.vcd import as_metavar
+from pyvcloud.vcd.client import get_links
+from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import TaskStatus
+from pyvcloud.vcd.utils import org_to_dict
 from vcd_cli.vcd import cli
-from vcd_cli.utils import stdout
+from vcd_cli.utils import as_metavar
+from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
-
-from vcd_cli.vcd import OPERATIONS
-
-
-def _print(r):
-    root = r
-    # print('%s %s %s'% (root.tag, root.attrib['id'], root.attrib['name']))
-    print(root.tag)
-    print(root.attrib['name'])
-    print(root.attrib['status'])
-    print(root.attrib['orgName'])
-    if 'objectName' in root.attrib:
-        print(root.attrib['objectName'])
-    print(root.attrib['ownerName'])
-    print('---')
+from vcd_cli.utils import stdout
 
 
-@cli.command()
+@cli.group(short_help='work with tasks')
 @click.pass_context
-@click.argument('operation',
-                default=None,
-                type=click.Choice(OPERATIONS),
-                metavar=as_metavar(OPERATIONS)
-                )
-@click.argument('name',
-                metavar='[name]',
+def task(ctx):
+    """Work with tasks in vCloud Director.
+
+\b
+    Examples
+        vcd task list running
+            Get list of running tasks.
+\b
+        vcd task info 4a115aa5-9657-4d97-a8c2-3faf43fb45dd
+            Get details of task by id.
+\b
+        vcd task wait 4a115aa5-9657-4d97-a8c2-3faf43fb45dd
+            Wait until task is complete.
+\b
+        vcd task update aborted 4a115aa5-9657-4d97-a8c2-3faf43fb45dd
+            Abort task by id, requires login as 'system administrator'.
+    """  # NOQA
+    if ctx.invoked_subcommand is not None:
+        try:
+            restore_session(ctx)
+        except Exception as e:
+            stderr(e, ctx)
+
+@task.command(short_help='show task details')
+@click.pass_context
+@click.argument('task_id',
+                metavar='<id>',
+                required=True)
+def info(ctx, task_id):
+    pass
+
+@task.command(short_help='list tasks')
+@click.pass_context
+@click.argument('status',
+                type=click.Choice(TaskStatus._enums.keys()),
+                metavar=as_metavar(TaskStatus._enums.keys()),
                 required=False)
-def task(ctx, operation, name):
-    """Operations with Tasks"""
-    try:
-        if operation == 'list':
-            print('tasks list:\n')
-            client = ctx.obj['client']
-            q = client.get_typed_query('task', equality_filter=('name',
-                                       'CLUSTER_CREATE'),
-                                       query_result_format=QueryResultFormat.
-                                       ID_RECORDS)
-            qr = q.execute()
-            n = 0
-            for r in qr:
-                n += 1
-                stdout(r, ctx)
-        else:
-            raise Exception('not implemented')
-    except Exception as e:
-        stderr(e, ctx)
+def list(ctx, status):
+    pass
+
+@task.command(short_help='wait until task is complete')
+@click.pass_context
+@click.argument('task_id',
+                metavar='<id>',
+                required=True)
+def wait(ctx, task_id):
+    pass
+
+@task.command(short_help='update task status')
+@click.pass_context
+@click.argument('status',
+                type=click.Choice(TaskStatus._enums.keys()),
+                metavar=as_metavar(TaskStatus._enums.keys()),
+                required=True)
+@click.argument('task_id',
+                metavar='<id>',
+                required=True)
+def update(ctx, status, task_id):
+    pass

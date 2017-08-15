@@ -458,6 +458,10 @@ class Client(object):
             if endpoint.name in wkep:
                 self._session_endpoints[endpoint] = wkep[endpoint.name]
 
+    def logout(self):
+        uri = self._uri + '/session'
+        return self._do_request('DELETE', uri)
+
     def get_api_uri(self):
         return self._uri
 

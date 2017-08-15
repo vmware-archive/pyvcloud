@@ -20,6 +20,7 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import _WellKnownEndpoint
+from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.profiles import Profiles
@@ -160,6 +161,12 @@ def login(ctx, user, host, password, api_version, org,
 def logout(ctx):
     """Logout from vCloud Director
     """
-    profiles = Profiles.load()
-    profiles.set('token', '')
-    stdout('%s logged out' % (profiles.get('user')), ctx)
+    try:
+        restore_session(ctx)
+        client = ctx.obj['client']
+        profiles = ctx.obj['profiles']
+        client.logout()
+        profiles.set('token', '')
+        stdout('%s logged out' % (profiles.get('user')), ctx)
+    except Exception as e:
+        stderr(e, ctx)

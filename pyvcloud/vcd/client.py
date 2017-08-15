@@ -161,6 +161,8 @@ class RelationType(Enum):
     POWER_SUSPEND = 'power:suspend'
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
+    TASK_CANCEL = 'task:cancel'
+    EDIT = 'edit'
 
 
 class EntityType(Enum):
@@ -336,6 +338,7 @@ class _TaskMonitor(object):
         start_time = datetime.now()
         while True:
             task = self._get_task_status(task_href)
+            print(task.get('status'))
             task_status = task.get('status').lower()
             for status in expected_target_statuses:
                 if task_status == status.value.lower():

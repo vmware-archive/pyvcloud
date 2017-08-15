@@ -937,7 +937,11 @@ class VAPP(object):
                 e = vm.get_Environment()
                 if e:
                     es = e.get_Section()
-                    property_section = filter(lambda section: section.__class__.__name__ == 'PropertySection_Type', es)[0]
+                    property_section = None
+                    try:
+                        property_section = filter(lambda section: section.__class__.__name__ == 'PropertySection_Type', es)[0]
+                    except IndexError:
+                        pass
                     if property_section:
                         props = property_section.get_Property()
                         for prop in props:

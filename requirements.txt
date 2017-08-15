@@ -1,6 +1,6 @@
 click>=6.7
 colorama>=0.3.3
-cryptography>=0.9.1
+cryptography>=2.0.3
 requests>=2.4.3
 PyYAML>=3.10
 pyvcloud>=18.0.4.dev33

@@ -14,6 +14,7 @@
 import click
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import task_to_dict
@@ -22,6 +23,8 @@ from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
+from lxml import etree
+
 
 
 @cli.group(short_help='work with tasks')
@@ -80,7 +83,13 @@ def list(ctx, status):
                 metavar='<id>',
                 required=True)
 def wait(ctx, task_id):
-    pass
+    try:
+        client = ctx.obj['client']
+        task = client.get_resource('%s/task/%s' % (client._uri, task_id))
+        task_monitor = client.get_task_monitor().wait_for_success(task, 10)
+        # stdout(task_to_dict(result), ctx, show_id=True)
+    except Exception as e:
+        stderr(e, ctx)
 
 @task.command(short_help='update task status')
 @click.pass_context
@@ -94,18 +103,12 @@ def wait(ctx, task_id):
 def update(ctx, status, task_id):
     try:
         client = ctx.obj['client']
-        result = []
-        # resource_type_cc = to_camel_case(resource_type, RESOURCE_TYPES)
-        # q = client.get_typed_query(resource_type_cc,
-        #                            query_result_format=QueryResultFormat.
-        #                            ID_RECORDS,
-        #                            qfilter=query_filter)
-        # records = list(q.execute())
-        # if len(records) == 0:
-        #     result = 'not found'
-        # else:
-        #     for r in records:
-        #         result.append(to_dict(r, resource_type=resource_type_cc))
-        # stdout(result, ctx, show_id=True)
+        task = client.get_resource('%s/task/%s' % (client._uri, task_id))
+        task.set('status', status)
+        result = client.put_linked_resource(task, RelationType.EDIT, 'application/vnd.vmware.vcloud.task+xml', task)
+        # stdout(result, ctx)
+        print(result)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         stderr(e, ctx)

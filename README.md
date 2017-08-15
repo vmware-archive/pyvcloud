@@ -129,3 +129,15 @@ $ vcd login us-texas-1-14.vchs.vmware.com/api/compute ad96259e-2d36-44ad-9dd7-45
             'user@company.com' \
             --password 'p@$$w0rd' --version 17.0
 ```
+
+Development
+---
+
+macOS:
+
+```shell
+$ git clone https://github.com/vmware/vcd-cli.git
+$ cd vcd-cli
+$ pip install oslo.utils cryptography
+$ python setup.py develop
+```

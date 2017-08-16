@@ -179,6 +179,7 @@ class EntityType(Enum):
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'
+    TASK = 'application/vnd.vmware.vcloud.task+xml'
     VAPP = 'application/vnd.vmware.vcloud.vApp+xml'
     VAPP_TEMPLATE = 'application/vnd.vmware.vcloud.vAppTemplate+xml'
     VDC = 'application/vnd.vmware.vcloud.vdc+xml'

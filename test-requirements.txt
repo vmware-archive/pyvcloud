@@ -1,5 +1,5 @@
 tox
 flake8
-hacking>=0.10.0,<0.11
+hacking
 nose>=1.3.6
 nose-testconfig>=0.9.1

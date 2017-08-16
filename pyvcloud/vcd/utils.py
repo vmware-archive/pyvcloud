@@ -126,6 +126,7 @@ def task_to_dict(task):
         result['details'] = task.Details
     return result
 
+
 def filter_attributes(resource_type):
     attributes = None
     if resource_type in ['task', 'adminTask']:
@@ -133,7 +134,11 @@ def filter_attributes(resource_type):
                       'startDate']
     return attributes
 
-def to_dict(obj, attributes=None, resource_type=None, exclude=['href', 'type']):
+
+def to_dict(obj,
+            attributes=None,
+            resource_type=None,
+            exclude=['href', 'type']):
     result = {}
     attributes_res = filter_attributes(resource_type)
     if attributes:

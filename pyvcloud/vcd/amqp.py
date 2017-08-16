@@ -14,12 +14,8 @@
 # limitations under the License.
 
 from lxml import objectify
-from lxml import etree
 from pyvcloud.vcd.client import _WellKnownEndpoint
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.client import QueryResultFormat
-from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.utils import to_dict
 
 
 Amqp = objectify.ElementMaker(

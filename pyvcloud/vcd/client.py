@@ -167,6 +167,7 @@ class RelationType(Enum):
 
 class EntityType(Enum):
     ADMIN = 'application/vnd.vmware.admin.vcloud+xml'
+    ADMIN_CATALOG = 'application/vnd.vmware.admin.catalog+xml'
     ADMIN_SERVICE = 'application/vnd.vmware.admin.service+xml'
     API_EXTENSIBILITY = 'application/vnd.vmware.vcloud.apiextensibility+xml'
     AMQP_SETTINGS = 'application/vnd.vmware.admin.amqpSettings+xml'
@@ -602,6 +603,12 @@ class Client(object):
     def delete_resource(self, uri, force=False, recursive=False):
         full_uri = '%s?force=%s&recursive=%s' % (uri, force, recursive)
         return self._do_request('DELETE', full_uri)
+
+    def delete_linked_resource(self, resource, rel, media_type):
+        """Deletes the resource referenced by the link with the specified rel and mediaType in the specified resource.
+
+        """  # NOQA
+        return self.delete_resource(find_link(resource, rel, media_type).href)
 
     def get_admin(self):
         """Returns the "admin" root resource type.

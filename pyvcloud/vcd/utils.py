@@ -133,7 +133,7 @@ def filter_attributes(resource_type):
                       'startDate']
     return attributes
 
-def to_dict(obj, attributes=None, resource_type=None):
+def to_dict(obj, attributes=None, resource_type=None, exclude=['href', 'type']):
     result = {}
     attributes_res = filter_attributes(resource_type)
     if attributes:
@@ -155,6 +155,11 @@ def to_dict(obj, attributes=None, resource_type=None):
                 result[attr] = extract_id(obj.get(attr))
             else:
                 result[attr] = obj.get(attr)
+    for key in obj.__dict__:
+        result[key] = obj[key].text
+    for e in exclude:
+        if e in result.keys():
+            result.pop(e)
     return result
 
 

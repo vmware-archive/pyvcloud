@@ -35,8 +35,11 @@ def amqp(ctx):
         vcd -j system amqp info > amqp-config.json
             Save current AMQP configuration to file.
 \b
-        vcd system amqp test amqp-config.json
+        vcd system amqp test amqp-config.json --password guest
             Test AMQP configuration.
+\b
+        vcd system amqp set amqp-config.json --password guest
+            Set AMQP configuration.
 
     """  # NOQA
     if ctx.invoked_subcommand is not None:
@@ -76,5 +79,23 @@ def test(ctx, password, config_file):
             stdout('The configuration is valid.', ctx)
         else:
             raise Exception('The configuration is invalid: %s' % result['error'].get('message'))
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@amqp.command(short_help='configure AMQP settings')
+@click.pass_context
+@click.option('-p', '--password', prompt=True, hide_input=True,
+              confirmation_prompt=False)
+@click.argument('config-file', type=click.File('rb'), metavar='<config-file>',
+                required=True)
+def set(ctx, password, config_file):
+    try:
+        client = ctx.obj['client']
+        profiles = ctx.obj['profiles']
+        config = json.loads(config_file.read(1024))
+        amqp = AmqpService(client)
+        amqp.set_config(config, password)
+        stdout('Updated AMQP configuration.', ctx)
     except Exception as e:
         stderr(e, ctx)

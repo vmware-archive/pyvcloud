@@ -13,19 +13,19 @@
 #
 
 import click
-from vcd_cli.vcd import cli
+from pyvcloud.vcd.client import _WellKnownEndpoint
 from pyvcloud.vcd.client import API_CURRENT_VERSIONS
+from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
-from pyvcloud.vcd.client import BasicLoginCredentials
-from pyvcloud.vcd.client import _WellKnownEndpoint
+import requests
+from vcd_cli.profiles import Profiles
+from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
-from vcd_cli.profiles import Profiles
-from vcd_cli.utils import as_metavar
-import requests
+from vcd_cli.vcd import cli
 
 
 @cli.command(short_help='login to vCD')
@@ -149,7 +149,7 @@ def login(ctx, user, host, password, api_version, org,
         try:
             profiles = Profiles.load()
             profiles.set('token', '')
-        except:
+        except Exception:
             pass
         if not ctx.find_root().params['json_output']:
             click.secho('can\'t log in', fg='red', err=True)
@@ -160,6 +160,7 @@ def login(ctx, user, host, password, api_version, org,
 @click.pass_context
 def logout(ctx):
     """Logout from vCloud Director
+
     """
     try:
         restore_session(ctx)

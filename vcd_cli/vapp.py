@@ -14,10 +14,10 @@
 
 import click
 from pyvcloud.vcd.utils import vapp_to_dict
-from vcd_cli.vcd import cli
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
+from vcd_cli.vcd import cli
 
 
 @cli.group(short_help='manage vApps')

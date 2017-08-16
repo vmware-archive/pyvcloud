@@ -13,8 +13,8 @@
 #
 
 import click
-from vcd_cli.vcd import cli
 from vcd_cli.profiles import Profiles
+from vcd_cli.vcd import cli
 import yaml
 
 

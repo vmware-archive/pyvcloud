@@ -14,12 +14,12 @@
 
 import click
 import json
-from vcd_cli.utils import restore_session
-from vcd_cli.system import system
-from vcd_cli.utils import stdout
-from vcd_cli.utils import stderr
-from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.amqp import AmqpService
+from pyvcloud.vcd.utils import to_dict
+from vcd_cli.system import system
+from vcd_cli.utils import restore_session
+from vcd_cli.utils import stderr
+from vcd_cli.utils import stdout
 
 
 @system.group(short_help='manage AMQP settings')
@@ -40,7 +40,6 @@ def amqp(ctx):
 \b
         vcd system amqp set amqp-config.json --password guest
             Set AMQP configuration.
-
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -54,7 +53,6 @@ def amqp(ctx):
 def info(ctx):
     try:
         client = ctx.obj['client']
-        profiles = ctx.obj['profiles']
         amqp = AmqpService(client)
         settings = amqp.get_settings()
         stdout(to_dict(settings), ctx)
@@ -71,28 +69,27 @@ def info(ctx):
 def test(ctx, password, config_file):
     try:
         client = ctx.obj['client']
-        profiles = ctx.obj['profiles']
         config = json.loads(config_file.read(1024))
         amqp = AmqpService(client)
         result = amqp.test_config(config, password)
         if result['Valid'].text == 'true':
             stdout('The configuration is valid.', ctx)
         else:
-            raise Exception('The configuration is invalid: %s' % result['error'].get('message'))
+            raise Exception('The configuration is invalid: %s' %
+                            result['error'].get('message'))
     except Exception as e:
         stderr(e, ctx)
 
 
-@amqp.command(short_help='configure AMQP settings')
+@amqp.command('set', short_help='configure AMQP settings')
 @click.pass_context
 @click.option('-p', '--password', prompt=True, hide_input=True,
               confirmation_prompt=False)
 @click.argument('config-file', type=click.File('rb'), metavar='<config-file>',
                 required=True)
-def set(ctx, password, config_file):
+def set_config(ctx, password, config_file):
     try:
         client = ctx.obj['client']
-        profiles = ctx.obj['profiles']
         config = json.loads(config_file.read(1024))
         amqp = AmqpService(client)
         amqp.set_config(config, password)

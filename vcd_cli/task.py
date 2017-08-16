@@ -12,19 +12,15 @@
 #
 
 import click
-from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import TaskStatus
-from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import task_to_dict
-from vcd_cli.vcd import cli
 from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
-from lxml import etree
-
+from vcd_cli.vcd import cli
 
 
 @cli.group(short_help='work with tasks')
@@ -52,6 +48,7 @@ def task(ctx):
         except Exception as e:
             stderr(e, ctx)
 
+
 @task.command(short_help='show task details')
 @click.pass_context
 @click.argument('task_id',
@@ -77,6 +74,7 @@ def list(ctx, status):
     stdout('   vcd search task      --filter ''status==running''')
     stdout('   vcd search admintask --filter ''status==running''')
 
+
 @task.command(short_help='wait until task is complete')
 @click.pass_context
 @click.argument('task_id',
@@ -86,10 +84,10 @@ def wait(ctx, task_id):
     try:
         client = ctx.obj['client']
         task = client.get_resource('%s/task/%s' % (client._uri, task_id))
-        task_monitor = client.get_task_monitor().wait_for_success(task, 10)
-        # stdout(task_to_dict(result), ctx, show_id=True)
+        client.get_task_monitor().wait_for_success(task, 4)
     except Exception as e:
         stderr(e, ctx)
+
 
 @task.command(short_help='update task status')
 @click.pass_context
@@ -105,7 +103,10 @@ def update(ctx, status, task_id):
         client = ctx.obj['client']
         task = client.get_resource('%s/task/%s' % (client._uri, task_id))
         task.set('status', status)
-        result = client.put_linked_resource(task, RelationType.EDIT, 'application/vnd.vmware.vcloud.task+xml', task)
+        result = client.put_linked_resource(task,
+                                            RelationType.EDIT,
+                                            EntityType.TASK.value,
+                                            task)
         # stdout(result, ctx)
         print(result)
     except Exception as e:

@@ -58,6 +58,7 @@ def version(ctx):
 if __name__ == '__main__':
     cli()
 else:
+    import catalog  # NOQA
     import cluster  # NOQA
     import info  # NOQA
     import login  # NOQA

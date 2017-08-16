@@ -19,9 +19,9 @@ from pygments import formatters
 from pygments import highlight
 from pygments import lexers
 from pyvcloud.vcd.client import Client
-from tabulate import tabulate
 import requests
 import sys
+from tabulate import tabulate
 from vcd_cli.profiles import Profiles
 
 

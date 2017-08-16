@@ -33,7 +33,7 @@ class Profiles(object):
             p.data = {'active': None}
             with open(profile_path, 'r') as f:
                 p.data = yaml.load(f)
-        except:
+        except Exception:
             pass
         p.path = profile_path
         return p
@@ -45,7 +45,7 @@ class Profiles(object):
                 os.makedirs(parent_dir)
             stream = file(self.path, 'w')
             yaml.dump(self.data, stream, default_flow_style=False)
-        except:
+        except Exception:
             import traceback
             traceback.print_exc()
 

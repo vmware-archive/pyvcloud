@@ -13,16 +13,16 @@
 #
 
 import click
-from vcd_cli.vcd import cli
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RESOURCE_TYPES
-from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import to_camel_case
-from vcd_cli.utils import stdout
-from vcd_cli.utils import stderr
-from vcd_cli.utils import restore_session
-from vcd_cli.utils import tabulate_names
+from pyvcloud.vcd.utils import to_dict
 from tabulate import tabulate
+from vcd_cli.utils import restore_session
+from vcd_cli.utils import stderr
+from vcd_cli.utils import stdout
+from vcd_cli.utils import tabulate_names
+from vcd_cli.vcd import cli
 
 
 @cli.command(short_help='search resources')

@@ -13,16 +13,16 @@
 #
 
 import click
-from vcd_cli.vcd import cli
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RESOURCE_TYPES
-from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import to_camel_case
-from vcd_cli.utils import stdout
-from vcd_cli.utils import stderr
-from vcd_cli.utils import restore_session
-from vcd_cli.utils import tabulate_names
+from pyvcloud.vcd.utils import to_dict
 from tabulate import tabulate
+from vcd_cli.utils import restore_session
+from vcd_cli.utils import stderr
+from vcd_cli.utils import stdout
+from vcd_cli.utils import tabulate_names
+from vcd_cli.vcd import cli
 
 
 @cli.command(short_help='show resource details')
@@ -48,7 +48,7 @@ def info(ctx, resource_type, resource_id):
             Get details of task by id.
 \b
         vcd info vapp c48a4e1a-7bd9-4177-9c67-4c330016b99f
-            Get details of vApp by id
+            Get details of vApp by id.
 \b
     See Also
         Several 'vcd' commands provide the id of a resource, including the

@@ -1,7 +1,7 @@
 vcd-cli
 =======
 
-[![Stable Version](https://img.shields.io/pypi/v/vca-cli.svg)](https://pypi.python.org/pypi/vca-cli) [![Build Status](https://img.shields.io/travis/vmware/vcd-cli.svg?style=flat)](https://travis-ci.org/vmware/vcd-cli/)
+[![Stable Version](https://img.shields.io/pypi/v/vcd-cli.svg)](https://pypi.python.org/pypi/vcd-cli) [![Build Status](https://img.shields.io/travis/vmware/vcd-cli.svg?style=flat)](https://travis-ci.org/vmware/vcd-cli/)
 
 Command Line Interface for VMware vCloud Director.
 
@@ -15,7 +15,7 @@ Installation:
 In general, `vcd-cli` can be installed with:
 
 ``` shell
-$ pip install --user vca-cli
+$ pip install --user vcd-cli
 ```
 
 The module contains two commands:
@@ -28,13 +28,13 @@ Validation:
 ``` shell
 $ vca --version
 
-vca-cli version 18 (pyvcloud: 18.0.2)
+vca-cli 19.0.1 (pyvcloud: 18.0.4.dev35)
 ```
 
 ```shell
 $ vcd version
 
-vcd-cli, VMware vCloud Director Command Line Interface, 18.0.2.dev30
+vcd-cli, VMware vCloud Director Command Line Interface, 19.0.1
 ```
 
 See [vcd-cli wiki](https://github.com/vmware/vcd-cli/wiki) for additional installation details.

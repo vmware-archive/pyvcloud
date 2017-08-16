@@ -45,7 +45,7 @@ def cli(ctx=None, debug=None,
 @click.pass_context
 def version(ctx):
     """Show vcd-cli version"""
-    ver = pkg_resources.require("vca-cli")[0].version
+    ver = pkg_resources.require("vcd-cli")[0].version
     ver_obj = {'product': 'vcd-cli',
                'description': 'VMware vCloud Director Command Line Interface',
                'version': ver}

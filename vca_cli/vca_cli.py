@@ -46,7 +46,7 @@ def cli(ctx=None, profile=None, profile_file=None, version=None, debug=None,
         json_output=None, insecure=None):
     """VMware vCloud Command Line Interface."""
     if version:
-        version_vca_cli = pkg_resources.require("vca-cli")[0].version
+        version_vca_cli = pkg_resources.require("vcd-cli")[0].version
         version_pyvcloud = pkg_resources.require("pyvcloud")[0].version
         msg = 'vca-cli version %s (pyvcloud: %s)' % \
               (version_vca_cli, version_pyvcloud)

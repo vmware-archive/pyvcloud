@@ -92,7 +92,7 @@ def register(ctx, name, namespace, routing_key, exchange, patterns):
         ext = ctx.obj['ext']
         ext.add_extension(name, namespace, routing_key, exchange,
                           patterns.split(','))
-        stdout('extension registerd', ctx)
+        stdout('Extension registered.', ctx)
     except Exception as e:
         import traceback
         traceback.print_exc()

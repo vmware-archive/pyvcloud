@@ -13,9 +13,13 @@
 #
 
 import click
+import json
 from vcd_cli.utils import restore_session
 from vcd_cli.system import system
+from vcd_cli.utils import stdout
 from vcd_cli.utils import stderr
+from pyvcloud.vcd.utils import to_dict
+from pyvcloud.vcd.amqp import AmqpService
 
 
 @system.group(short_help='manage AMQP settings')
@@ -25,8 +29,15 @@ def amqp(ctx):
 
 \b
     Examples
-        vcd amqp info
+        vcd system amqp info
             Get details of AMQP configuration.
+\b
+        vcd -j system amqp info > amqp-config.json
+            Save current AMQP configuration to file.
+\b
+        vcd system amqp test amqp-config.json
+            Test AMQP configuration.
+
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -39,6 +50,31 @@ def amqp(ctx):
 @click.pass_context
 def info(ctx):
     try:
-        raise Exception('not implemented')
+        client = ctx.obj['client']
+        profiles = ctx.obj['profiles']
+        amqp = AmqpService(client)
+        settings = amqp.get_settings()
+        stdout(to_dict(settings), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@amqp.command(short_help='test AMQP settings')
+@click.pass_context
+@click.option('-p', '--password', prompt=True, hide_input=True,
+              confirmation_prompt=False)
+@click.argument('config-file', type=click.File('rb'), metavar='<config-file>',
+                required=True)
+def test(ctx, password, config_file):
+    try:
+        client = ctx.obj['client']
+        profiles = ctx.obj['profiles']
+        config = json.loads(config_file.read(1024))
+        amqp = AmqpService(client)
+        result = amqp.test_config(config, password)
+        if result['Valid'].text == 'true':
+            stdout('The configuration is valid.', ctx)
+        else:
+            raise Exception('The configuration is invalid: %s' % result['error'].get('message'))
     except Exception as e:
         stderr(e, ctx)

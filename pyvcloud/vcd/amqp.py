@@ -42,7 +42,7 @@ class AmqpService(object):
     def get_settings(self):
         return self.client.get_resource(self.endpoint)
 
-    def test_config(self, config, password):
+    def _to_settings(self, config, password):
         settings = Amqp.AmqpSettings()
         settings.append(Amqp.AmqpHost(config['AmqpHost']))
         settings.append(Amqp.AmqpPort(config['AmqpPort']))
@@ -53,7 +53,16 @@ class AmqpService(object):
         settings.append(Amqp.AmqpUseSSL(config['AmqpUseSSL']))
         settings.append(Amqp.AmqpSslAcceptAll(config['AmqpSslAcceptAll']))
         settings.append(Amqp.AmqpPrefix(config['AmqpPrefix']))
+        return settings
+
+    def test_config(self, config, password):
         return self.client.post_resource(
             self.endpoint + '/action/test',
-            settings,
+            self._to_settings(config, password),
+            EntityType.AMQP_SETTINGS.value)
+
+    def set_config(self, config, password):
+        return self.client.put_resource(
+            self.endpoint,
+            self._to_settings(config, password),
             EntityType.AMQP_SETTINGS.value)

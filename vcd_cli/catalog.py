@@ -12,6 +12,7 @@
 #
 
 import click
+import os
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import task_to_dict
 from pyvcloud.vcd.utils import to_dict
@@ -40,6 +41,9 @@ def catalog(ctx):
         vcd catalog info 'my catalog'
             Get details of a catalog.
 \b
+        vcd catalog info 'my catalog' linux-template
+            Get details of a catalog item.
+\b
         vcd catalog list-items 'my catalog'
             Get list of items in a catalog.
     """  # NOQA
@@ -65,7 +69,10 @@ def info(ctx, catalog_name, item_name):
         org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href, org_name == 'System')
-        result = org.get_catalog(catalog_name)
+        if item_name is None:
+            result = org.get_catalog(catalog_name)
+        else:
+            result = org.get_catalog_item(catalog_name, item_name)
         stdout(to_dict(result), ctx)
     except Exception as e:
         stderr(e, ctx)
@@ -120,8 +127,42 @@ def delete(ctx, catalog_name):
         stderr(e, ctx)
 
 
-def callback(transferred, total):
-    print('transferred %s of %s bytes' % (transferred, total))
+@catalog.command(short_help='share a catalog')
+@click.pass_context
+@click.argument('catalog-name',
+                metavar='<catalog-name>',
+                required=True)
+def share(ctx, catalog_name):
+    try:
+        client = ctx.obj['client']
+        org_name = ctx.obj['profiles'].get('org')
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, org_name == 'System')
+        org.share_catalog(catalog_name, True)
+        stdout('Catalog shared.', ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@catalog.command(short_help='unshare a catalog')
+@click.pass_context
+@click.argument('catalog-name',
+                metavar='<catalog-name>',
+                required=True)
+def unshare(ctx, catalog_name):
+    try:
+        client = ctx.obj['client']
+        org_name = ctx.obj['profiles'].get('org')
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, org_name == 'System')
+        org.share_catalog(catalog_name, False)
+        stdout('Catalog unshared.', ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+def upload_callback(transferred, total):
+    print('upload %s of %s bytes' % (transferred, total))
 
 
 @catalog.command(short_help='upload file to catalog')
@@ -149,7 +190,7 @@ def upload(ctx, catalog_name, file_name, item_name, progress):
         org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href, org_name == 'System')
-        cb = callback if progress else None
+        cb = upload_callback if progress else None
         result = org.upload_media(catalog_name,
                                   file_name,
                                   item_name,
@@ -159,13 +200,53 @@ def upload(ctx, catalog_name, file_name, item_name, progress):
         stderr(e, ctx)
 
 
+def download_callback(transferred, total):
+    print('download %s of %s bytes' % (transferred, total))
+
+
 @catalog.command(short_help='download file from catalog')
 @click.pass_context
 @click.argument('catalog-name',
                 metavar='<catalog-name>')
-def download(ctx, catalog_name):
+@click.argument('item-name',
+                metavar='<item-name>',
+                required=True,
+                default=None)
+@click.argument('file_name',
+                type=click.Path(exists=False),
+                metavar='[file-name]',
+                default=None,
+                required=False)
+@click.option('-p/-n',
+              '--progress/--no-progress',
+              is_flag=True,
+              required=False,
+              default=True,
+              help='show progress')
+@click.option('-o',
+              '--overwrite',
+              is_flag=True,
+              required=False,
+              default=False,
+              help='overwrite')
+def download(ctx, catalog_name, item_name, file_name, progress, overwrite):
     try:
-        raise Exception('not-implemented')
+        save_as_name = item_name
+        if file_name is not None:
+            save_as_name = file_name
+        if not overwrite and os.path.isfile(save_as_name):
+            raise Exception('File exists.')
+        client = ctx.obj['client']
+        org_name = ctx.obj['profiles'].get('org')
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, org_name == 'System')
+        cb = download_callback if progress else None
+        bytes_written = org.download_file(catalog_name,
+                                          item_name,
+                                          save_as_name,
+                                          callback=cb)
+        result = {'file': save_as_name, 'size': bytes_written}
+        stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)
 
@@ -180,7 +261,8 @@ def list_items(ctx, catalog_name):
         org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href, org_name == 'System')
-        stdout(org.list_catalog_items(catalog_name), ctx, show_id=True)
+        items = org.list_catalog_items(catalog_name)
+        stdout(items, ctx)
     except Exception as e:
         stderr(e, ctx)
 

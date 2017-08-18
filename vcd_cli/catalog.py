@@ -46,6 +46,15 @@ def catalog(ctx):
 \b
         vcd catalog list-items 'my catalog'
             Get list of items in a catalog.
+\b
+        vcd catalog upload 'my catalog' installer.iso
+            Upload media file to a catalog.
+\b
+        vcd catalog download 'my catalog' installer.iso
+            Download media file from catalog.
+\b
+        vcd catalog delete-item 'my catalog' installer.iso
+            Delete media file from catalog.
     """  # NOQA
     if ctx.invoked_subcommand not in [None, 'item']:
         try:

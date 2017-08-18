@@ -174,6 +174,7 @@ class EntityType(Enum):
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
+    MEDIA = 'application/vnd.vmware.vcloud.media+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
@@ -540,6 +541,37 @@ class Client(object):
         if self._log_bodies and data is not None:
             self._logger.debug("Request body: %s",
                                data)
+        if self._log_headers:
+            self._logger.debug("Response status code: %s",
+                               response.status_code)
+            self._logger.debug("Response headers: %s",
+                               response.headers)
+        if self._log_bodies and _response_has_content(response):
+            self._logger.debug("Response body: %s",
+                               response.content)
+
+        return response
+
+    def upload_fragment(self, uri, contents, range_str):
+        headers = {}
+        headers['Content-Range'] = range_str
+        headers['Content-Length'] = str(len(contents))
+
+        data = contents
+
+        response = self._session.request('PUT',
+                                         uri,
+                                         data=data,
+                                         headers=headers,
+                                         verify=self._verify_ssl_certs)
+
+        if self._log_headers or self._log_bodies:
+            self._logger.debug("Request uri: %s",
+                               uri)
+        if self._log_headers:
+            self._logger.debug("Request headers: %s, %s",
+                               self._session.headers,
+                               headers)
         if self._log_headers:
             self._logger.debug("Response status code: %s",
                                response.status_code)

@@ -343,7 +343,6 @@ class _TaskMonitor(object):
         start_time = datetime.now()
         while True:
             task = self._get_task_status(task_href)
-            print(task.get('status'))
             task_status = task.get('status').lower()
             for status in expected_target_statuses:
                 if task_status == status.value.lower():
@@ -362,10 +361,13 @@ class _TaskMonitor(object):
 
         raise Exception("Task timeout")  # TODO(clean up)
 
-    def wait_for_success(self, task, timeout):
+    def wait_for_success(self,
+                         task,
+                         timeout,
+                         poll_frequency=_DEFAULT_POLL_SEC):
         return self.wait_for_status(task,
                                     timeout,
-                                    self._DEFAULT_POLL_SEC,
+                                    poll_frequency,
                                     TaskStatus.ERROR,
                                     [TaskStatus.SUCCESS])
 
@@ -556,15 +558,12 @@ class Client(object):
         headers = {}
         headers['Content-Range'] = range_str
         headers['Content-Length'] = str(len(contents))
-
         data = contents
-
         response = self._session.request('PUT',
                                          uri,
                                          data=data,
                                          headers=headers,
                                          verify=self._verify_ssl_certs)
-
         if self._log_headers or self._log_bodies:
             self._logger.debug("Request uri: %s",
                                uri)
@@ -580,8 +579,35 @@ class Client(object):
         if self._log_bodies and _response_has_content(response):
             self._logger.debug("Response body: %s",
                                response.content)
-
         return response
+
+    def download_from_uri(self,
+                          uri,
+                          file_name,
+                          chunk_size=1024*1024,
+                          size=0,
+                          callback=None):
+        response = self._session.request('GET',
+                                         uri,
+                                         stream=True,
+                                         verify=self._verify_ssl_certs)
+        bytes_written = 0
+        with open(file_name, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=chunk_size):
+                if chunk:
+                    f.write(chunk)
+                    bytes_written += len(chunk)
+                    if callback is not None:
+                        callback(bytes_written, size)
+                    if self._log_headers or self._log_bodies:
+                        self._logger.debug("Request uri: %s",
+                                           uri)
+                    if self._log_headers:
+                        self._logger.debug("Response status code: %s",
+                                           response.status_code)
+                        self._logger.debug("Response headers: %s",
+                                           response.headers)
+        return bytes_written
 
     def put_resource(self, uri, contents, media_type, objectify_results=True):
         """Puts the specified contents to the specified resource.  (Does an HTTP PUT.)

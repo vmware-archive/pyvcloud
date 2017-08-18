@@ -139,6 +139,8 @@ def to_dict(obj,
             attributes=None,
             resource_type=None,
             exclude=['href', 'type']):
+    if obj is None:
+        return {}
     result = {}
     attributes_res = filter_attributes(resource_type)
     if attributes:

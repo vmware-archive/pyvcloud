@@ -15,6 +15,7 @@
 
 from lxml import objectify
 import os
+from pyvcloud.vcd.client import _TaskMonitor
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import QueryResultFormat
@@ -26,6 +27,9 @@ Maker = objectify.ElementMaker(
     annotate=False,
     namespace='',
     nsmap={None: "http://www.vmware.com/vcloud/v1.5"})
+
+
+DEFAULT_CHUNK_SIZE = 1024*1024
 
 
 class Org(object):
@@ -85,16 +89,26 @@ class Org(object):
                 return self.client.get_resource(link.href)
         raise Exception('Catalog not found.')
 
+    def share_catalog(self, name, share=True):
+        raise Exception('not-implemented')
+
     def list_catalog_items(self, name):
         catalog = self.get_catalog(name)
         items = []
-        for i in catalog.CatalogItems.CatalogItem:
+        for i in catalog.CatalogItems.getchildren():
             items.append({'name': i.get('name'), 'id': i.get('id')})
         return items
 
+    def get_catalog_item(self, name, item_name):
+        catalog = self.get_catalog(name)
+        for i in catalog.CatalogItems.getchildren():
+            if i.get('name') == item_name:
+                return self.client.get_resource(i.get('href'))
+        raise Exception('Catalog item not found.')
+
     def delete_catalog_item(self, name, item_name):
         catalog = self.get_catalog(name)
-        for i in catalog.CatalogItems.CatalogItem:
+        for i in catalog.CatalogItems.getchildren():
             if i.get('name') == item_name:
                 return self.client.delete_resource(i.get('href'))
         raise Exception('Item not found.')
@@ -104,7 +118,7 @@ class Org(object):
                      file_name,
                      item_name=None,
                      description='',
-                     chunk_bytes=1024*1024,
+                     chunk_size=DEFAULT_CHUNK_SIZE,
                      callback=None):
         stat_info = os.stat(file_name)
         catalog = self.get_catalog(catalog_name)
@@ -124,8 +138,8 @@ class Org(object):
         with open(file_name, 'rb') as f:
             transferred = 0
             while transferred < stat_info.st_size:
-                my_bytes = f.read(chunk_bytes)
-                if len(my_bytes) <= chunk_bytes:
+                my_bytes = f.read(chunk_size)
+                if len(my_bytes) <= chunk_size:
                     range_str = 'bytes %s-%s/%s' % \
                                 (transferred,
                                  len(my_bytes)-1,
@@ -135,3 +149,24 @@ class Org(object):
                     if callback is not None:
                         callback(transferred, stat_info.st_size)
         return entity
+
+    def download_file(self,
+                      catalog_name,
+                      item_name,
+                      file_name,
+                      chunk_size=DEFAULT_CHUNK_SIZE,
+                      callback=None):
+        item = self.get_catalog_item(catalog_name, item_name)
+        enable_href = item.Entity.get('href') + '/action/enableDownload'
+        task = self.client.post_resource(enable_href, None, None)
+        tm = _TaskMonitor(self.client)
+        tm.wait_for_success(task, 60, 1)
+        item = self.client.get_resource(item.Entity.get('href'))
+        size = item.Files.File.get('size')
+        download_href = item.Files.File.Link.get('href')
+        bytes_written = self.client.download_from_uri(download_href,
+                                                      file_name,
+                                                      chunk_size=chunk_size,
+                                                      size=size,
+                                                      callback=callback)
+        return bytes_written

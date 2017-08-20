@@ -37,7 +37,7 @@ class Cluster(object):
         if response.status_code == requests.codes.ok:
             return json.loads(response.content)
         else:
-            raise Exception(response.status_code)
+            raise Exception(json.loads(response.content))
 
     def create_cluster(self, vdc, network_name, name, node_count=2):
         method = 'POST'
@@ -54,7 +54,7 @@ class Cluster(object):
         if response.status_code == requests.codes.accepted:
             return json.loads(response.content)
         else:
-            raise Exception(response.status_code)
+            raise Exception(json.loads(response.content).get('message'))
 
     def delete_cluster(self, cluster_id):
         method = 'DELETE'
@@ -67,4 +67,4 @@ class Cluster(object):
         if response.status_code == requests.codes.accepted:
             return json.loads(response.content)
         else:
-            raise Exception(response.status_code)
+            raise Exception(json.loads(response.content).get('message'))

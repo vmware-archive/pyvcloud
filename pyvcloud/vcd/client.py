@@ -456,14 +456,37 @@ class Client(object):
         self._session.headers['x-vcloud-authorization'] = \
             response.headers['x-vcloud-authorization']
 
-    def rehydrate(self, profiles):
+    def rehydrate(self, state):
         self._session = requests.Session()
-        self._session.headers['x-vcloud-authorization'] = profiles.get('token')
-        wkep = profiles.get('wkep')
+        self._session.headers['x-vcloud-authorization'] = state.get('token')
+        wkep = state.get('wkep')
         self._session_endpoints = {}
         for endpoint in _WellKnownEndpoint:
             if endpoint.name in wkep:
                 self._session_endpoints[endpoint] = wkep[endpoint.name]
+
+    def rehydrate_from_token(self, token):
+        new_session = requests.Session()
+        new_session.headers['x-vcloud-authorization'] = token
+        new_session.headers['Accept'] = 'application/*+xml;version=%s' % \
+            self._api_version
+        response = self._do_request_prim('GET',
+                                         self._uri + "/session",
+                                         new_session)
+        sc = response.status_code
+        if sc != 200:
+            raise VcdErrorResponseException(
+                sc,
+                self._get_response_request_id(response),
+                _objectify_response(response)) if sc == 401 else \
+                Exception("Unknown login failure")
+
+        session = objectify.fromstring(response.content)
+        self._session_endpoints = _get_session_endpoints(session)
+        self._session = new_session
+        self._session.headers['x-vcloud-authorization'] = \
+            response.headers['x-vcloud-authorization']
+        return session
 
     def logout(self):
         uri = self._uri + '/session'

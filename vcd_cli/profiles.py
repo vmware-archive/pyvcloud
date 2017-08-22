@@ -51,7 +51,7 @@ class Profiles(object):
 
     def update(self, host, org, user, token, api_version, wkep, verify,
                disable_warnings, vdc, org_href, vdc_href,
-               debug, name='default'):
+               log_request, log_header, log_body, name='default'):
         if self.data is None:
             self.data = {}
         if 'profiles' not in self.data:
@@ -64,7 +64,9 @@ class Profiles(object):
         profile['token'] = str(token)
         profile['api_version'] = str(api_version)
         profile['verify'] = verify
-        profile['debug'] = debug
+        profile['log_request'] = log_request
+        profile['log_header'] = log_header
+        profile['log_body'] = log_body
         profile['disable_warnings'] = disable_warnings
         profile['wkep'] = wkep
         profile['org_in_use'] = str(org)
@@ -79,12 +81,15 @@ class Profiles(object):
         self.data['active'] = str(name)
         self.save()
 
-    def get(self, prop, name='default'):
+    def get(self, prop, name='default', default=None):
         value = None
         if 'profiles' in self.data.keys():
             for p in self.data['profiles']:
                 if p['name'] == name:
-                    value = p[prop]
+                    if prop in p:
+                        value = p[prop]
+                    else:
+                        value = default
         return value
 
     def set(self, prop, value, name='default'):

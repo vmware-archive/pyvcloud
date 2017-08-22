@@ -102,6 +102,7 @@ def login(ctx, user, host, password, api_version, org,
                     api_version=api_version,
                     verify_ssl_certs=verify_ssl_certs,
                     log_file='vcd.log',
+                    log_requests=True,
                     log_headers=True,
                     log_bodies=True
                     )
@@ -140,7 +141,9 @@ def login(ctx, user, host, password, api_version, org,
                         vdc=in_use_vdc,
                         org_href=org_href,
                         vdc_href=vdc_href,
-                        debug=True)
+                        log_request=profiles.get('log_request', default=False),
+                        log_header=profiles.get('log_header', default=False),
+                        log_body=profiles.get('log_body', default=False))
         alt_text = '%s logged in, org: \'%s\', vdc: \'%s\'' % \
                    (user, org, in_use_vdc)
         stdout({'user': user, 'org': org,

@@ -13,11 +13,19 @@
 #
 
 import click
+from pyvcloud.vcd.utils import task_to_dict
 from pyvcloud.vcd.utils import vapp_to_dict
+from pyvcloud.vcd.vdc import EntityType
+from pyvcloud.vcd.vdc import VDC
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.vcd import cli
+
+
+def abort_if_false(ctx, param, value):
+    if not value:
+        ctx.abort()
 
 
 @cli.group(short_help='manage vApps')
@@ -52,38 +60,74 @@ def info(ctx, name):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc_resource = client.get_resource(vdc_href)
-        result = []
-        if hasattr(vdc_resource, 'ResourceEntities') and \
-           hasattr(vdc_resource.ResourceEntities, 'ResourceEntity'):
-            for vapp in vdc_resource.ResourceEntities.ResourceEntity:
-                if vapp.get('name') == name:
-                    vapp_resource = client.get_resource(vapp.get('href'))
-                    result.append(vapp_to_dict(vapp_resource))
-        if len(result) == 0:
-            raise Exception('not found')
-        elif len(result) > 1:
-            raise Exception('more than one found, use the vapp-id')
-        stdout(result[0], ctx)
+        vdc = VDC(client, vdc_href=vdc_href)
+        vapp = vdc.get_vapp(name)
+        stdout(vapp_to_dict(vapp), ctx)
     except Exception as e:
         stderr(e, ctx)
 
 
-@vapp.command(short_help='list of vApps')
+@vapp.command(short_help='list vApps')
 @click.pass_context
 def list(ctx):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc_resource = client.get_resource(vdc_href)
-        result = []
-        if hasattr(vdc_resource, 'ResourceEntities') and \
-           hasattr(vdc_resource.ResourceEntities, 'ResourceEntity'):
-            for vapp in vdc_resource.ResourceEntities.ResourceEntity:
-                result.append({'name': vapp.get('name'),
-                               'type': vapp.get('type').split('+')[0].
-                               split('.')[-1],
-                               'id': vapp.get('href').split('/')[-1]})
+        vdc = VDC(client, vdc_href=vdc_href)
+        result = vdc.list_resources(EntityType.VAPP)
         stdout(result, ctx, show_id=True)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command(short_help='create a vApp')
+@click.pass_context
+@click.argument('catalog',
+                metavar='<catalog>',
+                required=True)
+@click.argument('template',
+                metavar='<template>',
+                required=True)
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+@click.option('-n',
+              '--network',
+              'network',
+              required=False,
+              metavar='[network]',
+              help='Network')
+def create(ctx, catalog, template, name, network):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, vdc_href=vdc_href)
+        task = vdc.instantiate_vapp(name, catalog, template, network=network)
+        stdout(task_to_dict(task), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command(short_help='delete a vApp')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to delete the vApp?')
+@click.option('-f',
+              '--force',
+              is_flag=True)
+def delete(ctx, name, force):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, vdc_href=vdc_href)
+        task = vdc.delete_vapp(name, force)
+        stdout(task_to_dict(task), ctx)
     except Exception as e:
         stderr(e, ctx)

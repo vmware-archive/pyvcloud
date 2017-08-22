@@ -52,7 +52,7 @@ def restore_session(ctx):
     profiles = Profiles.load()
     token = profiles.get('token')
     if token is None or len(token) == 0:
-        raise Exception('can\'t restore session, please re-login')
+        raise Exception('can''t restore session, please re-login')
     if not profiles.get('verify'):
         if profiles.get('disable_warnings'):
             pass
@@ -66,8 +66,9 @@ def restore_session(ctx):
                     api_version=profiles.get('api_version'),
                     verify_ssl_certs=profiles.get('verify'),
                     log_file='vcd.log',
-                    log_headers=True,
-                    log_bodies=True
+                    log_requests=profiles.get('log_request'),
+                    log_headers=profiles.get('log_header'),
+                    log_bodies=profiles.get('log_body')
                     )
     client.rehydrate(profiles)
     ctx.obj = {}
@@ -100,6 +101,8 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
 
 
 def stderr(exception, ctx=None):
+    import traceback
+    traceback.print_exc()
     if exception.message:
         message = exception.message
     else:

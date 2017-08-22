@@ -20,6 +20,7 @@ from pygments import formatters
 from pygments import highlight
 from pygments import lexers
 from pyvcloud.vcd.client import Client
+from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.utils import to_dict
 import requests
@@ -94,7 +95,9 @@ def task_callback(task):
     )
     if hasattr(task, 'Progress'):
         message += ', progress: %s%%' % task.Progress
-    if task.get('status') in ['queued', 'running']:
+    if task.get('status') in [TaskStatus.PENDING,
+                              TaskStatus.PRE_RUNNING,
+                              TaskStatus.RUNNING]:
         message += ' %s ' % spinner.next()
     click.secho(message, nl=False)
 
@@ -118,11 +121,17 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
         elif isinstance(obj, ObjectifiedElement):
             if obj.tag == '{http://www.vmware.com/vcloud/v1.5}Task':
                 client = ctx.obj['client']
-                task = client.get_task_monitor().wait_for_success(
-                    obj,
-                    60,
-                    poll_frequency=2,
-                    callback=task_callback)
+                task = client.get_task_monitor().wait_for_status(
+                                    task=obj,
+                                    timeout=60,
+                                    poll_frequency=2,
+                                    fail_on_status=None,
+                                    expected_target_statuses=[
+                                        TaskStatus.SUCCESS,
+                                        TaskStatus.ABORTED,
+                                        TaskStatus.ERROR,
+                                        TaskStatus.CANCELED],
+                                    callback=task_callback)
                 text = '\ntask: %s, result: %s' % \
                        (extract_id(task.get('id')), task.get('status'))
             else:

@@ -84,7 +84,7 @@ def wait(ctx, task_id):
     try:
         client = ctx.obj['client']
         task = client.get_resource('%s/task/%s' % (client._uri, task_id))
-        client.get_task_monitor().wait_for_success(task, 4)
+        stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)
 

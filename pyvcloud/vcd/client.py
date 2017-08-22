@@ -312,6 +312,7 @@ def _objectify_response(response):
 
 
 class TaskStatus(Enum):
+    QUEUED = "queued"
     PENDING = "pending"
     PRE_RUNNING = "pre-running"
     RUNNING = "running"

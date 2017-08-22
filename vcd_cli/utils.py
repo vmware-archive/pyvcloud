@@ -15,10 +15,13 @@
 import click
 from colorama import Fore
 import json
+from lxml.objectify import ObjectifiedElement
 from pygments import formatters
 from pygments import highlight
 from pygments import lexers
 from pyvcloud.vcd.client import Client
+from pyvcloud.vcd.utils import extract_id
+from pyvcloud.vcd.utils import to_dict
 import requests
 import sys
 from tabulate import tabulate
@@ -76,6 +79,26 @@ def restore_session(ctx):
     ctx.obj['profiles'] = profiles
 
 
+def spinning_cursor():
+    while True:
+        for cursor in '|/-\\':
+            yield cursor
+
+
+spinner = spinning_cursor()
+
+
+def task_callback(task):
+    message = '\x1b[2K\r{}: {}, status: {}'.format(
+        task.get('operationName'), task.get('operation'), task.get('status')
+    )
+    if hasattr(task, 'Progress'):
+        message += ', progress: %s%%' % task.Progress
+    if task.get('status') in ['queued', 'running']:
+        message += ' %s ' % spinner.next()
+    click.secho(message, nl=False)
+
+
 def stdout(obj, ctx=None, alt_text=None, show_id=False):
     o = obj
     if ctx is not None and ctx.find_root().params['json_output']:
@@ -92,6 +115,18 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
             text = alt_text
         elif isinstance(obj, basestring):
             text = o
+        elif isinstance(obj, ObjectifiedElement):
+            if obj.tag == '{http://www.vmware.com/vcloud/v1.5}Task':
+                client = ctx.obj['client']
+                task = client.get_task_monitor().wait_for_success(
+                    obj,
+                    60,
+                    poll_frequency=2,
+                    callback=task_callback)
+                text = '\ntask: %s, result: %s' % \
+                       (extract_id(task.get('id')), task.get('status'))
+            else:
+                text = as_table(to_dict(obj), show_id=show_id)
         elif not isinstance(obj, list):
             text = as_table([{'property': k, 'value': v} for k, v in
                             sorted(obj.iteritems())], show_id=show_id)

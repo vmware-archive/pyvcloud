@@ -13,7 +13,6 @@
 #
 
 import click
-from pyvcloud.vcd.utils import task_to_dict
 from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vdc import EntityType
 from pyvcloud.vcd.vdc import VDC
@@ -40,6 +39,12 @@ def vapp(ctx):
 \b
         vcd vapp info my-vapp
             Get details of the vApp 'my-vapp'.
+\b
+        vcd vapp create my-catalog my-template my-vapp
+            Create a new vApp.
+\b
+        vcd vapp delete my-vapp --yes --force
+            Delete a vApp.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -102,8 +107,8 @@ def create(ctx, catalog, template, name, network):
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, vdc_href=vdc_href)
-        task = vdc.instantiate_vapp(name, catalog, template, network=network)
-        stdout(task_to_dict(task), ctx)
+        vapp = vdc.instantiate_vapp(name, catalog, template, network=network)
+        stdout(vapp.Tasks.Task[0], ctx)
     except Exception as e:
         stderr(e, ctx)
 
@@ -121,13 +126,14 @@ def create(ctx, catalog, template, name, network):
               prompt='Are you sure you want to delete the vApp?')
 @click.option('-f',
               '--force',
-              is_flag=True)
+              is_flag=True,
+              help='Force delete running vApps')
 def delete(ctx, name, force):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, vdc_href=vdc_href)
         task = vdc.delete_vapp(name, force)
-        stdout(task_to_dict(task), ctx)
+        stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

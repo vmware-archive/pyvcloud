@@ -14,7 +14,6 @@
 import click
 import os
 from pyvcloud.vcd.org import Org
-from pyvcloud.vcd.utils import task_to_dict
 from pyvcloud.vcd.utils import to_dict
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -115,8 +114,8 @@ def create(ctx, catalog_name, description):
         client = ctx.obj['client']
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href)
-        result = org.create_catalog(catalog_name, description)
-        stdout(task_to_dict(result), ctx, show_id=True)
+        c = org.create_catalog(catalog_name, description)
+        stdout(c.Tasks.Task[0], ctx, show_id=True)
     except Exception as e:
         stderr(e, ctx)
 

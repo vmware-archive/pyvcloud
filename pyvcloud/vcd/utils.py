@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from lxml.objectify import NoneElement
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
+from pyvcloud.vcd.client import NSMAP
 
 
 def extract_id(urn):
@@ -105,9 +107,39 @@ def vapp_to_dict(vapp):
         for user in vapp.Owner.User:
             result['owner'].append(user.get('name'))
     if hasattr(vapp, 'Children') and hasattr(vapp.Children, 'Vm'):
-        result['vms'] = []
-        for user in vapp.Children.Vm:
-            result['vms'].append(user.get('name'))
+        n = 1
+        for vm in vapp.Children.Vm:
+            k = 'vms-%s' % n
+            result[k] = vm.get('name')
+            items = vm.xpath(
+                '//ovf:VirtualHardwareSection/ovf:Item',
+                namespaces=NSMAP)
+            for item in items:
+                element_name = item.find('rasd:ElementName', NSMAP)
+                connection = item.find('rasd:Connection', NSMAP)
+                if connection is None:
+                    quantity = item.find('rasd:VirtualQuantity', NSMAP)
+                    if isinstance(quantity, NoneElement):
+                        value = item.find('rasd:Description', NSMAP)
+                    else:
+                        units = item.find('rasd:VirtualQuantityUnits', NSMAP)
+                        if isinstance(units, NoneElement):
+                            units = ''
+                        value = '{:,} {}'.format(int(quantity), units).strip()
+                else:
+                    value = '{}: {}'.format(
+                        connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddressingMode'),
+                        connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddress'))
+                result['%s-%s' % (k, element_name)] = value
+            if hasattr(vm.GuestCustomizationSection, 'AdminPassword'):
+                element_name = 'password'
+                value = vm.GuestCustomizationSection.AdminPassword
+                result['%s-%s' % (k, element_name)] = value
+            if hasattr(vm.GuestCustomizationSection, 'ComputerName'):
+                element_name = 'computer-name'
+                value = vm.GuestCustomizationSection.ComputerName
+                result['%s-%s' % (k, element_name)] = value
+
     result['status'] = vapp.get('status')
     return result
 

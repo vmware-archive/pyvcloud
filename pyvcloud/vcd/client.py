@@ -24,6 +24,15 @@ import requests
 import time
 import urllib
 
+
+NSMAP = {'vcloud': 'http://www.vmware.com/vcloud/v1.5',
+         'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+         'xs': 'http://www.w3.org/2001/XMLSchema',
+         'rasd': 'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData',
+         'ovf': 'http://schemas.dmtf.org/ovf/envelope/1'
+        }
+
+
 # Convenience object for building vCloud API XML objects
 E = objectify.ElementMaker(
     annotate=False,
@@ -151,18 +160,19 @@ class BasicLoginCredentials(object):
 
 
 class RelationType(Enum):
+    ADD = 'add'
     ALTERNATE = 'alternate'
     DOWN = 'down'
     DOWN_EXTENSIBILITY = 'down:extensibility'
+    EDIT = 'edit'
     NEXT_PAGE = 'nextPage'
-    ADD = 'add'
     POWER_REBOOT = 'power:reboot'
     POWER_RESET = 'power:reset'
     POWER_SUSPEND = 'power:suspend'
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
     TASK_CANCEL = 'task:cancel'
-    EDIT = 'edit'
+    UP = 'up'
 
 
 class EntityType(Enum):
@@ -174,6 +184,8 @@ class EntityType(Enum):
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
+    INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
+        'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
@@ -387,6 +399,7 @@ class Client(object):
                  api_version='6.0',
                  verify_ssl_certs=True,
                  log_file=None,
+                 log_requests=False,
                  log_headers=False,
                  log_bodies=False):
         self._uri = uri
@@ -424,6 +437,7 @@ class Client(object):
         requests_logger.addHandler(handler)
         requests_logger.setLevel(logging.DEBUG)
 
+        self._log_requests = log_requests
         self._log_headers = log_headers
         self._log_bodies = log_bodies
 
@@ -556,7 +570,7 @@ class Client(object):
                                    auth=auth,
                                    verify=self._verify_ssl_certs)
 
-        if self._log_headers or self._log_bodies:
+        if self._log_requests or self._log_headers or self._log_bodies:
             self._logger.debug("Request uri: %s",
                                uri)
         if self._log_headers:
@@ -566,9 +580,10 @@ class Client(object):
         if self._log_bodies and data is not None:
             self._logger.debug("Request body: %s",
                                data)
-        if self._log_headers:
+        if self._log_requests or self._log_headers or self._log_bodies:
             self._logger.debug("Response status code: %s",
                                response.status_code)
+        if self._log_headers:
             self._logger.debug("Response headers: %s",
                                response.headers)
         if self._log_bodies and _response_has_content(response):
@@ -806,7 +821,8 @@ def get_links(resource, rel=RelationType.DOWN, media_type=None):
         if link_rel == rel.value:
             if media_type is None and link_media_type is None:
                 links.append(Link(link))
-            elif media_type is not None and link_media_type == media_type:
+            elif media_type is not None and \
+                 link_media_type == media_type:
                 links.append(Link(link))
     return links
 

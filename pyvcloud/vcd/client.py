@@ -28,9 +28,8 @@ import urllib
 NSMAP = {'vcloud': 'http://www.vmware.com/vcloud/v1.5',
          'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
          'xs': 'http://www.w3.org/2001/XMLSchema',
-         'rasd': 'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData',
-         'ovf': 'http://schemas.dmtf.org/ovf/envelope/1'
-        }
+         'rasd': 'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData',  # NOQA
+         'ovf': 'http://schemas.dmtf.org/ovf/envelope/1'}
 
 
 # Convenience object for building vCloud API XML objects
@@ -822,7 +821,7 @@ def get_links(resource, rel=RelationType.DOWN, media_type=None):
             if media_type is None and link_media_type is None:
                 links.append(Link(link))
             elif media_type is not None and \
-                 link_media_type == media_type:
+                    link_media_type == media_type:
                 links.append(Link(link))
     return links
 

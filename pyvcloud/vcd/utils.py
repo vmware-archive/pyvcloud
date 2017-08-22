@@ -128,8 +128,8 @@ def vapp_to_dict(vapp):
                         value = '{:,} {}'.format(int(quantity), units).strip()
                 else:
                     value = '{}: {}'.format(
-                        connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddressingMode'),
-                        connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddress'))
+                                        connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddressingMode'),  # NOQA
+                                        connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddress'))  # NOQA
                 result['%s-%s' % (k, element_name)] = value
             if hasattr(vm.GuestCustomizationSection, 'AdminPassword'):
                 element_name = 'password'

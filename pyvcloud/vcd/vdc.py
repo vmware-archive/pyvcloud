@@ -14,14 +14,11 @@
 # limitations under the License.
 
 from lxml import objectify
-from pyvcloud.vcd.client import _TaskMonitor
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
-from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
-from pyvcloud.vcd.utils import to_dict
 
 
 Maker = objectify.ElementMaker(
@@ -30,9 +27,10 @@ Maker = objectify.ElementMaker(
     nsmap={None: 'http://www.vmware.com/vcloud/v1.5'})
 
 
-OvfMaker = objectify.ElementMaker(annotate=False,
-            namespace='http://schemas.dmtf.org/ovf/envelope/1',
-            nsmap={None: 'http://schemas.dmtf.org/ovf/envelope/1'})
+OvfMaker = objectify.ElementMaker(
+    annotate=False,
+    namespace='http://schemas.dmtf.org/ovf/envelope/1',
+    nsmap={None: 'http://schemas.dmtf.org/ovf/envelope/1'})
 
 
 class VDC(object):
@@ -79,7 +77,7 @@ class VDC(object):
         if hasattr(self.vdc_resource, 'AvailableNetworks') and \
            hasattr(self.vdc_resource.AvailableNetworks, 'Network'):
             for n in self.vdc_resource.AvailableNetworks.Network:
-                if network == None or n.get('name') == network:
+                if network is None or n.get('name') == network:
                     network_href = n.get('href')
         if network_href is None:
             raise Exception('Network not found in the Virtual Datacenter.')

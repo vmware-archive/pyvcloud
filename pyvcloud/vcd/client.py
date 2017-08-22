@@ -332,7 +332,8 @@ class _TaskMonitor(object):
                         timeout,
                         poll_frequency,
                         fail_on_status,
-                        expected_target_statuses):
+                        expected_target_statuses,
+                        callback=None):
         """Waits for task to reach expected status.
 
          * @param task
@@ -354,6 +355,8 @@ class _TaskMonitor(object):
         start_time = datetime.now()
         while True:
             task = self._get_task_status(task_href)
+            if callback is not None:
+                callback(task)
             task_status = task.get('status').lower()
             for status in expected_target_statuses:
                 if task_status == status.value.lower():
@@ -375,12 +378,14 @@ class _TaskMonitor(object):
     def wait_for_success(self,
                          task,
                          timeout,
-                         poll_frequency=_DEFAULT_POLL_SEC):
+                         poll_frequency=_DEFAULT_POLL_SEC,
+                         callback=None):
         return self.wait_for_status(task,
                                     timeout,
                                     poll_frequency,
                                     TaskStatus.ERROR,
-                                    [TaskStatus.SUCCESS])
+                                    [TaskStatus.SUCCESS],
+                                    callback=callback)
 
     def _get_task_status(self, task_href):
         return self._client.get_resource(task_href)

@@ -109,7 +109,7 @@ def vapp_to_dict(vapp):
     if hasattr(vapp, 'Children') and hasattr(vapp.Children, 'Vm'):
         n = 1
         for vm in vapp.Children.Vm:
-            k = 'vms-%s' % n
+            k = 'vm-%s' % n
             result[k] = vm.get('name')
             items = vm.xpath(
                 '//ovf:VirtualHardwareSection/ovf:Item',
@@ -130,16 +130,15 @@ def vapp_to_dict(vapp):
                     value = '{}: {}'.format(
                                         connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddressingMode'),  # NOQA
                                         connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddress'))  # NOQA
-                result['%s-%s' % (k, element_name)] = value
+                result['%s: %s' % (k, element_name)] = value
             if hasattr(vm.GuestCustomizationSection, 'AdminPassword'):
                 element_name = 'password'
                 value = vm.GuestCustomizationSection.AdminPassword
-                result['%s-%s' % (k, element_name)] = value
+                result['%s: %s' % (k, element_name)] = value
             if hasattr(vm.GuestCustomizationSection, 'ComputerName'):
                 element_name = 'computer-name'
                 value = vm.GuestCustomizationSection.ComputerName
-                result['%s-%s' % (k, element_name)] = value
-
+                result['%s: %s' % (k, element_name)] = value
     result['status'] = vapp.get('status')
     return result
 

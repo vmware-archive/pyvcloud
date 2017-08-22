@@ -95,9 +95,10 @@ def task_callback(task):
     )
     if hasattr(task, 'Progress'):
         message += ', progress: %s%%' % task.Progress
-    if task.get('status') in [TaskStatus.PENDING,
-                              TaskStatus.PRE_RUNNING,
-                              TaskStatus.RUNNING]:
+    if task.get('status').lower() in [TaskStatus.QUEUED.value,
+                                      TaskStatus.PENDING.value,
+                                      TaskStatus.PRE_RUNNING.value,
+                                      TaskStatus.RUNNING.value]:
         message += ' %s ' % spinner.next()
     click.secho(message, nl=False)
 

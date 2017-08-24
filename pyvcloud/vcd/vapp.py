@@ -41,14 +41,14 @@ class VApp(object):
         if self.vapp_resource is None:
             self.vapp_resource = self.client.get_resource(self.href)
         new_metadata = E.Metadata(
-                E.MetadataEntry(
-                    {'type': 'xs:string'},
-                    E.Domain(domain, visibility=visibility),
-                    E.Key(key),
-                    E.TypedValue(
-                        {'{http://www.w3.org/2001/XMLSchema-instance}type':
-                         'MetadataStringValue'},
-                        E.Value(value))))
+            E.MetadataEntry(
+                {'type': 'xs:string'},
+                E.Domain(domain, visibility=visibility),
+                E.Key(key),
+                E.TypedValue(
+                    {'{http://www.w3.org/2001/XMLSchema-instance}type':
+                     'MetadataStringValue'},
+                    E.Value(value))))
         metadata = self.client.get_linked_resource(self.vapp_resource,
                                                    RelationType.DOWN,
                                                    EntityType.METADATA.value)

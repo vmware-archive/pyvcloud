@@ -2091,7 +2091,10 @@ class VCA(object):
             netmask,
             dns1,
             dns2,
-            dns_suffix):
+            dns_suffix,
+            fence_mode="natRouted",
+            isshared=False,
+            is_inherited=False):
         """
         Request the creation of an new network within a vdc.
 
@@ -2116,7 +2119,7 @@ class VCA(object):
         iprange = IpRangeType(StartAddress=start_address,
                               EndAddress=end_address)
         ipranges = IpRangesType(IpRange=[iprange])
-        ipscope = IpScopeType(IsInherited=False,
+        ipscope = IpScopeType(IsInherited=is_inherited,
                               Gateway=gateway_ip,
                               Netmask=netmask,
                               Dns1=dns1,
@@ -2126,13 +2129,13 @@ class VCA(object):
         ipscopes = IpScopesType(IpScope=[ipscope])
 
         configuration = NetworkConfigurationType(IpScopes=ipscopes,
-                                                 FenceMode="natRouted")
+                                                 FenceMode=fence_mode)
         net = OrgVdcNetworkType(
             name=network_name,
             Description="Network created by pyvcloud",
             EdgeGateway=gateway,
             Configuration=configuration,
-            IsShared=False)
+            IsShared=isshared)
         namespacedef = 'xmlns="http://www.vmware.com/vcloud/v1.5"'
         content_type = "application/vnd.vmware.vcloud.orgVdcNetwork+xml"
         body = '<?xml version="1.0" encoding="UTF-8"?>{0}'.format(
@@ -2300,7 +2303,7 @@ class VCA(object):
         **service type:** ondemand, subscription, vcd
 
         """
-        disk = DiskCreateParamsType(Disk=DiskType()) 
+        disk = DiskCreateParamsType(Disk=DiskType())
         disk.Disk.name  = name
         disk.Disk.size = size
         if description != None:
@@ -2312,7 +2315,7 @@ class VCA(object):
         vdc = self.get_vdc(vdc_name)
 
         if storage_profile_name != None:
-            content_type = "application/vnd.vmware.vcloud.vdcStorageProfile+xml" 
+            content_type = "application/vnd.vmware.vcloud.vdcStorageProfile+xml"
             storage_profile = filter(lambda storage_profile: storage_profile.get_name() == storage_profile_name, vdc.get_VdcStorageProfiles().get_VdcStorageProfile())
 
             if len(storage_profile) != 1:

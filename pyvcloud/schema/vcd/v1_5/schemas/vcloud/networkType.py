@@ -37,6 +37,7 @@ import getopt
 import re as re_
 import base64
 import datetime as datetime_
+import time
 
 etree_ = None
 Verbose_import_ = False
@@ -242,11 +243,17 @@ except ImportError as exp:
             if len(time_parts) > 1:
                 micro_seconds = int(float('0.' + time_parts[1]) * 1000000)
                 input_data = '%s.%s' % (time_parts[0], micro_seconds, )
-                dt = datetime_.datetime.strptime(
-                    input_data, '%Y-%m-%dT%H:%M:%S.%f')
+                try:
+                    dt = datetime_.datetime.strptime(
+                        input_data, '%Y-%m-%dT%H:%M:%S.%f')
+                except TypeError:
+                    dt = datetime_.datetime.fromtimestamp(time.mktime(time.strptime(input_data, '%Y-%m-%dT%H:%M:%S.%f')))
             else:
-                dt = datetime_.datetime.strptime(
-                    input_data, '%Y-%m-%dT%H:%M:%S')
+                try:
+                    dt = datetime_.datetime.strptime(
+                        input_data, '%Y-%m-%dT%H:%M:%S.%f')
+                except TypeError:
+                    dt = datetime_.datetime.fromtimestamp(time.mktime(time.strptime(input_data, '%Y-%m-%dT%H:%M:%S.%f')))
             dt = dt.replace(tzinfo=tz)
             return dt
         def gds_validate_date(self, input_data, node, input_name=''):

@@ -186,6 +186,7 @@ class EntityType(Enum):
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'
+    METADATA = 'application/vnd.vmware.vcloud.metadata+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
@@ -764,7 +765,8 @@ class Client(object):
                         qfilter=None,
                         equality_filter=None,
                         sort_asc=None,
-                        sort_desc=None):
+                        sort_desc=None,
+                        fields=None):
         return _TypedQuery(query_type_name,
                            self,
                            query_result_format,
@@ -773,7 +775,8 @@ class Client(object):
                            qfilter=qfilter,
                            equality_filter=equality_filter,
                            sort_asc=sort_asc,
-                           sort_desc=sort_desc)
+                           sort_desc=sort_desc,
+                           fields=fields)
 
     def _get_wk_resource(self, wk_type):
         return self.get_resource(self._get_wk_endpoint(wk_type))
@@ -854,7 +857,8 @@ class _AbstractQuery(object):
                  qfilter=None,
                  equality_filter=None,
                  sort_asc=None,
-                 sort_desc=None):
+                 sort_desc=None,
+                 fields=None):
         self._client = client
         self._query_result_format = query_result_format
         self._page_size = page_size
@@ -874,11 +878,13 @@ class _AbstractQuery(object):
         self._sort_desc = sort_desc
         self._sort_asc = sort_asc
 
+        self.fields = fields
+
     def execute(self):
         query_uri = self._build_query_uri(
             self._find_query_uri(self._query_result_format),
             self._page, self._page_size, self._filter,
-            self._include_links)
+            self._include_links, fields=self.fields)
         return self._iterator(self._client.get_resource(query_uri))
 
     def _iterator(self, query_results):
@@ -922,7 +928,8 @@ class _AbstractQuery(object):
                          page,
                          page_size,
                          qfilter,
-                         include_links):
+                         include_links,
+                         fields=None):
         uri = base_query_href
         uri += '&page='
         uri += str(page)
@@ -936,6 +943,10 @@ class _AbstractQuery(object):
             # parse encoded '==' in the filter parameter.
             uri += '&filterEncoded=true&filter='
             uri += qfilter
+
+        if fields is not None:
+            uri += '&fields='
+            uri += fields
 
         if self._sort_asc is not None:
             uri += '&sortAsc='
@@ -958,7 +969,8 @@ class _TypedQuery(_AbstractQuery):
                  qfilter=None,
                  equality_filter=None,
                  sort_asc=None,
-                 sort_desc=None):
+                 sort_desc=None,
+                 fields=None):
         super(_TypedQuery, self).__init__(query_result_format,
                                           client,
                                           page_size=page_size,
@@ -966,7 +978,8 @@ class _TypedQuery(_AbstractQuery):
                                           qfilter=qfilter,
                                           equality_filter=equality_filter,
                                           sort_asc=sort_asc,
-                                          sort_desc=sort_desc)
+                                          sort_desc=sort_desc,
+                                          fields=fields)
         self._query_type_name = query_type_name
 
     def _find_query_uri(self, query_result_format):

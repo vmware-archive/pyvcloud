@@ -35,11 +35,14 @@ OvfMaker = objectify.ElementMaker(
 
 class VDC(object):
 
-    def __init__(self, client, name=None, vdc_href=None):
+    def __init__(self, client, name=None, vdc_href=None, vdc_resource=None):
         self.client = client
         self.name = name
         self.href = vdc_href
-        self.vdc_resource = None
+        self.vdc_resource = vdc_resource
+        if vdc_resource is not None:
+            self.name = vdc_resource.get('name')
+            self.href = vdc_resource.get('href')
 
     def get_resource_href(self, name, entity_type=EntityType.VAPP):
         if self.vdc_resource is None:

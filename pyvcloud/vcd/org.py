@@ -32,12 +32,22 @@ Maker = objectify.ElementMaker(
 DEFAULT_CHUNK_SIZE = 1024*1024
 
 
+# TODO(cache org_resource)
+
 class Org(object):
 
-    def __init__(self, client, org_href, is_admin=False):
+    def __init__(self,
+                 client,
+                 org_href=None,
+                 is_admin=False,
+                 org_resource=None):
         self.client = client
         self.endpoint = org_href
-        self.endpoint_admin = org_href.replace('/api/org/', '/api/admin/org/')
+        self.org_resource = org_resource
+        if org_resource is not None:
+            self.endpoint = org_resource.get('href')
+        self.endpoint_admin = self.endpoint.replace('/api/org/',
+                                                    '/api/admin/org/')
         self.is_admin = is_admin
 
     def create_catalog(self, name, description):
@@ -170,3 +180,13 @@ class Org(object):
                                                       size=size,
                                                       callback=callback)
         return bytes_written
+
+    def get_vdc(self, name):
+        if self.org_resource is None:
+            self.org_resource = self.client.get_resource(self.endpoint)
+        links = get_links(self.org_resource,
+                          rel=RelationType.DOWN,
+                          media_type=EntityType.VDC.value)
+        for link in links:
+            if name == link.name:
+                return self.client.get_resource(link.href)

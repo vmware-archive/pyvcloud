@@ -13,18 +13,14 @@
 #
 
 import click
+from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.utils import vapp_to_dict
-from pyvcloud.vcd.vdc import EntityType
 from pyvcloud.vcd.vdc import VDC
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
+from vcd_cli.vcd import abort_if_false
 from vcd_cli.vcd import cli
-
-
-def abort_if_false(ctx, param, value):
-    if not value:
-        ctx.abort()
 
 
 @cli.group(short_help='manage vApps')
@@ -45,6 +41,9 @@ def vapp(ctx):
 \b
         vcd vapp delete my-vapp --yes --force
             Delete a vApp.
+\b
+        vcd --no-wait vapp delete my-vapp --yes --force
+            Delete a vApp without waiting for completion.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -79,6 +78,7 @@ def list(ctx):
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, vdc_href=vdc_href)
+        # TODO(consider using search api/RECORDS)
         result = vdc.list_resources(EntityType.VAPP)
         stdout(result, ctx, show_id=True)
     except Exception as e:

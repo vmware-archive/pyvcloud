@@ -21,20 +21,34 @@ from vcd_cli.utils import stdout
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
+def abort_if_false(ctx, param, value):
+    if not value:
+        ctx.abort()
+
+
 @click.group(context_settings=CONTEXT_SETTINGS,
              invoke_without_command=True)
+@click.pass_context
 @click.option('-d',
               '--debug',
               is_flag=True,
+              default=False,
               help='Enable debug')
 @click.option('-j',
               '--json',
               'json_output',
               is_flag=True,
+              default=False,
               help='Results as JSON object')
-@click.pass_context
-def cli(ctx=None, debug=None,
-        json_output=None):
+@click.option('-n',
+              '--no-wait',
+              is_flag=True,
+              default=False,
+              help='Don''t wait for task')
+def cli(ctx,
+        debug,
+        json_output,
+        no_wait):
     """VMware vCloud Director Command Line Interface."""
     if ctx.invoked_subcommand is None:
         click.secho(ctx.get_help())

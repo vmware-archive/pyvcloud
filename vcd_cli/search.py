@@ -67,6 +67,9 @@ def search(ctx, resource_type, query_filter):
         vcd search vapp
             Search for vApps.
 \b
+        vcd search vapp -f 'metadata:cse.node.type==STRING:master'
+            Search for vApps by metadata.
+\b
         vcd search vm
             Search for virtual machines.
     """  # NOQA

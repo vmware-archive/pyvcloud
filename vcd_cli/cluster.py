@@ -17,6 +17,7 @@ from pyvcloud.vcd.cluster import Cluster
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
+from vcd_cli.vcd import abort_if_false
 from vcd_cli.vcd import cli
 
 
@@ -57,10 +58,9 @@ def list(ctx):
         for c in clusters:
             result.append({'name': c['name'],
                            'id': c['cluster_id'],
-                           'status': c['status'],
                            'leader_endpoint': c['leader_endpoint'],
-                           'leaders': len(c['master_nodes']),
-                           'nodes': len(c['nodes'])
+                           'nodes': len(c['nodes']),
+                           'vdc': c['vdc_name']
                            })
         stdout(result, ctx, show_id=True)
     except Exception as e:
@@ -112,14 +112,13 @@ def create(ctx, name, node_count, network_name, wait):
 @click.argument('cluster_id',
                 metavar='<cluster-id>',
                 required=True)
-@click.option('-w',
-              '--wait',
-              'wait',
+@click.option('-y',
+              '--yes',
               is_flag=True,
-              default=False,
-              required=False,
-              help='Wait until finish')
-def delete(ctx, cluster_id, wait):
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to delete the cluster?')
+def delete(ctx, cluster_id):
     try:
         client = ctx.obj['client']
         cluster = Cluster(client)

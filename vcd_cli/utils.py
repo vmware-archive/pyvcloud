@@ -121,20 +121,23 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
             text = o
         elif isinstance(obj, ObjectifiedElement):
             if obj.tag == '{http://www.vmware.com/vcloud/v1.5}Task':
-                client = ctx.obj['client']
-                task = client.get_task_monitor().wait_for_status(
-                                    task=obj,
-                                    timeout=60,
-                                    poll_frequency=2,
-                                    fail_on_status=None,
-                                    expected_target_statuses=[
-                                        TaskStatus.SUCCESS,
-                                        TaskStatus.ABORTED,
-                                        TaskStatus.ERROR,
-                                        TaskStatus.CANCELED],
-                                    callback=task_callback)
-                text = '\ntask: %s, result: %s' % \
-                       (extract_id(task.get('id')), task.get('status'))
+                if ctx.find_root().params['no_wait']:
+                    text = as_table([to_dict(obj)], show_id=True)
+                else:
+                    client = ctx.obj['client']
+                    task = client.get_task_monitor().wait_for_status(
+                                        task=obj,
+                                        timeout=60,
+                                        poll_frequency=2,
+                                        fail_on_status=None,
+                                        expected_target_statuses=[
+                                            TaskStatus.SUCCESS,
+                                            TaskStatus.ABORTED,
+                                            TaskStatus.ERROR,
+                                            TaskStatus.CANCELED],
+                                        callback=task_callback)
+                    text = '\ntask: %s, result: %s' % \
+                           (extract_id(task.get('id')), task.get('status'))
             else:
                 text = as_table(to_dict(obj), show_id=show_id)
         elif not isinstance(obj, list):

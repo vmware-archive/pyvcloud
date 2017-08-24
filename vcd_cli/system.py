@@ -13,6 +13,11 @@
 #
 
 import click
+from pyvcloud.vcd.client import _WellKnownEndpoint
+from vcd_cli.utils import restore_session
+from vcd_cli.utils import stderr
+from vcd_cli.utils import stdout
+from vcd_cli.utils import to_dict
 from vcd_cli.vcd import cli
 
 
@@ -21,9 +26,23 @@ from vcd_cli.vcd import cli
 def system(ctx):
     """Manage system settings in vCloud Director."""  # NOQA
 
-    if ctx.invoked_subcommand is None:
-        click.secho(ctx.get_help())
-        return
+    if ctx.invoked_subcommand is not None:
+        try:
+            restore_session(ctx)
+        except Exception as e:
+            stderr(e, ctx)
+
+
+@system.command(short_help='show system details')
+@click.pass_context
+def info(ctx):
+    try:
+        client = ctx.obj['client']
+        result = client.get_resource(
+            client._session_endpoints[_WellKnownEndpoint.ADMIN])
+        stdout(to_dict(result), ctx)
+    except Exception as e:
+        stderr(e, ctx)
 
 
 if __name__ == '__main__':

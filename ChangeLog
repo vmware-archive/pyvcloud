@@ -1,0 +1,414 @@
+CHANGES
+=======
+
+* tox
+* tox
+* flake+tests
+* gitlab
+* gitlab
+* gitlab
+* wip
+* travis-docker
+* travis fix
+* fixed requirements
+* minor changes
+* enhancements to client, rehydrate session
+* vcd
+* Adding back requirements.txt in travis.yml
+* Added requirements in setup.py
+* Fix travis test run
+* Cleanup tests and fix typo
+* client: Introduce library suitable for efficient vCD API access
+* new impl
+* improved logging
+* removed sqlair
+* readme
+* gitlab ci tests
+* gl
+* gl
+* pbr
+* pbr
+
+18.0.3
+------
+
+* 18.0.3
+* tasks
+* retrieve vapp/vm env properties
+* tests
+* tests
+* tests
+* tests
+* tests
+* tests
+* tests
+* tests
+* tests
+* tests
+* tests
+* tests
+* tests
+* tests
+* tests
+* approved
+* wip
+* wip
+* wip
+* wip
+* ci
+* ci
+* ci
+* readme
+* wip
+* wip
+* cse-support
+* nillable schema elements
+* pip
+
+18.0.2
+------
+
+* req
+
+18.0.1
+------
+
+* req
+* req
+* readme
+* readme
+* readme
+* readme
+
+18
+--
+
+* 18
+* cse
+* merged-with-master
+* test
+
+17.0.1
+------
+
+* 17.0.1
+
+17
+--
+
+* travis
+* tasks, extensions, metadata, cluster
+* tasks, extensions, metadata, cluster
+* Use User Query
+* Add compose command
+* travis tests
+* travis tests
+* travis tests
+* vca test travis
+* vca test travis
+* vca test travis
+* added vca test
+* Added BusNumnet and UnitNumber to attach\_vm()
+* removes some debug code
+* standardized function parameters var names
+* Changed REST payload variable name back to data
+* Added selection of storage profile for new independant disks
+* add support for cloudify 3.3.1 version
+* Added RHEL dependencies instructions
+* service type
+
+16
+--
+
+* fixed issue #85
+* Fix get\_service\_type cannot detect standalone vCD
+* Include vm name in network info
+* Expend vca session checking to non 4xx
+* Fix this issue unable to login to a standalone instance
+* Import cloudify-dsl-parser only when validation required
+* Update requirements for cloudify-dsl-parser
+* Fixing service type identification for VCD
+* fixed service type identification
+* add support of selfsigned certificates
+* fixed upload iso
+* 15rc1
+* multiple nics
+* Implement download blueprint API
+* Validate blueprint before upload
+
+14
+--
+
+* 14
+* 14rc9
+* Issue #68: Fix inconsistency
+* Make exception block syntax py3-compatible
+* SCOR-143: Implement deployment outputs support
+* SCOR-160 merged
+* SCOR-160: fix cancel
+* Improve Score user experience
+* Revert casting from boolean to strings
+* vchs example
+* removed comment
+* removed comment
+* default vca url
+* 14rc8
+* score status
+* user passwd reset
+* 14rc7
+* 14rc6
+* merged pr
+* Fix logic errors
+* Check interface name, when NAT rule was deleted
+* Add parameter interface to NAT rule operations
+* merged changes
+* status messages
+* Adds a flexible error handling
+* Update score.py
+* Change return code to 200 because score service only proxy request
+* Revert Changes
+* Change retutn code to 200 because score service only proxy ptu request
+* Add busy flag to gateway
+* 14rc5
+* vapp tests
+* fixed issues #62 #63
+* fixed issues #62 #63
+* initial sqlair support renamed service types sso vca to instance
+* initial sqlair support renamed service types sso vca to instance
+* SCOR-56 Style fixes
+* SCOR-56 Implement cancel workflow execution on score, pyvcloud and vca-cli
+* Fixed a typo in logout test
+* 14rc2
+* updated pyyaml dep
+* updated dependencies
+* #SCOR-16 added blueprint validation
+* Fixes issues #62 by properly removing the SourcedItem tag being implemented in versions == 5.5 and older
+* travis-ci
+* travis
+* #61 fixed issue with vCD 5.5
+* removed whitespaces
+* readme
+* readme
+* readme
+* readme
+* readme
+
+13
+--
+
+* v13
+* #PYV-10 #58 upload iso to catalog
+* 13rc16
+* wip
+* spaces
+* upload media wip
+* Update to Fix for Issue #41 -- Removed the set to None, and instead set it to pass. This provides the same functionality without the need to change the vcloudType
+* Removed the set to None, and instead set it to pass. This provides the same functionality without the need to change the vcloudType
+* Fixes Issue #41 for users who are using vCloud Director API version 5.5
+* fixed vm connection issue
+* 13rc14
+* improved debug log added vapp tests
+* vcloud test
+* added tests
+* added power\_on flag to customize
+* improved bp processing
+* improved score api
+* added score logging
+* updated requirements
+* SCOR-5 Change the Score Rest server to allow ids without Org-ids revert requirements
+* SCOR-5 Change the Score Rest server to allow ids without Org-ids Send archive using Streaming Uploads
+* Update requirements.txt
+* Update requirements.txt
+* merge docs with master
+* updated docs
+* PYV-7 added tests for power-on/off vApp, issue #29
+* fixed duplicate login call
+* SCOR-12 Add Events support to pyvcloud Refactoring EventsClient
+* 13rc10
+* merged pull request #46
+* updated documentation
+*  Use case-insensitive comparison for rule parameters in function delete\_fw\_rule
+* test process doc
+* changed ondemand host url
+* updated docs
+* added NAT and FW tests
+* added NAT and FW tests
+* wip
+* retrive admin password
+* fixed ram
+* readme
+* readme
+* reconfigure VM CPU
+* reconfigure VM RAM
+* readme
+* added tests added memory\_byte
+* added tests added memory\_byte
+* Fix another glitch in the logging code
+* 13rc2
+* changed default ondemand host
+* updated examples
+* updated examples
+* Use requests' HTTPBasicAuth for authentication
+* Add Tasks list to disk object
+* added changelog link
+* added changelog link
+* added doc requirements
+* added change log
+* Fix logging logic to handle case where logging is not enabled
+* requests.delete don't use data
+* v13rc1
+* Fix length of time string in formatter
+* Improve the logging stuff a bit
+* Fix to add network interface more than once to VM changed \_modify\_networkConnectionSection method
+* Add logging output in error paths
+* Add HTTP logging support
+* Get temp dir programmatically
+* Fix signature of Http.get
+* Fix typo
+* Add logging support
+* Clean requirements
+* Fix Connect\_to\_Network Payload
+* Add "create VDC" function
+* re-enable snapshot actions on vApp
+* Checks: list has elements
+
+12
+--
+
+* v12
+* wip
+* Add new properties to vms\_network\_info
+* Revert changes
+* fix syntax mistake
+* Improve readability
+* If task failed return error object
+* enable/disable dhcp service
+* 12rc3
+* fixed bug in network not using insecure connection
+* 12rc2
+* removed cfy dep
+* Update customize\_guest\_os()
+* 12rc1
+* Force Enable customization
+* Add type cast, now cpu\_capacity is int
+* Fix error in get\_vms\_details
+* Fix bug, with configure cpus and memory during creating vapp
+
+11
+--
+
+* 11
+* vpn
+* vpn
+* wip
+* returned None when no VPN
+* wip
+* Fix spelling error
+* wip
+* wip
+* Setup default properties to NatServiceType
+* Add allocate/deallocate public ip
+* readme updated
+* returns success task if the vapp is already connected to the network
+* Fix error in customize\_guest\_os, when setup admin password
+
+10
+--
+
+* 10
+* 10
+* 10
+* 10
+* wip
+* Fix create\_vapp
+* v9
+* Fix response usage
+* Fix imports
+* v8
+* merged, save response from vCD service
+* save response to examine reply from service
+* add get\_admin\_network\_href function
+* add get\_admin\_network\_href function
+* Add functions for create and delete vdc networks
+* Add functions to manipulate with dhcp pool and firewall rules
+* Add get\_vms\_details()
+* Fix setting vm cpus and memory
+* Update vapp interface
+* Set cpus and memory size on vapp creation
+* Set list of services when authenticating with password
+* v7
+* doc
+* v6
+* libraries
+* doc
+* readme
+* readme
+* readme
+* readme
+* readme
+* v5
+* v4
+* v3
+* v2.2
+* v2.2
+* v1.1
+* vm name
+* wip
+* v2.1
+* v0.8
+* v0.7
+* v0.7
+* v0.7
+* Update requirements.txt
+* doc
+* networking
+* v0.5
+* connect vms to network
+* connect vm to network
+* connect vm to network
+* provide datacenter name
+* provide datacenter name
+* provide datacenter name
+* provide datacenter name
+* added sample usage
+* added sample usage
+* added sample usage
+* connect vapp to network
+* connect vapp to network
+* support types of services
+* support types of services
+* wip
+* fixed imports
+* fixed vcd id
+* fixed requirements
+* added manifest
+* vms attached to disk
+* disk management
+* list catalogs and templates
+* non-blocking vapp creation
+* wip
+* v0.2
+* vapp operations
+* wip
+* wip
+* added types
+* added doc
+* added doc
+* basic login, service and vdc query
+* basic login, service and vdc query
+* wip
+* wip
+* wip
+* setup
+* setup
+* setup
+* wip
+* added license
+* Update README.md
+* wip
+* wip
+* wip
+* wip
+* Update README.md
+* wip
+* Initial commit

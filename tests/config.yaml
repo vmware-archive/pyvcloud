@@ -1,10 +1,10 @@
 vcloud:
-    service_type: standalone
+    service_type: vcd
     username: email@company.com
-    password: '***************'
-    host: p1v21-vcd.vchs.vmware.com
-    version: '5.6'
-    org: AppServices
+    password: 'secret_password'
+    host: vcd.vmware.com
+    version: '27.0'
+    org: org1
     vdc: AppServices
     gateway: AppServices
     service: ''
@@ -34,4 +34,5 @@ vcloud:
     fw_source_port: Any
     fw_source_ip: Any
     fw_enable_logging: false
-    custom_catalog: catalog-1
+    custom_catalog: mycatalog
+    verify: False

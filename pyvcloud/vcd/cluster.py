@@ -56,9 +56,9 @@ class Cluster(object):
         else:
             raise Exception(json.loads(response.content).get('message'))
 
-    def delete_cluster(self, cluster_id):
+    def delete_cluster(self, cluster_name):
         method = 'DELETE'
-        uri = '%s/%s' % (self._uri, cluster_id)
+        uri = '%s/%s' % (self._uri, cluster_name)
         response = self.client._do_request_prim(
             method,
             uri,
@@ -69,9 +69,9 @@ class Cluster(object):
         else:
             raise Exception(json.loads(response.content).get('message'))
 
-    def get_config(self, cluster_id):
+    def get_config(self, cluster_name):
         method = 'GET'
-        uri = '%s/%s/config' % (self._uri, cluster_id)
+        uri = '%s/%s/config' % (self._uri, cluster_name)
         response = self.client._do_request_prim(
             method,
             uri,

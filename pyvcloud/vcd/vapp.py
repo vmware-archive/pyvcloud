@@ -15,6 +15,7 @@
 
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 
 
@@ -29,8 +30,21 @@ class VApp(object):
             self.name = vapp_resource.get('name')
             self.href = vapp_resource.get('href')
 
-    def get_primary_ip(self, timeout=300):
-        pass
+    def get_primary_ip(self, vm_name):
+        if self.vapp_resource is None:
+            self.vapp_resource = self.client.get_resource(self.href)
+        if hasattr(self.vapp_resource, 'Children') and \
+           hasattr(self.vapp_resource.Children, 'Vm'):
+            for vm in self.vapp_resource.Children.Vm:
+                if vm_name == vm.get('name'):
+                    items = vm.xpath(
+                        '//ovf:VirtualHardwareSection/ovf:Item',
+                        namespaces=NSMAP)
+                    for item in items:
+                        connection = item.find('rasd:Connection', NSMAP)
+                        if connection is not None:
+                            return connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddress')  # NOQA
+        raise Exception('can\'t find ip address')
 
     def set_metadata(self,
                      domain,
@@ -56,3 +70,15 @@ class VApp(object):
                                                 RelationType.ADD,
                                                 EntityType.METADATA.value,
                                                 new_metadata)
+
+    def get_vm_moid(self, vm_name):
+        if self.vapp_resource is None:
+            self.vapp_resource = self.client.get_resource(self.href)
+        vapp = self.vapp_resource
+        if hasattr(vapp, 'Children') and hasattr(vapp.Children, 'Vm'):
+            for vm in vapp.Children.Vm:
+                if vm.get('name') == vm_name:
+                    env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
+                    if len(env) > 0:
+                        return env[0].get('{http://www.vmware.com/schema/ovfenv}vCenterId')  # NOQA
+        return None

@@ -68,3 +68,19 @@ class Cluster(object):
             return json.loads(response.content)
         else:
             raise Exception(json.loads(response.content).get('message'))
+
+    def get_config(self, cluster_id):
+        method = 'GET'
+        uri = '%s/%s/config' % (self._uri, cluster_id)
+        response = self.client._do_request_prim(
+            method,
+            uri,
+            self.client._session,
+            contents=None,
+            media_type=None,
+            accept_type='text/x-yaml',
+            auth=None)
+        if response.status_code == requests.codes.ok:
+            return response.content.replace('\\n', '\n')[1:-1]
+        else:
+            raise Exception(json.loads(response.content))

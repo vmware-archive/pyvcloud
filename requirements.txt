@@ -5,3 +5,4 @@ netaddr>=0.7.13
 requests>=2.18.3
 progressbar>=2.3
 PyYAML>=3.10
+pyvmomi

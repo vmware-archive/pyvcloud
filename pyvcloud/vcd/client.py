@@ -29,7 +29,9 @@ NSMAP = {'vcloud': 'http://www.vmware.com/vcloud/v1.5',
          'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
          'xs': 'http://www.w3.org/2001/XMLSchema',
          'rasd': 'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData',  # NOQA
-         'ovf': 'http://schemas.dmtf.org/ovf/envelope/1'}
+         'ovf': 'http://schemas.dmtf.org/ovf/envelope/1',
+         've': 'http://www.vmware.com/schema/ovfenv',
+         'ovfenv': 'http://schemas.dmtf.org/ovf/environment/1'}
 
 
 # Convenience object for building vCloud API XML objects
@@ -190,6 +192,7 @@ class EntityType(Enum):
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
+    PUBLISH_CATALOG_PARAMS = 'application/vnd.vmware.admin.publishCatalogParams+xml'
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'
     TASK = 'application/vnd.vmware.vcloud.task+xml'

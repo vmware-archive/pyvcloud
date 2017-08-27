@@ -131,6 +131,9 @@ def vapp_to_dict(vapp):
                                         connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddressingMode'),  # NOQA
                                         connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddress'))  # NOQA
                 result['%s: %s' % (k, element_name)] = value
+            env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
+            if len(env) > 0:
+                result['%s: %s' % (k, 'moid')] = env[0].get('{http://www.vmware.com/schema/ovfenv}vCenterId')  # NOQA
             if hasattr(vm.GuestCustomizationSection, 'AdminPassword'):
                 element_name = 'password'
                 value = vm.GuestCustomizationSection.AdminPassword

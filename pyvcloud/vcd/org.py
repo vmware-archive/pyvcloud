@@ -100,7 +100,16 @@ class Org(object):
         raise Exception('Catalog not found.')
 
     def share_catalog(self, name, share=True):
-        raise Exception('not-implemented')
+        catalog = self.get_catalog(name)
+        is_published = 'true' if share else 'false'
+        params = Maker.PublishCatalogParams(Maker.IsPublished(is_published))
+        href = catalog.get('href') + '/action/publish'
+        admin_href = href.replace('/api/catalog/', '/api/admin/catalog/')
+        return self.client.post_resource(
+            admin_href,
+            params,
+            media_type=EntityType.PUBLISH_CATALOG_PARAMS.value
+            )
 
     def list_catalog_items(self, name):
         catalog = self.get_catalog(name)

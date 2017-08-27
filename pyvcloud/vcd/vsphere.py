@@ -15,7 +15,6 @@
 
 
 from pyVim import connect
-from pyVmomi import vmodl
 from pyVmomi import vim
 import requests
 import ssl
@@ -53,9 +52,8 @@ class VSphere(object):
                                  arguments,
                                  wait_for_completion=False,
                                  wait_time=1):
-        creds = vim.vm.guest.NamePasswordAuthentication(
-                    username=user,
-                    password=password)
+        creds = vim.vm.guest.NamePasswordAuthentication(username=user,
+                                                        password=password)
         content = self.service_instance.RetrieveContent()
         pm = content.guestOperationsManager.processManager
         ps = vim.vm.guest.ProcessManager.ProgramSpec(
@@ -72,7 +70,7 @@ class VSphere(object):
                     return processes[0].exitCode
                 else:
                     time.sleep(wait_time)
-            except:
+            except Exception:
                 import traceback
                 print(traceback.format_exc())
                 print('will retry again in a few secons')
@@ -84,9 +82,8 @@ class VSphere(object):
                              password,
                              data,
                              target_file):
-        creds = vim.vm.guest.NamePasswordAuthentication(
-                    username=user,
-                    password=password)
+        creds = vim.vm.guest.NamePasswordAuthentication(username=user,
+                                                        password=password)
         content = self.service_instance.RetrieveContent()
         file_attribute = vim.vm.guest.FileManager.FileAttributes()
         url = content.guestOperationsManager.fileManager. \
@@ -107,11 +104,9 @@ class VSphere(object):
                                  user,
                                  password,
                                  source_file):
-        creds = vim.vm.guest.NamePasswordAuthentication(
-                    username=user,
-                    password=password)
+        creds = vim.vm.guest.NamePasswordAuthentication(username=user,
+                                                        password=password)
         content = self.service_instance.RetrieveContent()
-        file_attribute = vim.vm.guest.FileManager.FileAttributes()
         info = content.guestOperationsManager.fileManager. \
             InitiateFileTransferFromGuest(vm,
                                           creds,

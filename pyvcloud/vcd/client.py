@@ -192,7 +192,8 @@ class EntityType(Enum):
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
-    PUBLISH_CATALOG_PARAMS = 'application/vnd.vmware.admin.publishCatalogParams+xml'
+    PUBLISH_CATALOG_PARAMS = \
+        'application/vnd.vmware.admin.publishCatalogParams+xml'
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'
     TASK = 'application/vnd.vmware.vcloud.task+xml'

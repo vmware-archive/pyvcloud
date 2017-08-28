@@ -18,6 +18,7 @@ from pyvcloud.vcd.utils import to_dict
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
+from vcd_cli.vcd import abort_if_false
 from vcd_cli.vcd import cli
 
 
@@ -54,6 +55,12 @@ def catalog(ctx):
 \b
         vcd catalog delete-item 'my catalog' installer.iso
             Delete media file from catalog.
+\b
+        vcd catalog share 'my catalog'
+            Publish and share catalog accross all organizations.
+\b
+        vcd catalog unshare 'my catalog'
+            Stop sharing a catalog.
     """  # NOQA
     if ctx.invoked_subcommand not in [None, 'item']:
         try:
@@ -124,6 +131,12 @@ def create(ctx, catalog_name, description):
 @click.pass_context
 @click.argument('catalog-name',
                 metavar='<catalog-name>')
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to delete the catalog?')
 def delete(ctx, catalog_name):
     try:
         client = ctx.obj['client']
@@ -281,6 +294,12 @@ def list_items(ctx, catalog_name):
                 metavar='<catalog-name>')
 @click.argument('item-name',
                 metavar='<item-name>')
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to delete the catalog item?')
 def delete_item(ctx, catalog_name, item_name):
     try:
         client = ctx.obj['client']

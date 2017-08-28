@@ -44,7 +44,7 @@ def abort_if_false(ctx, param, value):
               '--no-wait',
               is_flag=True,
               default=False,
-              help='Don''t wait for task')
+              help='Don\'t wait for task')
 def cli(ctx,
         debug,
         json_output,
@@ -83,4 +83,5 @@ else:
     import task  # NOQA
     import vapp  # NOQA
     import vdc  # NOQA
+    import vm  # NOQA
     load_user_plugins()

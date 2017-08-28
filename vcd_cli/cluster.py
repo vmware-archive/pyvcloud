@@ -57,8 +57,7 @@ def list(ctx):
         clusters = cluster.get_clusters()
         for c in clusters:
             result.append({'name': c['name'],
-                           'id': c['cluster_id'],
-                           'leader_endpoint': c['leader_endpoint'],
+                           'IP master': c['leader_endpoint'],
                            'nodes': len(c['nodes']),
                            'vdc': c['vdc_name']
                            })
@@ -109,8 +108,8 @@ def create(ctx, name, node_count, network_name, wait):
 
 @cluster.command(short_help='delete cluster')
 @click.pass_context
-@click.argument('cluster_id',
-                metavar='<cluster-id>',
+@click.argument('name',
+                metavar='<name>',
                 required=True)
 @click.option('-y',
               '--yes',
@@ -118,11 +117,25 @@ def create(ctx, name, node_count, network_name, wait):
               callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to delete the cluster?')
-def delete(ctx, cluster_id):
+def delete(ctx, name):
     try:
         client = ctx.obj['client']
         cluster = Cluster(client)
-        result = cluster.delete_cluster(cluster_id)
+        result = cluster.delete_cluster(name)
         stdout(result, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@cluster.command(short_help='get cluster config')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+def config(ctx, name):
+    try:
+        client = ctx.obj['client']
+        cluster = Cluster(client)
+        click.secho(cluster.get_config(name))
     except Exception as e:
         stderr(e, ctx)

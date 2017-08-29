@@ -96,6 +96,13 @@ def vdc_to_dict(vdc):
     return result
 
 
+def to_human(seconds):
+    weeks = seconds / (7*24*60*60)
+    days = seconds / (24*60*60) - 7*weeks
+    hours = seconds / (60*60) - 7*24*weeks - 24*days
+    return '%sw, %sd, %sh' % (weeks, days, hours)
+
+
 def vapp_to_dict(vapp):
     result = {}
     result['name'] = vapp.get('name')
@@ -106,6 +113,20 @@ def vapp_to_dict(vapp):
         result['owner'] = []
         for user in vapp.Owner.User:
             result['owner'].append(user.get('name'))
+    if hasattr(vapp, 'LeaseSettingsSection'):
+        if hasattr(vapp.LeaseSettingsSection, 'DeploymentLeaseInSeconds'):
+            result['deployment_lease'] = to_human(int(vapp.
+                                                      LeaseSettingsSection.
+                                                      DeploymentLeaseInSeconds
+                                                      )
+                                                  )
+        if hasattr(vapp.LeaseSettingsSection, 'StorageLeaseInSeconds'):
+            result['storage_lease'] = to_human(int(vapp.
+                                                   LeaseSettingsSection.
+                                                   StorageLeaseInSeconds))
+        if hasattr(vapp.LeaseSettingsSection, 'DeploymentLeaseExpiration'):
+            result['deployment_lease_expiration'] = \
+                vapp.LeaseSettingsSection.DeploymentLeaseExpiration
     if hasattr(vapp, 'Children') and hasattr(vapp.Children, 'Vm'):
         n = 1
         for vm in vapp.Children.Vm:

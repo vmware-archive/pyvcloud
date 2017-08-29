@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from lxml import etree
+from lxml import objectify
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
@@ -82,3 +84,17 @@ class VApp(object):
                     if len(env) > 0:
                         return env[0].get('{http://www.vmware.com/schema/ovfenv}vCenterId')  # NOQA
         return None
+
+    def set_lease(self, deployment_lease=0, storage_lease=0):
+        if self.vapp_resource is None:
+            self.vapp_resource = self.client.get_resource(self.href)
+        new_section = self.vapp_resource.LeaseSettingsSection
+
+        new_section.DeploymentLeaseInSeconds = deployment_lease
+        new_section.StorageLeaseInSeconds = storage_lease
+        objectify.deannotate(new_section)
+        etree.cleanup_namespaces(new_section)
+        return self.client.put_resource(
+            self.vapp_resource.get('href') + '/leaseSettingsSection/',
+            new_section,
+            EntityType.LEASE_SETTINGS.value)

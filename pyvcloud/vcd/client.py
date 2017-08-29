@@ -187,6 +187,7 @@ class EntityType(Enum):
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
+    LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'
     METADATA = 'application/vnd.vmware.vcloud.metadata+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'

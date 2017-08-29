@@ -73,7 +73,7 @@ class VSphere(object):
             except Exception:
                 import traceback
                 print(traceback.format_exc())
-                print('will retry again in a few secons')
+                print('will retry again in a few seconds')
                 time.sleep(wait_time*3)
 
     def upload_file_to_guest(self,

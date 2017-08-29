@@ -18,10 +18,6 @@ unit_test:
 deploy:
   stage: deploy
   script:
-    - # only if...
-    - pip install twine
-    - rm -rf build dist
-    - python setup.py sdist bdist_wheel
-    - twine upload dist/*
+    - ./.upload-to-pip.sh
   dependencies:
     - unit_test

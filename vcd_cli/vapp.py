@@ -15,6 +15,7 @@
 import click
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.utils import vapp_to_dict
+from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -44,6 +45,12 @@ def vapp(ctx):
 \b
         vcd --no-wait vapp delete my-vapp --yes --force
             Delete a vApp without waiting for completion.
+\b
+        vcd vapp update-lease my-vapp 7776000
+            Set vApp lease to 90 days.
+\b
+        vcd vapp update-lease my-vapp 0
+            Set vApp lease to no expiration.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -134,6 +141,32 @@ def delete(ctx, name, force):
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, vdc_href=vdc_href)
         task = vdc.delete_vapp(name, force)
+        stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command('update-lease', short_help='update vApp lease')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+@click.argument('runtime-seconds',
+                metavar='<runtime-seconds>',
+                required=True)
+@click.argument('storage-seconds',
+                metavar='[storage-seconds]',
+                required=False)
+def update_lease(ctx, name, runtime_seconds, storage_seconds):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, vdc_href=vdc_href)
+        vapp_resource = vdc.get_vapp(name)
+        vapp = VApp(client, vapp_resource=vapp_resource)
+        if storage_seconds is None:
+            storage_seconds = runtime_seconds
+        task = vapp.set_lease(runtime_seconds, storage_seconds)
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

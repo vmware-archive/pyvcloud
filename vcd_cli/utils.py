@@ -15,6 +15,7 @@
 import click
 from colorama import Fore
 import json
+import logging
 from lxml.objectify import ObjectifiedElement
 from pygments import formatters
 from pygments import highlight
@@ -26,7 +27,12 @@ from pyvcloud.vcd.utils import to_dict
 import requests
 import sys
 from tabulate import tabulate
+import traceback
 from vcd_cli.profiles import Profiles
+
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.FileHandler('vcd.log'))
 
 
 def as_table(obj_list, header=None, show_id=False):
@@ -149,8 +155,10 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
 
 
 def stderr(exception, ctx=None):
-    import traceback
-    traceback.print_exc()
+    try:
+        LOGGER.error(traceback.format_exc())
+    except Exception:
+        LOGGER.error(exception)
     if exception.message:
         message = exception.message
     else:

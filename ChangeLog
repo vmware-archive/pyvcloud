@@ -1,6 +1,58 @@
 CHANGES
 =======
 
+* wip
+* wip
+
+18.0.9
+------
+
+* wip
+* ci
+
+18.0.8
+------
+
+* pbr
+* type
+
+18.0.7
+------
+
+* version
+
+18.0.6
+------
+
+* update-version
+
+18.0.5
+------
+
+* update-vapp-lease
+* use cluster name
+* flake8
+* vsphere ops, cluster ops, catalog sharing
+* flake8
+* cluster-crud
+* spinner
+* wip
+* task progress
+* flake8
+* create vapp
+* rehydrate\_from\_token
+* download-media-file
+* catalog items
+* type
+* catalog-crud
+* amqp set config
+* amqp-support
+* logout
+* fixes issue #108
+* format to dict
+* tox
+* gitlab
+* tox-flake8
 * tox
 * tox
 * flake+tests

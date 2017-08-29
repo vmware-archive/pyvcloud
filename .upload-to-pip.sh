@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-if [[ `git describe` == `python setup.py --version` && ]]; then
+if [[ `git describe` == `python setup.py --version` && `git describe` == *-* ]]; then
 else
   pip install twine
   rm -rf build dist

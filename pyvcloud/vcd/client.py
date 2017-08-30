@@ -165,6 +165,7 @@ class RelationType(Enum):
     ALTERNATE = 'alternate'
     DOWN = 'down'
     DOWN_EXTENSIBILITY = 'down:extensibility'
+    DOWNLOAD_DEFAULT = 'download:default'
     EDIT = 'edit'
     NEXT_PAGE = 'nextPage'
     POWER_REBOOT = 'power:reboot'
@@ -198,6 +199,7 @@ class EntityType(Enum):
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'
     TASK = 'application/vnd.vmware.vcloud.task+xml'
+    TEXT_XML = 'text/xml'
     UPLOAD_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.uploadVAppTemplateParams+xml'
     VAPP = 'application/vnd.vmware.vcloud.vApp+xml'

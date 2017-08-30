@@ -72,7 +72,8 @@ class VDC(object):
                          template,
                          network=None,
                          deploy=True,
-                         power_on=True):
+                         power_on=True,
+                         accept_all_eulas=True):
         if self.vdc_resource is None:
             self.vdc_resource = self.client.get_resource(self.href)
 
@@ -139,6 +140,7 @@ class VDC(object):
             Maker.ComputerName(name)
         )
         ip.append(gc)
+        all_eulas_accepted = 'true' if accept_all_eulas else 'false'
         vapp_template_params.append(
             Maker.SourcedItem(
                 Maker.Source(href=vm[0].get('href'),
@@ -152,9 +154,7 @@ class VDC(object):
                 ip
             )
         )
-        # from lxml import etree
-        # print(etree.tostring(vapp_template_params, pretty_print=True))
-        # return None
+        vapp_template_params.append(Maker.AllEULAsAccepted(all_eulas_accepted))
         return self.client.post_resource(
             self.href+'/action/instantiateVAppTemplate',
             vapp_template_params,

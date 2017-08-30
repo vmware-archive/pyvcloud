@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from lxml import etree
 from lxml import objectify
 import os
 from pyvcloud.vcd.client import _TaskMonitor
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
@@ -163,25 +165,82 @@ class Org(object):
         return self.upload_file(file_name, file_href, chunk_size=chunk_size,
                                 callback=callback)
 
-    def download_file(self,
-                      catalog_name,
-                      item_name,
-                      file_name,
-                      chunk_size=DEFAULT_CHUNK_SIZE,
-                      callback=None):
+    def download_catalog_item(self,
+                              catalog_name,
+                              item_name,
+                              file_name,
+                              chunk_size=DEFAULT_CHUNK_SIZE,
+                              callback=None,
+                              task_callback=None):
         item = self.get_catalog_item(catalog_name, item_name)
+        item_type = item.Entity.get('type')
         enable_href = item.Entity.get('href') + '/action/enableDownload'
         task = self.client.post_resource(enable_href, None, None)
         tm = _TaskMonitor(self.client)
-        tm.wait_for_success(task, 60, 1)
+        tm.wait_for_success(task, 60, 1, callback=task_callback)
         item = self.client.get_resource(item.Entity.get('href'))
-        size = item.Files.File.get('size')
-        download_href = item.Files.File.Link.get('href')
-        bytes_written = self.client.download_from_uri(download_href,
-                                                      file_name,
-                                                      chunk_size=chunk_size,
-                                                      size=size,
-                                                      callback=callback)
+        bytes_written = 0
+        if item_type == EntityType.MEDIA.value:
+            size = item.Files.File.get('size')
+            download_href = item.Files.File.Link.get('href')
+            bytes_written = self.client.download_from_uri(
+                download_href,
+                file_name,
+                chunk_size=chunk_size,
+                size=size,
+                callback=callback)
+        elif item_type == EntityType.VAPP_TEMPLATE.value:
+            ovf_descriptor = self.client.get_linked_resource(
+                item,
+                RelationType.DOWNLOAD_DEFAULT,
+                EntityType.TEXT_XML.value)
+            transfer_uri = find_link(item,
+                                     RelationType.DOWNLOAD_DEFAULT,
+                                     EntityType.TEXT_XML.value).href
+            transfer_uri = transfer_uri.replace('/descriptor.ovf', '/')
+            tempdir = None
+            cwd = os.getcwd()
+            try:
+                tempdir = tempfile.mkdtemp(dir='.')
+                ovf_file = os.path.join(tempdir, 'descriptor.ovf')
+                with open(ovf_file, 'wb') as f:
+                    payload = etree.tostring(ovf_descriptor,
+                                             pretty_print=True,
+                                             xml_declaration=True,
+                                             encoding='utf-8')
+                    f.write(payload)
+
+                ns = '{http://schemas.dmtf.org/ovf/envelope/1}'
+                files = []
+                for f in ovf_descriptor.References.File:
+                    source_file = {
+                        'href': f.get(ns + 'href'),
+                        'name': f.get(ns + 'id'),
+                        'size': f.get(ns + 'size')
+                        }
+                    target_file = os.path.join(tempdir, source_file['href'])
+                    uri = transfer_uri + source_file['href']
+                    num_bytes = self.client.download_from_uri(
+                        uri,
+                        target_file,
+                        chunk_size=chunk_size,
+                        size=source_file['size'],
+                        callback=callback)
+                    if num_bytes != source_file['size']:
+                        raise Exception('download incomplete for file %s' %
+                                        source_file['href'])
+                    files.append(source_file)
+                with tarfile.open(file_name, 'w') as tar:
+                    os.chdir(tempdir)
+                    tar.add('descriptor.ovf')
+                    for f in files:
+                        tar.add(f['href'])
+            finally:
+                if tempdir is not None:
+                    os.chdir(cwd)
+                    stat_info = os.stat(file_name)
+                    bytes_written = stat_info.st_size
+                    # shutil.rmtree(tempdir)
         return bytes_written
 
     def upload_file(self,

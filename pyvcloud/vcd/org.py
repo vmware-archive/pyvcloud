@@ -25,6 +25,7 @@ import shutil
 import tarfile
 import tempfile
 import time
+import traceback
 
 
 Maker = objectify.ElementMaker(
@@ -159,9 +160,8 @@ class Org(object):
             EntityType.MEDIA.value)
         entity = self.client.get_resource(catalog_item.Entity.get('href'))
         file_href = entity.Files.File.Link.get('href')
-        self.upload_file(file_name, file_href, chunk_size=chunk_size,
-                         callback=callback)
-        return entity
+        return self.upload_file(file_name, file_href, chunk_size=chunk_size,
+                                callback=callback)
 
     def download_file(self,
                       catalog_name,
@@ -189,9 +189,9 @@ class Org(object):
                     href,
                     chunk_size=DEFAULT_CHUNK_SIZE,
                     callback=None):
+        transferred = 0
         stat_info = os.stat(file_name)
         with open(file_name, 'rb') as f:
-            transferred = 0
             while transferred < stat_info.st_size:
                 my_bytes = f.read(chunk_size)
                 if len(my_bytes) <= chunk_size:
@@ -203,6 +203,7 @@ class Org(object):
                     transferred += len(my_bytes)
                     if callback is not None:
                         callback(transferred, stat_info.st_size)
+        return transferred
 
     def upload_ovf(self,
                    catalog_name,
@@ -215,56 +216,62 @@ class Org(object):
         if item_name is None:
             item_name = os.path.basename(file_name)
         tempdir = tempfile.mkdtemp(dir='.')
-        ova = tarfile.open(file_name)
-        ova.extractall(path=tempdir)
-        ova.close()
-        ovf_file = None
-        files = os.listdir(tempdir)
-        for f in files:
-            fn, ex = os.path.splitext(f)
-            if ex == '.ovf':
-                ovf_file = os.path.join(tempdir, f)
-                break
-        if ovf_file is not None:
-            ovf = objectify.parse(ovf_file)
-            files = []
-            for f in ovf.getroot().References.File:
-                source_file = {
-                    'href':
-                        f.get('{http://schemas.dmtf.org/ovf/envelope/1}href'),
-                    'name':
-                        f.get('{http://schemas.dmtf.org/ovf/envelope/1}id'),
-                    'size':
-                        f.get('{http://schemas.dmtf.org/ovf/envelope/1}size')
-                    }
-                files.append(source_file)
-            if item_name is None:
-                item_name = os.path.basename(file_name)
-            params = Maker.UploadVAppTemplateParams(name=item_name)
-            params.append(Maker.Description(description))
-            catalog_item = self.client.post_resource(
-                catalog.get('href') + '/action/upload',
-                params,
-                EntityType.UPLOAD_VAPP_TEMPLATE_PARAMS.value)
-            entity = self.client.get_resource(catalog_item.Entity.get('href'))
-            file_href = entity.Files.File.Link.get('href')
-            result = self.client.put_resource(file_href, ovf, 'text/xml')
-            from lxml import etree
-            print(etree.tostring(result))
-            while True:
-                time.sleep(5)
+        total_bytes = 0
+        try:
+            ova = tarfile.open(file_name)
+            ova.extractall(path=tempdir)
+            ova.close()
+            ovf_file = None
+            files = os.listdir(tempdir)
+            for f in files:
+                fn, ex = os.path.splitext(f)
+                if ex == '.ovf':
+                    ovf_file = os.path.join(tempdir, f)
+                    break
+            if ovf_file is not None:
+                stat_info = os.stat(ovf_file)
+                total_bytes += stat_info.st_size
+                ovf = objectify.parse(ovf_file)
+                files = []
+                ns = '{http://schemas.dmtf.org/ovf/envelope/1}'
+                for f in ovf.getroot().References.File:
+                    source_file = {
+                        'href': f.get(ns + 'href'),
+                        'name': f.get(ns + 'id'),
+                        'size': f.get(ns + 'size')
+                        }
+                    files.append(source_file)
+                if item_name is None:
+                    item_name = os.path.basename(file_name)
+                params = Maker.UploadVAppTemplateParams(name=item_name)
+                params.append(Maker.Description(description))
+                catalog_item = self.client.post_resource(
+                    catalog.get('href') + '/action/upload',
+                    params,
+                    EntityType.UPLOAD_VAPP_TEMPLATE_PARAMS.value)
                 entity = self.client.get_resource(catalog_item.
                                                   Entity.get('href'))
-                if len(entity.Files.File) > 1:
-                    break
-            for source_file in files:
-                for target_file in entity.Files.File:
-                    if source_file.get('href') == target_file.get('name'):
-                        file_path = os.path.join(tempdir,
-                                                 source_file.get('href'))
-                        self.upload_file(file_path,
-                                         target_file.Link.get('href'),
-                                         chunk_size=chunk_size,
-                                         callback=callback)
-        shutil.rmtree(tempdir)
-        return {'bytes': 0}
+                file_href = entity.Files.File.Link.get('href')
+                self.client.put_resource(file_href, ovf, 'text/xml')
+                while True:
+                    time.sleep(5)
+                    entity = self.client.get_resource(catalog_item.
+                                                      Entity.get('href'))
+                    if len(entity.Files.File) > 1:
+                        break
+                for source_file in files:
+                    for target_file in entity.Files.File:
+                        if source_file.get('href') == target_file.get('name'):
+                            file_path = os.path.join(tempdir,
+                                                     source_file.get('href'))
+                            total_bytes += self.upload_file(
+                                file_path,
+                                target_file.Link.get('href'),
+                                chunk_size=chunk_size,
+                                callback=callback)
+            shutil.rmtree(tempdir)
+        except Exception as e:
+            print(traceback.format_exc())
+            shutil.rmtree(tempdir)
+            raise e
+        return total_bytes

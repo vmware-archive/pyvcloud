@@ -184,13 +184,16 @@ def task_to_dict(task):
 
 def filter_attributes(resource_type):
     attributes = None
-    if resource_type in ['task', 'adminTask']:
+    if resource_type in ['adminTask', 'task']:
         attributes = ['id', 'name', 'objectName', 'status',
                       'startDate']
-    elif resource_type in ['vApp']:
+    elif resource_type in ['adminVApp', 'vApp']:
         attributes = ['id', 'name', 'numberOfVMs', 'status', 'numberOfCpus',
                       'memoryAllocationMB', 'storageKB', 'ownerName',
                       'isDeployed', 'isEnabled']
+    elif resource_type in ['adminCatalogItem', 'catalogItem']:
+        attributes = ['id', 'name', 'catalogName', 'storageKB', 'status',
+                      'entityType', 'vdcName', 'isPublished', 'ownerName']
     return attributes
 
 

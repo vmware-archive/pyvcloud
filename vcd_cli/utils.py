@@ -156,7 +156,7 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                             sorted(obj.iteritems())], show_id=show_id)
         else:
             text = as_table(obj, show_id=show_id)
-        click.echo(text)
+        click.echo('\x1b[2K\r' + text)
 
 
 def stderr(exception, ctx=None):
@@ -180,6 +180,7 @@ def stderr(exception, ctx=None):
         sys.exit(1)
     else:
         message = Fore.RED + str(message)
+        click.echo('\x1b[2K\r', nl=False)
         if ctx is not None:
             ctx.fail(message)
         else:

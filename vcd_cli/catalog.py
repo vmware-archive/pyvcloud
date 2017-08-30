@@ -20,6 +20,7 @@ from vcd_cli.utils import is_admin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
+from vcd_cli.utils import task_callback
 from vcd_cli.vcd import abort_if_false
 from vcd_cli.vcd import cli
 
@@ -228,7 +229,7 @@ def upload_callback(transferred, total):
 
 
 def download_callback(transferred, total):
-    message = '\x1b[2K\rdonwload {} of {} bytes, {:.0%}'.format(
+    message = '\x1b[2K\rdownload {:,} of {:,} bytes, {:.0%}'.format(
         transferred, total, int(transferred)/int(total))
     click.secho(message, nl=False)
     if int(transferred) == int(total):
@@ -278,7 +279,7 @@ def upload(ctx, catalog_name, file_name, item_name, progress):
         stderr(e, ctx)
 
 
-@catalog.command(short_help='download file from catalog')
+@catalog.command(short_help='download item from catalog')
 @click.pass_context
 @click.argument('catalog-name',
                 metavar='<catalog-name>')
@@ -315,10 +316,11 @@ def download(ctx, catalog_name, item_name, file_name, progress, overwrite):
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href, org_name == 'System')
         cb = download_callback if progress else None
-        bytes_written = org.download_file(catalog_name,
-                                          item_name,
-                                          save_as_name,
-                                          callback=cb)
+        bytes_written = org.download_catalog_item(catalog_name,
+                                                  item_name,
+                                                  save_as_name,
+                                                  callback=cb,
+                                                  task_callback=task_callback)
         result = {'file': save_as_name, 'size': bytes_written}
         stdout(result, ctx)
     except Exception as e:

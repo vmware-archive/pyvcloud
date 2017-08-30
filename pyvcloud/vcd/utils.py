@@ -187,6 +187,10 @@ def filter_attributes(resource_type):
     if resource_type in ['task', 'adminTask']:
         attributes = ['id', 'name', 'objectName', 'status',
                       'startDate']
+    elif resource_type in ['vApp']:
+        attributes = ['id', 'name', 'numberOfVMs', 'status', 'numberOfCpus',
+                      'memoryAllocationMB', 'storageKB', 'ownerName',
+                      'isDeployed', 'isEnabled']
     return attributes
 
 

@@ -1,7 +1,7 @@
 pyvcloud
 ========
 
-|docs-latest| |ver| |build-status|
+|ver| |build-status|
 
 Python SDK for VMware vCloud Director and vCloud Air.
 
@@ -97,11 +97,6 @@ See `.gitlab-ci.yml <.gitlab-ci.yml>`_ for current tests.
     :alt: build status
     :scale: 100%
     :target: https://travis-ci.org/vmware/pyvcloud/
-
-.. |docs-latest| image:: https://readthedocs.org/projects/pyvcloud/badge/?version=latest
-    :alt: Documentation Status
-    :scale: 100%
-    :target: http://pyvcloud.readthedocs.org/en/latest/
 
 .. |ver| image:: https://img.shields.io/pypi/v/pyvcloud.svg
     :alt: Stable Version

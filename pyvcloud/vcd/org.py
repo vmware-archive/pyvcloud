@@ -191,41 +191,40 @@ class Org(object):
         return bytes_written
 
     def upload_ovf(self,
-                  catalog_name,
-                  file_name,
-                  item_name=None,
-                  description='',
-                  chunk_size=DEFAULT_CHUNK_SIZE,
-                  callback=None):
-        import os
-        stat_info = os.stat(file_name)
-        catalog = self.get_catalog(catalog_name)
-        if item_name is None:
-            item_name = os.path.basename(file_name)
-        import shutil
-        import tempfile
-        tempdir = tempfile.mkdtemp(dir='.')
-        import tarfile
-        ova = tarfile.open(file_name)
-        ova.extractall(path=tempdir)
-        ova.close()
-        import xml.etree.ElementTree as ET
-        from lxml import objectify
-        ovf = None
-        files = os.listdir(tempdir)
-        for f in files:
-            fn, ex = os.path.splitext(f)
-            if ex == '.ovf':
-                ovf = os.path.join(tempdir,f)
-                break
-        if ovf is not None:
-            tree = ET.parse(ovf)
-            # root = objectify
-            # for f in root.Envelope.References.File:
-            #     print(f)
-        # shutil.rmtree(tempdir)
+                   catalog_name,
+                   file_name,
+                   item_name=None,
+                   description='',
+                   chunk_size=DEFAULT_CHUNK_SIZE,
+                   callback=None):
+        # import os
+        # stat_info = os.stat(file_name)
+        # catalog = self.get_catalog(catalog_name)
+        # if item_name is None:
+        #     item_name = os.path.basename(file_name)
+        # import shutil
+        # import tempfile
+        # tempdir = tempfile.mkdtemp(dir='.')
+        # import tarfile
+        # ova = tarfile.open(file_name)
+        # ova.extractall(path=tempdir)
+        # ova.close()
+        # import xml.etree.ElementTree as ET
+        # from lxml import objectify
+        # ovf = None
+        # files = os.listdir(tempdir)
+        # for f in files:
+        #     fn, ex = os.path.splitext(f)
+        #     if ex == '.ovf':
+        #         ovf = os.path.join(tempdir,f)
+        #         break
+        # if ovf is not None:
+        #     tree = ET.parse(ovf)
+        #     # root = objectify
+        #     # for f in root.Envelope.References.File:
+        #     #     print(f)
+        # # shutil.rmtree(tempdir)
         return {'bytes': 0}
-
 
     def get_vdc(self, name):
         if self.org_resource is None:

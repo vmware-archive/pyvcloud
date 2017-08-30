@@ -21,6 +21,9 @@ from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.utils import to_dict
+import shutil
+import tarfile
+import tempfile
 import time
 
 
@@ -208,31 +211,22 @@ class Org(object):
                    description='',
                    chunk_size=DEFAULT_CHUNK_SIZE,
                    callback=None):
-        import os
-        stat_info = os.stat(file_name)
         catalog = self.get_catalog(catalog_name)
         if item_name is None:
             item_name = os.path.basename(file_name)
-        import shutil
-        import tempfile
         tempdir = tempfile.mkdtemp(dir='.')
-        import tarfile
         ova = tarfile.open(file_name)
         ova.extractall(path=tempdir)
         ova.close()
-        import xml.etree.ElementTree as ET
-        from lxml import objectify
         ovf_file = None
         files = os.listdir(tempdir)
         for f in files:
             fn, ex = os.path.splitext(f)
             if ex == '.ovf':
-                ovf_file = os.path.join(tempdir,f)
+                ovf_file = os.path.join(tempdir, f)
                 break
         if ovf_file is not None:
             ovf = objectify.parse(ovf_file)
-            from lxml import etree
-            # print(getattr(ovf.getroot(), '{http://schemas.dmtf.org/ovf/envelope/1}References'))
             files = []
             for f in ovf.getroot().References.File:
                 source_file = {
@@ -246,8 +240,7 @@ class Org(object):
                 files.append(source_file)
             if item_name is None:
                 item_name = os.path.basename(file_name)
-            params = Maker.UploadVAppTemplateParams(
-                                                name=item_name)
+            params = Maker.UploadVAppTemplateParams(name=item_name)
             params.append(Maker.Description(description))
             catalog_item = self.client.post_resource(
                 catalog.get('href') + '/action/upload',
@@ -256,16 +249,16 @@ class Org(object):
             entity = self.client.get_resource(catalog_item.Entity.get('href'))
             file_href = entity.Files.File.Link.get('href')
             result = self.client.put_resource(file_href, ovf, 'text/xml')
+            from lxml import etree
+            print(etree.tostring(result))
             while True:
                 time.sleep(5)
-                entity = self.client.get_resource(catalog_item.Entity.get('href'))
+                entity = self.client.get_resource(catalog_item.
+                                                  Entity.get('href'))
                 if len(entity.Files.File) > 1:
                     break
             for source_file in files:
                 for target_file in entity.Files.File:
-                    print('.')
-                    print(source_file.get('href'))
-                    print(target_file.get('name'))
                     if source_file.get('href') == target_file.get('name'):
                         file_path = os.path.join(tempdir,
                                                  source_file.get('href'))
@@ -273,18 +266,5 @@ class Org(object):
                                          target_file.Link.get('href'),
                                          chunk_size=chunk_size,
                                          callback=callback)
-            return entity
-
-
-        # shutil.rmtree(tempdir)
+        shutil.rmtree(tempdir)
         return {'bytes': 0}
-#
-    # def get_vdc(self, name):
-        # if self.org_resource is None:
-            # self.org_resource = self.client.get_resource(self.endpoint)
-        # links = get_links(self.org_resource,
-                        #   rel=RelationType.DOWN,
-                        #   media_type=EntityType.VDC.value)
-        # for link in links:
-            # if name == link.name:
-                # return self.client.get_resource(link.href)

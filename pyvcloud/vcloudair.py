@@ -1065,23 +1065,78 @@ class VCA(object):
                 network_href = network.get_href()
 
         params = vcloudType.SourcedCompositionItemParamType()
-        if ((self.version == "1.0") or (self.version == "1.5") or (self.version == "5.1") or
-                (self.version == "5.5")):
-            message = 'Customization during instantiation is not ' +\
-                      'supported in this version, use vapp methods ' +\
-                      'to change vm name, cpu or memory'
-            Log.error(self.logger, message)
-            raise Exception(message)
 
         params.set_Source(vcloudType.ReferenceType(href=vm_href))
 
         if 'name' in vm_spec and vm_spec['name'] is not None:
+            if ((self.version == "1.0") or (self.version == "1.5") or (self.version == "5.1") or
+                (self.version == "5.5")):
+                message = 'Customization during instantiation is not ' +\
+                          'supported in this version, use vapp methods ' +\
+                          'to change vm name, cpu or memory'
+                Log.error(self.logger, message)
+                raise Exception(message)
             gen_params = vcloudType.VmGeneralParamsType()
             gen_params.set_Name(vm_spec['name'])
             params.set_VmGeneralParams(gen_params)
 
+        vm_cpus = vm_spec.get('cpus', None)
+        vm_memory = vm_spec.get('memory', None)
+
+        if vm_cpus or vm_memory:
+            if ((self.version == "1.0") or (self.version == "1.5") or (self.version == "5.1") or
+                (self.version == "5.5")):
+                message = 'Customization during instantiation is not ' +\
+                          'supported in this version, use vapp methods ' +\
+                          'to change vm name, cpu or memory'
+                Log.error(self.logger, message)
+                raise Exception(message)
+
+            inst_param = vcloudType.InstantiationParamsType()
+            hardware = vcloudType.VirtualHardwareSection_Type(id=None)
+            hardware.original_tagname_ = "VirtualHardwareSection"
+            hardware.set_Info(vAppType.cimString(valueOf_="Virtual hardware requirements"))
+            inst_param.add_Section(hardware)
+            params.set_InstantiationParams(inst_param)
+
+            if vm_cpus:
+                cpudata = vAppType.RASD_Type()
+                cpudata.original_tagname_ = "ovf:Item"
+                cpudata.set_required(None)
+                cpudata.set_AllocationUnits(vAppType.cimString(valueOf_="hertz * 10^6"))
+                cpudata.set_Description(vAppType.cimString(valueOf_="Number of Virtual CPUs"))
+                cpudata.set_ElementName(vAppType.cimString(valueOf_="{0} virtual CPU(s)".format(vm_cpus)))
+                cpudata.set_InstanceID(vAppType.cimInt(valueOf_=1))
+                cpudata.set_ResourceType(3)
+                cpudata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_cpus))
+                hardware.add_Item(cpudata)
+
+            if vm_memory:
+                memorydata = vAppType.RASD_Type()
+                memorydata.original_tagname_ = "ovf:Item"
+                memorydata.set_required(None)
+                memorydata.set_AllocationUnits(vAppType.cimString(valueOf_="byte * 2^20"))
+                memorydata.set_Description(vAppType.cimString(valueOf_="Memory Size"))
+                memorydata.set_ElementName(vAppType.cimString(valueOf_="{0} MB of memory".format(vm_memory)))
+                memorydata.set_InstanceID(vAppType.cimInt(valueOf_=2))
+                memorydata.set_ResourceType(4)
+                memorydata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_memory))
+                hardware.add_Item(memorydata)
+
+            inst_param.add_Section(VirtualHardwareSection_Type)
+
+            params.set_InstantiationParams(inst_param)
+
         if 'storage_profile' in vm_spec and vm_spec[
                 'storage_profile'] is not None:
+            if ((self.version == "1.0") or (self.version == "1.5") or (self.version == "5.1") or
+                (self.version == "5.5")):
+                message = 'Customization during instantiation is not ' +\
+                          'supported in this version, use vapp methods ' +\
+                          'to change vm name, cpu or memory'
+                Log.error(self.logger, message)
+                raise Exception(message)
+
             storage_href = self.get_storage_profile(
                 vdc_name, vm_spec['storage_profile']).get_href()
             params.set_StorageProfile(

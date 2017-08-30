@@ -198,6 +198,8 @@ class EntityType(Enum):
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'
     TASK = 'application/vnd.vmware.vcloud.task+xml'
+    UPLOAD_VAPP_TEMPLATE_PARAMS = \
+        'application/vnd.vmware.vcloud.uploadVAppTemplateParams+xml'
     VAPP = 'application/vnd.vmware.vcloud.vApp+xml'
     VAPP_TEMPLATE = 'application/vnd.vmware.vcloud.vAppTemplate+xml'
     VDC = 'application/vnd.vmware.vcloud.vdc+xml'

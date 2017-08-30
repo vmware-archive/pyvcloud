@@ -35,6 +35,11 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.FileHandler('vcd.log'))
 
 
+def is_admin(ctx):
+    org_name = ctx.obj['profiles'].get('org')
+    return org_name == 'System'
+
+
 def as_table(obj_list, header=None, show_id=False):
     if len(obj_list) == 0:
         return ''

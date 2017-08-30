@@ -13,10 +13,12 @@
 #
 
 import click
-from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import QueryResultFormat
+from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
+from vcd_cli.utils import is_admin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -78,16 +80,23 @@ def info(ctx, name):
         stderr(e, ctx)
 
 
-@vapp.command(short_help='list vApps')
+@vapp.command('list', short_help='list vApps')
 @click.pass_context
-def list(ctx):
+def list_vapps(ctx):
     try:
         client = ctx.obj['client']
-        vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
-        # TODO(consider using search api/RECORDS)
-        result = vdc.list_resources(EntityType.VAPP)
-        stdout(result, ctx, show_id=True)
+        result = []
+        resource_type = 'adminVApp' if is_admin(ctx) else 'vApp'
+        q = client.get_typed_query(resource_type,
+                                   query_result_format=QueryResultFormat.
+                                   ID_RECORDS)
+        records = list(q.execute())
+        if len(records) == 0:
+            result = 'not found'
+        else:
+            for r in records:
+                result.append(to_dict(r, resource_type=resource_type))
+        stdout(result, ctx, show_id=False)
     except Exception as e:
         stderr(e, ctx)
 

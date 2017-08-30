@@ -93,9 +93,9 @@ def info(ctx, catalog_name, item_name):
         stderr(e, ctx)
 
 
-@catalog.command(short_help='list catalogs')
+@catalog.command('list', short_help='list catalogs')
 @click.pass_context
-def list(ctx):
+def list_catalogs(ctx):
     try:
         client = ctx.obj['client']
         org_name = ctx.obj['profiles'].get('org')
@@ -212,11 +212,18 @@ def upload(ctx, catalog_name, file_name, item_name, progress):
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href, org_name == 'System')
         cb = upload_callback if progress else None
-        result = org.upload_media(catalog_name,
-                                  file_name,
-                                  item_name,
-                                  callback=cb)
-        stdout(to_dict(result), ctx)
+        filename, file_extension = os.path.splitext(file_name)
+        if file_extension == '.ova':
+            result = org.upload_ovf(catalog_name,
+                                    file_name,
+                                    item_name,
+                                    callback=cb)
+        else:
+            result = org.upload_media(catalog_name,
+                                      file_name,
+                                      item_name,
+                                      callback=cb)
+        stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)
 

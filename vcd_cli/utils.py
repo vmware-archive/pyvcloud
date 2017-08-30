@@ -101,7 +101,7 @@ spinner = spinning_cursor()
 
 
 def task_callback(task):
-    message = '\x1b[2K\r{}: {}, status: {}'.format(
+    message = '\x1b[2K\r{0}: {1}, status: {2}'.format(
         task.get('operationName'), task.get('operation'), task.get('status')
     )
     if hasattr(task, 'Progress'):

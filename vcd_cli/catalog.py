@@ -10,11 +10,13 @@
 # code for the these subcomponents is subject to the terms and
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
-
+from __future__ import division
 import click
 import os
+from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import to_dict
+from vcd_cli.utils import is_admin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -32,34 +34,41 @@ def catalog(ctx):
         vcd catalog list
             Get list of catalogs in current organization.
 \b
-        vcd catalog create 'my catalog' -d 'My Catalog of Templates'
+        vcd catalog create my-catalog -d 'My Catalog of Templates'
             Create catalog.
 \b
-        vcd catalog delete 'my catalog'
+        vcd catalog create 'my catalog'
+            Create catalog with white spaces in the name.
+\b
+        vcd catalog delete my-catalog
             Delete catalog.
 \b
-        vcd catalog info 'my catalog'
+        vcd catalog info my-catalog
             Get details of a catalog.
 \b
-        vcd catalog info 'my catalog' linux-template
+        vcd catalog info my-catalog linux-template
             Get details of a catalog item.
 \b
-        vcd catalog list-items 'my catalog'
+        vcd catalog list my-catalog
             Get list of items in a catalog.
 \b
-        vcd catalog upload 'my catalog' installer.iso
+        vcd catalog list '*'
+        vcd catalog list \*
+            Get list of items in all catalogs in current organization.
+\b
+        vcd catalog upload my-catalog installer.iso
             Upload media file to a catalog.
 \b
-        vcd catalog download 'my catalog' installer.iso
+        vcd catalog download my-catalog installer.iso
             Download media file from catalog.
 \b
-        vcd catalog delete-item 'my catalog' installer.iso
+        vcd catalog delete my-catalog installer.iso
             Delete media file from catalog.
 \b
-        vcd catalog share 'my catalog'
+        vcd catalog share my-catalog
             Publish and share catalog accross all organizations.
 \b
-        vcd catalog unshare 'my catalog'
+        vcd catalog unshare my-catalog
             Stop sharing a catalog.
     """  # NOQA
     if ctx.invoked_subcommand not in [None, 'item']:
@@ -93,16 +102,36 @@ def info(ctx, catalog_name, item_name):
         stderr(e, ctx)
 
 
-@catalog.command('list', short_help='list catalogs')
+@catalog.command('list', short_help='list catalogs or items')
 @click.pass_context
-def list_catalogs(ctx):
+@click.argument('catalog-name',
+                metavar='[catalog-name]',
+                required=False)
+def list_catalogs_or_items(ctx, catalog_name):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
-        in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
-        result = org.list_catalogs()
+        if catalog_name is None:
+            org_name = ctx.obj['profiles'].get('org')
+            in_use_org_href = ctx.obj['profiles'].get('org_href')
+            org = Org(client, in_use_org_href, org_name == 'System')
+            result = org.list_catalogs()
+        else:
+            result = []
+            resource_type = \
+                'adminCatalogItem' if is_admin(ctx) else 'catalogItem'
+            q = client.get_typed_query(resource_type,
+                                       query_result_format=QueryResultFormat.
+                                       ID_RECORDS,
+                                       qfilter='catalogName==%s' %
+                                       catalog_name)
+            records = list(q.execute())
+            if len(records) == 0:
+                result = 'not found'
+            else:
+                for r in records:
+                    result.append(to_dict(r, resource_type=resource_type))
         stdout(result, ctx)
+
     except Exception as e:
         stderr(e, ctx)
 
@@ -127,23 +156,31 @@ def create(ctx, catalog_name, description):
         stderr(e, ctx)
 
 
-@catalog.command(short_help='delete a catalog')
+@catalog.command('delete', short_help='delete a catalog or item')
 @click.pass_context
 @click.argument('catalog-name',
                 metavar='<catalog-name>')
+@click.argument('item-name',
+                metavar='[item-name]',
+                required=False)
 @click.option('-y',
               '--yes',
               is_flag=True,
               callback=abort_if_false,
               expose_value=False,
-              prompt='Are you sure you want to delete the catalog?')
-def delete(ctx, catalog_name):
+              prompt='Are you sure you want to delete it?')
+def delete_catalog_or_item(ctx, catalog_name, item_name):
     try:
         client = ctx.obj['client']
+        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href)
-        org.delete_catalog(catalog_name)
-        stdout('Catalog deleted.', ctx)
+        org = Org(client, in_use_org_href, org_name == 'System')
+        if item_name is None:
+            org.delete_catalog(catalog_name)
+            stdout('Catalog deleted.', ctx)
+        else:
+            org.delete_catalog_item(catalog_name, item_name)
+            stdout('Item deleted.', ctx)
     except Exception as e:
         stderr(e, ctx)
 
@@ -183,7 +220,19 @@ def unshare(ctx, catalog_name):
 
 
 def upload_callback(transferred, total):
-    print('upload %s of %s bytes' % (transferred, total))
+    message = '\x1b[2K\rupload {:,} of {:,} bytes, {:.0%}'.format(
+        transferred, total, transferred/total)
+    click.secho(message, nl=False)
+    if transferred == total:
+        click.secho('')
+
+
+def download_callback(transferred, total):
+    message = '\x1b[2K\rdonwload {} of {} bytes, {:.0%}'.format(
+        transferred, total, int(transferred)/int(total))
+    click.secho(message, nl=False)
+    if int(transferred) == int(total):
+        click.secho('')
 
 
 @catalog.command(short_help='upload file to catalog')
@@ -214,22 +263,19 @@ def upload(ctx, catalog_name, file_name, item_name, progress):
         cb = upload_callback if progress else None
         filename, file_extension = os.path.splitext(file_name)
         if file_extension == '.ova':
-            result = org.upload_ovf(catalog_name,
-                                    file_name,
-                                    item_name,
-                                    callback=cb)
+            bytes_written = org.upload_ovf(catalog_name,
+                                           file_name,
+                                           item_name,
+                                           callback=cb)
         else:
-            result = org.upload_media(catalog_name,
-                                      file_name,
-                                      item_name,
-                                      callback=cb)
+            bytes_written = org.upload_media(catalog_name,
+                                             file_name,
+                                             item_name,
+                                             callback=cb)
+        result = {'file': file_name, 'size': bytes_written}
         stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)
-
-
-def download_callback(transferred, total):
-    print('download %s of %s bytes' % (transferred, total))
 
 
 @catalog.command(short_help='download file from catalog')
@@ -275,45 +321,5 @@ def download(ctx, catalog_name, item_name, file_name, progress, overwrite):
                                           callback=cb)
         result = {'file': save_as_name, 'size': bytes_written}
         stdout(result, ctx)
-    except Exception as e:
-        stderr(e, ctx)
-
-
-@catalog.command('list-items', short_help='list catalog items')
-@click.pass_context
-@click.argument('catalog-name',
-                metavar='<catalog-name>')
-def list_items(ctx, catalog_name):
-    try:
-        client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
-        in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
-        items = org.list_catalog_items(catalog_name)
-        stdout(items, ctx)
-    except Exception as e:
-        stderr(e, ctx)
-
-
-@catalog.command('delete-item', short_help='delete a catalog item')
-@click.pass_context
-@click.argument('catalog-name',
-                metavar='<catalog-name>')
-@click.argument('item-name',
-                metavar='<item-name>')
-@click.option('-y',
-              '--yes',
-              is_flag=True,
-              callback=abort_if_false,
-              expose_value=False,
-              prompt='Are you sure you want to delete the catalog item?')
-def delete_item(ctx, catalog_name, item_name):
-    try:
-        client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
-        in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
-        org.delete_catalog_item(catalog_name, item_name)
-        stdout('Item deleted.', ctx)
     except Exception as e:
         stderr(e, ctx)

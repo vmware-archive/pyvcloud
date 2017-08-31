@@ -1,7 +1,10 @@
 import tempfile
 import logging
 import requests
-import httplib
+try:
+    import httplib
+except ImportError:
+    import http.client
 
 _logger = None
 

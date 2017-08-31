@@ -497,10 +497,15 @@ class Client(object):
                                                creds.password))
         sc = response.status_code
         if sc != 200:
+            r = None
+            try:
+                r = _objectify_response(response)
+            except Exception:
+                pass
             raise VcdErrorResponseException(
                 sc,
                 self._get_response_request_id(response),
-                _objectify_response(response)) if sc == 401 else \
+                r) if r is not None else \
                 Exception("Unknown login failure")
 
         session = objectify.fromstring(response.content)

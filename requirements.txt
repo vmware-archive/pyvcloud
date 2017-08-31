@@ -12,3 +12,5 @@ PrettyTable>=0.7,<0.8
 six
 pytz
 oslo.utils
+pycrypto
+keyring

@@ -9,42 +9,10 @@ This project is under development, the classes, methods and parameters might cha
 
 New vCD support is located under `pyvcloud/vcd <pyvcloud/vcd>`_ directory.
 
-Sample Usage
-============
-
-Import modules and instantiate a VCA object:
-
-.. code:: python
-
-    from pyvcloud.vcloudair import VCA
-    vcd = VCA(host, user, service_type, service_version, verify)
-
-Login to a vCloud Director instance:
-
-.. code:: python
-
-    result = vcd.login(password=password, org=org)
-
-See `changes log <ChangeLog>`_ for a list of changes.
-
 Installation
 ============
 
-The Python SDK requires the libxml2 and libxslt libraries, see `lxml <http://lxml.de/installation.html>`_ for more details.
-
-On Debian/Ubuntu, you can install `lxml` and Python development dependencies with this command:
-
-.. code:: bash
-
-    sudo apt-get install libxml2-dev libxslt-dev python-dev python-pip
-
-On RHEL-based distributions:
-
-.. code:: bash
-
-    sudo yum install libxslt-devel libxml2-devel python-devel python-pip
-
-The Python SDK can then be installed with the following command:
+In general, the Python SDK can then be installed with the following command:
 
 .. code:: bash
 
@@ -65,17 +33,6 @@ To run the source code, check it out from GitHub and install it with:
 .. code:: bash
 
     python setup.py develop
-
-To log the requests, add the ``log=True`` parameter to the VCA constructor. The log is appended to file ``$TMPDIR/pyvcloud.log``.
-
-.. code:: python
-
-    vcd = VCA(host=host,
-              username=username,
-              service_type='vcd',
-              version='5.7',
-              verify=False,
-              log=True)
 
 To test **pyvcloud**:
 

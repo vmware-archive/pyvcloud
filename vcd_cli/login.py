@@ -12,7 +12,6 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-import browsercookie
 import click
 from pyvcloud.vcd.client import _WellKnownEndpoint
 from pyvcloud.vcd.client import API_CURRENT_VERSIONS
@@ -21,6 +20,7 @@ from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 import requests
+from vcd_cli import browsercookie
 from vcd_cli.profiles import Profiles
 from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session

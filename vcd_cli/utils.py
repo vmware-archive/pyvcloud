@@ -21,8 +21,8 @@ from pygments import formatters
 from pygments import highlight
 from pygments import lexers
 from pyvcloud.vcd.client import Client
-from pyvcloud.vcd.client import VcdErrorResponseException
 from pyvcloud.vcd.client import TaskStatus
+from pyvcloud.vcd.client import VcdErrorResponseException
 from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.utils import to_dict
 import requests

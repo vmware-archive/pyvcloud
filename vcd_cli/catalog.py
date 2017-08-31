@@ -230,7 +230,7 @@ def upload_callback(transferred, total):
 
 def download_callback(transferred, total):
     message = '\x1b[2K\rdownload {:,} of {:,} bytes, {:.0%}'.format(
-        transferred, total, int(transferred)/int(total))
+        int(transferred), int(total), int(transferred)/int(total))
     click.secho(message, nl=False)
     if int(transferred) == int(total):
         click.secho('')

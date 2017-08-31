@@ -12,6 +12,7 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
+import browsercookie
 import click
 from pyvcloud.vcd.client import _WellKnownEndpoint
 from pyvcloud.vcd.client import API_CURRENT_VERSIONS
@@ -38,7 +39,7 @@ from vcd_cli.vcd import cli
                 metavar='user')
 @click.option('-p',
               '--password',
-              prompt=True,
+              prompt=False,
               metavar='<password>',
               confirmation_prompt=False,
               envvar='VCD_PASSWORD',
@@ -68,8 +69,20 @@ from vcd_cli.vcd import cli
               required=False,
               default=None,
               help='virtual datacenter')
+@click.option('-d',
+              '--session-id',
+              required=False,
+              default=None,
+              help='session id')
+@click.option('-b',
+              '--use-browser-session',
+              is_flag=True,
+              required=False,
+              default=False,
+              help='Use browser session')
 def login(ctx, user, host, password, api_version, org,
-          verify_ssl_certs, disable_warnings, vdc):
+          verify_ssl_certs, disable_warnings, vdc, session_id,
+          use_browser_session):
     """Login to vCloud Director
 
 \b
@@ -110,7 +123,23 @@ def login(ctx, user, host, password, api_version, org,
         if api_version is None:
             api_version = client.set_highest_supported_version()
 
-        client.set_credentials(BasicLoginCredentials(user, org, password))
+        if session_id is not None or use_browser_session:
+            if use_browser_session:
+                browser_session_id = None
+                cookies = browsercookie.chrome()
+                for c in cookies:
+                    if c.name == 'vcloud_session_id' and \
+                       c.domain == host:
+                        browser_session_id = c.value
+                        break
+                if browser_session_id is None:
+                    raise Exception('Session not found in browser.')
+                session_id = browser_session_id
+            client.rehydrate_from_token(session_id)
+        else:
+            if password is None:
+                password = click.prompt('Password', hide_input=True, type=str)
+            client.set_credentials(BasicLoginCredentials(user, org, password))
         wkep = {}
         for endpoint in _WellKnownEndpoint:
             if endpoint in client._session_endpoints:

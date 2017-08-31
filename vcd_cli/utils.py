@@ -68,7 +68,7 @@ def restore_session(ctx):
     profiles = Profiles.load()
     token = profiles.get('token')
     if token is None or len(token) == 0:
-        raise Exception('can''t restore session, please re-login')
+        raise Exception('Can\'t restore session, please re-login.')
     if not profiles.get('verify'):
         if profiles.get('disable_warnings'):
             pass

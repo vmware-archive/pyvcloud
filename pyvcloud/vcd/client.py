@@ -459,13 +459,38 @@ class Client(object):
     def _get_response_request_id(self, response):
         return response.headers[self._REQUEST_ID_HDR_NAME]
 
+    def get_supported_versions(self):
+        new_session = requests.Session()
+        response = self._do_request_prim('GET',
+                                         self._uri + '/versions',
+                                         new_session,
+                                         accept_type='')
+        sc = response.status_code
+        if sc != 200:
+            raise Exception('Unable to get supported API versions.')
+        return objectify.fromstring(response.content)
+
+    def set_highest_supported_version(self):
+        versions = self.get_supported_versions()
+        active_versions = []
+        for version in versions.VersionInfo:
+            if not hasattr(version, 'deprecated') or \
+               version.get('deprecated') == 'false':
+                active_versions.append(float(version.Version))
+        active_versions.sort()
+        self._api_version = active_versions[-1]
+        self._logger.debug('API versions supported: %s', active_versions)
+        self._logger.debug('API version set to highest supported: %s',
+                           self._api_version)
+        return self._api_version
+
     def set_credentials(self, creds):
         """Sets the credentials used for authentication.
 
         """
         new_session = requests.Session()
         response = self._do_request_prim('POST',
-                                         self._uri + "/sessions",
+                                         self._uri + '/sessions',
                                          new_session,
                                          auth=('%s@%s' % (creds.user,
                                                           creds.org),

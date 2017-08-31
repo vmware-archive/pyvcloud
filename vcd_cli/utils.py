@@ -21,6 +21,7 @@ from pygments import formatters
 from pygments import highlight
 from pygments import lexers
 from pyvcloud.vcd.client import Client
+from pyvcloud.vcd.client import VcdErrorResponseException
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.utils import to_dict
@@ -164,7 +165,9 @@ def stderr(exception, ctx=None):
         LOGGER.error(traceback.format_exc())
     except Exception:
         LOGGER.error(exception)
-    if exception.message:
+    if type(exception) == VcdErrorResponseException:
+        message = str(exception)
+    elif hasattr(exception, 'message'):
         message = exception.message
     else:
         message = str(exception)

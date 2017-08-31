@@ -47,7 +47,7 @@ from vcd_cli.vcd import cli
 @click.option('-V',
               '--version',
               'api_version',
-              default=API_CURRENT_VERSIONS[-1],
+              required=False,
               metavar=as_metavar(API_CURRENT_VERSIONS),
               type=click.Choice(API_CURRENT_VERSIONS),
               help='API version')
@@ -107,6 +107,9 @@ def login(ctx, user, host, password, api_version, org,
                     log_bodies=True
                     )
     try:
+        if api_version is None:
+            api_version = client.set_highest_supported_version()
+
         client.set_credentials(BasicLoginCredentials(user, org, password))
         wkep = {}
         for endpoint in _WellKnownEndpoint:
@@ -154,8 +157,6 @@ def login(ctx, user, host, password, api_version, org,
             profiles.set('token', '')
         except Exception:
             pass
-        if not ctx.find_root().params['json_output']:
-            click.secho('can\'t log in', fg='red', err=True)
         stderr(e, ctx)
 
 
@@ -166,11 +167,17 @@ def logout(ctx):
 
     """
     try:
-        restore_session(ctx)
-        client = ctx.obj['client']
-        profiles = ctx.obj['profiles']
-        client.logout()
-        profiles.set('token', '')
-        stdout('%s logged out' % (profiles.get('user')), ctx)
+        try:
+            restore_session(ctx)
+            client = ctx.obj['client']
+            client.logout()
+        except Exception:
+            pass
+        if ctx is not None and ctx.obj is not None:
+            profiles = ctx.obj['profiles']
+            profiles.set('token', '')
+            stdout('%s logged out.' % (profiles.get('user')), ctx)
+        else:
+            stderr('Not logged in.', ctx)
     except Exception as e:
         stderr(e, ctx)

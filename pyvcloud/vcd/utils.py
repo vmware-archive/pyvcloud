@@ -128,8 +128,9 @@ def vapp_to_dict(vapp):
             result['deployment_lease_expiration'] = \
                 vapp.LeaseSettingsSection.DeploymentLeaseExpiration
     if hasattr(vapp, 'Children') and hasattr(vapp.Children, 'Vm'):
-        n = 1
+        n = 0
         for vm in vapp.Children.Vm:
+            n += 1
             k = 'vm-%s' % n
             result[k] = vm.get('name')
             items = vm.xpath(

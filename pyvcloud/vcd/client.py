@@ -625,6 +625,7 @@ class Client(object):
         if self._log_bodies and data is not None:
             self._logger.debug("Request body: %s",
                                data)
+                            # data.decode('utf-8'))
         if self._log_requests or self._log_headers or self._log_bodies:
             self._logger.debug("Response status code: %s",
                                response.status_code)
@@ -634,6 +635,7 @@ class Client(object):
         if self._log_bodies and _response_has_content(response):
             self._logger.debug("Response body: %s",
                                response.content)
+                            #    response.content.decode('utf-8'))
 
         return response
 

@@ -81,6 +81,6 @@ class Cluster(object):
             accept_type='text/x-yaml',
             auth=None)
         if response.status_code == requests.codes.ok:
-            return response.content.replace('\\n', '\n')[1:-1]
+            return response.content.decode('utf-8').replace('\\n', '\n')[1:-1]
         else:
             raise Exception(json.loads(response.content))

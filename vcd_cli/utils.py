@@ -111,7 +111,7 @@ def task_callback(task):
                                       TaskStatus.PENDING.value,
                                       TaskStatus.PRE_RUNNING.value,
                                       TaskStatus.RUNNING.value]:
-        message += ' %s ' % spinner.next()
+        message += ' %s ' % next(spinner)
     click.secho(message, nl=False)
 
 

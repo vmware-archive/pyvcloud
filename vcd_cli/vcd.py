@@ -72,16 +72,16 @@ def version(ctx):
 if __name__ == '__main__':
     cli()
 else:
-    import catalog  # NOQA
-    import cluster  # NOQA
-    import info  # NOQA
-    import login  # NOQA
-    import org  # NOQA
-    import profile  # NOQA
-    import search  # NOQA
-    import system  # NOQA
-    import task  # NOQA
-    import vapp  # NOQA
-    import vdc  # NOQA
-    import vm  # NOQA
+    from vcd_cli import catalog  # NOQA
+    from vcd_cli import cluster  # NOQA
+    from vcd_cli import info  # NOQA
+    from vcd_cli import login  # NOQA
+    from vcd_cli import org  # NOQA
+    from vcd_cli import profile  # NOQA
+    from vcd_cli import search  # NOQA
+    from vcd_cli import system  # NOQA
+    from vcd_cli import task  # NOQA
+    from vcd_cli import vapp  # NOQA
+    from vcd_cli import vdc  # NOQA
+    from vcd_cli import vm  # NOQA
     load_user_plugins()

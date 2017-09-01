@@ -118,18 +118,18 @@ def task_callback(task):
 def stdout(obj, ctx=None, alt_text=None, show_id=False):
     o = obj
     if ctx is not None and ctx.find_root().params['json_output']:
-        if isinstance(obj, basestring):
+        if isinstance(obj, str):
             o = {'message': obj}
         text = json.dumps(o,
                           sort_keys=True,
                           indent=4,
                           separators=(',', ': '))
-        click.echo(highlight(unicode(text, 'UTF-8'), lexers.JsonLexer(),
+        click.echo(highlight(str(text, 'utf-8'), lexers.JsonLexer(),
                              formatters.TerminalFormatter()))
     else:
         if alt_text is not None:
             text = alt_text
-        elif isinstance(obj, basestring):
+        elif isinstance(obj, str):
             text = o
         elif isinstance(obj, ObjectifiedElement):
             if obj.tag == '{http://www.vmware.com/vcloud/v1.5}Task':
@@ -154,7 +154,7 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                 text = as_table(to_dict(obj), show_id=show_id)
         elif not isinstance(obj, list):
             text = as_table([{'property': k, 'value': v} for k, v in
-                            sorted(obj.iteritems())], show_id=show_id)
+                            sorted(obj.items())], show_id=show_id)
         else:
             text = as_table(obj, show_id=show_id)
         click.echo('\x1b[2K\r' + text)
@@ -177,7 +177,7 @@ def stderr(exception, ctx=None):
                           sort_keys=True,
                           indent=4,
                           separators=(',', ': '))
-        message = highlight(unicode(text, 'UTF-8'), lexers.JsonLexer(),
+        message = highlight(str(text, 'utf-8'), lexers.JsonLexer(),
                             formatters.TerminalFormatter())
         click.echo(message)
         sys.exit(1)

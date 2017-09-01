@@ -43,7 +43,7 @@ class Profiles(object):
             parent_dir = os.path.dirname(self.path)
             if not os.path.exists(parent_dir):
                 os.makedirs(parent_dir)
-            stream = file(self.path, 'w')
+            stream = open(self.path, 'w')
             yaml.dump(self.data, stream, default_flow_style=False)
         except Exception:
             import traceback

@@ -48,5 +48,5 @@ def info(ctx):
 if __name__ == '__main__':
     pass
 else:
-    import amqp  # NOQA
-    import extension  # NOQA
+    from vcd_cli import amqp  # NOQA
+    from vcd_cli import extension  # NOQA

@@ -334,3 +334,13 @@ class Org(object):
             shutil.rmtree(tempdir)
             raise e
         return total_bytes
+
+    def get_vdc(self, name):
+        if self.org_resource is None:
+            self.org_resource = self.client.get_resource(self.endpoint)
+        links = get_links(self.org_resource,
+                          rel=RelationType.DOWN,
+                          media_type=EntityType.VDC.value)
+        for link in links:
+            if name == link.name:
+                return self.client.get_resource(link.href)

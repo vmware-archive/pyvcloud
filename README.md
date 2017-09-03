@@ -115,7 +115,7 @@ $ vcd login vcd-host.vmware.com my-organization my_user_id --use-browser-session
 my_user_id logged in, org: 'my-organization', vdc: 'my-vdc'
 ```
 
-Login with a valid user id:
+Login with a valid session id:
 
 ```
 $ vcd login vcd-host.vmware.com my-organization my_user_id \

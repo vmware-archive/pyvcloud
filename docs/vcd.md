@@ -1,3 +1,4 @@
+```
 Usage: vcd [OPTIONS] COMMAND [ARGS]...
 
   VMware vCloud Director Command Line Interface.
@@ -23,3 +24,4 @@ Commands:
   vdc      work with virtual datacenters
   version  show version
   vm       manage VMs
+```

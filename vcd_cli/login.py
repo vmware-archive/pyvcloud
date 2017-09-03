@@ -89,16 +89,26 @@ def login(ctx, user, host, password, api_version, org,
     Login to a vCloud Director service.
 \b
     Examples
-        vcd login vcd.vmware.com org1 usr1
-            Log in to host 'vcd.vmware.com'.
+        vcd login mysp.com org1 usr1
+            Login to host 'mysp.com'.
 \b
-        vcd login test.mysp.com org1 usr -i -w
-            Log in to a host with self-signed SSL certificate.
+        vcd login test.mysp.com org1 usr1 -i -w
+            Login to a host with self-signed SSL certificate.
+\b
+        vcd login mysp.com org1 usr1 --use-browser-session
+            Login using active session from browser.
+\b
+        vcd login session list chrome
+            List active session ids from browser.
+\b
+        vcd login mysp.com org1 usr1 \\
+            --session-id ee968665bf3412d581bbc6192508eec4
+            Login using active session id.
 \b
     Environment Variables
         VCD_PASSWORD
             If this environment variable is set, the command will use its value
-            as the password for login and will not ask for one. The --password
+            as the password to login and will not ask for one. The --password
             option has precedence over the environment variable.
 
     """
@@ -111,6 +121,16 @@ def login(ctx, user, host, password, api_version, org,
                         'Adding certificate verification is strongly '
                         'advised.', fg='yellow', err=True)
         requests.packages.urllib3.disable_warnings()
+    if host == 'session' and org == 'list':
+        sessions = []
+        if user == 'chrome':
+            cookies = browsercookie.chrome()
+            for c in cookies:
+                if c.name == 'vcloud_session_id':
+                    sessions.append({'host': c.domain, 'session_id': c.value})
+        stdout(sessions, ctx)
+        return
+
     client = Client(host,
                     api_version=api_version,
                     verify_ssl_certs=verify_ssl_certs,

@@ -118,8 +118,15 @@ my_user_id logged in, org: 'my-organization', vdc: 'my-vdc'
 Login with a valid session id:
 
 ```
+$ vcd login session list chrome
+host                       session_id
+--------------------------- --------------------------------
+vcd-host.vmware.com         ee968665bf3412d581bbc6192508eec4
+test-host1.eng.vmware.com   9f8d61446e464648aad40c59964d3fe0
+test-host2.eng.vmware.com   2b90cb9adf924ef7b5346ae9b4177bad
+
 $ vcd login vcd-host.vmware.com my-organization my_user_id \
-      --session-id f02a273d48094bd4a5e04d7694ae30e6
+      --session-id ee968665bf3412d581bbc6192508eec4
 my_user_id logged in, org: 'my-organization', vdc: 'my-vdc'
 ```
 

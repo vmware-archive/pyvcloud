@@ -2,7 +2,7 @@
            Version 2.0, January 2004
         http://www.apache.org/licenses/
 
-		
+
    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
    1. Definitions.
@@ -206,8 +206,8 @@
 vCloud Air CLI 0.1:
 
 vCloud Air CLI 0.1: includes a number of subcomponents with
-separate copyright notices and license terms.  The product that 
-includes this file does not necessarily use all the open source 
+separate copyright notices and license terms.  The product that
+includes this file does not necessarily use all the open source
 subcomponents referred to below. Your use of the source
 code for the these subcomponents is subject to the terms and
 conditions of the following licenses.
@@ -300,6 +300,12 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+>>> browsercookie-0.7.2
+
+Copyright (c) Richard Penman
+License: LGPL
+
+
 ===========================================================================
 
 To the extent any open source components are licensed under the
@@ -309,13 +315,13 @@ available (as would be noted above), you may obtain a copy of
 the source code corresponding to the binaries for such open
 source components and modifications thereto, if any, (the
 "Source Files"), by downloading the Source Files from VMware's website at
-http://www.vmware.com/download/open_source.html, or by sending a request, 
+http://www.vmware.com/download/open_source.html, or by sending a request,
 with your name and address to: VMware, Inc., 3401 Hillview Avenue,Palo Alto, CA 94304,
 United States of America. All such requests should clearly specify: OPEN SOURCE FILES REQUEST,
 Attention General Counsel. VMware shall mail a copy of the
 Source Files to you on a CD or equivalent physical medium. This
 offer to obtain a copy of the Source Files is valid for three
-years from the date you acquired this Software product. 
+years from the date you acquired this Software product.
 Alternatively, the Source Files may accompany the VMware product.
 
 [VCACLI01BSD121714]

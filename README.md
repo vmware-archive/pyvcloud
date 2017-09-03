@@ -98,6 +98,35 @@ $ vca logout
 Logout successful for profile 'default'
 ```
 
+Login with Session ID and SAML Support
+---
+
+We are currently developing integration with SAML for single-sign on. For vCloud Director
+instances configured with SAML, login can be accomplished by specifying a valid session id or
+using a browser in the same computer.
+
+Login with a browser:
+
+1. Using Google `chrome`, login to vCloud Director
+2. On a command line, run the command:
+
+```
+$ vcd login vcd-host.vmware.com my-organization my_user_id --use-browser-session
+my_user_id logged in, org: 'my-organization', vdc: 'my-vdc'
+```
+
+Login with a valid user id:
+
+```
+$ vcd login vcd-host.vmware.com my-organization my_user_id \
+      --session-id f02a273d48094bd4a5e04d7694ae30e6
+my_user_id logged in, org: 'my-organization', vdc: 'my-vdc'
+```
+
+This feature can be combined with the new functionality for uploading and downloading
+templates and iso files with `vcd-cli` for convenient file transfers in SAML enabled
+vCloud Director instances.
+
 vCloud Air Support
 ---
 
@@ -119,7 +148,7 @@ Sample login to a vCA subscription service:
 
 ```shell
 $ vcd login p1v17-vcd.vchs.vmware.com 20-162 'user@company.com' \
-            --password 'p@$$w0rd' --version 17.0
+            --password 'p@$$w0rd'
 ```
 
 Sample login to a vCA on-demand service:
@@ -127,7 +156,7 @@ Sample login to a vCA on-demand service:
 ```shell
 $ vcd login us-texas-1-14.vchs.vmware.com/api/compute ad96259e-2d36-44ad-9dd7-4586d45b43ca \
             'user@company.com' \
-            --password 'p@$$w0rd' --version 17.0
+            --password 'p@$$w0rd'
 ```
 
 Development

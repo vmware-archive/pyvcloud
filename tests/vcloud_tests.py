@@ -20,9 +20,10 @@ class TestVCloud:
         org = config['vcloud']['org']
         service = config['vcloud']['service']
         instance = config['vcloud']['instance']
+        verify = config['vcloud']['verify']
         self.vca = VCA(host=host, username=username,
                        service_type=service_type, version=version,
-                       verify=True, log=True)
+                       verify=verify, log=True)
         assert self.vca
         if VCA.VCA_SERVICE_TYPE_STANDALONE == service_type:
             result = self.vca.login(password=password, org=org)
@@ -635,7 +636,14 @@ class TestVCloud:
             'name': vm_name,
             'cpus': 3,
             'memory': 4096,
-            'storage_profile': storage_profile
+            'storage_profile': storage_profile,
+            'guest_customization': {
+                'enabled': True,
+                'computer_name': vm_name,
+                'admin_password_enabled': True,
+                'admin_password_auto': True,
+                'reset_password_required': True
+            }
         }]
         task = self.vca.compose_vapp(
             vdc_name,

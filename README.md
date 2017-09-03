@@ -155,8 +155,7 @@ Sample login to a vCA on-demand service:
 
 ```shell
 $ vcd login us-texas-1-14.vchs.vmware.com/api/compute ad96259e-2d36-44ad-9dd7-4586d45b43ca \
-            'user@company.com' \
-            --password 'p@$$w0rd'
+            'user@company.com' --password 'p@$$w0rd'
 ```
 
 Development

@@ -34,8 +34,8 @@ def cluster(ctx):
         vcd cluster create k8s-cluster --nodes 2
             Create a kubernetes cluster in current virtual datacenter.
 \b
-        vcd cluster delete 692a7b81-bb75-44cf-9070-523a4b304733
-            Deletes a kubernetes cluster by id.
+        vcd cluster delete k8s-cluster
+            Deletes a kubernetes cluster by name.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:

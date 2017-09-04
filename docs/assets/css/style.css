@@ -1,4 +1,7 @@
-@import {{ site.theme }};
+---
+---
+
+@import "{{ site.theme }}";
 
 .clt, .clt ul, .clt li {
      position: relative;

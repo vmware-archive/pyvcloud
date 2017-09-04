@@ -86,7 +86,7 @@ def print_command(cmd, level):
             print_command(cmd.commands[k], level+1)
 
 
-@vcd.command(short_help='show command tree')
+@vcd.command(short_help='show commands tree')
 @click.pass_context
 def tree(ctx):
     """Show command tree"""

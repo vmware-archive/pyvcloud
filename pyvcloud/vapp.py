@@ -977,7 +977,7 @@ class VAPP(object):
                 hdd = filter(lambda item: item.get_Description().get_valueOf_() == "Hard disk", items)
                 hdd_capacity = 0
                 for hdd_item in hdd:
-                    hdd_capacity += int(hdd_item.get_VirtualQuantity().get_valueOf_())
+                    hdd_capacity += int(hdd_item.get_VirtualQuantity().get_valueOf_()) if hdd_item.get_VirtualQuantity() else 0
                 hdd_capacity_mb = hdd_capacity / 1024 / 1024
 
                 result.append(

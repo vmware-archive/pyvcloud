@@ -26,10 +26,10 @@ from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
-from vcd_cli.vcd import cli
+from vcd_cli.vcd import vcd
 
 
-@cli.command(short_help='login to vCD')
+@vcd.command(short_help='login to vCD')
 @click.pass_context
 @click.argument('host',
                 metavar='host')
@@ -209,7 +209,7 @@ def login(ctx, user, host, password, api_version, org,
         stderr(e, ctx)
 
 
-@cli.command(short_help='logout from vCD')
+@vcd.command(short_help='logout from vCD')
 @click.pass_context
 def logout(ctx):
     """Logout from vCloud Director

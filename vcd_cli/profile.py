@@ -14,11 +14,11 @@
 
 import click
 from vcd_cli.profiles import Profiles
-from vcd_cli.vcd import cli
+from vcd_cli.vcd import vcd
 import yaml
 
 
-@cli.command(short_help='manage profiles')
+@vcd.command(short_help='manage profiles')
 @click.pass_context
 def profile(ctx):
     """Manage user profiles

@@ -45,7 +45,7 @@ def abort_if_false(ctx, param, value):
               is_flag=True,
               default=False,
               help='Don\'t wait for task')
-def cli(ctx,
+def vcd(ctx,
         debug,
         json_output,
         no_wait):
@@ -55,7 +55,7 @@ def cli(ctx,
         return
 
 
-@cli.command(short_help='show version')
+@vcd.command(short_help='show version')
 @click.pass_context
 def version(ctx):
     """Show vcd-cli version"""
@@ -69,8 +69,33 @@ def version(ctx):
     stdout(ver_obj, ctx, ver_str)
 
 
+@vcd.command(short_help='show help')
+@click.pass_context
+def help(ctx):
+    """Show vcd-cli help"""
+    click.secho(ctx.parent.get_help())
+    return
+
+
+def print_command(cmd, level):
+    # click.echo('├'+('─'*level*2)+' ', nl=False)
+    click.echo(' '+(' '*level*2)+' ', nl=False)
+    click.echo(cmd.name)
+    if type(cmd) == click.core.Group:
+        for k in sorted(cmd.commands.keys()):
+            print_command(cmd.commands[k], level+1)
+
+
+@vcd.command(short_help='show command tree')
+@click.pass_context
+def tree(ctx):
+    """Show command tree"""
+    level = 0
+    print_command(ctx.parent.command, level)
+
+
 if __name__ == '__main__':
-    cli()
+    vcd()
 else:
     from vcd_cli import catalog  # NOQA
     from vcd_cli import cluster  # NOQA

@@ -20,10 +20,10 @@ from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
-from vcd_cli.vcd import cli
+from vcd_cli.vcd import vcd
 
 
-@cli.group(short_help='work with tasks')
+@vcd.group(short_help='work with tasks')
 @click.pass_context
 def task(ctx):
     """Work with tasks in vCloud Director.

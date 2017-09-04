@@ -22,10 +22,10 @@ from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.utils import tabulate_names
-from vcd_cli.vcd import cli
+from vcd_cli.vcd import vcd
 
 
-@cli.command(short_help='search resources')
+@vcd.command(short_help='search resources')
 @click.pass_context
 @click.argument('resource_type',
                 metavar='[resource-type]',

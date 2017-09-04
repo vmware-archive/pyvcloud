@@ -22,10 +22,10 @@ from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.utils import task_callback
 from vcd_cli.vcd import abort_if_false
-from vcd_cli.vcd import cli
+from vcd_cli.vcd import vcd
 
 
-@cli.group(short_help='work with catalogs')
+@vcd.group(short_help='work with catalogs')
 @click.pass_context
 def catalog(ctx):
     """Work with catalogs in current organization.

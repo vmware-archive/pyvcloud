@@ -18,10 +18,10 @@ from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.utils import to_dict
-from vcd_cli.vcd import cli
+from vcd_cli.vcd import vcd
 
 
-@cli.group(short_help='manage system settings')
+@vcd.group(short_help='manage system settings')
 @click.pass_context
 def system(ctx):
     """Manage system settings in vCloud Director."""  # NOQA

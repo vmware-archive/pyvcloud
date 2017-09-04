@@ -18,10 +18,10 @@ from pyvcloud.vcd.utils import org_to_dict
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
-from vcd_cli.vcd import cli
+from vcd_cli.vcd import vcd
 
 
-@cli.group(short_help='work with organizations')
+@vcd.group(short_help='work with organizations')
 @click.pass_context
 def org(ctx):
     """Work with organizations in vCloud Director.

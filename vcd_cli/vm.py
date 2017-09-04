@@ -19,10 +19,10 @@ from pyvcloud.vcd.vsphere import VSphere
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
-from vcd_cli.vcd import cli
+from vcd_cli.vcd import vcd
 
 
-@cli.group(short_help='manage VMs')
+@vcd.group(short_help='manage VMs')
 @click.pass_context
 def vm(ctx):
     """Manage VMs in vCloud Director.
@@ -32,16 +32,20 @@ def vm(ctx):
         vcd vm list
             Get list of VMs in current virtual datacenter.
 \b
-        vcd vm run myvapp myvm vcs.server.com 'administrator@vsphere.local' 'pa$$w0rd' root 'pa$$w0rd' /usr/bin/date '>/tmp/now.txt'
+        vcd vm run myvapp myvm vcs.server.com 'administrator@vsphere.local' \\
+            'pa$$w0rd' root 'pa$$w0rd' /usr/bin/date '>/tmp/now.txt'
             Run command on guest OS, requires access to vCenter.
 \b
-        vcd vm upload myvapp myvm vcs.server.com 'administrator@vsphere.local' 'pa$$w0rd' root 'pa$$w0rd' ./my-commands.sh /tmp/my-commands.sh
+        vcd vm upload myvapp myvm vcs.server.com 'administrator@vsphere.local' \\
+            'pa$$w0rd' root 'pa$$w0rd' ./my-commands.sh /tmp/my-commands.sh
             Upload file to guest OS, requires access to vCenter.
 \b
-        vcd vm download myvapp myvm vcs.server.com 'administrator@vsphere.local' 'pa$$w0rd' root 'pa$$w0rd' /etc/hosts
+        vcd vm download myvapp myvm vcs.server.com 'administrator@vsphere.local' \\
+            'pa$$w0rd' root 'pa$$w0rd' /etc/hosts
             Download file from guest OS, requires access to vCenter.
 \b
-        vcd vm download myvapp myvm vcs.server.com 'administrator@vsphere.local' 'pa$$w0rd' root 'pa$$w0rd' /etc/hosts ./hosts.txt
+        vcd vm download myvapp myvm vcs.server.com 'administrator@vsphere.local' \\
+            'pa$$w0rd' root 'pa$$w0rd' /etc/hosts ./hosts.txt
             Download file from guest OS and save locally, requires access to vCenter.
     """  # NOQA
     if ctx.invoked_subcommand is not None:

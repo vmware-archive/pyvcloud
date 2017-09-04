@@ -19,10 +19,10 @@ from pyvcloud.vcd.utils import vdc_to_dict
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
-from vcd_cli.vcd import cli
+from vcd_cli.vcd import vcd
 
 
-@cli.group(short_help='work with virtual datacenters')
+@vcd.group(short_help='work with virtual datacenters')
 @click.pass_context
 def vdc(ctx):
     """Work with virtual datacenters in vCloud Director.

@@ -23,10 +23,10 @@ from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.vcd import abort_if_false
-from vcd_cli.vcd import cli
+from vcd_cli.vcd import vcd
 
 
-@cli.group(short_help='manage vApps')
+@vcd.group(short_help='manage vApps')
 @click.pass_context
 def vapp(ctx):
     """Manage vApps in vCloud Director.

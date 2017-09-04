@@ -69,16 +69,7 @@ def version(ctx):
     stdout(ver_obj, ctx, ver_str)
 
 
-@vcd.command(short_help='show help')
-@click.pass_context
-def help(ctx):
-    """Show vcd-cli help"""
-    click.secho(ctx.parent.get_help())
-    return
-
-
-def print_command(cmd, level):
-    # click.echo('├'+('─'*level*2)+' ', nl=False)
+def print_command(cmd, level=0):
     click.echo(' '+(' '*level*2)+' ', nl=False)
     click.echo(cmd.name)
     if type(cmd) == click.core.Group:
@@ -86,12 +77,19 @@ def print_command(cmd, level):
             print_command(cmd.commands[k], level+1)
 
 
-@vcd.command(short_help='show commands tree')
+@vcd.command(short_help='show help')
 @click.pass_context
-def tree(ctx):
-    """Show command tree"""
-    level = 0
-    print_command(ctx.parent.command, level)
+@click.option('-t',
+              '--tree',
+              is_flag=True,
+              default=False,
+              help='show commands tree')
+def help(ctx, tree):
+    """Show vcd-cli help"""
+    if tree:
+        print_command(ctx.parent.command)
+    else:
+        click.secho(ctx.parent.get_help())
 
 
 if __name__ == '__main__':

@@ -31,13 +31,13 @@ def cluster(ctx):
         vcd cluster list
             Get list of kubernetes clusters in current virtual datacenter.
 \b
-        vcd cluster create k8s-cluster
+        vcd cluster create dev-cluster
             Create a kubernetes cluster in current virtual datacenter.
 \b
-        vcd cluster create k8s-cluster --nodes 4
+        vcd cluster create prod-cluster --nodes 4
             Create a kubernetes cluster with 4 worker nodes.
 \b
-        vcd cluster delete k8s-cluster
+        vcd cluster delete dev-cluster
             Deletes a kubernetes cluster by name.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
@@ -88,14 +88,7 @@ def list(ctx):
               required=False,
               metavar='<network>',
               help='Network name')
-@click.option('-w',
-              '--wait',
-              'wait',
-              is_flag=True,
-              default=False,
-              required=False,
-              help='Wait until finish')
-def create(ctx, name, node_count, network_name, wait):
+def create(ctx, name, node_count, network_name):
     try:
         client = ctx.obj['client']
         cluster = Cluster(client)

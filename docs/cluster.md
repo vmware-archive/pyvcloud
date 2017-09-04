@@ -6,8 +6,11 @@ Usage: vcd cluster [OPTIONS] COMMAND [ARGS]...
           vcd cluster list
               Get list of kubernetes clusters in current virtual datacenter.
   
-          vcd cluster create k8s-cluster --nodes 2
+          vcd cluster create k8s-cluster
               Create a kubernetes cluster in current virtual datacenter.
+  
+          vcd cluster create k8s-cluster --nodes 4
+              Create a kubernetes cluster with 4 worker nodes.
   
           vcd cluster delete k8s-cluster
               Deletes a kubernetes cluster by name.

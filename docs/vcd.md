@@ -1,15 +1,3 @@
-<div class="clt">
-  <ul>
-    <li><a href="vcd">vcd</a></li>
-    <ul>
-      <li><a href="catalog">catalog</a></li>
-      <li><a href="cluster">cluster</a></li>
-      <li><a href="login">login</a></li>
-    </ul>
-  </ul>
-</div>
-
-
 ```
 Usage: vcd [OPTIONS] COMMAND [ARGS]...
 

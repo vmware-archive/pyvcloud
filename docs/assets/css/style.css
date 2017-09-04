@@ -1,6 +1,8 @@
 ---
 ---
 
+@import "{{ site.theme }}";
+
 .clt, .clt ul, .clt li {
      position: relative;
 }
@@ -33,5 +35,3 @@
 .clt ul > li:last-child::after {
     height: 8px;
 }
-
-@import "{{ site.theme }}";

@@ -1,3 +1,4 @@
+```
 Usage: vcd cluster [OPTIONS] COMMAND [ARGS]...
 
   Work with kubernetes clusters in vCloud Director.
@@ -14,7 +15,7 @@ Usage: vcd cluster [OPTIONS] COMMAND [ARGS]...
   
           vcd cluster delete k8s-cluster
               Deletes a kubernetes cluster by name.
-      
+
 
 Options:
   -h, --help  Show this message and exit.
@@ -24,3 +25,4 @@ Commands:
   create  create cluster
   delete  delete cluster
   list    list clusters
+```

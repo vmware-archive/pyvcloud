@@ -60,3 +60,8 @@ docs/_build/
 target/
 
 .idea/
+
+docs/.bundle
+docs/_site
+docs/vendor
+docs/Gemfile.lock

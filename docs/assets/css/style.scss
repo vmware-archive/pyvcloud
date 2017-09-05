@@ -3,9 +3,16 @@
 
 @import "{{ site.theme }}";
 
+.wrapper {
+  width: 1024px;
+}
+
+.wrapper section {
+  width: 720px;
+}
+
 .clt, .clt ul, .clt li {
      position: relative;
-     display: initial;
 }
 
 .clt ul {

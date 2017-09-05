@@ -42,4 +42,5 @@ Options:
   -d, --session-id TEXT           session id
   -b, --use-browser-session       Use browser session
   -h, --help                      Show this message and exit.
+
 ```

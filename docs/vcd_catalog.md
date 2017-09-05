@@ -43,7 +43,7 @@ Usage: vcd catalog [OPTIONS] COMMAND [ARGS]...
   
           vcd catalog unshare my-catalog
               Stop sharing a catalog.
-
+      
 
 Options:
   -h, --help  Show this message and exit.
@@ -57,4 +57,5 @@ Commands:
   share     share a catalog
   unshare   unshare a catalog
   upload    upload file to catalog
+
 ```

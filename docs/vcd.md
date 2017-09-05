@@ -12,6 +12,7 @@ Options:
 Commands:
   catalog  work with catalogs
   cluster  manage clusters
+  help     show help
   info     show resource details
   login    login to vCD
   logout   logout from vCD
@@ -24,4 +25,5 @@ Commands:
   vdc      work with virtual datacenters
   version  show version
   vm       manage VMs
+
 ```

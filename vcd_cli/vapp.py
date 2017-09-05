@@ -34,7 +34,7 @@ def vapp(ctx):
 \b
     Examples
         vcd vapp list
-            Get list of vApps in current virtual datacente3r.
+            Get list of vApps in current virtual datacenter.
 \b
         vcd vapp info my-vapp
             Get details of the vApp 'my-vapp'.

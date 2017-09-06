@@ -37,7 +37,7 @@ source .venv/bin/activate
 python setup.py develop
 ```
 
-Sample test parameters are in file `tests/config.yml`. Create a copy to specify your own settings and use the `VCD_TEST_CONFIG_FILE` env variable.
+Sample test parameters are in file [tests/config.yml](tests/config.yml). Create a copy to specify your own settings and use the `VCD_TEST_CONFIG_FILE` env variable.
 
 ```shell
 cd tests

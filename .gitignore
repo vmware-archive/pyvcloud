@@ -60,3 +60,5 @@ docs/_build/
 target/
 
 .idea/
+
+tests/private.*

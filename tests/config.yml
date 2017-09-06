@@ -1,0 +1,9 @@
+vcd:
+  host: vcd-host.vmware.com
+  org: org1
+  user: usr1
+  password: 'pa$$w0rd'
+  api_version: '29.0'
+  catalog: 'cse'
+  template: 'k8s-u.ova'
+  verify: False

@@ -50,4 +50,4 @@ python -m unittest vcd_login vcd_catalog_setup
 python -m unittest vcd_catalog_setup.TestCatalogSetup.test_validate_ova
 ```
 
-See `tests/run-tests.sh` for a list of current unit tests written for the new SDK implementation.
+See [tests/run-tests.sh](tests/run-tests.sh) for a list of current unit tests written for the new SDK implementation.

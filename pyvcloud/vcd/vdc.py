@@ -71,6 +71,7 @@ class VDC(object):
                          catalog,
                          template,
                          network=None,
+                         fence_mode='bridged',
                          deploy=True,
                          power_on=True,
                          accept_all_eulas=True):
@@ -110,9 +111,8 @@ class VDC(object):
                     Maker.NetworkConfig(
                         Maker.Configuration(
                             Maker.ParentNetwork(href=network_href),
-                            Maker.FenceMode('bridged')
+                            Maker.FenceMode(fence_mode)
                         ),
-                        # Maker.IsDeployed('true'),
                         networkName=network_name
                     )
                 )

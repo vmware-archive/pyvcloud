@@ -142,7 +142,7 @@ def vapp_to_dict(vapp):
                 connection = item.find('rasd:Connection', NSMAP)
                 if connection is None:
                     quantity = item.find('rasd:VirtualQuantity', NSMAP)
-                    if isinstance(quantity, NoneElement):
+                    if quantity is None or isinstance(quantity, NoneElement):
                         value = item.find('rasd:Description', NSMAP)
                     else:
                         units = item.find('rasd:VirtualQuantityUnits', NSMAP)

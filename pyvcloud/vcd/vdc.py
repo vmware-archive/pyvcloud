@@ -49,7 +49,6 @@ class VDC(object):
             self.vdc_resource = self.client.get_resource(self.href)
         return self.vdc_resource
 
-
     def get_resource_href(self, name, entity_type=EntityType.VAPP):
         if self.vdc_resource is None:
             self.vdc_resource = self.client.get_resource(self.href)
@@ -186,36 +185,37 @@ class VDC(object):
             vapp_template_params,
             EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value)
 
-    def reconfigure_vapp_network(self,
-                         name,
-                         network=None,
-                         fence_mode='bridged'):
-        if self.vdc_resource is None:
-            self.vdc_resource = self.client.get_resource(self.href)
-
-        org_vdc_network_name = None
-        network_href = None
-        if hasattr(self.vdc_resource, 'AvailableNetworks') and \
-           hasattr(self.vdc_resource.AvailableNetworks, 'Network'):
-            for n in self.vdc_resource.AvailableNetworks.Network:
-                if network is None or n.get('name') == network:
-                    network_href = n.get('href')
-                    org_vdc_network_name = n.get('name')
-        if network_href is None:
-            raise Exception('Network not found in the Virtual Datacenter.')
-
-        v = self.get_vapp(name)
-        from lxml import etree
-        print()
-        print(etree.tounicode(v.NetworkConfigSection, pretty_print=True))
-        href = v.NetworkConfigSection.get('href')
-        print(href)
-        v.NetworkConfigSection.NetworkConfig.Configuration.FenceMode = Maker.FenceMode('natRouted')
-        print(etree.tounicode(v.NetworkConfigSection, pretty_print=True))
-        return self.client.put_resource(
-            href,
-            v.NetworkConfigSection,
-            EntityType.NETWORK_CONFIG_SECTION.value)
+    # def reconfigure_vapp_network(self,
+    #                      name,
+    #                      network=None,
+    #                      fence_mode='bridged'):
+    #     if self.vdc_resource is None:
+    #         self.vdc_resource = self.client.get_resource(self.href)
+    #
+    #     org_vdc_network_name = None
+    #     network_href = None
+    #     if hasattr(self.vdc_resource, 'AvailableNetworks') and \
+    #        hasattr(self.vdc_resource.AvailableNetworks, 'Network'):
+    #         for n in self.vdc_resource.AvailableNetworks.Network:
+    #             if network is None or n.get('name') == network:
+    #                 network_href = n.get('href')
+    #                 org_vdc_network_name = n.get('name')
+    #     if network_href is None:
+    #         raise Exception('Network not found in the Virtual Datacenter.')
+    #
+    #     v = self.get_vapp(name)
+    #     from lxml import etree
+    #     print()
+    #     print(etree.tounicode(v.NetworkConfigSection, pretty_print=True))
+    #     href = v.NetworkConfigSection.get('href')
+    #     print(href)
+    #     v.NetworkConfigSection.NetworkConfig.Configuration.FenceMode =
+    #           Maker.FenceMode('natRouted')
+    #     print(etree.tounicode(v.NetworkConfigSection, pretty_print=True))
+    #     return self.client.put_resource(
+    #         href,
+    #         v.NetworkConfigSection,
+    #         EntityType.NETWORK_CONFIG_SECTION.value)
 
     def list_resources(self, entity_type=None):
         if self.vdc_resource is None:

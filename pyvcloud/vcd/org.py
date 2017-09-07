@@ -88,9 +88,7 @@ class Org(object):
             resource_type,
             query_result_format=QueryResultFormat.ID_RECORDS)
         records = list(q.execute())
-        if len(records) == 0:
-            result = 'No catalogs found.'
-        else:
+        if len(records) > 0:
             for r in records:
                 result.append(to_dict(r,
                                       resource_type=resource_type,
@@ -344,3 +342,11 @@ class Org(object):
         for link in links:
             if name == link.name:
                 return self.client.get_resource(link.href)
+
+    def list_vdcs(self):
+        if self.org_resource is None:
+            self.org_resource = self.client.get_resource(self.endpoint)
+        result = []
+        for v in get_links(self.org_resource, media_type=EntityType.VDC.value):
+            result.append({'name': v.name, 'href': v.href})
+        return result

@@ -44,6 +44,12 @@ class VDC(object):
             self.name = vdc_resource.get('name')
             self.href = vdc_resource.get('href')
 
+    def get_resource(self):
+        if self.vdc_resource is None:
+            self.vdc_resource = self.client.get_resource(self.href)
+        return self.vdc_resource
+
+
     def get_resource_href(self, name, entity_type=EntityType.VAPP):
         if self.vdc_resource is None:
             self.vdc_resource = self.client.get_resource(self.href)
@@ -98,8 +104,31 @@ class VDC(object):
             '//ovf:NetworkSection/ovf:Network',
             namespaces={'ovf': 'http://schemas.dmtf.org/ovf/envelope/1'})
         network_name = n[0].get('{http://schemas.dmtf.org/ovf/envelope/1}name')
+        vm_id = v.Children[0].Vm.VAppScopedLocalId.text
         deploy_param = 'true' if deploy else 'false'
         power_on_param = 'true' if power_on else 'false'
+        network_configuration = Maker.Configuration(
+            Maker.ParentNetwork(href=network_href),
+            Maker.FenceMode(fence_mode)
+        )
+        if fence_mode == 'natRouted':
+            # network_name = network
+            network_configuration.append(
+                Maker.Features(
+                    Maker.NatService(
+                        Maker.IsEnabled('true'),
+                        Maker.NatType('ipTranslation'),
+                        Maker.Policy('allowTraffic'),
+                        Maker.NatRule(
+                            Maker.OneToOneVmRule(
+                                Maker.MappingMode('automatic'),
+                                Maker.VAppScopedVmId(vm_id),
+                                Maker.VmNicId(0)
+                            )
+                        )
+                    )
+                )
+            )
         vapp_template_params = Maker.InstantiateVAppTemplateParams(
             name=name,
             deploy=deploy_param,
@@ -109,10 +138,7 @@ class VDC(object):
                 Maker.NetworkConfigSection(
                     OvfMaker.Info('Configuration for logical networks'),
                     Maker.NetworkConfig(
-                        Maker.Configuration(
-                            Maker.ParentNetwork(href=network_href),
-                            Maker.FenceMode(fence_mode)
-                        ),
+                        network_configuration,
                         networkName=network_name
                     )
                 )
@@ -159,6 +185,37 @@ class VDC(object):
             self.href+'/action/instantiateVAppTemplate',
             vapp_template_params,
             EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value)
+
+    def reconfigure_vapp_network(self,
+                         name,
+                         network=None,
+                         fence_mode='bridged'):
+        if self.vdc_resource is None:
+            self.vdc_resource = self.client.get_resource(self.href)
+
+        org_vdc_network_name = None
+        network_href = None
+        if hasattr(self.vdc_resource, 'AvailableNetworks') and \
+           hasattr(self.vdc_resource.AvailableNetworks, 'Network'):
+            for n in self.vdc_resource.AvailableNetworks.Network:
+                if network is None or n.get('name') == network:
+                    network_href = n.get('href')
+                    org_vdc_network_name = n.get('name')
+        if network_href is None:
+            raise Exception('Network not found in the Virtual Datacenter.')
+
+        v = self.get_vapp(name)
+        from lxml import etree
+        print()
+        print(etree.tounicode(v.NetworkConfigSection, pretty_print=True))
+        href = v.NetworkConfigSection.get('href')
+        print(href)
+        v.NetworkConfigSection.NetworkConfig.Configuration.FenceMode = Maker.FenceMode('natRouted')
+        print(etree.tounicode(v.NetworkConfigSection, pretty_print=True))
+        return self.client.put_resource(
+            href,
+            v.NetworkConfigSection,
+            EntityType.NETWORK_CONFIG_SECTION.value)
 
     def list_resources(self, entity_type=None):
         if self.vdc_resource is None:

@@ -21,6 +21,7 @@ import logging
 from lxml import etree
 from lxml import objectify
 import requests
+import sys
 import time
 import urllib
 
@@ -152,6 +153,26 @@ API_CURRENT_VERSIONS = [
     '29.0'
     ]
 
+VCLOUD_STATUS_MAP = {
+    -1: "Could not be created",
+    0: "Unresolved",
+    1: "Resolved",
+    2: "Deployed",
+    3: "Suspended",
+    4: "Powered on",
+    5: "Waiting for user input",
+    6: "Unknown state",
+    7: "Unrecognized state",
+    8: "Powered off",
+    9: "Inconsistent state",
+    10: "Children do not all have the same status",
+    11: "Upload initiated, OVF descriptor pending",
+    12: "Upload initiated, copying contents",
+    13: "Upload initiated , disk contents pending",
+    14: "Upload has been quarantined",
+    15: "Upload quarantine period has expired"
+}
+
 
 class BasicLoginCredentials(object):
     def __init__(self, user, org, password):
@@ -191,6 +212,8 @@ class EntityType(Enum):
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'
     METADATA = 'application/vnd.vmware.vcloud.metadata+xml'
+    NETWORK_CONFIG_SECTION = \
+        'application/vnd.vmware.vcloud.networkConfigSection+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
@@ -623,9 +646,11 @@ class Client(object):
                                session.headers,
                                headers)
         if self._log_bodies and data is not None:
-            self._logger.debug("Request body: %s",
-                               data)
-# TODO(use this for python3 support: data.decode('utf-8'))
+            if sys.version_info[0] < 3:
+                d = data
+            else:
+                d = data.decode('utf-8')
+            self._logger.debug("Request body: %s", d)
         if self._log_requests or self._log_headers or self._log_bodies:
             self._logger.debug("Response status code: %s",
                                response.status_code)
@@ -633,10 +658,11 @@ class Client(object):
             self._logger.debug("Response headers: %s",
                                response.headers)
         if self._log_bodies and _response_has_content(response):
-            self._logger.debug("Response body: %s",
-                               response.content)
-# TODO(use this for python3 support: response.content.decode('utf-8'))
-
+            if sys.version_info[0] < 3:
+                d = response.content
+            else:
+                d = response.content.decode('utf-8')
+            self._logger.debug('Response body: %s', d)
         return response
 
     def upload_fragment(self, uri, contents, range_str):

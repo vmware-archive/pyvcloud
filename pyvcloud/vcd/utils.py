@@ -17,6 +17,7 @@ from lxml.objectify import NoneElement
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
 
 
 def extract_id(urn):
@@ -164,7 +165,7 @@ def vapp_to_dict(vapp):
                 element_name = 'computer-name'
                 value = vm.GuestCustomizationSection.ComputerName
                 result['%s: %s' % (k, element_name)] = value
-    result['status'] = vapp.get('status')
+    result['status'] = VCLOUD_STATUS_MAP.get(int(vapp.get('status')))
     return result
 
 

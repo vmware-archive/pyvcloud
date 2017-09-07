@@ -84,3 +84,20 @@ class Cluster(object):
             return response.content.decode('utf-8').replace('\\n', '\n')[1:-1]
         else:
             raise Exception(json.loads(response.content))
+
+    def get_helm_script(self):
+        method = 'GET'
+        uri = '%s/helm' % (self._uri)
+        response = self.client._do_request_prim(
+            method,
+            uri,
+            self.client._session,
+            contents=None,
+            media_type=None,
+            accept_type='text/x-yaml',
+            auth=None)
+        if response.status_code == requests.codes.ok:
+            content = response.content.replace('\\n', '\n')[1:-1]
+            return content.replace('\\t', '\t')[1:-1]
+        else:
+            raise Exception(json.loads(response.content))

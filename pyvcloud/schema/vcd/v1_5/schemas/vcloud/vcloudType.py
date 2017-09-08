@@ -8975,7 +8975,7 @@ class InstantiateVAppTemplateParamsType(InstantiateVAppParamsType):
             eol_ = '\n'
         else:
             eol_ = ''
-        if self.AllEULAsAccepted is not None:
+        if self.AllEULAsAccepted is not None and not('AllEULAsAccepted' in outfile.getvalue()):
             showIndent(outfile, level, pretty_print)
             outfile.write('<%sAllEULAsAccepted>%s</%sAllEULAsAccepted>%s' % (namespace_, self.gds_format_boolean(self.AllEULAsAccepted, input_name='AllEULAsAccepted'), namespace_, eol_))
     def exportLiteral(self, outfile, level, name_='InstantiateVAppTemplateParamsType'):

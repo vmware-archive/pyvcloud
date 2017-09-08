@@ -1028,6 +1028,67 @@ class VCA(object):
 
         return composeParams
 
+    def _create_instanciateVAppParams(
+            self,
+            name,
+            vdc_name,
+            network_name,
+            fence_mode,
+            vm_specs,
+            power,
+            deploy):
+        instantiationParams = vcloudType.InstantiationParamsType()
+
+        network_href = None
+        if network_name:
+            network = self.get_network(vdc_name, network_name)
+            if network is None:
+                raise Exception(
+                    "The network with name %s couldn't be found" %
+                    network_name)
+            else:
+                network_href = network.get_href()
+
+        if network_href:
+            configuration = vcloudType.NetworkConfigurationType()
+            configuration.set_FenceMode(fence_mode)
+
+            if fence_mode != 'isolated':
+                parentNetwork = vcloudType.ReferenceType(
+                    href=network_href, name=network_name)
+                configuration.set_ParentNetwork(parentNetwork)
+
+            networkConfig = vcloudType.VAppNetworkConfigurationType()
+            networkConfig.set_networkName(network_name)
+            networkConfig.set_Configuration(configuration)
+
+            networkConfigSection = vcloudType.NetworkConfigSectionType(NetworkConfig=[
+                                                                       networkConfig])
+            networkConfigSection.original_tagname_ = "NetworkConfigSection"
+            networkConfigSection.set_Info(
+                vAppType.cimString(valueOf_="Network"))
+
+            instantiationParams.add_Section(networkConfigSection)
+
+        composeParams = vcloudType.InstantiateVAppTemplateParamsType(
+            InstantiationParams=instantiationParams)
+
+        composeParams.set_name(name)
+        composeParams.set_deploy(deploy)
+        composeParams.set_powerOn(power)
+        composeParams.set_AllEULAsAccepted("true")
+
+        for vm_spec in vm_specs:
+            if 'catalog' in vm_spec and 'template' in vm_spec:
+                template_href = self.get_template_href_from_catalog_b(vm_spec['catalog'], vm_spec['template'])
+                source = vcloudType.ReferenceType(href=template_href)
+                composeParams.set_Source(source)
+
+            params = self.get_instantiation_vm_params(vdc_name, network_name, vm_spec)
+            composeParams.add_SourcedItem(params)
+
+        return composeParams
+
     def _create_recomposeVAppParams(
             self,
             name,
@@ -1096,8 +1157,8 @@ class VCA(object):
             hardware = vcloudType.VirtualHardwareSection_Type(id=None)
             hardware.original_tagname_ = "VirtualHardwareSection"
             hardware.set_Info(vAppType.cimString(valueOf_="Virtual hardware requirements"))
-            inst_param.add_Section(hardware)
-            params.set_InstantiationParams(inst_param)
+            #inst_param.add_Section(hardware)
+            #params.set_InstantiationParams(inst_param)
 
             if vm_cpus:
                 cpudata = vAppType.RASD_Type()
@@ -1123,7 +1184,7 @@ class VCA(object):
                 memorydata.set_VirtualQuantity(vAppType.cimInt(valueOf_=vm_memory))
                 hardware.add_Item(memorydata)
 
-            inst_param.add_Section(VirtualHardwareSection_Type)
+            inst_param.add_Section(hardware)
 
             params.set_InstantiationParams(inst_param)
 
@@ -1213,6 +1274,38 @@ class VCA(object):
                         for vm in vAppTemplate.iter(
                                 '{http://www.vmware.com/vcloud/v1.5}Vm'):
                             return vm.get('href')
+
+        return None
+
+    def get_template_href_from_catalog_b(self, catalog_name, template_name):
+
+        catalogs = filter(lambda link: catalog_name == link.get_name() and link.get_type(
+        ) == "application/vnd.vmware.vcloud.catalog+xml",
+            self.vcloud_session.organization.get_Link())
+        if len(catalogs) == 1:
+            self.response = Http.get(
+                catalogs[0].get_href(),
+                headers=self.vcloud_session.get_vcloud_headers(),
+                verify=self.verify,
+                logger=self.logger)
+            if self.response.status_code == requests.codes.ok:
+                catalog = catalogType.parseString(self.response.content, True)
+                catalog_items = filter(
+                    lambda catalogItemRef: catalogItemRef.get_name() == template_name,
+                    catalog.get_CatalogItems().get_CatalogItem())
+                if len(catalog_items) == 1:
+                    self.response = Http.get(
+                        catalog_items[0].get_href(),
+                        headers=self.vcloud_session.get_vcloud_headers(),
+                        verify=self.verify,
+                        logger=self.logger)
+                    # use ElementTree instead because none of the types inside resources (not
+                    # even catalogItemType) is able to parse the response
+                    # correctly
+                    catalogItem = ET.fromstring(self.response.content)
+                    entity = [child for child in catalogItem if child.get(
+                        "type") == "application/vnd.vmware.vcloud.vAppTemplate+xml"][0]
+                    return entity.get('href')
 
         return None
 
@@ -1380,6 +1473,86 @@ class VCA(object):
             error = errorType.parseString(self.response.content, True)
             raise Exception(error.message)
 
+    def inst_vapp(
+                self,
+                vdc_name,
+                vapp_name,
+                network_name=None,
+                network_mode='bridged',
+                deploy='false',
+                poweron='false',
+                vm_specs=None):
+            """
+            Instanciate a new vApp in a virtual data center.
+
+            A vApp is an application package containing 1 or more virtual machines and their required operating system.
+
+
+            :param vdc_name: (str): The virtual data center name.
+            :param vapp_name: (str): The name of the new vapp.
+            :param network_name: (str): The name of the network contained within the vApp.
+            :param network_mode: (str): The mode for the network contained within the vApp.
+            :param vm_specs: (list): A list of dicts with keys:
+                        'template'          : Name of the template to be used.
+                        'catalog'           : Name of the catalog containing the template.
+                        'name'              : Name of the virtual machine.
+                        'storage_profile'   : Name of the storage profile to use (optional).
+            :param deploy: (bool): True to deploy the vApp immediately after creation, False otherwise.
+            :param poweron: (bool): True to poweron the vApp immediately after deployment, False otherwise.
+            :return: (task): a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`, a handle to the asynchronous process executing the request.
+
+            **service type:**. ondemand, subscription, vcd
+
+            """
+            self.vdc = self.get_vdc(vdc_name)
+            if not self.vcloud_session or not self.vcloud_session.organization or not self.vdc:
+                #"Select an organization and datacenter first"
+                return False
+
+            instanciate_params = self._create_instanciateVAppParams(
+                vapp_name,
+                vdc_name,
+                network_name,
+                network_mode,
+                vm_specs,
+                deploy=deploy,
+                power=poweron)
+
+            output = StringIO()
+            instanciate_params.export(
+                output,
+                0,
+                name_='InstantiateVAppTemplateParams',
+                namespacedef_='''xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1"
+                                   xmlns:rasd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData"''',
+                pretty_print=False)
+            body = '<?xml version="1.0" encoding="UTF-8"?>' + \
+                output.getvalue().replace('class:', 'rasd:')\
+                .replace(' xmlns:vmw="http://www.vmware.com/vcloud/v1.5"', '')\
+                .replace('vmw:', 'rasd:')\
+                .replace('Info>', "ovf:Info>")\
+                .replace('ovf:NetworkConfigSection', 'NetworkConfigSection')\
+                .replace('ovf:NetworkConnectionSection', 'NetworkConnectionSection')
+            content_type = "application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml"
+            link = filter(lambda link: link.get_type() ==
+                          content_type, self.vdc.get_Link())
+            headers = self.vcloud_session.get_vcloud_headers()
+            headers['Content-Type'] = 'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
+
+            self.response = Http.post(
+                link[0].get_href(),
+                headers=headers,
+                verify=self.verify,
+                data=body,
+                logger=self.logger)
+            if self.response.status_code == requests.codes.created:
+                vApp = vAppType.parseString(self.response.content, True)
+                task = vApp.get_Tasks().get_Task()[0]
+                return task
+            else:
+                error = errorType.parseString(self.response.content, True)
+                raise Exception(error.message)
+
     def recompose_vapp(
             self,
             vdc_name,
@@ -1514,7 +1687,12 @@ class VCA(object):
 
     def create_vapp(self, vdc_name, vapp_name, template_name, catalog_name,
                     network_name=None, network_mode='bridged', vm_name=None,
-                    vm_cpus=None, vm_memory=None, deploy='false',
+                    vm_cpus=None, vm_memory=None,
+                    connection_index=0,
+                    ip_allocation_mode=None,
+                    ip_address=None,
+                    mac_address=None,
+                    deploy='false',
                     poweron='false'):
         """
         Create a new vApp with a single virtual machine in a virtual data center.
@@ -1544,7 +1722,58 @@ class VCA(object):
                                  poweron,
                                  vm_specs=[{'template': template_name,
                                             'catalog': catalog_name,
-                                            'name': vm_name}])
+                                            'name': vm_name,
+                                            'cpus': vm_cpus,
+                                            'memory': vm_memory,
+                                            'connection_index': connection_index,
+                                            'ip_allocation_mode': ip_allocation_mode,
+                                            'ip_address': ip_address,
+                                            'mac_address': mac_address}])
+
+    def instantiate_vapp(self, vdc_name, vapp_name, template_name, catalog_name,
+                         network_name=None, network_mode='bridged', vm_name=None,
+                         vm_cpus=None, vm_memory=None,
+                         connection_index=0,
+                         ip_allocation_mode=None,
+                         ip_address=None,
+                         mac_address=None,
+                         deploy='false',
+                         poweron='false'):
+        """
+        Create a new vApp with a single virtual machine in a virtual data center.
+
+        A vApp is an application package containing 1 or more virtual machines and their required operating system.
+
+        :param vdc_name: (str): The virtual data center name.
+        :param vapp_name: (str): The name of the new vapp.
+        :param template_name: (str): The name of a template from a catalog that will be used to create the vApp.
+        :param catalog_name: (str): The name of the catalog that contains the named template.
+        :param network_name: (str): The name of the network contained within the vApp.
+        :param network_mode: (str): The mode for the network contained within the vApp.
+        :param vm_name: (str, optional): The name of the Virtual Machine contained in the vApp.
+        :param deploy: (bool): True to deploy the vApp immediately after creation, False otherwise.
+        :param poweron: (bool): True to poweron the vApp immediately after deployment, False otherwise.
+        :return: (task): a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`, a handle to the asynchronous process executing the request.
+
+        **service type:**. ondemand, subscription, vcd
+
+        """
+
+        return self.inst_vapp(vdc_name,
+                              vapp_name,
+                              network_name,
+                              network_mode,
+                              deploy,
+                              poweron,
+                              vm_specs=[{'template': template_name,
+                                         'catalog': catalog_name,
+                                         'name': vm_name,
+                                         'cpus': vm_cpus,
+                                         'memory': vm_memory,
+                                         'connection_index': connection_index,
+                                         'ip_allocation_mode': ip_allocation_mode,
+                                         'ip_address': ip_address,
+                                         'mac_address': mac_address}])
 
     def block_until_completed(self, task):
         """

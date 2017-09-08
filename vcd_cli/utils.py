@@ -124,7 +124,9 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                           sort_keys=True,
                           indent=4,
                           separators=(',', ': '))
-        click.echo(highlight(str(text, 'utf-8'), lexers.JsonLexer(),
+        if sys.version_info[0] < 3:
+            text = str(text, 'utf-8')
+        click.echo(highlight(text, lexers.JsonLexer(),
                              formatters.TerminalFormatter()))
     else:
         if alt_text is not None:
@@ -177,7 +179,9 @@ def stderr(exception, ctx=None):
                           sort_keys=True,
                           indent=4,
                           separators=(',', ': '))
-        message = highlight(str(text, 'utf-8'), lexers.JsonLexer(),
+        if sys.version_info[0] < 3:
+            text = str(text, 'utf-8')
+        message = highlight(text, lexers.JsonLexer(),
                             formatters.TerminalFormatter())
         click.echo(message)
         sys.exit(1)

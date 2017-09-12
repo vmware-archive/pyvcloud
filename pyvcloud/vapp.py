@@ -94,6 +94,9 @@ class VAPP(object):
                 elif body and body.startswith('<CreateSnapshotParams '):
                     headers[
                         'Content-type'] = 'application/vnd.vmware.vcloud.createSnapshotParams+xml'
+                elif body and body.startswith('<DiskAttachOrDetachParams '):
+                    headers[
+                        'Content-type'] = 'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'
                 self.response = Http.post(
                     link[0].get_href(),
                     data=body,

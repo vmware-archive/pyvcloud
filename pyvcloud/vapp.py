@@ -94,7 +94,7 @@ class VAPP(object):
                 elif body and body.startswith('<CreateSnapshotParams '):
                     headers[
                         'Content-type'] = 'application/vnd.vmware.vcloud.createSnapshotParams+xml'
-                elif body and body.startswith('<DiskAttachOrDetachParams '):
+                elif body and body.startswith('<DiskAttachOrDetachParams'):
                     headers[
                         'Content-type'] = 'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'
                 self.response = Http.post(
@@ -677,10 +677,9 @@ class VAPP(object):
         if children:
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
             if len(vms) == 1:
-                body = """
-                 <DiskAttachOrDetachParams xmlns="http://www.vmware.com/vcloud/v1.5">
-                     <Disk type="application/vnd.vmware.vcloud.disk+xml"
-                         href="%s" />
+                body = """<DiskAttachOrDetachParams xmlns="http://www.vmware.com/vcloud/v1.5">
+                    <Disk type="application/vnd.vmware.vcloud.disk+xml"
+                        href="%s" />
                 """ % disk_ref.href
                 if bus_number is not None and unit_number is not None:
                     body += """
@@ -709,10 +708,9 @@ class VAPP(object):
         if children:
             vms = [vm for vm in children.get_Vm() if vm.name == vm_name]
             if len(vms) == 1:
-                body = """
-                 <DiskAttachOrDetachParams xmlns="http://www.vmware.com/vcloud/v1.5">
-                     <Disk type="application/vnd.vmware.vcloud.disk+xml"
-                         href="%s" />
+                body = """<DiskAttachOrDetachParams xmlns="http://www.vmware.com/vcloud/v1.5">
+                    <Disk type="application/vnd.vmware.vcloud.disk+xml"
+                    href="%s" />
                  </DiskAttachOrDetachParams>
                 """ % disk_ref.href
                 return self.execute(

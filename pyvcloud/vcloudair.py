@@ -2616,10 +2616,12 @@ class VCA(object):
         content_type = "application/vnd.vmware.vcloud.diskCreateParams+xml"
         link = filter(lambda link: link.get_type() ==
                       content_type, vdc.get_Link())
+        headers = self.vcloud_session.get_vcloud_headers()
+        headers['Content-Type'] = 'application/vnd.vmware.vcloud.diskCreateParams+xml'
         self.response = Http.post(
             link[0].get_href(),
             data=data,
-            headers=self.vcloud_session.get_vcloud_headers(),
+            headers=headers,
             verify=self.verify,
             logger=self.logger)
         if self.response.status_code == requests.codes.created:

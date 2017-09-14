@@ -229,10 +229,10 @@ class Gateway(object):
                 gateway_protocol = gatewayNatRule.get_Protocol(
                 ) if gatewayNatRule.get_Protocol() else 'any'
                 if original_ip == gateway_original_ip and \
-                   original_port == gateway_original_port and \
+                   str(original_port).lower() == str(gateway_original_port).lower() and \
                    translated_ip == gateway_translated_ip and \
-                   translated_port == gateway_translated_port and \
-                   protocol == gateway_protocol and \
+                   str(translated_port).lower() == str(gateway_translated_port).lower() and \
+                   str(protocol).lower() == str(gateway_protocol).lower() and \
                    interface == gateway_interface_name:
                     found_rule = True
                 else:

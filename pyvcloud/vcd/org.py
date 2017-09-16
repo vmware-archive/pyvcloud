@@ -59,12 +59,15 @@ class Org(object):
         self.is_admin = is_admin
 
     def create_catalog(self, name, description):
+        if self.org_resource is None:
+            self.org_resource = self.client.get_resource(self.endpoint)
         catalog = Maker.AdminCatalog(name=name)
         catalog.append(Maker.Description(description))
-        return self.client.post_resource(
-            self.endpoint_admin + '/catalogs',
-            catalog,
-            EntityType.ADMIN_CATALOG.value)
+        return self.client.post_linked_resource(
+            self.org_resource,
+            RelationType.ADD,
+            EntityType.ADMIN_CATALOG.value,
+            catalog)
 
     def delete_catalog(self, name):
         org = self.client.get_resource(self.endpoint)

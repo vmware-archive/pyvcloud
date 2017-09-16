@@ -63,8 +63,7 @@ class Org(object):
             self.org_resource = self.client.get_resource(self.endpoint)
         catalog = Maker.AdminCatalog(
             Maker.Description(description),
-            name=name
-            )
+            name=name)
         return self.client.post_linked_resource(
             self.org_resource,
             RelationType.ADD,

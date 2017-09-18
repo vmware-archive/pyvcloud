@@ -186,7 +186,7 @@ def stderr(exception, ctx=None):
         click.echo(message)
         sys.exit(1)
     else:
-        message = Fore.RED + str(message)
+        message = Fore.RED + str(message) + Fore.BLACK
         click.echo('\x1b[2K\r', nl=False)
         if ctx is not None:
             ctx.fail(message)

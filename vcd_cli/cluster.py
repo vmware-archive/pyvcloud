@@ -38,7 +38,10 @@ def cluster(ctx):
             Create a kubernetes cluster with 4 worker nodes.
 \b
         vcd cluster delete dev-cluster
-            Deletes a kubernetes cluster by name.
+            Delete a kubernetes cluster by name.
+\b
+        vcd cluster create c1 --single
+            Create a single node kubernetes cluster for dev/test.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -88,8 +91,15 @@ def list(ctx):
               required=False,
               metavar='<network>',
               help='Network name')
-def create(ctx, name, node_count, network_name):
+@click.option('-s',
+              '--single',
+              is_flag=True,
+              default=False,
+              help='Create single node cluster')
+def create(ctx, name, node_count, network_name, single):
     try:
+        if single:
+            raise Exception('Not implemented.')
         client = ctx.obj['client']
         cluster = Cluster(client)
         result = cluster.create_cluster(

@@ -42,6 +42,10 @@ def vapp(ctx):
         vcd vapp create my-catalog my-template my-vapp
             Create a new vApp.
 \b
+        vcd vapp create my-catalog my-template my-vapp \\
+                 --cpu 4 --memory 4096 --network net1
+            Create a new vApp with customized settings.
+\b
         vcd vapp delete my-vapp --yes --force
             Delete a vApp.
 \b
@@ -116,14 +120,34 @@ def list_vapps(ctx):
               '--network',
               'network',
               required=False,
-              metavar='[network]',
+              metavar='<network>',
               help='Network')
-def create(ctx, catalog, template, name, network):
+@click.option('-m',
+              '--memory',
+              'memory',
+              required=False,
+              metavar='<MB>',
+              type=click.INT,
+              help='Amount of memory in MB')
+@click.option('-c',
+              '--cpu',
+              'cpu',
+              required=False,
+              metavar='<virtual-cpus>',
+              type=click.INT,
+              help='Number of CPUs')
+def create(ctx, catalog, template, name, network, memory, cpu):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, vdc_href=vdc_href)
-        vapp = vdc.instantiate_vapp(name, catalog, template, network=network)
+        vapp = vdc.instantiate_vapp(
+            name,
+            catalog,
+            template,
+            network=network,
+            memory=memory,
+            cpu=cpu)
         stdout(vapp.Tasks.Task[0], ctx)
     except Exception as e:
         stderr(e, ctx)

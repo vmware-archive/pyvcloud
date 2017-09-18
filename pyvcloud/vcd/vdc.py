@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from lxml import objectify
+from pyvcloud.vcd.client import E_OVFENV
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
@@ -25,12 +26,6 @@ Maker = objectify.ElementMaker(
     annotate=False,
     namespace='',
     nsmap={None: 'http://www.vmware.com/vcloud/v1.5'})
-
-
-OvfMaker = objectify.ElementMaker(
-    annotate=False,
-    namespace='http://schemas.dmtf.org/ovf/envelope/1',
-    nsmap={None: 'http://schemas.dmtf.org/ovf/envelope/1'})
 
 
 class VDC(object):
@@ -79,7 +74,9 @@ class VDC(object):
                          fence_mode='bridged',
                          deploy=True,
                          power_on=True,
-                         accept_all_eulas=True):
+                         accept_all_eulas=True,
+                         memory=None,
+                         cpu=None):
         if self.vdc_resource is None:
             self.vdc_resource = self.client.get_resource(self.href)
 
@@ -135,7 +132,7 @@ class VDC(object):
         vapp_template_params.append(
             Maker.InstantiationParams(
                 Maker.NetworkConfigSection(
-                    OvfMaker.Info('Configuration for logical networks'),
+                    E_OVFENV.Info('Configuration for logical networks'),
                     Maker.NetworkConfig(
                         network_configuration,
                         networkName=network_name
@@ -159,12 +156,43 @@ class VDC(object):
         ip = Maker.InstantiationParams()
         # ip.append(vm[0].NetworkConnectionSection)
         gc = Maker.GuestCustomizationSection(
-            OvfMaker.Info('Specifies Guest OS Customization Settings'),
+            E_OVFENV.Info('Specifies Guest OS Customization Settings'),
             Maker.Enabled('false'),
             # Maker.AdminPasswordEnabled('false'),
             Maker.ComputerName(name)
         )
         ip.append(gc)
+        if memory is not None:
+            items = v.Children[0].Vm.xpath(
+                '//ovf:VirtualHardwareSection/ovf:Item',
+                namespaces={'ovf': 'http://schemas.dmtf.org/ovf/envelope/1'})
+            for item in items:
+                if item['{http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData}ResourceType'] == 4:  # NOQA
+                    item['{http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData}ElementName'] = '%s MB of memory' % memory # NOQA
+                    item['{http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData}VirtualQuantity'] = memory # NOQA
+                    memory_params = item
+                    break
+        if cpu is not None:
+            items = v.Children[0].Vm.xpath(
+                '//ovf:VirtualHardwareSection/ovf:Item',
+                namespaces={'ovf': 'http://schemas.dmtf.org/ovf/envelope/1'})
+            for item in items:
+                if item['{http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData}ResourceType'] == 3:  # NOQA
+                    item['{http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData}ElementName'] = '%s virtual CPU(s)' % cpu # NOQA
+                    item['{http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData}VirtualQuantity'] = cpu # NOQA
+                    cpu_params = item
+                    break
+
+        if memory is not None or cpu is not None:
+            vhs = E_OVFENV.VirtualHardwareSection(
+                E_OVFENV.Info('Virtual hardware requirements')
+            )
+            if memory is not None:
+                vhs.append(memory_params)
+            if cpu is not None:
+                vhs.append(cpu_params)
+            ip.append(vhs)
+
         all_eulas_accepted = 'true' if accept_all_eulas else 'false'
         vapp_template_params.append(
             Maker.SourcedItem(

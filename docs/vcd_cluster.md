@@ -14,7 +14,10 @@ Usage: vcd cluster [OPTIONS] COMMAND [ARGS]...
               Create a kubernetes cluster with 4 worker nodes.
   
           vcd cluster delete dev-cluster
-              Deletes a kubernetes cluster by name.
+              Delete a kubernetes cluster by name.
+  
+          vcd cluster create c1 --single
+              Create a single node kubernetes cluster for dev/test.
       
 
 Options:

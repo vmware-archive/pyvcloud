@@ -13,6 +13,10 @@ Usage: vcd vapp [OPTIONS] COMMAND [ARGS]...
           vcd vapp create my-catalog my-template my-vapp
               Create a new vApp.
   
+          vcd vapp create my-catalog my-template my-vapp \
+                   --cpu 4 --memory 4096 --network net1
+              Create a new vApp with customized settings.
+  
           vcd vapp delete my-vapp --yes --force
               Delete a vApp.
   

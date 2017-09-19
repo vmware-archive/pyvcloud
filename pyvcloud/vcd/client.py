@@ -222,9 +222,11 @@ class EntityType(Enum):
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'
     TASK = 'application/vnd.vmware.vcloud.task+xml'
+    TASKS_LIST = 'application/vnd.vmware.vcloud.tasksList+xml'
     TEXT_XML = 'text/xml'
     UPLOAD_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.uploadVAppTemplateParams+xml'
+    USER = 'application/vnd.vmware.admin.user+xml'
     VAPP = 'application/vnd.vmware.vcloud.vApp+xml'
     VAPP_TEMPLATE = 'application/vnd.vmware.vcloud.vAppTemplate+xml'
     VDC = 'application/vnd.vmware.vcloud.vdc+xml'
@@ -649,7 +651,10 @@ class Client(object):
             if sys.version_info[0] < 3:
                 d = data
             else:
-                d = data.decode('utf-8')
+                if isinstance(data, str):
+                    d = data
+                else:
+                    d = data.decode('utf-8')
             self._logger.debug("Request body: %s", d)
         if self._log_requests or self._log_headers or self._log_bodies:
             self._logger.debug("Response status code: %s",
@@ -661,7 +666,10 @@ class Client(object):
             if sys.version_info[0] < 3:
                 d = response.content
             else:
-                d = response.content.decode('utf-8')
+                if isinstance(response.content, str):
+                    d = response.content
+                else:
+                    d = response.content.decode('utf-8')
             self._logger.debug('Response body: %s', d)
         return response
 
@@ -940,7 +948,10 @@ class _AbstractQuery(object):
                 self._filter = ''
             self._filter += equality_filter[0]
             self._filter += '=='
-            self._filter += urllib.quote(equality_filter[1])
+            if sys.version_info[0] < 3:
+                self._filter += urllib.quote(equality_filter[1])
+            else:
+                self._filter += urllib.parse.quote(equality_filter[1])
 
         self._sort_desc = sort_desc
         self._sort_asc = sort_asc
@@ -977,13 +988,19 @@ class _AbstractQuery(object):
 
         # Make sure we got at least one result record
         try:
-            item = query_results.next()
+            if sys.version_info[0] < 3:
+                item = query_results.next()
+            else:
+                item = next(query_results)
         except StopIteration:
             raise MissingRecordException()
 
         # Make sure we didn't get more than one result record
         try:
-            query_results.next()
+            if sys.version_info[0] < 3:
+                query_results.next()
+            else:
+                next(query_results)
             raise MultipleRecordsException()
         except StopIteration:
             pass

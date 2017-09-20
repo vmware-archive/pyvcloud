@@ -4,15 +4,15 @@ services:
   - docker
 
 python:
-  - '2.7'
+  - '3.6'
 
 env:
   matrix:
   - TOX_ENV=flake8
 
 install:
-  - pip install .
-  - pip install tox
+  - pip install --user .
+  - pip install --user tox
 
 script:
   - tox -e $TOX_ENV

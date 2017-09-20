@@ -11,11 +11,12 @@ env:
   - TOX_ENV=flake8
 
 install:
-  - pip install --user .
+  - pip install --user . --upgrade --pre --no-cache
   - pip install --user tox
 
 script:
   - tox -e $TOX_ENV
   - pip list --format=columns | grep pyvcloud
   - python -c 'import pkg_resources; print(pkg_resources.require("pyvcloud")[0].version)'
+  - pip list --format=columns | grep vcd-cli
   - vcd version

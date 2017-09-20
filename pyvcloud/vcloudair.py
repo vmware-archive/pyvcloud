@@ -646,7 +646,7 @@ class VCA(object):
             headers=self._get_vcloud_headers(),
             verify=self.verify,
             logger=self.logger)
-        print self.response.status_code, self.response.content
+        print(self.response.status_code, self.response.content)
 
     def login_to_instance(self, instance, password, token=None, org_url=None):
         """
@@ -2300,7 +2300,7 @@ class VCA(object):
         **service type:** ondemand, subscription, vcd
 
         """
-        disk = DiskCreateParamsType(Disk=DiskType()) 
+        disk = DiskCreateParamsType(Disk=DiskType())
         disk.Disk.name  = name
         disk.Disk.size = size
         if description != None:
@@ -2312,7 +2312,7 @@ class VCA(object):
         vdc = self.get_vdc(vdc_name)
 
         if storage_profile_name != None:
-            content_type = "application/vnd.vmware.vcloud.vdcStorageProfile+xml" 
+            content_type = "application/vnd.vmware.vcloud.vdcStorageProfile+xml"
             storage_profile = filter(lambda storage_profile: storage_profile.get_name() == storage_profile_name, vdc.get_VdcStorageProfiles().get_VdcStorageProfile())
 
             if len(storage_profile) != 1:

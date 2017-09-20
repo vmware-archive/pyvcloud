@@ -189,6 +189,8 @@ class RelationType(Enum):
     DOWNLOAD_DEFAULT = 'download:default'
     EDIT = 'edit'
     NEXT_PAGE = 'nextPage'
+    POWER_OFF = 'power:powerOff'
+    POWER_ON = 'power:powerOn'
     POWER_REBOOT = 'power:reboot'
     POWER_RESET = 'power:reset'
     POWER_SUSPEND = 'power:suspend'

@@ -98,3 +98,21 @@ class VApp(object):
             self.vapp_resource.get('href') + '/leaseSettingsSection/',
             new_section,
             EntityType.LEASE_SETTINGS.value)
+
+    def power_off(self):
+        if self.vapp_resource is None:
+            self.vapp_resource = self.client.get_resource(self.href)
+        return self.client.post_linked_resource(
+            self.vapp_resource,
+            RelationType.POWER_OFF,
+            None,
+            None)
+
+    def power_on(self):
+        if self.vapp_resource is None:
+            self.vapp_resource = self.client.get_resource(self.href)
+        return self.client.post_linked_resource(
+            self.vapp_resource,
+            RelationType.POWER_ON,
+            None,
+            None)

@@ -203,3 +203,49 @@ def update_lease(ctx, name, runtime_seconds, storage_seconds):
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)
+
+
+@vapp.command('power-off', short_help='power off a vApp')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to power off the vApp?')
+@click.option('-f',
+              '--force',
+              is_flag=True,
+              help='Force power off running vApps')
+def power_off(ctx, name, force):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, vdc_href=vdc_href)
+        vapp_resource = vdc.get_vapp(name)
+        vapp = VApp(client, vapp_resource=vapp_resource)
+        task = vapp.power_off()
+        stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command('power-on', short_help='power on a vApp')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+def power_on(ctx, name):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, vdc_href=vdc_href)
+        vapp_resource = vdc.get_vapp(name)
+        vapp = VApp(client, vapp_resource=vapp_resource)
+        task = vapp.power_on()
+        stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)

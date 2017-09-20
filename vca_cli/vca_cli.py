@@ -13,7 +13,7 @@
 #
 
 import click
-from cmd_proc import CmdProc
+from vca_cli.cmd_proc import CmdProc
 import operator
 import os
 import pkg_resources

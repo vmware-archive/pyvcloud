@@ -13,7 +13,7 @@
 #
 
 
-import ConfigParser
+from configparser import ConfigParser
 from cryptography.fernet import Fernet
 import operator
 import os

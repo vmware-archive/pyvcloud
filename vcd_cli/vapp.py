@@ -78,8 +78,10 @@ def info(ctx, name):
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, vdc_href=vdc_href)
-        vapp = vdc.get_vapp(name)
-        stdout(vapp_to_dict(vapp), ctx)
+        vapp_resource = vdc.get_vapp(name)
+        vapp = VApp(client, vapp_resource=vapp_resource)
+        md = vapp.get_metadata()
+        stdout(vapp_to_dict(vapp_resource, md), ctx)
     except Exception as e:
         stderr(e, ctx)
 

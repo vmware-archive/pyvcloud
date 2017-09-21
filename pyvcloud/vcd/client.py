@@ -980,7 +980,7 @@ class _AbstractQuery(object):
             if next_page_uri is None:
                 break
             query_results = self._client.get_resource(next_page_uri,
-                                                      objectify_results=False)
+                                                      objectify_results=True)
 
     def find_unique(self):
         """Convenience wrapper over execute() for the case where exactly one match is expected.

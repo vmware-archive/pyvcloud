@@ -48,6 +48,13 @@ class VApp(object):
                             return connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddress')  # NOQA
         raise Exception('can\'t find ip address')
 
+    def get_metadata(self):
+        if self.vapp_resource is None:
+            self.vapp_resource = self.client.get_resource(self.href)
+        return self.client.get_linked_resource(self.vapp_resource,
+                                               RelationType.DOWN,
+                                               EntityType.METADATA.value)
+
     def set_metadata(self,
                      domain,
                      visibility,

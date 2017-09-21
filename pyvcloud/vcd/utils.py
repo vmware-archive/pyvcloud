@@ -104,7 +104,7 @@ def to_human(seconds):
     return '%sw, %sd, %sh' % (weeks, days, hours)
 
 
-def vapp_to_dict(vapp):
+def vapp_to_dict(vapp, metadata=None):
     result = {}
     result['name'] = vapp.get('name')
     result['id'] = extract_id(vapp.get('id'))
@@ -166,6 +166,9 @@ def vapp_to_dict(vapp):
                 value = vm.GuestCustomizationSection.ComputerName
                 result['%s: %s' % (k, element_name)] = value
     result['status'] = VCLOUD_STATUS_MAP.get(int(vapp.get('status')))
+    if metadata is not None:
+        for me in metadata.MetadataEntry:
+            result['metadata: %s' % me.Key.text] = me.TypedValue.Value.text
     return result
 
 

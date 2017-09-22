@@ -37,7 +37,8 @@ class Task(object):
                user_href,
                user_name,
                org_href=None,
-               task_href=None
+               task_href=None,
+               error_message=None
                ):
         t = E.Task(status=status,
                    serviceNamespace=namespace,
@@ -49,6 +50,11 @@ class Task(object):
         t.append(E.Owner(href=owner_href,
                          name=owner_name,
                          type=owner_type))
+        if error_message is not None:
+            t.append(E.Error(stackTrace='',
+                             majorErrorCode='500',
+                             message=error_message,
+                             minorErrorCode='INTERNAL_SERVER_ERROR'))
         t.append(E.User(href=user_href,
                         name=user_name,
                         type=EntityType.USER.value))

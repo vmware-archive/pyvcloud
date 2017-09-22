@@ -153,8 +153,16 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                                                 TaskStatus.ERROR,
                                                 TaskStatus.CANCELED],
                                             callback=task_callback)
-                        text = '\ntask: %s, result: %s' % \
-                               (extract_id(task.get('id')), task.get('status'))
+                        if task.get('status') == TaskStatus.ERROR.value:
+                            text = 'task: %s, result: %s, message: %s' % \
+                                   (extract_id(task.get('id')),
+                                    task.get('status'),
+                                    task.Error.get('message'))
+                            # TODO(should return != 0)
+                        else:
+                            text = 'task: %s, result: %s' % \
+                                   (extract_id(task.get('id')),
+                                    task.get('status'))
                 else:
                     text = as_table(to_dict(obj), show_id=show_id)
             elif not isinstance(obj, list):

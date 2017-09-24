@@ -929,7 +929,7 @@ class VAPP(object):
         if children:
             vms = children.get_Vm()
             for vm in vms:
-                id = vm.get_id()
+                vm_id = vm.get_id()
                 name = vm.get_name()
                 status = VCLOUD_STATUS_MAP[vm.get_status()]
                 owner = self.me.get_Owner().get_User().get_name()
@@ -981,7 +981,7 @@ class VAPP(object):
                     hdd_capacity_mb += int(hdd_item.get_HostResource()[0].get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}capacity'))
 
                 result.append(
-                    {'id': id,
+                    {'id': vm_id,
                      'name': name,
                      'status': status,
                      'cpus': cpu_capacity,

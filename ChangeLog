@@ -1,6 +1,55 @@
 CHANGES
 =======
 
+18.0.14
+-------
+
+* task
+* metadata
+* power-on/off
+* travis
+* travis
+* travis
+* p3; task mgmt
+* customize hw
+* HATEOAS
+* HATEOAS
+* HATEOAS
+* flake8
+* quantity is none
+* misc
+* Set theme jekyll-theme-minimal
+* readme
+* readme
+* flake8 n license
+* docs-n-tests
+* tests new sdk
+* tests new sdk
+* added get\_vdc back
+* python3
+* python3 support
+* fixed vm listing
+* docs
+* api-version
+* api-version
+* docs
+* upload vapp template
+* upload-vapp
+* upload
+* wip
+* flake8
+* vapp-list
+
+18.0.12
+-------
+
+* deploy on every push, but not if tagged
+
+18.0.11
+-------
+
+* wip
+
 18.0.10
 -------
 

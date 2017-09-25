@@ -58,6 +58,11 @@ class Org(object):
                                                     '/api/admin/org/')
         self.is_admin = is_admin
 
+    def get_name(self):
+        if self.org_resource is None:
+            self.org_resource = self.client.get_resource(self.endpoint)
+        return self.org_resource.get('name')
+
     def create_catalog(self, name, description):
         if self.org_resource is None:
             self.org_resource = self.client.get_resource(self.endpoint)

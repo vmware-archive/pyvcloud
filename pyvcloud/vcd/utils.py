@@ -13,7 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from lxml import etree
 from lxml.objectify import NoneElement
+from pygments import formatters
+from pygments import highlight
+from pygments import lexers
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
@@ -157,16 +161,17 @@ def vapp_to_dict(vapp, metadata=None):
             env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
             if len(env) > 0:
                 result['%s: %s' % (k, 'moid')] = env[0].get('{http://www.vmware.com/schema/ovfenv}vCenterId')  # NOQA
-            if hasattr(vm.GuestCustomizationSection, 'AdminPassword'):
-                element_name = 'password'
-                value = vm.GuestCustomizationSection.AdminPassword
-                result['%s: %s' % (k, element_name)] = value
-            if hasattr(vm.GuestCustomizationSection, 'ComputerName'):
-                element_name = 'computer-name'
-                value = vm.GuestCustomizationSection.ComputerName
-                result['%s: %s' % (k, element_name)] = value
+            if hasattr(vm, 'GuestCustomizationSection'):
+                if hasattr(vm.GuestCustomizationSection, 'AdminPassword'):
+                    element_name = 'password'
+                    value = vm.GuestCustomizationSection.AdminPassword
+                    result['%s: %s' % (k, element_name)] = value
+                if hasattr(vm.GuestCustomizationSection, 'ComputerName'):
+                    element_name = 'computer-name'
+                    value = vm.GuestCustomizationSection.ComputerName
+                    result['%s: %s' % (k, element_name)] = value
     result['status'] = VCLOUD_STATUS_MAP.get(int(vapp.get('status')))
-    if metadata is not None:
+    if metadata is not None and hasattr(metadata, 'MetadataEntry'):
         for me in metadata.MetadataEntry:
             result['metadata: %s' % me.Key.text] = me.TypedValue.Value.text
     return result
@@ -244,3 +249,11 @@ def to_camel_case(name, names):
         if name.lower() == n.lower():
             return n
     return result
+
+
+def stdout_xml(the_xml):
+    print(highlight(str(etree.tostring(the_xml,
+                                       pretty_print=True),
+                        'utf-8'),
+                    lexers.XmlLexer(),
+                    formatters.TerminalFormatter()))

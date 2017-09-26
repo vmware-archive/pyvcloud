@@ -193,6 +193,7 @@ class RelationType(Enum):
     POWER_ON = 'power:powerOn'
     POWER_REBOOT = 'power:reboot'
     POWER_RESET = 'power:reset'
+    POWER_SHUTDOWN = 'power:shutdown'
     POWER_SUSPEND = 'power:suspend'
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
@@ -207,6 +208,8 @@ class EntityType(Enum):
     API_EXTENSIBILITY = 'application/vnd.vmware.vcloud.apiextensibility+xml'
     AMQP_SETTINGS = 'application/vnd.vmware.admin.amqpSettings+xml'
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
+    CAPTURE_VAPP_PARAMS = \
+        'application/vnd.vmware.vcloud.captureVAppParams+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
@@ -216,6 +219,8 @@ class EntityType(Enum):
     METADATA = 'application/vnd.vmware.vcloud.metadata+xml'
     NETWORK_CONFIG_SECTION = \
         'application/vnd.vmware.vcloud.networkConfigSection+xml'
+    NETWORK_CONNECTION_SECTION = \
+        'application/vnd.vmware.vcloud.networkConnectionSection+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'

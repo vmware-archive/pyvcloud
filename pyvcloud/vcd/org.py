@@ -17,6 +17,7 @@ from lxml import etree
 from lxml import objectify
 import os
 from pyvcloud.vcd.client import _TaskMonitor
+from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import get_links
@@ -359,3 +360,20 @@ class Org(object):
         for v in get_links(self.org_resource, media_type=EntityType.VDC.value):
             result.append({'name': v.name, 'href': v.href})
         return result
+
+    def capture_vapp(self,
+                     catalog_resource,
+                     vapp_href,
+                     catalog_item_name,
+                     description):
+        contents = E.CaptureVappParams(
+            E.Description(description),
+            E.Source(href=vapp_href),
+            E.TargetCatalogItem(name=catalog_item_name),
+            name=description
+        )
+        return self.client.post_linked_resource(
+            catalog_resource,
+            rel=RelationType.ADD,
+            media_type=EntityType.CAPTURE_VAPP_PARAMS.value,
+            contents=contents)

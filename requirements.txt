@@ -6,3 +6,4 @@ requests>=2.18.3
 progressbar2
 PyYAML>=3.10
 pyvmomi
+pygments

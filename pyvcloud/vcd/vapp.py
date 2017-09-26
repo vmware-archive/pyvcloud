@@ -32,6 +32,9 @@ class VApp(object):
             self.name = vapp_resource.get('name')
             self.href = vapp_resource.get('href')
 
+    def reload(self):
+        self.vapp_resource = self.client.get_resource(self.href)
+
     def get_primary_ip(self, vm_name):
         if self.vapp_resource is None:
             self.vapp_resource = self.client.get_resource(self.href)
@@ -47,6 +50,18 @@ class VApp(object):
                         if connection is not None:
                             return connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddress')  # NOQA
         raise Exception('can\'t find ip address')
+
+    def get_admin_password(self, vm_name):
+        if self.vapp_resource is None:
+            self.vapp_resource = self.client.get_resource(self.href)
+        if hasattr(self.vapp_resource, 'Children') and \
+           hasattr(self.vapp_resource.Children, 'Vm'):
+            for vm in self.vapp_resource.Children.Vm:
+                if vm_name == vm.get('name'):
+                    if hasattr(vm, 'GuestCustomizationSection') and \
+                       hasattr(vm.GuestCustomizationSection, 'AdminPassword'):
+                        return vm.GuestCustomizationSection.AdminPassword.text
+        raise Exception('can\'t find admin password')
 
     def get_metadata(self):
         if self.vapp_resource is None:
@@ -123,3 +138,33 @@ class VApp(object):
             RelationType.POWER_ON,
             None,
             None)
+
+    def shutdown(self):
+        if self.vapp_resource is None:
+            self.vapp_resource = self.client.get_resource(self.href)
+        return self.client.post_linked_resource(
+            self.vapp_resource,
+            RelationType.POWER_SHUTDOWN,
+            None,
+            None)
+
+    def connect_vm(self, mode='DHCP'):
+        if self.vapp_resource is None:
+            self.vapp_resource = self.client.get_resource(self.href)
+        if hasattr(self.vapp_resource, 'Children') and \
+           hasattr(self.vapp_resource.Children, 'Vm') and \
+           len(self.vapp_resource.Children.Vm) > 0:
+            network_name = 'none'
+            for nc in self.vapp_resource.NetworkConfigSection.NetworkConfig:
+                if nc.get('networkName') != 'none':
+                    network_name = nc.get('networkName')
+                    break
+            self.vapp_resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.set('network', network_name) # NOQA
+            self.vapp_resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.IsConnected = E.IsConnected('true') # NOQA
+            self.vapp_resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.IpAddressAllocationMode = E.IpAddressAllocationMode(mode.upper()) # NOQA
+            return self.client.put_linked_resource(
+                self.vapp_resource.Children.Vm[0].NetworkConnectionSection,
+                RelationType.EDIT,
+                EntityType.NETWORK_CONNECTION_SECTION.value,
+                self.vapp_resource.Children.Vm[0].NetworkConnectionSection
+                )

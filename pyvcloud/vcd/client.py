@@ -501,6 +501,8 @@ class Client(object):
         self._log_headers = log_headers
         self._log_bodies = log_bodies
 
+        self.fsencoding = sys.getfilesystemencoding()
+
     def _get_response_request_id(self, response):
         return response.headers[self._REQUEST_ID_HDR_NAME]
 
@@ -524,8 +526,8 @@ class Client(object):
                 active_versions.append(float(version.Version))
         active_versions.sort()
         self._api_version = active_versions[-1]
-        self._logger.debug('API versions supported: %s', active_versions)
-        self._logger.debug('API version set to highest supported: %s',
+        self._logger.debug('API versions supported: %s' % active_versions)
+        self._logger.debug('API version set to highest supported: %s' %
                            self._api_version)
         return self._api_version
 
@@ -661,12 +663,10 @@ class Client(object):
                                    verify=self._verify_ssl_certs)
 
         if self._log_requests or self._log_headers or self._log_bodies:
-            self._logger.debug("Request uri: %s",
-                               uri)
+            self._logger.debug('Request uri: %s' % uri)
         if self._log_headers:
-            self._logger.debug("Request headers: %s, %s",
-                               session.headers,
-                               headers)
+            self._logger.debug('Request headers: %s, %s' %
+                               (session.headers, headers))
         if self._log_bodies and data is not None:
             if sys.version_info[0] < 3:
                 d = data
@@ -674,13 +674,13 @@ class Client(object):
                 if isinstance(data, str):
                     d = data
                 else:
-                    d = data.decode('utf-8')
-            self._logger.debug("Request body: %s", d)
+                    d = data.decode(self.fsencoding)
+            self._logger.debug('Request body: %s' % d)
         if self._log_requests or self._log_headers or self._log_bodies:
-            self._logger.debug("Response status code: %s",
+            self._logger.debug('Response status code: %s' %
                                response.status_code)
         if self._log_headers:
-            self._logger.debug("Response headers: %s",
+            self._logger.debug('Response headers: %s' %
                                response.headers)
         if self._log_bodies and _response_has_content(response):
             if sys.version_info[0] < 3:
@@ -689,8 +689,8 @@ class Client(object):
                 if isinstance(response.content, str):
                     d = response.content
                 else:
-                    d = response.content.decode('utf-8')
-            self._logger.debug('Response body: %s', d)
+                    d = response.content.decode(self.fsencoding)
+            self._logger.debug('Response body: %s' % d)
         return response
 
     def upload_fragment(self, uri, contents, range_str):
@@ -704,19 +704,18 @@ class Client(object):
                                          headers=headers,
                                          verify=self._verify_ssl_certs)
         if self._log_headers or self._log_bodies:
-            self._logger.debug("Request uri: %s",
-                               uri)
+            self._logger.debug('Request uri: %s' % uri)
         if self._log_headers:
-            self._logger.debug("Request headers: %s, %s",
-                               self._session.headers,
-                               headers)
+            self._logger.debug('Request headers: %s, %s' %
+                               (self._session.headers,
+                                headers))
         if self._log_headers:
-            self._logger.debug("Response status code: %s",
+            self._logger.debug('Response status code: %s' %
                                response.status_code)
-            self._logger.debug("Response headers: %s",
+            self._logger.debug('Response headers: %s' %
                                response.headers)
         if self._log_bodies and _response_has_content(response):
-            self._logger.debug("Response body: %s",
+            self._logger.debug('Response body: %s' %
                                response.content)
         return response
 
@@ -739,12 +738,11 @@ class Client(object):
                     if callback is not None:
                         callback(bytes_written, size)
                     if self._log_headers or self._log_bodies:
-                        self._logger.debug("Request uri: %s",
-                                           uri)
+                        self._logger.debug('Request uri: %s' % uri)
                     if self._log_headers:
-                        self._logger.debug("Response status code: %s",
+                        self._logger.debug('Response status code: %s' %
                                            response.status_code)
-                        self._logger.debug("Response headers: %s",
+                        self._logger.debug('Response headers: %s' %
                                            response.headers)
         return bytes_written
 

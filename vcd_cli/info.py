@@ -15,12 +15,11 @@
 import click
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RESOURCE_TYPES
+from pyvcloud.vcd.utils import stdout_xml
 from pyvcloud.vcd.utils import to_camel_case
-from pyvcloud.vcd.utils import to_dict
 from tabulate import tabulate
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
-from vcd_cli.utils import stdout
 from vcd_cli.utils import tabulate_names
 from vcd_cli.vcd import vcd
 
@@ -50,10 +49,15 @@ def info(ctx, resource_type, resource_id):
         vcd info vapp c48a4e1a-7bd9-4177-9c67-4c330016b99f
             Get details of vApp by id.
 \b
+        vcd catalog list my-catalog                                 # list items
+        vcd catalog info my-catalog my-item                         # get catalog item id
+         vcd info catalogitem f653b137-0d14-4ea9-8f14-dcd2b7914110  # get vapp template id
+         vcd info vapptemplate 53b83b27-1f2b-488e-9020-a27aee8cb640 # details of template
+\b
     See Also
         Several 'vcd' commands provide the id of a resource, including the
         'vcd search' command.
-    """
+    """  # NOQA
     try:
         if resource_type is None or resource_id is None:
             click.secho(ctx.get_help())
@@ -65,15 +69,17 @@ def info(ctx, resource_type, resource_id):
         q = client.get_typed_query(to_camel_case(resource_type,
                                                  RESOURCE_TYPES),
                                    query_result_format=QueryResultFormat.
-                                   ID_RECORDS,
+                                   REFERENCES,
                                    qfilter='id==%s' % resource_id)
         records = list(q.execute())
         if len(records) == 0:
             raise Exception('not found')
         elif len(records) > 1:
             raise Exception('multiple found')
-        result = to_dict(records[0], resource_type)
-        stdout(result, ctx, show_id=True)
+        resource = client.get_resource(records[0].get('href'))
+        stdout_xml(resource)
+        # result = to_dict(records[0], resource_type)
+        # stdout(result, ctx, show_id=True)
     except Exception as e:
         import traceback
         traceback.print_exc()

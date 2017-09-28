@@ -14,6 +14,7 @@
 
 import click
 from pyvcloud.vcd.client import QueryResultFormat
+from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vapp import VApp
@@ -77,9 +78,9 @@ def info(ctx, name):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
+        vdc = VDC(client, href=vdc_href)
         vapp_resource = vdc.get_vapp(name)
-        vapp = VApp(client, vapp_resource=vapp_resource)
+        vapp = VApp(client, resource=vapp_resource)
         md = vapp.get_metadata()
         stdout(vapp_to_dict(vapp_resource, md), ctx)
     except Exception as e:
@@ -124,6 +125,14 @@ def list_vapps(ctx):
               required=False,
               metavar='<network>',
               help='Network')
+@click.option('connection_mode',
+              '-C',
+              '--connection-mode',
+              type=click.Choice(['dhcp', 'pool']),
+              required=False,
+              default='dhcp',
+              metavar='<connection_mode>',
+              help='Connection mode')
 @click.option('-m',
               '--memory',
               'memory',
@@ -138,19 +147,27 @@ def list_vapps(ctx):
               metavar='<virtual-cpus>',
               type=click.INT,
               help='Number of CPUs')
-def create(ctx, catalog, template, name, network, memory, cpu):
+def create(ctx, catalog, template, name, network, memory, cpu,
+           connection_mode):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
-        vapp = vdc.instantiate_vapp(
+        vdc = VDC(client, href=vdc_href)
+        vapp_resource = vdc.instantiate_vapp(
             name,
             catalog,
             template,
             network=network,
             memory=memory,
-            cpu=cpu)
-        stdout(vapp.Tasks.Task[0], ctx)
+            cpu=cpu,
+            deploy=False,
+            power_on=False)
+        stdout(vapp_resource.Tasks.Task[0], ctx)
+        vapp = VApp(client, href=vapp_resource.get('href'))
+        t = vapp.connect_vm(mode=connection_mode)
+        stdout(t, ctx)
+        t = vapp.power_on()
+        stdout(t, ctx)
     except Exception as e:
         stderr(e, ctx)
 
@@ -174,7 +191,7 @@ def delete(ctx, name, force):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
+        vdc = VDC(client, href=vdc_href)
         task = vdc.delete_vapp(name, force)
         stdout(task, ctx)
     except Exception as e:
@@ -196,9 +213,9 @@ def update_lease(ctx, name, runtime_seconds, storage_seconds):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
+        vdc = VDC(client, href=vdc_href)
         vapp_resource = vdc.get_vapp(name)
-        vapp = VApp(client, vapp_resource=vapp_resource)
+        vapp = VApp(client, resource=vapp_resource)
         if storage_seconds is None:
             storage_seconds = runtime_seconds
         task = vapp.set_lease(runtime_seconds, storage_seconds)
@@ -228,7 +245,7 @@ def power_off(ctx, name, force):
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, vdc_href=vdc_href)
         vapp_resource = vdc.get_vapp(name)
-        vapp = VApp(client, vapp_resource=vapp_resource)
+        vapp = VApp(client, resource=vapp_resource)
         task = vapp.power_off()
         stdout(task, ctx)
     except Exception as e:
@@ -246,8 +263,76 @@ def power_on(ctx, name):
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, vdc_href=vdc_href)
         vapp_resource = vdc.get_vapp(name)
-        vapp = VApp(client, vapp_resource=vapp_resource)
+        vapp = VApp(client, resource=vapp_resource)
         task = vapp.power_on()
         stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command('shutdown', short_help='shutdown a vApp')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to shutdown the vApp?')
+def shutdown(ctx, name):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, vdc_href=vdc_href)
+        vapp_resource = vdc.get_vapp(name)
+        vapp = VApp(client, resource=vapp_resource)
+        task = vapp.shutdown()
+        stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command(short_help='save a vApp as a template')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+@click.argument('catalog',
+                metavar='<catalog>',
+                required=True)
+@click.argument('template',
+                metavar='[template]',
+                required=False)
+@click.option('-c',
+              '--customizable',
+              is_flag=True,
+              help='Can be customized on instantiation')
+def capture(ctx, name, catalog, template, customizable):
+    try:
+        client = ctx.obj['client']
+        org_name = ctx.obj['profiles'].get('org')
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, org_name == 'System')
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, vdc_href=vdc_href)
+        print(org.href)
+        print(vdc.href)
+        # vapp_resource = vdc.instantiate_vapp(
+        #     name,
+        #     catalog,
+        #     template,
+        #     network=network,
+        #     memory=memory,
+        #     cpu=cpu,
+        #     deploy=False,
+        #     power_on=False)
+        # stdout(vapp_resource.Tasks.Task[0], ctx)
+        # vapp = VApp(client, vapp_href=vapp_resource.get('href'))
+        # t = vapp.connect_vm(mode=connection_mode)
+        # stdout(t, ctx)
+        # t = vapp.power_on()
+        # stdout(t, ctx)
     except Exception as e:
         stderr(e, ctx)

@@ -57,6 +57,7 @@ def info(ctx, name):
         in_use_vdc = ctx.obj['profiles'].get('vdc_in_use')
         orgs = client.get_org_list()
         result = {}
+        vdc_resource = None
         for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             if org.get('name') == in_use_org_name:
                 resource = client.get_resource(org.get('href'))

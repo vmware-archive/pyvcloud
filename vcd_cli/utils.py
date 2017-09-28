@@ -117,7 +117,9 @@ def task_callback(task):
 
 def stdout(obj, ctx=None, alt_text=None, show_id=False):
     o = obj
-    if ctx is not None and ctx.find_root().params['json_output']:
+    if ctx is not None and \
+       'json_output' in ctx.find_root().params and \
+       ctx.find_root().params['json_output']:
         if isinstance(obj, str):
             o = {'message': obj}
         text = json.dumps(o,
@@ -138,7 +140,9 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                 obj = ctx.obj['client'].get_resource(obj.get('task_href'))
             if isinstance(obj, ObjectifiedElement):
                 if obj.tag == '{http://www.vmware.com/vcloud/v1.5}Task':
-                    if ctx.find_root().params['no_wait']:
+                    if ctx is not None and \
+                       hasattr(ctx.find_root().params, 'no_wait') and \
+                       ctx.find_root().params['no_wait']:
                         text = as_table([to_dict(obj)], show_id=True)
                     else:
                         client = ctx.obj['client']
@@ -160,8 +164,9 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                                     task.Error.get('message'))
                             # TODO(should return != 0)
                         else:
-                            text = 'task: %s, result: %s' % \
+                            text = 'task: %s, %s, result: %s' % \
                                    (extract_id(task.get('id')),
+                                    task.get('operation'),
                                     task.get('status'))
                 else:
                     text = as_table(to_dict(obj), show_id=show_id)

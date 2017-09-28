@@ -13,12 +13,15 @@
 #
 
 import click
+from os.path import expanduser
+from os.path import join
 from pyvcloud.vcd.cluster import Cluster
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.vcd import abort_if_false
 from vcd_cli.vcd import vcd
+import yaml
 
 
 @vcd.group(short_help='manage clusters')
@@ -136,5 +139,30 @@ def config(ctx, name):
         client = ctx.obj['client']
         cluster = Cluster(client)
         click.secho(cluster.get_config(name))
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@cluster.command('save-config')
+@click.pass_context
+def save_config(ctx):
+    try:
+        f = join(expanduser('~'), '.kube/config')
+        stream = open(f, 'r')
+        docs = yaml.load_all(stream)
+        for doc in docs:
+            for k, v in doc.items():
+                if k == 'contexts':
+                    for c in v:
+                        print(c['name'])
+                        print('  cluster: %s' % c['context']['cluster'])
+                        print('  user:    %s' % c['context']['user'])
+                # elif k == 'clusters':
+                #     for cluster in v:
+                #         print(cluster['name'], cluster['cluster']['server'])
+                # elif k == 'users':
+                #     for user in v:
+                #         print(user['name'], user['user'])
+
     except Exception as e:
         stderr(e, ctx)

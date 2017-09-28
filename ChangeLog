@@ -1,6 +1,117 @@
 CHANGES
 =======
 
+19.0.7
+------
+
+* tasks
+* metadata
+* power-on/off
+* single node
+* gl-ci
+* travis
+* p3
+* travis
+* cse create task
+* updated-doc
+* customize vapp instantiate
+* python3
+* readme
+* docs
+* docs
+* new docs
+* new docs
+* new docs
+* wip
+* docs
+* docs
+* tree command; refactored cli
+* tree command; refactored cli
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* docs
+* initial content
+* Set theme jekyll-theme-minimal
+* list-sessions
+* readme
+* readme
+* readme
+* update-license
+* restore v5.7 on vca
+* Closes #91
+* bc
+* reqs
+* use browser cookies for SSO
+* use browser cookies for SSO
+* Closes #88; api version
+* upload vapp template
+* upload-vapp
+* vapp-list
+
+19.0.6
+------
+
+* deps
+
+19.0.5
+------
+
+* deps
+
+19.0.4
+------
+
+* versions
+
+19.0.3
+------
+
+* log to vcd.log
+* cluster name and ops, vsphere
+* cluster-crud
+* spinner
+* tasks
+* task progress
+* pyvcloud-dep
+* create vapp
+* doc-catalog-cmd
+* fixed-ver-config
+* catalog-item-download
+* catalog items
+
+19.0.1
+------
+
+* version fix
+
+19.0.0
+------
+
+* package renamed to vcd-cli
+* catalog-crud
+* ext
+* amqp set config
+* amqp-test
+* logout
+* tasks
+* task info
+* tasks
+* ci-cd
 * deps
 * tests
 * search and info commands added

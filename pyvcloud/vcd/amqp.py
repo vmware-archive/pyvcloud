@@ -13,16 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from lxml import objectify
 from pyvcloud.vcd.client import _WellKnownEndpoint
+from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
-
-
-Amqp = objectify.ElementMaker(
-    annotate=False,
-    namespace='http://www.vmware.com/vcloud/extension/v1.5',
-    nsmap={None: "http://www.vmware.com/vcloud/v1.5",
-           'vmext': 'http://www.vmware.com/vcloud/extension/v1.5'})
 
 
 class AmqpService(object):
@@ -31,34 +24,34 @@ class AmqpService(object):
         self.client = client
         if _WellKnownEndpoint.EXTENSION not in client._session_endpoints:
             raise Exception("Requires login as 'system administrator'.")
-        self.endpoint = \
+        self.href = \
             client._session_endpoints[_WellKnownEndpoint.EXTENSION] + \
             '/settings/amqp'
 
     def get_settings(self):
-        return self.client.get_resource(self.endpoint)
+        return self.client.get_resource(self.href)
 
     def _to_settings(self, config, password):
-        settings = Amqp.AmqpSettings()
-        settings.append(Amqp.AmqpHost(config['AmqpHost']))
-        settings.append(Amqp.AmqpPort(config['AmqpPort']))
-        settings.append(Amqp.AmqpUsername(config['AmqpUsername']))
-        settings.append(Amqp.AmqpPassword(password))
-        settings.append(Amqp.AmqpExchange(config['AmqpExchange']))
-        settings.append(Amqp.AmqpVHost(config['AmqpVHost']))
-        settings.append(Amqp.AmqpUseSSL(config['AmqpUseSSL']))
-        settings.append(Amqp.AmqpSslAcceptAll(config['AmqpSslAcceptAll']))
-        settings.append(Amqp.AmqpPrefix(config['AmqpPrefix']))
+        settings = E_VMEXT.AmqpSettings()
+        settings.append(E_VMEXT.AmqpHost(config['AmqpHost']))
+        settings.append(E_VMEXT.AmqpPort(config['AmqpPort']))
+        settings.append(E_VMEXT.AmqpUsername(config['AmqpUsername']))
+        settings.append(E_VMEXT.AmqpPassword(password))
+        settings.append(E_VMEXT.AmqpExchange(config['AmqpExchange']))
+        settings.append(E_VMEXT.AmqpVHost(config['AmqpVHost']))
+        settings.append(E_VMEXT.AmqpUseSSL(config['AmqpUseSSL']))
+        settings.append(E_VMEXT.AmqpSslAcceptAll(config['AmqpSslAcceptAll']))
+        settings.append(E_VMEXT.AmqpPrefix(config['AmqpPrefix']))
         return settings
 
     def test_config(self, config, password):
         return self.client.post_resource(
-            self.endpoint + '/action/test',
+            self.href + '/action/test',
             self._to_settings(config, password),
             EntityType.AMQP_SETTINGS.value)
 
     def set_config(self, config, password):
         return self.client.put_resource(
-            self.endpoint,
+            self.href,
             self._to_settings(config, password),
             EntityType.AMQP_SETTINGS.value)

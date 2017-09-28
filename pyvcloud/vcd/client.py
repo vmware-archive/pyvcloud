@@ -26,33 +26,46 @@ import time
 import urllib
 
 
-NSMAP = {'vcloud': 'http://www.vmware.com/vcloud/v1.5',
-         'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-         'xs': 'http://www.w3.org/2001/XMLSchema',
-         'rasd': 'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData',  # NOQA
+SIZE_1MB = 1024*1024
+
+
+NSMAP = {
          'ovf': 'http://schemas.dmtf.org/ovf/envelope/1',
+         'ovfenv': 'http://schemas.dmtf.org/ovf/environment/1',
+         'rasd': 'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData',  # NOQA
+         'vcloud': 'http://www.vmware.com/vcloud/v1.5',
          've': 'http://www.vmware.com/schema/ovfenv',
-         'ovfenv': 'http://schemas.dmtf.org/ovf/environment/1'}
+         'vmext': 'http://www.vmware.com/vcloud/extension/v1.5',
+         'xs': 'http://www.w3.org/2001/XMLSchema',
+         'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
+         }
 
 
-# Convenience object for building vCloud API XML objects
+# Convenience objects for building vCloud API XML objects
 E = objectify.ElementMaker(
     annotate=False,
-    namespace="http://www.vmware.com/vcloud/v1.5",
-    nsmap={None: "http://www.vmware.com/vcloud/v1.5",
-           'xsi': "http://www.w3.org/2001/XMLSchema-instance",
-           'xs': 'http://www.w3.org/2001/XMLSchema'})
+    namespace=NSMAP['vcloud'],
+    nsmap={None: NSMAP['vcloud'],
+           'xsi': NSMAP['xsi'],
+           'xs': NSMAP['xs'],
+           'ovf': NSMAP['ovf']})
 
-E_OVFENV = objectify.ElementMaker(
+E_VMEXT = objectify.ElementMaker(
     annotate=False,
-    namespace='http://schemas.dmtf.org/ovf/envelope/1',
-    nsmap={None: 'http://schemas.dmtf.org/ovf/envelope/1'})
+    namespace=NSMAP['vmext'],
+    nsmap={None: NSMAP['vcloud'],
+           'vmext': NSMAP['vmext']})
+
+E_OVF = objectify.ElementMaker(
+    annotate=False,
+    namespace=NSMAP['ovf'],
+    nsmap={None: NSMAP['ovf']})
 
 E_RASD = objectify.ElementMaker(
     annotate=False,
-    namespace='http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData',  # NOQA
-    nsmap={None: 'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData',  # NOQA
-           'vcloud': 'http://www.vmware.com/vcloud/v1.5'})
+    namespace=NSMAP['rasd'],
+    nsmap={None: NSMAP['rasd'],
+           'vcloud': NSMAP['vcloud']})
 
 RESOURCE_TYPES = [
     'aclRule',
@@ -710,7 +723,7 @@ class Client(object):
     def download_from_uri(self,
                           uri,
                           file_name,
-                          chunk_size=1024*1024,
+                          chunk_size=SIZE_1MB,
                           size=0,
                           callback=None):
         response = self._session.request('GET',

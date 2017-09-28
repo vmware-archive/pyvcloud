@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from lxml import objectify
-from pyvcloud.vcd.client import E_OVFENV
+from pyvcloud.vcd.client import E
+from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
@@ -22,35 +22,29 @@ from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
 
 
-Maker = objectify.ElementMaker(
-    annotate=False,
-    namespace='',
-    nsmap={None: 'http://www.vmware.com/vcloud/v1.5'})
-
-
 class VDC(object):
 
-    def __init__(self, client, name=None, vdc_href=None, vdc_resource=None):
+    def __init__(self, client, name=None, href=None, resource=None):
         self.client = client
         self.name = name
-        self.href = vdc_href
-        self.vdc_resource = vdc_resource
-        if vdc_resource is not None:
-            self.name = vdc_resource.get('name')
-            self.href = vdc_resource.get('href')
+        self.href = href
+        self.resource = resource
+        if resource is not None:
+            self.name = resource.get('name')
+            self.href = resource.get('href')
 
     def get_resource(self):
-        if self.vdc_resource is None:
-            self.vdc_resource = self.client.get_resource(self.href)
-        return self.vdc_resource
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        return self.resource
 
     def get_resource_href(self, name, entity_type=EntityType.VAPP):
-        if self.vdc_resource is None:
-            self.vdc_resource = self.client.get_resource(self.href)
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
         result = []
-        if hasattr(self.vdc_resource, 'ResourceEntities') and \
-           hasattr(self.vdc_resource.ResourceEntities, 'ResourceEntity'):
-            for vapp in self.vdc_resource.ResourceEntities.ResourceEntity:
+        if hasattr(self.resource, 'ResourceEntities') and \
+           hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
+            for vapp in self.resource.ResourceEntities.ResourceEntity:
                 if vapp.get('name') == name:
                     result.append(vapp.get('href'))
         if len(result) == 0:
@@ -79,13 +73,13 @@ class VDC(object):
                          cpu=None,
                          password=None,
                          cust_script=None):
-        if self.vdc_resource is None:
-            self.vdc_resource = self.client.get_resource(self.href)
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
 
         network_href = None
-        if hasattr(self.vdc_resource, 'AvailableNetworks') and \
-           hasattr(self.vdc_resource.AvailableNetworks, 'Network'):
-            for n in self.vdc_resource.AvailableNetworks.Network:
+        if hasattr(self.resource, 'AvailableNetworks') and \
+           hasattr(self.resource.AvailableNetworks, 'Network'):
+            for n in self.resource.AvailableNetworks.Network:
                 if network is None or network == n.get('name'):
                     network_href = n.get('href')
                     network_name = n.get('name')
@@ -93,10 +87,10 @@ class VDC(object):
             raise Exception('Network not found in the Virtual Datacenter.')
 
         # TODO(cache some of these objects here and in Org object)
-        org_href = find_link(self.vdc_resource,
+        org_href = find_link(self.resource,
                              RelationType.UP,
                              EntityType.ORG.value).href
-        org = Org(self.client, org_href)
+        org = Org(self.client, href=org_href)
         template_resource = org.get_catalog_item(catalog, template)
         v = self.client.get_resource(template_resource.Entity.get('href'))
         n = v.xpath(
@@ -106,37 +100,37 @@ class VDC(object):
         vm_id = v.Children[0].Vm.VAppScopedLocalId.text
         deploy_param = 'true' if deploy else 'false'
         power_on_param = 'true' if power_on else 'false'
-        network_configuration = Maker.Configuration(
-            Maker.ParentNetwork(href=network_href),
-            Maker.FenceMode(fence_mode)
+        network_configuration = E.Configuration(
+            E.ParentNetwork(href=network_href),
+            E.FenceMode(fence_mode)
         )
         if fence_mode == 'natRouted':
             network_configuration.append(
-                Maker.Features(
-                    Maker.NatService(
-                        Maker.IsEnabled('true'),
-                        Maker.NatType('ipTranslation'),
-                        Maker.Policy('allowTraffic'),
-                        Maker.NatRule(
-                            Maker.OneToOneVmRule(
-                                Maker.MappingMode('automatic'),
-                                Maker.VAppScopedVmId(vm_id),
-                                Maker.VmNicId(0)
+                E.Features(
+                    E.NatService(
+                        E.IsEnabled('true'),
+                        E.NatType('ipTranslation'),
+                        E.Policy('allowTraffic'),
+                        E.NatRule(
+                            E.OneToOneVmRule(
+                                E.MappingMode('automatic'),
+                                E.VAppScopedVmId(vm_id),
+                                E.VmNicId(0)
                             )
                         )
                     )
                 )
             )
-        vapp_template_params = Maker.InstantiateVAppTemplateParams(
+        vapp_template_params = E.InstantiateVAppTemplateParams(
             name=name,
             deploy=deploy_param,
             powerOn=power_on_param)
         if network_name is not None:
             vapp_template_params.append(
-                Maker.InstantiationParams(
-                    Maker.NetworkConfigSection(
-                        E_OVFENV.Info('Configuration for logical networks'),
-                        Maker.NetworkConfig(
+                E.InstantiationParams(
+                    E.NetworkConfigSection(
+                        E_OVF.Info('Configuration for logical networks'),
+                        E.NetworkConfig(
                             network_configuration,
                             networkName=network_name
                         )
@@ -144,29 +138,29 @@ class VDC(object):
                 )
             )
         vapp_template_params.append(
-            Maker.Source(href=template_resource.Entity.get('href'))
+            E.Source(href=template_resource.Entity.get('href'))
         )
         vm = v.xpath(
             '//vcloud:VAppTemplate/vcloud:Children/vcloud:Vm',
             namespaces=NSMAP)
-        ip = Maker.InstantiationParams()
-        gc = Maker.GuestCustomizationSection(
-            E_OVFENV.Info('Specifies Guest OS Customization Settings'),
-            Maker.Enabled('false'),
+        ip = E.InstantiationParams()
+        gc = E.GuestCustomizationSection(
+            E_OVF.Info('Specifies Guest OS Customization Settings'),
+            E.Enabled('false'),
         )
         if password is not None:
-            gc.Enabled = Maker.Enabled('true')
-            gc.append(Maker.AdminPasswordEnabled('true'))
-            gc.append(Maker.AdminPasswordAuto('false'))
-            gc.append(Maker.AdminPassword(password))
-            gc.append(Maker.ResetPasswordRequired('false'))
+            gc.Enabled = E.Enabled('true')
+            gc.append(E.AdminPasswordEnabled('true'))
+            gc.append(E.AdminPasswordAuto('false'))
+            gc.append(E.AdminPassword(password))
+            gc.append(E.ResetPasswordRequired('false'))
         if cust_script is not None:
-            gc.Enabled = Maker.Enabled('true')
+            gc.Enabled = E.Enabled('true')
             # if password is None:
-            #     gc.append(Maker.AdminPasswordEnabled('false'))
-            #     gc.append(Maker.AdminPasswordAuto('false'))
-            gc.append(Maker.CustomizationScript(cust_script))
-        gc.append(Maker.ComputerName(name))
+            #     gc.append(E.AdminPasswordEnabled('false'))
+            #     gc.append(E.AdminPasswordAuto('false'))
+            gc.append(E.CustomizationScript(cust_script))
+        gc.append(E.ComputerName(name))
         ip.append(gc)
         if memory is not None:
             items = v.Children[0].Vm.xpath(
@@ -190,8 +184,8 @@ class VDC(object):
                     break
 
         if memory is not None or cpu is not None:
-            vhs = E_OVFENV.VirtualHardwareSection(
-                E_OVFENV.Info('Virtual hardware requirements')
+            vhs = E_OVF.VirtualHardwareSection(
+                E_OVF.Info('Virtual hardware requirements')
             )
             if memory is not None:
                 vhs.append(memory_params)
@@ -204,32 +198,32 @@ class VDC(object):
         else:
             needs_customization = 'true'
         vapp_template_params.append(
-            Maker.SourcedItem(
-                Maker.Source(href=vm[0].get('href'),
-                             id=vm[0].get('id'),
-                             name=vm[0].get('name'),
-                             type=vm[0].get('type')),
-                Maker.VmGeneralParams(
-                    Maker.Name(name),
-                    Maker.NeedsCustomization(needs_customization)
+            E.SourcedItem(
+                E.Source(href=vm[0].get('href'),
+                         id=vm[0].get('id'),
+                         name=vm[0].get('name'),
+                         type=vm[0].get('type')),
+                E.VmGeneralParams(
+                    E.Name(name),
+                    E.NeedsCustomization(needs_customization)
                 ),
                 ip
             )
         )
         all_eulas_accepted = 'true' if accept_all_eulas else 'false'
-        vapp_template_params.append(Maker.AllEULAsAccepted(all_eulas_accepted))
+        vapp_template_params.append(E.AllEULAsAccepted(all_eulas_accepted))
         return self.client.post_resource(
             self.href+'/action/instantiateVAppTemplate',
             vapp_template_params,
             EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value)
 
     def list_resources(self, entity_type=None):
-        if self.vdc_resource is None:
-            self.vdc_resource = self.client.get_resource(self.href)
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
         result = []
-        if hasattr(self.vdc_resource, 'ResourceEntities') and \
-           hasattr(self.vdc_resource.ResourceEntities, 'ResourceEntity'):
-            for vapp in self.vdc_resource.ResourceEntities.ResourceEntity:
+        if hasattr(self.resource, 'ResourceEntities') and \
+           hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
+            for vapp in self.resource.ResourceEntities.ResourceEntity:
                 if entity_type is None or \
                    entity_type.value == vapp.get('type'):
                     result.append({'name': vapp.get('name')})

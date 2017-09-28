@@ -18,7 +18,7 @@ from lxml import objectify
 import os
 from pyvcloud.vcd.client import _TaskMonitor
 from pyvcloud.vcd.client import E
-from pyvcloud.vcd.client import E_OVFENV
+from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import get_links
@@ -32,13 +32,6 @@ import time
 import traceback
 
 
-Maker = objectify.ElementMaker(
-    annotate=False,
-    namespace='',
-    nsmap={None: 'http://www.vmware.com/vcloud/v1.5',
-           'ovf': 'http://schemas.dmtf.org/ovf/envelope/1'})
-
-
 DEFAULT_CHUNK_SIZE = 1024*1024
 
 
@@ -46,37 +39,37 @@ class Org(object):
 
     def __init__(self,
                  client,
-                 org_href=None,
+                 href=None,
                  is_admin=False,
-                 org_resource=None):
+                 resource=None):
         self.client = client
-        self.endpoint = org_href
-        self.org_resource = org_resource
-        if org_resource is not None:
-            self.endpoint = org_resource.get('href')
-        self.endpoint_admin = self.endpoint.replace('/api/org/',
-                                                    '/api/admin/org/')
+        self.href = href
+        self.resource = resource
+        if resource is not None:
+            self.href = resource.get('href')
+        self.href_admin = self.href.replace('/api/org/',
+                                            '/api/admin/org/')
         self.is_admin = is_admin
 
     def get_name(self):
-        if self.org_resource is None:
-            self.org_resource = self.client.get_resource(self.endpoint)
-        return self.org_resource.get('name')
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        return self.resource.get('name')
 
     def create_catalog(self, name, description):
-        if self.org_resource is None:
-            self.org_resource = self.client.get_resource(self.endpoint)
-        catalog = Maker.AdminCatalog(
-            Maker.Description(description),
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        catalog = E.AdminCatalog(
+            E.Description(description),
             name=name)
         return self.client.post_linked_resource(
-            self.org_resource,
+            self.resource,
             RelationType.ADD,
             EntityType.ADMIN_CATALOG.value,
             catalog)
 
     def delete_catalog(self, name):
-        org = self.client.get_resource(self.endpoint)
+        org = self.client.get_resource(self.href)
         links = get_links(org,
                           rel=RelationType.DOWN,
                           media_type=EntityType.CATALOG.value)
@@ -105,7 +98,7 @@ class Org(object):
         return result
 
     def get_catalog(self, name):
-        org = self.client.get_resource(self.endpoint)
+        org = self.client.get_resource(self.href)
         links = get_links(org,
                           rel=RelationType.DOWN,
                           media_type=EntityType.CATALOG.value)
@@ -117,7 +110,7 @@ class Org(object):
     def share_catalog(self, name, share=True):
         catalog = self.get_catalog(name)
         is_published = 'true' if share else 'false'
-        params = Maker.PublishCatalogParams(Maker.IsPublished(is_published))
+        params = E.PublishCatalogParams(E.IsPublished(is_published))
         href = catalog.get('href') + '/action/publish'
         admin_href = href.replace('/api/catalog/', '/api/admin/catalog/')
         return self.client.post_resource(
@@ -159,10 +152,10 @@ class Org(object):
         if item_name is None:
             item_name = os.path.basename(file_name)
         image_type = os.path.splitext(item_name)[1][1:]
-        media = Maker.Media(name=item_name,
-                            size=str(stat_info.st_size),
-                            imageType=image_type)
-        media.append(Maker.Description(description))
+        media = E.Media(name=item_name,
+                        size=str(stat_info.st_size),
+                        imageType=image_type)
+        media.append(E.Description(description))
         catalog_item = self.client.post_resource(
             catalog.get('href') + '/action/upload',
             media,
@@ -309,8 +302,8 @@ class Org(object):
                     files.append(source_file)
                 if item_name is None:
                     item_name = os.path.basename(file_name)
-                params = Maker.UploadVAppTemplateParams(name=item_name)
-                params.append(Maker.Description(description))
+                params = E.UploadVAppTemplateParams(name=item_name)
+                params.append(E.Description(description))
                 catalog_item = self.client.post_resource(
                     catalog.get('href') + '/action/upload',
                     params,
@@ -343,9 +336,9 @@ class Org(object):
         return total_bytes
 
     def get_vdc(self, name):
-        if self.org_resource is None:
-            self.org_resource = self.client.get_resource(self.endpoint)
-        links = get_links(self.org_resource,
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        links = get_links(self.resource,
                           rel=RelationType.DOWN,
                           media_type=EntityType.VDC.value)
         for link in links:
@@ -353,10 +346,10 @@ class Org(object):
                 return self.client.get_resource(link.href)
 
     def list_vdcs(self):
-        if self.org_resource is None:
-            self.org_resource = self.client.get_resource(self.endpoint)
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
         result = []
-        for v in get_links(self.org_resource, media_type=EntityType.VDC.value):
+        for v in get_links(self.resource, media_type=EntityType.VDC.value):
             result.append({'name': v.name, 'href': v.href})
         return result
 
@@ -373,7 +366,7 @@ class Org(object):
         )
         if customize_on_instantiate:
             contents.append(E.CustomizationSection(
-                E_OVFENV.Info('VApp template customization section'),
+                E_OVF.Info('VApp template customization section'),
                 E.CustomizeOnInstantiate('true')))
         return self.client.post_linked_resource(
             catalog_resource,

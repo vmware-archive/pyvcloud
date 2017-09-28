@@ -23,27 +23,27 @@ from pyvcloud.vcd.client import RelationType
 
 class VApp(object):
 
-    def __init__(self, client, name=None, vapp_href=None, vapp_resource=None):
+    def __init__(self, client, name=None, href=None, resource=None):
         self.client = client
         self.name = name
-        self.href = vapp_href
-        self.vapp_resource = vapp_resource
-        if vapp_resource is not None:
-            self.name = vapp_resource.get('name')
-            self.href = vapp_resource.get('href')
+        self.href = href
+        self.resource = resource
+        if resource is not None:
+            self.name = resource.get('name')
+            self.href = resource.get('href')
 
     def reload(self):
-        self.vapp_resource = self.client.get_resource(self.href)
-        if self.vapp_resource is not None:
-            self.name = self.vapp_resource.get('name')
-            self.href = self.vapp_resource.get('href')
+        self.resource = self.client.get_resource(self.href)
+        if self.resource is not None:
+            self.name = self.resource.get('name')
+            self.href = self.resource.get('href')
 
     def get_primary_ip(self, vm_name):
-        if self.vapp_resource is None:
-            self.vapp_resource = self.client.get_resource(self.href)
-        if hasattr(self.vapp_resource, 'Children') and \
-           hasattr(self.vapp_resource.Children, 'Vm'):
-            for vm in self.vapp_resource.Children.Vm:
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        if hasattr(self.resource, 'Children') and \
+           hasattr(self.resource.Children, 'Vm'):
+            for vm in self.resource.Children.Vm:
                 if vm_name == vm.get('name'):
                     items = vm.xpath(
                         '//ovf:VirtualHardwareSection/ovf:Item',
@@ -55,11 +55,11 @@ class VApp(object):
         raise Exception('can\'t find ip address')
 
     def get_admin_password(self, vm_name):
-        if self.vapp_resource is None:
-            self.vapp_resource = self.client.get_resource(self.href)
-        if hasattr(self.vapp_resource, 'Children') and \
-           hasattr(self.vapp_resource.Children, 'Vm'):
-            for vm in self.vapp_resource.Children.Vm:
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        if hasattr(self.resource, 'Children') and \
+           hasattr(self.resource.Children, 'Vm'):
+            for vm in self.resource.Children.Vm:
                 if vm_name == vm.get('name'):
                     if hasattr(vm, 'GuestCustomizationSection') and \
                        hasattr(vm.GuestCustomizationSection, 'AdminPassword'):
@@ -67,9 +67,9 @@ class VApp(object):
         raise Exception('can\'t find admin password')
 
     def get_metadata(self):
-        if self.vapp_resource is None:
-            self.vapp_resource = self.client.get_resource(self.href)
-        return self.client.get_linked_resource(self.vapp_resource,
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        return self.client.get_linked_resource(self.resource,
                                                RelationType.DOWN,
                                                EntityType.METADATA.value)
 
@@ -79,8 +79,8 @@ class VApp(object):
                      key,
                      value,
                      metadata_type='MetadataStringValue'):
-        if self.vapp_resource is None:
-            self.vapp_resource = self.client.get_resource(self.href)
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
         new_metadata = E.Metadata(
             E.MetadataEntry(
                 {'type': 'xs:string'},
@@ -90,7 +90,7 @@ class VApp(object):
                     {'{http://www.w3.org/2001/XMLSchema-instance}type':
                      'MetadataStringValue'},
                     E.Value(value))))
-        metadata = self.client.get_linked_resource(self.vapp_resource,
+        metadata = self.client.get_linked_resource(self.resource,
                                                    RelationType.DOWN,
                                                    EntityType.METADATA.value)
         return self.client.post_linked_resource(metadata,
@@ -99,9 +99,9 @@ class VApp(object):
                                                 new_metadata)
 
     def get_vm_moid(self, vm_name):
-        if self.vapp_resource is None:
-            self.vapp_resource = self.client.get_resource(self.href)
-        vapp = self.vapp_resource
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        vapp = self.resource
         if hasattr(vapp, 'Children') and hasattr(vapp.Children, 'Vm'):
             for vm in vapp.Children.Vm:
                 if vm.get('name') == vm_name:
@@ -111,65 +111,65 @@ class VApp(object):
         return None
 
     def set_lease(self, deployment_lease=0, storage_lease=0):
-        if self.vapp_resource is None:
-            self.vapp_resource = self.client.get_resource(self.href)
-        new_section = self.vapp_resource.LeaseSettingsSection
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        new_section = self.resource.LeaseSettingsSection
 
         new_section.DeploymentLeaseInSeconds = deployment_lease
         new_section.StorageLeaseInSeconds = storage_lease
         objectify.deannotate(new_section)
         etree.cleanup_namespaces(new_section)
         return self.client.put_resource(
-            self.vapp_resource.get('href') + '/leaseSettingsSection/',
+            self.resource.get('href') + '/leaseSettingsSection/',
             new_section,
             EntityType.LEASE_SETTINGS.value)
 
     def power_off(self):
-        if self.vapp_resource is None:
-            self.vapp_resource = self.client.get_resource(self.href)
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(
-            self.vapp_resource,
+            self.resource,
             RelationType.POWER_OFF,
             None,
             None)
 
     def power_on(self):
-        if self.vapp_resource is None:
-            self.vapp_resource = self.client.get_resource(self.href)
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(
-            self.vapp_resource,
+            self.resource,
             RelationType.POWER_ON,
             None,
             None)
 
     def shutdown(self):
-        if self.vapp_resource is None:
-            self.vapp_resource = self.client.get_resource(self.href)
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(
-            self.vapp_resource,
+            self.resource,
             RelationType.POWER_SHUTDOWN,
             None,
             None)
 
     def connect_vm(self, mode='DHCP', reset_mac_address=False):
-        if self.vapp_resource is None:
-            self.vapp_resource = self.client.get_resource(self.href)
-        if hasattr(self.vapp_resource, 'Children') and \
-           hasattr(self.vapp_resource.Children, 'Vm') and \
-           len(self.vapp_resource.Children.Vm) > 0:
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        if hasattr(self.resource, 'Children') and \
+           hasattr(self.resource.Children, 'Vm') and \
+           len(self.resource.Children.Vm) > 0:
             network_name = 'none'
-            for nc in self.vapp_resource.NetworkConfigSection.NetworkConfig:
+            for nc in self.resource.NetworkConfigSection.NetworkConfig:
                 if nc.get('networkName') != 'none':
                     network_name = nc.get('networkName')
                     break
-            self.vapp_resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.set('network', network_name) # NOQA
-            self.vapp_resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.IsConnected = E.IsConnected('true') # NOQA
+            self.resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.set('network', network_name) # NOQA
+            self.resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.IsConnected = E.IsConnected('true') # NOQA
             if reset_mac_address:
-                self.vapp_resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.MACAddress = E.MACAddress('') # NOQA
-            self.vapp_resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.IpAddressAllocationMode = E.IpAddressAllocationMode(mode.upper()) # NOQA
+                self.resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.MACAddress = E.MACAddress('') # NOQA
+            self.resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.IpAddressAllocationMode = E.IpAddressAllocationMode(mode.upper()) # NOQA
             return self.client.put_linked_resource(
-                self.vapp_resource.Children.Vm[0].NetworkConnectionSection,
+                self.resource.Children.Vm[0].NetworkConnectionSection,
                 RelationType.EDIT,
                 EntityType.NETWORK_CONNECTION_SECTION.value,
-                self.vapp_resource.Children.Vm[0].NetworkConnectionSection
+                self.resource.Children.Vm[0].NetworkConnectionSection
                 )

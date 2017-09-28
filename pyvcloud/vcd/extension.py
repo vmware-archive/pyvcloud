@@ -13,18 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from lxml import objectify
+from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.utils import to_dict
-
-
-Ext = objectify.ElementMaker(
-    annotate=False,
-    namespace='http://www.vmware.com/vcloud/extension/v1.5',
-    nsmap={None: "http://www.vmware.com/vcloud/v1.5",
-           'vmext': 'http://www.vmware.com/vcloud/extension/v1.5'})
 
 
 class Extension(object):
@@ -51,14 +44,15 @@ class Extension(object):
         return to_dict(ext, self.ATTRIBUTES)
 
     def add_extension(self, name, namespace, routing_key, exchange, patterns):
-        params = Ext.Service({'name': name})
-        params.append(Ext.Namespace(namespace))
-        params.append(Ext.Enabled('true'))
-        params.append(Ext.RoutingKey(routing_key))
-        params.append(Ext.Exchange(exchange))
-        filters = Ext.ApiFilters()
+        params = E_VMEXT.Service({'name': name})
+        params.append(E_VMEXT.Namespace(namespace))
+        params.append(E_VMEXT.Enabled('true'))
+        params.append(E_VMEXT.RoutingKey(routing_key))
+        params.append(E_VMEXT.Exchange(exchange))
+        filters = E_VMEXT.ApiFilters()
         for pattern in patterns:
-            filters.append(Ext.ApiFilter(Ext.UrlPattern(pattern.strip())))
+            filters.append(E_VMEXT.ApiFilter(
+                                E_VMEXT.UrlPattern(pattern.strip())))
         params.append(filters)
         ext = self.client.get_extension()
         ext_services = self.client.get_linked_resource(
@@ -72,17 +66,17 @@ class Extension(object):
             params)
 
     def enable_extension(self, name, enabled=True):
-        ext = self.client.get_typed_query(
-            self.TYPE_NAME,
-            equality_filter=('name', name),
-            query_result_format=QueryResultFormat.RECORDS).find_unique()
-        params = Ext.Service({'name': name})
-        params.append(Ext.Namespace(ext.get('namespace')))
-        params.append(Ext.Enabled('true' if enabled else 'false'))
-        params.append(Ext.RoutingKey(ext.get('routingKey')))
-        params.append(Ext.Exchange(ext.get('exchange')))
-        self.client.put_resource(ext.get('href'), params, None)
-        return ext.get('href')
+        record = self.client.get_typed_query(
+                self.TYPE_NAME,
+                equality_filter=('name', name),
+                query_result_format=QueryResultFormat.RECORDS).find_unique()
+        params = E_VMEXT.Service({'name': name})
+        params.append(E_VMEXT.Namespace(record.get('namespace')))
+        params.append(E_VMEXT.Enabled('true' if enabled else 'false'))
+        params.append(E_VMEXT.RoutingKey(record.get('routingKey')))
+        params.append(E_VMEXT.Exchange(record.get('exchange')))
+        self.client.put_resource(record.get('href'), params, None)
+        return record.get('href')
 
     def delete_extension(self, name):
         href = self.enable_extension(name, enabled=False)

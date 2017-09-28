@@ -162,8 +162,9 @@ class VDC(object):
             gc.append(Maker.ResetPasswordRequired('false'))
         if cust_script is not None:
             gc.Enabled = Maker.Enabled('true')
-            if password is None:
-                gc.append(Maker.AdminPasswordEnabled('false'))
+            # if password is None:
+            #     gc.append(Maker.AdminPasswordEnabled('false'))
+            #     gc.append(Maker.AdminPasswordAuto('false'))
             gc.append(Maker.CustomizationScript(cust_script))
         gc.append(Maker.ComputerName(name))
         ip.append(gc)

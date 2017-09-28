@@ -18,6 +18,7 @@ from lxml import objectify
 import os
 from pyvcloud.vcd.client import _TaskMonitor
 from pyvcloud.vcd.client import E
+from pyvcloud.vcd.client import E_OVFENV
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import get_links
@@ -40,8 +41,6 @@ Maker = objectify.ElementMaker(
 
 DEFAULT_CHUNK_SIZE = 1024*1024
 
-
-# TODO(cache org_resource)
 
 class Org(object):
 
@@ -365,13 +364,17 @@ class Org(object):
                      catalog_resource,
                      vapp_href,
                      catalog_item_name,
-                     description):
-        contents = E.CaptureVappParams(
+                     description,
+                     customize_on_instantiate=False):
+        contents = E.CaptureVAppParams(
             E.Description(description),
             E.Source(href=vapp_href),
-            E.TargetCatalogItem(name=catalog_item_name),
-            name=description
+            name=catalog_item_name
         )
+        if customize_on_instantiate:
+            contents.append(E.CustomizationSection(
+                E_OVFENV.Info('VApp template customization section'),
+                E.CustomizeOnInstantiate('true')))
         return self.client.post_linked_resource(
             catalog_resource,
             rel=RelationType.ADD,

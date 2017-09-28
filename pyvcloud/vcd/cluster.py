@@ -35,7 +35,7 @@ class Cluster(object):
             accept_type='application/*+json',
             auth=None)
         if response.status_code == requests.codes.ok:
-            return json.loads(response.content)
+            return json.loads(response.content.decode("utf-8"))
         else:
             raise Exception(json.loads(response.content))
 

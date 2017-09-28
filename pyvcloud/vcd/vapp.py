@@ -34,6 +34,9 @@ class VApp(object):
 
     def reload(self):
         self.vapp_resource = self.client.get_resource(self.href)
+        if self.vapp_resource is not None:
+            self.name = self.vapp_resource.get('name')
+            self.href = self.vapp_resource.get('href')
 
     def get_primary_ip(self, vm_name):
         if self.vapp_resource is None:
@@ -148,7 +151,7 @@ class VApp(object):
             None,
             None)
 
-    def connect_vm(self, mode='DHCP'):
+    def connect_vm(self, mode='DHCP', reset_mac_address=False):
         if self.vapp_resource is None:
             self.vapp_resource = self.client.get_resource(self.href)
         if hasattr(self.vapp_resource, 'Children') and \
@@ -161,6 +164,8 @@ class VApp(object):
                     break
             self.vapp_resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.set('network', network_name) # NOQA
             self.vapp_resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.IsConnected = E.IsConnected('true') # NOQA
+            if reset_mac_address:
+                self.vapp_resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.MACAddress = E.MACAddress('') # NOQA
             self.vapp_resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.IpAddressAllocationMode = E.IpAddressAllocationMode(mode.upper()) # NOQA
             return self.client.put_linked_resource(
                 self.vapp_resource.Children.Vm[0].NetworkConnectionSection,

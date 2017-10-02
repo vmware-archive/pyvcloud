@@ -185,14 +185,18 @@ def vapp_to_dict(vapp, metadata=None):
                     result['%s: %s' % (k, element_name)] = value
             if hasattr(vm, 'NetworkConnectionSection'):
                 ncs = vm.NetworkConnectionSection
-                result['%s: %s' % (k, 'primary-net')] = ncs.PrimaryNetworkConnectionIndex.text
+                result['%s: %s' % (k, 'primary-net')] = \
+                    ncs.PrimaryNetworkConnectionIndex.text
                 for nc in ncs.NetworkConnection:
                     nci = nc.NetworkConnectionIndex.text
                     result['%s: net-%s' % (k, nci)] = nc.get('network')
-                    result['%s: net-%s-mode' % (k, nci)] = nc.IpAddressAllocationMode.text
-                    result['%s: net-%s-connected' % (k, nci)] = nc.IsConnected.text
+                    result['%s: net-%s-mode' % (k, nci)] = \
+                        nc.IpAddressAllocationMode.text
+                    result['%s: net-%s-connected' % (k, nci)] = \
+                        nc.IsConnected.text
                     if hasattr(nc, 'MACAddress'):
-                        result['%s: net-%s-mac' % (k, nci)] = nc.MACAddress.text
+                        result['%s: net-%s-mac' % (k, nci)] = \
+                            nc.MACAddress.text
                     if hasattr(nc, 'IpAddress'):
                         result['%s: net-%s-ip' % (k, nci)] = nc.IpAddress.text
     result['status'] = VCLOUD_STATUS_MAP.get(int(vapp.get('status')))

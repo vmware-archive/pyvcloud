@@ -99,7 +99,6 @@ class VDC(object):
         assert len(n) > 0
         network_name_from_template = n[0].get(
             '{http://schemas.dmtf.org/ovf/envelope/1}name')
-        vm_id = v.Children[0].Vm.VAppScopedLocalId.text
         deploy_param = 'true' if deploy else 'false'
         power_on_param = 'true' if power_on else 'false'
         network_configuration = E.Configuration(
@@ -149,9 +148,6 @@ class VDC(object):
             '//vcloud:VAppTemplate/vcloud:Children/vcloud:Vm',
             namespaces=NSMAP)
         assert len(vm) > 0
-        primary_index = int(
-            vm[0].NetworkConnectionSection.PrimaryNetworkConnectionIndex.text)
-        nc = vm[0].NetworkConnectionSection.NetworkConnection[primary_index]
         ip = E.InstantiationParams()
         gc = E.GuestCustomizationSection(
             E_OVF.Info('Specifies Guest OS Customization Settings'),
@@ -169,6 +165,8 @@ class VDC(object):
         gc.Enabled = E.Enabled('true')
         gc.append(E.ComputerName(name))
         ip.append(gc)
+        primary_index = int(
+            vm[0].NetworkConnectionSection.PrimaryNetworkConnectionIndex.text)
         ip.append(E.NetworkConnectionSection(
                 E_OVF.Info('Specifies the available VM network connections'),
                 E.NetworkConnection(
@@ -231,8 +229,6 @@ class VDC(object):
         vapp_template_params.append(si)
         all_eulas_accepted = 'true' if accept_all_eulas else 'false'
         vapp_template_params.append(E.AllEULAsAccepted(all_eulas_accepted))
-        # from pyvcloud.vcd.utils import stdout_xml
-        # stdout_xml(vapp_template_params)
         return self.client.post_resource(
             self.href+'/action/instantiateVAppTemplate',
             vapp_template_params,

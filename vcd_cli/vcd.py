@@ -14,6 +14,7 @@
 
 import click
 import pkg_resources
+import platform
 from vcd_cli.plugin import load_user_plugins
 from vcd_cli.utils import stdout
 
@@ -62,7 +63,8 @@ def version(ctx):
     ver = pkg_resources.require("vcd-cli")[0].version
     ver_obj = {'product': 'vcd-cli',
                'description': 'VMware vCloud Director Command Line Interface',
-               'version': ver}
+               'version': ver,
+               'python': platform.python_version()}
     ver_str = '%s, %s, %s' % (ver_obj['product'],
                               ver_obj['description'],
                               ver_obj['version'])

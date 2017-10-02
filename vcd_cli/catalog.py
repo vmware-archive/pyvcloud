@@ -16,6 +16,8 @@ import os
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import to_dict
+from pyvcloud.vcd.utils import vapp_to_dict
+from pyvcloud.vcd.vapp import VApp
 from vcd_cli.utils import is_admin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -95,10 +97,17 @@ def info(ctx, catalog_name, item_name):
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href, org_name == 'System')
         if item_name is None:
-            result = org.get_catalog(catalog_name)
+            catalog = org.get_catalog(catalog_name)
+            result = to_dict(catalog)
         else:
-            result = org.get_catalog_item(catalog_name, item_name)
-        stdout(to_dict(result), ctx)
+            catalog_item = org.get_catalog_item(catalog_name, item_name)
+            result = to_dict(catalog_item)
+            vapp = VApp(client, href=catalog_item.Entity.get('href'))
+            vapp.reload()
+            template = vapp_to_dict(vapp.resource)
+            for k, v in template.items():
+                result['template-%s' % k] = v
+        stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)
 

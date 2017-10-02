@@ -150,6 +150,7 @@ def list_vapps(ctx):
 def create(ctx, catalog, template, name, network, memory, cpu,
            connection_mode):
     try:
+        cust_script = None
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
@@ -160,14 +161,10 @@ def create(ctx, catalog, template, name, network, memory, cpu,
             network=network,
             memory=memory,
             cpu=cpu,
-            deploy=False,
-            power_on=False)
+            deploy=True,
+            power_on=True,
+            cust_script=cust_script)
         stdout(vapp_resource.Tasks.Task[0], ctx)
-        vapp = VApp(client, href=vapp_resource.get('href'))
-        t = vapp.connect_vm(mode=connection_mode)
-        stdout(t, ctx)
-        t = vapp.power_on()
-        stdout(t, ctx)
     except Exception as e:
         stderr(e, ctx)
 
@@ -243,7 +240,7 @@ def power_off(ctx, name, force):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
+        vdc = VDC(client, href=vdc_href)
         vapp_resource = vdc.get_vapp(name)
         vapp = VApp(client, resource=vapp_resource)
         task = vapp.power_off()
@@ -261,7 +258,7 @@ def power_on(ctx, name):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
+        vdc = VDC(client, href=vdc_href)
         vapp_resource = vdc.get_vapp(name)
         vapp = VApp(client, resource=vapp_resource)
         task = vapp.power_on()
@@ -285,7 +282,7 @@ def shutdown(ctx, name):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
+        vdc = VDC(client, href=vdc_href)
         vapp_resource = vdc.get_vapp(name)
         vapp = VApp(client, resource=vapp_resource)
         task = vapp.shutdown()
@@ -316,7 +313,7 @@ def capture(ctx, name, catalog, template, customizable):
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href, org_name == 'System')
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
+        vdc = VDC(client, href=vdc_href)
         print(org.href)
         print(vdc.href)
         # vapp_resource = vdc.instantiate_vapp(

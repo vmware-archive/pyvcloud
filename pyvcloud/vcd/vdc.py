@@ -66,6 +66,7 @@ class VDC(object):
                          template,
                          network=None,
                          fence_mode='bridged',
+                         ip_allocation_mode='dhcp',
                          deploy=True,
                          power_on=True,
                          accept_all_eulas=True,
@@ -86,7 +87,6 @@ class VDC(object):
         if network_href is None:
             raise Exception('Network not found in the Virtual Datacenter.')
 
-        # TODO(cache some of these objects here and in Org object)
         org_href = find_link(self.resource,
                              RelationType.UP,
                              EntityType.ORG.value).href
@@ -97,6 +97,8 @@ class VDC(object):
             '//ovf:NetworkSection/ovf:Network',
             namespaces={'ovf': 'http://schemas.dmtf.org/ovf/envelope/1'})
         assert len(n) > 0
+        network_name_from_template = n[0].get(
+            '{http://schemas.dmtf.org/ovf/envelope/1}name')
         vm_id = v.Children[0].Vm.VAppScopedLocalId.text
         deploy_param = 'true' if deploy else 'false'
         power_on_param = 'true' if power_on else 'false'
@@ -104,23 +106,26 @@ class VDC(object):
             E.ParentNetwork(href=network_href),
             E.FenceMode(fence_mode)
         )
-        if fence_mode == 'natRouted':
-            network_configuration.append(
-                E.Features(
-                    E.NatService(
-                        E.IsEnabled('true'),
-                        E.NatType('ipTranslation'),
-                        E.Policy('allowTraffic'),
-                        E.NatRule(
-                            E.OneToOneVmRule(
-                                E.MappingMode('automatic'),
-                                E.VAppScopedVmId(vm_id),
-                                E.VmNicId(0)
-                            )
-                        )
-                    )
-                )
-            )
+        # if fence_mode == 'natRouted':
+        #     network_configuration.append(
+        #         E.Features(
+        #             E.NatService(
+        #                 E.IsEnabled('true'),
+        #                 E.NatType('ipTranslation'),
+        #                 E.Policy('allowTraffic'),
+        #                 E.NatRule(
+        #                     E.OneToOneVmRule(
+        #                         E.MappingMode('automatic'),
+        #                         E.VAppScopedVmId(vm_id),
+        #                         E.VmNicId(0)
+        #                     )
+        #                 )
+        #             )
+        #         )
+        #     )
+        vapp_network_name = network_name_from_template
+        if vapp_network_name == 'none':
+            vapp_network_name = network_name
         vapp_template_params = E.InstantiateVAppTemplateParams(
             name=name,
             deploy=deploy_param,
@@ -132,7 +137,7 @@ class VDC(object):
                         E_OVF.Info('Configuration for logical networks'),
                         E.NetworkConfig(
                             network_configuration,
-                            networkName=network_name
+                            networkName=vapp_network_name
                         )
                     )
                 )
@@ -143,25 +148,36 @@ class VDC(object):
         vm = v.xpath(
             '//vcloud:VAppTemplate/vcloud:Children/vcloud:Vm',
             namespaces=NSMAP)
+        assert len(vm) > 0
+        primary_index = int(
+            vm[0].NetworkConnectionSection.PrimaryNetworkConnectionIndex.text)
+        nc = vm[0].NetworkConnectionSection.NetworkConnection[primary_index]
         ip = E.InstantiationParams()
         gc = E.GuestCustomizationSection(
             E_OVF.Info('Specifies Guest OS Customization Settings'),
             E.Enabled('false'),
         )
         if password is not None:
-            gc.Enabled = E.Enabled('true')
             gc.append(E.AdminPasswordEnabled('true'))
             gc.append(E.AdminPasswordAuto('false'))
             gc.append(E.AdminPassword(password))
             gc.append(E.ResetPasswordRequired('false'))
+        else:
+            gc.append(E.AdminPasswordEnabled('false'))
         if cust_script is not None:
-            gc.Enabled = E.Enabled('true')
-            # if password is None:
-            #     gc.append(E.AdminPasswordEnabled('false'))
-            #     gc.append(E.AdminPasswordAuto('false'))
             gc.append(E.CustomizationScript(cust_script))
+        gc.Enabled = E.Enabled('true')
         gc.append(E.ComputerName(name))
         ip.append(gc)
+        ip.append(E.NetworkConnectionSection(
+                E_OVF.Info('Specifies the available VM network connections'),
+                E.NetworkConnection(
+                    E.NetworkConnectionIndex(primary_index),
+                    E.IsConnected('true'),
+                    E.IpAddressAllocationMode(ip_allocation_mode.upper()),
+                    network=vapp_network_name
+                )
+            ))
         if memory is not None:
             items = v.Children[0].Vm.xpath(
                 '//ovf:VirtualHardwareSection/ovf:Item',
@@ -197,21 +213,26 @@ class VDC(object):
             needs_customization = 'false'
         else:
             needs_customization = 'true'
-        vapp_template_params.append(
-            E.SourcedItem(
-                E.Source(href=vm[0].get('href'),
-                         id=vm[0].get('id'),
-                         name=vm[0].get('name'),
-                         type=vm[0].get('type')),
-                E.VmGeneralParams(
-                    E.Name(name),
-                    E.NeedsCustomization(needs_customization)
-                ),
-                ip
-            )
+        si = E.SourcedItem(
+            E.Source(href=vm[0].get('href'),
+                     id=vm[0].get('id'),
+                     name=vm[0].get('name'),
+                     type=vm[0].get('type')),
+            E.VmGeneralParams(
+                E.Name(name),
+                E.NeedsCustomization(needs_customization)
+            ),
+            ip
         )
+        # if network_name != network_name_from_template:
+        #     si.append(E.NetworkAssignment(
+        #         innerNetwork=network_name_from_template,
+        #         containerNetwork=network_name))
+        vapp_template_params.append(si)
         all_eulas_accepted = 'true' if accept_all_eulas else 'false'
         vapp_template_params.append(E.AllEULAsAccepted(all_eulas_accepted))
+        # from pyvcloud.vcd.utils import stdout_xml
+        # stdout_xml(vapp_template_params)
         return self.client.post_resource(
             self.href+'/action/instantiateVAppTemplate',
             vapp_template_params,

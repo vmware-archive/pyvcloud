@@ -118,6 +118,19 @@ def vapp_to_dict(vapp, metadata=None):
         result['owner'] = []
         for user in vapp.Owner.User:
             result['owner'].append(user.get('name'))
+    items = vapp.xpath(
+        '//ovf:NetworkSection/ovf:Network',
+        namespaces=NSMAP)
+    n = 0
+    for item in items:
+        n += 1
+        network_name = item.get('{http://schemas.dmtf.org/ovf/envelope/1}name')
+        result['vapp-net-%s' % n] = network_name
+        if hasattr(vapp, 'NetworkConfigSection'):
+            for nc in vapp.NetworkConfigSection.NetworkConfig:
+                if nc.get('networkName') == network_name:
+                    result['vapp-net-%s-mode' % n] = \
+                        nc.Configuration.FenceMode.text
     if hasattr(vapp, 'LeaseSettingsSection'):
         if hasattr(vapp.LeaseSettingsSection, 'DeploymentLeaseInSeconds'):
             result['deployment_lease'] = to_human(int(vapp.
@@ -137,7 +150,7 @@ def vapp_to_dict(vapp, metadata=None):
         for vm in vapp.Children.Vm:
             n += 1
             k = 'vm-%s' % n
-            result[k] = vm.get('name')
+            result[k+': name'] = vm.get('name')
             items = vm.xpath(
                 '//ovf:VirtualHardwareSection/ovf:Item',
                 namespaces=NSMAP)
@@ -170,6 +183,18 @@ def vapp_to_dict(vapp, metadata=None):
                     element_name = 'computer-name'
                     value = vm.GuestCustomizationSection.ComputerName
                     result['%s: %s' % (k, element_name)] = value
+            if hasattr(vm, 'NetworkConnectionSection'):
+                ncs = vm.NetworkConnectionSection
+                result['%s: %s' % (k, 'primary-net')] = ncs.PrimaryNetworkConnectionIndex.text
+                for nc in ncs.NetworkConnection:
+                    nci = nc.NetworkConnectionIndex.text
+                    result['%s: net-%s' % (k, nci)] = nc.get('network')
+                    result['%s: net-%s-mode' % (k, nci)] = nc.IpAddressAllocationMode.text
+                    result['%s: net-%s-connected' % (k, nci)] = nc.IsConnected.text
+                    if hasattr(nc, 'MACAddress'):
+                        result['%s: net-%s-mac' % (k, nci)] = nc.MACAddress.text
+                    if hasattr(nc, 'IpAddress'):
+                        result['%s: net-%s-ip' % (k, nci)] = nc.IpAddress.text
     result['status'] = VCLOUD_STATUS_MAP.get(int(vapp.get('status')))
     if metadata is not None and hasattr(metadata, 'MetadataEntry'):
         for me in metadata.MetadataEntry:

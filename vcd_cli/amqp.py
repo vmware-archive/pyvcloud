@@ -16,6 +16,7 @@ import click
 import json
 from pyvcloud.vcd.amqp import AmqpService
 from pyvcloud.vcd.utils import to_dict
+import sys
 from vcd_cli.system import system
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -69,7 +70,8 @@ def info(ctx):
 def test(ctx, password, config_file):
     try:
         client = ctx.obj['client']
-        config = json.loads(config_file.read(1024))
+        config = json.loads(config_file.read(1024).decode(
+            sys.getfilesystemencoding()))
         amqp = AmqpService(client)
         result = amqp.test_config(config, password)
         if result['Valid'].text == 'true':
@@ -90,7 +92,8 @@ def test(ctx, password, config_file):
 def set_config(ctx, password, config_file):
     try:
         client = ctx.obj['client']
-        config = json.loads(config_file.read(1024))
+        config = json.loads(config_file.read(1024).decode(
+            sys.getfilesystemencoding()))
         amqp = AmqpService(client)
         amqp.set_config(config, password)
         stdout('Updated AMQP configuration.', ctx)

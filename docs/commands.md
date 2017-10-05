@@ -16,7 +16,8 @@
 <a href="vcd_cluster_config">config</a></li><li>
 <a href="vcd_cluster_create">create</a></li><li>
 <a href="vcd_cluster_delete">delete</a></li><li>
-<a href="vcd_cluster_list">list</a></li>
+<a href="vcd_cluster_list">list</a></li><li>
+<a href="vcd_cluster_save-config">save-config</a></li>
 </ul></li>
 <li>
 <a href="vcd_help">help</a></li><li>
@@ -56,10 +57,14 @@
 </ul></li>
 <li>
 <a href="vcd_vapp">vapp</a><ul><li>
+<a href="vcd_vapp_capture">capture</a></li><li>
 <a href="vcd_vapp_create">create</a></li><li>
 <a href="vcd_vapp_delete">delete</a></li><li>
 <a href="vcd_vapp_info">info</a></li><li>
 <a href="vcd_vapp_list">list</a></li><li>
+<a href="vcd_vapp_power-off">power-off</a></li><li>
+<a href="vcd_vapp_power-on">power-on</a></li><li>
+<a href="vcd_vapp_shutdown">shutdown</a></li><li>
 <a href="vcd_vapp_update-lease">update-lease</a></li>
 </ul></li>
 <li>

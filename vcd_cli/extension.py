@@ -18,6 +18,7 @@ from vcd_cli.system import system
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
+from vcd_cli.vcd import abort_if_false
 
 
 @system.group(short_help='manage extensions')
@@ -104,6 +105,12 @@ def register(ctx, name, namespace, routing_key, exchange, patterns):
 @click.argument('name',
                 metavar='<name>',
                 required=True)
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to unregister it?')
 def unregister(ctx, name):
     try:
         ext = Extension(ctx.obj['client'])

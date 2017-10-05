@@ -41,10 +41,11 @@ def vapp(ctx):
             Get details of the vApp 'my-vapp'.
 \b
         vcd vapp create my-catalog my-template my-vapp
-            Create a new vApp.
+            Create a new vApp with default settings.
 \b
         vcd vapp create my-catalog my-template my-vapp \\
-                 --cpu 4 --memory 4096 --network net1
+                 --cpu 4 --memory 4096 --network net1  \\
+                 --ip-allocation-mode pool
             Create a new vApp with customized settings.
 \b
         vcd vapp delete my-vapp --yes --force
@@ -58,6 +59,15 @@ def vapp(ctx):
 \b
         vcd vapp update-lease my-vapp 0
             Set vApp lease to no expiration.
+\b
+        vcd vapp shutdown my-vapp --yes
+            Gracefully shutdown a vApp.
+\b
+        vcd vapp power-off my-vapp
+            Power off a vApp.
+\b
+        vcd vapp power-on my-vapp
+            Power on a vApp.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -125,14 +135,14 @@ def list_vapps(ctx):
               required=False,
               metavar='<network>',
               help='Network')
-@click.option('connection_mode',
-              '-C',
-              '--connection-mode',
+@click.option('ip_allocation_mode',
+              '-i',
+              '--ip-allocation-mode',
               type=click.Choice(['dhcp', 'pool']),
               required=False,
               default='dhcp',
-              metavar='<connection_mode>',
-              help='Connection mode')
+              metavar='<ip-allocation-mode>',
+              help='IP allocation mode')
 @click.option('-m',
               '--memory',
               'memory',
@@ -148,7 +158,7 @@ def list_vapps(ctx):
               type=click.INT,
               help='Number of CPUs')
 def create(ctx, catalog, template, name, network, memory, cpu,
-           connection_mode):
+           ip_allocation_mode):
     try:
         cust_script = None
         client = ctx.obj['client']
@@ -163,7 +173,8 @@ def create(ctx, catalog, template, name, network, memory, cpu,
             cpu=cpu,
             deploy=True,
             power_on=True,
-            cust_script=cust_script)
+            cust_script=cust_script,
+            ip_allocation_mode=ip_allocation_mode)
         stdout(vapp_resource.Tasks.Task[0], ctx)
     except Exception as e:
         stderr(e, ctx)

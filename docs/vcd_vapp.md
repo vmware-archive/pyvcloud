@@ -11,10 +11,11 @@ Usage: vcd vapp [OPTIONS] COMMAND [ARGS]...
               Get details of the vApp 'my-vapp'.
   
           vcd vapp create my-catalog my-template my-vapp
-              Create a new vApp.
+              Create a new vApp with default settings.
   
           vcd vapp create my-catalog my-template my-vapp \
-                   --cpu 4 --memory 4096 --network net1
+                   --cpu 4 --memory 4096 --network net1  \
+                   --ip-allocation-mode pool
               Create a new vApp with customized settings.
   
           vcd vapp delete my-vapp --yes --force
@@ -28,16 +29,29 @@ Usage: vcd vapp [OPTIONS] COMMAND [ARGS]...
   
           vcd vapp update-lease my-vapp 0
               Set vApp lease to no expiration.
+  
+          vcd vapp shutdown my-vapp --yes
+              Gracefully shutdown a vApp.
+  
+          vcd vapp power-off my-vapp
+              Power off a vApp.
+  
+          vcd vapp power-on my-vapp
+              Power on a vApp.
       
 
 Options:
   -h, --help  Show this message and exit.
 
 Commands:
+  capture       save a vApp as a template
   create        create a vApp
   delete        delete a vApp
   info          show vApp details
   list          list vApps
+  power-off     power off a vApp
+  power-on      power on a vApp
+  shutdown      shutdown a vApp
   update-lease  update vApp lease
 
 ```

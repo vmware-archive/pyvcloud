@@ -16,6 +16,11 @@ Usage: vcd info [OPTIONS] [resource-type] [resource-id]
           vcd info vapp c48a4e1a-7bd9-4177-9c67-4c330016b99f
               Get details of vApp by id.
   
+          vcd catalog list my-catalog                                 # list items
+          vcd catalog info my-catalog my-item                         # get catalog item id
+           vcd info catalogitem f653b137-0d14-4ea9-8f14-dcd2b7914110  # get vapp template id
+           vcd info vapptemplate 53b83b27-1f2b-488e-9020-a27aee8cb640 # details of template
+  
       See Also
           Several 'vcd' commands provide the id of a resource, including the
           'vcd search' command.

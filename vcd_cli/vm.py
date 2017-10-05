@@ -79,9 +79,9 @@ def info(ctx, vapp_name, vm_name):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
+        vdc = VDC(client, href=vdc_href)
         vapp_resource = vdc.get_vapp(vapp_name)
-        vapp = VApp(client, vapp_resource=vapp_resource)
+        vapp = VApp(client, resource=vapp_resource)
         result = {}
         result['primary_ip'] = vapp.get_primary_ip(vm_name)
         stdout(result, ctx)
@@ -105,9 +105,9 @@ def run(ctx, vapp_name, vm_name, vc_host, vc_user, vc_password,
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
-        vapp = vdc.get_vapp(vapp_name)
-        va = VApp(client, vapp_resource=vapp)
+        vdc = VDC(client, href=vdc_href)
+        vapp_resource = vdc.get_vapp(vapp_name)
+        va = VApp(client, resource=vapp_resource)
         vs = VSphere(vc_host,
                      vc_user,
                      vc_password)
@@ -143,9 +143,9 @@ def upload(ctx, vapp_name, vm_name, vc_host, vc_user, vc_password,
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
-        vapp = vdc.get_vapp(vapp_name)
-        va = VApp(client, vapp_resource=vapp)
+        vdc = VDC(client, href=vdc_href)
+        vapp_resource = vdc.get_vapp(vapp_name)
+        va = VApp(client, resource=vapp_resource)
         vs = VSphere(vc_host,
                      vc_user,
                      vc_password)
@@ -181,8 +181,8 @@ def download(ctx, vapp_name, vm_name, vc_host, vc_user, vc_password,
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, vdc_href=vdc_href)
-        vapp = vdc.get_vapp(vapp_name)
-        va = VApp(client, vapp_resource=vapp)
+        vapp_resource = vdc.get_vapp(vapp_name)
+        va = VApp(client, resource=vapp_resource)
         vs = VSphere(vc_host,
                      vc_user,
                      vc_password)

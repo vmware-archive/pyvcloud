@@ -16,7 +16,7 @@ Usage: vcd cluster [OPTIONS] COMMAND [ARGS]...
           vcd cluster delete dev-cluster
               Delete a kubernetes cluster by name.
   
-          vcd cluster create c1 --single
+          vcd cluster create c1 --nodes 0
               Create a single node kubernetes cluster for dev/test.
       
 
@@ -24,9 +24,10 @@ Options:
   -h, --help  Show this message and exit.
 
 Commands:
-  config  get cluster config
-  create  create cluster
-  delete  delete cluster
-  list    list clusters
+  config       get cluster config
+  create       create cluster
+  delete       delete cluster
+  list         list clusters
+  save-config
 
 ```

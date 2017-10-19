@@ -10,7 +10,7 @@ class TestCatalog(TestCase):
 
     def test_catalog_exists(self):
         logged_in_org = self.client.get_org()
-        org = Org(self.client, org_resource=logged_in_org)
+        org = Org(self.client, resource=logged_in_org)
         catalog = org.get_catalog(self.config['vcd']['catalog'])
         assert self.config['vcd']['catalog'] == catalog.get('name')
 

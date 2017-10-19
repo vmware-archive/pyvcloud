@@ -929,6 +929,7 @@ class VAPP(object):
         if children:
             vms = children.get_Vm()
             for vm in vms:
+                vm_id = vm.get_id()
                 name = vm.get_name()
                 status = VCLOUD_STATUS_MAP[vm.get_status()]
                 owner = self.me.get_Owner().get_User().get_name()
@@ -975,18 +976,17 @@ class VAPP(object):
                     sections)[0]
 
                 hdd = filter(lambda item: item.get_Description().get_valueOf_() == "Hard disk", items)
-                hdd_capacity = 0
+                hdd_capacity_mb = 0
                 for hdd_item in hdd:
-                    hdd_capacity += int(hdd_item.get_VirtualQuantity().get_valueOf_())
-                hdd_capacity_mb = hdd_capacity / 1024 / 1024
+                    hdd_capacity_mb += int(hdd_item.get_HostResource()[0].get_anyAttributes_().get('{http://www.vmware.com/vcloud/v1.5}capacity'))
 
                 result.append(
-                    {'name': name,
+                    {'id': vm_id,
+                     'name': name,
                      'status': status,
                      'cpus': cpu_capacity,
                      'memory': memory_capacity,
                      'memory_mb': memory_capacity_mb,
-                     'hdd': hdd_capacity,
                      'hdd_mb': hdd_capacity_mb,
                      'os': os,
                      'owner': owner,

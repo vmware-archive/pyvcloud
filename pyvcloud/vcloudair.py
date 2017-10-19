@@ -1051,7 +1051,10 @@ class VCA(object):
 
         vm_href = None
         if 'catalog' in vm_spec and 'template' in vm_spec:
-            vm_href = self.get_template_href_from_catalog(vm_spec['catalog'], vm_spec['template'])
+            if 'target_vm' in vm_spec:
+                vm_href = self.get_template_href_from_catalog(vm_spec['catalog'], vm_spec['template'], vm_spec['target_vm'])
+            else:
+                vm_href = self.get_template_href_from_catalog(vm_spec['catalog'], vm_spec['template'])
 
         if not vm_href:
             raise Exception("Source VM couldn't be determined")
@@ -1065,20 +1068,13 @@ class VCA(object):
                 network_href = network.get_href()
 
         params = vcloudType.SourcedCompositionItemParamType()
-        if ((self.version == "1.0") or (self.version == "1.5") or (self.version == "5.1") or
-                (self.version == "5.5")):
-            message = 'Customization during instantiation is not ' +\
-                      'supported in this version, use vapp methods ' +\
-                      'to change vm name, cpu or memory'
-            Log.error(self.logger, message)
-            raise Exception(message)
+        inst_params = vcloudType.InstantiationParamsType()
 
-        params.set_Source(vcloudType.ReferenceType(href=vm_href))
-
+        source = vcloudType.ReferenceType(href=vm_href)
         if 'name' in vm_spec and vm_spec['name'] is not None:
-            gen_params = vcloudType.VmGeneralParamsType()
-            gen_params.set_Name(vm_spec['name'])
-            params.set_VmGeneralParams(gen_params)
+            source.name = vm_spec['name']
+
+        params.set_Source(source)
 
         if 'storage_profile' in vm_spec and vm_spec[
                 'storage_profile'] is not None:
@@ -1088,13 +1084,57 @@ class VCA(object):
                 vcloudType.ReferenceType(
                     href=storage_href))
 
-        if network_href:
-            inst_param = vcloudType.InstantiationParamsType()
+        if 'guest_customization' in  vm_spec and vm_spec['guest_customization']:
+            guest_cust =  vm_spec['guest_customization']
 
+            admin_autologon_enabled = guest_cust['admin_autologon_enabled'] if 'admin_autologon_enabled' in guest_cust else None
+            admin_logon_count = guest_cust['admin_logon_count'] if 'admin_logon_count' in guest_cust else None
+            admin_password = guest_cust['admin_password'] if 'admin_password' in guest_cust else None
+            admin_password_auto = guest_cust['admin_password_auto'] if 'admin_password_auto' in guest_cust else None
+            admin_password_enabled = guest_cust['admin_password_enabled'] if 'admin_password_enabled' in guest_cust else None
+            change_sid = guest_cust['change_sid'] if 'change_sid' in guest_cust else None
+            computer_name = guest_cust['computer_name'] if 'computer_name' in guest_cust else None
+            enabled =  guest_cust['enabled'] if 'enabled' in guest_cust else None
+            domain_name =  guest_cust['domain_name'] if 'domain_name' in guest_cust else None
+            domain_user =  guest_cust['domain_user'] if 'domain_user' in guest_cust else None
+            domain_user_password =  guest_cust['domain_user_password'] if 'domain_user_password' in guest_cust else None
+            join_domain =  guest_cust['join_domain'] if 'join_domain' in guest_cust else None
+            machine_object_ou =  guest_cust['machine_object_ou'] if 'machine_object_ou' in guest_cust else None
+            reset_password_required = guest_cust['reset_password_required'] if 'reset_password_required' in guest_cust else None
+            use_org_settings =  guest_cust['use_org_settings'] if 'use_org_settings' in guest_cust else None
+
+            if join_domain:
+                guestCustomizationSection = vcloudType.GuestCustomizationSectionType(
+                    JoinDomainEnabled=join_domain,
+                    DomainName=domain_name,
+                    DomainUserName=domain_user,
+                    DomainUserPassword=domain_user_password)
+
+            guestCustomizationSection = vcloudType.GuestCustomizationSectionType(
+                    Enabled=enabled,
+                    ChangeSid=change_sid,
+                    UseOrgSettings=use_org_settings,
+                    MachineObjectOU=machine_object_ou,
+                    AdminPasswordEnabled=admin_password_enabled,
+                    AdminPasswordAuto=admin_password_auto,
+                    AdminPassword=admin_password,
+                    AdminAutoLogonEnabled=admin_autologon_enabled,
+                    AdminAutoLogonCount=admin_logon_count,
+                    ResetPasswordRequired=reset_password_required,
+                    ComputerName=computer_name)
+
+            guestCustomizationSection.original_tagname_ = "GuestCustomizationSection"
+            guestCustomizationSection.set_Info(
+                    vAppType.cimString(valueOf_="Guest OS Customization Settings"))
+
+            inst_params.add_Section(guestCustomizationSection)
+
+        if network_href:
             index = vm_spec['connection_index'] if 'connection_index' in vm_spec else 0
             ip_allocation_mode = vm_spec['ip_allocation_mode'] \
                 if 'ip_allocation_mode' in vm_spec else 'POOL'
             ip_address = vm_spec['ip_address'] if 'ip_address' in vm_spec else None
+            is_connected = vm_spec['is_connected'] if 'is_connected' in vm_spec else True
             mac_address = vm_spec['mac_address'] if 'mac_address' in vm_spec else None
 
             networkConnection = vcloudType.NetworkConnectionType()
@@ -1102,7 +1142,7 @@ class VCA(object):
             networkConnection.set_NetworkConnectionIndex(index)
             networkConnection.set_IpAddressAllocationMode(
                 ip_allocation_mode)
-            networkConnection.set_IsConnected(True)
+            networkConnection.set_IsConnected(is_connected)
             if ip_address and ip_allocation_mode == 'MANUAL':
                 networkConnection.set_IpAddress(ip_address)
             if mac_address:
@@ -1114,13 +1154,13 @@ class VCA(object):
             networkConnectionSection.set_Info(
                 vAppType.cimString(valueOf_="Network"))
 
-            inst_param.add_Section(networkConnectionSection)
+            inst_params.add_Section(networkConnectionSection)
 
-            params.set_InstantiationParams(inst_param)
+        params.set_InstantiationParams(inst_params)
 
         return params
 
-    def get_template_href_from_catalog(self, catalog_name, template_name):
+    def get_template_href_from_catalog(self, catalog_name, template_name, target_vm=None):
 
         catalogs = filter(lambda link: catalog_name == link.get_name() and link.get_type(
         ) == "application/vnd.vmware.vcloud.catalog+xml",
@@ -1157,7 +1197,11 @@ class VCA(object):
                         vAppTemplate = ET.fromstring(self.response.content)
                         for vm in vAppTemplate.iter(
                                 '{http://www.vmware.com/vcloud/v1.5}Vm'):
-                            return vm.get('href')
+                            if target_vm:
+                                if target_vm == vm.get('name'):
+                                    return vm.get('href')
+                            else:
+                                return vm.get('href')
 
         return None
 
@@ -1270,6 +1314,7 @@ class VCA(object):
         :param vm_specs: (list): A list of dicts with keys:
                     'template'          : Name of the template to be used.
                     'catalog'           : Name of the catalog containing the template.
+                    'target_vm'         : Name of the vm inside of the template to be used.
                     'name'              : Name of the virtual machine.
                     'storage_profile'   : Name of the storage profile to use (optional).
         :param deploy: (bool): True to deploy the vApp immediately after creation, False otherwise.
@@ -1306,6 +1351,7 @@ class VCA(object):
             .replace(' xmlns:vmw="http://www.vmware.com/vcloud/v1.5"', '')\
             .replace('vmw:', 'rasd:')\
             .replace('Info>', "ovf:Info>")\
+            .replace('ovf:GuestCustomizationSection', 'GuestCustomizationSection')\
             .replace('ovf:NetworkConfigSection', 'NetworkConfigSection')\
             .replace('ovf:NetworkConnectionSection', 'NetworkConnectionSection')
         content_type = "application/vnd.vmware.vcloud.composeVAppParams+xml"

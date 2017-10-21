@@ -31,7 +31,7 @@ def extension(ctx):
         vcd system extension list
             List available extension services.
 \b
-        vcd system extension add cse cse cse vcdext '/api/cluster, /api/cluster/.*, /api/cluster/.*/.*'
+        vcd system extension create cse cse cse vcdext '/api/cluster, /api/cluster/.*, /api/cluster/.*/.*'
             Register a new extension service named 'cse'.
 \b
         vcd system extension delete cse
@@ -88,7 +88,7 @@ def info(ctx, name):
 @click.argument('patterns',
                 metavar='<patterns>',
                 required=True)
-def add(ctx, name, namespace, routing_key, exchange, patterns):
+def create(ctx, name, namespace, routing_key, exchange, patterns):
     try:
         ext = ctx.obj['ext']
         ext.add_extension(name, namespace, routing_key, exchange,

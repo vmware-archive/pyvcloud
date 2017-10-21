@@ -31,10 +31,10 @@ def extension(ctx):
         vcd system extension list
             List available extension services.
 \b
-        vcd system extension register cse cse cse vcdext '/api/cluster, /api/cluster/.*, /api/cluster/.*/.*'
+        vcd system extension add cse cse cse vcdext '/api/cluster, /api/cluster/.*, /api/cluster/.*/.*'
             Register a new extension service named 'cse'.
 \b
-        vcd system extension unregister cse
+        vcd system extension delete cse
             Unregister an extension service named 'cse'.
 \b
         vcd system extension info cse
@@ -88,7 +88,7 @@ def info(ctx, name):
 @click.argument('patterns',
                 metavar='<patterns>',
                 required=True)
-def register(ctx, name, namespace, routing_key, exchange, patterns):
+def add(ctx, name, namespace, routing_key, exchange, patterns):
     try:
         ext = ctx.obj['ext']
         ext.add_extension(name, namespace, routing_key, exchange,
@@ -111,7 +111,7 @@ def register(ctx, name, namespace, routing_key, exchange, patterns):
               callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to unregister it?')
-def unregister(ctx, name):
+def delete(ctx, name):
     try:
         ext = Extension(ctx.obj['client'])
         ext.delete_extension(name)

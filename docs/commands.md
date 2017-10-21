@@ -40,10 +40,10 @@
 </ul></li>
 <li>
 <a href="vcd_system_extension">extension</a><ul><li>
+<a href="vcd_system_extension_add">add</a></li><li>
+<a href="vcd_system_extension_delete">delete</a></li><li>
 <a href="vcd_system_extension_info">info</a></li><li>
-<a href="vcd_system_extension_list">list</a></li><li>
-<a href="vcd_system_extension_register">register</a></li><li>
-<a href="vcd_system_extension_unregister">unregister</a></li>
+<a href="vcd_system_extension_list">list</a></li>
 </ul></li>
 <li>
 <a href="vcd_system_info">info</a></li>

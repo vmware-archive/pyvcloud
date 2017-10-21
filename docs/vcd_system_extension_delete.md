@@ -1,5 +1,5 @@
 ```
-Usage: vcd system extension unregister [OPTIONS] <name>
+Usage: vcd system extension delete [OPTIONS] <name>
 
 Options:
   -y, --yes

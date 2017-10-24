@@ -25,7 +25,7 @@ class TestDiskTeardown(TestCase):
         for disk in disks:
              print ("Deleting disk: " + disk.get('id'))
              taskObj = vdc.delete_disk(None, disk.get('id'))
-             print ("Deleted VDC disk: " + str(etree.tostring(task, pretty_print=True), "utf-8"))
+             print ("Deleted VDC disk: " + str(etree.tostring(taskObj, pretty_print=True), "utf-8"))
              #print("VDC Disk: " + str(disk))
 
              task = self.client.get_task_monitor().wait_for_status(

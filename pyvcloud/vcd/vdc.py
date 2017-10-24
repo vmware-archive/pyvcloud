@@ -20,7 +20,6 @@ from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
-from pyvcloud.vcd.disk import Disk
 from lxml import etree
 from lxml import objectify
 

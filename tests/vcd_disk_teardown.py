@@ -5,7 +5,6 @@ from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.vdc import VDC
-from pyvcloud.vcd.disk import Disk
 from pyvcloud.vcd.test import TestCase
 from lxml import etree
 from pyvcloud.vcd.client import TaskStatus

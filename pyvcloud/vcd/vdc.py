@@ -45,8 +45,10 @@ class VDC(object):
         if hasattr(self.resource, 'ResourceEntities') and \
            hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
             for vapp in self.resource.ResourceEntities.ResourceEntity:
-                if vapp.get('name') == name:
-                    result.append(vapp.get('href'))
+                if entity_type is None or \
+                   entity_type.value == vapp.get('type'):
+                    if vapp.get('name') == name:
+                        result.append(vapp.get('href'))
         if len(result) == 0:
             raise Exception('not found')
         elif len(result) > 1:

@@ -68,6 +68,9 @@ def vapp(ctx):
 \b
         vcd vapp power-on my-vapp
             Power on a vApp.
+\b
+        vcd vapp capture my-vapp my-catalog
+            Capture a vApp as a template in a catalog.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -313,34 +316,35 @@ def shutdown(ctx, name):
 @click.argument('template',
                 metavar='[template]',
                 required=False)
+@click.option('-i',
+              '--identical',
+              'customizable',
+              flag_value='identical',
+              help='Make identical copy')
 @click.option('-c',
               '--customizable',
-              is_flag=True,
-              help='Can be customized on instantiation')
+              'customizable',
+              flag_value='customizable',
+              default=True,
+              help='Make copy customizable during instantiation')
 def capture(ctx, name, catalog, template, customizable):
     try:
         client = ctx.obj['client']
         org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href, org_name == 'System')
+        catalog_resource = org.get_catalog(catalog)
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
-        print(org.href)
-        print(vdc.href)
-        # vapp_resource = vdc.instantiate_vapp(
-        #     name,
-        #     catalog,
-        #     template,
-        #     network=network,
-        #     memory=memory,
-        #     cpu=cpu,
-        #     deploy=False,
-        #     power_on=False)
-        # stdout(vapp_resource.Tasks.Task[0], ctx)
-        # vapp = VApp(client, vapp_href=vapp_resource.get('href'))
-        # t = vapp.connect_vm(mode=connection_mode)
-        # stdout(t, ctx)
-        # t = vapp.power_on()
-        # stdout(t, ctx)
+        vapp_resource = vdc.get_vapp(name)
+        if template is None:
+            template = vapp_resource.get('name')
+        task = org.capture_vapp(
+                     catalog_resource,
+                     vapp_href=vapp_resource.get('href'),
+                     catalog_item_name=template,
+                     description='',
+                     customize_on_instantiate=customizable=='customizable')
+        stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

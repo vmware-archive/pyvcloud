@@ -160,8 +160,12 @@ def list_vapps(ctx):
               metavar='<virtual-cpus>',
               type=click.INT,
               help='Number of CPUs')
+@click.option('--identical',
+              is_flag=True,
+              default=False,
+              help='Make identical copy')
 def create(ctx, catalog, template, name, network, memory, cpu,
-           ip_allocation_mode):
+           ip_allocation_mode, identical):
     try:
         cust_script = None
         client = ctx.obj['client']
@@ -177,7 +181,8 @@ def create(ctx, catalog, template, name, network, memory, cpu,
             deploy=True,
             power_on=True,
             cust_script=cust_script,
-            ip_allocation_mode=ip_allocation_mode)
+            ip_allocation_mode=ip_allocation_mode,
+            identical=identical)
         stdout(vapp_resource.Tasks.Task[0], ctx)
     except Exception as e:
         stderr(e, ctx)

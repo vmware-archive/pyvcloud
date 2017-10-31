@@ -3,6 +3,7 @@ import unittest
 import yaml
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
+from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.test import TestCase
@@ -12,9 +13,9 @@ class TestVApp(TestCase):
 
     def test_010_instantiate_vapp(self):
         logged_in_org = self.client.get_org()
-        org = Org(self.client, org_resource=logged_in_org)
+        org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
-        vdc = VDC(self.client, vdc_href=v.get('href'))
+        vdc = VDC(self.client, href=v.get('href'))
         assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
         result = vdc.instantiate_vapp(self.config['vcd']['vapp'],
                                       self.config['vcd']['catalog'],
@@ -38,9 +39,9 @@ class TestVApp(TestCase):
 
     def test_011_update_vapp_network(self):
         logged_in_org = self.client.get_org()
-        org = Org(self.client, org_resource=logged_in_org)
+        org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
-        vdc = VDC(self.client, vdc_href=v.get('href'))
+        vdc = VDC(self.client, href=v.get('href'))
         assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
         vapp = vdc.get_vapp(self.config['vcd']['vapp'])
         assert self.config['vcd']['vapp'] == vapp.get('name')
@@ -62,9 +63,9 @@ class TestVApp(TestCase):
 
     def test_100_delete_vapp(self):
         logged_in_org = self.client.get_org()
-        org = Org(self.client, org_resource=logged_in_org)
+        org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
-        vdc = VDC(self.client, vdc_href=v.get('href'))
+        vdc = VDC(self.client, href=v.get('href'))
         assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
         result = vdc.delete_vapp(self.config['vcd']['vapp'], force=True)
         task = self.client.get_task_monitor().wait_for_status(
@@ -80,6 +81,40 @@ class TestVApp(TestCase):
                             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
 
+    def test_110_instantiate_vapp_identical(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=v.get('href'))
+        assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
+        result = vdc.instantiate_vapp(self.config['vcd']['vapp'],
+                                      self.config['vcd']['catalog'],
+                                      self.config['vcd']['template'],
+                                      network=self.config['vcd']['network'],
+                                      fence_mode='bridged',
+                                      deploy=True,
+                                      power_on=False,
+                                      identical=True)
+        task = self.client.get_task_monitor().wait_for_status(
+                            task=result.Tasks.Task[0],
+                            timeout=60,
+                            poll_frequency=2,
+                            fail_on_status=None,
+                            expected_target_statuses=[
+                                TaskStatus.SUCCESS,
+                                TaskStatus.ABORTED,
+                                TaskStatus.ERROR,
+                                TaskStatus.CANCELED],
+                            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+        # vdc.reload()
+        vdc.resource = vdc.client.get_resource(vdc.href)
+        vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
+        vm = vapp_resource.xpath(
+            '//vcloud:VApp/vcloud:Children/vcloud:Vm',
+            namespaces=NSMAP)
+        assert len(vm) > 0
+        assert vm[0].get('name') == self.config['vcd']['vm']
 
 if __name__ == '__main__':
     unittest.main()

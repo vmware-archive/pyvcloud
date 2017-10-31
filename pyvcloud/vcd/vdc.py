@@ -75,10 +75,18 @@ class VDC(object):
                          memory=None,
                          cpu=None,
                          password=None,
-                         cust_script=None):
+                         cust_script=None,
+                         identical=False):
+        """
+        Instantiate a vApp from a vApp template.
+        :param name: (str): The name of the new vApp.
+        :param catalog: (str): The name of the catalog.
+        :param template: (str): The name of the vApp template.
+        :param identical: (bool): If True, no guest customization or VM name update is performed
+        :return:  A :class:`lxml.objectify.StringElement` object describing the new vApp.
+        """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-
         network_href = None
         if hasattr(self.resource, 'AvailableNetworks') and \
            hasattr(self.resource.AvailableNetworks, 'Network'):
@@ -88,7 +96,6 @@ class VDC(object):
                     network_name = n.get('name')
         if network_href is None:
             raise Exception('Network not found in the Virtual Datacenter.')
-
         org_href = find_link(self.resource,
                              RelationType.UP,
                              EntityType.ORG.value).href
@@ -151,22 +158,23 @@ class VDC(object):
             namespaces=NSMAP)
         assert len(vm) > 0
         ip = E.InstantiationParams()
-        gc = E.GuestCustomizationSection(
-            E_OVF.Info('Specifies Guest OS Customization Settings'),
-            E.Enabled('false'),
-        )
-        if password is not None:
-            gc.append(E.AdminPasswordEnabled('true'))
-            gc.append(E.AdminPasswordAuto('false'))
-            gc.append(E.AdminPassword(password))
-            gc.append(E.ResetPasswordRequired('false'))
-        else:
-            gc.append(E.AdminPasswordEnabled('false'))
-        if cust_script is not None:
-            gc.append(E.CustomizationScript(cust_script))
-        gc.Enabled = E.Enabled('true')
-        gc.append(E.ComputerName(name))
-        ip.append(gc)
+        if not identical:
+            gc = E.GuestCustomizationSection(
+                E_OVF.Info('Specifies Guest OS Customization Settings'),
+                E.Enabled('false'),
+            )
+            if password is not None:
+                gc.append(E.AdminPasswordEnabled('true'))
+                gc.append(E.AdminPasswordAuto('false'))
+                gc.append(E.AdminPassword(password))
+                gc.append(E.ResetPasswordRequired('false'))
+            else:
+                gc.append(E.AdminPasswordEnabled('false'))
+            if cust_script is not None:
+                gc.append(E.CustomizationScript(cust_script))
+            gc.Enabled = E.Enabled('true')
+            gc.append(E.ComputerName(name))
+            ip.append(gc)
         primary_index = int(
             vm[0].NetworkConnectionSection.PrimaryNetworkConnectionIndex.text)
         ip.append(E.NetworkConnectionSection(
@@ -209,7 +217,7 @@ class VDC(object):
                 vhs.append(cpu_params)
             ip.append(vhs)
 
-        if password is None and cust_script is None:
+        if identical or (password is None and cust_script is None):
             needs_customization = 'false'
         else:
             needs_customization = 'true'
@@ -217,13 +225,13 @@ class VDC(object):
             E.Source(href=vm[0].get('href'),
                      id=vm[0].get('id'),
                      name=vm[0].get('name'),
-                     type=vm[0].get('type')),
-            E.VmGeneralParams(
-                E.Name(name),
-                E.NeedsCustomization(needs_customization)
-            ),
-            ip
+                     type=vm[0].get('type'))
         )
+        if not identical:
+            si.append(E.VmGeneralParams(
+                        E.Name(name),
+                        E.NeedsCustomization(needs_customization)))
+        si.append(ip)
         # if network_name != network_name_from_template:
         #     si.append(E.NetworkAssignment(
         #         innerNetwork=network_name_from_template,

@@ -22,18 +22,7 @@ class TestDiskSetup(TestCase):
         
         #taskObj = vdc.add_disk(self.config['vcd']['disk'], "10", None, None, '10 MB Disk', self.config['vcd']['storage_profile'])
         taskObj = vdc.add_disk(self.config['vcd']['disk'], "10", None, None, '10 MB Disk')
-        task = self.client.get_task_monitor().wait_for_status(
-                                task=taskObj,
-                                timeout=30,
-                                poll_frequency=2,
-                                fail_on_status=None,
-                                expected_target_statuses=[
-                                    TaskStatus.SUCCESS,
-                                    TaskStatus.ABORTED,
-                                    TaskStatus.ERROR,
-                                    TaskStatus.CANCELED],
-                                callback=None)
-        assert task.get('status') == TaskStatus.SUCCESS.value
+  
 
 
 if __name__ == '__main__':

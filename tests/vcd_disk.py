@@ -86,7 +86,7 @@ class TestDisk(TestCase):
                                 callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
 
-        print ("Update VDC disk: " + str(etree.tostring(task, pretty_print=True), "utf-8"))
+        print ("Updating VDC disk: " + str(etree.tostring(task, pretty_print=True), "utf-8"))
  
 
 

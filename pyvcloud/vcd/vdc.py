@@ -262,8 +262,8 @@ class VDC(object):
         Request the creation of an indendent disk.
         :param name: (str): The name of the new Disk.
         :param size: (str): The size of the new disk in MB.
-        :param bus_type: (str): The size of the new disk in MB.
-        :param bus_subtype: (str): The size of the new disk in MB.
+        :param bus_type: (str): The bus type of the new disk.
+        :param bus_subtype: (str): The bus subtype  of the new disk.
         :param description: (str): A description of the new disk.  
         :param storage_profile_name: (str): The name of an existing storage profile to be used by the new disk. 
         :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk. 
@@ -293,14 +293,9 @@ class VDC(object):
 
             print(etree.tostring(diskParms, pretty_print=True))
 
-        disk_href = find_link(self.resource,
-                      RelationType.ADD,
-                      EntityType.DISK_CREATE_PARMS.value).href  
-
-        return self.client.post_resource(disk_href, diskParms, EntityType.DISK_CREATE_PARMS.value, objectify_results=True)
+        return self.client.post_linked_resource(self.resource, RelationType.ADD, EntityType.DISK_CREATE_PARMS.value, diskParms)
 
 
- 
 
     def update_disk(self, name, size, new_name=None, description=None, id=None):
         """
@@ -328,12 +323,8 @@ class VDC(object):
         if disk is None:
             raise Exception('Could not locate Disk %s for update. ' % id)
 
-        disk_href = find_link(disk,
-                      RelationType.EDIT,
-                      EntityType.DISK.value).href 
 
-        return self.client.put_resource(disk_href, diskParms, EntityType.DISK.value, objectify_results=True)
-
+        return self.client.put_linked_resource(disk, RelationType.EDIT, EntityType.DISK.value, diskParms)
 
 
     def delete_disk(self, name, id=None):
@@ -352,10 +343,7 @@ class VDC(object):
         else:
             disk = self.get_disk(name)
 
-        remove_href = find_link(disk,
-                          RelationType.REMOVE,
-                          None).href 
-        return self.client.delete_resource(remove_href)
+        return self.client.delete_linked_resource(disk, RelationType.REMOVE, None)
 
 
 
@@ -393,13 +381,16 @@ class VDC(object):
              self.resource = self.client.get_resource(self.href)
         
         disks = self.get_disks()
-        for disk in disks:
-
-            if id is not None and disk.get('id') == id:
-                    return disk
-
-            if name is not None and disk.get('name') == name:
-                    return disk
+   
+        if id is not None:
+            for disk in disks:
+                if disk.get('id') == id:
+                        return disk
+        else: 
+            if name is not None:
+                for disk in disks:
+                    if name is not None and disk.get('name') == name:
+                            return disk
         return None
 
 

@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+18.2.0
+------
+
+* 18.2.0
+
 18.1.2
 ------
 
@@ -23,6 +28,7 @@ CHANGES
 * capture-vapp-template
 * wip
 * org-name
+* Changed id to vm\_id
 
 18.0.14
 -------
@@ -48,6 +54,7 @@ CHANGES
 * docs-n-tests
 * tests new sdk
 * tests new sdk
+* Add guest customization
 * added get\_vdc back
 * python3
 * python3 support

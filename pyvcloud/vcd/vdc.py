@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from lxml import etree
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
@@ -20,11 +21,7 @@ from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
-from lxml import etree
-from lxml import objectify
 
-
-#from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 
 class VDC(object):
 
@@ -49,8 +46,10 @@ class VDC(object):
         if hasattr(self.resource, 'ResourceEntities') and \
            hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
             for vapp in self.resource.ResourceEntities.ResourceEntity:
-                if vapp.get('name') == name:
-                    result.append(vapp.get('href'))
+                if entity_type is None or \
+                   entity_type.value == vapp.get('type'):
+                    if vapp.get('name') == name:
+                        result.append(vapp.get('href'))
         if len(result) == 0:
             raise Exception('not found')
         elif len(result) > 1:
@@ -83,10 +82,18 @@ class VDC(object):
                          memory=None,
                          cpu=None,
                          password=None,
-                         cust_script=None):
+                         cust_script=None,
+                         identical=False):
+        """
+        Instantiate a vApp from a vApp template.
+        :param name: (str): The name of the new vApp.
+        :param catalog: (str): The name of the catalog.
+        :param template: (str): The name of the vApp template.
+        :param identical: (bool): If True, no guest customization or VM name update is performed
+        :return:  A :class:`lxml.objectify.StringElement` object describing the new vApp.
+        """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-
         network_href = None
         if hasattr(self.resource, 'AvailableNetworks') and \
            hasattr(self.resource.AvailableNetworks, 'Network'):
@@ -96,7 +103,6 @@ class VDC(object):
                     network_name = n.get('name')
         if network_href is None:
             raise Exception('Network not found in the Virtual Datacenter.')
-
         org_href = find_link(self.resource,
                              RelationType.UP,
                              EntityType.ORG.value).href
@@ -159,22 +165,23 @@ class VDC(object):
             namespaces=NSMAP)
         assert len(vm) > 0
         ip = E.InstantiationParams()
-        gc = E.GuestCustomizationSection(
-            E_OVF.Info('Specifies Guest OS Customization Settings'),
-            E.Enabled('false'),
-        )
-        if password is not None:
-            gc.append(E.AdminPasswordEnabled('true'))
-            gc.append(E.AdminPasswordAuto('false'))
-            gc.append(E.AdminPassword(password))
-            gc.append(E.ResetPasswordRequired('false'))
-        else:
-            gc.append(E.AdminPasswordEnabled('false'))
-        if cust_script is not None:
-            gc.append(E.CustomizationScript(cust_script))
-        gc.Enabled = E.Enabled('true')
-        gc.append(E.ComputerName(name))
-        ip.append(gc)
+        if not identical:
+            gc = E.GuestCustomizationSection(
+                E_OVF.Info('Specifies Guest OS Customization Settings'),
+                E.Enabled('false'),
+            )
+            if password is not None:
+                gc.append(E.AdminPasswordEnabled('true'))
+                gc.append(E.AdminPasswordAuto('false'))
+                gc.append(E.AdminPassword(password))
+                gc.append(E.ResetPasswordRequired('false'))
+            else:
+                gc.append(E.AdminPasswordEnabled('false'))
+            if cust_script is not None:
+                gc.append(E.CustomizationScript(cust_script))
+            gc.Enabled = E.Enabled('true')
+            gc.append(E.ComputerName(name))
+            ip.append(gc)
         primary_index = int(
             vm[0].NetworkConnectionSection.PrimaryNetworkConnectionIndex.text)
         ip.append(E.NetworkConnectionSection(
@@ -217,7 +224,7 @@ class VDC(object):
                 vhs.append(cpu_params)
             ip.append(vhs)
 
-        if password is None and cust_script is None:
+        if identical or (password is None and cust_script is None):
             needs_customization = 'false'
         else:
             needs_customization = 'true'
@@ -225,13 +232,13 @@ class VDC(object):
             E.Source(href=vm[0].get('href'),
                      id=vm[0].get('id'),
                      name=vm[0].get('name'),
-                     type=vm[0].get('type')),
-            E.VmGeneralParams(
-                E.Name(name),
-                E.NeedsCustomization(needs_customization)
-            ),
-            ip
+                     type=vm[0].get('type'))
         )
+        if not identical:
+            si.append(E.VmGeneralParams(
+                        E.Name(name),
+                        E.NeedsCustomization(needs_customization)))
+        si.append(ip)
         # if network_name != network_name_from_template:
         #     si.append(E.NetworkAssignment(
         #         innerNetwork=network_name_from_template,
@@ -255,179 +262,192 @@ class VDC(object):
                    entity_type.value == vapp.get('type'):
                     result.append({'name': vapp.get('name')})
         return result
-   
 
-    def add_disk(self, name, size, bus_type=None, bus_sub_type=None, description=None, storage_profile_name=None):
+    def add_disk(self,
+                 name,
+                 size,
+                 bus_type=None,
+                 bus_sub_type=None,
+                 description=None,
+                 storage_profile_name=None):
         """
         Request the creation of an indendent disk.
         :param name: (str): The name of the new Disk.
         :param size: (str): The size of the new disk in MB.
         :param bus_type: (str): The bus type of the new disk.
         :param bus_subtype: (str): The bus subtype  of the new disk.
-        :param description: (str): A description of the new disk.  
-        :param storage_profile_name: (str): The name of an existing storage profile to be used by the new disk. 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk. 
-        """
+        :param description: (str): A description of the new disk.
+        :param storage_profile_name: (str): The name of an existing storage profile to be used by the new disk.
+        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk.
+        """  # NOQA
         if self.resource is None:
-               self.resource = self.client.get_resource(self.href)
+            self.resource = self.client.get_resource(self.href)
 
-        diskParms =  E.DiskCreateParams(E.Disk(name=name, size=size))
+        diskParms = E.DiskCreateParams(E.Disk(name=name, size=size))
 
-        if description != None:
-                 diskParms.Disk.append(E.Description(description))
-         
-        if bus_type != None and bus_sub_type != None:
-                diskParms.Disk.attrib['busType'] = bus_type
-                diskParms.Disk.attrib['busSubType'] = bus_sub_type
+        if description is not None:
+            diskParms.Disk.append(E.Description(description))
 
+        if bus_type is not None and bus_sub_type is not None:
+            diskParms.Disk.attrib['busType'] = bus_type
+            diskParms.Disk.attrib['busSubType'] = bus_sub_type
 
-        if storage_profile_name != None:
+        if storage_profile_name is not None:
             storage_profile = self.get_storage_profile(storage_profile_name)
             print(etree.tostring(storage_profile, pretty_print=True))
             diskParms.Disk.append(storage_profile)
-            #etree.SubElement(diskParms.Disk, 'StorageProfile')
-            #diskParms.Disk.append(E.StorageProfile(name=storage_profile_name))
-            #diskParms.Disk.StorageProfile.attrib['href'] = storage_profile.get('href')
-            #diskParms.Disk.StorageProfile.attrib['name'] = storage_profile.get('name')
-            #diskParms.Disk.StorageProfile.attrib['type'] = storage_profile.get('type')
+            # etree.SubElement(diskParms.Disk, 'StorageProfile')
+            # diskParms.Disk.append(
+            # E.StorageProfile(name=storage_profile_name))
+            # diskParms.Disk.StorageProfile.attrib['href'] =
+            # storage_profile.get('href')
+            # diskParms.Disk.StorageProfile.attrib['name'] =
+            # storage_profile.get('name')
+            # diskParms.Disk.StorageProfile.attrib['type'] =
+            # storage_profile.get('type')
 
             print(etree.tostring(diskParms, pretty_print=True))
 
-        return self.client.post_linked_resource(self.resource, RelationType.ADD, EntityType.DISK_CREATE_PARMS.value, diskParms)
+        return self.client.post_linked_resource(
+            self.resource,
+            RelationType.ADD,
+            EntityType.DISK_CREATE_PARMS.value,
+            diskParms)
 
-
-
-    def update_disk(self, name, size, new_name=None, description=None, id=None):
+    def update_disk(self, name, size, new_name=None, description=None,
+                    disk_id=None):
         """
         Update an existing independent disk.
         :param name: (str): The existing name of the Disk.
         :param new_name: (str): The new name for the Disk.
         :param size: (str): The size of the new disk in MB.
-        :param description: (str): A description of the new disk.   
-        :param description: (str): The id of the existing disk.  
-        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk. 
-        """
-        if self.resource is None:
-               self.resource = self.client.get_resource(self.href)
-        
-        diskParms =  E.Disk(name=name, size=size)
-
-        if description != None:
-            diskParms.append(E.Description(description))
-        
-        if id is not None:
-            disk = self.get_disk(None, id)
-        else:
-            disk = self.get_disk(name) 
-
-        if disk is None:
-            raise Exception('Could not locate Disk %s for update. ' % id)
-
-
-        return self.client.put_linked_resource(disk, RelationType.EDIT, EntityType.DISK.value, diskParms)
-
-
-    def delete_disk(self, name, id=None):
-        """
-        Delete an existing independent disk.
-        :param name: (str): The name of the Disk to delete.
-        :param id: (str): The id of the disk to delete.
-        :param description: (str): The id of the existing disk.  
-        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk. 
-        """
+        :param description: (str): A description of the new disk.
+        :param description: (str): The disk_id of the existing disk.
+        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk.
+        """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
-        if id is not None:
-            disk = self.get_disk(None, id)
+        diskParms = E.Disk(name=name, size=size)
+
+        if description is not None:
+            diskParms.append(E.Description(description))
+
+        if disk_id is not None:
+            disk = self.get_disk(None, disk_id)
         else:
             disk = self.get_disk(name)
 
-        return self.client.delete_linked_resource(disk, RelationType.REMOVE, None)
+        if disk is None:
+            raise Exception('Could not locate Disk %s for update. ' % disk_id)
 
+        return self.client.put_linked_resource(disk,
+                                               RelationType.EDIT,
+                                               EntityType.DISK.value,
+                                               diskParms)
 
+    def delete_disk(self, name, disk_id=None):
+        """
+        Delete an existing independent disk.
+        :param name: (str): The name of the Disk to delete.
+        :param disk_id: (str): The id of the disk to delete.
+        :param description: (str): The id of the existing disk.
+        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk.
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        if disk_id is not None:
+            disk = self.get_disk(None, disk_id)
+        else:
+            disk = self.get_disk(name)
+
+        return self.client.delete_linked_resource(disk,
+                                                  RelationType.REMOVE,
+                                                  None)
 
     def get_disks(self):
         """
         Request a list of independent disks defined in a vdc.
-        :return: An array of :class:`lxml.objectify.StringElement` objects describing the existing Disks.  
-        """
+        :return: An array of :class:`lxml.objectify.StringElement` objects describing the existing Disks.
+        """  # NOQA
 
         if self.resource is None:
-             self.resource = self.client.get_resource(self.href)
+            self.resource = self.client.get_resource(self.href)
 
         disks = []
         if hasattr(self.resource, 'ResourceEntities') and \
            hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
-            for resourceEntity in self.resource.ResourceEntities.ResourceEntity:    
+            for resourceEntity in \
+                    self.resource.ResourceEntities.ResourceEntity:
 
-                if resourceEntity.get('type') == "application/vnd.vmware.vcloud.disk+xml":
+                if resourceEntity.get('type') == \
+                   "application/vnd.vmware.vcloud.disk+xml":
                     disk = self.client.get_resource(resourceEntity.get('href'))
                     disks.append(disk)
         return disks
-   
- 
-    def get_disk(self, name, id=None):
+
+    def get_disk(self, name, disk_id=None):
         """
         Return information for an independent disk.
         :param name: (str): The name of the disk.
-        :param name: (str): The id of the disk.
+        :param disk_id: (str): The id of the disk.
         :return: (list of tuples of (DiskType, list of str)):  An list of tuples. \
                   Each tuple contains a :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType.DiskType` object and a list of vms utilizing the disk.
         **service type:** ondemand, subscription, vcd
-        """
+        """  # NOQA
 
         if self.resource is None:
-             self.resource = self.client.get_resource(self.href)
-        
+            self.resource = self.client.get_resource(self.href)
+
         disks = self.get_disks()
-   
-        if id is not None:
+
+        if disk_id is not None:
+            if not disk_id.startswith('urn:vcloud:disk:'):
+                disk_id = 'urn:vcloud:disk:' + disk_id
             for disk in disks:
-                if disk.get('id') == id:
+                if disk.get('id') == disk_id:
                         return disk
-        else: 
+        else:
             if name is not None:
                 for disk in disks:
                     if name is not None and disk.get('name') == name:
                             return disk
         return None
 
-
     def get_storage_profiles(self):
         """
         Request a list of the Storage Profiles defined in a Virtual Data Center.
-        :return: An array of :class:`lxml.objectify.StringElement` objects describing the existing Storage Profiles.  
-        """
+        :return: An array of :class:`lxml.objectify.StringElement` objects describing the existing Storage Profiles.
+        """  # NOQA
         profile_list = []
         if self.resource is None:
-                   self.resource = self.client.get_resource(self.href)
+            self.resource = self.client.get_resource(self.href)
 
         if hasattr(self.resource, 'VdcStorageProfiles') and \
            hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
-              for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
-                  profile_list.append(profile) 
-                  return profile_list
+            for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
+                profile_list.append(profile)
+                return profile_list
         return None
-                   
-
 
     def get_storage_profile(self, profile_name):
         """
         Request a specific Storage Profile within a Virtual Data Center.
         :param profile_name: (str): The name of the requested storage profile.
         :return: (VdcStorageProfileType)  A :class:`lxml.objectify.StringElement` object describing the requested storage profile.
-        """
+        """  # NOQA
         if self.resource is None:
-           self.resource = self.client.get_resource(self.href)
-     
+            self.resource = self.client.get_resource(self.href)
+
         if hasattr(self.resource, 'VdcStorageProfiles') and \
            hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
-           
-           print ("Profiles: " + str(etree.tostring(self.resource.VdcStorageProfiles, pretty_print=True), "utf-8"))
-           for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
-                print("Profile: "  + profile.get('name'))
+            print("Profiles: " + str(etree.tostring(
+                self.resource.VdcStorageProfiles, pretty_print=True), "utf-8"))
+            for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
+                print("Profile: %s" % profile.get('name'))
                 if profile.get('name') == profile_name:
                     return profile
 
-           raise Exception('Storage Profile named \'%s\' not found' % profile_name)
+        raise Exception('Storage Profile named \'%s\' not found' %
+                        profile_name)

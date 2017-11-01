@@ -20,7 +20,11 @@ from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
+from lxml import etree
+from lxml import objectify
 
+
+#from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 
 class VDC(object):
 
@@ -54,6 +58,12 @@ class VDC(object):
         elif len(result) > 1:
             raise Exception('more than one found, use the vapp-id')
         return result[0]
+
+    def reload(self):
+        self.resource = self.client.get_resource(self.href)
+        if self.resource is not None:
+            self.name = self.resource.get('name')
+            self.href = self.resource.get('href')
 
     def get_vapp(self, name):
         return self.client.get_resource(self.get_resource_href(name))
@@ -255,3 +265,179 @@ class VDC(object):
                    entity_type.value == vapp.get('type'):
                     result.append({'name': vapp.get('name')})
         return result
+   
+
+    def add_disk(self, name, size, bus_type=None, bus_sub_type=None, description=None, storage_profile_name=None):
+        """
+        Request the creation of an indendent disk.
+        :param name: (str): The name of the new Disk.
+        :param size: (str): The size of the new disk in MB.
+        :param bus_type: (str): The bus type of the new disk.
+        :param bus_subtype: (str): The bus subtype  of the new disk.
+        :param description: (str): A description of the new disk.  
+        :param storage_profile_name: (str): The name of an existing storage profile to be used by the new disk. 
+        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk. 
+        """
+        if self.resource is None:
+               self.resource = self.client.get_resource(self.href)
+
+        diskParms =  E.DiskCreateParams(E.Disk(name=name, size=size))
+
+        if description != None:
+                 diskParms.Disk.append(E.Description(description))
+         
+        if bus_type != None and bus_sub_type != None:
+                diskParms.Disk.attrib['busType'] = bus_type
+                diskParms.Disk.attrib['busSubType'] = bus_sub_type
+
+
+        if storage_profile_name != None:
+            storage_profile = self.get_storage_profile(storage_profile_name)
+            print(etree.tostring(storage_profile, pretty_print=True))
+            diskParms.Disk.append(storage_profile)
+            #etree.SubElement(diskParms.Disk, 'StorageProfile')
+            #diskParms.Disk.append(E.StorageProfile(name=storage_profile_name))
+            #diskParms.Disk.StorageProfile.attrib['href'] = storage_profile.get('href')
+            #diskParms.Disk.StorageProfile.attrib['name'] = storage_profile.get('name')
+            #diskParms.Disk.StorageProfile.attrib['type'] = storage_profile.get('type')
+
+            print(etree.tostring(diskParms, pretty_print=True))
+
+        return self.client.post_linked_resource(self.resource, RelationType.ADD, EntityType.DISK_CREATE_PARMS.value, diskParms)
+
+
+
+    def update_disk(self, name, size, new_name=None, description=None, id=None):
+        """
+        Update an existing independent disk.
+        :param name: (str): The existing name of the Disk.
+        :param new_name: (str): The new name for the Disk.
+        :param size: (str): The size of the new disk in MB.
+        :param description: (str): A description of the new disk.   
+        :param description: (str): The id of the existing disk.  
+        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk. 
+        """
+        if self.resource is None:
+               self.resource = self.client.get_resource(self.href)
+        
+        diskParms =  E.Disk(name=name, size=size)
+
+        if description != None:
+            diskParms.append(E.Description(description))
+        
+        if id is not None:
+            disk = self.get_disk(None, id)
+        else:
+            disk = self.get_disk(name) 
+
+        if disk is None:
+            raise Exception('Could not locate Disk %s for update. ' % id)
+
+
+        return self.client.put_linked_resource(disk, RelationType.EDIT, EntityType.DISK.value, diskParms)
+
+
+    def delete_disk(self, name, id=None):
+        """
+        Delete an existing independent disk.
+        :param name: (str): The name of the Disk to delete.
+        :param id: (str): The id of the disk to delete.
+        :param description: (str): The id of the existing disk.  
+        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk. 
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        if id is not None:
+            disk = self.get_disk(None, id)
+        else:
+            disk = self.get_disk(name)
+
+        return self.client.delete_linked_resource(disk, RelationType.REMOVE, None)
+
+
+
+    def get_disks(self):
+        """
+        Request a list of independent disks defined in a vdc.
+        :return: An array of :class:`lxml.objectify.StringElement` objects describing the existing Disks.  
+        """
+
+        if self.resource is None:
+             self.resource = self.client.get_resource(self.href)
+
+        disks = []
+        if hasattr(self.resource, 'ResourceEntities') and \
+           hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
+            for resourceEntity in self.resource.ResourceEntities.ResourceEntity:    
+
+                if resourceEntity.get('type') == "application/vnd.vmware.vcloud.disk+xml":
+                    disk = self.client.get_resource(resourceEntity.get('href'))
+                    disks.append(disk)
+        return disks
+   
+ 
+    def get_disk(self, name, id=None):
+        """
+        Return information for an independent disk.
+        :param name: (str): The name of the disk.
+        :param name: (str): The id of the disk.
+        :return: (list of tuples of (DiskType, list of str)):  An list of tuples. \
+                  Each tuple contains a :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType.DiskType` object and a list of vms utilizing the disk.
+        **service type:** ondemand, subscription, vcd
+        """
+
+        if self.resource is None:
+             self.resource = self.client.get_resource(self.href)
+        
+        disks = self.get_disks()
+   
+        if id is not None:
+            for disk in disks:
+                if disk.get('id') == id:
+                        return disk
+        else: 
+            if name is not None:
+                for disk in disks:
+                    if name is not None and disk.get('name') == name:
+                            return disk
+        return None
+
+
+    def get_storage_profiles(self):
+        """
+        Request a list of the Storage Profiles defined in a Virtual Data Center.
+        :return: An array of :class:`lxml.objectify.StringElement` objects describing the existing Storage Profiles.  
+        """
+        profile_list = []
+        if self.resource is None:
+                   self.resource = self.client.get_resource(self.href)
+
+        if hasattr(self.resource, 'VdcStorageProfiles') and \
+           hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
+              for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
+                  profile_list.append(profile) 
+                  return profile_list
+        return None
+                   
+
+
+    def get_storage_profile(self, profile_name):
+        """
+        Request a specific Storage Profile within a Virtual Data Center.
+        :param profile_name: (str): The name of the requested storage profile.
+        :return: (VdcStorageProfileType)  A :class:`lxml.objectify.StringElement` object describing the requested storage profile.
+        """
+        if self.resource is None:
+           self.resource = self.client.get_resource(self.href)
+     
+        if hasattr(self.resource, 'VdcStorageProfiles') and \
+           hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
+           
+           print ("Profiles: " + str(etree.tostring(self.resource.VdcStorageProfiles, pretty_print=True), "utf-8"))
+           for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
+                print("Profile: "  + profile.get('name'))
+                if profile.get('name') == profile_name:
+                    return profile
+
+           raise Exception('Storage Profile named \'%s\' not found' % profile_name)

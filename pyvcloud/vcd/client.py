@@ -208,6 +208,7 @@ class RelationType(Enum):
     POWER_RESET = 'power:reset'
     POWER_SHUTDOWN = 'power:shutdown'
     POWER_SUSPEND = 'power:suspend'
+    REMOVE = 'remove'
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
     TASK_CANCEL = 'task:cancel'
@@ -223,6 +224,8 @@ class EntityType(Enum):
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
     CAPTURE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.captureVAppParams+xml'
+    DISK = 'application/vnd.vmware.vcloud.disk+xml'
+    DISK_CREATE_PARMS = 'application/vnd.vmware.vcloud.diskCreateParams+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \

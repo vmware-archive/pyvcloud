@@ -221,6 +221,24 @@ def task_to_dict(task):
     return result
 
 
+def disk_to_dict(disk):
+    result = {}
+    result['name'] = disk.get('name')
+    result['id'] = extract_id(disk.get('id'))
+    result['status'] = disk.get('status')
+    result['size_MB'] = disk.get('size')
+    result['busType'] = disk.get('busType')
+    result['busSubType'] = disk.get('busSubType')
+    result['iops'] = disk.get('iops')
+    if hasattr(disk, 'Owner'):
+        result['owner'] = disk.Owner.User.get('name')
+    if hasattr(disk, 'Description'):
+        result['description'] = disk.Description
+    if hasattr(disk, 'StorageProfile'):
+        result['storageProfile'] = disk.StorageProfile.get('name')
+    return result
+
+
 def filter_attributes(resource_type):
     attributes = None
     if resource_type in ['adminTask', 'task']:

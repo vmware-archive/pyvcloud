@@ -14,9 +14,11 @@
 
 import click
 from pyvcloud.vcd.client import QueryResultFormat
+from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import disk_to_dict
+from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
 from vcd_cli.utils import is_admin
@@ -25,7 +27,6 @@ from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.vcd import abort_if_false
 from vcd_cli.vcd import vcd
-
 
 @vcd.group(short_help='manage independent disks')
 @click.pass_context
@@ -43,16 +44,16 @@ vcd disk update <disk-name> [new-size] --description 'new disk description' --na
         vcd disk list
             Get list of independent disks in current virtual datacenter.
 \b
-        vcd disk info disk1 
+        vcd disk info disk1
             Get details of the disk named 'disk1'.
 \b
-        vcd disk add disk1 100 --description '100 MB Disk' 
+        vcd disk create disk1 100 --description '100 MB Disk'
             Create a new 100 MB independent disk named 'disk1' using the default storage profile.
 \b
-        vcd disk delete disk1 
+        vcd disk delete disk1
             Delete an existing independent disk named 'disk1'.
 \b
-        vcd disk update 'disk1a' 15 
+        vcd disk update disk1 15
             Update an existing independent disk updating its size and storage profile.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
@@ -71,18 +72,18 @@ vcd disk update <disk-name> [new-size] --description 'new disk description' --na
 @click.argument('name',
                 metavar='<name>',
                 required=True)
-@click.option('-id',
+@click.option('-i',
               '--id',
-              'id',
+              'disk_id',
               required=False,
               metavar='<id>',
               help='Disk id')
-def info(ctx, name, id):
+def info(ctx, name, disk_id):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
-        disk = vdc.get_disk(name, id=id)
+        disk = vdc.get_disk(name, disk_id=disk_id)
         stdout(disk_to_dict(disk), ctx)
     except Exception as e:
         stderr(e, ctx)
@@ -100,12 +101,14 @@ def list_disks(ctx):
         result = []
         for disk in disks:
             result.append({'name': disk.get('name'),
-                           'disk_id': disk.get('id')})
-        stdout(result, ctx)
+                           'id': extract_id(disk.get('id')),
+                           'size_MB': disk.get('size'),
+                           'status': VCLOUD_STATUS_MAP.get(int(disk.get('status'))),})
+        stdout(result, ctx, show_id=True)
     except Exception as e:
         stderr(e, ctx)
 
-@disk.command(short_help='add a disk')
+@disk.command(short_help='create a disk')
 @click.pass_context
 @click.argument('name',
                 metavar='<name>',
@@ -142,9 +145,9 @@ def create(ctx, name, size, description, storage_profile):
 @click.argument('name',
                 metavar='<name>',
                 required=True)
-@click.option('-id',
+@click.option('-i',
               '--id',
-              'id',
+              'disk_id',
               required=False,
               metavar='<id>',
               help='Disk id')
@@ -154,12 +157,12 @@ def create(ctx, name, size, description, storage_profile):
               callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to delete the disk?')
-def delete(ctx, name, id):
+def delete(ctx, name, disk_id):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
-        task = vdc.delete_disk(name, id=id)
+        task = vdc.delete_disk(name, disk_id=disk_id)
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)
@@ -174,7 +177,7 @@ def delete(ctx, name, id):
                 metavar='<new-size>',
                 required=False)
 @click.option('-d',
-              'description',
+              '--description',
               'description',
               required=False,
               metavar='<description>',
@@ -193,17 +196,17 @@ def delete(ctx, name, id):
               help='Name of new Storage Profile to be used for new disk.')
 @click.option('-id',
               '--id',
-              'id',
+              'disk_id',
               required=False,
               metavar='<id>',
               help='Disk id')
-def update(ctx, name, size, description, new_name, storage_profile, id):
+def update(ctx, name, size, description, new_name, storage_profile, disk_id):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
-        task = vdc.update_disk(name, size, new_name, description=description, storage_profile_name=storage_profile, id=id  )
+        task = vdc.update_disk(name, size, new_name, description=description,
+                storage_profile_name=storage_profile, disk_id=disk_id)
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)
-

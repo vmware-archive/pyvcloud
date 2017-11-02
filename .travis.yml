@@ -11,6 +11,7 @@ env:
   - TOX_ENV=flake8
 
 install:
+  - pip install --user git+https://github.com/vmware/pyvcloud.git
   - pip install --user . --upgrade --pre --no-cache
   - pip install --user tox
 

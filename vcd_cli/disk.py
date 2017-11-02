@@ -29,12 +29,6 @@ from vcd_cli.vcd import vcd
 def disk(ctx):
     """Manage independent disks in vCloud Director.
 
-vcd disk list
-vcd disk info <disk-name> --id <disk-id>
-vcd disk add <disk-name> <size> --description 'my disk description' --storage-profile storage-profile
-vcd disk delete <disk-name> --id <disk-id>
-vcd disk update <disk-name> [new-size] --description 'new disk description' --name new-disk-name --storage-profile new-storage-profile --id <disk-id>
-
 \b
     Examples
         vcd disk list
@@ -42,6 +36,9 @@ vcd disk update <disk-name> [new-size] --description 'new disk description' --na
 \b
         vcd disk info disk1
             Get details of the disk named 'disk1'.
+\b
+        vcd disk info disk1 --id 91b3a2e2-fd02-412b-9914-9974d60b2351
+            Get details of the disk named 'disk1' that has the supplied id.
 \b
         vcd disk create disk1 100 --description '100 MB Disk'
             Create a new 100 MB independent disk named 'disk1' using the default storage profile.

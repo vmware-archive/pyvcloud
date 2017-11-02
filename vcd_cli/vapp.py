@@ -349,7 +349,7 @@ def capture(ctx, name, catalog, template, customizable):
                      vapp_href=vapp_resource.get('href'),
                      catalog_item_name=template,
                      description='',
-                     customize_on_instantiate=customizable=='customizable')
+                     customize_on_instantiate=customizable == 'customizable')
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

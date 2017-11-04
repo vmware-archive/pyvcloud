@@ -22,8 +22,6 @@ from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
 
-from pprint import pprint
-
 class VDC(object):
 
     def __init__(self, client, name=None, href=None, resource=None):

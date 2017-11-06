@@ -22,6 +22,7 @@ from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
 
+
 class VDC(object):
 
     def __init__(self, client, name=None, href=None, resource=None):
@@ -68,7 +69,7 @@ class VDC(object):
         href = self.get_resource_href(name)
         return self.client.delete_resource(href, force)
 
-    # refer to http://pubs.vmware.com/vcd-820/index.jsp?topic=%2Fcom.vmware.vcloud.api.sp.doc_27_0%2FGUID-BF9B790D-512E-4EA1-99E8-6826D4B8E6DC.html
+    # NOQA refer to http://pubs.vmware.com/vcd-820/index.jsp?topic=%2Fcom.vmware.vcloud.api.sp.doc_27_0%2FGUID-BF9B790D-512E-4EA1-99E8-6826D4B8E6DC.html
     def instantiate_vapp(self,
                          name,
                          catalog,
@@ -102,40 +103,39 @@ class VDC(object):
                              EntityType.ORG.value).href
         org = Org(self.client, href=org_href)
         catalog_item = org.get_catalog_item(catalog, template)
-        template_resource = self.client.get_resource(catalog_item.Entity.get('href'))
+        template_resource = self.client.get_resource(
+            catalog_item.Entity.get('href'))
         #
 
-        # Find the network in vdc referred to by user, using name of the network
-        # If network is not specified by user then default to first network in vdc (if present)
+        # If network is not specified by user then default to
+        # vApp network name specified in the template
+        template_networks = template_resource.xpath(
+                '//ovf:NetworkSection/ovf:Network',
+                namespaces={'ovf': NSMAP['ovf']})
+        assert len(template_networks) > 0
+        network_name_from_template = template_networks[0].get(
+            '{' + NSMAP['ovf'] + '}name')
+        if ((network is None) and (network_name_from_template != 'none')):
+            network = network_name_from_template
+
+        # Find the network in vdc referred to by user, using
+        # name of the network
         network_href = network_name = None
-        if hasattr(self.resource, 'AvailableNetworks') and \
-            hasattr(self.resource.AvailableNetworks, 'Network'):
-            if network is None:
-                network_href = self.resource.AvailableNetworks.Network[0].get('href')
-                network_name = self.resource.AvailableNetworks.Network[0].get('name')
-            else:
+        if network is not None:
+            if hasattr(self.resource, 'AvailableNetworks') and \
+                hasattr(self.resource.AvailableNetworks, 'Network'):
                 for n in self.resource.AvailableNetworks.Network:
                     if network == n.get('name'):
                         network_href = n.get('href')
                         network_name = n.get('name')
                         break
-                if network_href is None:
-                    raise Exception('Network not found in the Virtual Datacenter.')
+            if network_href is None:
+                raise Exception('Network not found in the Virtual Datacenter.')
         #
 
         # Configure the network of the vApp
         vapp_instantiation_param = None
         if network_name is not None:
-            template_networks = template_resource.xpath(
-                '//ovf:NetworkSection/ovf:Network',
-                namespaces={'ovf': NSMAP['ovf']})
-            assert len(template_networks) > 0
-            network_name_from_template = template_networks[0].get('{' + NSMAP['ovf'] + '}name')
-
-            vapp_network_name = network_name_from_template
-            if vapp_network_name == 'none':
-                vapp_network_name = network_name
-
             network_configuration = E.Configuration(
                 E.ParentNetwork(href=network_href),
                 E.FenceMode(fence_mode))
@@ -163,7 +163,7 @@ class VDC(object):
                     E_OVF.Info('Configuration for logical networks'),
                     E.NetworkConfig(
                         network_configuration,
-                        networkName=vapp_network_name)))
+                        networkName=network_name)))
         #
 
         # Get all vms in the vapp template
@@ -184,35 +184,34 @@ class VDC(object):
                         E.NetworkConnectionIndex(primary_index),
                         E.IsConnected('true'),
                         E.IpAddressAllocationMode(ip_allocation_mode.upper()),
-                        network=vapp_network_name)))
+                        network=network_name)))
 
         # Configure cpu, memory, disk of the first vm
         cpu_params = memory_params = disk_params = None
         if ((memory is not None) or (cpu is not None) or (disk_size is not None)):
             virtual_hardwire_section = E_OVF.VirtualHardwareSection(
                 E_OVF.Info('Virtual hardware requirements'))
-            items = vms[0].xpath(
-                '//ovf:VirtualHardwareSection/ovf:Item',
-                namespaces={'ovf' : NSMAP['ovf']})
+            items = vms[0].xpath('//ovf:VirtualHardwareSection/ovf:Item',
+                                 namespaces={'ovf' : NSMAP['ovf']})
             for item in items:
                 if ((memory is not None) and (memory_params is None)):
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 4:  # NOQA
-                        item['{' + NSMAP['rasd'] + '}ElementName'] = '%s MB of memory' % memory # NOQA
-                        item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = memory # NOQA
+                        item['{' + NSMAP['rasd'] + '}ElementName'] = '%s MB of memory' % memory  # NOQA
+                        item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = memory  # NOQA
                         memory_params = item
                         virtual_hardwire_section.append(memory_params)
 
                 if ((cpu is not None) and (cpu_params is None)):
                     if item['{' + NASMAP['rasd'] + '}ResourceType'] == 3:  # NOQA
-                        item['{' + NSMAP['rasd'] + '}ElementName'] = '%s virtual CPU(s)' % cpu # NOQA
-                        item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = cpu # NOQA
+                        item['{' + NSMAP['rasd'] + '}ElementName'] = '%s virtual CPU(s)' % cpu  # NOQA
+                        item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = cpu  # NOQA
                         cpu_params = item
                         virtual_hardwire_section.append(cpu_params)
 
                 if ((disk_size is not None) and (disk_params is None)):
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 17:  # NOQA
                         item['{' + NSMAP['rasd'] + '}Parent'] = None
-                        item['{' + NSMAP['rasd'] + '}HostResource'].attrib['{' + NSMAP['vcloud'] +'}capacity'] = '%s' % disk_size # NOQA
+                        item['{' + NSMAP['rasd'] + '}HostResource'].attrib['{' + NSMAP['vcloud'] + '}capacity'] = '%s' % disk_size  # NOQA
                         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = disk_size * 1024 * 1024
                         disk_params = item
                         virtual_hardwire_section.append(disk_params)

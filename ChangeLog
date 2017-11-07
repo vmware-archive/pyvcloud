@@ -1,6 +1,15 @@
 CHANGES
 =======
 
+* flake8
+* changed to linked resource calls
+* instantiate with guest customization disabled
+* fixes #115
+* added contributing guide
+* fixed task obj ref
+* removed disk.py import
+* vdc disk updates
+
 18.2.0
 ------
 

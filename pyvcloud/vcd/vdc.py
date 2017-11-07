@@ -1,6 +1,5 @@
 # VMware vCloud Director Python SDK
 # Copyright (c) 2014 VMware, Inc. All Rights Reserved.
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -192,7 +191,7 @@ class VDC(object):
             virtual_hardwire_section = E_OVF.VirtualHardwareSection(
                 E_OVF.Info('Virtual hardware requirements'))
             items = vms[0].xpath('//ovf:VirtualHardwareSection/ovf:Item',
-                                 namespaces={'ovf' : NSMAP['ovf']})
+                                 namespaces={'ovf': NSMAP['ovf']})
             for item in items:
                 if ((memory is not None) and (memory_params is None)):
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 4:  # NOQA
@@ -202,7 +201,7 @@ class VDC(object):
                         virtual_hardwire_section.append(memory_params)
 
                 if ((cpu is not None) and (cpu_params is None)):
-                    if item['{' + NASMAP['rasd'] + '}ResourceType'] == 3:  # NOQA
+                    if item['{' + NSMAP['rasd'] + '}ResourceType'] == 3:  # NOQA
                         item['{' + NSMAP['rasd'] + '}ElementName'] = '%s virtual CPU(s)' % cpu  # NOQA
                         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = cpu  # NOQA
                         cpu_params = item
@@ -441,12 +440,12 @@ class VDC(object):
                 disk_id = 'urn:vcloud:disk:' + disk_id
             for disk in disks:
                 if disk.get('id') == disk_id:
-                        return disk
+                    return disk
         else:
             if name is not None:
                 for disk in disks:
-                    if name is not None and disk.get('name') == name:
-                            return disk
+                    if disk.get('name') == name:
+                        return disk
         return None
 
     def get_storage_profiles(self):

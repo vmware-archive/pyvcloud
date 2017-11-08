@@ -10,7 +10,7 @@ This project is under development, the classes, methods and parameters might cha
 We are rewriting `pyvcloud` for a more efficient and easy-to-use library. The new code is located under the [pyvcloud/vcd](pyvcloud/vcd) directory. The original code is still part of the SDK but we encourage to use (and contribute to) the new library. The new [vcd-cli](https://vmware.github.io/vcd-cli) is being developed with the new library implementation and can be used as a reference, in addition to the [unit tests](tests/run-tests.sh).
 
 
-Installation 
+Installation
 ---
 
 In general, `pyvcloud` can be installed with the following command:

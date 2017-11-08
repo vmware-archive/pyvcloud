@@ -22,6 +22,7 @@ from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import get_links
+from pyvcloud.vcd.client import MissingRecordException
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.utils import to_dict
@@ -373,3 +374,67 @@ class Org(object):
             rel=RelationType.ADD,
             media_type=EntityType.CAPTURE_VAPP_PARAMS.value,
             contents=contents)
+
+    def create_user(self,
+                    user_name, password, role_href, full_name='',
+                    description='', email='', telephone='', im='',
+                    alert_email='', alert_email_prefix='', stored_vm_quota=0,
+                    deployed_vm_quota=0, is_group_role=False,
+                    is_default_cached=False, is_external=False,
+                    is_alert_enabled=False, is_enabled=False):
+        resource_admin = self.client.get_resource(self.href_admin)
+        user = E.User(
+            E.Description(description),
+            E.FullName(full_name),
+            E.EmailAddress(email),
+            E.Telephone(telephone),
+            E.IsEnabled(is_enabled),
+            E.IM(im),
+            E.IsAlertEnabled(is_alert_enabled),
+            E.AlertEmailPrefix(alert_email_prefix),
+            E.AlertEmail(alert_email),
+            E.IsExternal(is_external),
+            E.IsDefaultCached(is_default_cached),
+            E.IsGroupRole(is_group_role),
+            E.StoredVmQuota(stored_vm_quota),
+            E.DeployedVmQuota(deployed_vm_quota),
+            E.Role(href=role_href),
+            E.Password(password),
+            name=user_name)
+        return self.client.post_linked_resource(
+            resource_admin,
+            RelationType.ADD,
+            EntityType.USER.value,
+            user)
+
+    def list_roles(self):
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        resource_type = 'adminRole'
+        result = []
+        q = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.ID_RECORDS,
+            qfilter='orgName==%s' %
+                    self.resource.get('name'))
+        records = list(q.execute())
+        for r in records:
+            result.append(to_dict(r,
+                                  resource_type=resource_type,
+                                  exclude=['org']))
+        return result
+
+    def get_role(self, role_name):
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        resource_type = 'adminRole'
+        try:
+            role = self.client.get_typed_query(
+                resource_type,
+                query_result_format=QueryResultFormat.RECORDS,
+                equality_filter=('name', role_name),
+                qfilter='orgName==%s' %
+                        self.resource.get('name')).find_unique()
+            return role
+        except MissingRecordException:
+            raise Exception('Role \'%s\' does not exist.' % role_name)

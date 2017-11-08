@@ -9,3 +9,5 @@ vcd:
   catalog: 'cse'
   template: 'k8s-u.ova'
   verify: False
+  role_name: System Administrator
+  user_name: TestUser-

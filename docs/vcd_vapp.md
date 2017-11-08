@@ -38,6 +38,9 @@ Usage: vcd vapp [OPTIONS] COMMAND [ARGS]...
   
           vcd vapp power-on my-vapp
               Power on a vApp.
+  
+          vcd vapp capture my-vapp my-catalog
+              Capture a vApp as a template in a catalog.
       
 
 Options:

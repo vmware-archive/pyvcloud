@@ -20,6 +20,14 @@
 <a href="vcd_cluster_save-config">save-config</a></li>
 </ul></li>
 <li>
+<a href="vcd_disk">disk</a><ul><li>
+<a href="vcd_disk_create">create</a></li><li>
+<a href="vcd_disk_delete">delete</a></li><li>
+<a href="vcd_disk_info">info</a></li><li>
+<a href="vcd_disk_list">list</a></li><li>
+<a href="vcd_disk_update">update</a></li>
+</ul></li>
+<li>
 <a href="vcd_help">help</a></li><li>
 <a href="vcd_info">info</a></li><li>
 <a href="vcd_login">login</a></li><li>
@@ -31,6 +39,10 @@
 </ul></li>
 <li>
 <a href="vcd_profile">profile</a></li><li>
+<a href="vcd_role">role</a><ul><li>
+<a href="vcd_role_list">list</a></li>
+</ul></li>
+<li>
 <a href="vcd_search">search</a></li><li>
 <a href="vcd_system">system</a><ul><li>
 <a href="vcd_system_amqp">amqp</a><ul><li>
@@ -54,6 +66,10 @@
 <a href="vcd_task_list">list</a></li><li>
 <a href="vcd_task_update">update</a></li><li>
 <a href="vcd_task_wait">wait</a></li>
+</ul></li>
+<li>
+<a href="vcd_user">user</a><ul><li>
+<a href="vcd_user_create">create</a></li>
 </ul></li>
 <li>
 <a href="vcd_vapp">vapp</a><ul><li>

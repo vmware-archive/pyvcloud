@@ -1,6 +1,17 @@
 CHANGES
 =======
 
+* Revert "Test commit"
+* Revert "Test Commit"
+* Sprint 74 ( SDK for creating new local user and list roles( in the current org). (#1)
+* Unit test for instantiate\_vapp with custom disk size
+* Fixing typo on line 204, and getting rid of uncessary checks and indentation on line 443 and 448
+* changes
+* Improving logic in vapp\_instantiate to select vApp network from vDC 1. If template doesn't have any network config section, don't do anything with the vApp network 2. If template has netowrk . 2. If template has network config section, search for the network in vDC (by name). However if user has provided a network name, it will override the template netowrk name
+* Removing the stray import
+* Adding new parameter to instantiate\_vapp() to configure home disk size of the first vm during instantiating the vApp from template
+* Test commit
+* Test Commit
 * flake8
 * changed to linked resource calls
 * instantiate with guest customization disabled

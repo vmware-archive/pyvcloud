@@ -160,11 +160,18 @@ def list_vapps(ctx):
               metavar='<virtual-cpus>',
               type=click.INT,
               help='Number of CPUs')
+@click.option('-d',
+              '--disk-size',
+              'disk_size',
+              required=False,
+              metavar='<MB>',
+              type=click.INT,
+              help='size of the vm home disk in MB')
 @click.option('--identical',
               is_flag=True,
               default=False,
               help='Make identical copy')
-def create(ctx, catalog, template, name, network, memory, cpu,
+def create(ctx, catalog, template, name, network, memory, cpu, disk_size,
            ip_allocation_mode, identical):
     try:
         cust_script = None
@@ -178,6 +185,7 @@ def create(ctx, catalog, template, name, network, memory, cpu,
             network=network,
             memory=memory,
             cpu=cpu,
+            disk_size=disk_size,
             deploy=True,
             power_on=True,
             cust_script=cust_script,

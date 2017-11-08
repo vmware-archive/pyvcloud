@@ -2,7 +2,8 @@
 Usage: vcd vapp capture [OPTIONS] <name> <catalog> [template]
 
 Options:
-  -c, --customizable  Can be customized on instantiation
+  -i, --identical     Make identical copy
+  -c, --customizable  Make copy customizable during instantiation
   -h, --help          Show this message and exit.
 
 ```

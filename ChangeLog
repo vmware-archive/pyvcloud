@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* authors
 * (Sprint-74) Commands to create local user and list roles in an org (#1)
 * changes
 * Adding new optional parameter to vapp create command to provide disk size of the home disk of the first vm

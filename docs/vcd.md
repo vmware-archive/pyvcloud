@@ -12,15 +12,18 @@ Options:
 Commands:
   catalog  work with catalogs
   cluster  manage clusters
+  disk     manage independent disks
   help     show help
   info     show resource details
   login    login to vCD
   logout   logout from vCD
   org      work with organizations
   profile  manage profiles
+  role     work with roles
   search   search resources
   system   manage system settings
   task     work with tasks
+  user     work with users in current organization
   vapp     manage vApps
   vdc      work with virtual datacenters
   version  show version

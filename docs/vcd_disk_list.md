@@ -1,0 +1,7 @@
+```
+Usage: vcd disk list [OPTIONS]
+
+Options:
+  -h, --help  Show this message and exit.
+
+```

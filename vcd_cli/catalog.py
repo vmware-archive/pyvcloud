@@ -74,7 +74,7 @@ def catalog(ctx):
         vcd catalog unshare my-catalog
             Stop sharing a catalog.
     """  # NOQA
-    if ctx.invoked_subcommand not in [None, 'item']:
+    if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)
         except Exception as e:

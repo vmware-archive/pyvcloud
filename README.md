@@ -1,7 +1,7 @@
 vcd-cli
 =======
 
-[![Stable Version](https://img.shields.io/pypi/v/vcd-cli.svg)](https://pypi.python.org/pypi/vcd-cli) [![Build Status](https://img.shields.io/travis/vmware/vcd-cli.svg?style=flat)](https://travis-ci.org/vmware/vcd-cli/)
+[![License](https://img.shields.io/pypi/l/vcd-cli.svg)](https://pypi.python.org/pypi/vcd-cli) [![Stable Version](https://img.shields.io/pypi/v/vcd-cli.svg)](https://pypi.python.org/pypi/vcd-cli) [![Build Status](https://img.shields.io/travis/vmware/vcd-cli.svg?style=flat)](https://travis-ci.org/vmware/vcd-cli/)
 
 Command Line Interface for VMware vCloud Director.
 

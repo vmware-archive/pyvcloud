@@ -54,9 +54,9 @@ def info(ctx, resource_type, resource_id):
         vcd catalog info my-catalog my-item
             Get details of an item listed in the previous command.
         vcd info catalogitem f653b137-0d14-4ea9-8f14-dcd2b7914110
-            Get details of the catalog item based on the id listed in the previous command.
+            Get details of the catalog item based on the 'id' listed in the previous command.
         vcd info vapptemplate 53b83b27-1f2b-488e-9020-a27aee8cb640
-            Get details of the vApp tepmlate based on the id listed int the previous command.
+            Get details of the vApp tepmlate based on the 'template-id' listed in the previous command.
 \b
     See Also
         Several 'vcd' commands provide the id of a resource, including the

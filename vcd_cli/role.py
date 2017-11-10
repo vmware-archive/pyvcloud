@@ -28,7 +28,7 @@ def role(ctx):
 def list_roles(ctx):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org_in_use')
+        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href, org_name == 'System')
         result = org.list_roles()

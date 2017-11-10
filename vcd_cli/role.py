@@ -1,7 +1,8 @@
 import click
 from pyvcloud.vcd.org import Org
 
-from vcd_cli.utils import stderr, restore_session
+from vcd_cli.utils import restore_session
+from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.vcd import vcd
 

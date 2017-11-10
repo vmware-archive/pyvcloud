@@ -44,8 +44,9 @@ def vapp(ctx):
             Create a new vApp with default settings.
 \b
         vcd vapp create my-catalog my-template my-vapp \\
-                 --cpu 4 --memory 4096 --network net1  \\
-                 --ip-allocation-mode pool
+                 --cpu 4 --memory 4096 --disk-size 20000 \\
+                 --network net1 --ip-allocation-mode pool \\
+                 --hostname myhost --accept-all-eulas
             Create a new vApp with customized settings.
 \b
         vcd vapp delete my-vapp --yes --force
@@ -136,6 +137,7 @@ def list_vapps(ctx):
               '--network',
               'network',
               required=False,
+              default=None,
               metavar='<network>',
               help='Network')
 @click.option('ip_allocation_mode',
@@ -150,6 +152,7 @@ def list_vapps(ctx):
               '--memory',
               'memory',
               required=False,
+              default=None,
               metavar='<MB>',
               type=click.INT,
               help='Amount of memory in MB')
@@ -157,6 +160,7 @@ def list_vapps(ctx):
               '--cpu',
               'cpu',
               required=False,
+              default=None,
               metavar='<virtual-cpus>',
               type=click.INT,
               help='Number of CPUs')
@@ -164,17 +168,30 @@ def list_vapps(ctx):
               '--disk-size',
               'disk_size',
               required=False,
+              default=None,
               metavar='<MB>',
               type=click.INT,
               help='size of the vm home disk in MB')
-@click.option('--identical',
+@click.option('-v',
+              '--vm-name',
+              required=False,
+              default=None,
+              metavar='<vm-name>',
+              help='VM name')
+@click.option('-h',
+              '--hostname',
+              required=False,
+              default=None,
+              metavar='<hostname>',
+              help='Hostname')
+@click.option('-a',
+              '--accept-all-eulas',
               is_flag=True,
               default=False,
-              help='Make identical copy')
+              help='Accept all EULAs')
 def create(ctx, catalog, template, name, network, memory, cpu, disk_size,
-           ip_allocation_mode, identical):
+           ip_allocation_mode, vm_name, hostname, accept_all_eulas):
     try:
-        cust_script = None
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
@@ -188,9 +205,11 @@ def create(ctx, catalog, template, name, network, memory, cpu, disk_size,
             disk_size=disk_size,
             deploy=True,
             power_on=True,
-            cust_script=cust_script,
+            accept_all_eulas=accept_all_eulas,
+            cust_script=None,
             ip_allocation_mode=ip_allocation_mode,
-            identical=identical)
+            vm_name=vm_name,
+            hostname=hostname)
         stdout(vapp_resource.Tasks.Task[0], ctx)
     except Exception as e:
         stderr(e, ctx)

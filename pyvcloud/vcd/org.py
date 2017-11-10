@@ -410,31 +410,39 @@ class Org(object):
     def list_roles(self):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        resource_type = 'adminRole'
+        org_filter = None
+        if self.is_admin:
+            resource_type = 'adminRole'
+            org_filter = 'orgName==%s' % self.resource.get('name')
+        else:
+            resource_type = 'role'
         result = []
         q = self.client.get_typed_query(
             resource_type,
             query_result_format=QueryResultFormat.ID_RECORDS,
-            qfilter='orgName==%s' %
-                    self.resource.get('name'))
+            qfilter=org_filter)
         records = list(q.execute())
         for r in records:
             result.append(to_dict(r,
                                   resource_type=resource_type,
-                                  exclude=['org']))
+                                  exclude=['org', 'orgName']))
         return result
 
     def get_role(self, role_name):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        resource_type = 'adminRole'
+        org_filter = None
+        if self.is_admin:
+            resource_type = 'adminRole'
+            org_filter = 'orgName==%s' % self.resource.get('name')
+        else:
+            resource_type = 'role'
         try:
             role = self.client.get_typed_query(
                 resource_type,
                 query_result_format=QueryResultFormat.RECORDS,
                 equality_filter=('name', role_name),
-                qfilter='orgName==%s' %
-                        self.resource.get('name')).find_unique()
+                qfilter=org_filter).find_unique()
             return role
         except MissingRecordException:
             raise Exception('Role \'%s\' does not exist.' % role_name)

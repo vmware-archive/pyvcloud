@@ -78,7 +78,7 @@ class VDC(object):
                          ip_allocation_mode='dhcp',
                          deploy=True,
                          power_on=True,
-                         accept_all_eulas=True,
+                         accept_all_eulas=False,
                          memory=None,
                          cpu=None,
                          disk_size=None,

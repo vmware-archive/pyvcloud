@@ -43,6 +43,16 @@ class Org(object):
                  href=None,
                  is_admin=False,
                  resource=None):
+        """
+        Constructor for Org objects.
+
+        :param client: (pyvcloud.vcd.client): The client.
+        :param href: (str): URI of the entity.
+        :param is_admin: (bool): Indicates if current logged in user is system administrator.
+            Org doesn't need to be 'System'.
+        :param resource: (lxml.objectify.ObjectifiedElement): XML representation of the entity.
+
+        """  # NOQA
         self.client = client
         self.href = href
         self.resource = resource

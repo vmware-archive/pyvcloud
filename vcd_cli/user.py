@@ -127,7 +127,7 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
            stored_vm_quota, deployed_vm_quota):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org_in_use')
+        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href, org_name == 'System')
         role = org.get_role(role_name)

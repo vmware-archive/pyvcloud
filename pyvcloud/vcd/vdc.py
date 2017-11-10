@@ -314,21 +314,26 @@ class VDC(object):
             EntityType.DISK_CREATE_PARMS.value,
             diskParms)
 
-    def update_disk(self, name, size, new_name=None, description=None,
+    def update_disk(self, name, size, new_name=None, description=None, storage_profile_name=None, iops=None,
                     disk_id=None):
         """
         Update an existing independent disk.
         :param name: (str): The existing name of the Disk.
-        :param new_name: (str): The new name for the Disk.
         :param size: (str): The size of the new disk in MB.
+        :param new_name: (str): The new name for the Disk.
+        :param iops: (str): The iops for the disk. 
+        :param storage_profile_name: (str): The storage profile that the disk belongs to.
         :param description: (str): A description of the new disk.
-        :param description: (str): The disk_id of the existing disk.
+        :param disk_id: (str): The disk_id of the existing disk.
         :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk.
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
-        diskParms = E.Disk(name=name, size=size)
+        if iops is None:
+            diskParms = E.Disk(name=name, size=size)
+        else:
+            diskParms = E.Disk(name=name, size=size, iops=iops)
 
         if description is not None:
             diskParms.append(E.Description(description))
@@ -337,6 +342,13 @@ class VDC(object):
             disk = self.get_disk(None, disk_id)
         else:
             disk = self.get_disk(name)
+
+        if storage_profile_name is not None:
+            storage_profile = self.get_storage_profile(storage_profile_name)
+            sp = etree.XML(etree.tostring(storage_profile, pretty_print=True))
+            sp_href = sp.attrib['href']
+            diskParms.append(E.StorageProfile(href=sp_href, name=storage_profile_name))
+            print(etree.tostring(diskParms, pretty_print=True))
 
         if disk is None:
             raise Exception('Could not locate Disk %s for update. ' % disk_id)

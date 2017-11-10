@@ -408,9 +408,9 @@ class Org(object):
             user)
 
     def list_roles(self):
-        query, resource_type = self.get_roles_query()
+        roles_query, resource_type = self.get_roles_query()
         result = []
-        for r in list(query.execute()):
+        for r in list(roles_query.execute()):
             result.append(to_dict(r,
                                   resource_type=resource_type,
                                   exclude=['org', 'orgName', 'href']))
@@ -418,8 +418,8 @@ class Org(object):
 
     def get_role(self, role_name):
         try:
-            query, resource_type = self.get_roles_query(('name', role_name))
-            return query.find_unique()
+            roles_query = self.get_roles_query(('name', role_name))
+            return roles_query[0].find_unique()
         except MissingRecordException:
             raise Exception('Role \'%s\' does not exist.' % role_name)
 

@@ -163,7 +163,8 @@ API_CURRENT_VERSIONS = [
     '26.0',
     '27.0',
     '28.0',
-    '29.0'
+    '29.0',
+    '30.0'
     ]
 
 VCLOUD_STATUS_MAP = {
@@ -666,7 +667,7 @@ class Client(object):
                                    verify=self._verify_ssl_certs)
 
         if self._log_requests or self._log_headers or self._log_bodies:
-            self._logger.debug('Request uri: %s' % uri)
+            self._logger.debug('Request uri (%s): %s' % (method, uri))
         if self._log_headers:
             self._logger.debug('Request headers: %s, %s' %
                                (session.headers, headers))

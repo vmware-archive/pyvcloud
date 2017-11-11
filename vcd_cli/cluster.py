@@ -34,10 +34,10 @@ def cluster(ctx):
         vcd cluster list
             Get list of kubernetes clusters in current virtual datacenter.
 \b
-        vcd cluster create dev-cluster
+        vcd cluster create dev-cluster --network net1
             Create a kubernetes cluster in current virtual datacenter.
 \b
-        vcd cluster create prod-cluster --nodes 4
+        vcd cluster create prod-cluster --network net1 --nodes 4
             Create a kubernetes cluster with 4 worker nodes.
 \b
         vcd cluster delete dev-cluster

@@ -392,6 +392,30 @@ class Org(object):
                     deployed_vm_quota=0, is_group_role=False,
                     is_default_cached=False, is_external=False,
                     is_alert_enabled=False, is_enabled=False):
+        """
+        Create User in the current Org
+        :param user_name: The username of the user
+        :param password: The password of the user
+        :param role_href: The href of the user role
+        :param full_name: The full name of the user
+        :param description: The description for the User
+        :param email: The email of the user
+        :param telephone: The telephone of the user
+        :param im: The im address of the user
+        :param alert_email: The alert email address
+        :param alert_email_prefix: The string to prepend to the alert message 
+                subject line
+        :param stored_vm_quota: The quota of vApps that this user can store
+        :param deployed_vm_quota: The quota of vApps that this user can deploy 
+                concurrently
+        :param is_group_role: Indicates if the user has a group role
+        :param is_default_cached: Indicates if user should be cached
+        :param is_external: Indicates if user is imported from an external 
+                source
+        :param is_alert_enabled: The alert email address
+        :param is_enabled: Enable user
+        :return: (UserType) Created user object
+        """  # NOQA
         resource_admin = self.client.get_resource(self.href_admin)
         user = E.User(
             E.Description(description),
@@ -418,33 +442,52 @@ class Org(object):
             user)
 
     def list_roles(self):
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        resource_type = 'adminRole'
+        """
+        Retrieve the list of role in the current Org
+        :return: List of roles in the current Org
+        """  # NOQA
+        roles_query, resource_type = self.get_roles_query()
         result = []
-        q = self.client.get_typed_query(
-            resource_type,
-            query_result_format=QueryResultFormat.ID_RECORDS,
-            qfilter='orgName==%s' %
-                    self.resource.get('name'))
-        records = list(q.execute())
-        for r in records:
+        for r in list(roles_query.execute()):
             result.append(to_dict(r,
                                   resource_type=resource_type,
-                                  exclude=['org']))
+                                  exclude=['org', 'orgName', 'href']))
         return result
 
     def get_role(self, role_name):
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        resource_type = 'adminRole'
+        """
+        Retrieve role object with a particular name in the current Org
+        :param role_name: (str): The name of the role object to be retrieved
+        :return: (QueryResultRoleRecordType): Role query result in records 
+                 format 
+        """  # NOQA
         try:
-            role = self.client.get_typed_query(
-                resource_type,
-                query_result_format=QueryResultFormat.RECORDS,
-                equality_filter=('name', role_name),
-                qfilter='orgName==%s' %
-                        self.resource.get('name')).find_unique()
-            return role
+            roles_query = self.get_roles_query(('name', role_name))[0]
+            return roles_query.find_unique()
         except MissingRecordException:
             raise Exception('Role \'%s\' does not exist.' % role_name)
+
+    def get_roles_query(self, name_filter=None):
+        """
+        Get the typed query for the roles in the current Org
+        :param name_filter: (tuple): (name ,'role name') Filter the roles by
+                             'role name'
+        :return: (tuple of (_TypedQuery, str))
+                  _TypedQuery object represents the query for the roles in 
+                  the current Org
+                  str represents the resource type of the query object
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        org_filter = None
+        if self.is_admin:
+            resource_type = 'adminRole'
+            org_filter = 'orgName==%s' % self.resource.get('name')
+        else:
+            resource_type = 'role'
+        query = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter,
+            qfilter=org_filter)
+        return query, resource_type

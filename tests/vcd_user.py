@@ -9,7 +9,7 @@ from pyvcloud.vcd.test import TestCase
 class TestUser(TestCase):
     def test_create_user(self):
         logged_in_org = self.client.get_org()
-        org = Org(self.client, resource=logged_in_org)
+        org = Org(self.client, resource=logged_in_org, is_admin=True)
         role = org.get_role(self.config['vcd']['role_name'])
         role_href = role.get('href')
         user_name = self.config['vcd']['user_name'].join(

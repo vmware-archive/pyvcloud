@@ -384,27 +384,27 @@ class Org(object):
                     is_alert_enabled=False, is_enabled=False):
         """
         Create User in the current Org
-        :param user_name: username of the user
-        :param password: password of the user
-        :param role_href: href of the user role
-        :param full_name: full name of the user
-        :param description: description
-        :param email: email of the user
-        :param telephone: telephone of the user
-        :param im: im address of user
-        :param alert_email: alert email address
-        :param alert_email_prefix: String to prepend to the alert message 
+        :param user_name: The username of the user
+        :param password: The password of the user
+        :param role_href: The href of the user role
+        :param full_name: The full name of the user
+        :param description: The description for the User
+        :param email: The email of the user
+        :param telephone: The telephone of the user
+        :param im: The im address of the user
+        :param alert_email: The alert email address
+        :param alert_email_prefix: The string to prepend to the alert message 
                 subject line
-        :param stored_vm_quota: Quota of vApps that this user can store
-        :param deployed_vm_quota: Quota of vApps that this user can deploy 
+        :param stored_vm_quota: The quota of vApps that this user can store
+        :param deployed_vm_quota: The quota of vApps that this user can deploy 
                 concurrently
         :param is_group_role: Indicates if the user has a group role
         :param is_default_cached: Indicates if user should be cached
         :param is_external: Indicates if user is imported from an external 
                 source
-        :param is_alert_enabled: Alert email address
+        :param is_alert_enabled: The alert email address
         :param is_enabled: Enable user
-        :return: (UserType) created user object
+        :return: (UserType) Created user object
         """  # NOQA
         resource_admin = self.client.get_resource(self.href_admin)
         user = E.User(
@@ -434,7 +434,7 @@ class Org(object):
     def list_roles(self):
         """
         Retrieve the list of role in the current Org
-        :return: list of roles in the current Org
+        :return: List of roles in the current Org
         """  # NOQA
         roles_query, resource_type = self.get_roles_query()
         result = []
@@ -448,7 +448,7 @@ class Org(object):
         """
         Retrieve role object with a particular name in the current Org
         :param role_name: (str): The name of the role object to be retrieved
-        :return: (QueryResultRoleRecordType): role query result in records 
+        :return: (QueryResultRoleRecordType): Role query result in records 
                  format 
         """  # NOQA
         try:
@@ -460,7 +460,7 @@ class Org(object):
     def get_roles_query(self, name_filter=None):
         """
         Get the typed query for the roles in the current Org
-        :param name_filter: (tuple): (name ,'role name') filter the roles by
+        :param name_filter: (tuple): (name ,'role name') Filter the roles by
                              'role name'
         :return: (tuple of (_TypedQuery, str))
                   _TypedQuery object represents the query for the roles in 

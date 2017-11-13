@@ -30,6 +30,7 @@ import tarfile
 import tempfile
 import time
 import traceback
+import pprint
 
 
 DEFAULT_CHUNK_SIZE = 1024*1024
@@ -105,6 +106,28 @@ class Org(object):
         for link in links:
             if name == link.name:
                 return self.client.get_resource(link.href)
+        raise Exception('Catalog not found.')
+
+    def update_catalog(self, old_catalog_name, new_catalog_name, description):
+        org = self.client.get_resource(self.href)
+        links = get_links(org,
+                          rel=RelationType.DOWN,
+                          media_type=EntityType.CATALOG.value)
+        for link in links:
+            if old_catalog_name == link.name:
+                catalog = self.client.get_resource(link.href)
+                href = catalog.get('href')
+                admin_href = href.replace('/api/catalog/', '/api/admin/catalog/')
+                catalog = self.client.get_resource(admin_href)
+                if new_catalog_name is not None:
+                    catalog.set('name',new_catalog_name)
+                if description is not None:
+                    catalog['Description'] = E.Description(description)
+                return self.client.put_resource(
+                    admin_href,
+                    catalog,
+                    media_type=EntityType.ADMIN_CATALOG.value
+                    )
         raise Exception('Catalog not found.')
 
     def share_catalog(self, name, share=True):

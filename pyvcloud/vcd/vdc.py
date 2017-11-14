@@ -391,7 +391,13 @@ class VDC(object):
             EntityType.DISK_CREATE_PARMS.value,
             diskParms)
 
-    def update_disk(self, name, size, new_name=None, description=None, storage_profile_name=None, iops=None,
+    def update_disk(self,
+                    name,
+                    size,
+                    new_name=None,
+                    description=None,
+                    storage_profile_name=None,
+                    iops=None,
                     disk_id=None):
         """
         Update an existing independent disk.
@@ -424,7 +430,8 @@ class VDC(object):
             storage_profile = self.get_storage_profile(storage_profile_name)
             sp = etree.XML(etree.tostring(storage_profile, pretty_print=True))
             sp_href = sp.attrib['href']
-            diskParms.append(E.StorageProfile(href=sp_href, name=storage_profile_name))
+            diskParms.append(E.StorageProfile(href=sp_href,
+                                              name=storage_profile_name))
             print(etree.tostring(diskParms, pretty_print=True))
 
         if disk is None:

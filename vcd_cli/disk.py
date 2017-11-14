@@ -202,7 +202,8 @@ def delete(ctx, name, disk_id):
               required=False,
               metavar='<id>',
               help='Disk id')
-def update(ctx, name, size, description, new_name, storage_profile, iops, disk_id):
+def update(ctx, name, size, description, new_name, storage_profile, iops,
+           disk_id):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')

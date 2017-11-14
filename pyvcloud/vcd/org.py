@@ -30,7 +30,6 @@ import tarfile
 import tempfile
 import time
 import traceback
-import pprint
 
 
 DEFAULT_CHUNK_SIZE = 1024*1024

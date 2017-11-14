@@ -10,7 +10,7 @@ class TestCatalogTeardown(TestCase):
 
     def test_delete_catalog(self):
         logged_in_org = self.client.get_org()
-        org = Org(self.client, org_resource=logged_in_org)
+        org = Org(self.client, resource=logged_in_org)
         catalog = org.delete_catalog(self.config['vcd']['catalog'])
 
 

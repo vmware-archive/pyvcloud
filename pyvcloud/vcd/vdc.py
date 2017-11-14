@@ -85,7 +85,8 @@ class VDC(object):
                          password=None,
                          cust_script=None,
                          vm_name=None,
-                         hostname=None):
+                         hostname=None,
+                         storage_profile=None):
         """
         Instantiate a vApp from a vApp template in a catalog.
         If customization parameters are provided, it will customize the VM and guest OS, taking some assumptions.
@@ -113,6 +114,7 @@ class VDC(object):
             It assumes one VM in the vApp.
         :param hostname: (str): When provided, set the hostname of the guest os.
             It assumes one VM in the vApp.
+        :param storage_profile: (str):
 
         :return:  A :class:`lxml.objectify.StringElement` object describing the new vApp.
         """  # NOQA
@@ -289,6 +291,15 @@ class VDC(object):
         vm_general_params.append(E.NeedsCustomization(needs_customization))
         sourced_item.append(vm_general_params)
         sourced_item.append(vm_instantiation_param)
+
+        if storage_profile is not None:
+            sp = self.get_storage_profile(storage_profile)
+            vapp_storage_profile = E.StorageProfile(
+                href=sp.get('href'),
+                id=sp.get('href').split('/')[-1],
+                type=sp.get('type'),
+                name=sp.get('name'))
+            sourced_item.append(vapp_storage_profile)
 
         # Cook the entire vApp Template instantiation element
         deploy_param = 'true' if deploy else 'false'
@@ -508,10 +519,7 @@ class VDC(object):
 
         if hasattr(self.resource, 'VdcStorageProfiles') and \
            hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
-            print("Profiles: " + str(etree.tostring(
-                self.resource.VdcStorageProfiles, pretty_print=True), "utf-8"))
             for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
-                print("Profile: %s" % profile.get('name'))
                 if profile.get('name') == profile_name:
                     return profile
 

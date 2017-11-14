@@ -39,11 +39,13 @@ class Cluster(object):
         else:
             raise Exception(json.loads(response.content))
 
-    def create_cluster(self, vdc, network_name, name, node_count=2):
+    def create_cluster(self, vdc, network_name, name, node_count=2,
+                       storage_profile=None):
         method = 'POST'
         uri = self._uri
         data = {'name': name, 'node_count': node_count, 'vdc': vdc,
-                'network': network_name}
+                'network': network_name,
+                'storage_profile': storage_profile}
         response = self.client._do_request_prim(
             method,
             uri,

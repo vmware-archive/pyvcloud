@@ -115,6 +115,8 @@ class Org(object):
         :param description: (str): The new description of the catalog.
         :return:  A :class:`lxml.objectify.StringElement` object describing the updated catalog.
         """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
         org = self.client.get_resource(self.href)
         links = get_links(org,
                           rel=RelationType.DOWN,

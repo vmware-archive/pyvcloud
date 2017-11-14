@@ -46,7 +46,8 @@ def vapp(ctx):
         vcd vapp create my-catalog my-template my-vapp \\
                  --cpu 4 --memory 4096 --disk-size 20000 \\
                  --network net1 --ip-allocation-mode pool \\
-                 --hostname myhost --accept-all-eulas
+                 --hostname myhost --accept-all-eulas \\
+                 --storage-profile '*'
             Create a new vApp with customized settings.
 \b
         vcd vapp delete my-vapp --yes --force
@@ -184,13 +185,21 @@ def list_vapps(ctx):
               default=None,
               metavar='<hostname>',
               help='Hostname')
+@click.option('storage_profile',
+              '-s',
+              '--storage-profile',
+              required=False,
+              default=None,
+              metavar='<storage-profile>',
+              help='Name of the storage profile for the vApp')
 @click.option('-a',
               '--accept-all-eulas',
               is_flag=True,
               default=False,
               help='Accept all EULAs')
 def create(ctx, catalog, template, name, network, memory, cpu, disk_size,
-           ip_allocation_mode, vm_name, hostname, accept_all_eulas):
+           ip_allocation_mode, vm_name, hostname, storage_profile,
+           accept_all_eulas):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
@@ -209,7 +218,8 @@ def create(ctx, catalog, template, name, network, memory, cpu, disk_size,
             cust_script=None,
             ip_allocation_mode=ip_allocation_mode,
             vm_name=vm_name,
-            hostname=hostname)
+            hostname=hostname,
+            storage_profile=storage_profile)
         stdout(vapp_resource.Tasks.Task[0], ctx)
     except Exception as e:
         stderr(e, ctx)

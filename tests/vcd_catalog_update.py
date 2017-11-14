@@ -19,6 +19,7 @@ class UpdateCatalog(TestCase):
         org = Org(self.client, resource=logged_in_org)
         catalog = org.update_catalog(self.config['vcd']['catalog'], self.config['vcd']['new_name'], self.config['vcd']['new_desc'])
         assert self.config['vcd']['new_name'] == catalog.get('name')
+        assert self.config['vcd']['new_desc'] == catalog['Description']
 
 if __name__ == '__main__':
     unittest.main()

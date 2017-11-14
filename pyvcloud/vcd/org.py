@@ -107,6 +107,7 @@ class Org(object):
                 return self.client.get_resource(link.href)
         raise Exception('Catalog not found.')
 
+    #update_catalog updates the catalog name and/or the catalog's description
     def update_catalog(self, old_catalog_name, new_catalog_name, description):
         org = self.client.get_resource(self.href)
         links = get_links(org,

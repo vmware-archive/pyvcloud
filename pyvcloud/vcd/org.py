@@ -107,8 +107,14 @@ class Org(object):
                 return self.client.get_resource(link.href)
         raise Exception('Catalog not found.')
 
-    #update_catalog updates the catalog name and/or the catalog's description
     def update_catalog(self, old_catalog_name, new_catalog_name, description):
+        """
+        Update the name and/or description of a catalog.
+        :param old_catalog_name: (str): The current name of the catalog.
+        :param new_catalog_name: (str): The new name of the catalog.
+        :param description: (str): The new description of the catalog.
+        :return:  A :class:`lxml.objectify.StringElement` object describing the updated catalog.
+        """
         org = self.client.get_resource(self.href)
         links = get_links(org,
                           rel=RelationType.DOWN,

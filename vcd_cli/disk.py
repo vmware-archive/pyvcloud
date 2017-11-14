@@ -47,7 +47,7 @@ def disk(ctx):
             Delete an existing independent disk named 'disk1'.
 \b
         vcd disk update disk1 15
-            Update an existing independent disk updating its size and storage profile.
+            Update an existing independent disk with new size, iops, description, name and storage profile.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -93,7 +93,7 @@ def list_disks(ctx):
         for disk in disks:
             result.append({'name': disk.get('name'),
                            'id': extract_id(disk.get('id')),
-                           'size_MB': disk.get('size'),
+                           'size_bytes': disk.get('size'),
                            'status': VCLOUD_STATUS_MAP.get(int(
                                 disk.get('status')))})
         stdout(result, ctx, show_id=True)
@@ -101,7 +101,7 @@ def list_disks(ctx):
         stderr(e, ctx)
 
 
-@disk.command(short_help='create a disk')
+@disk.command(short_help='create a disk with name and size(bytes)')
 @click.pass_context
 @click.argument('name',
                 metavar='<name>',
@@ -183,6 +183,13 @@ def delete(ctx, name, disk_id):
               required=False,
               metavar='<new-name>',
               help='New name')
+@click.option('iops',
+              '-i',
+              '--iops',
+              required=False,
+              metavar='<iops>',
+              default=None,
+              help='iops')
 @click.option('storage_profile',
               '-s',
               '--storage-profile',
@@ -195,16 +202,17 @@ def delete(ctx, name, disk_id):
               required=False,
               metavar='<id>',
               help='Disk id')
-def update(ctx, name, size, description, new_name, storage_profile, disk_id):
+def update(ctx, name, size, description, new_name, storage_profile, iops, disk_id):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
         task = vdc.update_disk(name,
                                size,
-                               new_name,
+                               new_name=new_name,
                                description=description,
                                storage_profile_name=storage_profile,
+                               iops=iops,
                                disk_id=disk_id)
         stdout(task, ctx)
     except Exception as e:

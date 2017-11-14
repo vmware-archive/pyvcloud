@@ -126,14 +126,14 @@ class Org(object):
                 catalog = self.client.get_resource(link.href)
                 href = catalog.get('href')
                 admin_href = href.replace('/api/catalog/', '/api/admin/catalog/')
-                catalog = self.client.get_resource(admin_href)
+                adminViewOfCatalog = self.client.get_resource(admin_href)
                 if new_catalog_name is not None:
-                    catalog.set('name',new_catalog_name)
+                    adminViewOfCatalog.set('name',new_catalog_name)
                 if description is not None:
-                    catalog['Description'] = E.Description(description)
+                    adminViewOfCatalog['Description'] = E.Description(description)
                 return self.client.put_resource(
                     admin_href,
-                    catalog,
+                    adminViewOfCatalog,
                     media_type=EntityType.ADMIN_CATALOG.value
                     )
         raise Exception('Catalog not found.')

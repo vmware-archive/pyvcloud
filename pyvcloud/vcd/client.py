@@ -242,6 +242,7 @@ class EntityType(Enum):
     ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
+    OWNER = 'application/vnd.vmware.vcloud.owner+xml'
     PUBLISH_CATALOG_PARAMS = \
         'application/vnd.vmware.admin.publishCatalogParams+xml'
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'

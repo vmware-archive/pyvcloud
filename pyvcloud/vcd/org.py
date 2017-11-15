@@ -118,6 +118,27 @@ class Org(object):
                 return self.client.get_resource(link.href)
         raise Exception('Catalog not found.')
 
+    def get_user(self, user_name):
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        resource_type = 'adminUser' if self.is_admin else 'user'
+        org_filter = 'org==%s' % self.resource.get('href') if self.is_admin else None
+        result = []
+        q = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.REFERENCES,
+            equality_filter=('name', user_name),
+            qfilter=org_filter
+            )
+        records = list(q.execute())
+        if len(records) == 0:
+            raise Exception('user not found')
+        elif len(records) > 1:
+            raise Exception('multiple users found')
+        return self.client.get_resource(records[0].get('href'))
+
+
+
     def share_catalog(self, name, share=True):
         catalog = self.get_catalog(name)
         is_published = 'true' if share else 'false'

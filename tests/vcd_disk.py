@@ -95,7 +95,10 @@ class TestDisk(TestCase):
         v = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, href=v.get('href'))
 
-        taskObj = vdc.update_disk(self.config['vcd']['disk'], "3072", "DiskUpdated", "3 GB Disk", "stf-storage-service-gold", "200")
+        taskObj = vdc.update_disk(self.config['vcd']['disk'], "3072", "DiskUpdated",
+                                  "3 GB Disk",
+                                  "stf-storage-service-gold",
+                                  "200")
 
         task = self.client.get_task_monitor().wait_for_status(
             task=taskObj,

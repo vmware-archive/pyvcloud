@@ -404,7 +404,7 @@ class VDC(object):
         :param name: (str): The existing name of the Disk.
         :param size: (str): The size of the new disk in MB.
         :param new_name: (str): The new name for the Disk.
-        :param iops: (str): The iops for the disk. 
+        :param iops: (str): The new iops for the disk. 
         :param storage_profile_name: (str): The storage profile that the disk belongs to.
         :param description: (str): A description of the new disk.
         :param disk_id: (str): The disk_id of the existing disk.

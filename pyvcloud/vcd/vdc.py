@@ -432,8 +432,6 @@ class VDC(object):
             sp_href = sp.attrib['href']
             diskParms.append(E.StorageProfile(href=sp_href,
                                               name=storage_profile_name))
-            print(etree.tostring(diskParms, pretty_print=True))
-
         if disk is None:
             raise Exception('Could not locate Disk %s for update. ' % disk_id)
 

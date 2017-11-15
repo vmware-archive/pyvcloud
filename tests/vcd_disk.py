@@ -71,7 +71,7 @@ class TestDisk(TestCase):
         vdc = VDC(self.client, href=v.get('href'))
 
         
-        taskObj = vdc.update_disk(self.config['vcd']['disk'], "20", "DiskDisk1a", "20 MB Disk")
+        taskObj = vdc.update_disk(self.config['vcd']['disk'], "3072", "DiskUpdated", "3 GB Disk")
         
         task = self.client.get_task_monitor().wait_for_status(
                                 task=taskObj,
@@ -87,8 +87,57 @@ class TestDisk(TestCase):
         assert task.get('status') == TaskStatus.SUCCESS.value
 
         print ("Updating VDC disk: " + str(etree.tostring(task, pretty_print=True), "utf-8"))
- 
 
+    def test_008_update_disk_iops(self):
+        logged_in_org = self.client.get_org()
+
+        org = Org(self.client, resource=logged_in_org)
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=v.get('href'))
+
+        taskObj = vdc.update_disk(self.config['vcd']['disk'], "3072", "DiskUpdated",
+                                  "3 GB Disk",
+                                  "stf-storage-service-gold",
+                                  "200")
+
+        task = self.client.get_task_monitor().wait_for_status(
+            task=taskObj,
+            timeout=30,
+            poll_frequency=2,
+            fail_on_status=None,
+            expected_target_statuses=[
+                TaskStatus.SUCCESS,
+                TaskStatus.ABORTED,
+                TaskStatus.ERROR,
+                TaskStatus.CANCELED],
+            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
+        print ("Updating VDC disk: " + str(etree.tostring(task, pretty_print=True), "utf-8"))
+
+    def test_008_update_disk_storage_profile(self):
+        logged_in_org = self.client.get_org()
+
+        org = Org(self.client, resource=logged_in_org)
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=v.get('href'))
+
+        taskObj = vdc.update_disk(self.config['vcd']['disk'], "3072", "DiskUpdated", "3 GB Disk", "*", "200")
+
+        task = self.client.get_task_monitor().wait_for_status(
+            task=taskObj,
+            timeout=30,
+            poll_frequency=2,
+            fail_on_status=None,
+            expected_target_statuses=[
+                TaskStatus.SUCCESS,
+                TaskStatus.ABORTED,
+                TaskStatus.ERROR,
+                TaskStatus.CANCELED],
+            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
+        print ("Updating VDC disk: " + str(etree.tostring(task, pretty_print=True), "utf-8"))
 
     def test_008_get_disk_by_id(self):
 

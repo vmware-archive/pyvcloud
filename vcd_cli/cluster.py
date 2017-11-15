@@ -34,16 +34,17 @@ def cluster(ctx):
         vcd cluster list
             Get list of kubernetes clusters in current virtual datacenter.
 \b
-        vcd cluster create dev-cluster
+        vcd cluster create dev-cluster --network net1
             Create a kubernetes cluster in current virtual datacenter.
 \b
-        vcd cluster create prod-cluster --nodes 4
+        vcd cluster create prod-cluster --nodes 4 \\
+                    --network net1 --storage-profile '*'
             Create a kubernetes cluster with 4 worker nodes.
 \b
         vcd cluster delete dev-cluster
             Delete a kubernetes cluster by name.
 \b
-        vcd cluster create c1 --nodes 0
+        vcd cluster create c1 --nodes 0 --network net1
             Create a single node kubernetes cluster for dev/test.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
@@ -94,7 +95,14 @@ def list(ctx):
               required=False,
               metavar='<network>',
               help='Network name')
-def create(ctx, name, node_count, network_name):
+@click.option('storage_profile',
+              '-s',
+              '--storage-profile',
+              required=False,
+              default=None,
+              metavar='<storage-profile>',
+              help='Name of the storage profile for the nodes')
+def create(ctx, name, node_count, network_name, storage_profile):
     try:
         client = ctx.obj['client']
         cluster = Cluster(client)
@@ -102,7 +110,8 @@ def create(ctx, name, node_count, network_name):
                     ctx.obj['profiles'].get('vdc_in_use'),
                     network_name,
                     name,
-                    node_count)
+                    node_count=node_count,
+                    storage_profile=storage_profile)
         stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)

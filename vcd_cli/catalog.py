@@ -73,6 +73,9 @@ def catalog(ctx):
 \b
         vcd catalog unshare my-catalog
             Stop sharing a catalog.
+\b
+        vcd catalog update my-catalog -n 'new name' -d 'new description'
+            Update the name and/or description of a catalog.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -111,6 +114,31 @@ def info(ctx, catalog_name, item_name):
     except Exception as e:
         stderr(e, ctx)
 
+@catalog.command(short_help='rename catalog and/or change catalog description')
+@click.pass_context
+@click.argument('catalog-name',
+                metavar='<catalog-name>',
+                required=True)
+@click.option('-n',
+              '--new_catalog_name',
+              required=False,
+              default=None,
+              metavar='[new-catalog-name]')
+@click.option('-d',
+              '--description',
+              required=False,
+              default=None,
+              metavar='[description]')
+def update(ctx, catalog_name, new_catalog_name, description):
+    try:
+        client = ctx.obj['client']
+        org_name = ctx.obj['profiles'].get('org')
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, org_name == 'System')
+        result = org.update_catalog(catalog_name, new_catalog_name, description)
+        stdout('Catalog update successful', ctx)
+    except Exception as e:
+        stderr(e, ctx)
 
 @catalog.command('list', short_help='list catalogs or items')
 @click.pass_context

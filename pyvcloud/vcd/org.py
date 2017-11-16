@@ -114,7 +114,7 @@ class Org(object):
         :param new_catalog_name: (str): The new name of the catalog.
         :param description: (str): The new description of the catalog.
         :return:  A :class:`lxml.objectify.StringElement` object describing the updated catalog.
-        """
+        """ # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         org = self.client.get_resource(self.href)

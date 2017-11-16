@@ -73,6 +73,12 @@ def vapp(ctx):
 \b
         vcd vapp capture my-vapp my-catalog
             Capture a vApp as a template in a catalog.
+\b
+        vcd vapp attach my-vapp my-vm disk-name
+            Attach a disk to a vm in the given vapp.
+\b
+        vcd vapp detach my-vapp my-vm disk-name
+            Detach a disk from a vm in the given vapp.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -98,6 +104,64 @@ def info(ctx, name):
         vapp = VApp(client, resource=vapp_resource)
         md = vapp.get_metadata()
         stdout(vapp_to_dict(vapp_resource, md), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command(short_help='Attach disk to VM in vApp')
+@click.pass_context
+@click.argument('vapp_name',
+                metavar='<vapp_name>',
+                required=True)
+@click.argument('vm-name',
+                metavar='<vm-name>',
+                required=True)
+@click.argument('disk-name',
+                metavar='<disk-name>',
+                required=True)
+def attach(ctx, vapp_name, vm_name, disk_name):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        disk = vdc.get_disk(disk_name)
+        vapp_resource = vdc.get_vapp(vapp_name)
+        vapp = VApp(client, resource=vapp_resource)
+        task = vapp.attach_disk_to_vm(
+            disk_href=disk.get('href'),
+            disk_type=disk.get('type'),
+            disk_name=disk_name,
+            vm_name=vm_name)
+        stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command(short_help='Detach disk from VM in vApp')
+@click.pass_context
+@click.argument('vapp_name',
+                metavar='<vapp_name>',
+                required=True)
+@click.argument('vm-name',
+                metavar='<vm-name>',
+                required=True)
+@click.argument('disk-name',
+                metavar='<disk-name>',
+                required=True)
+def detach(ctx, vapp_name, vm_name, disk_name):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        disk = vdc.get_disk(disk_name)
+        vapp_resource = vdc.get_vapp(vapp_name)
+        vapp = VApp(client, resource=vapp_resource)
+        task = vapp.detach_disk_from_vm(
+            disk_href=disk.get('href'),
+            disk_type=disk.get('type'),
+            disk_name=disk_name,
+            vm_name=vm_name)
+        stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)
 

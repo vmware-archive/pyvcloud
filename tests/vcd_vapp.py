@@ -8,10 +8,11 @@ from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.test import TestCase
 from pyvcloud.vcd.vdc import VDC
+from pyvcloud.vcd.vapp import VApp
 
 class TestVApp(TestCase):
 
-    def test_010_instantiate_vapp(self):
+    def test_001_instantiate_vapp(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
@@ -61,27 +62,7 @@ class TestVApp(TestCase):
                             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
 
-    def test_100_delete_vapp(self):
-        logged_in_org = self.client.get_org()
-        org = Org(self.client, resource=logged_in_org)
-        v = org.get_vdc(self.config['vcd']['vdc'])
-        vdc = VDC(self.client, href=v.get('href'))
-        assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
-        result = vdc.delete_vapp(self.config['vcd']['vapp'], force=True)
-        task = self.client.get_task_monitor().wait_for_status(
-                            task=result,
-                            timeout=60,
-                            poll_frequency=2,
-                            fail_on_status=None,
-                            expected_target_statuses=[
-                                TaskStatus.SUCCESS,
-                                TaskStatus.ABORTED,
-                                TaskStatus.ERROR,
-                                TaskStatus.CANCELED],
-                            callback=None)
-        assert task.get('status') == TaskStatus.SUCCESS.value
-
-    def test_110_instantiate_vapp_identical(self):
+    def test_100_instantiate_vapp_identical(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
@@ -116,7 +97,32 @@ class TestVApp(TestCase):
         assert len(vm) > 0
         assert vm[0].get('name') == self.config['vcd']['vm']
 
-    def test_111_instantiate_vapp_custom_disk_size(self):
+    def test_101_attach_disk_to_vm_in_vapp(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+        assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
+        vapp = vdc.get_vapp(self.config['vcd']['vapp'])
+        assert self.config['vcd']['vapp'] == vapp.get('name')
+        vapp_instance = VApp(self.client, resource=vapp)
+        disk = vdc.get_disk(self.config['vcd']['disk'])
+        vm_name = self.config['vcd']['vm']
+        result = vapp_instance.attach_disk_to_vm(disk.get('href'), disk.get('type'), disk.get('name'), vm_name)
+        task = self.client.get_task_monitor().wait_for_status(
+                            task=result,
+                            timeout=60,
+                            poll_frequency=2,
+                            fail_on_status=None,
+                            expected_target_statuses=[
+                                TaskStatus.SUCCESS,
+                                TaskStatus.ABORTED,
+                                TaskStatus.ERROR,
+                                TaskStatus.CANCELED],
+                            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
+    def test_110_instantiate_vapp_custom_disk_size(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
@@ -150,7 +156,7 @@ class TestVApp(TestCase):
         assert len(vms) > 0
 
         items = vms[0].xpath('//ovf:VirtualHardwareSection/ovf:Item',
-            namespaces={'ovf': NSMAP['ovf']})
+                             namespaces={'ovf': NSMAP['ovf']})
         assert len(items) > 0
 
         found_disk = False
@@ -158,7 +164,7 @@ class TestVApp(TestCase):
             if item['{' + NSMAP['rasd'] + '}ResourceType'] == 17:  # NOQA
                 found_disk = True
                 assert item['{' + NSMAP['rasd'] + '}VirtualQuantity'] == \
-                (self.config['vcd']['disk_size_new'] * 1024 * 1024)
+                       (self.config['vcd']['disk_size_new'] * 1024 * 1024)
                 break
 
         # this check makes sure that the vm isn't disk-less
@@ -166,6 +172,51 @@ class TestVApp(TestCase):
 
         # cleanup
         self.test_100_delete_vapp()
+
+    def test_111_detach_disk_from_vm_in_vapp(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+        assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
+        vapp = vdc.get_vapp(self.config['vcd']['vapp'])
+        assert self.config['vcd']['vapp'] == vapp.get('name')
+        vapp_instance = VApp(self.client, resource=vapp)
+        disk = vdc.get_disk(self.config['vcd']['disk'])
+        vm_name = self.config['vcd']['vm']
+        result = vapp_instance.detach_disk_from_vm(disk.get('href'), disk.get('type'), disk.get('name'), vm_name)
+        task = self.client.get_task_monitor().wait_for_status(
+                            task=result,
+                            timeout=60,
+                            poll_frequency=2,
+                            fail_on_status=None,
+                            expected_target_statuses=[
+                                TaskStatus.SUCCESS,
+                                TaskStatus.ABORTED,
+                                TaskStatus.ERROR,
+                                TaskStatus.CANCELED],
+                            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
+    def test_1000_delete_vapp(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=v.get('href'))
+        assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
+        result = vdc.delete_vapp(self.config['vcd']['vapp'], force=True)
+        task = self.client.get_task_monitor().wait_for_status(
+                            task=result,
+                            timeout=60,
+                            poll_frequency=2,
+                            fail_on_status=None,
+                            expected_target_statuses=[
+                                TaskStatus.SUCCESS,
+                                TaskStatus.ABORTED,
+                                TaskStatus.ERROR,
+                                TaskStatus.CANCELED],
+                            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
 
 if __name__ == '__main__':
     unittest.main()

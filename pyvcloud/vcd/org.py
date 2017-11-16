@@ -117,7 +117,7 @@ class Org(object):
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        org = self.client.get_resource(self.href)
+        org = self.resource
         links = get_links(org,
                           rel=RelationType.DOWN,
                           media_type=EntityType.CATALOG.value)

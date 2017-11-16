@@ -173,3 +173,55 @@ class VApp(object):
                 EntityType.NETWORK_CONNECTION_SECTION.value,
                 self.resource.Children.Vm[0].NetworkConnectionSection
                 )
+
+    def attach_disk_to_vm(self, disk_href, disk_type, disk_name, vm_name):
+        """
+        Attach the independent disk to the VM with the given name in the vApp within a Virtual Data Center.
+        :param disk_href: (str): The href of the disk resource.
+        :param vm_name: (str): The name of the VM.
+        :return: (vmType)  A :class:`lxml.objectify.StringElement` object describing the requested VM.
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        diskAttachOrDetachParams = E.DiskAttachOrDetachParams(
+            E.Disk(type=disk_type, href=disk_href))
+        vm = self.getVmFromVApp(vm_name)
+        return self.client.post_linked_resource(
+            vm,
+            RelationType.DISK_ATTACH,
+            EntityType.DISK_ATTACH_DETACH_PARAMS.value,
+            diskAttachOrDetachParams)
+
+    def detach_disk_from_vm(self, disk_href, disk_type, disk_name, vm_name):
+        """
+        Detach the independent disk from the VM with the given name in the vApp within a Virtual Data Center.
+        :param disk_href: (str): The href of the disk resource.
+        :param vm_name: (str): The name of the VM.
+        :return: (vmType)  A :class:`lxml.objectify.StringElement` object describing the requested VM.
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        diskAttachOrDetachParams = E.DiskAttachOrDetachParams(
+            E.Disk(type=disk_type, href=disk_href))
+        vm = self.getVmFromVApp(vm_name)
+        return self.client.post_linked_resource(
+            vm,
+            RelationType.DISK_DETACH,
+            EntityType.DISK_ATTACH_DETACH_PARAMS.value,
+            diskAttachOrDetachParams)
+
+    def getVmFromVApp(self, vm_name):
+        """
+        Retrieve the VM with the given name in the vApp within a Virtual Data Center.
+        :param vm_name: (str): The name of the VM.
+        :return: (vmType)  A :class:`lxml.objectify.StringElement` object describing the requested VM.
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        if hasattr(self.resource, 'Children') and \
+           hasattr(self.resource.Children, 'Vm') and \
+           len(self.resource.Children.Vm) > 0:
+                    for vm in self.resource.Children.Vm:
+                        if vm.get('name') == vm_name:
+                            return vm
+        raise Exception('can\'t find VM')

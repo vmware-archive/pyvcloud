@@ -18,6 +18,30 @@ In general, `vcd-cli` can be installed with:
 $ pip install --user vcd-cli
 ```
 
+**Note** : To get a working setup on vanilla Ubuntu (tested with 16.04.03 LTS and Ubuntu 17.10 ) :
+
+1. Optionally set up a virtual environment to test out vcd-cli.
+
+``` shell
+sudo apt-get install python3-venv
+python3 -m venv vcd-cli
+. vcd-cli/bin/activate
+```
+2. The following commands set up a full environment on ubuntu.
+
+
+``` shell
+# Install gcc and Python3 headers required for pip installation.
+sudo apt-get install gcc python3-dev
+# Install wheel.  This has to be done first or you will get
+# messages that say: error: invalid command 'bdist_wheel'
+pip install wheel
+# Install vcd-cli
+pip install vcd-cli
+# Test vcd-cli
+vcd version
+```
+
 The module contains two commands:
 
 - `vca` the current cli

@@ -20,6 +20,7 @@ from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
 from vcd_cli.utils import is_admin
+from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -340,6 +341,28 @@ def update_lease(ctx, name, runtime_seconds, storage_seconds):
     except Exception as e:
         stderr(e, ctx)
 
+@vapp.command('change-owner', short_help='change vApp owner')
+@click.pass_context
+@click.argument('vapp-name',
+                metavar='<vapp-name>',
+                required=True)
+@click.argument('user-name',
+                metavar='<user-name>',
+                required=True)
+def change_owner(ctx, vapp_name, user_name):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, is_sysadmin(ctx))
+        user_resource = org.get_user(user_name)
+        vapp_resource = vdc.get_vapp(vapp_name)
+        vapp = VApp(client, resource=vapp_resource)
+        vapp.change_owner(user_resource.get('href'))
+        stdout('vapp owner changed', ctx)
+    except Exception as e:
+        stderr(e, ctx)
 
 @vapp.command('power-off', short_help='power off a vApp')
 @click.pass_context

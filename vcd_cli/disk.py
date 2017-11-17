@@ -14,9 +14,11 @@
 
 import click
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
+from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import disk_to_dict
 from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.vdc import VDC
+from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -216,5 +218,32 @@ def update(ctx, name, size, description, new_name, storage_profile, iops,
                                iops=iops,
                                disk_id=disk_id)
         stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+@disk.command('change-owner', short_help='change owner of disk')
+@click.pass_context
+@click.argument('disk-name',
+                metavar='<disk-name>',
+                required=True)
+@click.argument('user_name',
+                metavar='<user_name>',
+                required=True)
+@click.option('-i',
+              '--id',
+              'disk_id',
+              required=False,
+              metavar='<id>',
+              help='Disk id')
+def change_disk_owner(ctx, disk_name, user_name, disk_id):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, is_sysadmin(ctx))
+        user_resource = org.get_user(user_name)
+        disk = vdc.change_disk_owner(disk_name, user_resource.get('href'), disk_id)
+        stdout('disk owner changed', ctx)
     except Exception as e:
         stderr(e, ctx)

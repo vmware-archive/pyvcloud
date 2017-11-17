@@ -227,6 +227,7 @@ class EntityType(Enum):
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
     CAPTURE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.captureVAppParams+xml'
+    CONTROL_ACCESS_PARAMS =  'application/vnd.vmware.vcloud.controlAccess+xml'
     DISK = 'application/vnd.vmware.vcloud.disk+xml'
     DISK_ATTACH_DETACH_PARAMS = 'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'
     DISK_CREATE_PARMS = 'application/vnd.vmware.vcloud.diskCreateParams+xml'

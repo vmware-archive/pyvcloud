@@ -26,6 +26,7 @@ from pyvcloud.vcd.client import MissingRecordException
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.utils import to_dict
+from pyvcloud.vcd.utils import access_settings_to_dict
 import shutil
 import tarfile
 import tempfile
@@ -522,3 +523,26 @@ class Org(object):
             equality_filter=name_filter,
             qfilter=org_filter)
         return query, resource_type
+
+    def get_catalog_access_control_settings(self, catalog_name):
+        """
+        Get the access control settings of a catalog.
+        :param catalog_name: (str): The name of the catalog.
+        :param catalog_id: (str): The unique identifier of the catalog.
+        :return: Access control settings of the catalog
+        """  # NOQA
+        catalog_resource = self.get_catalog(name=catalog_name)
+        control_access = self.client.get_linked_resource(catalog_resource,
+                                        RelationType.DOWN,
+                                        EntityType.CONTROL_ACCESS_PARAMS.value)
+        catalog_control_access_result =[]
+        access_settings = []
+        if hasattr(control_access, 'AccessSettings') and \
+           hasattr(control_access.AccessSettings, 'AccessSetting') and \
+           len(control_access.AccessSettings.AccessSetting) > 0:
+                        for access_setting in list(control_access.AccessSettings.AccessSetting):
+                            access_settings.append(access_settings_to_dict(access_setting))
+        result = to_dict(control_access)
+        if len(access_settings) > 0:
+            result['AccessSettings'] = access_settings
+        return result

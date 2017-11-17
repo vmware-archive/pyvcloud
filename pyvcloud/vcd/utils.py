@@ -241,6 +241,15 @@ def disk_to_dict(disk):
         result['storageProfile'] = disk.StorageProfile.get('name')
     return result
 
+def access_settings_to_dict(access_setting):
+    result = {}
+    if hasattr(access_setting, 'Subject'):
+        result['subject_name'] = access_setting.Subject.get('name')
+        result['subject_href'] = access_setting.Subject.get('href')
+    if hasattr(access_setting, 'AccessLevel'):
+        result['access_level'] = access_setting.AccessLevel
+    return result
+
 
 def filter_attributes(resource_type):
     attributes = None
@@ -291,6 +300,9 @@ def to_dict(obj,
         if e in result.keys():
             result.pop(e)
     return result
+
+def print_pretty(list_map):
+    result = {}
 
 
 def to_camel_case(name, names):

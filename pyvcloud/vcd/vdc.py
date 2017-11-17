@@ -510,7 +510,13 @@ class VDC(object):
         return None
 
     def change_disk_owner(self, name, user_href, disk_id=None):
-
+        """
+        Change the ownership of an independent disk to a given user.
+        :param name: Name of the independent disk.
+        :param user_href: Href of the new Owner or User.
+        :param disk_id: Disk Id (Required if there are multiple disks with same name).
+        :return: None
+        """ # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 

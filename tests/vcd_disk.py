@@ -186,7 +186,8 @@ class TestDisk(TestCase):
         vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
         user_resource = org.get_user(self.config['vcd']['new_disk_user'])
         vdc = VDC(self.client, href=vdc_resource.get('href'))
-        disk = vdc.change_disk_owner(self.config['vcd']['disk'], user_resource.get('href'), self.config['vcd']['disk_id'])
+        disk = vdc.change_disk_owner(self.config['vcd']['disk'],
+                                     user_resource.get('href'), self.config['vcd']['disk_id'])
         disk_resource = vdc.get_disk(self.config['vcd']['disk'])
         new_user = disk_resource.Owner.User.get('name')
         assert self.config['vcd']['new_disk_user'] == disk_resource.Owner.User.get('name')

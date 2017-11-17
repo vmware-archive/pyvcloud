@@ -125,6 +125,11 @@ class VApp(object):
             EntityType.LEASE_SETTINGS.value)
 
     def change_owner(self, href):
+        """
+        Change the ownership of vApp to a given user.
+        :param href: Href of the new owner or user.
+        :return: None.
+        """ # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         new_owner = self.resource.Owner

@@ -124,6 +124,23 @@ class VApp(object):
             new_section,
             EntityType.LEASE_SETTINGS.value)
 
+    def change_owner(self, href):
+        """
+        Change the ownership of vApp to a given user.
+        :param href: Href of the new owner or user.
+        :return: None.
+        """ # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        new_owner = self.resource.Owner
+        new_owner.User.set('href', href)
+        objectify.deannotate(new_owner)
+        etree.cleanup_namespaces(new_owner)
+        return self.client.put_resource(
+            self.resource.get('href') + '/owner/',
+            new_owner,
+            EntityType.OWNER.value)
+
     def power_off(self):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

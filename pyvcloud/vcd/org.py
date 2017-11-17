@@ -141,6 +141,37 @@ class Org(object):
         elif len(records) > 1:
             raise Exception('multiple users found')
         return self.client.get_resource(records[0].get('href'))
+      
+    def update_catalog(self, old_catalog_name, new_catalog_name, description):
+        """
+        Update the name and/or description of a catalog.
+        :param old_catalog_name: (str): The current name of the catalog.
+        :param new_catalog_name: (str): The new name of the catalog.
+        :param description: (str): The new description of the catalog.
+        :return:  A :class:`lxml.objectify.StringElement` object describing the updated catalog.
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        org = self.resource
+        links = get_links(org,
+                          rel=RelationType.DOWN,
+                          media_type=EntityType.CATALOG.value)
+        for link in links:
+            if old_catalog_name == link.name:
+                catalog = self.client.get_resource(link.href)
+                href = catalog.get('href')
+                admin_href = href.replace('/api/catalog/', '/api/admin/catalog/')
+                adminViewOfCatalog = self.client.get_resource(admin_href)
+                if new_catalog_name is not None:
+                    adminViewOfCatalog.set('name',new_catalog_name)
+                if description is not None:
+                    adminViewOfCatalog['Description'] = E.Description(description)
+                return self.client.put_resource(
+                    admin_href,
+                    adminViewOfCatalog,
+                    media_type=EntityType.ADMIN_CATALOG.value
+                    )
+        raise Exception('Catalog not found.')
 
     def share_catalog(self, name, share=True):
         catalog = self.get_catalog(name)

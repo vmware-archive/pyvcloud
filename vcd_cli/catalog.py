@@ -19,6 +19,7 @@ from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vapp import VApp
 from vcd_cli.utils import is_admin
+from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -360,5 +361,21 @@ def download(ctx, catalog_name, item_name, file_name, progress, overwrite):
                                                   task_callback=task_callback)
         result = {'file': save_as_name, 'size': bytes_written}
         stdout(result, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+@catalog.command(short_help='change the ownership of catalog')
+@click.pass_context
+@click.argument('catalog-name',
+                metavar='<catalog-name>')
+@click.argument('user-name',
+                metavar='<user-name>')
+def change_owner(ctx, catalog_name, user_name):
+    try:
+        client = ctx.obj['client']
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, is_sysadmin(ctx))
+        org.change_catalog_owner(catalog_name, user_name)
+        stdout('catalog owner changed', ctx)
     except Exception as e:
         stderr(e, ctx)

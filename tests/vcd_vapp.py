@@ -97,6 +97,20 @@ class TestVApp(TestCase):
         assert len(vm) > 0
         assert vm[0].get('name') == self.config['vcd']['vm']
 
+    def test_11_change_owner(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
+        user_resource = org.get_user(self.config['vcd']['new_vapp_user'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+        vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
+        vapp = VApp(self.client, resource=vapp_resource)
+        vapp.change_owner(user_resource.get('href'))
+
+        vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
+        new_user = vapp_resource.Owner.User.get('name')
+        assert self.config['vcd']['new_vapp_user'] == vapp_resource.Owner.User.get('name')
+
     def test_101_attach_disk_to_vm_in_vapp(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)

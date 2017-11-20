@@ -25,8 +25,9 @@ from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import MissingRecordException
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import access_settings_to_dict
+from pyvcloud.vcd.utils import to_dict
+
 import shutil
 import tarfile
 import tempfile
@@ -142,7 +143,7 @@ class Org(object):
         elif len(records) > 1:
             raise Exception('multiple users found')
         return self.client.get_resource(records[0].get('href'))
-      
+
     def update_catalog(self, old_catalog_name, new_catalog_name, description):
         """
         Update the name and/or description of a catalog.
@@ -161,12 +162,14 @@ class Org(object):
             if old_catalog_name == link.name:
                 catalog = self.client.get_resource(link.href)
                 href = catalog.get('href')
-                admin_href = href.replace('/api/catalog/', '/api/admin/catalog/')
+                admin_href = href.replace('/api/catalog/',
+                                          '/api/admin/catalog/')
                 adminViewOfCatalog = self.client.get_resource(admin_href)
                 if new_catalog_name is not None:
-                    adminViewOfCatalog.set('name',new_catalog_name)
+                    adminViewOfCatalog.set('name', new_catalog_name)
                 if description is not None:
-                    adminViewOfCatalog['Description'] = E.Description(description)
+                    adminViewOfCatalog['Description'] = E.Description(
+                        description)
                 return self.client.put_resource(
                     admin_href,
                     adminViewOfCatalog,
@@ -555,16 +558,18 @@ class Org(object):
         :return: Access control settings of the catalog.
         """  # NOQA
         catalog_resource = self.get_catalog(name=catalog_name)
-        control_access = self.client.get_linked_resource(catalog_resource,
-                                        RelationType.DOWN,
-                                        EntityType.CONTROL_ACCESS_PARAMS.value)
-        catalog_control_access_result =[]
+        control_access = self.client.get_linked_resource(
+            catalog_resource,
+            RelationType.DOWN,
+            EntityType.CONTROL_ACCESS_PARAMS.value)
         access_settings = []
         if hasattr(control_access, 'AccessSettings') and \
            hasattr(control_access.AccessSettings, 'AccessSetting') and \
            len(control_access.AccessSettings.AccessSetting) > 0:
-                        for access_setting in list(control_access.AccessSettings.AccessSetting):
-                            access_settings.append(access_settings_to_dict(access_setting))
+                        for access_setting in list(
+                                control_access.AccessSettings.AccessSetting):
+                            access_settings.append(access_settings_to_dict(
+                                access_setting))
         result = to_dict(control_access)
         if len(access_settings) > 0:
             result['AccessSettings'] = access_settings

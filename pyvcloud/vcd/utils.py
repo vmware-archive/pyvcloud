@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 from lxml import etree
 from lxml.objectify import NoneElement
 from pygments import formatters
@@ -22,7 +23,6 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
-import collections
 
 
 def extract_id(urn):
@@ -242,6 +242,7 @@ def disk_to_dict(disk):
         result['storageProfile'] = disk.StorageProfile.get('name')
     return result
 
+
 def access_settings_to_dict(access_setting):
     result = collections.OrderedDict()
     if hasattr(access_setting, 'Subject'):
@@ -301,9 +302,6 @@ def to_dict(obj,
         if e in result.keys():
             result.pop(e)
     return result
-
-def print_pretty(list_map):
-    result = {}
 
 
 def to_camel_case(name, names):

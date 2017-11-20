@@ -552,8 +552,7 @@ class Org(object):
         """
         Get the access control settings of a catalog.
         :param catalog_name: (str): The name of the catalog.
-        :param catalog_id: (str): The unique identifier of the catalog.
-        :return: Access control settings of the catalog
+        :return: Access control settings of the catalog.
         """  # NOQA
         catalog_resource = self.get_catalog(name=catalog_name)
         control_access = self.client.get_linked_resource(catalog_resource,

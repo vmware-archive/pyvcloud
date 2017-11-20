@@ -22,6 +22,7 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
+import collections
 
 
 def extract_id(urn):
@@ -242,10 +243,10 @@ def disk_to_dict(disk):
     return result
 
 def access_settings_to_dict(access_setting):
-    result = {}
+    result = collections.OrderedDict()
     if hasattr(access_setting, 'Subject'):
-        result['subject_name'] = access_setting.Subject.get('name')
-        result['subject_href'] = access_setting.Subject.get('href')
+        result['name'] = access_setting.Subject.get('name')
+        result['href'] = access_setting.Subject.get('href')
     if hasattr(access_setting, 'AccessLevel'):
         result['access_level'] = access_setting.AccessLevel
     return result

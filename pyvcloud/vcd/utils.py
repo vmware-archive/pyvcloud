@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 from lxml import etree
 from lxml.objectify import NoneElement
 from pygments import formatters
@@ -239,6 +240,16 @@ def disk_to_dict(disk):
         result['description'] = disk.Description
     if hasattr(disk, 'StorageProfile'):
         result['storageProfile'] = disk.StorageProfile.get('name')
+    return result
+
+
+def access_settings_to_dict(access_setting):
+    result = collections.OrderedDict()
+    if hasattr(access_setting, 'Subject'):
+        result['name'] = access_setting.Subject.get('name')
+        result['href'] = access_setting.Subject.get('href')
+    if hasattr(access_setting, 'AccessLevel'):
+        result['access_level'] = access_setting.AccessLevel
     return result
 
 

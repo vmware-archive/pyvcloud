@@ -114,6 +114,32 @@ def info(ctx, catalog_name, item_name):
     except Exception as e:
         stderr(e, ctx)
 
+
+@catalog.command(short_help='catalog control access details')
+@click.pass_context
+@click.argument('catalog-name',
+                metavar='<catalog-name>',
+                required=True)
+def control_access(ctx, catalog_name):
+    try:
+        client = ctx.obj['client']
+        org_name = ctx.obj['profiles'].get('org')
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, org_name == 'System')
+        control_access = org.get_catalog_access_control_settings(catalog_name)
+        stdout('Access Settings for catalog :' + catalog_name)
+        access_settings = control_access.get('AccessSettings')
+        del control_access['AccessSettings']
+        stdout(control_access, ctx)
+        stdout('')
+        if access_settings is not None:
+            stdout(access_settings, ctx, show_id=True)
+        else:
+            stdout('No access control information set for the catalog yet')
+    except Exception as e:
+        stderr(e, ctx)
+
+
 @catalog.command(short_help='rename catalog and/or change catalog description')
 @click.pass_context
 @click.argument('catalog-name',

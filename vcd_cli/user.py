@@ -4,7 +4,9 @@ from pyvcloud.vcd.org import Org
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
+from vcd_cli.vcd import abort_if_false
 from vcd_cli.vcd import vcd
+
 
 
 @vcd.group(short_help='work with users in current organization')
@@ -19,6 +21,10 @@ def user(ctx):
 \b
         vcd user create 'my user' 'my password' 'role name'
            create user in the current organization with 'my user' 'my password' and 'role name' .
+\b
+        vcd user delete my-user
+           deletes my-user from the current organization.
+           Will also delete vApps owned by the user. If any onf those vApps are runnign will result in error.
 
     """  # NOQA
     if ctx.invoked_subcommand is not None:
@@ -141,5 +147,27 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
                             default_cached, external, alert_enabled,
                             enabled)
         stdout('User \'%s\' is successfully created.' % u.get('name'), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+@user.command(short_help='delete an user in current organization')
+@click.pass_context
+@click.argument('user_name',
+                metavar='<user_name>',
+                required=True)
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to delete the user?')
+def delete(ctx, user_name):
+    try:
+        client = ctx.obj['client']
+        org_name = ctx.obj['profiles'].get('org')
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, org_name == 'System')
+        org.delete_user(user_name)
+        stdout('User \'%s\' has been successfully deleted.' % user_name, ctx)
     except Exception as e:
         stderr(e, ctx)

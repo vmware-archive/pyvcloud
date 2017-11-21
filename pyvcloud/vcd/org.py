@@ -564,12 +564,12 @@ class Org(object):
             EntityType.CONTROL_ACCESS_PARAMS.value)
         access_settings = []
         if hasattr(control_access, 'AccessSettings') and \
-           hasattr(control_access.AccessSettings, 'AccessSetting') and \
-           len(control_access.AccessSettings.AccessSetting) > 0:
-                        for access_setting in list(
-                                control_access.AccessSettings.AccessSetting):
-                            access_settings.append(access_settings_to_dict(
-                                access_setting))
+                hasattr(control_access.AccessSettings, 'AccessSetting') and \
+                        len(control_access.AccessSettings.AccessSetting) > 0:
+            for access_setting in list(
+                    control_access.AccessSettings.AccessSetting):
+                access_settings.append(access_settings_to_dict(
+                    access_setting))
         result = to_dict(control_access)
         if len(access_settings) > 0:
             result['AccessSettings'] = access_settings

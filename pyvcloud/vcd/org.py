@@ -118,30 +118,6 @@ class Org(object):
                 return self.client.get_resource(link.href)
         raise Exception('Catalog not found.')
 
-    def get_user(self, user_name):
-        """
-        Retrieve user record from current Organization
-        :param user_name: user name of the record to be retrieved
-        :return: User record
-        """ # NOQA
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        resource_type = 'adminUser' if self.is_admin else 'user'
-        org_filter = 'org==%s' % self.resource.get('href') \
-            if self.is_admin else None
-        query = self.client.get_typed_query(
-            resource_type,
-            query_result_format=QueryResultFormat.REFERENCES,
-            equality_filter=('name', user_name),
-            qfilter=org_filter
-            )
-        records = list(query.execute())
-        if len(records) == 0:
-            raise Exception('user not found')
-        elif len(records) > 1:
-            raise Exception('multiple users found')
-        return self.client.get_resource(records[0].get('href'))
-      
     def update_catalog(self, old_catalog_name, new_catalog_name, description):
         """
         Update the name and/or description of a catalog.
@@ -495,6 +471,30 @@ class Org(object):
             RelationType.ADD,
             EntityType.USER.value,
             user)
+
+    def get_user(self, user_name):
+        """
+        Retrieve user record from current Organization
+        :param user_name: user name of the record to be retrieved
+        :return: User record
+        """ # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        resource_type = 'adminUser' if self.is_admin else 'user'
+        org_filter = 'org==%s' % self.resource.get('href') \
+            if self.is_admin else None
+        query = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.REFERENCES,
+            equality_filter=('name', user_name),
+            qfilter=org_filter
+            )
+        records = list(query.execute())
+        if len(records) == 0:
+            raise Exception('user not found')
+        elif len(records) > 1:
+            raise Exception('multiple users found')
+        return self.client.get_resource(records[0].get('href'))
 
     def list_roles(self):
         """

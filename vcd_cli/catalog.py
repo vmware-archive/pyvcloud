@@ -128,8 +128,12 @@ def control_access(ctx, catalog_name):
         org = Org(client, in_use_org_href, org_name == 'System')
         control_access = org.get_catalog_access_control_settings(catalog_name)
         stdout('Access Settings for catalog :' + catalog_name)
-        stdout(control_access.get('AccessSettings'), ctx, show_id=True)
-        del control_access['AccessSettings']
+        access_settings = control_access.get('AccessSettings')
+        if access_settings is not None:
+            stdout(control_access.get('AccessSettings'), ctx, show_id=True)
+            del control_access['AccessSettings']
+        else:
+            stdout('No access control information set for the catalog yet')
         stdout(control_access, ctx)
     except Exception as e:
         stderr(e, ctx)

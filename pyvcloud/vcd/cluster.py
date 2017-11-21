@@ -40,12 +40,24 @@ class Cluster(object):
             raise Exception(json.loads(response.content))
 
     def create_cluster(self, vdc, network_name, name, node_count=2,
-                       storage_profile=None):
+                       cpu_count=None, memory=None, storage_profile=None,
+                       ssh_key=None):
+        """
+        Create a new Kubernetes cluster
+        :param cpu_count: (str): The number of virtual cpus on each of the nodes in the cluster
+        :param memory: (str): The amount of memory (in MB) on each of the nodes in the cluster
+        :param ssh_key: (str): The ssh key that clients can use to log into the node vms without 
+                               explicitly providing passwords
+        :return: (json) A paresed json object describing the requested cluster.
+        """  # NOQA
         method = 'POST'
         uri = self._uri
         data = {'name': name, 'node_count': node_count, 'vdc': vdc,
+                'cpu-count': cpu_count,
+                'memory': memory,
                 'network': network_name,
-                'storage_profile': storage_profile}
+                'storage_profile': storage_profile,
+                'ssh-key': ssh_key}
         response = self.client._do_request_prim(
             method,
             uri,

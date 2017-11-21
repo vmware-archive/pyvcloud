@@ -16,6 +16,7 @@ import os
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import to_dict
+from pyvcloud.vcd.utils import print_access_settings
 from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vapp import VApp
 from vcd_cli.utils import is_admin
@@ -129,12 +130,12 @@ def control_access(ctx, catalog_name):
         control_access = org.get_catalog_access_control_settings(catalog_name)
         stdout('Access Settings for catalog :' + catalog_name)
         access_settings = control_access.get('AccessSettings')
+        del control_access['AccessSettings']
+        stdout(control_access, ctx)
         if access_settings is not None:
-            stdout(control_access.get('AccessSettings'), ctx, show_id=True)
-            del control_access['AccessSettings']
+            stdout(access_settings, ctx, show_id=True)
         else:
             stdout('No access control information set for the catalog yet')
-        stdout(control_access, ctx)
     except Exception as e:
         stderr(e, ctx)
 

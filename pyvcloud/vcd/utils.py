@@ -246,8 +246,8 @@ def disk_to_dict(disk):
 def access_settings_to_dict(access_setting):
     result = collections.OrderedDict()
     if hasattr(access_setting, 'Subject'):
-        result['name'] = access_setting.Subject.get('name')
-        result['href'] = access_setting.Subject.get('href')
+        result['user_name'] = access_setting.Subject.get('name')
+        result['user_href'] = access_setting.Subject.get('href')
     if hasattr(access_setting, 'AccessLevel'):
         result['access_level'] = access_setting.AccessLevel
     return result

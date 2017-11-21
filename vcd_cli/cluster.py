@@ -88,6 +88,20 @@ def list(ctx):
               default=2,
               metavar='<nodes>',
               help='Number of nodes to create')
+@click.option('-c',
+              '--cpu',
+              'cpu_count',
+              required=False,
+              default=None,
+              metavar='<cpu-count>',
+              help='Number of virtual cpus on each node')
+@click.option('-m',
+              '--memory',
+              'memory',
+              required=False,
+              default=None,
+              metavar='<memory>',
+              help='Amount of memory (in MB) on each node')
 @click.option('-n',
               '--network',
               'network_name',
@@ -95,14 +109,20 @@ def list(ctx):
               required=False,
               metavar='<network>',
               help='Network name')
-@click.option('storage_profile',
-              '-s',
+@click.option('-s',
               '--storage-profile',
+              'storage_profile',
               required=False,
               default=None,
               metavar='<storage-profile>',
               help='Name of the storage profile for the nodes')
-def create(ctx, name, node_count, network_name, storage_profile):
+@click.option('--ssh_key',
+              'vm-guest-os-ssh-key',
+              required=False,
+              default=None,
+              metavar='<ssh_key>',
+              help='SSH key to talk to the guest os on the vm')
+def create(ctx, name, node_count, cpu_count, memory, network_name, storage_profile, ssh_key):
     try:
         client = ctx.obj['client']
         cluster = Cluster(client)
@@ -111,7 +131,10 @@ def create(ctx, name, node_count, network_name, storage_profile):
                     network_name,
                     name,
                     node_count=node_count,
-                    storage_profile=storage_profile)
+                    cpu_count=cpu_count,
+                    memory=memory,
+                    storage_profile=storage_profile,
+                    ssh_key=ssh_key)
         stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)

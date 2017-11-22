@@ -28,7 +28,7 @@ from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, \
     FileTransferSpeed, FormatLabel, Percentage, \
     ProgressBar, ReverseBar, RotatingMarker, \
     SimpleProgress, Timer
-from StringIO import StringIO
+from io import StringIO
 import json
 from xml.etree import ElementTree as ET
 from pyvcloud.schema.vcd.v1_5.schemas.admin import vCloudEntities

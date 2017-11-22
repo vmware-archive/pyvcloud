@@ -17,7 +17,7 @@
 
 import time
 import requests
-from StringIO import StringIO
+from io import StringIO
 from schema.vcd.v1_5.schemas.vcloud import vAppType, vdcType, queryRecordViewType, taskType, vcloudType
 from schema.vcd.v1_5.schemas.vcloud.taskType import TaskType
 from schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType, NetworkConnectionSectionType

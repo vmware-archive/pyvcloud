@@ -110,14 +110,21 @@ class Org(object):
         return result
 
     def get_catalog(self, name):
+        return self.get_catalog_resource(name, False)
+
+    def get_catalog_resource(self, name, is_admin_operation=False):
         org = self.client.get_resource(self.href)
         links = get_links(org,
                           rel=RelationType.DOWN,
                           media_type=EntityType.CATALOG.value)
         for link in links:
             if name == link.name:
-                return self.client.get_resource(link.href)
-        raise Exception('Catalog not found.')
+                href = link.href
+                if is_admin_operation:
+                    href = href.replace('/api/catalog/', '/api/admin/catalog/')
+                return self.client.get_resource(href)
+        raise Exception('Catalog not found (or)'
+                        ' Access to resource is forbidden')
 
     def update_catalog(self, old_catalog_name, new_catalog_name, description):
         """
@@ -582,3 +589,30 @@ class Org(object):
         if len(access_settings) > 0:
             result['AccessSettings'] = access_settings
         return result
+
+    def change_catalog_owner(self, catalog_name, user_name):
+        """
+        Change the ownership of Catalog to a given user
+        :param catalog_name: Catalog whose ownership needs to be changed
+        :param user_name: New Owner of the Catalog
+        :return: None
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        catalog_resource = self.get_catalog_resource(catalog_name,
+                                                     is_admin_operation=True)
+        owner_link = find_link(catalog_resource,
+                               rel=RelationType.DOWN,
+                               media_type=EntityType.OWNER.value,
+                               fail_if_absent=True)
+        catalog_href = owner_link.href
+
+        user_resource = self.get_user(user_name)
+        new_owner = catalog_resource.Owner
+        new_owner.User.set('href', user_resource.get('href'))
+        objectify.deannotate(new_owner)
+
+        return self.client.put_resource(
+            catalog_href,
+            new_owner,
+            EntityType.OWNER.value)

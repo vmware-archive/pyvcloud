@@ -23,8 +23,7 @@ def user(ctx):
            create user in the current organization with 'my user' 'my password' and 'role name' .
 \b
         vcd user delete my-user
-           deletes my-user from the current organization.
-           Will also delete vApps owned by the user. If any onf those vApps are runnign will result in error.
+           deletes my-user from the current organization. Will also delete vApps owned by the user. If any onf those vApps are running will result in error.
 
     """  # NOQA
     if ctx.invoked_subcommand is not None:
@@ -162,6 +161,15 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
               expose_value=False,
               prompt='Are you sure you want to delete the user?')
 def delete(ctx, user_name):
+    """
+    Delete an user from the current organization. Also deletes all assests (e.g. vApps, vms, catalogs etc.) owned by the user. However if any of those vApps are running, the command will result in error.
+
+\b
+    Examples
+        vcd user delete my-user
+           deletes my-user from the current organization.
+
+    """  # NOQA
     try:
         client = ctx.obj['client']
         org_name = ctx.obj['profiles'].get('org')

@@ -496,6 +496,15 @@ class Org(object):
             raise Exception('multiple users found')
         return self.client.get_resource(records[0].get('href'))
 
+    def delete_user(self, user_name):
+        """
+        Delete user record from current organization
+        :param user_name: (str) name of the user that (org/sys)admins wants to delete
+        :return: Nothing
+        """ # NOQA
+        user = self.get_user(user_name)
+        return self.client.delete_resource(user.get('href'))
+
     def list_roles(self):
         """
         Retrieve the list of role in the current Org

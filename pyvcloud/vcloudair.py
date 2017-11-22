@@ -715,7 +715,7 @@ class VCA(object):
                 return False
             session_uri = attributes['sessionUri']
             org_name = attributes['orgName']
-            from urlparse import urlparse
+            from urllib.parse import urlparse
             parsed_uri = urlparse(session_uri)
             region_fqdn = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
             headers = self._get_vcloud_headers()

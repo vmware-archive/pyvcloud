@@ -503,7 +503,7 @@ class Org(object):
         """
         Delete user record from current organization
         :param user_name: (str) name of the user that (org/sys)admins wants to delete
-        :return: Nothing
+        :return: result of calling DELETE on the user resource
         """ # NOQA
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
@@ -549,7 +549,7 @@ class Org(object):
         org_filter = None
         if self.is_admin:
             resource_type = 'adminRole'
-            org_filter = 'orgName==%s' % self.resource.get('name')
+            org_filter = 'org==%s' % self.resource.get('href')
         else:
             resource_type = 'role'
         query = self.client.get_typed_query(

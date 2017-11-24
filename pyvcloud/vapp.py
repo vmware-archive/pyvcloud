@@ -18,9 +18,9 @@
 import time
 import requests
 from io import StringIO
-from schema.vcd.v1_5.schemas.vcloud import vAppType, vdcType, queryRecordViewType, taskType, vcloudType
-from schema.vcd.v1_5.schemas.vcloud.taskType import TaskType
-from schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType, NetworkConnectionSectionType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud import vAppType, vdcType, queryRecordViewType, taskType, vcloudType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.taskType import TaskType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.vAppType import VAppType, NetworkConnectionSectionType
 from pyvcloud.schema.vcim import errorType
 from iptools import ipv4, IpRange
 from pyvcloud.helper import CommonUtils

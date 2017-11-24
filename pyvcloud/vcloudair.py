@@ -37,7 +37,7 @@ from pyvcloud.schema.vcim import errorType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType, \
     vAppType, organizationListType, vdcType, catalogType, queryRecordViewType, \
     networkType, vcloudType, taskType, diskType, vmsType, vdcTemplateListType, mediaType
-from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 from pyvcloud.schema.vcd.schemas.versioning import versionsType
 from pyvcloud.vcloudsession import VCS
 from pyvcloud.vapp import VAPP

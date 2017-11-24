@@ -16,8 +16,8 @@
 # coding: utf-8
 
 import requests
-from schema.vcd.v1_5.schemas.vcloud import taskType
-from schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType, NatServiceType, FirewallRuleType, ProtocolsType, DhcpPoolServiceType, GatewayIpsecVpnServiceType, GatewayIpsecVpnEndpointType, GatewayIpsecVpnTunnelType, IpsecVpnSubnetType, IpsecVpnThirdPartyPeerType, DhcpServiceType, GatewayDhcpServiceType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType, NatServiceType, FirewallRuleType, ProtocolsType, DhcpPoolServiceType, GatewayIpsecVpnServiceType, GatewayIpsecVpnEndpointType, GatewayIpsecVpnTunnelType, IpsecVpnSubnetType, IpsecVpnThirdPartyPeerType, DhcpServiceType, GatewayDhcpServiceType
 from iptools import IpRange
 from helper import CommonUtils
 from xml.etree import ElementTree as ET

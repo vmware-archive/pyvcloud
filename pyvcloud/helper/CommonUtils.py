@@ -1,4 +1,4 @@
-from io import StringIO
+from io import io
 
 
 def convertPythonObjToStr(

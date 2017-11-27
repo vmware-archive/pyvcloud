@@ -16,7 +16,7 @@
 # coding: utf-8
 
 import requests
-import StringIO
+import io
 import json
 import logging
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType

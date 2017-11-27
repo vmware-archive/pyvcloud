@@ -28,7 +28,7 @@ from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, \
     FileTransferSpeed, FormatLabel, Percentage, \
     ProgressBar, ReverseBar, RotatingMarker, \
     SimpleProgress, Timer
-from StringIO import StringIO
+from io import StringIO
 import json
 from xml.etree import ElementTree as ET
 from pyvcloud.schema.vcd.v1_5.schemas.admin import vCloudEntities
@@ -37,7 +37,7 @@ from pyvcloud.schema.vcim import errorType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType, \
     vAppType, organizationListType, vdcType, catalogType, queryRecordViewType, \
     networkType, vcloudType, taskType, diskType, vmsType, vdcTemplateListType, mediaType
-from schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType import OwnerType, DiskType, VdcStorageProfileType, DiskCreateParamsType
 from pyvcloud.schema.vcd.schemas.versioning import versionsType
 from pyvcloud.vcloudsession import VCS
 from pyvcloud.vapp import VAPP
@@ -715,7 +715,7 @@ class VCA(object):
                 return False
             session_uri = attributes['sessionUri']
             org_name = attributes['orgName']
-            from urlparse import urlparse
+            from urllib.parse import urlparse
             parsed_uri = urlparse(session_uri)
             region_fqdn = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
             headers = self._get_vcloud_headers()

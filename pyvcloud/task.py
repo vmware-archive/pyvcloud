@@ -18,7 +18,7 @@ from pyvcloud import Http
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import tasksListType
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
 import requests
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 
 class Task(object):

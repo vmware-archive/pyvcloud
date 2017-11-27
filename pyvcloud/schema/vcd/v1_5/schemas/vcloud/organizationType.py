@@ -4897,7 +4897,7 @@ def parseEtree(inFileName, silence=False):
 
 def parseString(inString, silence=False):
     from io import StringIO
-    doc = parsexml_(StringIO(inString))
+    doc = parsexml_(StringIO(str(inString, 'utf-8')))
     rootNode = doc.getroot()
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:

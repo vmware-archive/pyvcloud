@@ -25,6 +25,7 @@ from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import MissingRecordException
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.utils import access_settings_to_dict
 from pyvcloud.vcd.utils import to_dict
 import shutil
 import tarfile
@@ -109,39 +110,22 @@ class Org(object):
         return result
 
     def get_catalog(self, name):
+        return self.get_catalog_resource(name, False)
+
+    def get_catalog_resource(self, name, is_admin_operation=False):
         org = self.client.get_resource(self.href)
         links = get_links(org,
                           rel=RelationType.DOWN,
                           media_type=EntityType.CATALOG.value)
         for link in links:
             if name == link.name:
-                return self.client.get_resource(link.href)
-        raise Exception('Catalog not found.')
+                href = link.href
+                if is_admin_operation:
+                    href = href.replace('/api/catalog/', '/api/admin/catalog/')
+                return self.client.get_resource(href)
+        raise Exception('Catalog not found (or)'
+                        ' Access to resource is forbidden')
 
-    def get_user(self, user_name):
-        """
-        Retrieve user record from current Organization
-        :param user_name: user name of the record to be retrieved
-        :return: User record
-        """ # NOQA
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        resource_type = 'adminUser' if self.is_admin else 'user'
-        org_filter = 'org==%s' % self.resource.get('href') \
-            if self.is_admin else None
-        query = self.client.get_typed_query(
-            resource_type,
-            query_result_format=QueryResultFormat.REFERENCES,
-            equality_filter=('name', user_name),
-            qfilter=org_filter
-            )
-        records = list(query.execute())
-        if len(records) == 0:
-            raise Exception('user not found')
-        elif len(records) > 1:
-            raise Exception('multiple users found')
-        return self.client.get_resource(records[0].get('href'))
-      
     def update_catalog(self, old_catalog_name, new_catalog_name, description):
         """
         Update the name and/or description of a catalog.
@@ -160,12 +144,14 @@ class Org(object):
             if old_catalog_name == link.name:
                 catalog = self.client.get_resource(link.href)
                 href = catalog.get('href')
-                admin_href = href.replace('/api/catalog/', '/api/admin/catalog/')
+                admin_href = href.replace('/api/catalog/',
+                                          '/api/admin/catalog/')
                 adminViewOfCatalog = self.client.get_resource(admin_href)
                 if new_catalog_name is not None:
-                    adminViewOfCatalog.set('name',new_catalog_name)
+                    adminViewOfCatalog.set('name', new_catalog_name)
                 if description is not None:
-                    adminViewOfCatalog['Description'] = E.Description(description)
+                    adminViewOfCatalog['Description'] = E.Description(
+                        description)
                 return self.client.put_resource(
                     admin_href,
                     adminViewOfCatalog,
@@ -458,14 +444,14 @@ class Org(object):
         :param telephone: The telephone of the user
         :param im: The im address of the user
         :param alert_email: The alert email address
-        :param alert_email_prefix: The string to prepend to the alert message 
+        :param alert_email_prefix: The string to prepend to the alert message
                 subject line
         :param stored_vm_quota: The quota of vApps that this user can store
-        :param deployed_vm_quota: The quota of vApps that this user can deploy 
+        :param deployed_vm_quota: The quota of vApps that this user can deploy
                 concurrently
         :param is_group_role: Indicates if the user has a group role
         :param is_default_cached: Indicates if user should be cached
-        :param is_external: Indicates if user is imported from an external 
+        :param is_external: Indicates if user is imported from an external
                 source
         :param is_alert_enabled: The alert email address
         :param is_enabled: Enable user
@@ -496,6 +482,39 @@ class Org(object):
             EntityType.USER.value,
             user)
 
+    def get_user(self, user_name):
+        """
+        Retrieve user record from current Organization
+        :param user_name: user name of the record to be retrieved
+        :return: User record
+        """ # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        resource_type = 'adminUser' if self.is_admin else 'user'
+        org_filter = 'org==%s' % self.resource.get('href') \
+            if self.is_admin else None
+        query = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.REFERENCES,
+            equality_filter=('name', user_name),
+            qfilter=org_filter
+            )
+        records = list(query.execute())
+        if len(records) == 0:
+            raise Exception('user not found')
+        elif len(records) > 1:
+            raise Exception('multiple users found')
+        return self.client.get_resource(records[0].get('href'))
+
+    def delete_user(self, user_name):
+        """
+        Delete user record from current organization
+        :param user_name: (str) name of the user that (org/sys)admins wants to delete
+        :return: result of calling DELETE on the user resource
+        """ # NOQA
+        user = self.get_user(user_name)
+        return self.client.delete_resource(user.get('href'))
+
     def list_roles(self):
         """
         Retrieve the list of role in the current Org
@@ -513,8 +532,8 @@ class Org(object):
         """
         Retrieve role object with a particular name in the current Org
         :param role_name: (str): The name of the role object to be retrieved
-        :return: (QueryResultRoleRecordType): Role query result in records 
-                 format 
+        :return: (QueryResultRoleRecordType): Role query result in records
+                 format
         """  # NOQA
         try:
             roles_query = self.get_roles_query(('name', role_name))[0]
@@ -528,7 +547,7 @@ class Org(object):
         :param name_filter: (tuple): (name ,'role name') Filter the roles by
                              'role name'
         :return: (tuple of (_TypedQuery, str))
-                  _TypedQuery object represents the query for the roles in 
+                  _TypedQuery object represents the query for the roles in
                   the current Org
                   str represents the resource type of the query object
         """  # NOQA
@@ -537,7 +556,7 @@ class Org(object):
         org_filter = None
         if self.is_admin:
             resource_type = 'adminRole'
-            org_filter = 'orgName==%s' % self.resource.get('name')
+            org_filter = 'org==%s' % self.resource.get('href')
         else:
             resource_type = 'role'
         query = self.client.get_typed_query(
@@ -546,3 +565,54 @@ class Org(object):
             equality_filter=name_filter,
             qfilter=org_filter)
         return query, resource_type
+
+    def get_catalog_access_control_settings(self, catalog_name):
+        """
+        Get the access control settings of a catalog.
+        :param catalog_name: (str): The name of the catalog.
+        :return: Access control settings of the catalog.
+        """  # NOQA
+        catalog_resource = self.get_catalog(name=catalog_name)
+        control_access = self.client.get_linked_resource(
+            catalog_resource,
+            RelationType.DOWN,
+            EntityType.CONTROL_ACCESS_PARAMS.value)
+        access_settings = []
+        if hasattr(control_access, 'AccessSettings') and \
+                hasattr(control_access.AccessSettings, 'AccessSetting') and \
+                len(control_access.AccessSettings.AccessSetting) > 0:
+            for access_setting in list(
+                    control_access.AccessSettings.AccessSetting):
+                access_settings.append(access_settings_to_dict(
+                    access_setting))
+        result = to_dict(control_access)
+        if len(access_settings) > 0:
+            result['AccessSettings'] = access_settings
+        return result
+
+    def change_catalog_owner(self, catalog_name, user_name):
+        """
+        Change the ownership of Catalog to a given user
+        :param catalog_name: Catalog whose ownership needs to be changed
+        :param user_name: New Owner of the Catalog
+        :return: None
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        catalog_resource = self.get_catalog_resource(catalog_name,
+                                                     is_admin_operation=True)
+        owner_link = find_link(catalog_resource,
+                               rel=RelationType.DOWN,
+                               media_type=EntityType.OWNER.value,
+                               fail_if_absent=True)
+        catalog_href = owner_link.href
+
+        user_resource = self.get_user(user_name)
+        new_owner = catalog_resource.Owner
+        new_owner.User.set('href', user_resource.get('href'))
+        objectify.deannotate(new_owner)
+
+        return self.client.put_resource(
+            catalog_href,
+            new_owner,
+            EntityType.OWNER.value)

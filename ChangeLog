@@ -1,8 +1,11 @@
 CHANGES
 =======
 
+* storage profiles - storage profile, vapp and cluster methods - fixed catalog tests
+* changelog
 * Fixed typo
 * Added doc string
+* eulas to false by default
 * - added api version 30.0 - log request method - org docstring - instantiate\_vapp customize vm\_name and hostname, removed unnecessary brackets
 * changed variable name
 * Refactored to move the common code in list\_roles() and get\_role() to get\_roles\_query()

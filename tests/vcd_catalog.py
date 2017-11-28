@@ -14,6 +14,22 @@ class TestCatalog(TestCase):
         catalog = org.get_catalog(self.config['vcd']['catalog'])
         assert self.config['vcd']['catalog'] == catalog.get('name')
 
+    def test_catalog_control_access_retrieval(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        catalog = org.get_catalog(self.config['vcd']['catalog'])
+        assert self.config['vcd']['catalog'] == catalog.get('name')
+        control_access = org.get_catalog_access_control_settings(catalog.get('name'))
+        assert control_access is not None
+
+    def test_change_catalog_owner(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        org.change_catalog_owner(self.config['vcd']['catalog'],
+                                 self.config['vcd']['new_catalog_owner'])
+        catalog_resource = org.get_catalog_resource(self.config['vcd']['catalog'], True)
+        assert self.config['vcd']['new_catalog_owner'] \
+               == catalog_resource.Owner.User.get('name')
 
 if __name__ == '__main__':
     unittest.main()

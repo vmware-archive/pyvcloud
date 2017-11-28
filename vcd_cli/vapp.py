@@ -47,7 +47,7 @@ def vapp(ctx):
         vcd vapp create my-catalog my-template my-vapp \\
                  --cpu 4 --memory 4096 --disk-size 20000 \\
                  --network net1 --ip-allocation-mode pool \\
-                 --hostname myhost --accept-all-eulas \\
+                 --hostname myhost --vm-name my-vm --accept-all-eulas \\
                  --storage-profile '*'
             Create a new vApp with customized settings.
 \b
@@ -76,10 +76,13 @@ def vapp(ctx):
             Capture a vApp as a template in a catalog.
 \b
         vcd vapp attach my-vapp my-vm disk-name
-            Attach a disk to a vm in the given vapp.
+            Attach a disk to a VM in the given vApp.
 \b
         vcd vapp detach my-vapp my-vm disk-name
-            Detach a disk from a vm in the given vapp.
+            Detach a disk from a VM in the given vApp.
+\b
+        vcd vapp add-disk my-vapp my-vm 10000
+            Add a disk of 10000 MB to a VM.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -474,6 +477,38 @@ def capture(ctx, name, catalog, template, customizable):
                      catalog_item_name=template,
                      description='',
                      customize_on_instantiate=customizable == 'customizable')
+        stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command('add-disk', short_help='add disk to vm')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+@click.argument('vm-name',
+                required=True,
+                metavar='<vm-name>')
+@click.argument('size',
+                metavar='<size>',
+                required=True,
+                type=click.INT)
+@click.option('storage_profile',
+              '-s',
+              '--storage-profile',
+              required=False,
+              default=None,
+              metavar='<storage-profile>',
+              help='Name of the storage profile for the new disk')
+def add_disk(ctx, name, vm_name, size, storage_profile):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        vapp_resource = vdc.get_vapp(name)
+        vapp = VApp(client, resource=vapp_resource)
+        task = vapp.add_disk_to_vm(vm_name, size)
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

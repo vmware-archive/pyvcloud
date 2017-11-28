@@ -198,6 +198,8 @@ class BasicLoginCredentials(object):
 class RelationType(Enum):
     ADD = 'add'
     ALTERNATE = 'alternate'
+    DISK_ATTACH = 'disk:attach'
+    DISK_DETACH = 'disk:detach'
     DOWN = 'down'
     DOWN_EXTENSIBILITY = 'down:extensibility'
     DOWNLOAD_DEFAULT = 'download:default'
@@ -225,7 +227,10 @@ class EntityType(Enum):
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
     CAPTURE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.captureVAppParams+xml'
+    CONTROL_ACCESS_PARAMS = 'application/vnd.vmware.vcloud.controlAccess+xml'
     DISK = 'application/vnd.vmware.vcloud.disk+xml'
+    DISK_ATTACH_DETACH_PARAMS = \
+        'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'
     DISK_CREATE_PARMS = 'application/vnd.vmware.vcloud.diskCreateParams+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
@@ -239,8 +244,10 @@ class EntityType(Enum):
     NETWORK_CONNECTION_SECTION = \
         'application/vnd.vmware.vcloud.networkConnectionSection+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'
+    ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
+    OWNER = 'application/vnd.vmware.vcloud.owner+xml'
     PUBLISH_CATALOG_PARAMS = \
         'application/vnd.vmware.admin.publishCatalogParams+xml'
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'

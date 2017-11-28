@@ -125,6 +125,23 @@ class VApp(object):
             new_section,
             EntityType.LEASE_SETTINGS.value)
 
+    def change_owner(self, href):
+        """
+        Change the ownership of vApp to a given user.
+        :param href: Href of the new owner or user.
+        :return: None.
+        """ # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        new_owner = self.resource.Owner
+        new_owner.User.set('href', href)
+        objectify.deannotate(new_owner)
+        etree.cleanup_namespaces(new_owner)
+        return self.client.put_resource(
+            self.resource.get('href') + '/owner/',
+            new_owner,
+            EntityType.OWNER.value)
+
     def power_off(self):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -175,30 +192,76 @@ class VApp(object):
                 self.resource.Children.Vm[0].NetworkConnectionSection
                 )
 
-    def add_disk_to_vm(self, vm_name, disk_size):
+    def attach_disk_to_vm(self, disk_href, disk_type, disk_name, vm_name):
+        """
+        Attach the independent disk to the VM with the given name in the vApp within a Virtual Data Center.
+        :param disk_href: (str): The href of the disk resource.
+        :param vm_name: (str): The name of the VM.
+        :return: (vmType)  A :class:`lxml.objectify.StringElement` object describing the requested VM.
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        diskAttachOrDetachParams = E.DiskAttachOrDetachParams(
+            E.Disk(type=disk_type, href=disk_href))
+        vm = self.get_vm(vm_name)
+        return self.client.post_linked_resource(
+            vm,
+            RelationType.DISK_ATTACH,
+            EntityType.DISK_ATTACH_DETACH_PARAMS.value,
+            diskAttachOrDetachParams)
+
+    def detach_disk_from_vm(self, disk_href, disk_type, disk_name, vm_name):
+        """
+        Detach the independent disk from the VM with the given name in the vApp within a Virtual Data Center.
+        :param disk_href: (str): The href of the disk resource.
+        :param vm_name: (str): The name of the VM.
+        :return: (vmType)  A :class:`lxml.objectify.StringElement` object describing the requested VM.
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        diskAttachOrDetachParams = E.DiskAttachOrDetachParams(
+            E.Disk(type=disk_type, href=disk_href))
+        vm = self.get_vm(vm_name)
+        return self.client.post_linked_resource(
+            vm,
+            RelationType.DISK_DETACH,
+            EntityType.DISK_ATTACH_DETACH_PARAMS.value,
+            diskAttachOrDetachParams)
+
+    def get_vm(self, vm_name):
+        """
+        Retrieve the VM with the given name in the vApp within a Virtual Data Center.
+        :param vm_name: (str): The name of the VM.
+        :return: (vmType)  A :class:`lxml.objectify.StringElement` object describing the requested VM.
+        """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         if hasattr(self.resource, 'Children') and \
            hasattr(self.resource.Children, 'Vm') and \
            len(self.resource.Children.Vm) > 0:
-            for vm in self.resource.Children.Vm:
-                if vm_name == vm.get('name'):
-                    disk_list = self.client.get_resource(vm.get('href') + '/virtualHardwareSection/disks')  # NOQA
-                    last_disk = None
-                    for disk in disk_list.Item:
-                        if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':  # NOQA
-                            last_disk = disk
-                    assert last_disk is not None
-                    new_disk = deepcopy(last_disk)
-                    addr = int(str(last_disk['{' + NSMAP['rasd'] + '}AddressOnParent'])) + 1  # NOQA
-                    instance_id = int(str(last_disk['{' + NSMAP['rasd'] + '}InstanceID'])) + 1  # NOQA
-                    new_disk['{' + NSMAP['rasd'] + '}AddressOnParent'] = addr
-                    new_disk['{' + NSMAP['rasd'] + '}ElementName'] = 'Hard disk %s' % addr  # NOQA
-                    new_disk['{' + NSMAP['rasd'] + '}InstanceID'] = instance_id
-                    new_disk['{' + NSMAP['rasd'] + '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
-                    new_disk['{' + NSMAP['rasd'] + '}HostResource'].set('{http://www.vmware.com/vcloud/v1.5}capacity', str(disk_size))  # NOQA
-                    disk_list.append(new_disk)
-                    return self.client.put_resource(
-                        vm.get('href') + '/virtualHardwareSection/disks',
-                        disk_list,
-                        EntityType.RASD_ITEM_LIST.value)
+                    for vm in self.resource.Children.Vm:
+                        if vm.get('name') == vm_name:
+                            return vm
+        raise Exception('can\'t find VM')
+
+    def add_disk_to_vm(self, vm_name, disk_size):
+        vm = self.get_vm(vm_name)
+        disk_list = self.client.get_resource(vm.get('href') + '/virtualHardwareSection/disks')  # NOQA
+        last_disk = None
+        for disk in disk_list.Item:
+            if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':  # NOQA
+                last_disk = disk
+        assert last_disk is not None
+        new_disk = deepcopy(last_disk)
+        addr = int(str(last_disk['{' + NSMAP['rasd'] + '}AddressOnParent'])) + 1  # NOQA
+        instance_id = int(str(last_disk['{' + NSMAP['rasd'] + '}InstanceID'])) + 1  # NOQA
+        new_disk['{' + NSMAP['rasd'] + '}AddressOnParent'] = addr
+        new_disk['{' + NSMAP['rasd'] + '}ElementName'] = 'Hard disk %s' % addr  # NOQA
+        new_disk['{' + NSMAP['rasd'] + '}InstanceID'] = instance_id
+        new_disk['{' + NSMAP['rasd'] + '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
+        new_disk['{' + NSMAP['rasd'] + '}HostResource'].set('{http://www.vmware.com/vcloud/v1.5}capacity', str(disk_size))  # NOQA
+        disk_list.append(new_disk)
+        return self.client.put_resource(
+            vm.get('href') + '/virtualHardwareSection/disks',
+            disk_list,
+            EntityType.RASD_ITEM_LIST.value)

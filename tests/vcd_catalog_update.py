@@ -6,21 +6,21 @@ from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.test import TestCase
 
-class TestCatalog(TestCase):
+class UpdateCatalog(TestCase):
 
-    def test_catalog_exists(self):
+    def test_create_catalog(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
-        catalog = org.get_catalog(self.config['vcd']['catalog'])
+        catalog = org.create_catalog(self.config['vcd']['catalog'], 'test catalog')
         assert self.config['vcd']['catalog'] == catalog.get('name')
 
-    def test_catalog_control_access_retrieval(self):
+    def test_update_catalog(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
-        catalog = org.get_catalog(self.config['vcd']['catalog'])
-        assert self.config['vcd']['catalog'] == catalog.get('name')
-        control_access = org.get_catalog_access_control_settings(catalog.get('name'))
-        assert control_access is not None
+        catalog = org.update_catalog(self.config['vcd']['catalog'],
+           self.config['vcd']['new_name'], self.config['vcd']['new_desc'])
+        assert self.config['vcd']['new_name'] == catalog.get('name')
+        assert self.config['vcd']['new_desc'] == catalog['Description']
 
 if __name__ == '__main__':
     unittest.main()

@@ -62,6 +62,30 @@ class TestVApp(TestCase):
                             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
 
+    def test_012_add_disk(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=v.get('href'))
+        assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
+        vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
+        assert self.config['vcd']['vapp'] == vapp_resource.get('name')
+        vm_name = self.config['vcd']['vm']
+        vapp = VApp(self.client, resource=vapp_resource)
+        result = vapp.add_disk_to_vm(vm_name, disk_size)
+        task = self.client.get_task_monitor().wait_for_status(
+                            task=result,
+                            timeout=60,
+                            poll_frequency=2,
+                            fail_on_status=None,
+                            expected_target_statuses=[
+                                TaskStatus.SUCCESS,
+                                TaskStatus.ABORTED,
+                                TaskStatus.ERROR,
+                                TaskStatus.CANCELED],
+                            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
     def test_100_instantiate_vapp_identical(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)

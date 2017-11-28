@@ -245,6 +245,17 @@ class VApp(object):
         raise Exception('can\'t find VM')
 
     def add_disk_to_vm(self, vm_name, disk_size):
+        """
+        Add a virtual disk to a virtual machine in the vApp.
+        It assumes that the VM has already at least one virtual hard disk
+        and will attempt to create another one with similar characteristics.
+
+        :param vm_name: (str): The name of the vm to be customized.
+        :param disk_size: (int): The size of the disk to be added, in MBs.
+        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk.
+
+        :raises: Exception: If the named VM cannot be located or another error occured.
+        """  # NOQA
         vm = self.get_vm(vm_name)
         disk_list = self.client.get_resource(vm.get('href') + '/virtualHardwareSection/disks')  # NOQA
         last_disk = None

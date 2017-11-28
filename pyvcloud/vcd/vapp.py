@@ -270,7 +270,7 @@ class VApp(object):
         new_disk['{' + NSMAP['rasd'] + '}ElementName'] = 'Hard disk %s' % addr  # NOQA
         new_disk['{' + NSMAP['rasd'] + '}InstanceID'] = instance_id
         new_disk['{' + NSMAP['rasd'] + '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
-        new_disk['{' + NSMAP['rasd'] + '}HostResource'].set('{http://www.vmware.com/vcloud/v1.5}capacity', str(disk_size))  # NOQA
+        new_disk['{' + NSMAP['rasd'] + '}HostResource'].set('{' + NSMAP['vcloud'] + '}capacity', str(disk_size))  # NOQA
         disk_list.append(new_disk)
         return self.client.put_resource(
             vm.get('href') + '/virtualHardwareSection/disks',

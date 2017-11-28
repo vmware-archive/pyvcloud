@@ -116,8 +116,9 @@ def list(ctx):
               default=None,
               metavar='<storage-profile>',
               help='Name of the storage profile for the nodes')
-@click.option('--ssh_key',
-              'vm-guest-os-ssh-key',
+@click.option('-k',
+              '--ssh_key',
+              'ssh_key',
               required=False,
               default=None,
               metavar='<ssh_key>',

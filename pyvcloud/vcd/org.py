@@ -27,7 +27,6 @@ from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.utils import access_settings_to_dict
 from pyvcloud.vcd.utils import to_dict
-
 import shutil
 import tarfile
 import tempfile
@@ -119,30 +118,6 @@ class Org(object):
             if name == link.name:
                 return self.client.get_resource(link.href)
         raise Exception('Catalog not found.')
-
-    def get_user(self, user_name):
-        """
-        Retrieve user record from current Organization
-        :param user_name: user name of the record to be retrieved
-        :return: User record
-        """ # NOQA
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        resource_type = 'adminUser' if self.is_admin else 'user'
-        org_filter = 'org==%s' % self.resource.get('href') \
-            if self.is_admin else None
-        query = self.client.get_typed_query(
-            resource_type,
-            query_result_format=QueryResultFormat.REFERENCES,
-            equality_filter=('name', user_name),
-            qfilter=org_filter
-            )
-        records = list(query.execute())
-        if len(records) == 0:
-            raise Exception('user not found')
-        elif len(records) > 1:
-            raise Exception('multiple users found')
-        return self.client.get_resource(records[0].get('href'))
 
     def update_catalog(self, old_catalog_name, new_catalog_name, description):
         """
@@ -500,6 +475,39 @@ class Org(object):
             EntityType.USER.value,
             user)
 
+    def get_user(self, user_name):
+        """
+        Retrieve user record from current Organization
+        :param user_name: user name of the record to be retrieved
+        :return: User record
+        """ # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        resource_type = 'adminUser' if self.is_admin else 'user'
+        org_filter = 'org==%s' % self.resource.get('href') \
+            if self.is_admin else None
+        query = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.REFERENCES,
+            equality_filter=('name', user_name),
+            qfilter=org_filter
+            )
+        records = list(query.execute())
+        if len(records) == 0:
+            raise Exception('user not found')
+        elif len(records) > 1:
+            raise Exception('multiple users found')
+        return self.client.get_resource(records[0].get('href'))
+
+    def delete_user(self, user_name):
+        """
+        Delete user record from current organization
+        :param user_name: (str) name of the user that (org/sys)admins wants to delete
+        :return: result of calling DELETE on the user resource
+        """ # NOQA
+        user = self.get_user(user_name)
+        return self.client.delete_resource(user.get('href'))
+
     def list_roles(self):
         """
         Retrieve the list of role in the current Org
@@ -541,7 +549,7 @@ class Org(object):
         org_filter = None
         if self.is_admin:
             resource_type = 'adminRole'
-            org_filter = 'orgName==%s' % self.resource.get('name')
+            org_filter = 'org==%s' % self.resource.get('href')
         else:
             resource_type = 'role'
         query = self.client.get_typed_query(

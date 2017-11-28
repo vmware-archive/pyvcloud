@@ -159,7 +159,7 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
               is_flag=True,
               callback=abort_if_false,
               expose_value=False,
-              prompt='Are you sure you want to delete the user?')
+              prompt='Deleting an user will also delete all assets (e.g. vApps, vms, catalogs etc.) owned by the user. Are you sure you want to delete the user?')
 def delete(ctx, user_name):
     """
     Deletes an user from the current organization. Also deletes all assests (e.g. vApps, vms, catalogs etc.) owned by the user. However if any of those vApps are running, the command will result in error.

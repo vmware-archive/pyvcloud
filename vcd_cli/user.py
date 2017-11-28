@@ -1,12 +1,12 @@
 import click
 from pyvcloud.vcd.org import Org
 
+from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.vcd import abort_if_false
 from vcd_cli.vcd import vcd
-
 
 
 @vcd.group(short_help='work with users in current organization')
@@ -174,7 +174,7 @@ def delete(ctx, user_name):
         client = ctx.obj['client']
         org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
+        org = Org(client, in_use_org_href, is_sysadmin(ctx))
         org.delete_user(user_name)
         stdout('User \'%s\' has been successfully deleted.' % user_name, ctx)
     except Exception as e:

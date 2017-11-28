@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
 from lxml import etree
 from lxml import objectify
 from pyvcloud.vcd.client import E
@@ -173,3 +174,31 @@ class VApp(object):
                 EntityType.NETWORK_CONNECTION_SECTION.value,
                 self.resource.Children.Vm[0].NetworkConnectionSection
                 )
+
+    def add_disk_to_vm(self, vm_name, disk_size):
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        if hasattr(self.resource, 'Children') and \
+           hasattr(self.resource.Children, 'Vm') and \
+           len(self.resource.Children.Vm) > 0:
+            for vm in self.resource.Children.Vm:
+                if vm_name == vm.get('name'):
+                    disk_list = self.client.get_resource(vm.get('href') + '/virtualHardwareSection/disks')  # NOQA
+                    last_disk = None
+                    for disk in disk_list.Item:
+                        if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':  # NOQA
+                            last_disk = disk
+                    assert last_disk is not None
+                    new_disk = deepcopy(last_disk)
+                    addr = int(str(last_disk['{' + NSMAP['rasd'] + '}AddressOnParent'])) + 1  # NOQA
+                    instance_id = int(str(last_disk['{' + NSMAP['rasd'] + '}InstanceID'])) + 1  # NOQA
+                    new_disk['{' + NSMAP['rasd'] + '}AddressOnParent'] = addr
+                    new_disk['{' + NSMAP['rasd'] + '}ElementName'] = 'Hard disk %s' % addr  # NOQA
+                    new_disk['{' + NSMAP['rasd'] + '}InstanceID'] = instance_id
+                    new_disk['{' + NSMAP['rasd'] + '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
+                    new_disk['{' + NSMAP['rasd'] + '}HostResource'].set('{http://www.vmware.com/vcloud/v1.5}capacity', str(disk_size))  # NOQA
+                    disk_list.append(new_disk)
+                    return self.client.put_resource(
+                        vm.get('href') + '/virtualHardwareSection/disks',
+                        disk_list,
+                        EntityType.RASD_ITEM_LIST.value)

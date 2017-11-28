@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+* storage profile - create vapp command, added storage profile - create cluster command, added storage profile
+* changelog
+* doc
 * vapp create command
 * Fixing the is\_admin parameter of Org Class so that is\_admin=True if logged in as System admin(irrespective of the whether the org is switched to org-admin later)
 * updated info examples

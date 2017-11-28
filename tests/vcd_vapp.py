@@ -72,6 +72,7 @@ class TestVApp(TestCase):
         assert self.config['vcd']['vapp'] == vapp_resource.get('name')
         vm_name = self.config['vcd']['vm']
         vapp = VApp(self.client, resource=vapp_resource)
+        disk_size = 1024 # 1GB
         result = vapp.add_disk_to_vm(vm_name, disk_size)
         task = self.client.get_task_monitor().wait_for_status(
                             task=result,

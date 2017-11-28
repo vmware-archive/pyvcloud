@@ -40,6 +40,12 @@ def is_admin(ctx):
     org_name = ctx.obj['profiles'].get('org')
     return org_name == 'System'
 
+def is_sysadmin(ctx):
+    client = ctx.obj['client']
+    logged_in_org = client.get_org()
+    org_name = logged_in_org.get('name')
+    return org_name == 'System'
+
 
 def as_table(obj_list, header=None, show_id=False):
     if len(obj_list) == 0:

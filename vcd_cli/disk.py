@@ -14,9 +14,11 @@
 
 import click
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
+from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import disk_to_dict
 from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.vdc import VDC
+from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -47,7 +49,7 @@ def disk(ctx):
             Delete an existing independent disk named 'disk1'.
 \b
         vcd disk update disk1 15
-            Update an existing independent disk updating its size and storage profile.
+            Update an existing independent disk with new size, iops, description, name and storage profile.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -93,7 +95,7 @@ def list_disks(ctx):
         for disk in disks:
             result.append({'name': disk.get('name'),
                            'id': extract_id(disk.get('id')),
-                           'size_MB': disk.get('size'),
+                           'size_bytes': disk.get('size'),
                            'status': VCLOUD_STATUS_MAP.get(int(
                                 disk.get('status')))})
         stdout(result, ctx, show_id=True)
@@ -101,7 +103,7 @@ def list_disks(ctx):
         stderr(e, ctx)
 
 
-@disk.command(short_help='create a disk')
+@disk.command(short_help='create a disk with name and size(bytes)')
 @click.pass_context
 @click.argument('name',
                 metavar='<name>',
@@ -183,6 +185,13 @@ def delete(ctx, name, disk_id):
               required=False,
               metavar='<new-name>',
               help='New name')
+@click.option('iops',
+              '-i',
+              '--iops',
+              required=False,
+              metavar='<iops>',
+              default=None,
+              help='iops')
 @click.option('storage_profile',
               '-s',
               '--storage-profile',
@@ -195,17 +204,46 @@ def delete(ctx, name, disk_id):
               required=False,
               metavar='<id>',
               help='Disk id')
-def update(ctx, name, size, description, new_name, storage_profile, disk_id):
+def update(ctx, name, size, description, new_name, storage_profile, iops,
+           disk_id):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
         task = vdc.update_disk(name,
                                size,
-                               new_name,
+                               new_name=new_name,
                                description=description,
                                storage_profile_name=storage_profile,
+                               iops=iops,
                                disk_id=disk_id)
         stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+@disk.command('change-owner', short_help='change owner of disk')
+@click.pass_context
+@click.argument('disk-name',
+                metavar='<disk-name>',
+                required=True)
+@click.argument('user_name',
+                metavar='<user_name>',
+                required=True)
+@click.option('-i',
+              '--id',
+              'disk_id',
+              required=False,
+              metavar='<id>',
+              help='Disk id')
+def change_disk_owner(ctx, disk_name, user_name, disk_id):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, is_sysadmin(ctx))
+        user_resource = org.get_user(user_name)
+        disk = vdc.change_disk_owner(disk_name, user_resource.get('href'), disk_id)
+        stdout('disk owner changed', ctx)
     except Exception as e:
         stderr(e, ctx)

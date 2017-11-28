@@ -14,6 +14,7 @@
 import click
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
+from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import org_to_dict
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -36,6 +37,9 @@ def org(ctx):
 \b
         vcd org use my-org
             Set organization 'my-org' as default.
+\b
+        vcd org create my-org-name my-org-fullname
+            Create organization with 'my-org-name' and 'my-org-fullname'
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -114,5 +118,24 @@ def use(ctx, name):
                 stdout({'org': name, 'vdc': in_use_vdc}, ctx, message)
                 return
         raise Exception('not found')
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@org.command(short_help='create an organization')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+@click.argument('full_name',
+                metavar='<full_name>',
+                required=True)
+def create(ctx, name, full_name):
+    try:
+        client = ctx.obj['client']
+        sys_admin_resource = client.get_admin()
+        system = System(client, admin_resource=sys_admin_resource)
+        result = system.create_org(name, full_name)
+        stdout('Org \'%s\' is successfully created.' % result.get('name'), ctx)
     except Exception as e:
         stderr(e, ctx)

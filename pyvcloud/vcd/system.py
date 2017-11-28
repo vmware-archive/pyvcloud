@@ -77,4 +77,4 @@ class System(object):
         org = self.get_org(org_name)
         org_href = org.get('href').replace('/api/org/',
                                            '/api/admin/org/')
-        self.client.delete_resource(org_href, force, recursive)
+        return self.client.delete_resource(org_href, force, recursive)

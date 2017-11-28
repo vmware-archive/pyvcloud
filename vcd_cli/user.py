@@ -134,9 +134,8 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
            stored_vm_quota, deployed_vm_quota):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
+        org = Org(client, in_use_org_href, is_sysadmin(ctx))
         role = org.get_role(role_name)
         role_href = role.get('href')
         u = org.create_user(user_name, password, role_href, full_name,
@@ -149,6 +148,7 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
     except Exception as e:
         stderr(e, ctx)
 
+
 @user.command(short_help='delete an user in current organization')
 @click.pass_context
 @click.argument('user_name',
@@ -159,7 +159,9 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
               is_flag=True,
               callback=abort_if_false,
               expose_value=False,
-              prompt='Deleting an user will also delete all assets (e.g. vApps, vms, catalogs etc.) owned by the user. Are you sure you want to delete the user?')
+              prompt='Deleting an user will also delete all assets '
+              '(e.g. vApps, vms, catalogs etc.) owned by the user.'
+              ' Are you sure you want to delete the user?')
 def delete(ctx, user_name):
     """
     Deletes an user from the current organization. Also deletes all assests (e.g. vApps, vms, catalogs etc.) owned by the user. However if any of those vApps are running, the command will result in error.
@@ -172,7 +174,6 @@ def delete(ctx, user_name):
     """  # NOQA
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href, is_sysadmin(ctx))
         org.delete_user(user_name)

@@ -123,7 +123,8 @@ def list(ctx):
               default=None,
               metavar='<ssh_key>',
               help='SSH key to talk to the guest os on the vm')
-def create(ctx, name, node_count, cpu_count, memory, network_name, storage_profile, ssh_key):
+def create(ctx, name, node_count, cpu_count, memory, network_name,
+           storage_profile, ssh_key):
     try:
         client = ctx.obj['client']
         cluster = Cluster(client)

@@ -117,17 +117,21 @@ def list(ctx):
               metavar='<storage-profile>',
               help='Name of the storage profile for the nodes')
 @click.option('-k',
-              '--ssh_key',
-              'ssh_key',
+              '--ssh-key',
+              'ssh_key_file',
               required=False,
               default=None,
-              metavar='<ssh_key>',
+              type=click.File('r'),
+              metavar='<ssh-key>',
               help='SSH key to talk to the guest os on the vm')
 def create(ctx, name, node_count, cpu_count, memory, network_name,
-           storage_profile, ssh_key):
+           storage_profile, ssh_key_file):
     try:
         client = ctx.obj['client']
         cluster = Cluster(client)
+        ssh_key = None
+        if ssh_key_file is not None:
+            ssh_key = ssh_key_file.read()
         result = cluster.create_cluster(
                     ctx.obj['profiles'].get('vdc_in_use'),
                     network_name,

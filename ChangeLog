@@ -1,6 +1,23 @@
 CHANGES
 =======
 
+* add disk to VM
+* add disk to vm
+* [vcd-cli]Addressed comments on Catalog\_change\_owner
+* Change owner cmd for vApp and disk
+* VCDA-217: Review comments
+* VCDA-217: Addressing review comment
+* VCDA-217: Addressing review comments
+* VCDA-217: Retrieve access control settings of a catalog
+* Change owner cmd for vApp and disk
+* VCDA-257: [Documentation] additional info for Ubuntu setup
+* VCDA-257: [Documentation] additional info for Ubuntu setup
+* Curt branch (#111)
+* VCDA:168 & 169 : vcd-cli for Attach or Detach Independent Disk to/from a VM within a vApp
+*  VCDA-171(vcd-cli) - Create a new organization with just the mandatory user inputs (#113)
+* Change owner cmd for vApp and disk
+* Flake8 test-fixing format
+* Update an existing independent disk size,iops and storage profile
 * storage profile - create vapp command, added storage profile - create cluster command, added storage profile
 * changelog
 * doc

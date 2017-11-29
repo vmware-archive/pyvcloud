@@ -163,15 +163,6 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
               '(e.g. vApps, vms, catalogs etc.) owned by the user.'
               ' Are you sure you want to delete the user?')
 def delete(ctx, user_name):
-    """
-    Deletes an user from the current organization. Also deletes all assests (e.g. vApps, vms, catalogs etc.) owned by the user. However if any of those vApps are running, the command will result in error.
-
-\b
-    Examples
-        vcd user delete 'my user'
-           deletes user with username "my user" from the current organization.
-
-    """  # NOQA
     try:
         client = ctx.obj['client']
         in_use_org_href = ctx.obj['profiles'].get('org_href')

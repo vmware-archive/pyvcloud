@@ -58,8 +58,8 @@ Options:
   -h, --help  Show this message and exit.
 
 Commands:
-  change_owner    change the ownership of catalog
-  control_access  catalog control access details
+  change-owner    change the ownership of catalog
+  control-access  catalog control access details
   create          create a catalog
   delete          delete a catalog or item
   download        download item from catalog

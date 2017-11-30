@@ -122,7 +122,8 @@ def info(ctx, catalog_name, item_name):
         stderr(e, ctx)
 
 
-@catalog.command(short_help='catalog control access details')
+@catalog.command('control-access',
+                 short_help='catalog control access details')
 @click.pass_context
 @click.argument('catalog-name',
                 metavar='<catalog-name>',
@@ -396,7 +397,8 @@ def download(ctx, catalog_name, item_name, file_name, progress, overwrite):
     except Exception as e:
         stderr(e, ctx)
 
-@catalog.command(short_help='change the ownership of catalog')
+@catalog.command('change-owner',
+                 short_help='change the ownership of catalog')
 @click.pass_context
 @click.argument('catalog-name',
                 metavar='<catalog-name>')

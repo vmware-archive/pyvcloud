@@ -2,8 +2,8 @@
 <ul><li>
 <a href="vcd">vcd</a><ul><li>
 <a href="vcd_catalog">catalog</a><ul><li>
-<a href="vcd_catalog_change_owner">change_owner</a></li><li>
-<a href="vcd_catalog_control_access">control_access</a></li><li>
+<a href="vcd_catalog_change-owner">change-owner</a></li><li>
+<a href="vcd_catalog_control-access">control-access</a></li><li>
 <a href="vcd_catalog_create">create</a></li><li>
 <a href="vcd_catalog_delete">delete</a></li><li>
 <a href="vcd_catalog_download">download</a></li><li>

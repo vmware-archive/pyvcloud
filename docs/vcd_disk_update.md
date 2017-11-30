@@ -6,6 +6,7 @@ Options:
                                   New Description
   -new-name, --new-name <new-name>
                                   New name
+  -i, --iops <iops>               iops
   -s, --storage-profile <storage-profile>
                                   Name of new Storage Profile to be used for
                                   new disk.

@@ -14,8 +14,10 @@ Usage: vcd vapp [OPTIONS] COMMAND [ARGS]...
               Create a new vApp with default settings.
   
           vcd vapp create my-catalog my-template my-vapp \
-                   --cpu 4 --memory 4096 --network net1  \
-                   --ip-allocation-mode pool
+                   --cpu 4 --memory 4096 --disk-size 20000 \
+                   --network net1 --ip-allocation-mode pool \
+                   --hostname myhost --vm-name my-vm --accept-all-eulas \
+                   --storage-profile '*'
               Create a new vApp with customized settings.
   
           vcd vapp delete my-vapp --yes --force
@@ -41,15 +43,28 @@ Usage: vcd vapp [OPTIONS] COMMAND [ARGS]...
   
           vcd vapp capture my-vapp my-catalog
               Capture a vApp as a template in a catalog.
+  
+          vcd vapp attach my-vapp my-vm disk-name
+              Attach a disk to a VM in the given vApp.
+  
+          vcd vapp detach my-vapp my-vm disk-name
+              Detach a disk from a VM in the given vApp.
+  
+          vcd vapp add-disk my-vapp my-vm 10000
+              Add a disk of 10000 MB to a VM.
       
 
 Options:
   -h, --help  Show this message and exit.
 
 Commands:
+  add-disk      add disk to vm
+  attach        Attach disk to VM in vApp
   capture       save a vApp as a template
+  change-owner  change vApp owner
   create        create a vApp
   delete        delete a vApp
+  detach        Detach disk from VM in vApp
   info          show vApp details
   list          list vApps
   power-off     power off a vApp

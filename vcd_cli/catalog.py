@@ -60,6 +60,12 @@ def catalog(ctx):
         vcd catalog list \*
             Get list of items in all catalogs in current organization.
 \b
+        vcd catalog upload my-catalog photon.ova
+            Upload OVA to a catalog.
+\b
+        vcd catalog download my-catalog photon.ova
+            Download OVA from catalog.
+\b
         vcd catalog upload my-catalog installer.iso
             Upload media file to a catalog.
 \b

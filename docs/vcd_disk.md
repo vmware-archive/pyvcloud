@@ -20,17 +20,18 @@ Usage: vcd disk [OPTIONS] COMMAND [ARGS]...
               Delete an existing independent disk named 'disk1'.
   
           vcd disk update disk1 15
-              Update an existing independent disk updating its size and storage profile.
+              Update an existing independent disk with new size, iops, description, name and storage profile.
       
 
 Options:
   -h, --help  Show this message and exit.
 
 Commands:
-  create  create a disk
-  delete  delete a disk
-  info    show disk details
-  list    list disks
-  update  update disk
+  change-owner  change owner of disk
+  create        create a disk with name and size(bytes)
+  delete        delete a disk
+  info          show disk details
+  list          list disks
+  update        update disk
 
 ```

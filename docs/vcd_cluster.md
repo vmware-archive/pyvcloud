@@ -7,16 +7,17 @@ Usage: vcd cluster [OPTIONS] COMMAND [ARGS]...
           vcd cluster list
               Get list of kubernetes clusters in current virtual datacenter.
   
-          vcd cluster create dev-cluster
+          vcd cluster create dev-cluster --network net1
               Create a kubernetes cluster in current virtual datacenter.
   
-          vcd cluster create prod-cluster --nodes 4
+          vcd cluster create prod-cluster --nodes 4 \
+                      --network net1 --storage-profile '*'
               Create a kubernetes cluster with 4 worker nodes.
   
           vcd cluster delete dev-cluster
               Delete a kubernetes cluster by name.
   
-          vcd cluster create c1 --nodes 0
+          vcd cluster create c1 --nodes 0 --network net1
               Create a single node kubernetes cluster for dev/test.
       
 

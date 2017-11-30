@@ -2,6 +2,8 @@
 <ul><li>
 <a href="vcd">vcd</a><ul><li>
 <a href="vcd_catalog">catalog</a><ul><li>
+<a href="vcd_catalog_change_owner">change_owner</a></li><li>
+<a href="vcd_catalog_control_access">control_access</a></li><li>
 <a href="vcd_catalog_create">create</a></li><li>
 <a href="vcd_catalog_delete">delete</a></li><li>
 <a href="vcd_catalog_download">download</a></li><li>
@@ -9,6 +11,7 @@
 <a href="vcd_catalog_list">list</a></li><li>
 <a href="vcd_catalog_share">share</a></li><li>
 <a href="vcd_catalog_unshare">unshare</a></li><li>
+<a href="vcd_catalog_update">update</a></li><li>
 <a href="vcd_catalog_upload">upload</a></li>
 </ul></li>
 <li>
@@ -21,6 +24,7 @@
 </ul></li>
 <li>
 <a href="vcd_disk">disk</a><ul><li>
+<a href="vcd_disk_change-owner">change-owner</a></li><li>
 <a href="vcd_disk_create">create</a></li><li>
 <a href="vcd_disk_delete">delete</a></li><li>
 <a href="vcd_disk_info">info</a></li><li>
@@ -33,6 +37,7 @@
 <a href="vcd_login">login</a></li><li>
 <a href="vcd_logout">logout</a></li><li>
 <a href="vcd_org">org</a><ul><li>
+<a href="vcd_org_create">create</a></li><li>
 <a href="vcd_org_info">info</a></li><li>
 <a href="vcd_org_list">list</a></li><li>
 <a href="vcd_org_use">use</a></li>
@@ -69,13 +74,18 @@
 </ul></li>
 <li>
 <a href="vcd_user">user</a><ul><li>
-<a href="vcd_user_create">create</a></li>
+<a href="vcd_user_create">create</a></li><li>
+<a href="vcd_user_delete">delete</a></li>
 </ul></li>
 <li>
 <a href="vcd_vapp">vapp</a><ul><li>
+<a href="vcd_vapp_add-disk">add-disk</a></li><li>
+<a href="vcd_vapp_attach">attach</a></li><li>
 <a href="vcd_vapp_capture">capture</a></li><li>
+<a href="vcd_vapp_change-owner">change-owner</a></li><li>
 <a href="vcd_vapp_create">create</a></li><li>
 <a href="vcd_vapp_delete">delete</a></li><li>
+<a href="vcd_vapp_detach">detach</a></li><li>
 <a href="vcd_vapp_info">info</a></li><li>
 <a href="vcd_vapp_list">list</a></li><li>
 <a href="vcd_vapp_power-off">power-off</a></li><li>

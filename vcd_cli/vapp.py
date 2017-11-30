@@ -247,7 +247,7 @@ def list_vapps(ctx):
               default=None,
               metavar='<vm-name>',
               help='VM name')
-@click.option('-h',
+@click.option('-o',
               '--hostname',
               required=False,
               default=None,

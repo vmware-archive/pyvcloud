@@ -29,6 +29,12 @@ Usage: vcd catalog [OPTIONS] COMMAND [ARGS]...
           vcd catalog list \*
               Get list of items in all catalogs in current organization.
   
+          vcd catalog upload my-catalog photon.ova
+              Upload OVA to a catalog.
+  
+          vcd catalog download my-catalog photon.ova
+              Download OVA from catalog.
+  
           vcd catalog upload my-catalog installer.iso
               Upload media file to a catalog.
   
@@ -43,19 +49,25 @@ Usage: vcd catalog [OPTIONS] COMMAND [ARGS]...
   
           vcd catalog unshare my-catalog
               Stop sharing a catalog.
+  
+          vcd catalog update my-catalog -n 'new name' -d 'new description'
+              Update the name and/or description of a catalog.
       
 
 Options:
   -h, --help  Show this message and exit.
 
 Commands:
-  create    create a catalog
-  delete    delete a catalog or item
-  download  download item from catalog
-  info      show catalog or item details
-  list      list catalogs or items
-  share     share a catalog
-  unshare   unshare a catalog
-  upload    upload file to catalog
+  change_owner    change the ownership of catalog
+  control_access  catalog control access details
+  create          create a catalog
+  delete          delete a catalog or item
+  download        download item from catalog
+  info            show catalog or item details
+  list            list catalogs or items
+  share           share a catalog
+  unshare         unshare a catalog
+  update          rename catalog and/or change catalog description
+  upload          upload file to catalog
 
 ```

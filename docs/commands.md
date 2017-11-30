@@ -74,7 +74,8 @@
 </ul></li>
 <li>
 <a href="vcd_user">user</a><ul><li>
-<a href="vcd_user_create">create</a></li>
+<a href="vcd_user_create">create</a></li><li>
+<a href="vcd_user_delete">delete</a></li>
 </ul></li>
 <li>
 <a href="vcd_vapp">vapp</a><ul><li>

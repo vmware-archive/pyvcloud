@@ -1,8 +1,28 @@
 CHANGES
 =======
 
+* Update vapp.py
+* Update vcd\_vapp.py
+* documentation+tests
+* merged
+* add disk to vm - add disk to vm - fixed typo on vdc class
+* VCDA-217: Formatting and code fix
+* VCDA-217 : Formatting and addressing review comments
+* VCDA-217: Retrieve access control settings of a catalog
+* Fixing flake8 errors
+* Tests for catalog control access
+* VCDA-217: Retrieve access control settings of a catalog
+* Commands for changing owner for vApp and independent disks (#127)
+* Curt branch (#122)
+* VCDA:168 & 169 : PythonSDK for Attach or Detach Independent Disk to/from a VM within a vApp
+* Fix nit
+* Create a new organization with just the mandatory user inputs (#124)
+* Change Request: Remove extra print statement
+* Change formatting to avoid flake8 errors
+* Flake8 test-fixing format
 * storage profiles - storage profile, vapp and cluster methods - fixed catalog tests
 * changelog
+* Adding disk update tests for iops and storage profile
 * Fixed typo
 * Added doc string
 * eulas to false by default
@@ -10,6 +30,7 @@ CHANGES
 * changed variable name
 * Refactored to move the common code in list\_roles() and get\_role() to get\_roles\_query()
 * Fixing list\_roles() and get\_role() to work with org-admin
+* VCDA-197 : Code changes to pyvcloud to update independent disk iops and storage profile
 * changelog
 * license
 * license

@@ -1,9 +1,11 @@
 import click
 from pyvcloud.vcd.org import Org
 
+from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
+from vcd_cli.vcd import abort_if_false
 from vcd_cli.vcd import vcd
 
 
@@ -19,6 +21,9 @@ def user(ctx):
 \b
         vcd user create 'my user' 'my password' 'role name'
            create user in the current organization with 'my user' 'my password' and 'role name' .
+\b
+        vcd user delete 'my user'
+           deletes user with username "my user" from the current organization. Will also delete vApps owned by the user. If user has running vApps, this command will result in error.
 
     """  # NOQA
     if ctx.invoked_subcommand is not None:
@@ -129,9 +134,8 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
            stored_vm_quota, deployed_vm_quota):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
+        org = Org(client, in_use_org_href, is_sysadmin(ctx))
         role = org.get_role(role_name)
         role_href = role.get('href')
         u = org.create_user(user_name, password, role_href, full_name,
@@ -141,5 +145,29 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
                             default_cached, external, alert_enabled,
                             enabled)
         stdout('User \'%s\' is successfully created.' % u.get('name'), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@user.command(short_help='delete an user in current organization')
+@click.pass_context
+@click.argument('user_name',
+                metavar='<user_name>',
+                required=True)
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Deleting an user will also delete all assets '
+              '(e.g. vApps, vms, catalogs etc.) owned by the user.'
+              ' Are you sure you want to delete the user?')
+def delete(ctx, user_name):
+    try:
+        client = ctx.obj['client']
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href, is_sysadmin(ctx))
+        org.delete_user(user_name)
+        stdout('User \'%s\' has been successfully deleted.' % user_name, ctx)
     except Exception as e:
         stderr(e, ctx)

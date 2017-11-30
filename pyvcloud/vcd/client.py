@@ -851,6 +851,19 @@ class Client(object):
         """
         return self._get_wk_resource(_WellKnownEndpoint.ORG_LIST)
 
+    def get_org_by_name(self, org_name):
+        """
+        Retrieve an organization.
+        :param org_name: name of the org to be retrieved.
+        :return: Org record.
+        """  # NOQA
+        orgs = self.get_org_list()
+        if hasattr(orgs, 'Org'):
+            for org in orgs.Org:
+                if org.get('name') == org_name:
+                    return org
+        raise Exception('org \'%s\' not found' % org_name)
+
     def _get_query_list_map(self):
         if self._query_list_map is None:
             self._query_list_map = {}

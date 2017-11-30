@@ -35,11 +35,11 @@ class System(object):
 
     def create_org(self, org_name, full_org_name):
         """
-         Create new organization.
+        Create new organization.
         :param org_name: The name of the organization.
         :param full_org_name: The fullname of the organization.
         :return: (AdminOrgType) Created org object.
-         """  # NOQA
+        """  # NOQA
         if self.admin_resource is None:
             self.admin_resource = self.client.get_resource(self.admin_href)
         org_params = E.AdminOrg(
@@ -52,18 +52,6 @@ class System(object):
             EntityType.ADMIN_ORG.value,
             org_params)
 
-    def get_org(self, org_name):
-        """
-        Retrieve an organization.
-        :param org_name: name of the org to be retrieved.
-        :return: Org record.
-         """  # NOQA
-        orgs = self.client.get_org_list()
-        for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
-            if org.get('name') == org_name:
-                return org
-        raise Exception('org \'%s\' not found' % org_name)
-
     def delete_org(self, org_name, force=None, recursive=None):
         """
         Delete an organization.
@@ -73,8 +61,8 @@ class System(object):
         :param recursive: pass recursive=True  to remove an organization
         and any objects it contains that are in a state that normally allows.
         removal.
-         """  # NOQA
-        org = self.get_org(org_name)
+        """  # NOQA
+        org = self.client.get_org_by_name(org_name)
         org_href = org.get('href').replace('/api/org/',
                                            '/api/admin/org/')
         return self.client.delete_resource(org_href, force, recursive)

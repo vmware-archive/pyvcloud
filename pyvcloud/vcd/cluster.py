@@ -57,11 +57,11 @@ class Cluster(object):
         method = 'POST'
         uri = self._uri
         data = {'name': name, 'node_count': node_count, 'vdc': vdc,
-                'cpu-count': cpu_count,
+                'cpu_count': cpu_count,
                 'memory': memory,
                 'network': network_name,
                 'storage_profile': storage_profile,
-                'ssh-key': ssh_key}
+                'ssh_key': ssh_key}
         response = self.client._do_request_prim(
             method,
             uri,

@@ -44,11 +44,15 @@ class Cluster(object):
                        ssh_key=None):
         """
         Create a new Kubernetes cluster
+        :param vdc: (str): The name of the vdc backing the org in which the cluster would be created
+        :param network_name: (str): The name of the network to which the cluster vApp will connect to
+        :param name: (str): The name of the cluster
+        :param node_count: (str): The number of slave nodes
         :param cpu_count: (str): The number of virtual cpus on each of the nodes in the cluster
         :param memory: (str): The amount of memory (in MB) on each of the nodes in the cluster
-        :param ssh_key: (str): The ssh key that clients can use to log into the node vms without 
-                               explicitly providing passwords
-        :return: (json) A paresed json object describing the requested cluster.
+        :param storage_profile: (str): The name of the storage profile which will back the cluster
+        :param ssh_key: (str): The ssh key that clients can use to log into the node vms without explicitly providing passwords
+        :return: (json) A parsed json object describing the requested cluster.
         """  # NOQA
         method = 'POST'
         uri = self._uri

@@ -229,7 +229,8 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.captureVAppParams+xml'
     CONTROL_ACCESS_PARAMS = 'application/vnd.vmware.vcloud.controlAccess+xml'
     DISK = 'application/vnd.vmware.vcloud.disk+xml'
-    DISK_ATTACH_DETACH_PARAMS = 'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'
+    DISK_ATTACH_DETACH_PARAMS = \
+        'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'
     DISK_CREATE_PARMS = 'application/vnd.vmware.vcloud.diskCreateParams+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
@@ -250,6 +251,7 @@ class EntityType(Enum):
     PUBLISH_CATALOG_PARAMS = \
         'application/vnd.vmware.admin.publishCatalogParams+xml'
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
+    RASD_ITEM_LIST = 'application/vnd.vmware.vcloud.rasdItemsList+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'
     TASK = 'application/vnd.vmware.vcloud.task+xml'
     TASKS_LIST = 'application/vnd.vmware.vcloud.tasksList+xml'
@@ -851,6 +853,19 @@ class Client(object):
 
         """
         return self._get_wk_resource(_WellKnownEndpoint.ORG_LIST)
+
+    def get_org_by_name(self, org_name):
+        """
+        Retrieve an organization.
+        :param org_name: name of the org to be retrieved.
+        :return: Org record.
+        """  # NOQA
+        orgs = self.get_org_list()
+        if hasattr(orgs, 'Org'):
+            for org in orgs.Org:
+                if org.get('name') == org_name:
+                    return org
+        raise Exception('org \'%s\' not found' % org_name)
 
     def _get_query_list_map(self):
         if self._query_list_map is None:

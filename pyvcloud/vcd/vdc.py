@@ -213,7 +213,7 @@ class VDC(object):
         # Configure cpu, memory, disk of the first vm
         cpu_params = memory_params = disk_params = None
         if memory is not None or cpu is not None or disk_size is not None:
-            virtual_hardwire_section = E_OVF.VirtualHardwareSection(
+            virtual_hardware_section = E_OVF.VirtualHardwareSection(
                 E_OVF.Info('Virtual hardware requirements'))
             items = vms[0].xpath('//ovf:VirtualHardwareSection/ovf:Item',
                                  namespaces={'ovf': NSMAP['ovf']})
@@ -223,14 +223,14 @@ class VDC(object):
                         item['{' + NSMAP['rasd'] + '}ElementName'] = '%s MB of memory' % memory  # NOQA
                         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = memory
                         memory_params = item
-                        virtual_hardwire_section.append(memory_params)
+                        virtual_hardware_section.append(memory_params)
 
                 if cpu is not None and cpu_params is None:
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 3:
                         item['{' + NSMAP['rasd'] + '}ElementName'] = '%s virtual CPU(s)' % cpu  # NOQA
                         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = cpu
                         cpu_params = item
-                        virtual_hardwire_section.append(cpu_params)
+                        virtual_hardware_section.append(cpu_params)
 
                 if disk_size is not None and disk_params is None:
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 17:
@@ -238,8 +238,8 @@ class VDC(object):
                         item['{' + NSMAP['rasd'] + '}HostResource'].attrib['{' + NSMAP['vcloud'] + '}capacity'] = '%s' % disk_size  # NOQA
                         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
                         disk_params = item
-                        virtual_hardwire_section.append(disk_params)
-            vm_instantiation_param.append(virtual_hardwire_section)
+                        virtual_hardware_section.append(disk_params)
+            vm_instantiation_param.append(virtual_hardware_section)
 
         # Configure guest customization for the vm
         if password is not None or cust_script is not None or \

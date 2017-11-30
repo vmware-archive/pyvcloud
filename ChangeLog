@@ -1,12 +1,52 @@
 CHANGES
 =======
 
+18.2.1
+------
+
+* changelog
+* Fixing format of the json payload for create\_cluster()
+* Adding more comments for the params and fixing a typo
+* Addressed comments (after fixing rebase)
+* Update vapp.py
+* Update vcd\_vapp.py
+* documentation+tests
+* merged
+* add disk to vm - add disk to vm - fixed typo on vdc class
+* Added unit test for delete\_user. Refactored the function test\_create\_user to separate out actual test from the supporting code required to create an user
+* Changing filter criteria to org-ref instead of orgName in function get\_user()
+* Implement deletion of an user
+* resolving conflicts in get\_user()
+* Added unit test for delete\_user. Refactored the function test\_create\_user to separate out actual test from the supporting code required to create an user
+* Changing filter criteria to org-ref instead of orgName in function get\_user()
+* Implement deletion of an user
+* VCDA-217: Formatting and code fix
+* VCDA-217 : Formatting and addressing review comments
+* Moving get\_user implementation closer to create\_user implementation
+* Adding cpu-count, memory and ssh-key fields to create\_cluster command
+* VCDA-217: Retrieve access control settings of a catalog
+* Fixing flake8 errors
+* Tests for catalog control access
+* VCDA-217: Retrieve access control settings of a catalog
+* Commands for changing owner for vApp and independent disks (#127)
+* Curt branch (#122)
+* VCDA:168 & 169 : PythonSDK for Attach or Detach Independent Disk to/from a VM within a vApp
+* Fix nit
+* Create a new organization with just the mandatory user inputs (#124)
+* Change Request: Remove extra print statement
+* Change formatting to avoid flake8 errors
+* Flake8 test-fixing format
+* storage profiles - storage profile, vapp and cluster methods - fixed catalog tests
+* changelog
+* Adding disk update tests for iops and storage profile
 * Fixed typo
 * Added doc string
+* eulas to false by default
 * - added api version 30.0 - log request method - org docstring - instantiate\_vapp customize vm\_name and hostname, removed unnecessary brackets
 * changed variable name
 * Refactored to move the common code in list\_roles() and get\_role() to get\_roles\_query()
 * Fixing list\_roles() and get\_role() to work with org-admin
+* VCDA-197 : Code changes to pyvcloud to update independent disk iops and storage profile
 * changelog
 * license
 * license

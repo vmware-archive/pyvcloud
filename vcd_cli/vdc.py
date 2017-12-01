@@ -124,3 +124,21 @@ def use(ctx, name):
         raise Exception('not found')
     except Exception as e:
         stderr(e, ctx)
+
+
+@vdc.command(short_help='create a virtual datacenter')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+def create(ctx, name):
+    try:
+        client = ctx.obj['client']
+        # vdc name
+        # allocation mode
+        # storage profile(s)
+        # network pool and services
+        # enabled
+        # network
+    except Exception as e:
+        stderr(e, ctx)

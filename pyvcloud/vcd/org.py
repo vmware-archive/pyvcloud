@@ -132,7 +132,8 @@ class Org(object):
         :param old_catalog_name: (str): The current name of the catalog.
         :param new_catalog_name: (str): The new name of the catalog.
         :param description: (str): The new description of the catalog.
-        :return:  A :class:`lxml.objectify.StringElement` object describing the updated catalog.
+        :return:  A :class:`lxml.objectify.StringElement` object describing 
+        the updated catalog.
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -146,15 +147,15 @@ class Org(object):
                 href = catalog.get('href')
                 admin_href = href.replace('/api/catalog/',
                                           '/api/admin/catalog/')
-                adminViewOfCatalog = self.client.get_resource(admin_href)
+                admin_view_of_catalog = self.client.get_resource(admin_href)
                 if new_catalog_name is not None:
-                    adminViewOfCatalog.set('name', new_catalog_name)
+                    admin_view_of_catalog.set('name', new_catalog_name)
                 if description is not None:
-                    adminViewOfCatalog['Description'] = E.Description(
+                    admin_view_of_catalog['Description'] = E.Description(
                         description)
                 return self.client.put_resource(
                     admin_href,
-                    adminViewOfCatalog,
+                    admin_view_of_catalog,
                     media_type=EntityType.ADMIN_CATALOG.value
                     )
         raise Exception('Catalog not found.')
@@ -482,12 +483,27 @@ class Org(object):
             EntityType.USER.value,
             user)
 
+    def update_user(self, user_name, is_enabled=None):
+        """
+        Update an User
+        :param user_name: username of the user
+        :param is_enabled: enable/disable the user
+        :return: (UserType) Updated user object
+        """  # NOQA
+        user = self.get_user(user_name)
+        if is_enabled is not None:
+            if hasattr(user, 'IsEnabled'):
+                user['IsEnabled'] = E.IsEnabled(is_enabled)
+
+        return self.client.put_resource(user.get('href'), user,
+                                        EntityType.USER.value)
+
     def get_user(self, user_name):
         """
         Retrieve user record from current Organization
         :param user_name: user name of the record to be retrieved
         :return: User record
-        """ # NOQA
+        """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         resource_type = 'adminUser' if self.is_admin else 'user'
@@ -511,7 +527,7 @@ class Org(object):
         Delete user record from current organization
         :param user_name: (str) name of the user that (org/sys)admins wants to delete
         :return: result of calling DELETE on the user resource
-        """ # NOQA
+        """  # NOQA
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
 

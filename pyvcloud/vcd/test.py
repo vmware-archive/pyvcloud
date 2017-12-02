@@ -45,7 +45,3 @@ class TestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.client.logout()
-
-    @staticmethod
-    def is_admin(logged_in_org):
-        return logged_in_org.get('name') == 'System'

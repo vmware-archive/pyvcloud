@@ -33,17 +33,19 @@ class System(object):
         if admin_resource is not None:
             self.admin_href = self.client.get_admin().get('href')
 
-    def create_org(self, org_name, full_org_name):
+    def create_org(self, org_name, full_org_name, is_enabled=False):
         """
         Create new organization.
         :param org_name: The name of the organization.
         :param full_org_name: The fullname of the organization.
+        :param is_enabled: Enable organization if True
         :return: (AdminOrgType) Created org object.
         """  # NOQA
         if self.admin_resource is None:
             self.admin_resource = self.client.get_resource(self.admin_href)
         org_params = E.AdminOrg(
             E.FullName(full_org_name),
+            E.IsEnabled(is_enabled),
             E.Settings,
             name=org_name)
         return self.client.post_linked_resource(
@@ -51,6 +53,23 @@ class System(object):
             RelationType.ADD,
             EntityType.ADMIN_ORG.value,
             org_params)
+
+    def update_org(self, org_name, is_enabled=None):
+        """
+        Update an organization
+        :param org_name: The name of the organization.
+        :param is_enabled: enable/disable the organization
+        :return: (AdminOrgType) updated org object.
+        """  # NOQA
+        org = self.client.get_org_by_name(org_name)
+        org_href = self.get_admin_org_href(org)
+        org_resource = self.client.get_resource(org_href)
+        if is_enabled is not None:
+            if hasattr(org_resource, 'IsEnabled'):
+                org_resource['IsEnabled'] = E.IsEnabled(is_enabled)
+
+        return self.client.put_resource(org_href, org_resource,
+                                        EntityType.ADMIN_ORG.value)
 
     def delete_org(self, org_name, force=None, recursive=None):
         """
@@ -63,6 +82,10 @@ class System(object):
         removal.
         """  # NOQA
         org = self.client.get_org_by_name(org_name)
-        org_href = org.get('href').replace('/api/org/',
-                                           '/api/admin/org/')
+        org_href = self.get_admin_org_href(org)
         return self.client.delete_resource(org_href, force, recursive)
+
+    @staticmethod
+    def get_admin_org_href(org):
+        return org.get('href').replace('/api/org/',
+                                       '/api/admin/org/')

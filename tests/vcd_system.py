@@ -17,7 +17,7 @@ class TestSystem(TestCase):
         org = system.update_org(self.config['vcd']['org_name'], True)
         self.assertTrue(org['IsEnabled'])
 
-    def test_02_update_disable_org(self):
+    def test_03_update_disable_org(self):
         system = System(self.client)
         org = system.update_org(self.config['vcd']['org_name'], False)
         self.assertFalse(org['IsEnabled'])

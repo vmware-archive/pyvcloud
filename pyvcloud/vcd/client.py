@@ -629,7 +629,6 @@ class Client(object):
     def is_loogedin_user_sys_admin(self):
         return self._is_loggedin_user_sys_admin
 
-
     def get_api_uri(self):
         return self._uri
 

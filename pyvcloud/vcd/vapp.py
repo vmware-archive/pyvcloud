@@ -201,14 +201,14 @@ class VApp(object):
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        diskAttachOrDetachParams = E.DiskAttachOrDetachParams(
+        disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
             E.Disk(type=disk_type, href=disk_href))
         vm = self.get_vm(vm_name)
         return self.client.post_linked_resource(
             vm,
             RelationType.DISK_ATTACH,
             EntityType.DISK_ATTACH_DETACH_PARAMS.value,
-            diskAttachOrDetachParams)
+            disk_attach_or_detach_params)
 
     def detach_disk_from_vm(self, disk_href, disk_type, disk_name, vm_name):
         """
@@ -219,14 +219,14 @@ class VApp(object):
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        diskAttachOrDetachParams = E.DiskAttachOrDetachParams(
+        disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
             E.Disk(type=disk_type, href=disk_href))
         vm = self.get_vm(vm_name)
         return self.client.post_linked_resource(
             vm,
             RelationType.DISK_DETACH,
             EntityType.DISK_ATTACH_DETACH_PARAMS.value,
-            diskAttachOrDetachParams)
+            disk_attach_or_detach_params)
 
     def get_vm(self, vm_name):
         """

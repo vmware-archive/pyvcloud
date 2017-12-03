@@ -108,7 +108,7 @@ class Org(object):
     def get_catalog(self, name):
         return self.get_catalog_resource(name, False)
 
-    def get_catalog_resource(self, name, is_admin_operation = False):
+    def get_catalog_resource(self, name, is_admin_operation=False):
         org = self.client.get_resource(self.href)
         links = get_links(org,
                           rel=RelationType.DOWN,
@@ -142,15 +142,15 @@ class Org(object):
                 href = catalog.get('href')
                 admin_href = href.replace('/api/catalog/',
                                           '/api/admin/catalog/')
-                adminViewOfCatalog = self.client.get_resource(admin_href)
+                admin_view_of_catalog = self.client.get_resource(admin_href)
                 if new_catalog_name is not None:
-                    adminViewOfCatalog.set('name', new_catalog_name)
+                    admin_view_of_catalog.set('name', new_catalog_name)
                 if description is not None:
-                    adminViewOfCatalog['Description'] = E.Description(
+                    admin_view_of_catalog['Description'] = E.Description(
                         description)
                 return self.client.put_resource(
                     admin_href,
-                    adminViewOfCatalog,
+                    admin_view_of_catalog,
                     media_type=EntityType.ADMIN_CATALOG.value
                     )
         raise Exception('Catalog not found.')
@@ -490,7 +490,7 @@ class Org(object):
         org_filter = None
         if self.client.is_loggedin_user_sys_admin():
             resource_type = 'adminUser'
-            org_filter ='org==%s' % self.resource.get('href')
+            org_filter = 'org==%s' % self.resource.get('href')
         query = self.client.get_typed_query(
             resource_type,
             query_result_format=QueryResultFormat.REFERENCES,

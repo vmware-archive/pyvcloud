@@ -19,7 +19,6 @@ from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
-from vcd_cli.utils import is_admin
 from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -176,7 +175,7 @@ def list_vapps(ctx):
     try:
         client = ctx.obj['client']
         result = []
-        resource_type = 'adminVApp' if is_admin(ctx) else 'vApp'
+        resource_type = 'adminVApp' if is_sysadmin(ctx) else 'vApp'
         q = client.get_typed_query(resource_type,
                                    query_result_format=QueryResultFormat.
                                    ID_RECORDS)
@@ -344,6 +343,7 @@ def update_lease(ctx, name, runtime_seconds, storage_seconds):
     except Exception as e:
         stderr(e, ctx)
 
+
 @vapp.command('change-owner', short_help='change vApp owner')
 @click.pass_context
 @click.argument('vapp-name',
@@ -358,7 +358,7 @@ def change_owner(ctx, vapp_name, user_name):
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, is_sysadmin(ctx))
+        org = Org(client, in_use_org_href)
         user_resource = org.get_user(user_name)
         vapp_resource = vdc.get_vapp(vapp_name)
         vapp = VApp(client, resource=vapp_resource)
@@ -366,6 +366,7 @@ def change_owner(ctx, vapp_name, user_name):
         stdout('vapp owner changed', ctx)
     except Exception as e:
         stderr(e, ctx)
+
 
 @vapp.command('power-off', short_help='power off a vApp')
 @click.pass_context
@@ -462,9 +463,8 @@ def shutdown(ctx, name):
 def capture(ctx, name, catalog, template, customizable):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
+        org = Org(client, in_use_org_href)
         catalog_resource = org.get_catalog(catalog)
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)

@@ -1,25 +1,15 @@
-import unittest
-import string
 import random
+import string
+import unittest
 
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.test import TestCase
 
 
 class TestUser(TestCase):
-    @classmethod
-    def get_org(cls):
-        logged_in_org = cls.client.get_org()
-        org = Org(cls.client, resource=logged_in_org,
-                  is_admin=cls.is_sys_admin(logged_in_org))
-        return org
-
-    @staticmethod
-    def is_sys_admin(logged_in_org):
-        return logged_in_org.get('name') == 'System'
-
     def create_user(self, user_name, enabled=False):
-        org = self.get_org()
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
         role = org.get_role(self.config['vcd']['role_name'])
         role_href = role.get('href')
         return org.create_user(user_name, "password", role_href, "Full Name",
@@ -28,12 +18,14 @@ class TestUser(TestCase):
                                is_enabled=enabled)
 
     def delete_user(self, user_name):
-        org = self.get_org()
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
         result = org.delete_user(user_name)
         print(result)
 
     def update_user(self, user_name, is_enabled):
-        org = self.get_org()
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
         return org.update_user(user_name, is_enabled)
 
     def test_01_create_and_delete_user(self):

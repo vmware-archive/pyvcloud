@@ -16,6 +16,7 @@
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.utils import get_admin_org_href
 
 
 class System(object):
@@ -54,23 +55,6 @@ class System(object):
             EntityType.ADMIN_ORG.value,
             org_params)
 
-    def update_org(self, org_name, is_enabled=None):
-        """
-        Update an organization
-        :param org_name: The name of the organization.
-        :param is_enabled: enable/disable the organization
-        :return: (AdminOrgType) updated org object.
-        """  # NOQA
-        org = self.client.get_org_by_name(org_name)
-        org_href = self.get_admin_org_href(org)
-        org_resource = self.client.get_resource(org_href)
-        if is_enabled is not None:
-            if hasattr(org_resource, 'IsEnabled'):
-                org_resource['IsEnabled'] = E.IsEnabled(is_enabled)
-
-        return self.client.put_resource(org_href, org_resource,
-                                        EntityType.ADMIN_ORG.value)
-
     def delete_org(self, org_name, force=None, recursive=None):
         """
         Delete an organization.
@@ -82,10 +66,6 @@ class System(object):
         removal.
         """  # NOQA
         org = self.client.get_org_by_name(org_name)
-        org_href = self.get_admin_org_href(org)
+        org_href = get_admin_org_href(org)
         return self.client.delete_resource(org_href, force, recursive)
 
-    @staticmethod
-    def get_admin_org_href(org):
-        return org.get('href').replace('/api/org/',
-                                       '/api/admin/org/')

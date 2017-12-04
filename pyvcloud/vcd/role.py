@@ -13,10 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyvcloud.vcd.utils import to_dict
 
 class Role(object):
     def __init__(self, client, href=None, resource=None):
+        """
+        Constructor for Role object
+        :param client: (pyvcloud.vcd.client): The client.
+        :param href: URI of the Role entity
+        :param resource: (lxml.objectify.ObjectifiedElement): XML representation of the entity.
+        """  # NOQA
         self.client = client
         self.href = href
         self.resource = resource
@@ -25,17 +30,16 @@ class Role(object):
             self.name = resource.get('name')
 
     def list_rights(self):
+        """
+        List rights of the role
+        :return: list of names of rights for a given role.
+        """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         rights = []
         if hasattr(self.resource, 'RightReferences') and \
                 hasattr(self.resource.RightReferences, 'RightReference'):
             for right in self.resource.RightReferences.RightReference:
-                rights.append({'name':right.get('name')})
+                rights.append({'name': right.get('name')})
             return rights
         raise Exception("No rights found for the role \'%s\'" % self.name)
-
-
-
-
-

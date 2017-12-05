@@ -58,7 +58,6 @@ def list_rights(ctx, role_name, org_name=None):
             org_href = client.get_org_by_name(org_name).get('href')
         else:
             org_href = ctx.obj['profiles'].get('org_href')
-        stdout(org_href,ctx)
         org = Org(client, org_href, is_sysadmin(ctx))
         role_record = org.get_role(role_name)
         role = Role(client, href=role_record.get('href'))

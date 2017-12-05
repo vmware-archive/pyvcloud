@@ -89,7 +89,7 @@ class Org(object):
         raise Exception('Catalog not found.')
 
     def list_catalogs(self):
-        if self.client.is_loggedin_user_sys_admin():
+        if self.client.is_sysadmin():
             resource_type = 'adminCatalog'
         else:
             resource_type = 'catalog'
@@ -488,7 +488,7 @@ class Org(object):
             self.resource = self.client.get_resource(self.href)
         resource_type = 'user'
         org_filter = None
-        if self.client.is_loggedin_user_sys_admin():
+        if self.client.is_sysadmin():
             resource_type = 'adminUser'
             org_filter = 'org==%s' % self.resource.get('href')
         query = self.client.get_typed_query(
@@ -554,7 +554,7 @@ class Org(object):
 
         org_filter = None
         resource_type = 'role'
-        if self.client.is_loggedin_user_sys_admin():
+        if self.client.is_sysadmin():
             resource_type = 'adminRole'
             org_filter = 'org==%s' % self.resource.get('href')
 

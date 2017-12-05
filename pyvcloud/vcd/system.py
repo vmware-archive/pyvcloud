@@ -23,9 +23,9 @@ class System(object):
         """
         Constructor for System objects
         :param client:  (pyvcloud.vcd.client): The client.
-        :param admin_href: URI representing _WellKnownEndpoint.ADMIN
+        :param admin_href: URI representing _WellKnownEndpoint.ADMIN.
         :param admin_resource: (lxml.objectify.ObjectifiedElement): XML
-        representation of admin_href
+        representation of admin_href.
         """  # NOQA
         self.client = client
         self.admin_href = admin_href
@@ -35,11 +35,11 @@ class System(object):
 
     def create_org(self, org_name, full_org_name):
         """
-         Create new organization
-        :param org_name: The name of the organization
-        :param full_org_name: The fullname of the organization
-        :return: (AdminOrgType) Created org object
-         """  # NOQA
+        Create new organization.
+        :param org_name: The name of the organization.
+        :param full_org_name: The fullname of the organization.
+        :return: (AdminOrgType) Created org object.
+        """  # NOQA
         if self.admin_resource is None:
             self.admin_resource = self.client.get_resource(self.admin_href)
         org_params = E.AdminOrg(
@@ -51,3 +51,18 @@ class System(object):
             RelationType.ADD,
             EntityType.ADMIN_ORG.value,
             org_params)
+
+    def delete_org(self, org_name, force=None, recursive=None):
+        """
+        Delete an organization.
+        :param org_name: name of the org to be deleted.
+        :param force: pass force=True  along with recursive=True to remove an
+        organization and any objects it contains, regardless of their state.
+        :param recursive: pass recursive=True  to remove an organization
+        and any objects it contains that are in a state that normally allows.
+        removal.
+        """  # NOQA
+        org = self.client.get_org_by_name(org_name)
+        org_href = org.get('href').replace('/api/org/',
+                                           '/api/admin/org/')
+        return self.client.delete_resource(org_href, force, recursive)

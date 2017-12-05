@@ -42,15 +42,12 @@ class Org(object):
     def __init__(self,
                  client,
                  href=None,
-                 is_admin=False,
                  resource=None):
         """
         Constructor for Org objects.
 
         :param client: (pyvcloud.vcd.client): The client.
         :param href: (str): URI of the entity.
-        :param is_admin: (bool): Indicates if current logged in user is system administrator.
-            Org doesn't need to be 'System'.
         :param resource: (lxml.objectify.ObjectifiedElement): XML representation of the entity.
 
         """  # NOQA
@@ -61,7 +58,6 @@ class Org(object):
             self.href = resource.get('href')
         self.href_admin = self.href.replace('/api/org/',
                                             '/api/admin/org/')
-        self.is_admin = is_admin
 
     def get_name(self):
         if self.resource is None:
@@ -93,7 +89,7 @@ class Org(object):
         raise Exception('Catalog not found.')
 
     def list_catalogs(self):
-        if self.is_admin:
+        if self.client.is_sysadmin():
             resource_type = 'adminCatalog'
         else:
             resource_type = 'catalog'
@@ -146,15 +142,15 @@ class Org(object):
                 href = catalog.get('href')
                 admin_href = href.replace('/api/catalog/',
                                           '/api/admin/catalog/')
-                adminViewOfCatalog = self.client.get_resource(admin_href)
+                admin_view_of_catalog = self.client.get_resource(admin_href)
                 if new_catalog_name is not None:
-                    adminViewOfCatalog.set('name', new_catalog_name)
+                    admin_view_of_catalog.set('name', new_catalog_name)
                 if description is not None:
-                    adminViewOfCatalog['Description'] = E.Description(
+                    admin_view_of_catalog['Description'] = E.Description(
                         description)
                 return self.client.put_resource(
                     admin_href,
-                    adminViewOfCatalog,
+                    admin_view_of_catalog,
                     media_type=EntityType.ADMIN_CATALOG.value
                     )
         raise Exception('Catalog not found.')
@@ -490,9 +486,11 @@ class Org(object):
         """ # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        resource_type = 'adminUser' if self.is_admin else 'user'
-        org_filter = 'org==%s' % self.resource.get('href') \
-            if self.is_admin else None
+        resource_type = 'user'
+        org_filter = None
+        if self.client.is_sysadmin():
+            resource_type = 'adminUser'
+            org_filter = 'org==%s' % self.resource.get('href')
         query = self.client.get_typed_query(
             resource_type,
             query_result_format=QueryResultFormat.REFERENCES,
@@ -553,12 +551,13 @@ class Org(object):
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
+
         org_filter = None
-        if self.is_admin:
+        resource_type = 'role'
+        if self.client.is_sysadmin():
             resource_type = 'adminRole'
             org_filter = 'org==%s' % self.resource.get('href')
-        else:
-            resource_type = 'role'
+
         query = self.client.get_typed_query(
             resource_type,
             query_result_format=QueryResultFormat.RECORDS,

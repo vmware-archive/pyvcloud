@@ -10,11 +10,13 @@ class TestSystem(TestCase):
     def test_create_org(self):
         sys_admin = self.client.get_admin()
         system = System(self.client, admin_resource=sys_admin)
-        org_name = "orgName".join(
-            random.sample(string.ascii_lowercase, 4))
-        org = system.create_org(org_name, "orgFullName")
-        assert org.get('name') == org_name
-        # TODO(add cleanup to remove the org after delete org is implemented)
+        org = system.create_org(self.config['vcd']['org_name'],
+                                self.config['vcd']['org_full_name'])
+        assert org.get('name') == self.config['vcd']['org_name']
+
+    def test_delete_org(self):
+        system = System(self.client)
+        system.delete_org(self.config['vcd']['org_name'], True, True)
 
 
 if __name__ == '__main__':

@@ -11,3 +11,5 @@ vcd:
   verify: False
   role_name: System Administrator
   user_name: TestUser-
+  org_name: TestOrg
+  org_full_name: TestOrgFullName

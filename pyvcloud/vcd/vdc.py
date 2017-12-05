@@ -360,36 +360,36 @@ class VDC(object):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
-        diskParms = E.DiskCreateParams(E.Disk(name=name, size=size))
+        disk_params = E.DiskCreateParams(E.Disk(name=name, size=size))
 
         if description is not None:
-            diskParms.Disk.append(E.Description(description))
+            disk_params.Disk.append(E.Description(description))
 
         if bus_type is not None and bus_sub_type is not None:
-            diskParms.Disk.attrib['busType'] = bus_type
-            diskParms.Disk.attrib['busSubType'] = bus_sub_type
+            disk_params.Disk.attrib['busType'] = bus_type
+            disk_params.Disk.attrib['busSubType'] = bus_sub_type
 
         if storage_profile_name is not None:
             storage_profile = self.get_storage_profile(storage_profile_name)
             print(etree.tostring(storage_profile, pretty_print=True))
-            diskParms.Disk.append(storage_profile)
-            # etree.SubElement(diskParms.Disk, 'StorageProfile')
-            # diskParms.Disk.append(
+            disk_params.Disk.append(storage_profile)
+            # etree.SubElement(disk_params.Disk, 'StorageProfile')
+            # disk_params.Disk.append(
             # E.StorageProfile(name=storage_profile_name))
-            # diskParms.Disk.StorageProfile.attrib['href'] =
+            # disk_params.Disk.StorageProfile.attrib['href'] =
             # storage_profile.get('href')
-            # diskParms.Disk.StorageProfile.attrib['name'] =
+            # disk_params.Disk.StorageProfile.attrib['name'] =
             # storage_profile.get('name')
-            # diskParms.Disk.StorageProfile.attrib['type'] =
+            # disk_params.Disk.StorageProfile.attrib['type'] =
             # storage_profile.get('type')
 
-            print(etree.tostring(diskParms, pretty_print=True))
+            print(etree.tostring(disk_params, pretty_print=True))
 
         return self.client.post_linked_resource(
             self.resource,
             RelationType.ADD,
             EntityType.DISK_CREATE_PARMS.value,
-            diskParms)
+            disk_params)
 
     def update_disk(self,
                     name,
@@ -414,12 +414,12 @@ class VDC(object):
             self.resource = self.client.get_resource(self.href)
 
         if iops is None:
-            diskParms = E.Disk(name=name, size=size)
+            disk_params = E.Disk(name=name, size=size)
         else:
-            diskParms = E.Disk(name=name, size=size, iops=iops)
+            disk_params = E.Disk(name=name, size=size, iops=iops)
 
         if description is not None:
-            diskParms.append(E.Description(description))
+            disk_params.append(E.Description(description))
 
         if disk_id is not None:
             disk = self.get_disk(None, disk_id)
@@ -430,15 +430,15 @@ class VDC(object):
             storage_profile = self.get_storage_profile(storage_profile_name)
             sp = etree.XML(etree.tostring(storage_profile, pretty_print=True))
             sp_href = sp.attrib['href']
-            diskParms.append(E.StorageProfile(href=sp_href,
-                                              name=storage_profile_name))
+            disk_params.append(E.StorageProfile(href=sp_href,
+                                               name=storage_profile_name))
         if disk is None:
             raise Exception('Could not locate Disk %s for update. ' % disk_id)
 
         return self.client.put_linked_resource(disk,
                                                RelationType.EDIT,
                                                EntityType.DISK.value,
-                                               diskParms)
+                                               disk_params)
 
     def delete_disk(self, name, disk_id=None):
         """

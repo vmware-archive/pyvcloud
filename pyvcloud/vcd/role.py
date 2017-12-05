@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from vcd_cli.utils import stdout
 
 class Role(object):
     def __init__(self, client, href=None, resource=None):
@@ -31,7 +32,7 @@ class Role(object):
 
     def list_rights(self):
         """
-        List rights of the role
+        List rights associated with the role
         :return: list of names of rights for a given role.
         """  # NOQA
         if self.resource is None:
@@ -41,5 +42,4 @@ class Role(object):
                 hasattr(self.resource.RightReferences, 'RightReference'):
             for right in self.resource.RightReferences.RightReference:
                 rights.append({'name': right.get('name')})
-            return rights
-        raise Exception("No rights found for the role \'%s\'" % self.name)
+        return rights

@@ -20,7 +20,7 @@ def role(ctx):
             Get list of roles in the current organization.
             
         vcd role list_rights
-            Get list of rights in a given role.
+            Get list of rights associated with a given role.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:

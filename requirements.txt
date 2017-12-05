@@ -11,3 +11,4 @@ pytz
 oslo.utils
 pycrypto
 keyring
+humanfriendly

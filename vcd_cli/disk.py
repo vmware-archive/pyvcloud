@@ -13,9 +13,9 @@
 #
 
 import click
+import humanfriendly
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
 from pyvcloud.vcd.org import Org
-from pyvcloud.vcd.utils import convert_size
 from pyvcloud.vcd.utils import disk_to_dict
 from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.vdc import VDC
@@ -42,16 +42,16 @@ def disk(ctx):
         vcd disk info disk1 --id 91b3a2e2-fd02-412b-9914-9974d60b2351
             Get details of the disk named 'disk1' that has the supplied id.
 \b
-        vcd disk create disk1 1000 --description '1000 bytes Disk'
-            Create a new 1000 bytes independent disk named 'disk1' using the default storage profile.
+        vcd disk create disk1 1000 --description '1 KB Disk'
+            Create a new 1000 bytes (1 KB) independent disk named 'disk1' using the default storage profile.
 \b
-        vcd disk create disk10G $((10*1024*1024*1024)) --description '10 GB Disk'
-            Create a 10 GB independent disk using the default storage profile.
+        vcd disk create disk1 $((10*1024*1024*1024)) --description '10 GiB Disk'
+            Create a 10 GiB independent disk using the default storage profile.
 \b
         vcd disk delete disk1
             Delete an existing independent disk named 'disk1'.
 \b
-        vcd disk update disk1 15
+        vcd disk update disk1 $((15*1024*1024*1024))
             Update an existing independent disk with new size, iops, description, name and storage profile.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
@@ -98,7 +98,8 @@ def list_disks(ctx):
         for disk in disks:
             result.append({'name': disk.get('name'),
                            'id': extract_id(disk.get('id')),
-                           'size': convert_size(int(disk.get('size'))),
+                           'size': humanfriendly.format_size(
+                                    int(disk.get('size'))),
                            'size_bytes': disk.get('size'),
                            'status': VCLOUD_STATUS_MAP.get(int(
                                 disk.get('status')))})

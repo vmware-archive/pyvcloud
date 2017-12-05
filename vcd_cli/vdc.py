@@ -126,20 +126,3 @@ def use(ctx, name):
         stderr(e, ctx)
 
 
-@vdc.command(short_help='create a virtual datacenter')
-@click.pass_context
-@click.argument('name',
-                metavar='<name>',
-                required=True)
-def create(ctx, name):
-    pass
-    # try:
-    #     client = ctx.obj['client']
-    #     # vdc name
-    #     # allocation mode
-    #     # storage profile(s)
-    #     # network pool and services
-    #     # enabled
-    #     # network
-    # except Exception as e:
-    #     stderr(e, ctx)

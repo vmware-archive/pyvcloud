@@ -25,7 +25,6 @@ import sys
 import time
 import urllib
 
-
 SIZE_1MB = 1024*1024
 
 
@@ -515,6 +514,8 @@ class Client(object):
 
         self.fsencoding = sys.getfilesystemencoding()
 
+        self._is_sysadmin = False
+
     def _get_response_request_id(self, response):
         return response.headers[self._REQUEST_ID_HDR_NAME]
 
@@ -574,9 +575,18 @@ class Client(object):
         self._session.headers['x-vcloud-authorization'] = \
             response.headers['x-vcloud-authorization']
 
+        if session.get('org') == 'System':
+            self._is_sysadmin = True
+        else:
+            self._is_sysadmin = False
+
     def rehydrate(self, state):
         self._session = requests.Session()
         self._session.headers['x-vcloud-authorization'] = state.get('token')
+        if state.get('org') == 'System':
+            self._is_sysadmin = True
+        else:
+            self._is_sysadmin = False
         wkep = state.get('wkep')
         self._session_endpoints = {}
         for endpoint in _WellKnownEndpoint:
@@ -600,6 +610,12 @@ class Client(object):
                 Exception("Unknown login failure")
 
         session = objectify.fromstring(response.content)
+
+        if session.get('org') == 'System':
+            self._is_sysadmin = True
+        else:
+            self._is_sysadmin = False
+
         self._session_endpoints = _get_session_endpoints(session)
         self._session = new_session
         self._session.headers['x-vcloud-authorization'] = \
@@ -609,6 +625,9 @@ class Client(object):
     def logout(self):
         uri = self._uri + '/session'
         return self._do_request('DELETE', uri)
+
+    def is_sysadmin(self):
+        return self._is_sysadmin
 
     def get_api_uri(self):
         return self._uri

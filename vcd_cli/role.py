@@ -43,7 +43,7 @@ def list_roles(ctx):
         stderr(e, ctx)
 
 
-@role.command('list_rights', short_help='list rights of a role')
+@role.command('list-rights', short_help='list rights of a role')
 @click.pass_context
 @click.argument('role-name',
                 metavar='<role-name>',

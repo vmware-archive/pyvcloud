@@ -180,7 +180,7 @@ def download(ctx, vapp_name, vm_name, vc_host, vc_user, vc_password,
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
-        vdc = VDC(client, vdc_href=vdc_href)
+        vdc = VDC(client, href=vdc_href)
         vapp_resource = vdc.get_vapp(vapp_name)
         va = VApp(client, resource=vapp_resource)
         vs = VSphere(vc_host,

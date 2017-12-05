@@ -12,12 +12,15 @@ from vcd_cli.vcd import vcd
 @vcd.group(short_help='work with roles')
 @click.pass_context
 def role(ctx):
-    """Work with roles in current organization.
+    """Work with roles and rights
 
 \b
     Examples
         vcd role list
-            Get list of roles in current organization.
+            Get list of roles in the specified or current organization.
+            
+        vcd role list_rights
+            Get list of rights in a given role.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:

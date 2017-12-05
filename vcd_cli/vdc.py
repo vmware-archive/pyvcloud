@@ -132,13 +132,14 @@ def use(ctx, name):
                 metavar='<name>',
                 required=True)
 def create(ctx, name):
-    try:
-        client = ctx.obj['client']
-        # vdc name
-        # allocation mode
-        # storage profile(s)
-        # network pool and services
-        # enabled
-        # network
-    except Exception as e:
-        stderr(e, ctx)
+    pass
+    # try:
+    #     client = ctx.obj['client']
+    #     # vdc name
+    #     # allocation mode
+    #     # storage profile(s)
+    #     # network pool and services
+    #     # enabled
+    #     # network
+    # except Exception as e:
+    #     stderr(e, ctx)

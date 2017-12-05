@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import collections
+import humanfriendly
 from lxml import etree
 from lxml.objectify import NoneElement
 from pygments import formatters
@@ -230,7 +231,8 @@ def disk_to_dict(disk):
     result['name'] = disk.get('name')
     result['id'] = extract_id(disk.get('id'))
     result['status'] = disk.get('status')
-    result['size_MB'] = disk.get('size')
+    result['size'] = humanfriendly.format_size(int(disk.get('size')))
+    result['size_bytes'] = disk.get('size')
     result['busType'] = disk.get('busType')
     result['busSubType'] = disk.get('busSubType')
     result['iops'] = disk.get('iops')

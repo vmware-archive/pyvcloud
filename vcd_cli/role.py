@@ -17,7 +17,7 @@ def role(ctx):
 \b
     Examples
         vcd role list
-            Get list of roles in the specified or current organization.
+            Get list of roles in the current organization.
             
         vcd role list_rights
             Get list of rights in a given role.

@@ -8,7 +8,7 @@ from pyvcloud.vcd.test import TestCase
 class TestUser(TestCase):
     def create_user(self, user_name):
         logged_in_org = self.client.get_org()
-        org = Org(self.client, resource=logged_in_org, is_admin=False)
+        org = Org(self.client, resource=logged_in_org)
         role = org.get_role(self.config['vcd']['role_name'])
         role_href = role.get('href')
         return org.create_user(user_name, "password", role_href, "Full Name",
@@ -18,7 +18,7 @@ class TestUser(TestCase):
 
     def delete_user(self, user_name):
         logged_in_org = self.client.get_org()
-        org = Org(self.client, resource=logged_in_org, is_admin=False)
+        org = Org(self.client, resource=logged_in_org)
         result = org.delete_user(user_name)
         print(result)
 

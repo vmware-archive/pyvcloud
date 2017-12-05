@@ -18,7 +18,6 @@ from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vapp import VApp
-from vcd_cli.utils import is_admin
 from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -103,9 +102,8 @@ def catalog(ctx):
 def info(ctx, catalog_name, item_name):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
+        org = Org(client, in_use_org_href)
         if item_name is None:
             catalog = org.get_catalog(catalog_name)
             result = to_dict(catalog)
@@ -131,9 +129,8 @@ def info(ctx, catalog_name, item_name):
 def control_access(ctx, catalog_name):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
+        org = Org(client, in_use_org_href)
         control_access = org.get_catalog_access_control_settings(catalog_name)
         stdout('Access Settings for catalog :' + catalog_name)
         access_settings = control_access.get('AccessSettings')
@@ -166,13 +163,13 @@ def control_access(ctx, catalog_name):
 def update(ctx, catalog_name, new_catalog_name, description):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
-        result = org.update_catalog(catalog_name, new_catalog_name, description)
+        org = Org(client, in_use_org_href)
+        org.update_catalog(catalog_name, new_catalog_name, description)
         stdout('Catalog update successful', ctx)
     except Exception as e:
         stderr(e, ctx)
+
 
 @catalog.command('list', short_help='list catalogs or items')
 @click.pass_context
@@ -183,14 +180,13 @@ def list_catalogs_or_items(ctx, catalog_name):
     try:
         client = ctx.obj['client']
         if catalog_name is None:
-            org_name = ctx.obj['profiles'].get('org')
             in_use_org_href = ctx.obj['profiles'].get('org_href')
-            org = Org(client, in_use_org_href, org_name == 'System')
+            org = Org(client, in_use_org_href)
             result = org.list_catalogs()
         else:
             result = []
             resource_type = \
-                'adminCatalogItem' if is_admin(ctx) else 'catalogItem'
+                'adminCatalogItem' if is_sysadmin(ctx) else 'catalogItem'
             q = client.get_typed_query(resource_type,
                                        query_result_format=QueryResultFormat.
                                        ID_RECORDS,
@@ -244,9 +240,8 @@ def create(ctx, catalog_name, description):
 def delete_catalog_or_item(ctx, catalog_name, item_name):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
+        org = Org(client, in_use_org_href)
         if item_name is None:
             org.delete_catalog(catalog_name)
             stdout('Catalog deleted.', ctx)
@@ -265,9 +260,8 @@ def delete_catalog_or_item(ctx, catalog_name, item_name):
 def share(ctx, catalog_name):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
+        org = Org(client, in_use_org_href)
         org.share_catalog(catalog_name, True)
         stdout('Catalog shared.', ctx)
     except Exception as e:
@@ -282,9 +276,8 @@ def share(ctx, catalog_name):
 def unshare(ctx, catalog_name):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
+        org = Org(client, in_use_org_href)
         org.share_catalog(catalog_name, False)
         stdout('Catalog unshared.', ctx)
     except Exception as e:
@@ -329,9 +322,8 @@ def download_callback(transferred, total):
 def upload(ctx, catalog_name, file_name, item_name, progress):
     try:
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
+        org = Org(client, in_use_org_href)
         cb = upload_callback if progress else None
         filename, file_extension = os.path.splitext(file_name)
         if file_extension == '.ova':
@@ -383,9 +375,8 @@ def download(ctx, catalog_name, item_name, file_name, progress, overwrite):
         if not overwrite and os.path.isfile(save_as_name):
             raise Exception('File exists.')
         client = ctx.obj['client']
-        org_name = ctx.obj['profiles'].get('org')
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, org_name == 'System')
+        org = Org(client, in_use_org_href)
         cb = download_callback if progress else None
         bytes_written = org.download_catalog_item(catalog_name,
                                                   item_name,
@@ -396,6 +387,7 @@ def download(ctx, catalog_name, item_name, file_name, progress, overwrite):
         stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)
+
 
 @catalog.command('change-owner',
                  short_help='change the ownership of catalog')
@@ -408,7 +400,7 @@ def change_owner(ctx, catalog_name, user_name):
     try:
         client = ctx.obj['client']
         in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href, is_sysadmin(ctx))
+        org = Org(client, in_use_org_href)
         org.change_catalog_owner(catalog_name, user_name)
         stdout('catalog owner changed', ctx)
     except Exception as e:

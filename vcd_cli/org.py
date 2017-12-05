@@ -19,6 +19,7 @@ from pyvcloud.vcd.utils import org_to_dict
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
+from vcd_cli.vcd import abort_if_false
 from vcd_cli.vcd import vcd
 
 
@@ -40,6 +41,9 @@ def org(ctx):
 \b
         vcd org create my-org-name my-org-fullname
             Create organization with 'my-org-name' and 'my-org-fullname'
+\b
+        vcd org delete my-org-name
+            Delete organization 'my-org-name'
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -137,5 +141,42 @@ def create(ctx, name, full_name):
         system = System(client, admin_resource=sys_admin_resource)
         result = system.create_org(name, full_name)
         stdout('Org \'%s\' is successfully created.' % result.get('name'), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@org.command(short_help='delete an organization')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+@click.option('-r',
+              '--recursive',
+              is_flag=True,
+              help='removes the Org and any objects it contains that are in a '
+                   'state that normally allows removal')
+@click.option('-f',
+              '--force',
+              is_flag=True,
+              help='pass this option along with --recursive to remove an Org'
+                   ' and any objects it contains, regardless of their state')
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to delete the Org?')
+def delete(ctx, name, recursive, force):
+    try:
+        client = ctx.obj['client']
+        system = System(client)
+        if force and recursive:
+            click.confirm('Do you want to force delete \'%s\' and all '
+                          'its objects recursively?' % name, abort=True)
+        elif force:
+            click.confirm('Do you want to force delete \'%s\'' % name,
+                          abort=True)
+        task = system.delete_org(name, force, recursive)
+        stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

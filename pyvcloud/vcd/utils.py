@@ -16,6 +16,7 @@
 import collections
 from lxml import etree
 from lxml.objectify import NoneElement
+import math
 from pygments import formatters
 from pygments import highlight
 from pygments import lexers
@@ -107,6 +108,16 @@ def to_human(seconds):
     days = seconds / (24*60*60) - 7*weeks
     hours = seconds / (60*60) - 7*24*weeks - 24*days
     return '%sw, %sd, %sh' % (weeks, days, hours)
+
+
+def convert_size(size_bytes):
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return "%s %s" % (s, size_name[i])
 
 
 def vapp_to_dict(vapp, metadata=None):
@@ -230,7 +241,8 @@ def disk_to_dict(disk):
     result['name'] = disk.get('name')
     result['id'] = extract_id(disk.get('id'))
     result['status'] = disk.get('status')
-    result['size_MB'] = disk.get('size')
+    result['size'] = convert_size(int(disk.get('size')))
+    result['size_bytes'] = disk.get('size')
     result['busType'] = disk.get('busType')
     result['busSubType'] = disk.get('busSubType')
     result['iops'] = disk.get('iops')

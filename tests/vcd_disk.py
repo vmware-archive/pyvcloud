@@ -11,19 +11,19 @@ from pyvcloud.vcd.client import TaskStatus
 
 
 class TestDisk(TestCase):
-    
+
     """
     def test_008_get_disks(self):
 
         logged_in_org = self.client.get_org()
-       
+
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, href=v.get('href'))
         assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
-        
+
         disks = vdc.get_disks()
-        assert len(disks) > 0  
+        assert len(disks) > 0
         assert disks[0].get('name') == self.config['vcd']['disk']
         for disk in disks:
              print ("VDC disk: " + str(etree.tostring(disk, pretty_print=True), "utf-8"))
@@ -32,17 +32,17 @@ class TestDisk(TestCase):
     def test_008_get_disks(self):
 
         logged_in_org = self.client.get_org()
-       
+
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, href=v.get('href'))
-        
+
         disks = vdc.get_disks()
-        
+
         for disk in disks:
             print (" Disk: " + str(etree.tostring(disk, pretty_print=True), "utf-8"))
 
-        assert len(disks) > 0 
+        assert len(disks) > 0
 
         assert disks[0].get('name') == self.config['vcd']['disk']
 
@@ -51,28 +51,31 @@ class TestDisk(TestCase):
     def test_008_get_disk(self):
 
         logged_in_org = self.client.get_org()
-       
+
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, href=v.get('href'))
 
-        
+
         fetched_disk = vdc.get_disk("Disk1")
-        
-        assert fetched_disk is not None  
+
+        assert fetched_disk is not None
 
 
     def test_008_update_disk(self):
 
         logged_in_org = self.client.get_org()
-       
+
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, href=v.get('href'))
 
-        
-        taskObj = vdc.update_disk(self.config['vcd']['disk'], "3072", "DiskUpdated", "3 GB Disk")
-        
+
+        taskObj = vdc.update_disk(self.config['vcd']['disk'],
+                                  3*1024*1024*1024,
+                                  "DiskUpdated",
+                                  "3 GB Disk")
+
         task = self.client.get_task_monitor().wait_for_status(
                                 task=taskObj,
                                 timeout=30,
@@ -95,7 +98,9 @@ class TestDisk(TestCase):
         v = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, href=v.get('href'))
 
-        taskObj = vdc.update_disk(self.config['vcd']['disk'], "3072", "DiskUpdated",
+        taskObj = vdc.update_disk(self.config['vcd']['disk'],
+                                  3*1024*1024*1024,
+                                  "DiskUpdated",
                                   "3 GB Disk",
                                   "stf-storage-service-gold",
                                   "200")
@@ -122,7 +127,12 @@ class TestDisk(TestCase):
         v = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, href=v.get('href'))
 
-        taskObj = vdc.update_disk(self.config['vcd']['disk'], "3072", "DiskUpdated", "3 GB Disk", "*", "200")
+        taskObj = vdc.update_disk(self.config['vcd']['disk'],
+                                  3*1024*1024*1024,
+                                  "DiskUpdated",
+                                  "3 GB Disk",
+                                  "*",
+                                  "200")
 
         task = self.client.get_task_monitor().wait_for_status(
             task=taskObj,
@@ -142,24 +152,24 @@ class TestDisk(TestCase):
     def test_008_get_disk_by_id(self):
 
         logged_in_org = self.client.get_org()
-       
+
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, href=v.get('href'))
-        
+
         disks = vdc.get_disks()
-        assert len(disks) > 0  
+        assert len(disks) > 0
 
         # get first disk using id
         fetched_disk = vdc.get_disk(None, disks[0].get('id'))
-        assert fetched_disk is not None  
+        assert fetched_disk is not None
 
 
-    
+
     def test_010_get_storage_profiles(self):
 
         logged_in_org = self.client.get_org()
-       
+
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, href=v.get('href'))
@@ -167,11 +177,11 @@ class TestDisk(TestCase):
         profiles = vdc.get_storage_profiles()
         assert len(profiles) > 0
         assert profiles[0].get('name')== self.config['vcd']['storage_profile']
-        
+
     def test_010_get_storage_profile(self):
 
         logged_in_org = self.client.get_org()
-       
+
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, href=v.get('href'))

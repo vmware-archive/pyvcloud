@@ -6,6 +6,7 @@ from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
+from vcd_cli.utils import to_dict
 from vcd_cli.vcd import vcd
 
 
@@ -49,21 +50,51 @@ def list_roles(ctx):
                 required=True)
 @click.option('-o',
               '--org',
-              'org_name',
               required=False,
-              metavar='<org-name>',
+              metavar='[org_name]',
               help='name of the org')
-def list_rights(ctx, role_name, org_name=None):
+def list_rights(ctx, role_name, org):
     try:
         client = ctx.obj['client']
-        if (org_name is not None):
-            org_href = client.get_org_by_name(org_name).get('href')
+        if (org is not None):
+            org_href = client.get_org_by_name(org).get('href')
         else:
             org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, org_href, is_sysadmin(ctx))
+        org = Org(client, org_href)
         role_record = org.get_role(role_name)
         role = Role(client, href=role_record.get('href'))
         rights = role.list_rights()
         stdout(rights, ctx)
     except Exception as e:
         stderr(e, ctx)
+
+@role.command('create', short_help='Creates role in the specified or current organization')
+@click.pass_context
+@click.argument('role-name',
+                metavar='<role-name>',
+                required=True)
+@click.argument('description',
+                metavar='<description>',
+                required=True)
+@click.argument('rights',
+                nargs = -1,
+                metavar='<rights>')
+@click.option('-o',
+              '--org',
+              required=False,
+              metavar='[org]',
+              help='name of the org',
+              )
+def create(ctx, role_name, description, rights, org):
+    try:
+        client = ctx.obj['client']
+        if (org is not None):
+            org_href = client.get_org_by_name(org).get('href')
+        else:
+            org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, org_href)
+        role = org.create_role(role_name, description, rights)
+        stdout(to_dict(role, exclude=['Link', 'RightReferences']), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+

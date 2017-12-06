@@ -76,6 +76,33 @@ class Org(object):
             EntityType.ADMIN_CATALOG.value,
             catalog)
 
+    def create_role(self, role_name, description, rights):
+        """
+        Creates a role in the organization
+        :param role_name (str): name of the role to be created
+        :param description (str): description of the role
+        :param rights (list): names of zero or more rights to be associated with the role
+        :return: RoleType just created
+        """ #  NOQA
+        org_admin_resource = self.client.get_resource(self.href_admin)
+        role = E.Role(
+            E.Description(description),
+            E.RightReferences(),
+            name=role_name
+        )
+        for right in rights:
+            right_record = self.get_right(right)
+            role.RightReferences.append(
+                E.RightReference(name=right_record.get('name'),
+                                 href=right_record.get('href'),
+                                 type=EntityType.RIGHT.value))
+        return self.client.post_linked_resource(
+            org_admin_resource,
+            RelationType.ADD,
+            EntityType.ROLE.value,
+            role)
+
+
     def delete_catalog(self, name):
         org = self.client.get_resource(self.href)
         links = get_links(org,
@@ -563,6 +590,39 @@ class Org(object):
             query_result_format=QueryResultFormat.RECORDS,
             equality_filter=name_filter,
             qfilter=org_filter)
+        return query, resource_type
+
+    def get_right(self, right_name):
+        """
+        Retrieves corresponding record of the specified right.
+        :param right_name: (str): The name of the right record to be retrieved
+        :return: (QueryResultRightRecordType): Right query result in records
+                 format
+        """  # NOQA
+        try:
+            rights_query = self.get_rights_query(('name', right_name))[0]
+            return rights_query.find_unique()
+        except MissingRecordException:
+            raise Exception('Right \'%s\' does not exist.' % right_name)
+
+    def get_rights_query(self, name_filter=None):
+        """
+        Get the typed query for the rights in the current Org
+        :param name_filter: (tuple): (name ,'right name') Filter the rights by
+                             'right name'
+        :return: (tuple of (_TypedQuery, str))
+                  _TypedQuery object represents the query for the rights in
+                  the current Org
+                  str represents the resource type of the query object
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        resource_type = 'right'
+        query = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter)
         return query, resource_type
 
     def get_catalog_access_control_settings(self, catalog_name):

@@ -16,7 +16,7 @@
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.utils import get_admin_org_href
+from pyvcloud.vcd.utils import get_admin_href
 
 
 class System(object):
@@ -37,9 +37,9 @@ class System(object):
     def create_org(self, org_name, full_org_name, is_enabled=False):
         """
         Create new organization.
-        :param org_name: The name of the organization.
-        :param full_org_name: The fullname of the organization.
-        :param is_enabled: Enable organization if True
+        :param org_name: (str): The name of the organization.
+        :param full_org_name: (str): The fullname of the organization.
+        :param is_enabled: (bool): Enable organization if True
         :return: (AdminOrgType) Created org object.
         """  # NOQA
         if self.admin_resource is None:
@@ -58,14 +58,15 @@ class System(object):
     def delete_org(self, org_name, force=None, recursive=None):
         """
         Delete an organization.
-        :param org_name: name of the org to be deleted.
-        :param force: pass force=True  along with recursive=True to remove an
-        organization and any objects it contains, regardless of their state.
-        :param recursive: pass recursive=True  to remove an organization
-        and any objects it contains that are in a state that normally allows.
-        removal.
+        :param org_name: (str): name of the org to be deleted.
+        :param force: (bool): pass force=True  along with recursive=True to 
+        remove an organization and any objects it contains, regardless of 
+        their state.
+        :param recursive: (bool): pass recursive=True  to remove an 
+        organization and any objects it contains that are in a state that 
+        normally allows removal.
         """  # NOQA
         org = self.client.get_org_by_name(org_name)
-        org_href = get_admin_org_href(org)
+        org_href = get_admin_href(org.get('href'))
         return self.client.delete_resource(org_href, force, recursive)
 

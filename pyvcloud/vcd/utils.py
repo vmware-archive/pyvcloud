@@ -322,6 +322,6 @@ def stdout_xml(the_xml):
                     formatters.TerminalFormatter()))
 
 
-def get_admin_org_href(org):
-    return org.get('href').replace('/api/org/',
-                                   '/api/admin/org/')
+def get_admin_href(href):
+    return href.replace('/api/',
+                        '/api/admin/')

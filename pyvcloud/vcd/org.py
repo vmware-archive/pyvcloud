@@ -641,12 +641,12 @@ class Org(object):
         :return: (AdminOrgType) updated org object.
         """  # NOQA
         org = self.client.get_org_by_name(org_name)
-        org_href = get_admin_href(org.get('href'))
-        org_resource = self.client.get_resource(org_href)
+        org_admin_href = get_admin_href(org.get('href'))
+        org_admin_resource = self.client.get_resource(org_admin_href)
         if is_enabled is not None:
-            if hasattr(org_resource, 'IsEnabled'):
-                org_resource['IsEnabled'] = E.IsEnabled(is_enabled)
-                return self.client.put_resource(org_href, org_resource,
+            if hasattr(org_admin_resource, 'IsEnabled'):
+                org_admin_resource['IsEnabled'] = E.IsEnabled(is_enabled)
+                return self.client.put_resource(org_admin_href, org_admin_resource,
                                                 EntityType.ADMIN_ORG.value)
-        return org_resource
+        return org_admin_resource
 

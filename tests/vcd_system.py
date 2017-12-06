@@ -1,5 +1,3 @@
-import random
-import string
 import unittest
 
 from pyvcloud.vcd.system import System

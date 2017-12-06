@@ -98,6 +98,7 @@ def list_disks(ctx):
         for disk in disks:
             result.append({'name': disk.get('name'),
                            'id': extract_id(disk.get('id')),
+                           'owner': disk.Owner.User.get('name'),
                            'size': humanfriendly.format_size(
                                     int(disk.get('size'))),
                            'size_bytes': disk.get('size'),

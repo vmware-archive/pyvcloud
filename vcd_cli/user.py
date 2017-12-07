@@ -1,7 +1,6 @@
 import click
 from pyvcloud.vcd.org import Org
 
-from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -141,12 +140,19 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
         org = Org(client, in_use_org_href)
         role = org.get_role(role_name)
         role_href = role.get('href')
-        result = org.create_user(user_name, password, role_href, full_name,
-                                 description, email, telephone, im,
-                                 alert_email, alert_email_prefix,
-                                 stored_vm_quota, deployed_vm_quota,
-                                 group_role, default_cached, external,
-                                 alert_enabled, enabled)
+        result = org.create_user(user_name=user_name, password=password,
+                                 role_href=role_href, full_name=full_name,
+                                 description=description, email=email,
+                                 telephone=telephone, im=im,
+                                 alert_email=alert_email,
+                                 alert_email_prefix=alert_email_prefix,
+                                 stored_vm_quota=stored_vm_quota,
+                                 deployed_vm_quota=deployed_vm_quota,
+                                 is_group_role=group_role,
+                                 is_default_cached=default_cached,
+                                 is_external=external,
+                                 is_alert_enabled=alert_enabled,
+                                 is_enabled=enabled)
         stdout('User \'%s\' is successfully created.' % result.get('name'),
                ctx)
     except Exception as e:

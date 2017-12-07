@@ -173,11 +173,11 @@ def vapp_to_dict(vapp, metadata=None):
                 else:
                     value = '{}: {}'.format(
                         connection.get(
-                            '{http://www.vmware.com/vcloud/v1.5}ipAddressingMode'  # NOQA
+                            '{' + NSMAP['vcloud'] + '}ipAddressingMode'
                         ),
                         connection.get(
-                            '{http://www.vmware.com/vcloud/v1.5}ipAddress'
-                        )  # NOQA
+                            '{' + NSMAP['vcloud'] + '}ipAddress'
+                        )
                     )
                 result['%s: %s' % (k, element_name)] = value
             env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)

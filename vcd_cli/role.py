@@ -60,7 +60,7 @@ def list_roles(ctx):
 def list_rights(ctx, role_name, org_name):
     try:
         client = ctx.obj['client']
-        if (org_name is not None):
+        if org_name is not None:
             org_href = client.get_org_by_name(org_name).get('href')
         else:
             org_href = ctx.obj['profiles'].get('org_href')

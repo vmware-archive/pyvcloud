@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import collections
+import humanfriendly
 from lxml import etree
 from lxml.objectify import NoneElement
 from pygments import formatters
@@ -57,7 +58,7 @@ def vdc_to_dict(vdc):
     if hasattr(vdc, 'IsEnabled'):
         result['is_enabled'] = bool(vdc.IsEnabled)
     if hasattr(vdc, 'AvailableNetworks') and \
-       hasattr(vdc.AvailableNetworks, 'Network'):
+            hasattr(vdc.AvailableNetworks, 'Network'):
         result['networks'] = []
         for n in vdc.AvailableNetworks.Network:
             result['networks'].append(n.get('name'))
@@ -83,15 +84,15 @@ def vdc_to_dict(vdc):
     if hasattr(vdc, 'VmQuota'):
         result['vm_quota'] = int(vdc.VmQuota)
     if hasattr(vdc, 'Capabilities') and \
-       hasattr(vdc.Capabilities, 'SupportedHardwareVersions') and \
-       hasattr(vdc.Capabilities.SupportedHardwareVersions,
-               'SupportedHardwareVersion'):
+            hasattr(vdc.Capabilities, 'SupportedHardwareVersions') and \
+            hasattr(vdc.Capabilities.SupportedHardwareVersions,
+                    'SupportedHardwareVersion'):
         result['supported_hw'] = []
-        for n in vdc.Capabilities.SupportedHardwareVersions.\
+        for n in vdc.Capabilities.SupportedHardwareVersions. \
                 SupportedHardwareVersion:
             result['supported_hw'].append(str(n))
     if hasattr(vdc, 'ResourceEntities') and \
-       hasattr(vdc.ResourceEntities, 'ResourceEntity'):
+            hasattr(vdc.ResourceEntities, 'ResourceEntity'):
         result['vapps'] = []
         result['vapp_templates'] = []
         for n in vdc.ResourceEntities.ResourceEntity:
@@ -103,9 +104,9 @@ def vdc_to_dict(vdc):
 
 
 def to_human(seconds):
-    weeks = seconds / (7*24*60*60)
-    days = seconds / (24*60*60) - 7*weeks
-    hours = seconds / (60*60) - 7*24*weeks - 24*days
+    weeks = seconds / (7 * 24 * 60 * 60)
+    days = seconds / (24 * 60 * 60) - 7 * weeks
+    hours = seconds / (60 * 60) - 7 * 24 * weeks - 24 * days
     return '%sw, %sd, %sh' % (weeks, days, hours)
 
 
@@ -230,7 +231,8 @@ def disk_to_dict(disk):
     result['name'] = disk.get('name')
     result['id'] = extract_id(disk.get('id'))
     result['status'] = disk.get('status')
-    result['size_MB'] = disk.get('size')
+    result['size'] = humanfriendly.format_size(int(disk.get('size')))
+    result['size_bytes'] = disk.get('size')
     result['busType'] = disk.get('busType')
     result['busSubType'] = disk.get('busSubType')
     result['iops'] = disk.get('iops')
@@ -318,3 +320,8 @@ def stdout_xml(the_xml):
                         'utf-8'),
                     lexers.XmlLexer(),
                     formatters.TerminalFormatter()))
+
+
+def get_admin_href(href):
+    return href.replace('/api/',
+                        '/api/admin/')

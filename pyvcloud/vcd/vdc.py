@@ -349,8 +349,8 @@ class VDC(object):
                  storage_profile_name=None):
         """
         Request the creation of an indendent disk.
-        :param name: (str): The name of the new Disk.
-        :param size: (str): The size of the new disk in MB.
+        :param name: (str): The name of the new disk.
+        :param size: (int): The size of the new disk in bytes.
         :param bus_type: (str): The bus type of the new disk.
         :param bus_subtype: (str): The bus subtype  of the new disk.
         :param description: (str): A description of the new disk.
@@ -360,7 +360,7 @@ class VDC(object):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
-        disk_params = E.DiskCreateParams(E.Disk(name=name, size=size))
+        disk_params = E.DiskCreateParams(E.Disk(name=name, size=str(size)))
 
         if description is not None:
             disk_params.Disk.append(E.Description(description))
@@ -371,19 +371,7 @@ class VDC(object):
 
         if storage_profile_name is not None:
             storage_profile = self.get_storage_profile(storage_profile_name)
-            print(etree.tostring(storage_profile, pretty_print=True))
             disk_params.Disk.append(storage_profile)
-            # etree.SubElement(disk_params.Disk, 'StorageProfile')
-            # disk_params.Disk.append(
-            # E.StorageProfile(name=storage_profile_name))
-            # disk_params.Disk.StorageProfile.attrib['href'] =
-            # storage_profile.get('href')
-            # disk_params.Disk.StorageProfile.attrib['name'] =
-            # storage_profile.get('name')
-            # disk_params.Disk.StorageProfile.attrib['type'] =
-            # storage_profile.get('type')
-
-            print(etree.tostring(disk_params, pretty_print=True))
 
         return self.client.post_linked_resource(
             self.resource,
@@ -401,10 +389,10 @@ class VDC(object):
                     disk_id=None):
         """
         Update an existing independent disk.
-        :param name: (str): The existing name of the Disk.
-        :param size: (str): The size of the new disk in MB.
-        :param new_name: (str): The new name for the Disk.
-        :param iops: (str): The new iops for the disk. 
+        :param name: (str): The existing name of the disk.
+        :param size: (int): The size of the new disk in bytes.
+        :param new_name: (str): The new name for the disk.
+        :param iops: (str): The new iops for the disk.
         :param storage_profile_name: (str): The storage profile that the disk belongs to.
         :param description: (str): A description of the new disk.
         :param disk_id: (str): The disk_id of the existing disk.
@@ -414,9 +402,9 @@ class VDC(object):
             self.resource = self.client.get_resource(self.href)
 
         if iops is None:
-            disk_params = E.Disk(name=name, size=size)
+            disk_params = E.Disk(name=name, size=str(size))
         else:
-            disk_params = E.Disk(name=name, size=size, iops=iops)
+            disk_params = E.Disk(name=name, size=str(size), iops=iops)
 
         if description is not None:
             disk_params.append(E.Description(description))
@@ -431,7 +419,7 @@ class VDC(object):
             sp = etree.XML(etree.tostring(storage_profile, pretty_print=True))
             sp_href = sp.attrib['href']
             disk_params.append(E.StorageProfile(href=sp_href,
-                                               name=storage_profile_name))
+                                                name=storage_profile_name))
         if disk is None:
             raise Exception('Could not locate Disk %s for update. ' % disk_id)
 
@@ -496,18 +484,29 @@ class VDC(object):
 
         disks = self.get_disks()
 
+        result = None
         if disk_id is not None:
             if not disk_id.startswith('urn:vcloud:disk:'):
                 disk_id = 'urn:vcloud:disk:' + disk_id
             for disk in disks:
                 if disk.get('id') == disk_id:
-                    return disk
+                    result = disk
+                    # disk-id's are unique so it's ok to break the loop
+                    # and stop looking further.
+                    break
+        elif name is not None:
+            for disk in disks:
+                if disk.get('name') == name:
+                    if result is None:
+                        result = disk
+                    else:
+                        raise Exception('Found multiple disks with name %s'
+                                        ', please specify disk id along '
+                                        'with disk name. ' % disk.get('name'))
+        if result is None:
+            raise Exception('No disk found with the given name/id.')
         else:
-            if name is not None:
-                for disk in disks:
-                    if disk.get('name') == name:
-                        return disk
-        return None
+            return result
 
     def change_disk_owner(self, name, user_href, disk_id=None):
         """

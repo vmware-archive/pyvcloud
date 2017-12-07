@@ -26,6 +26,7 @@ from pyvcloud.vcd.client import MissingRecordException
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.utils import access_settings_to_dict
+from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import to_dict
 import shutil
 import tarfile
@@ -154,7 +155,8 @@ class Org(object):
         :param old_catalog_name: (str): The current name of the catalog.
         :param new_catalog_name: (str): The new name of the catalog.
         :param description: (str): The new description of the catalog.
-        :return:  A :class:`lxml.objectify.StringElement` object describing the updated catalog.
+        :return:  A :class:`lxml.objectify.StringElement` object describing 
+        the updated catalog.
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -504,6 +506,21 @@ class Org(object):
             EntityType.USER.value,
             user)
 
+    def update_user(self, user_name, is_enabled=None):
+        """
+        Update an User
+        :param user_name: (str): username of the user
+        :param is_enabled: (bool): enable/disable the user
+        :return: (UserType) Updated user object
+        """  # NOQA
+        user = self.get_user(user_name)
+        if is_enabled is not None:
+            if hasattr(user, 'IsEnabled'):
+                user['IsEnabled'] = E.IsEnabled(is_enabled)
+                return self.client.put_resource(user.get('href'), user,
+                                                EntityType.USER.value)
+        return user
+
     def get_user(self, user_name):
         """
         Retrieve user record from current Organization
@@ -674,3 +691,21 @@ class Org(object):
             catalog_href,
             new_owner,
             EntityType.OWNER.value)
+
+    def update_org(self, org_name, is_enabled=None):
+        """
+        Update an organization
+        :param org_name: (str): The name of the organization.
+        :param is_enabled: (bool): enable/disable the organization
+        :return: (AdminOrgType) updated org object.
+        """  # NOQA
+        org = self.client.get_org_by_name(org_name)
+        org_admin_href = get_admin_href(org.get('href'))
+        org_admin_resource = self.client.get_resource(org_admin_href)
+        if is_enabled is not None:
+            if hasattr(org_admin_resource, 'IsEnabled'):
+                org_admin_resource['IsEnabled'] = E.IsEnabled(is_enabled)
+                return self.client.put_resource(org_admin_href, org_admin_resource,
+                                                EntityType.ADMIN_ORG.value)
+        return org_admin_resource
+

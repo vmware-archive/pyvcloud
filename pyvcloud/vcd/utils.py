@@ -104,6 +104,11 @@ def vdc_to_dict(vdc):
                 result['vapps'].append(n.get('name'))
             elif n.get('type') == EntityType.VAPP_TEMPLATE.value:
                 result['vapp_templates'].append(n.get('name'))
+    if hasattr(vdc, 'VdcStorageProfiles') and \
+            hasattr(vdc.VdcStorageProfiles, 'VdcStorageProfile'):
+        result['storage_profiles'] = []
+        for sp in vdc.VdcStorageProfiles.VdcStorageProfile:
+            result['storage_profiles'].append(sp.get('name'))
     return result
 
 

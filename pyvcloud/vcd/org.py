@@ -657,37 +657,33 @@ class Org(object):
                        nic_quota=0,
                        network_quota=0,
                        vm_quota=0,
-                       sto_profile_name='*',
-                       sto_profile_enabled=True,
-                       sto_profile_default=True,
-                       sto_profile_units='MB',
-                       sto_profile_limit=0,
+                       storage_profiles=[],
                        uses_fast_provisioning=True,
                        is_enabled=True):
         """
-        Create Organization VDC in the current Org
-        :param vdc_name: The name of the new org vdc
-        :param provider_vdc_name: The name of the new provider vdc
-        :param description: The description of the new org vdc
-        :param allocation_model: The allocation model used by this vDC. One of AllocationVApp, AllocationPool or ReservationPool
+        Create Organization VDC in the current Org.
+        :param vdc_name: The name of the new org vdc.
+        :param provider_vdc_name: The name of the new provider vdc.
+        :param description: The description of the new org vdc.
+        :param allocation_model: The allocation model used by this vDC. One of AllocationVApp, AllocationPool or ReservationPool.
         :param cpu_units: The cpu units compute capacity allocated to this vDC. One of MHz or GHz
         :param cpu_allocated: Capacity that is committed to be available.
         :param cpu_limit: Capacity limit relative to the value specified for Allocation.
-        :param mem_units: The memory units compute capacity allocated to this vDC. One of MB or GB
+        :param mem_units: The memory units compute capacity allocated to this vDC. One of MB or GB.
         :param mem_allocated: Memory capacity that is committed to be available.
         :param mem_limit: Memory capacity limit relative to the value specified for Allocation.
-        :param nic_quota: .
-        :param network_quota: .
-        :param vm_quota: .
-        :param network_quota: .
-        :param sto_profile_name: .
-        :param sto_profile_enabled: .
-        :param sto_profile_default: .
-        :param sto_profile_units: .
-        :param sto_profile_limit: .
-        :param sto_profile_name: .
-        :param uses_fast_provisioning: .
-        :param is_enabled: .
+        :param nic_quota: Maximum number of virtual NICs allowed in this vDC. Defaults to 0, which specifies an unlimited number.
+        :param network_quota: Maximum number of network objects that can be deployed in this vDC. Defaults to 0, which means no networks can be deployed.
+        :param vm_quota: The maximum number of VMs that can be created in this vDC. Defaults to 0, which specifies an unlimited number.
+        :param storage_profiles: List of provider vDC storage profiles to add to this vDC.
+            Each item is a dictionary that should include the following elements:
+                name: (string) name of the PVDC storage profile.
+                enabled: (bool) True if the storage profile is enabled for this vDC.
+                units: (string) Units used to define limit. One of MB or GB.
+                limit: (int) Max number of units allocated for this storage profile.
+                default: (bool) True if this is default storage profile for this vDC.
+        :param uses_fast_provisioning: Boolean to request fast provisioning.
+        :param is_enabled: True if this vDC is enabled for use by the organization vDCs.
         :return:  A :class:`lxml.objectify.StringElement` object describing the new VDC.
         """  # NOQA
         if self.resource is None:
@@ -695,7 +691,6 @@ class Org(object):
         sys_admin_resource = self.client.get_admin()
         system = System(self.client, admin_resource=sys_admin_resource)
         pvdc = system.get_provider_vdc(provider_vdc_name)
-        pvdc_sp = system.get_provider_vdc_storage_profile(sto_profile_name)
         resource_admin = self.client.get_resource(self.href_admin)
         params = E.CreateVdcParams(
             E.Description(description),
@@ -711,15 +706,18 @@ class Org(object):
             E.NetworkQuota(network_quota),
             E.VmQuota(vm_quota),
             E.IsEnabled(is_enabled),
-            E.VdcStorageProfile(
-                E.Enabled(sto_profile_enabled),
-                E.Units(sto_profile_units),
-                E.Limit(sto_profile_limit),
-                E.Default(sto_profile_default),
-                E.ProviderVdcStorageProfile(href=pvdc_sp.get('href'))),
-            pvdc,
-            E.UsesFastProvisioning(uses_fast_provisioning),
             name=vdc_name)
+        for sp in storage_profiles:
+            pvdc_sp = system.get_provider_vdc_storage_profile(sp['name'])
+            params.append(
+                E.VdcStorageProfile(
+                    E.Enabled(sp['enabled']),
+                    E.Units(sp['units']),
+                    E.Limit(sp['limit']),
+                    E.Default(sp['default']),
+                    E.ProviderVdcStorageProfile(href=pvdc_sp.get('href'))))
+        params.append(pvdc)
+        params.append(E.UsesFastProvisioning(uses_fast_provisioning))
         return self.client.post_linked_resource(
             resource_admin, RelationType.ADD, EntityType.VDCS_PARAMS.value,
             params)

@@ -33,7 +33,8 @@ NSMAP = {
     'ovfenv':
     'http://schemas.dmtf.org/ovf/environment/1',
     'rasd':
-    'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData',  # NOQA
+    'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/'
+    '2/CIM_ResourceAllocationSettingData',
     'vcloud':
     'http://www.vmware.com/vcloud/v1.5',
     've':

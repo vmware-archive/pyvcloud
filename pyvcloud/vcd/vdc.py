@@ -192,8 +192,8 @@ class VDC(object):
 
         # Configure network of the first vm
         if network_name is not None:
-            primary_index = int(vms[0].NetworkConnectionSection.
-                                PrimaryNetworkConnectionIndex.text)  # NOQA
+            primary_index = int(vms[
+                0].NetworkConnectionSection.PrimaryNetworkConnectionIndex.text)
             vm_instantiation_param.append(
                 E.NetworkConnectionSection(
                     E_OVF.Info(
@@ -217,18 +217,16 @@ class VDC(object):
             for item in items:
                 if memory is not None and memory_params is None:
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 4:
-                        item[
-                            '{' + NSMAP['rasd'] +
-                            '}ElementName'] = '%s MB of memory' % memory  # NOQA
+                        item['{' + NSMAP['rasd'] +
+                             '}ElementName'] = '%s MB of memory' % memory
                         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = memory
                         memory_params = item
                         virtual_hardware_section.append(memory_params)
 
                 if cpu is not None and cpu_params is None:
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 3:
-                        item[
-                            '{' + NSMAP['rasd'] +
-                            '}ElementName'] = '%s virtual CPU(s)' % cpu  # NOQA
+                        item['{' + NSMAP['rasd'] +
+                             '}ElementName'] = '%s virtual CPU(s)' % cpu
                         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = cpu
                         cpu_params = item
                         virtual_hardware_section.append(cpu_params)
@@ -238,10 +236,9 @@ class VDC(object):
                         item['{' + NSMAP['rasd'] + '}Parent'] = None
                         item['{' + NSMAP['rasd'] + '}HostResource'].attrib[
                             '{' + NSMAP['vcloud'] +
-                            '}capacity'] = '%s' % disk_size  # NOQA
-                        item[
-                            '{' + NSMAP['rasd'] +
-                            '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
+                            '}capacity'] = '%s' % disk_size
+                        item['{' + NSMAP['rasd'] +
+                             '}VirtualQuantity'] = disk_size * 1024 * 1024
                         disk_params = item
                         virtual_hardware_section.append(disk_params)
             vm_instantiation_param.append(virtual_hardware_section)

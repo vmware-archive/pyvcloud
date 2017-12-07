@@ -176,7 +176,7 @@ def vapp_to_dict(vapp, metadata=None):
             env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
             if len(env) > 0:
                 result['%s: %s' % (k, 'moid')] = env[0].get(
-                    '{http://www.vmware.com/schema/ovfenv}vCenterId')  # NOQA
+                    '{http://www.vmware.com/schema/ovfenv}vCenterId')
             if hasattr(vm, 'StorageProfile'):
                 result['%s: %s' % (k, 'storage-profile')] = \
                     vm.StorageProfile.get('name')

@@ -53,7 +53,7 @@ class VApp(object):
                         if connection is not None:
                             return connection.get(
                                 '{http://www.vmware.com/vcloud/v1.5}ipAddress'
-                            )  # NOQA
+                            )
         raise Exception('can\'t find ip address')
 
     def get_admin_password(self, vm_name):
@@ -108,7 +108,7 @@ class VApp(object):
                     if len(env) > 0:
                         return env[0].get(
                             '{http://www.vmware.com/schema/ovfenv}vCenterId'
-                        )  # NOQA
+                        )
         return None
 
     def set_lease(self, deployment_lease=0, storage_lease=0):
@@ -171,7 +171,7 @@ class VApp(object):
                     break
             self.resource.Children.Vm[
                 0].NetworkConnectionSection.NetworkConnection.set(
-                    'network', network_name)  # NOQA
+                    'network', network_name)
             self.resource.Children.Vm[
                 0].NetworkConnectionSection.NetworkConnection.IsConnected = \
                 E.IsConnected('true')
@@ -250,26 +250,26 @@ class VApp(object):
         """  # NOQA
         vm = self.get_vm(vm_name)
         disk_list = self.client.get_resource(
-            vm.get('href') + '/virtualHardwareSection/disks')  # NOQA
+            vm.get('href') + '/virtualHardwareSection/disks')
         last_disk = None
         for disk in disk_list.Item:
             if disk['{' + NSMAP['rasd'] +
-                    '}Description'] == 'Hard disk':  # NOQA
+                    '}Description'] == 'Hard disk':
                 last_disk = disk
         assert last_disk is not None
         new_disk = deepcopy(last_disk)
         addr = int(str(
-            last_disk['{' + NSMAP['rasd'] + '}AddressOnParent'])) + 1  # NOQA
+            last_disk['{' + NSMAP['rasd'] + '}AddressOnParent'])) + 1
         instance_id = int(str(
-            last_disk['{' + NSMAP['rasd'] + '}InstanceID'])) + 1  # NOQA
+            last_disk['{' + NSMAP['rasd'] + '}InstanceID'])) + 1
         new_disk['{' + NSMAP['rasd'] + '}AddressOnParent'] = addr
         new_disk['{' + NSMAP['rasd'] +
-                 '}ElementName'] = 'Hard disk %s' % addr  # NOQA
+                 '}ElementName'] = 'Hard disk %s' % addr
         new_disk['{' + NSMAP['rasd'] + '}InstanceID'] = instance_id
         new_disk['{' + NSMAP['rasd'] +
-                 '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
+                 '}VirtualQuantity'] = disk_size * 1024 * 1024
         new_disk['{' + NSMAP['rasd'] + '}HostResource'].set(
-            '{' + NSMAP['vcloud'] + '}capacity', str(disk_size))  # NOQA
+            '{' + NSMAP['vcloud'] + '}capacity', str(disk_size))
         disk_list.append(new_disk)
         return self.client.put_resource(
             vm.get('href') + '/virtualHardwareSection/disks', disk_list,

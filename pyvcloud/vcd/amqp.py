@@ -19,7 +19,6 @@ from pyvcloud.vcd.client import EntityType
 
 
 class AmqpService(object):
-
     def __init__(self, client):
         self.client = client
         if _WellKnownEndpoint.EXTENSION not in client._session_endpoints:
@@ -45,13 +44,11 @@ class AmqpService(object):
         return settings
 
     def test_config(self, config, password):
-        return self.client.post_resource(
-            self.href + '/action/test',
-            self._to_settings(config, password),
-            EntityType.AMQP_SETTINGS.value)
+        return self.client.post_resource(self.href + '/action/test',
+                                         self._to_settings(config, password),
+                                         EntityType.AMQP_SETTINGS.value)
 
     def set_config(self, config, password):
-        return self.client.put_resource(
-            self.href,
-            self._to_settings(config, password),
-            EntityType.AMQP_SETTINGS.value)
+        return self.client.put_resource(self.href,
+                                        self._to_settings(config, password),
+                                        EntityType.AMQP_SETTINGS.value)

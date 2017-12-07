@@ -168,10 +168,11 @@ def vapp_to_dict(vapp, metadata=None):
                 else:
                     value = '{}: {}'.format(
                         connection.get(
-                            '{http://www.vmware.com/vcloud/v1.5}ipAddressingMode' # NOQA
+                            '{http://www.vmware.com/vcloud/v1.5}ipAddressingMode'  # NOQA
                         ),
                         connection.get(
-                            '{http://www.vmware.com/vcloud/v1.5}ipAddress') # NOQA
+                            '{http://www.vmware.com/vcloud/v1.5}ipAddress'
+                        )  # NOQA
                     )
                 result['%s: %s' % (k, element_name)] = value
             env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
@@ -338,11 +339,10 @@ def to_camel_case(name, names):
 
 
 def stdout_xml(the_xml):
-    print(highlight(str(etree.tostring(the_xml,
-                                       pretty_print=True),
-                        'utf-8'),
-                    lexers.XmlLexer(),
-                    formatters.TerminalFormatter()))
+    print(
+        highlight(
+            str(etree.tostring(the_xml, pretty_print=True), 'utf-8'),
+            lexers.XmlLexer(), formatters.TerminalFormatter()))
 
 
 def get_admin_href(href):

@@ -485,8 +485,8 @@ class Org(object):
         if is_enabled is not None:
             if hasattr(user, 'IsEnabled'):
                 user['IsEnabled'] = E.IsEnabled(is_enabled)
-                return self.client.put_resource(user.get('href'), user,
-                                                EntityType.USER.value)
+                return self.client.put_resource(
+                    user.get('href'), user, EntityType.USER.value)
         return user
 
     def get_user(self, user_name):
@@ -622,10 +622,8 @@ class Org(object):
         new_owner.User.set('href', user_resource.get('href'))
         objectify.deannotate(new_owner)
 
-        return self.client.put_resource(
-            catalog_href,
-            new_owner,
-            EntityType.OWNER.value)
+        return self.client.put_resource(catalog_href, new_owner,
+                                        EntityType.OWNER.value)
 
     def update_org(self, org_name, is_enabled=None):
         """

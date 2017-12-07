@@ -41,13 +41,17 @@ def org_to_dict(org):
     result['id'] = extract_id(org.get('id'))
     result['full_name'] = str('%s' % org.FullName)
     result['description'] = str('%s' % org.Description)
-    result['vdcs'] = [str(n.name) for n in
-                      get_links(org, media_type=EntityType.VDC.value)]
-    result['org_networks'] = [str(n.name) for n in
-                              get_links(org, media_type=EntityType.
-                                        ORG_NETWORK.value)]
-    result['catalogs'] = [str(n.name) for n in
-                          get_links(org, media_type=EntityType.CATALOG.value)]
+    result['vdcs'] = [
+        str(n.name) for n in get_links(org, media_type=EntityType.VDC.value)
+    ]
+    result['org_networks'] = [
+        str(n.name)
+        for n in get_links(org, media_type=EntityType.ORG_NETWORK.value)
+    ]
+    result['catalogs'] = [
+        str(n.name)
+        for n in get_links(org, media_type=EntityType.CATALOG.value)
+    ]
     return result
 
 
@@ -120,9 +124,7 @@ def vapp_to_dict(vapp, metadata=None):
         result['owner'] = []
         for user in vapp.Owner.User:
             result['owner'].append(user.get('name'))
-    items = vapp.xpath(
-        '//ovf:NetworkSection/ovf:Network',
-        namespaces=NSMAP)
+    items = vapp.xpath('//ovf:NetworkSection/ovf:Network', namespaces=NSMAP)
     n = 0
     for item in items:
         n += 1
@@ -135,15 +137,11 @@ def vapp_to_dict(vapp, metadata=None):
                         nc.Configuration.FenceMode.text
     if hasattr(vapp, 'LeaseSettingsSection'):
         if hasattr(vapp.LeaseSettingsSection, 'DeploymentLeaseInSeconds'):
-            result['deployment_lease'] = to_human(int(vapp.
-                                                      LeaseSettingsSection.
-                                                      DeploymentLeaseInSeconds
-                                                      )
-                                                  )
+            result['deployment_lease'] = to_human(
+                int(vapp.LeaseSettingsSection.DeploymentLeaseInSeconds))
         if hasattr(vapp.LeaseSettingsSection, 'StorageLeaseInSeconds'):
-            result['storage_lease'] = to_human(int(vapp.
-                                                   LeaseSettingsSection.
-                                                   StorageLeaseInSeconds))
+            result['storage_lease'] = to_human(
+                int(vapp.LeaseSettingsSection.StorageLeaseInSeconds))
         if hasattr(vapp.LeaseSettingsSection, 'DeploymentLeaseExpiration'):
             result['deployment_lease_expiration'] = \
                 vapp.LeaseSettingsSection.DeploymentLeaseExpiration
@@ -152,10 +150,9 @@ def vapp_to_dict(vapp, metadata=None):
         for vm in vapp.Children.Vm:
             n += 1
             k = 'vm-%s' % n
-            result[k+': name'] = vm.get('name')
+            result[k + ': name'] = vm.get('name')
             items = vm.xpath(
-                '//ovf:VirtualHardwareSection/ovf:Item',
-                namespaces=NSMAP)
+                '//ovf:VirtualHardwareSection/ovf:Item', namespaces=NSMAP)
             for item in items:
                 element_name = item.find('rasd:ElementName', NSMAP)
                 connection = item.find('rasd:Connection', NSMAP)
@@ -170,12 +167,16 @@ def vapp_to_dict(vapp, metadata=None):
                         value = '{:,} {}'.format(int(quantity), units).strip()
                 else:
                     value = '{}: {}'.format(
-                                        connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddressingMode'),  # NOQA
-                                        connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddress'))  # NOQA
+                        connection.get(
+                            '{http://www.vmware.com/vcloud/v1.5}ipAddressingMode'  # NOQA
+                        ),
+                        connection.get(
+                            '{http://www.vmware.com/vcloud/v1.5}ipAddress'))
                 result['%s: %s' % (k, element_name)] = value
             env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
             if len(env) > 0:
-                result['%s: %s' % (k, 'moid')] = env[0].get('{http://www.vmware.com/schema/ovfenv}vCenterId')  # NOQA
+                result['%s: %s' % (k, 'moid')] = env[0].get(
+                    '{http://www.vmware.com/schema/ovfenv}vCenterId')
             if hasattr(vm, 'StorageProfile'):
                 result['%s: %s' % (k, 'storage-profile')] = \
                     vm.StorageProfile.get('name')
@@ -258,22 +259,23 @@ def access_settings_to_dict(access_setting):
 def filter_attributes(resource_type):
     attributes = None
     if resource_type in ['adminTask', 'task']:
-        attributes = ['id', 'name', 'objectName', 'status',
-                      'startDate']
+        attributes = ['id', 'name', 'objectName', 'status', 'startDate']
     elif resource_type in ['adminVApp', 'vApp']:
-        attributes = ['id', 'name', 'numberOfVMs', 'status', 'numberOfCpus',
-                      'memoryAllocationMB', 'storageKB', 'ownerName',
-                      'isDeployed', 'isEnabled']
+        attributes = [
+            'id', 'name', 'numberOfVMs', 'status', 'numberOfCpus',
+            'memoryAllocationMB', 'storageKB', 'ownerName', 'isDeployed',
+            'isEnabled'
+        ]
     elif resource_type in ['adminCatalogItem', 'catalogItem']:
-        attributes = ['id', 'name', 'catalogName', 'storageKB', 'status',
-                      'entityType', 'vdcName', 'isPublished', 'ownerName']
+        attributes = [
+            'id', 'name', 'catalogName', 'storageKB', 'status', 'entityType',
+            'vdcName', 'isPublished', 'ownerName'
+        ]
     return attributes
 
 
-def to_dict(obj,
-            attributes=None,
-            resource_type=None,
-            exclude=['href', 'type']):
+def to_dict(obj, attributes=None, resource_type=None, exclude=['href',
+                                                               'type']):
     if obj is None:
         return {}
     result = {}
@@ -315,13 +317,11 @@ def to_camel_case(name, names):
 
 
 def stdout_xml(the_xml):
-    print(highlight(str(etree.tostring(the_xml,
-                                       pretty_print=True),
-                        'utf-8'),
-                    lexers.XmlLexer(),
-                    formatters.TerminalFormatter()))
+    print(
+        highlight(
+            str(etree.tostring(the_xml, pretty_print=True), 'utf-8'),
+            lexers.XmlLexer(), formatters.TerminalFormatter()))
 
 
 def get_admin_href(href):
-    return href.replace('/api/',
-                        '/api/admin/')
+    return href.replace('/api/', '/api/admin/')

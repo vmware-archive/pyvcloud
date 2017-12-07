@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from pyVim import connect
 from pyVmomi import vim
 import requests
@@ -22,7 +21,6 @@ import time
 
 
 class VSphere(object):
-
     def __init__(self, host, user, password, verify=True, port=443):
         self.host = host
         self.user = user
@@ -34,10 +32,11 @@ class VSphere(object):
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
         if not self.verify:
             context.verify_mode = ssl.CERT_NONE
-        self.service_instance = connect.SmartConnect(host=self.host,
-                                                     user=self.user,
-                                                     pwd=self.password,
-                                                     sslContext=context)
+        self.service_instance = connect.SmartConnect(
+            host=self.host,
+            user=self.user,
+            pwd=self.password,
+            sslContext=context)
 
     def get_vm_by_moid(self, moid):
         vm = vim.VirtualMachine(moid)
@@ -52,14 +51,12 @@ class VSphere(object):
                                  arguments,
                                  wait_for_completion=False,
                                  wait_time=1):
-        creds = vim.vm.guest.NamePasswordAuthentication(username=user,
-                                                        password=password)
+        creds = vim.vm.guest.NamePasswordAuthentication(
+            username=user, password=password)
         content = self.service_instance.RetrieveContent()
         pm = content.guestOperationsManager.processManager
         ps = vim.vm.guest.ProcessManager.ProgramSpec(
-            programPath=program_path,
-            arguments=arguments
-        )
+            programPath=program_path, arguments=arguments)
         result = pm.StartProgramInGuest(vm, creds, ps)
         if not wait_for_completion:
             return result
@@ -74,16 +71,11 @@ class VSphere(object):
                 import traceback
                 print(traceback.format_exc())
                 print('will retry again in a few seconds')
-                time.sleep(wait_time*3)
+                time.sleep(wait_time * 3)
 
-    def upload_file_to_guest(self,
-                             vm,
-                             user,
-                             password,
-                             data,
-                             target_file):
-        creds = vim.vm.guest.NamePasswordAuthentication(username=user,
-                                                        password=password)
+    def upload_file_to_guest(self, vm, user, password, data, target_file):
+        creds = vim.vm.guest.NamePasswordAuthentication(
+            username=user, password=password)
         content = self.service_instance.RetrieveContent()
         file_attribute = vim.vm.guest.FileManager.FileAttributes()
         url = content.guestOperationsManager.fileManager. \
@@ -99,13 +91,9 @@ class VSphere(object):
         else:
             return True
 
-    def download_file_from_guest(self,
-                                 vm,
-                                 user,
-                                 password,
-                                 source_file):
-        creds = vim.vm.guest.NamePasswordAuthentication(username=user,
-                                                        password=password)
+    def download_file_from_guest(self, vm, user, password, source_file):
+        creds = vim.vm.guest.NamePasswordAuthentication(
+            username=user, password=password)
         content = self.service_instance.RetrieveContent()
         info = content.guestOperationsManager.fileManager. \
             InitiateFileTransferFromGuest(vm,

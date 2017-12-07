@@ -34,16 +34,11 @@ import tempfile
 import time
 import traceback
 
-
-DEFAULT_CHUNK_SIZE = 1024*1024
+DEFAULT_CHUNK_SIZE = 1024 * 1024
 
 
 class Org(object):
-
-    def __init__(self,
-                 client,
-                 href=None,
-                 resource=None):
+    def __init__(self, client, href=None, resource=None):
         """
         Constructor for Org objects.
 
@@ -57,8 +52,7 @@ class Org(object):
         self.resource = resource
         if resource is not None:
             self.href = resource.get('href')
-        self.href_admin = self.href.replace('/api/org/',
-                                            '/api/admin/org/')
+        self.href_admin = self.href.replace('/api/org/', '/api/admin/org/')
 
     def get_name(self):
         if self.resource is None:
@@ -68,20 +62,15 @@ class Org(object):
     def create_catalog(self, name, description):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        catalog = E.AdminCatalog(
-            E.Description(description),
-            name=name)
+        catalog = E.AdminCatalog(E.Description(description), name=name)
         return self.client.post_linked_resource(
-            self.resource,
-            RelationType.ADD,
-            EntityType.ADMIN_CATALOG.value,
+            self.resource, RelationType.ADD, EntityType.ADMIN_CATALOG.value,
             catalog)
 
     def delete_catalog(self, name):
         org = self.client.get_resource(self.href)
-        links = get_links(org,
-                          rel=RelationType.DOWN,
-                          media_type=EntityType.CATALOG.value)
+        links = get_links(
+            org, rel=RelationType.DOWN, media_type=EntityType.CATALOG.value)
         for link in links:
             if name == link.name:
                 admin_href = link.href.replace('/api/catalog/',
@@ -96,14 +85,15 @@ class Org(object):
             resource_type = 'catalog'
         result = []
         q = self.client.get_typed_query(
-            resource_type,
-            query_result_format=QueryResultFormat.ID_RECORDS)
+            resource_type, query_result_format=QueryResultFormat.ID_RECORDS)
         records = list(q.execute())
         if len(records) > 0:
             for r in records:
-                result.append(to_dict(r,
-                                      resource_type=resource_type,
-                                      exclude=['owner', 'org']))
+                result.append(
+                    to_dict(
+                        r,
+                        resource_type=resource_type,
+                        exclude=['owner', 'org']))
         return result
 
     def get_catalog(self, name):
@@ -111,9 +101,8 @@ class Org(object):
 
     def get_catalog_resource(self, name, is_admin_operation=False):
         org = self.client.get_resource(self.href)
-        links = get_links(org,
-                          rel=RelationType.DOWN,
-                          media_type=EntityType.CATALOG.value)
+        links = get_links(
+            org, rel=RelationType.DOWN, media_type=EntityType.CATALOG.value)
         for link in links:
             if name == link.name:
                 href = link.href
@@ -135,9 +124,8 @@ class Org(object):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         org = self.resource
-        links = get_links(org,
-                          rel=RelationType.DOWN,
-                          media_type=EntityType.CATALOG.value)
+        links = get_links(
+            org, rel=RelationType.DOWN, media_type=EntityType.CATALOG.value)
         for link in links:
             if old_catalog_name == link.name:
                 catalog = self.client.get_resource(link.href)
@@ -153,8 +141,7 @@ class Org(object):
                 return self.client.put_resource(
                     admin_href,
                     admin_view_of_catalog,
-                    media_type=EntityType.ADMIN_CATALOG.value
-                    )
+                    media_type=EntityType.ADMIN_CATALOG.value)
         raise Exception('Catalog not found.')
 
     def share_catalog(self, name, share=True):
@@ -166,8 +153,7 @@ class Org(object):
         return self.client.post_resource(
             admin_href,
             params,
-            media_type=EntityType.PUBLISH_CATALOG_PARAMS.value
-            )
+            media_type=EntityType.PUBLISH_CATALOG_PARAMS.value)
 
     def list_catalog_items(self, name):
         catalog = self.get_catalog(name)
@@ -202,18 +188,16 @@ class Org(object):
         if item_name is None:
             item_name = os.path.basename(file_name)
         image_type = os.path.splitext(item_name)[1][1:]
-        media = E.Media(name=item_name,
-                        size=str(stat_info.st_size),
-                        imageType=image_type)
+        media = E.Media(
+            name=item_name, size=str(stat_info.st_size), imageType=image_type)
         media.append(E.Description(description))
         catalog_item = self.client.post_resource(
-            catalog.get('href') + '/action/upload',
-            media,
+            catalog.get('href') + '/action/upload', media,
             EntityType.MEDIA.value)
         entity = self.client.get_resource(catalog_item.Entity.get('href'))
         file_href = entity.Files.File.Link.get('href')
-        return self.upload_file(file_name, file_href, chunk_size=chunk_size,
-                                callback=callback)
+        return self.upload_file(
+            file_name, file_href, chunk_size=chunk_size, callback=callback)
 
     def download_catalog_item(self,
                               catalog_name,
@@ -241,11 +225,8 @@ class Org(object):
                 callback=callback)
         elif item_type == EntityType.VAPP_TEMPLATE.value:
             ovf_descriptor = self.client.get_linked_resource(
-                item,
-                RelationType.DOWNLOAD_DEFAULT,
-                EntityType.TEXT_XML.value)
-            transfer_uri = find_link(item,
-                                     RelationType.DOWNLOAD_DEFAULT,
+                item, RelationType.DOWNLOAD_DEFAULT, EntityType.TEXT_XML.value)
+            transfer_uri = find_link(item, RelationType.DOWNLOAD_DEFAULT,
                                      EntityType.TEXT_XML.value).href
             transfer_uri = transfer_uri.replace('/descriptor.ovf', '/')
             tempdir = None
@@ -254,10 +235,11 @@ class Org(object):
                 tempdir = tempfile.mkdtemp(dir='.')
                 ovf_file = os.path.join(tempdir, 'descriptor.ovf')
                 with open(ovf_file, 'wb') as f:
-                    payload = etree.tostring(ovf_descriptor,
-                                             pretty_print=True,
-                                             xml_declaration=True,
-                                             encoding='utf-8')
+                    payload = etree.tostring(
+                        ovf_descriptor,
+                        pretty_print=True,
+                        xml_declaration=True,
+                        encoding='utf-8')
                     f.write(payload)
 
                 ns = '{http://schemas.dmtf.org/ovf/envelope/1}'
@@ -267,7 +249,7 @@ class Org(object):
                         'href': f.get(ns + 'href'),
                         'name': f.get(ns + 'id'),
                         'size': f.get(ns + 'size')
-                        }
+                    }
                     target_file = os.path.join(tempdir, source_file['href'])
                     uri = transfer_uri + source_file['href']
                     num_bytes = self.client.download_from_uri(
@@ -348,24 +330,23 @@ class Org(object):
                         'href': f.get(ns + 'href'),
                         'name': f.get(ns + 'id'),
                         'size': f.get(ns + 'size')
-                        }
+                    }
                     files.append(source_file)
                 if item_name is None:
                     item_name = os.path.basename(file_name)
                 params = E.UploadVAppTemplateParams(name=item_name)
                 params.append(E.Description(description))
                 catalog_item = self.client.post_resource(
-                    catalog.get('href') + '/action/upload',
-                    params,
+                    catalog.get('href') + '/action/upload', params,
                     EntityType.UPLOAD_VAPP_TEMPLATE_PARAMS.value)
-                entity = self.client.get_resource(catalog_item.
-                                                  Entity.get('href'))
+                entity = self.client.get_resource(
+                    catalog_item.Entity.get('href'))
                 file_href = entity.Files.File.Link.get('href')
                 self.client.put_resource(file_href, ovf, 'text/xml')
                 while True:
                     time.sleep(5)
-                    entity = self.client.get_resource(catalog_item.
-                                                      Entity.get('href'))
+                    entity = self.client.get_resource(
+                        catalog_item.Entity.get('href'))
                     if len(entity.Files.File) > 1:
                         break
                 for source_file in files:
@@ -388,9 +369,10 @@ class Org(object):
     def get_vdc(self, name):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        links = get_links(self.resource,
-                          rel=RelationType.DOWN,
-                          media_type=EntityType.VDC.value)
+        links = get_links(
+            self.resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.VDC.value)
         for link in links:
             if name == link.name:
                 return self.client.get_resource(link.href)
@@ -412,12 +394,12 @@ class Org(object):
         contents = E.CaptureVAppParams(
             E.Description(description),
             E.Source(href=vapp_href),
-            name=catalog_item_name
-        )
+            name=catalog_item_name)
         if customize_on_instantiate:
-            contents.append(E.CustomizationSection(
-                E_OVF.Info('VApp template customization section'),
-                E.CustomizeOnInstantiate('true')))
+            contents.append(
+                E.CustomizationSection(
+                    E_OVF.Info('VApp template customization section'),
+                    E.CustomizeOnInstantiate('true')))
         return self.client.post_linked_resource(
             catalog_resource,
             rel=RelationType.ADD,
@@ -425,12 +407,23 @@ class Org(object):
             contents=contents)
 
     def create_user(self,
-                    user_name, password, role_href, full_name='',
-                    description='', email='', telephone='', im='',
-                    alert_email='', alert_email_prefix='', stored_vm_quota=0,
-                    deployed_vm_quota=0, is_group_role=False,
-                    is_default_cached=False, is_external=False,
-                    is_alert_enabled=False, is_enabled=False):
+                    user_name,
+                    password,
+                    role_href,
+                    full_name='',
+                    description='',
+                    email='',
+                    telephone='',
+                    im='',
+                    alert_email='',
+                    alert_email_prefix='',
+                    stored_vm_quota=0,
+                    deployed_vm_quota=0,
+                    is_group_role=False,
+                    is_default_cached=False,
+                    is_external=False,
+                    is_alert_enabled=False,
+                    is_enabled=False):
         """
         Create User in the current Org
         :param user_name: The username of the user
@@ -475,10 +468,7 @@ class Org(object):
             E.Password(password),
             name=user_name)
         return self.client.post_linked_resource(
-            resource_admin,
-            RelationType.ADD,
-            EntityType.USER.value,
-            user)
+            resource_admin, RelationType.ADD, EntityType.USER.value, user)
 
     def update_user(self, user_name, is_enabled=None):
         """
@@ -491,8 +481,8 @@ class Org(object):
         if is_enabled is not None:
             if hasattr(user, 'IsEnabled'):
                 user['IsEnabled'] = E.IsEnabled(is_enabled)
-                return self.client.put_resource(user.get('href'), user,
-                                                EntityType.USER.value)
+                return self.client.put_resource(
+                    user.get('href'), user, EntityType.USER.value)
         return user
 
     def get_user(self, user_name):
@@ -512,8 +502,7 @@ class Org(object):
             resource_type,
             query_result_format=QueryResultFormat.REFERENCES,
             equality_filter=('name', user_name),
-            qfilter=org_filter
-            )
+            qfilter=org_filter)
         records = list(query.execute())
         if len(records) == 0:
             raise Exception('user not found')
@@ -538,9 +527,11 @@ class Org(object):
         roles_query, resource_type = self.get_roles_query()
         result = []
         for r in list(roles_query.execute()):
-            result.append(to_dict(r,
-                                  resource_type=resource_type,
-                                  exclude=['org', 'orgName', 'href']))
+            result.append(
+                to_dict(
+                    r,
+                    resource_type=resource_type,
+                    exclude=['org', 'orgName', 'href']))
         return result
 
     def get_role(self, role_name):
@@ -590,8 +581,7 @@ class Org(object):
         """  # NOQA
         catalog_resource = self.get_catalog(name=catalog_name)
         control_access = self.client.get_linked_resource(
-            catalog_resource,
-            RelationType.DOWN,
+            catalog_resource, RelationType.DOWN,
             EntityType.CONTROL_ACCESS_PARAMS.value)
         access_settings = []
         if hasattr(control_access, 'AccessSettings') and \
@@ -599,8 +589,7 @@ class Org(object):
                 len(control_access.AccessSettings.AccessSetting) > 0:
             for access_setting in list(
                     control_access.AccessSettings.AccessSetting):
-                access_settings.append(access_settings_to_dict(
-                    access_setting))
+                access_settings.append(access_settings_to_dict(access_setting))
         result = to_dict(control_access)
         if len(access_settings) > 0:
             result['AccessSettings'] = access_settings
@@ -615,12 +604,13 @@ class Org(object):
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        catalog_resource = self.get_catalog_resource(catalog_name,
-                                                     is_admin_operation=True)
-        owner_link = find_link(catalog_resource,
-                               rel=RelationType.DOWN,
-                               media_type=EntityType.OWNER.value,
-                               fail_if_absent=True)
+        catalog_resource = self.get_catalog_resource(
+            catalog_name, is_admin_operation=True)
+        owner_link = find_link(
+            catalog_resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.OWNER.value,
+            fail_if_absent=True)
         catalog_href = owner_link.href
 
         user_resource = self.get_user(user_name)
@@ -628,10 +618,8 @@ class Org(object):
         new_owner.User.set('href', user_resource.get('href'))
         objectify.deannotate(new_owner)
 
-        return self.client.put_resource(
-            catalog_href,
-            new_owner,
-            EntityType.OWNER.value)
+        return self.client.put_resource(catalog_href, new_owner,
+                                        EntityType.OWNER.value)
 
     def update_org(self, org_name, is_enabled=None):
         """
@@ -646,7 +634,7 @@ class Org(object):
         if is_enabled is not None:
             if hasattr(org_admin_resource, 'IsEnabled'):
                 org_admin_resource['IsEnabled'] = E.IsEnabled(is_enabled)
-                return self.client.put_resource(org_admin_href, org_admin_resource,
+                return self.client.put_resource(org_admin_href,
+                                                org_admin_resource,
                                                 EntityType.ADMIN_ORG.value)
         return org_admin_resource
-

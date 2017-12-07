@@ -15,6 +15,7 @@
 
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 
 
@@ -43,13 +44,9 @@ class System(object):
         if self.admin_resource is None:
             self.admin_resource = self.client.get_resource(self.admin_href)
         org_params = E.AdminOrg(
-            E.FullName(full_org_name),
-            E.Settings,
-            name=org_name)
+            E.FullName(full_org_name), E.Settings, name=org_name)
         return self.client.post_linked_resource(
-            self.admin_resource,
-            RelationType.ADD,
-            EntityType.ADMIN_ORG.value,
+            self.admin_resource, RelationType.ADD, EntityType.ADMIN_ORG.value,
             org_params)
 
     def delete_org(self, org_name, force=None, recursive=None):
@@ -63,6 +60,40 @@ class System(object):
         removal.
         """  # NOQA
         org = self.client.get_org_by_name(org_name)
-        org_href = org.get('href').replace('/api/org/',
-                                           '/api/admin/org/')
+        org_href = org.get('href').replace('/api/org/', '/api/admin/org/')
         return self.client.delete_resource(org_href, force, recursive)
+
+    def list_provider_vdcs(self):
+        if self.admin_resource is None:
+            self.admin_resource = self.client.get_resource(self.admin_href)
+        if hasattr(self.admin_resource.ProviderVdcReferences,
+                   'ProviderVdcReference'):
+            return self.admin_resource.ProviderVdcReferences.\
+                        ProviderVdcReference
+        else:
+            return []
+
+    def get_provider_vdc(self, pvdc_name):
+        for pvdc in self.list_provider_vdcs():
+            if pvdc.get('name') == pvdc_name:
+                return pvdc
+        raise Exception('PVDC not found (or)'
+                        ' Access to resource is forbidden')
+
+    def list_provider_vdc_storage_profiles(self, name=None):
+        if name is not None:
+            query_filter = 'name==%s' % name
+        else:
+            query_filter = None
+        q = self.client.get_typed_query(
+            'providerVdcStorageProfile',
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=query_filter)
+        return list(q.execute())
+
+    def get_provider_vdc_storage_profile(self, name):
+        for profile in self.list_provider_vdc_storage_profiles(name):
+            if profile.get('name') == name:
+                return profile
+        raise Exception('PVDCSP not found (or)'
+                        ' Access to resource is forbidden')

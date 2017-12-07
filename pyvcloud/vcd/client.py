@@ -197,12 +197,14 @@ class BasicLoginCredentials(object):
 class RelationType(Enum):
     ADD = 'add'
     ALTERNATE = 'alternate'
+    DISABLE = 'disable'
     DISK_ATTACH = 'disk:attach'
     DISK_DETACH = 'disk:detach'
     DOWN = 'down'
     DOWN_EXTENSIBILITY = 'down:extensibility'
     DOWNLOAD_DEFAULT = 'download:default'
     EDIT = 'edit'
+    ENABLE = 'enable'
     NEXT_PAGE = 'nextPage'
     POWER_OFF = 'power:powerOff'
     POWER_ON = 'power:powerOn'
@@ -261,6 +263,8 @@ class EntityType(Enum):
     VAPP = 'application/vnd.vmware.vcloud.vApp+xml'
     VAPP_TEMPLATE = 'application/vnd.vmware.vcloud.vAppTemplate+xml'
     VDC = 'application/vnd.vmware.vcloud.vdc+xml'
+    VDCS_PARAMS = 'application/vnd.vmware.admin.createVdcParams+xml'
+    VMS = 'application/vnd.vmware.vcloud.vms+xml'
 
 
 class QueryResultFormat(Enum):

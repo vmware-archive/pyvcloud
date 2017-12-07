@@ -192,7 +192,7 @@ class VApp(object):
                 self.resource.Children.Vm[0].NetworkConnectionSection
                 )
 
-    def attach_disk_to_vm(self, disk_href, disk_type, disk_name, vm_name):
+    def attach_disk_to_vm(self, disk_href, vm_name):
         """
         Attach the independent disk to the VM with the given name in the vApp within a Virtual Data Center.
         :param disk_href: (str): The href of the disk resource.
@@ -202,7 +202,7 @@ class VApp(object):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
-            E.Disk(type=disk_type, href=disk_href))
+            E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
         return self.client.post_linked_resource(
             vm,

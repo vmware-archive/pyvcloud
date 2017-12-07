@@ -52,8 +52,7 @@ class VApp(object):
                         connection = item.find('rasd:Connection', NSMAP)
                         if connection is not None:
                             return connection.get(
-                                '{http://www.vmware.com/vcloud/v1.5}ipAddress'
-                            )  # NOQA
+                                '{' + NSMAP['vcloud'] + '}ipAddress')
         raise Exception('can\'t find ip address')
 
     def get_admin_password(self, vm_name):
@@ -88,7 +87,7 @@ class VApp(object):
                     'type': 'xs:string'
                 }, E.Domain(domain, visibility=visibility), E.Key(key),
                 E.TypedValue({
-                    '{http://www.w3.org/2001/XMLSchema-instance}type':
+                    '{' + NSMAP['xsi'] + '}type':
                     'MetadataStringValue'
                 }, E.Value(value))))
         metadata = self.client.get_linked_resource(
@@ -106,9 +105,7 @@ class VApp(object):
                 if vm.get('name') == vm_name:
                     env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
                     if len(env) > 0:
-                        return env[0].get(
-                            '{http://www.vmware.com/schema/ovfenv}vCenterId'
-                        )  # NOQA
+                        return env[0].get('{' + NSMAP['ve'] + '}vCenterId')
         return None
 
     def set_lease(self, deployment_lease=0, storage_lease=0):
@@ -171,18 +168,16 @@ class VApp(object):
                     break
             self.resource.Children.Vm[
                 0].NetworkConnectionSection.NetworkConnection.set(
-                    'network', network_name)  # NOQA
+                    'network', network_name)
             self.resource.Children.Vm[
                 0].NetworkConnectionSection.NetworkConnection.IsConnected = \
                 E.IsConnected('true')
             if reset_mac_address:
-                self.resource.Children.Vm[
-                    0].NetworkConnectionSection.NetworkConnection.\
-                    MACAddress = E.MACAddress('')
-            self.resource.Children.Vm[
-                0].NetworkConnectionSection.NetworkConnection.\
-                IpAddressAllocationMode = E.IpAddressAllocationMode(
-                    mode.upper())
+                self.resource.Children.Vm[0].NetworkConnectionSection.\
+                    NetworkConnection.MACAddress = E.MACAddress('')
+            self.resource.Children.Vm[0].NetworkConnectionSection.\
+                NetworkConnection.IpAddressAllocationMode = \
+                E.IpAddressAllocationMode(mode.upper())
             return self.client.put_linked_resource(
                 self.resource.Children.Vm[0].NetworkConnectionSection,
                 RelationType.EDIT, EntityType.NETWORK_CONNECTION_SECTION.value,
@@ -252,26 +247,24 @@ class VApp(object):
         """  # NOQA
         vm = self.get_vm(vm_name)
         disk_list = self.client.get_resource(
-            vm.get('href') + '/virtualHardwareSection/disks')  # NOQA
+            vm.get('href') + '/virtualHardwareSection/disks')
         last_disk = None
         for disk in disk_list.Item:
-            if disk['{' + NSMAP['rasd'] +
-                    '}Description'] == 'Hard disk':  # NOQA
+            if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':
                 last_disk = disk
         assert last_disk is not None
         new_disk = deepcopy(last_disk)
         addr = int(str(
-            last_disk['{' + NSMAP['rasd'] + '}AddressOnParent'])) + 1  # NOQA
+            last_disk['{' + NSMAP['rasd'] + '}AddressOnParent'])) + 1
         instance_id = int(str(
-            last_disk['{' + NSMAP['rasd'] + '}InstanceID'])) + 1  # NOQA
+            last_disk['{' + NSMAP['rasd'] + '}InstanceID'])) + 1
         new_disk['{' + NSMAP['rasd'] + '}AddressOnParent'] = addr
-        new_disk['{' + NSMAP['rasd'] +
-                 '}ElementName'] = 'Hard disk %s' % addr  # NOQA
+        new_disk['{' + NSMAP['rasd'] + '}ElementName'] = 'Hard disk %s' % addr
         new_disk['{' + NSMAP['rasd'] + '}InstanceID'] = instance_id
         new_disk['{' + NSMAP['rasd'] +
-                 '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
+                 '}VirtualQuantity'] = disk_size * 1024 * 1024
         new_disk['{' + NSMAP['rasd'] + '}HostResource'].set(
-            '{' + NSMAP['vcloud'] + '}capacity', str(disk_size))  # NOQA
+            '{' + NSMAP['vcloud'] + '}capacity', str(disk_size))
         disk_list.append(new_disk)
         return self.client.put_resource(
             vm.get('href') + '/virtualHardwareSection/disks', disk_list,

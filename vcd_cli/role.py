@@ -2,7 +2,6 @@ import click
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.role import Role
 
-from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout

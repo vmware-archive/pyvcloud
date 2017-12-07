@@ -52,8 +52,7 @@ class VApp(object):
                         connection = item.find('rasd:Connection', NSMAP)
                         if connection is not None:
                             return connection.get(
-                                '{http://www.vmware.com/vcloud/v1.5}ipAddress'
-                            )
+                                '{http://www.vmware.com/vcloud/v1.5}ipAddress')
         raise Exception('can\'t find ip address')
 
     def get_admin_password(self, vm_name):
@@ -107,8 +106,7 @@ class VApp(object):
                     env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
                     if len(env) > 0:
                         return env[0].get(
-                            '{http://www.vmware.com/schema/ovfenv}vCenterId'
-                        )
+                            '{http://www.vmware.com/schema/ovfenv}vCenterId')
         return None
 
     def set_lease(self, deployment_lease=0, storage_lease=0):
@@ -253,8 +251,7 @@ class VApp(object):
             vm.get('href') + '/virtualHardwareSection/disks')
         last_disk = None
         for disk in disk_list.Item:
-            if disk['{' + NSMAP['rasd'] +
-                    '}Description'] == 'Hard disk':
+            if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':
                 last_disk = disk
         assert last_disk is not None
         new_disk = deepcopy(last_disk)
@@ -263,8 +260,7 @@ class VApp(object):
         instance_id = int(str(
             last_disk['{' + NSMAP['rasd'] + '}InstanceID'])) + 1
         new_disk['{' + NSMAP['rasd'] + '}AddressOnParent'] = addr
-        new_disk['{' + NSMAP['rasd'] +
-                 '}ElementName'] = 'Hard disk %s' % addr
+        new_disk['{' + NSMAP['rasd'] + '}ElementName'] = 'Hard disk %s' % addr
         new_disk['{' + NSMAP['rasd'] + '}InstanceID'] = instance_id
         new_disk['{' + NSMAP['rasd'] +
                  '}VirtualQuantity'] = disk_size * 1024 * 1024

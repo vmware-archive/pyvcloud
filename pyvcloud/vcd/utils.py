@@ -62,7 +62,7 @@ def vdc_to_dict(vdc):
     if hasattr(vdc, 'IsEnabled'):
         result['is_enabled'] = bool(vdc.IsEnabled)
     if hasattr(vdc, 'AvailableNetworks') and \
-       hasattr(vdc.AvailableNetworks, 'Network'):
+            hasattr(vdc.AvailableNetworks, 'Network'):
         result['networks'] = []
         for n in vdc.AvailableNetworks.Network:
             result['networks'].append(n.get('name'))
@@ -88,15 +88,15 @@ def vdc_to_dict(vdc):
     if hasattr(vdc, 'VmQuota'):
         result['vm_quota'] = int(vdc.VmQuota)
     if hasattr(vdc, 'Capabilities') and \
-       hasattr(vdc.Capabilities, 'SupportedHardwareVersions') and \
-       hasattr(vdc.Capabilities.SupportedHardwareVersions,
-               'SupportedHardwareVersion'):
+            hasattr(vdc.Capabilities, 'SupportedHardwareVersions') and \
+            hasattr(vdc.Capabilities.SupportedHardwareVersions,
+                    'SupportedHardwareVersion'):
         result['supported_hw'] = []
-        for n in vdc.Capabilities.SupportedHardwareVersions.\
+        for n in vdc.Capabilities.SupportedHardwareVersions. \
                 SupportedHardwareVersion:
             result['supported_hw'].append(str(n))
     if hasattr(vdc, 'ResourceEntities') and \
-       hasattr(vdc.ResourceEntities, 'ResourceEntity'):
+            hasattr(vdc.ResourceEntities, 'ResourceEntity'):
         result['vapps'] = []
         result['vapp_templates'] = []
         for n in vdc.ResourceEntities.ResourceEntity:
@@ -338,7 +338,12 @@ def to_camel_case(name, names):
 
 
 def stdout_xml(the_xml):
-    print(
-        highlight(
-            str(etree.tostring(the_xml, pretty_print=True), 'utf-8'),
-            lexers.XmlLexer(), formatters.TerminalFormatter()))
+    print(highlight(str(etree.tostring(the_xml,
+                                       pretty_print=True),
+                        'utf-8'),
+                    lexers.XmlLexer(),
+                    formatters.TerminalFormatter()))
+
+
+def get_admin_href(href):
+    return href.replace('/api/', '/api/admin/')

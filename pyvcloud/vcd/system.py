@@ -17,6 +17,7 @@ from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.utils import get_admin_href
 
 
 class System(object):
@@ -34,17 +35,21 @@ class System(object):
         if admin_resource is not None:
             self.admin_href = self.client.get_admin().get('href')
 
-    def create_org(self, org_name, full_org_name):
+    def create_org(self, org_name, full_org_name, is_enabled=False):
         """
         Create new organization.
-        :param org_name: The name of the organization.
-        :param full_org_name: The fullname of the organization.
+        :param org_name: (str): The name of the organization.
+        :param full_org_name: (str): The fullname of the organization.
+        :param is_enabled: (bool): Enable organization if True
         :return: (AdminOrgType) Created org object.
         """  # NOQA
         if self.admin_resource is None:
             self.admin_resource = self.client.get_resource(self.admin_href)
         org_params = E.AdminOrg(
-            E.FullName(full_org_name), E.Settings, name=org_name)
+            E.FullName(full_org_name),
+            E.IsEnabled(is_enabled),
+            E.Settings,
+            name=org_name)
         return self.client.post_linked_resource(
             self.admin_resource, RelationType.ADD, EntityType.ADMIN_ORG.value,
             org_params)
@@ -52,15 +57,16 @@ class System(object):
     def delete_org(self, org_name, force=None, recursive=None):
         """
         Delete an organization.
-        :param org_name: name of the org to be deleted.
-        :param force: pass force=True  along with recursive=True to remove an
-        organization and any objects it contains, regardless of their state.
-        :param recursive: pass recursive=True  to remove an organization
-        and any objects it contains that are in a state that normally allows.
-        removal.
+        :param org_name: (str): name of the org to be deleted.
+        :param force: (bool): pass force=True  along with recursive=True to
+        remove an organization and any objects it contains, regardless of
+        their state.
+        :param recursive: (bool): pass recursive=True  to remove an
+        organization and any objects it contains that are in a state that
+        normally allows removal.
         """  # NOQA
         org = self.client.get_org_by_name(org_name)
-        org_href = org.get('href').replace('/api/org/', '/api/admin/org/')
+        org_href = get_admin_href(org.get('href'))
         return self.client.delete_resource(org_href, force, recursive)
 
     def list_provider_vdcs(self):

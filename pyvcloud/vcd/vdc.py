@@ -482,18 +482,29 @@ class VDC(object):
 
         disks = self.get_disks()
 
+        result = None
         if disk_id is not None:
             if not disk_id.startswith('urn:vcloud:disk:'):
                 disk_id = 'urn:vcloud:disk:' + disk_id
             for disk in disks:
                 if disk.get('id') == disk_id:
-                    return disk
+                    result = disk
+                    # disk-id's are unique so it's ok to break the loop
+                    # and stop looking further.
+                    break
+        elif name is not None:
+            for disk in disks:
+                if disk.get('name') == name:
+                    if result is None:
+                        result = disk
+                    else:
+                        raise Exception('Found multiple disks with name %s'
+                                        ', please specify disk id along '
+                                        'with disk name. ' % disk.get('name'))
+        if result is None:
+            raise Exception('No disk found with the given name/id.')
         else:
-            if name is not None:
-                for disk in disks:
-                    if disk.get('name') == name:
-                        return disk
-        return None
+            return result
 
     def change_disk_owner(self, name, user_href, disk_id=None):
         """

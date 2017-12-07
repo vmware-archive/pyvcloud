@@ -622,7 +622,7 @@ class Gateway(object):
             _create_protocols_type(protocol))
         for rule in rules:
             current_protocols = create_protocol_tuple(rule.get_Protocols())
-            if (current_protocols == to_delete_protocols and
+            if (str(current_protocols).lower() == str(to_delete_protocols).lower() and
                 compare(dest_port, rule.get_DestinationPortRange()) and
                 compare(dest_ip, rule.get_DestinationIp()) and
                 compare(source_port, rule.get_SourcePortRange()) and

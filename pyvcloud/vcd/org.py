@@ -79,11 +79,11 @@ class Org(object):
     def create_role(self, role_name, description, rights):
         """
         Creates a role in the organization
-        :param role_name (str): name of the role to be created
-        :param description (str): description of the role
-        :param rights (list): names of zero or more rights to be associated with the role
+        :param role_name: name of the role to be created
+        :param description: description of the role
+        :param rights: names of zero or more rights to be associated with the role
         :return: RoleType just created
-        """ #  NOQA
+        """  # NOQA
         org_admin_resource = self.client.get_resource(self.href_admin)
         role = E.Role(
             E.Description(description),
@@ -101,7 +101,6 @@ class Org(object):
             RelationType.ADD,
             EntityType.ROLE.value,
             role)
-
 
     def delete_catalog(self, name):
         org = self.client.get_resource(self.href)
@@ -510,7 +509,7 @@ class Org(object):
         Retrieve user record from current Organization
         :param user_name: user name of the record to be retrieved
         :return: User record
-        """ # NOQA
+        """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         resource_type = 'user'
@@ -536,7 +535,7 @@ class Org(object):
         Delete user record from current organization
         :param user_name: (str) name of the user that (org/sys)admins wants to delete
         :return: result of calling DELETE on the user resource
-        """ # NOQA
+        """  # NOQA
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
 

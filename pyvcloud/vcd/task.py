@@ -20,7 +20,6 @@ from pyvcloud.vcd.client import RelationType
 
 
 class Task(object):
-
     def __init__(self, client):
         self.client = client
 
@@ -38,40 +37,33 @@ class Task(object):
                user_name,
                org_href=None,
                task_href=None,
-               error_message=None
-               ):
-        t = E.Task(status=status,
-                   serviceNamespace=namespace,
-                   type=EntityType.TASK.value,
-                   operation=operation,
-                   operationName=operation_name,
-                   name='task'
-                   )
-        t.append(E.Owner(href=owner_href,
-                         name=owner_name,
-                         type=owner_type))
+               error_message=None):
+        t = E.Task(
+            status=status,
+            serviceNamespace=namespace,
+            type=EntityType.TASK.value,
+            operation=operation,
+            operationName=operation_name,
+            name='task')
+        t.append(E.Owner(href=owner_href, name=owner_name, type=owner_type))
         if error_message is not None:
-            t.append(E.Error(stackTrace='',
-                             majorErrorCode='500',
-                             message=error_message,
-                             minorErrorCode='INTERNAL_SERVER_ERROR'))
-        t.append(E.User(href=user_href,
-                        name=user_name,
-                        type=EntityType.USER.value))
+            t.append(
+                E.Error(
+                    stackTrace='',
+                    majorErrorCode='500',
+                    message=error_message,
+                    minorErrorCode='INTERNAL_SERVER_ERROR'))
+        t.append(
+            E.User(href=user_href, name=user_name, type=EntityType.USER.value))
         if progress is not None:
             t.append(E.Progress(progress))
         t.append(E.Details(details))
         if task_href is None:
             org_resource = self.client.get_resource(org_href)
-            link = find_link(org_resource,
-                             RelationType.DOWN,
+            link = find_link(org_resource, RelationType.DOWN,
                              EntityType.TASKS_LIST.value)
-            return self.client.post_resource(
-                link.href,
-                t,
-                EntityType.TASK.value)
+            return self.client.post_resource(link.href, t,
+                                             EntityType.TASK.value)
         else:
-            return self.client.put_resource(
-                task_href,
-                t,
-                EntityType.TASK.value)
+            return self.client.put_resource(task_href, t,
+                                            EntityType.TASK.value)

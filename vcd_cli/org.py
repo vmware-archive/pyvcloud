@@ -204,9 +204,8 @@ def delete(ctx, name, recursive, force):
 def update(ctx, name, is_enabled):
     try:
         client = ctx.obj['client']
-        in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href)
-        result = org.update_org(org_name=name, is_enabled=is_enabled)
+        org = Org(client, resource=client.get_org_by_name(name))
+        result = org.update_org(is_enabled=is_enabled)
         stdout('Org \'%s\' is successfully updated.' % result.get('name'), ctx)
     except Exception as e:
         stderr(e, ctx)

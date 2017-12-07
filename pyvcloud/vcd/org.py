@@ -667,7 +667,28 @@ class Org(object):
         """
         Create Organization VDC in the current Org
         :param vdc_name: The name of the new org vdc
-        :return: (OrgType) Created Organization VDC object
+        :param provider_vdc_name: The name of the new provider vdc
+        :param description: The description of the new org vdc
+        :param allocation_model: The allocation model used by this vDC. One of AllocationVApp, AllocationPool or ReservationPool
+        :param cpu_units: The cpu units compute capacity allocated to this vDC. One of MHz or GHz
+        :param cpu_allocated: Capacity that is committed to be available.
+        :param cpu_limit: Capacity limit relative to the value specified for Allocation.
+        :param mem_units: The memory units compute capacity allocated to this vDC. One of MB or GB
+        :param mem_allocated: Memory capacity that is committed to be available.
+        :param mem_limit: Memory capacity limit relative to the value specified for Allocation.
+        :param nic_quota: .
+        :param network_quota: .
+        :param vm_quota: .
+        :param network_quota: .
+        :param sto_profile_name: .
+        :param sto_profile_enabled: .
+        :param sto_profile_default: .
+        :param sto_profile_units: .
+        :param sto_profile_limit: .
+        :param sto_profile_name: .
+        :param uses_fast_provisioning: .
+        :param is_enabled: .
+        :return:  A :class:`lxml.objectify.StringElement` object describing the new VDC.
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

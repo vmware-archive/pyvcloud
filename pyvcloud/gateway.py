@@ -218,26 +218,22 @@ class Gateway(object):
             if rule_type == natRule.get_RuleType():
                 gatewayNatRule = natRule.get_GatewayNatRule()
                 gateway_interface_name = gatewayNatRule.get_Interface().get_name().lower()
-                gateway_original_ip = gatewayNatRule.get_OriginalIp(
-                ) if gatewayNatRule.get_OriginalIp() else 'any'
-                gateway_original_port = gatewayNatRule.get_OriginalPort(
-                ) if gatewayNatRule.get_OriginalPort() else 'any'
-                gateway_translated_ip = gatewayNatRule.get_TranslatedIp(
-                ) if gatewayNatRule.get_TranslatedIp() else 'any'
-                gateway_translated_port = gatewayNatRule.get_TranslatedPort(
-                ) if gatewayNatRule.get_TranslatedPort() else 'any'
-                gateway_protocol = gatewayNatRule.get_Protocol(
-                ) if gatewayNatRule.get_Protocol() else 'any'
+                gateway_original_ip = gatewayNatRule.get_OriginalIp() if gatewayNatRule.get_OriginalIp() else 'any'
+                gateway_original_port = gatewayNatRule.get_OriginalPort() if gatewayNatRule.get_OriginalPort() else 'any'
+                gateway_translated_ip = gatewayNatRule.get_TranslatedIp() if gatewayNatRule.get_TranslatedIp() else 'any'
+                gateway_translated_port = gatewayNatRule.get_TranslatedPort() if gatewayNatRule.get_TranslatedPort() else 'any'
+                gateway_protocol = gatewayNatRule.get_Protocol() if gatewayNatRule.get_Protocol() else 'any'
+
                 if original_ip == gateway_original_ip and  str(original_port).lower() == str(gateway_original_port).lower() and translated_ip == gateway_translated_ip and str(translated_port).lower() == str(gateway_translated_port).lower() and str(protocol).lower() == str(gateway_protocol).lower() and interface == gateway_interface_name:
                     found_rule = True
                 else:
                     newRules.append(natRule)
             else:
                 newRules.append(natRule)
+
         if found_rule:
             natService = None
-            edgeGatewayServiceConfiguration = self.me.get_Configuration(
-            ).get_EdgeGatewayServiceConfiguration()
+            edgeGatewayServiceConfiguration = self.me.get_Configuration().get_EdgeGatewayServiceConfiguration()
             natServices = filter(
                 lambda service: service.__class__.__name__ == "NatServiceType",
                 edgeGatewayServiceConfiguration.get_NetworkService())
@@ -617,11 +613,7 @@ class Gateway(object):
             _create_protocols_type(protocol))
         for rule in rules:
             current_protocols = create_protocol_tuple(rule.get_Protocols())
-            if (str(current_protocols).lower() == str(to_delete_protocols).lower() and
-                compare(dest_port, rule.get_DestinationPortRange()) and
-                compare(dest_ip, rule.get_DestinationIp()) and
-                compare(source_port, rule.get_SourcePortRange()) and
-                    compare(source_ip, rule.get_SourceIp())):
+            if (str(current_protocols).lower() == str(to_delete_protocols).lower() and compare(dest_port, rule.get_DestinationPortRange()) and compare(dest_ip, rule.get_DestinationIp()) and compare(source_port, rule.get_SourcePortRange()) and compare(source_ip, rule.get_SourceIp())):
                 continue
             else:
                 new_rules.append(rule)

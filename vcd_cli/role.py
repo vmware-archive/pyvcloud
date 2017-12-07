@@ -50,14 +50,15 @@ def list_roles(ctx):
                 required=True)
 @click.option('-o',
               '--org',
+              'org_name',
               required=False,
-              metavar='[org_name]',
+              metavar='<org_name>',
               help='name of the org')
-def list_rights(ctx, role_name, org):
+def list_rights(ctx, role_name, org_name):
     try:
         client = ctx.obj['client']
-        if (org is not None):
-            org_href = client.get_org_by_name(org).get('href')
+        if (org_name is not None):
+            org_href = client.get_org_by_name(org_name).get('href')
         else:
             org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, org_href)
@@ -81,15 +82,16 @@ def list_rights(ctx, role_name, org):
                 metavar='<rights>')
 @click.option('-o',
               '--org',
+              'org_name',
               required=False,
               metavar='[org]',
               help='name of the org',
               )
-def create(ctx, role_name, description, rights, org):
+def create(ctx, role_name, description, rights, org_name):
     try:
         client = ctx.obj['client']
-        if (org is not None):
-            org_href = client.get_org_by_name(org).get('href')
+        if (org_name is not None):
+            org_href = client.get_org_by_name(org_name).get('href')
         else:
             org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, org_href)

@@ -23,7 +23,6 @@ from pyvcloud.vcd.org import Org
 
 
 class VDC(object):
-
     def __init__(self, client, name=None, href=None, resource=None):
         self.client = client
         self.name = name
@@ -122,8 +121,7 @@ class VDC(object):
             self.resource = self.client.get_resource(self.href)
 
         # Get hold of the template
-        org_href = find_link(self.resource,
-                             RelationType.UP,
+        org_href = find_link(self.resource, RelationType.UP,
                              EntityType.ORG.value).href
         org = Org(self.client, href=org_href)
         catalog_item = org.get_catalog_item(catalog, template)
@@ -133,8 +131,10 @@ class VDC(object):
         # If network is not specified by user then default to
         # vApp network name specified in the template
         template_networks = template_resource.xpath(
-                '//ovf:NetworkSection/ovf:Network',
-                namespaces={'ovf': NSMAP['ovf']})
+            '//ovf:NetworkSection/ovf:Network',
+            namespaces={
+                'ovf': NSMAP['ovf']
+            })
         assert len(template_networks) > 0
         network_name_from_template = template_networks[0].get(
             '{' + NSMAP['ovf'] + '}name')
@@ -154,15 +154,14 @@ class VDC(object):
                         break
             if network_href is None:
                 raise Exception(
-                    'Network \'%s\' not found in the Virtual Datacenter.'
-                    % network)
+                    'Network \'%s\' not found in the Virtual Datacenter.' %
+                    network)
 
         # Configure the network of the vApp
         vapp_instantiation_param = None
         if network_name is not None:
             network_configuration = E.Configuration(
-                E.ParentNetwork(href=network_href),
-                E.FenceMode(fence_mode))
+                E.ParentNetwork(href=network_href), E.FenceMode(fence_mode))
 
             if fence_mode == 'natRouted':
                 # TODO(need to find the vm_id)
@@ -170,26 +169,18 @@ class VDC(object):
                 network_configuration.append(
                     E.Features(
                         E.NatService(
-                            E.IsEnabled('true'),
-                            E.NatType('ipTranslation'),
+                            E.IsEnabled('true'), E.NatType('ipTranslation'),
                             E.Policy('allowTraffic'),
                             E.NatRule(
                                 E.OneToOneVmRule(
                                     E.MappingMode('automatic'),
-                                    E.VAppScopedVmId(vm_id),
-                                    E.VmNicId(0)
-                                )
-                            )
-                        )
-                    )
-                )
+                                    E.VAppScopedVmId(vm_id), E.VmNicId(0))))))
 
             vapp_instantiation_param = E.InstantiationParams(
                 E.NetworkConfigSection(
                     E_OVF.Info('Configuration for logical networks'),
                     E.NetworkConfig(
-                        network_configuration,
-                        networkName=network_name)))
+                        network_configuration, networkName=network_name)))
 
         # Get all vms in the vapp template
         vms = template_resource.xpath(
@@ -201,33 +192,43 @@ class VDC(object):
 
         # Configure network of the first vm
         if network_name is not None:
-            primary_index = int(vms[0].NetworkConnectionSection.PrimaryNetworkConnectionIndex.text)  # NOQA
-            vm_instantiation_param.append(E.NetworkConnectionSection(
-                E_OVF.Info('Specifies the available VM network connections'),
-                E.NetworkConnection(
-                    E.NetworkConnectionIndex(primary_index),
-                    E.IsConnected('true'),
-                    E.IpAddressAllocationMode(ip_allocation_mode.upper()),
-                    network=network_name)))
+            primary_index = int(vms[0].NetworkConnectionSection.
+                                PrimaryNetworkConnectionIndex.text)  # NOQA
+            vm_instantiation_param.append(
+                E.NetworkConnectionSection(
+                    E_OVF.Info(
+                        'Specifies the available VM network connections'),
+                    E.NetworkConnection(
+                        E.NetworkConnectionIndex(primary_index),
+                        E.IsConnected('true'),
+                        E.IpAddressAllocationMode(ip_allocation_mode.upper()),
+                        network=network_name)))
 
         # Configure cpu, memory, disk of the first vm
         cpu_params = memory_params = disk_params = None
         if memory is not None or cpu is not None or disk_size is not None:
             virtual_hardware_section = E_OVF.VirtualHardwareSection(
                 E_OVF.Info('Virtual hardware requirements'))
-            items = vms[0].xpath('//ovf:VirtualHardwareSection/ovf:Item',
-                                 namespaces={'ovf': NSMAP['ovf']})
+            items = vms[0].xpath(
+                '//ovf:VirtualHardwareSection/ovf:Item',
+                namespaces={
+                    'ovf': NSMAP['ovf']
+                })
             for item in items:
                 if memory is not None and memory_params is None:
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 4:
-                        item['{' + NSMAP['rasd'] + '}ElementName'] = '%s MB of memory' % memory  # NOQA
+                        item[
+                            '{' + NSMAP['rasd'] +
+                            '}ElementName'] = '%s MB of memory' % memory  # NOQA
                         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = memory
                         memory_params = item
                         virtual_hardware_section.append(memory_params)
 
                 if cpu is not None and cpu_params is None:
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 3:
-                        item['{' + NSMAP['rasd'] + '}ElementName'] = '%s virtual CPU(s)' % cpu  # NOQA
+                        item[
+                            '{' + NSMAP['rasd'] +
+                            '}ElementName'] = '%s virtual CPU(s)' % cpu  # NOQA
                         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = cpu
                         cpu_params = item
                         virtual_hardware_section.append(cpu_params)
@@ -235,8 +236,12 @@ class VDC(object):
                 if disk_size is not None and disk_params is None:
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 17:
                         item['{' + NSMAP['rasd'] + '}Parent'] = None
-                        item['{' + NSMAP['rasd'] + '}HostResource'].attrib['{' + NSMAP['vcloud'] + '}capacity'] = '%s' % disk_size  # NOQA
-                        item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
+                        item['{' + NSMAP['rasd'] + '}HostResource'].attrib[
+                            '{' + NSMAP['vcloud'] +
+                            '}capacity'] = '%s' % disk_size  # NOQA
+                        item[
+                            '{' + NSMAP['rasd'] +
+                            '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
                         disk_params = item
                         virtual_hardware_section.append(disk_params)
             vm_instantiation_param.append(virtual_hardware_section)
@@ -254,27 +259,24 @@ class VDC(object):
             else:
                 guest_customization_param.append(
                     E.AdminPasswordEnabled('true'))
-                guest_customization_param.append(
-                    E.AdminPasswordAuto('false'))
-                guest_customization_param.append(
-                    E.AdminPassword(password))
+                guest_customization_param.append(E.AdminPasswordAuto('false'))
+                guest_customization_param.append(E.AdminPassword(password))
                 guest_customization_param.append(
                     E.ResetPasswordRequired('false'))
             if cust_script is not None:
                 guest_customization_param.append(
                     E.CustomizationScript(cust_script))
             if hostname is not None:
-                guest_customization_param.append(
-                    E.ComputerName(hostname))
+                guest_customization_param.append(E.ComputerName(hostname))
             vm_instantiation_param.append(guest_customization_param)
 
         # Craft the <SourcedItem> element for the first VM
         sourced_item = E.SourcedItem(
-            E.Source(href=vms[0].get('href'),
-                     id=vms[0].get('id'),
-                     name=vms[0].get('name'),
-                     type=vms[0].get('type'))
-        )
+            E.Source(
+                href=vms[0].get('href'),
+                id=vms[0].get('id'),
+                name=vms[0].get('name'),
+                type=vms[0].get('type')))
 
         vm_general_params = E.VmGeneralParams()
         if vm_name is not None:
@@ -307,16 +309,13 @@ class VDC(object):
         all_eulas_accepted = 'true' if accept_all_eulas else 'false'
 
         vapp_template_params = E.InstantiateVAppTemplateParams(
-            name=name,
-            deploy=deploy_param,
-            powerOn=power_on_param)
+            name=name, deploy=deploy_param, powerOn=power_on_param)
 
         if vapp_instantiation_param is not None:
             vapp_template_params.append(vapp_instantiation_param)
 
         vapp_template_params.append(
-            E.Source(href=catalog_item.Entity.get('href'))
-        )
+            E.Source(href=catalog_item.Entity.get('href')))
 
         vapp_template_params.append(sourced_item)
 
@@ -324,7 +323,7 @@ class VDC(object):
 
         # TODO(use post_linked_resource?)
         return self.client.post_resource(
-            self.href+'/action/instantiateVAppTemplate',
+            self.href + '/action/instantiateVAppTemplate',
             vapp_template_params,
             EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value)
 
@@ -374,10 +373,8 @@ class VDC(object):
             disk_params.Disk.append(storage_profile)
 
         return self.client.post_linked_resource(
-            self.resource,
-            RelationType.ADD,
-            EntityType.DISK_CREATE_PARMS.value,
-            disk_params)
+            self.resource, RelationType.ADD,
+            EntityType.DISK_CREATE_PARMS.value, disk_params)
 
     def update_disk(self,
                     name,
@@ -418,15 +415,13 @@ class VDC(object):
             storage_profile = self.get_storage_profile(storage_profile_name)
             sp = etree.XML(etree.tostring(storage_profile, pretty_print=True))
             sp_href = sp.attrib['href']
-            disk_params.append(E.StorageProfile(href=sp_href,
-                                                name=storage_profile_name))
+            disk_params.append(
+                E.StorageProfile(href=sp_href, name=storage_profile_name))
         if disk is None:
             raise Exception('Could not locate Disk %s for update. ' % disk_id)
 
-        return self.client.put_linked_resource(disk,
-                                               RelationType.EDIT,
-                                               EntityType.DISK.value,
-                                               disk_params)
+        return self.client.put_linked_resource(
+            disk, RelationType.EDIT, EntityType.DISK.value, disk_params)
 
     def delete_disk(self, name, disk_id=None):
         """
@@ -444,8 +439,7 @@ class VDC(object):
         else:
             disk = self.get_disk(name)
 
-        return self.client.delete_linked_resource(disk,
-                                                  RelationType.REMOVE,
+        return self.client.delete_linked_resource(disk, RelationType.REMOVE,
                                                   None)
 
     def get_disks(self):
@@ -527,9 +521,7 @@ class VDC(object):
         new_owner.User.set('href', user_href)
         etree.cleanup_namespaces(new_owner)
         return self.client.put_resource(
-            disk.get('href') + '/owner/',
-            new_owner,
-            EntityType.OWNER.value)
+            disk.get('href') + '/owner/', new_owner, EntityType.OWNER.value)
         return None
 
     def get_storage_profiles(self):
@@ -563,5 +555,5 @@ class VDC(object):
                 if profile.get('name') == profile_name:
                     return profile
 
-        raise Exception('Storage Profile named \'%s\' not found' %
-                        profile_name)
+        raise Exception(
+            'Storage Profile named \'%s\' not found' % profile_name)

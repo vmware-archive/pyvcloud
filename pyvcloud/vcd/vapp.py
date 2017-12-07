@@ -23,7 +23,6 @@ from pyvcloud.vcd.client import RelationType
 
 
 class VApp(object):
-
     def __init__(self, client, name=None, href=None, resource=None):
         self.client = client
         self.name = name
@@ -52,7 +51,9 @@ class VApp(object):
                     for item in items:
                         connection = item.find('rasd:Connection', NSMAP)
                         if connection is not None:
-                            return connection.get('{http://www.vmware.com/vcloud/v1.5}ipAddress')  # NOQA
+                            return connection.get(
+                                '{http://www.vmware.com/vcloud/v1.5}ipAddress'
+                            )  # NOQA
         raise Exception('can\'t find ip address')
 
     def get_admin_password(self, vm_name):
@@ -70,9 +71,8 @@ class VApp(object):
     def get_metadata(self):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        return self.client.get_linked_resource(self.resource,
-                                               RelationType.DOWN,
-                                               EntityType.METADATA.value)
+        return self.client.get_linked_resource(
+            self.resource, RelationType.DOWN, EntityType.METADATA.value)
 
     def set_metadata(self,
                      domain,
@@ -84,18 +84,16 @@ class VApp(object):
             self.resource = self.client.get_resource(self.href)
         new_metadata = E.Metadata(
             E.MetadataEntry(
-                {'type': 'xs:string'},
-                E.Domain(domain, visibility=visibility),
-                E.Key(key),
-                E.TypedValue(
-                    {'{http://www.w3.org/2001/XMLSchema-instance}type':
-                     'MetadataStringValue'},
-                    E.Value(value))))
-        metadata = self.client.get_linked_resource(self.resource,
-                                                   RelationType.DOWN,
-                                                   EntityType.METADATA.value)
-        return self.client.post_linked_resource(metadata,
-                                                RelationType.ADD,
+                {
+                    'type': 'xs:string'
+                }, E.Domain(domain, visibility=visibility), E.Key(key),
+                E.TypedValue({
+                    '{http://www.w3.org/2001/XMLSchema-instance}type':
+                    'MetadataStringValue'
+                }, E.Value(value))))
+        metadata = self.client.get_linked_resource(
+            self.resource, RelationType.DOWN, EntityType.METADATA.value)
+        return self.client.post_linked_resource(metadata, RelationType.ADD,
                                                 EntityType.METADATA.value,
                                                 new_metadata)
 
@@ -108,7 +106,9 @@ class VApp(object):
                 if vm.get('name') == vm_name:
                     env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
                     if len(env) > 0:
-                        return env[0].get('{http://www.vmware.com/schema/ovfenv}vCenterId')  # NOQA
+                        return env[0].get(
+                            '{http://www.vmware.com/schema/ovfenv}vCenterId'
+                        )  # NOQA
         return None
 
     def set_lease(self, deployment_lease=0, storage_lease=0):
@@ -121,8 +121,7 @@ class VApp(object):
         objectify.deannotate(new_section)
         etree.cleanup_namespaces(new_section)
         return self.client.put_resource(
-            self.resource.get('href') + '/leaseSettingsSection/',
-            new_section,
+            self.resource.get('href') + '/leaseSettingsSection/', new_section,
             EntityType.LEASE_SETTINGS.value)
 
     def change_owner(self, href):
@@ -138,36 +137,26 @@ class VApp(object):
         objectify.deannotate(new_owner)
         etree.cleanup_namespaces(new_owner)
         return self.client.put_resource(
-            self.resource.get('href') + '/owner/',
-            new_owner,
+            self.resource.get('href') + '/owner/', new_owner,
             EntityType.OWNER.value)
 
     def power_off(self):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(
-            self.resource,
-            RelationType.POWER_OFF,
-            None,
-            None)
+            self.resource, RelationType.POWER_OFF, None, None)
 
     def power_on(self):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(
-            self.resource,
-            RelationType.POWER_ON,
-            None,
-            None)
+            self.resource, RelationType.POWER_ON, None, None)
 
     def shutdown(self):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(
-            self.resource,
-            RelationType.POWER_SHUTDOWN,
-            None,
-            None)
+            self.resource, RelationType.POWER_SHUTDOWN, None, None)
 
     def connect_vm(self, mode='DHCP', reset_mac_address=False):
         if self.resource is None:
@@ -180,17 +169,22 @@ class VApp(object):
                 if nc.get('networkName') != 'none':
                     network_name = nc.get('networkName')
                     break
-            self.resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.set('network', network_name) # NOQA
-            self.resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.IsConnected = E.IsConnected('true') # NOQA
+            self.resource.Children.Vm[
+                0].NetworkConnectionSection.NetworkConnection.set(
+                    'network', network_name)  # NOQA
+            self.resource.Children.Vm[
+                0].NetworkConnectionSection.NetworkConnection.IsConnected = \
+                E.IsConnected('true')
             if reset_mac_address:
-                self.resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.MACAddress = E.MACAddress('') # NOQA
-            self.resource.Children.Vm[0].NetworkConnectionSection.NetworkConnection.IpAddressAllocationMode = E.IpAddressAllocationMode(mode.upper()) # NOQA
+                self.resource.Children.Vm[0].NetworkConnectionSection.\
+                    NetworkConnection.MACAddress = E.MACAddress('')
+            self.resource.Children.Vm[0].NetworkConnectionSection.\
+                NetworkConnection.IpAddressAllocationMode = \
+                E.IpAddressAllocationMode(mode.upper())
             return self.client.put_linked_resource(
                 self.resource.Children.Vm[0].NetworkConnectionSection,
-                RelationType.EDIT,
-                EntityType.NETWORK_CONNECTION_SECTION.value,
-                self.resource.Children.Vm[0].NetworkConnectionSection
-                )
+                RelationType.EDIT, EntityType.NETWORK_CONNECTION_SECTION.value,
+                self.resource.Children.Vm[0].NetworkConnectionSection)
 
     def attach_disk_to_vm(self, disk_href, disk_type, disk_name, vm_name):
         """
@@ -205,8 +199,7 @@ class VApp(object):
             E.Disk(type=disk_type, href=disk_href))
         vm = self.get_vm(vm_name)
         return self.client.post_linked_resource(
-            vm,
-            RelationType.DISK_ATTACH,
+            vm, RelationType.DISK_ATTACH,
             EntityType.DISK_ATTACH_DETACH_PARAMS.value,
             disk_attach_or_detach_params)
 
@@ -223,8 +216,7 @@ class VApp(object):
             E.Disk(type=disk_type, href=disk_href))
         vm = self.get_vm(vm_name)
         return self.client.post_linked_resource(
-            vm,
-            RelationType.DISK_DETACH,
+            vm, RelationType.DISK_DETACH,
             EntityType.DISK_ATTACH_DETACH_PARAMS.value,
             disk_attach_or_detach_params)
 
@@ -239,9 +231,9 @@ class VApp(object):
         if hasattr(self.resource, 'Children') and \
            hasattr(self.resource.Children, 'Vm') and \
            len(self.resource.Children.Vm) > 0:
-                    for vm in self.resource.Children.Vm:
-                        if vm.get('name') == vm_name:
-                            return vm
+            for vm in self.resource.Children.Vm:
+                if vm.get('name') == vm_name:
+                    return vm
         raise Exception('can\'t find VM')
 
     def add_disk_to_vm(self, vm_name, disk_size):
@@ -257,22 +249,28 @@ class VApp(object):
         :raises: Exception: If the named VM cannot be located or another error occured.
         """  # NOQA
         vm = self.get_vm(vm_name)
-        disk_list = self.client.get_resource(vm.get('href') + '/virtualHardwareSection/disks')  # NOQA
+        disk_list = self.client.get_resource(
+            vm.get('href') + '/virtualHardwareSection/disks')  # NOQA
         last_disk = None
         for disk in disk_list.Item:
-            if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':  # NOQA
+            if disk['{' + NSMAP['rasd'] +
+                    '}Description'] == 'Hard disk':  # NOQA
                 last_disk = disk
         assert last_disk is not None
         new_disk = deepcopy(last_disk)
-        addr = int(str(last_disk['{' + NSMAP['rasd'] + '}AddressOnParent'])) + 1  # NOQA
-        instance_id = int(str(last_disk['{' + NSMAP['rasd'] + '}InstanceID'])) + 1  # NOQA
+        addr = int(str(
+            last_disk['{' + NSMAP['rasd'] + '}AddressOnParent'])) + 1  # NOQA
+        instance_id = int(str(
+            last_disk['{' + NSMAP['rasd'] + '}InstanceID'])) + 1  # NOQA
         new_disk['{' + NSMAP['rasd'] + '}AddressOnParent'] = addr
-        new_disk['{' + NSMAP['rasd'] + '}ElementName'] = 'Hard disk %s' % addr  # NOQA
+        new_disk['{' + NSMAP['rasd'] +
+                 '}ElementName'] = 'Hard disk %s' % addr  # NOQA
         new_disk['{' + NSMAP['rasd'] + '}InstanceID'] = instance_id
-        new_disk['{' + NSMAP['rasd'] + '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
-        new_disk['{' + NSMAP['rasd'] + '}HostResource'].set('{' + NSMAP['vcloud'] + '}capacity', str(disk_size))  # NOQA
+        new_disk['{' + NSMAP['rasd'] +
+                 '}VirtualQuantity'] = disk_size * 1024 * 1024  # NOQA
+        new_disk['{' + NSMAP['rasd'] + '}HostResource'].set(
+            '{' + NSMAP['vcloud'] + '}capacity', str(disk_size))  # NOQA
         disk_list.append(new_disk)
         return self.client.put_resource(
-            vm.get('href') + '/virtualHardwareSection/disks',
-            disk_list,
+            vm.get('href') + '/virtualHardwareSection/disks', disk_list,
             EntityType.RASD_ITEM_LIST.value)

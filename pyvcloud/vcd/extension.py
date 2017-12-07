@@ -23,17 +23,17 @@ from pyvcloud.vcd.utils import to_dict
 class Extension(object):
 
     TYPE_NAME = 'adminService'
-    ATTRIBUTES = ['name', 'namespace', 'enabled',
-                  'exchange', 'routingKey', 'priority',
-                  'isAuthorizationEnabled', 'href', 'id']
+    ATTRIBUTES = [
+        'name', 'namespace', 'enabled', 'exchange', 'routingKey', 'priority',
+        'isAuthorizationEnabled', 'href', 'id'
+    ]
 
     def __init__(self, client):
         self.client = client
 
     def list_extensions(self):
         query = self.client.get_typed_query(
-            self.TYPE_NAME,
-            query_result_format=QueryResultFormat.ID_RECORDS)
+            self.TYPE_NAME, query_result_format=QueryResultFormat.ID_RECORDS)
         return [to_dict(r, self.ATTRIBUTES) for r in query.execute()]
 
     def get_extension(self, name):
@@ -51,25 +51,21 @@ class Extension(object):
         params.append(E_VMEXT.Exchange(exchange))
         filters = E_VMEXT.ApiFilters()
         for pattern in patterns:
-            filters.append(E_VMEXT.ApiFilter(
-                                E_VMEXT.UrlPattern(pattern.strip())))
+            filters.append(
+                E_VMEXT.ApiFilter(E_VMEXT.UrlPattern(pattern.strip())))
         params.append(filters)
         ext = self.client.get_extension()
         ext_services = self.client.get_linked_resource(
-            ext,
-            RelationType.DOWN,
-            EntityType.EXTENSION_SERVICES.value)
-        return self.client.post_linked_resource(
-            ext_services,
-            RelationType.ADD,
-            EntityType.ADMIN_SERVICE.value,
-            params)
+            ext, RelationType.DOWN, EntityType.EXTENSION_SERVICES.value)
+        return self.client.post_linked_resource(ext_services, RelationType.ADD,
+                                                EntityType.ADMIN_SERVICE.value,
+                                                params)
 
     def enable_extension(self, name, enabled=True):
         record = self.client.get_typed_query(
-                self.TYPE_NAME,
-                equality_filter=('name', name),
-                query_result_format=QueryResultFormat.RECORDS).find_unique()
+            self.TYPE_NAME,
+            equality_filter=('name', name),
+            query_result_format=QueryResultFormat.RECORDS).find_unique()
         params = E_VMEXT.Service({'name': name})
         params.append(E_VMEXT.Namespace(record.get('namespace')))
         params.append(E_VMEXT.Enabled('true' if enabled else 'false'))

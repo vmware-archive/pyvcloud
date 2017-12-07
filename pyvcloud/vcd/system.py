@@ -50,9 +50,7 @@ class System(object):
             E.Settings,
             name=org_name)
         return self.client.post_linked_resource(
-            self.admin_resource,
-            RelationType.ADD,
-            EntityType.ADMIN_ORG.value,
+            self.admin_resource, RelationType.ADD, EntityType.ADMIN_ORG.value,
             org_params)
 
     def delete_org(self, org_name, force=None, recursive=None):
@@ -69,4 +67,3 @@ class System(object):
         org = self.client.get_org_by_name(org_name)
         org_href = get_admin_href(org.get('href'))
         return self.client.delete_resource(org_href, force, recursive)
-

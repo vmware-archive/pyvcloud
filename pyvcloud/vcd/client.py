@@ -25,146 +25,85 @@ import sys
 import time
 import urllib
 
-SIZE_1MB = 1024*1024
-
+SIZE_1MB = 1024 * 1024
 
 NSMAP = {
-         'ovf': 'http://schemas.dmtf.org/ovf/envelope/1',
-         'ovfenv': 'http://schemas.dmtf.org/ovf/environment/1',
-         'rasd': 'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData',  # NOQA
-         'vcloud': 'http://www.vmware.com/vcloud/v1.5',
-         've': 'http://www.vmware.com/schema/ovfenv',
-         'vmext': 'http://www.vmware.com/vcloud/extension/v1.5',
-         'xs': 'http://www.w3.org/2001/XMLSchema',
-         'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
-         }
-
+    'ovf':
+    'http://schemas.dmtf.org/ovf/envelope/1',
+    'ovfenv':
+    'http://schemas.dmtf.org/ovf/environment/1',
+    'rasd':
+    'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData',  # NOQA
+    'vcloud':
+    'http://www.vmware.com/vcloud/v1.5',
+    've':
+    'http://www.vmware.com/schema/ovfenv',
+    'vmext':
+    'http://www.vmware.com/vcloud/extension/v1.5',
+    'xs':
+    'http://www.w3.org/2001/XMLSchema',
+    'xsi':
+    'http://www.w3.org/2001/XMLSchema-instance'
+}
 
 # Convenience objects for building vCloud API XML objects
 E = objectify.ElementMaker(
     annotate=False,
     namespace=NSMAP['vcloud'],
-    nsmap={None: NSMAP['vcloud'],
-           'xsi': NSMAP['xsi'],
-           'xs': NSMAP['xs'],
-           'ovf': NSMAP['ovf']})
+    nsmap={
+        None: NSMAP['vcloud'],
+        'xsi': NSMAP['xsi'],
+        'xs': NSMAP['xs'],
+        'ovf': NSMAP['ovf']
+    })
 
 E_VMEXT = objectify.ElementMaker(
     annotate=False,
     namespace=NSMAP['vmext'],
-    nsmap={None: NSMAP['vcloud'],
-           'vmext': NSMAP['vmext']})
+    nsmap={
+        None: NSMAP['vcloud'],
+        'vmext': NSMAP['vmext']
+    })
 
 E_OVF = objectify.ElementMaker(
-    annotate=False,
-    namespace=NSMAP['ovf'],
-    nsmap={None: NSMAP['ovf']})
+    annotate=False, namespace=NSMAP['ovf'], nsmap={
+        None: NSMAP['ovf']
+    })
 
 E_RASD = objectify.ElementMaker(
     annotate=False,
     namespace=NSMAP['rasd'],
-    nsmap={None: NSMAP['rasd'],
-           'vcloud': NSMAP['vcloud']})
+    nsmap={
+        None: NSMAP['rasd'],
+        'vcloud': NSMAP['vcloud']
+    })
 
 RESOURCE_TYPES = [
-    'aclRule',
-    'adminApiDefinition',
-    'adminAllocatedExternalAddress',
-    'adminCatalog',
-    'adminCatalogItem',
-    'adminDisk',
-    'adminEvent',
-    'adminFileDescriptor',
-    'adminGroup',
-    'adminMedia',
-    'adminOrgNetwork',
-    'adminOrgVdc',
-    'adminOrgVdcStorageProfile',
-    'adminRole',
-    'adminService',
-    'adminShadowVM',
-    'adminTask',
-    'adminUser',
-    'adminVApp',
-    'adminVAppNetwork',
-    'adminVAppTemplate',
-    'adminVM',
-    'adminVMDiskRelation',
-    'allocatedExternalAddress',
-    'apiDefinition',
-    'apiFilter',
-    'blockingTask',
-    'catalog',
-    'catalogItem',
-    'cell',
-    'condition',
-    'datastore',
-    'datastoreProviderVdcRelation',
-    'disk',
-    'dvSwitch',
-    'edgeGateway',
-    'event',
-    'externalLocalization',
-    'externalNetwork',
-    'fileDescriptor',
-    'fromCloudTunnel',
-    'group',
-    'host',
-    'media',
-    'networkPool',
-    'organization',
-    'orgNetwork',
-    'orgVdc',
-    'orgVdcNetwork',
-    'orgVdcResourcePoolRelation',
-    'orgVdcStorageProfile',
-    'portGroup',
-    'providerVdc',
-    'providerVdcResourcePoolRelation',
-    'providerVdcStorageProfile',
-    'resourcePool',
-    'resourcePoolVmList',
-    'right',
-    'resourceClass',
-    'resourceClassAction',
-    'role',
-    'service',
-    'serviceLink',
-    'serviceResource',
-    'strandedItem',
-    'strandedUser',
-    'task',
-    'toCloudTunnel',
-    'user',
-    'vApp',
-    'vAppNetwork',
-    'vAppOrgVdcNetworkRelation',
-    'vAppTemplate',
-    'virtualCenter',
-    'vm',
-    'vmDiskRelation',
-    'vmGroups',
-    'vmGroupVms'
-    ]
+    'aclRule', 'adminApiDefinition', 'adminAllocatedExternalAddress',
+    'adminCatalog', 'adminCatalogItem', 'adminDisk', 'adminEvent',
+    'adminFileDescriptor', 'adminGroup', 'adminMedia', 'adminOrgNetwork',
+    'adminOrgVdc', 'adminOrgVdcStorageProfile', 'adminRole', 'adminService',
+    'adminShadowVM', 'adminTask', 'adminUser', 'adminVApp', 'adminVAppNetwork',
+    'adminVAppTemplate', 'adminVM', 'adminVMDiskRelation',
+    'allocatedExternalAddress', 'apiDefinition', 'apiFilter', 'blockingTask',
+    'catalog', 'catalogItem', 'cell', 'condition', 'datastore',
+    'datastoreProviderVdcRelation', 'disk', 'dvSwitch', 'edgeGateway', 'event',
+    'externalLocalization', 'externalNetwork', 'fileDescriptor',
+    'fromCloudTunnel', 'group', 'host', 'media', 'networkPool', 'organization',
+    'orgNetwork', 'orgVdc', 'orgVdcNetwork', 'orgVdcResourcePoolRelation',
+    'orgVdcStorageProfile', 'portGroup', 'providerVdc',
+    'providerVdcResourcePoolRelation', 'providerVdcStorageProfile',
+    'resourcePool', 'resourcePoolVmList', 'right', 'resourceClass',
+    'resourceClassAction', 'role', 'service', 'serviceLink', 'serviceResource',
+    'strandedItem', 'strandedUser', 'task', 'toCloudTunnel', 'user', 'vApp',
+    'vAppNetwork', 'vAppOrgVdcNetworkRelation', 'vAppTemplate',
+    'virtualCenter', 'vm', 'vmDiskRelation', 'vmGroups', 'vmGroupVms'
+]
 
 API_CURRENT_VERSIONS = [
-    '5.5',
-    '5.6',
-    '6.0',
-    '13.0',
-    '17.0',
-    '20.0',
-    '21.0',
-    '22.0',
-    '23.0',
-    '24.0',
-    '25.0',
-    '26.0',
-    '27.0',
-    '28.0',
-    '29.0',
-    '30.0'
-    ]
+    '5.5', '5.6', '6.0', '13.0', '17.0', '20.0', '21.0', '22.0', '23.0',
+    '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0'
+]
 
 VCLOUD_STATUS_MAP = {
     -1: "Could not be created",
@@ -264,8 +203,7 @@ class EntityType(Enum):
 
 
 class QueryResultFormat(Enum):
-    RECORDS = ('application/vnd.vmware.vcloud.query.records+xml',
-               'records')
+    RECORDS = ('application/vnd.vmware.vcloud.query.records+xml', 'records')
     ID_RECORDS = ('application/vnd.vmware.vcloud.query.idrecords+xml',
                   'idrecords')
     REFERENCES = ('application/vnd.vmware.vcloud.query.references+xml',
@@ -447,12 +385,12 @@ class _TaskMonitor(object):
                          timeout,
                          poll_frequency=_DEFAULT_POLL_SEC,
                          callback=None):
-        return self.wait_for_status(task,
-                                    timeout,
-                                    poll_frequency,
-                                    TaskStatus.ERROR,
-                                    [TaskStatus.SUCCESS],
-                                    callback=callback)
+        return self.wait_for_status(
+            task,
+            timeout,
+            poll_frequency,
+            TaskStatus.ERROR, [TaskStatus.SUCCESS],
+            callback=callback)
 
     def _get_task_status(self, task_href):
         return self._client.get_resource(task_href)
@@ -479,8 +417,8 @@ class Client(object):
                 self._uri += 'api'
             else:
                 self._uri += '/api'
-            if not (self._uri.startswith('https://') or
-                    self._uri.startswith('http://')):
+            if not (self._uri.startswith('https://')
+                    or self._uri.startswith('http://')):
                 self._uri = 'https://' + self._uri
 
         self._api_version = api_version
@@ -494,13 +432,12 @@ class Client(object):
         self._logger.setLevel(logging.DEBUG)
         handler = logging.FileHandler(log_file) if log_file is not None else \
             logging.NullHandler()
-        formatter = logging.Formatter(
-            '%(asctime)-23.23s | '
-            '%(levelname)-5.5s | '
-            '%(name)-15.15s | '
-            '%(module)-15.15s | '
-            '%(funcName)-12.12s | '
-            '%(message)s')
+        formatter = logging.Formatter('%(asctime)-23.23s | '
+                                      '%(levelname)-5.5s | '
+                                      '%(name)-15.15s | '
+                                      '%(module)-15.15s | '
+                                      '%(funcName)-12.12s | '
+                                      '%(message)s')
         handler.setFormatter(formatter)
         self._logger.addHandler(handler)
 
@@ -521,10 +458,8 @@ class Client(object):
 
     def get_supported_versions(self):
         new_session = requests.Session()
-        response = self._do_request_prim('GET',
-                                         self._uri + '/versions',
-                                         new_session,
-                                         accept_type='')
+        response = self._do_request_prim(
+            'GET', self._uri + '/versions', new_session, accept_type='')
         sc = response.status_code
         if sc != 200:
             raise Exception('Unable to get supported API versions.')
@@ -540,8 +475,8 @@ class Client(object):
         active_versions.sort()
         self._api_version = active_versions[-1]
         self._logger.debug('API versions supported: %s' % active_versions)
-        self._logger.debug('API version set to highest supported: %s' %
-                           self._api_version)
+        self._logger.debug(
+            'API version set to highest supported: %s' % self._api_version)
         return self._api_version
 
     def set_credentials(self, creds):
@@ -549,12 +484,11 @@ class Client(object):
 
         """
         new_session = requests.Session()
-        response = self._do_request_prim('POST',
-                                         self._uri + '/sessions',
-                                         new_session,
-                                         auth=('%s@%s' % (creds.user,
-                                                          creds.org),
-                                               creds.password))
+        response = self._do_request_prim(
+            'POST',
+            self._uri + '/sessions',
+            new_session,
+            auth=('%s@%s' % (creds.user, creds.org), creds.password))
         sc = response.status_code
         if sc != 200:
             r = None
@@ -598,8 +532,7 @@ class Client(object):
         new_session.headers['x-vcloud-authorization'] = token
         new_session.headers['Accept'] = 'application/*+xml;version=%s' % \
             self._api_version
-        response = self._do_request_prim('GET',
-                                         self._uri + "/session",
+        response = self._do_request_prim('GET', self._uri + "/session",
                                          new_session)
         sc = response.status_code
         if sc != 200:
@@ -644,11 +577,12 @@ class Client(object):
                     media_type=None,
                     accept_type=None,
                     objectify_results=True):
-        response = self._do_request_prim(method,
-                                         uri,
-                                         self._session,
-                                         contents=contents,
-                                         media_type=media_type)
+        response = self._do_request_prim(
+            method,
+            uri,
+            self._session,
+            contents=contents,
+            media_type=media_type)
         sc = response.status_code
 
         if 200 <= sc <= 299:
@@ -657,8 +591,7 @@ class Client(object):
 
         if 400 <= sc <= 499:
             raise VcdErrorResponseException(
-                sc,
-                self._get_response_request_id(response),
+                sc, self._get_response_request_id(response),
                 objectify.fromstring(response.content))
 
         raise Exception("Unsupported HTTP status code (%d) encountered" % sc)
@@ -686,18 +619,19 @@ class Client(object):
             else:
                 data = etree.tostring(contents)
 
-        response = session.request(method,
-                                   uri,
-                                   data=data,
-                                   headers=headers,
-                                   auth=auth,
-                                   verify=self._verify_ssl_certs)
+        response = session.request(
+            method,
+            uri,
+            data=data,
+            headers=headers,
+            auth=auth,
+            verify=self._verify_ssl_certs)
 
         if self._log_requests or self._log_headers or self._log_bodies:
             self._logger.debug('Request uri (%s): %s' % (method, uri))
         if self._log_headers:
-            self._logger.debug('Request headers: %s, %s' %
-                               (session.headers, headers))
+            self._logger.debug('Request headers: %s, %s' % (session.headers,
+                                                            headers))
         if self._log_bodies and data is not None:
             if sys.version_info[0] < 3:
                 d = data
@@ -708,11 +642,10 @@ class Client(object):
                     d = data.decode(self.fsencoding)
             self._logger.debug('Request body: %s' % d)
         if self._log_requests or self._log_headers or self._log_bodies:
-            self._logger.debug('Response status code: %s' %
-                               response.status_code)
+            self._logger.debug(
+                'Response status code: %s' % response.status_code)
         if self._log_headers:
-            self._logger.debug('Response headers: %s' %
-                               response.headers)
+            self._logger.debug('Response headers: %s' % response.headers)
         if self._log_bodies and _response_has_content(response):
             if sys.version_info[0] < 3:
                 d = response.content
@@ -729,25 +662,23 @@ class Client(object):
         headers['Content-Range'] = range_str
         headers['Content-Length'] = str(len(contents))
         data = contents
-        response = self._session.request('PUT',
-                                         uri,
-                                         data=data,
-                                         headers=headers,
-                                         verify=self._verify_ssl_certs)
+        response = self._session.request(
+            'PUT',
+            uri,
+            data=data,
+            headers=headers,
+            verify=self._verify_ssl_certs)
         if self._log_headers or self._log_bodies:
             self._logger.debug('Request uri: %s' % uri)
         if self._log_headers:
             self._logger.debug('Request headers: %s, %s' %
-                               (self._session.headers,
-                                headers))
+                               (self._session.headers, headers))
         if self._log_headers:
-            self._logger.debug('Response status code: %s' %
-                               response.status_code)
-            self._logger.debug('Response headers: %s' %
-                               response.headers)
+            self._logger.debug(
+                'Response status code: %s' % response.status_code)
+            self._logger.debug('Response headers: %s' % response.headers)
         if self._log_bodies and _response_has_content(response):
-            self._logger.debug('Response body: %s' %
-                               response.content)
+            self._logger.debug('Response body: %s' % response.content)
         return response
 
     def download_from_uri(self,
@@ -756,10 +687,8 @@ class Client(object):
                           chunk_size=SIZE_1MB,
                           size=0,
                           callback=None):
-        response = self._session.request('GET',
-                                         uri,
-                                         stream=True,
-                                         verify=self._verify_ssl_certs)
+        response = self._session.request(
+            'GET', uri, stream=True, verify=self._verify_ssl_certs)
         bytes_written = 0
         with open(file_name, 'wb') as f:
             for chunk in response.iter_content(chunk_size=chunk_size):
@@ -771,55 +700,54 @@ class Client(object):
                     if self._log_headers or self._log_bodies:
                         self._logger.debug('Request uri: %s' % uri)
                     if self._log_headers:
-                        self._logger.debug('Response status code: %s' %
-                                           response.status_code)
-                        self._logger.debug('Response headers: %s' %
-                                           response.headers)
+                        self._logger.debug(
+                            'Response status code: %s' % response.status_code)
+                        self._logger.debug(
+                            'Response headers: %s' % response.headers)
         return bytes_written
 
     def put_resource(self, uri, contents, media_type, objectify_results=True):
         """Puts the specified contents to the specified resource.  (Does an HTTP PUT.)
 
         """  # NOQA
-        return self._do_request('PUT',
-                                uri,
-                                contents=contents,
-                                media_type=media_type,
-                                objectify_results=objectify_results)
+        return self._do_request(
+            'PUT',
+            uri,
+            contents=contents,
+            media_type=media_type,
+            objectify_results=objectify_results)
 
     def put_linked_resource(self, resource, rel, media_type, contents):
         """Puts the contents of the resource referenced by the link with the specified rel and mediaType in the specified resource.
 
         """  # NOQA
-        return self.put_resource(find_link(resource, rel, media_type).href,
-                                 contents,
-                                 media_type)
+        return self.put_resource(
+            find_link(resource, rel, media_type).href, contents, media_type)
 
     def post_resource(self, uri, contents, media_type, objectify_results=True):
         """Posts the specified contents to the specified resource.  (Does an HTTP POST.)
 
         """  # NOQA
-        return self._do_request('POST',
-                                uri,
-                                contents=contents,
-                                media_type=media_type,
-                                objectify_results=objectify_results)
+        return self._do_request(
+            'POST',
+            uri,
+            contents=contents,
+            media_type=media_type,
+            objectify_results=objectify_results)
 
     def post_linked_resource(self, resource, rel, media_type, contents):
         """Posts the contents of the resource referenced by the link with the specified rel and mediaType in the specified resource.
 
         """  # NOQA
-        return self.post_resource(find_link(resource, rel, media_type).href,
-                                  contents,
-                                  media_type)
+        return self.post_resource(
+            find_link(resource, rel, media_type).href, contents, media_type)
 
     def get_resource(self, uri, objectify_results=True):
         """Gets the specified contents to the specified resource.  (Does an HTTP GET.)
 
         """  # NOQA
-        return self._do_request('GET',
-                                uri,
-                                objectify_results=objectify_results)
+        return self._do_request(
+            'GET', uri, objectify_results=objectify_results)
 
     def get_linked_resource(self, resource, rel, media_type):
         """Gets the contents of the resource referenced by the link with the specified rel and mediaType in the specified resource.
@@ -904,16 +832,17 @@ class Client(object):
                         sort_asc=None,
                         sort_desc=None,
                         fields=None):
-        return _TypedQuery(query_type_name,
-                           self,
-                           query_result_format,
-                           page_size=page_size,
-                           include_links=include_links,
-                           qfilter=qfilter,
-                           equality_filter=equality_filter,
-                           sort_asc=sort_asc,
-                           sort_desc=sort_desc,
-                           fields=fields)
+        return _TypedQuery(
+            query_type_name,
+            self,
+            query_result_format,
+            page_size=page_size,
+            include_links=include_links,
+            qfilter=qfilter,
+            equality_filter=equality_filter,
+            sort_asc=sort_asc,
+            sort_desc=sort_desc,
+            fields=fields)
 
     def _get_wk_resource(self, wk_type):
         return self.get_resource(self._get_wk_endpoint(wk_type))
@@ -976,6 +905,7 @@ class Link(object):
     """Abstraction over <Link> elements.
 
     """
+
     def __init__(self, link_elem):
         self.rel = link_elem.get('rel')
         self.media_type = link_elem.get('type')
@@ -985,7 +915,6 @@ class Link(object):
 
 
 class _AbstractQuery(object):
-
     def __init__(self,
                  query_result_format,
                  client,
@@ -1023,8 +952,11 @@ class _AbstractQuery(object):
     def execute(self):
         query_uri = self._build_query_uri(
             self._find_query_uri(self._query_result_format),
-            self._page, self._page_size, self._filter,
-            self._include_links, fields=self.fields)
+            self._page,
+            self._page_size,
+            self._filter,
+            self._include_links,
+            fields=self.fields)
         return self._iterator(self._client.get_resource(query_uri))
 
     def _iterator(self, query_results):
@@ -1039,8 +971,8 @@ class _AbstractQuery(object):
                     yield r
             if next_page_uri is None:
                 break
-            query_results = self._client.get_resource(next_page_uri,
-                                                      objectify_results=True)
+            query_results = self._client.get_resource(
+                next_page_uri, objectify_results=True)
 
     def find_unique(self):
         """Convenience wrapper over execute() for the case where exactly one match is expected.
@@ -1117,15 +1049,16 @@ class _TypedQuery(_AbstractQuery):
                  sort_asc=None,
                  sort_desc=None,
                  fields=None):
-        super(_TypedQuery, self).__init__(query_result_format,
-                                          client,
-                                          page_size=page_size,
-                                          include_links=include_links,
-                                          qfilter=qfilter,
-                                          equality_filter=equality_filter,
-                                          sort_asc=sort_asc,
-                                          sort_desc=sort_desc,
-                                          fields=fields)
+        super(_TypedQuery, self).__init__(
+            query_result_format,
+            client,
+            page_size=page_size,
+            include_links=include_links,
+            qfilter=qfilter,
+            equality_filter=equality_filter,
+            sort_asc=sort_asc,
+            sort_desc=sort_desc,
+            fields=fields)
         self._query_type_name = query_type_name
 
     def _find_query_uri(self, query_result_format):

@@ -18,7 +18,6 @@ import requests
 
 
 class Cluster(object):
-
     def __init__(self, client):
         self.client = client
         self._uri = self.client.get_api_uri() + '/cluster'
@@ -39,8 +38,14 @@ class Cluster(object):
         else:
             raise Exception(json.loads(response.content))
 
-    def create_cluster(self, vdc, network_name, name, node_count=2,
-                       cpu_count=None, memory=None, storage_profile=None,
+    def create_cluster(self,
+                       vdc,
+                       network_name,
+                       name,
+                       node_count=2,
+                       cpu_count=None,
+                       memory=None,
+                       storage_profile=None,
                        ssh_key=None):
         """
         Create a new Kubernetes cluster
@@ -56,12 +61,16 @@ class Cluster(object):
         """  # NOQA
         method = 'POST'
         uri = self._uri
-        data = {'name': name, 'node_count': node_count, 'vdc': vdc,
-                'cpu_count': cpu_count,
-                'memory': memory,
-                'network': network_name,
-                'storage_profile': storage_profile,
-                'ssh_key': ssh_key}
+        data = {
+            'name': name,
+            'node_count': node_count,
+            'vdc': vdc,
+            'cpu_count': cpu_count,
+            'memory': memory,
+            'network': network_name,
+            'storage_profile': storage_profile,
+            'ssh_key': ssh_key
+        }
         response = self.client._do_request_prim(
             method,
             uri,

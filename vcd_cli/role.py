@@ -22,6 +22,9 @@ def role(ctx):
             
         vcd role list_rights
             Get list of rights associated with a given role.
+        
+        vcd role create role1 description 'Disk: View Properties' --org myOrg
+            Create a role with zero or more rights in the specified Org or current Org in use.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -69,6 +72,7 @@ def list_rights(ctx, role_name, org_name):
     except Exception as e:
         stderr(e, ctx)
 
+
 @role.command('create', short_help='Creates role in the specified or current organization')
 @click.pass_context
 @click.argument('role-name',
@@ -78,7 +82,7 @@ def list_rights(ctx, role_name, org_name):
                 metavar='<description>',
                 required=True)
 @click.argument('rights',
-                nargs = -1,
+                nargs=-1,
                 metavar='<rights>')
 @click.option('-o',
               '--org',

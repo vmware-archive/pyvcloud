@@ -14,6 +14,7 @@
 import click
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
+from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import org_to_dict
 from vcd_cli.utils import restore_session
@@ -44,6 +45,9 @@ def org(ctx):
 \b
         vcd org delete my-org-name
             Delete organization 'my-org-name'
+\b
+        vcd org update my-org-name --enable
+            Update organization 'my-org-name', e.g. enable the organization
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -63,7 +67,6 @@ def info(ctx, name):
         logged_in_org_name = ctx.obj['profiles'].get('org')
         in_use_org_name = ctx.obj['profiles'].get('org_in_use')
         orgs = client.get_org_list()
-        result = {}
         for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
             if name == org.get('name'):
                 resource = client.get_resource(org.get('href'))
@@ -134,12 +137,19 @@ def use(ctx, name):
 @click.argument('full_name',
                 metavar='<full_name>',
                 required=True)
-def create(ctx, name, full_name):
+@click.option('-e',
+              '--enabled',
+              is_flag=True,
+              required=False,
+              default=False,
+              metavar='[enabled]',
+              help='Enable org')
+def create(ctx, name, full_name, enabled):
     try:
         client = ctx.obj['client']
         sys_admin_resource = client.get_admin()
         system = System(client, admin_resource=sys_admin_resource)
-        result = system.create_org(name, full_name)
+        result = system.create_org(name, full_name, enabled)
         stdout('Org \'%s\' is successfully created.' % result.get('name'), ctx)
     except Exception as e:
         stderr(e, ctx)
@@ -178,5 +188,25 @@ def delete(ctx, name, recursive, force):
                           abort=True)
         task = system.delete_org(name, force, recursive)
         stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@org.command(short_help='update an organization')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+@click.option('--enable/--disable',
+              'is_enabled',
+              default=None,
+              help='enable/disable the org')
+def update(ctx, name, is_enabled):
+    try:
+        client = ctx.obj['client']
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href)
+        result = org.update_org(org_name=name, is_enabled=is_enabled)
+        stdout('Org \'%s\' is successfully updated.' % result.get('name'), ctx)
     except Exception as e:
         stderr(e, ctx)

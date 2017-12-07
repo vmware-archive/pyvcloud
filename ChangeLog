@@ -1,13 +1,35 @@
 CHANGES
 =======
 
+* fix vm command
+* changelog
+
+19.2.2
+------
+
+* hyphen commands generated docs
+* generated doc
+* renamed vapp hostname flag
+* Removing help section at verb level as per review comments
+* ova download/upload examples
+* changes
+* addressing review comments, changing ssh-key param to type File
+* fixing few lines to adhere to flake8 style recommendations
+* Editting ssh-key option to point to the correct variable
+* fixing flake8 warnings
+* Elaborating the confirmation dialog with side effects of deleting an user
+* addressing review comment to use is\_sysadmin() instead of adhoc sys admin check
 * add disk to VM
 * add disk to vm
+* Fixing few typos
+* Adding documentation to vcd user delete command
 * [vcd-cli]Addressed comments on Catalog\_change\_owner
 * Change owner cmd for vApp and disk
+* Implementing cli command to delete an user
 * VCDA-217: Review comments
 * VCDA-217: Addressing review comment
 * VCDA-217: Addressing review comments
+* Adding params for cpu-count, memory and ssh-key to the vcd cluster create command
 * VCDA-217: Retrieve access control settings of a catalog
 * Change owner cmd for vApp and disk
 * VCDA-257: [Documentation] additional info for Ubuntu setup

@@ -23,6 +23,9 @@ def user(ctx):
 \b
         vcd user delete 'my user'
            deletes user with username "my user" from the current organization. Will also delete vApps owned by the user. If user has running vApps, this command will result in error.
+\b
+        vcd user update 'my user' --enable
+           update user in the current organization, e.g enable the user
 
     """  # NOQA
     if ctx.invoked_subcommand is not None:
@@ -137,13 +140,21 @@ def create(ctx, user_name, password, role_name, full_name, description, email,
         org = Org(client, in_use_org_href)
         role = org.get_role(role_name)
         role_href = role.get('href')
-        u = org.create_user(user_name, password, role_href, full_name,
-                            description, email, telephone, im,
-                            alert_email, alert_email_prefix,
-                            stored_vm_quota, deployed_vm_quota, group_role,
-                            default_cached, external, alert_enabled,
-                            enabled)
-        stdout('User \'%s\' is successfully created.' % u.get('name'), ctx)
+        result = org.create_user(user_name=user_name, password=password,
+                                 role_href=role_href, full_name=full_name,
+                                 description=description, email=email,
+                                 telephone=telephone, im=im,
+                                 alert_email=alert_email,
+                                 alert_email_prefix=alert_email_prefix,
+                                 stored_vm_quota=stored_vm_quota,
+                                 deployed_vm_quota=deployed_vm_quota,
+                                 is_group_role=group_role,
+                                 is_default_cached=default_cached,
+                                 is_external=external,
+                                 is_alert_enabled=alert_enabled,
+                                 is_enabled=enabled)
+        stdout('User \'%s\' is successfully created.' % result.get('name'),
+               ctx)
     except Exception as e:
         stderr(e, ctx)
 
@@ -168,5 +179,26 @@ def delete(ctx, user_name):
         org = Org(client, in_use_org_href)
         org.delete_user(user_name)
         stdout('User \'%s\' has been successfully deleted.' % user_name, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@user.command(short_help='update an user in current organizaton')
+@click.pass_context
+@click.argument('user_name',
+                metavar='<user_name>',
+                required=True)
+@click.option('--enable/--disable',
+              'is_enabled',
+              default=None,
+              help='enable/disable the user')
+def update(ctx, user_name, is_enabled):
+    try:
+        client = ctx.obj['client']
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href)
+        result = org.update_user(user_name=user_name, is_enabled=is_enabled)
+        stdout('User \'%s\' is successfully updated.' % result.get('name'),
+               ctx)
     except Exception as e:
         stderr(e, ctx)

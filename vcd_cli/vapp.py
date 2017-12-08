@@ -111,10 +111,10 @@ def info(ctx, name):
         stderr(e, ctx)
 
 
-@vapp.command(short_help='Attach disk to VM in vApp')
+@vapp.command(short_help='attach disk to VM in vApp')
 @click.pass_context
-@click.argument('vapp_name',
-                metavar='<vapp_name>',
+@click.argument('vapp-name',
+                metavar='<vapp-name>',
                 required=True)
 @click.argument('vm-name',
                 metavar='<vm-name>',
@@ -122,12 +122,18 @@ def info(ctx, name):
 @click.argument('disk-name',
                 metavar='<disk-name>',
                 required=True)
-def attach(ctx, vapp_name, vm_name, disk_name):
+@click.option('-i',
+              '--id',
+              'disk_id',
+              required=False,
+              metavar='<id>',
+              help='Disk id')
+def attach(ctx, vapp_name, vm_name, disk_name, disk_id):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
-        disk = vdc.get_disk(disk_name)
+        disk = vdc.get_disk(disk_name, disk_id)
         vapp_resource = vdc.get_vapp(vapp_name)
         vapp = VApp(client, resource=vapp_resource)
         task = vapp.attach_disk_to_vm(
@@ -138,10 +144,10 @@ def attach(ctx, vapp_name, vm_name, disk_name):
         stderr(e, ctx)
 
 
-@vapp.command(short_help='Detach disk from VM in vApp')
+@vapp.command(short_help='detach disk from VM in vApp')
 @click.pass_context
-@click.argument('vapp_name',
-                metavar='<vapp_name>',
+@click.argument('vapp-name',
+                metavar='<vapp-name>',
                 required=True)
 @click.argument('vm-name',
                 metavar='<vm-name>',
@@ -149,12 +155,18 @@ def attach(ctx, vapp_name, vm_name, disk_name):
 @click.argument('disk-name',
                 metavar='<disk-name>',
                 required=True)
-def detach(ctx, vapp_name, vm_name, disk_name):
+@click.option('-i',
+              '--id',
+              'disk_id',
+              required=False,
+              metavar='<id>',
+              help='Disk id')
+def detach(ctx, vapp_name, vm_name, disk_name, disk_id):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
-        disk = vdc.get_disk(disk_name)
+        disk = vdc.get_disk(disk_name, disk_id)
         vapp_resource = vdc.get_vapp(vapp_name)
         vapp = VApp(client, resource=vapp_resource)
         task = vapp.detach_disk_from_vm(

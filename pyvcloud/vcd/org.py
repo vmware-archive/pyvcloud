@@ -23,6 +23,7 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import MissingRecordException
+from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.system import System
@@ -246,7 +247,7 @@ class Org(object):
                         encoding='utf-8')
                     f.write(payload)
 
-                ns = '{http://schemas.dmtf.org/ovf/envelope/1}'
+                ns = '{' + NSMAP['ovf'] + '}'
                 files = []
                 for f in ovf_descriptor.References.File:
                     source_file = {
@@ -276,7 +277,6 @@ class Org(object):
                     os.chdir(cwd)
                     stat_info = os.stat(file_name)
                     bytes_written = stat_info.st_size
-                    # shutil.rmtree(tempdir)
         return bytes_written
 
     def upload_file(self,
@@ -328,7 +328,7 @@ class Org(object):
                 total_bytes += stat_info.st_size
                 ovf = objectify.parse(ovf_file)
                 files = []
-                ns = '{http://schemas.dmtf.org/ovf/envelope/1}'
+                ns = '{' + NSMAP['ovf'] + '}'
                 for f in ovf.getroot().References.File:
                     source_file = {
                         'href': f.get(ns + 'href'),
@@ -658,30 +658,30 @@ class Org(object):
                        network_quota=0,
                        vm_quota=0,
                        storage_profiles=[],
-                       resource_guaranteed_memory=0.0,
-                       resource_guaranteed_cpu=0.0,
-                       vcpu_in_mhz=1000,
-                       is_thin_provision=True,
+                       resource_guaranteed_memory=None,
+                       resource_guaranteed_cpu=None,
+                       vcpu_in_mhz=None,
+                       is_thin_provision=None,
                        network_pool_name=None,
-                       uses_fast_provisioning=True,
-                       over_commit_allowed=True,
+                       uses_fast_provisioning=None,
+                       over_commit_allowed=None,
                        vm_discovery_enabled=None,
                        is_enabled=True):
         """
         Create Organization VDC in the current Org.
-        :param vdc_name: The name of the new org vdc.
-        :param provider_vdc_name: The name of the new provider vdc.
-        :param description: The description of the new org vdc.
-        :param allocation_model: The allocation model used by this vDC. One of AllocationVApp, AllocationPool or ReservationPool.
-        :param cpu_units: The cpu units compute capacity allocated to this vDC. One of MHz or GHz
-        :param cpu_allocated: Capacity that is committed to be available.
-        :param cpu_limit: Capacity limit relative to the value specified for Allocation.
-        :param mem_units: The memory units compute capacity allocated to this vDC. One of MB or GB.
-        :param mem_allocated: Memory capacity that is committed to be available.
-        :param mem_limit: Memory capacity limit relative to the value specified for Allocation.
-        :param nic_quota: Maximum number of virtual NICs allowed in this vDC. Defaults to 0, which specifies an unlimited number.
-        :param network_quota: Maximum number of network objects that can be deployed in this vDC. Defaults to 0, which means no networks can be deployed.
-        :param vm_quota: The maximum number of VMs that can be created in this vDC. Defaults to 0, which specifies an unlimited number.
+        :param vdc_name (str): The name of the new org vdc.
+        :param provider_vdc_name (str): The name of the new provider vdc.
+        :param description (str): The description of the new org vdc.
+        :param allocation_model (str): The allocation model used by this vDC. One of AllocationVApp, AllocationPool or ReservationPool.
+        :param cpu_units (str): The cpu units compute capacity allocated to this vDC. One of MHz or GHz
+        :param cpu_allocated (int): Capacity that is committed to be available.
+        :param cpu_limit (int): Capacity limit relative to the value specified for Allocation.
+        :param mem_units (str): The memory units compute capacity allocated to this vDC. One of MB or GB.
+        :param mem_allocated (int): Memory capacity that is committed to be available.
+        :param mem_limit (int): Memory capacity limit relative to the value specified for Allocation.
+        :param nic_quota (int): Maximum number of virtual NICs allowed in this vDC. Defaults to 0, which specifies an unlimited number.
+        :param network_quota (int): Maximum number of network objects that can be deployed in this vDC. Defaults to 0, which means no networks can be deployed.
+        :param vm_quota (int): The maximum number of VMs that can be created in this vDC. Defaults to 0, which specifies an unlimited number.
         :param storage_profiles: List of provider vDC storage profiles to add to this vDC.
             Each item is a dictionary that should include the following elements:
                 name: (string) name of the PVDC storage profile.
@@ -689,16 +689,18 @@ class Org(object):
                 units: (string) Units used to define limit. One of MB or GB.
                 limit: (int) Max number of units allocated for this storage profile.
                 default: (bool) True if this is default storage profile for this vDC.
-                       resource_guaranteed_memory=0.0,
-                       resource_guaranteed_cpu=0.0,
-                       vcpu_in_mhz=1000,
-                       is_thin_provision=True,
-                       network_pool_name=None,
-        :param uses_fast_provisioning: Boolean to request fast provisioning.
-       uses_fast_provisioning=True,
-                       over_commit_allowed=True,
-                       vm_discovery_enabled=None,
-        :param is_enabled: True if this vDC is enabled for use by the organization vDCs.
+        :param resource_guaranteed_memory (float): Percentage of allocated CPU resources guaranteed to vApps deployed in this vDC.
+            Value defaults to 1.0 if the element is empty.
+        :param resource_guaranteed_cpu (float): Percentage of allocated memory resources guaranteed to vApps deployed in this vDC.
+            Value defaults to 1.0 if the element is empty.
+        :param vcpu_in_mhz (int): Specifies the clock frequency, in Megahertz, for any virtual CPU that is allocated to a VM.
+        :param is_thin_provision (bool): Boolean to request thin provisioning.
+        :param network_pool_name (str): Reference to a network pool in the Provider vDC.
+        :param uses_fast_provisioning (bool): Boolean to request fast provisioning.
+        :param over_commit_allowed (bool): Set to false to disallow creation of the VDC if the AllocationModel is AllocationPool or ReservationPool
+            and the ComputeCapacity you specified is greater than what the backing Provider VDC can supply. Defaults to true if empty or missing.
+        :param vm_discovery_enabled (bool): True if discovery of vCenter VMs is enabled for resource pools backing this vDC.
+        :param is_enabled (bool): True if this vDC is enabled for use by the organization vDCs.
         :return:  A :class:`lxml.objectify.StringElement` object describing the new VDC.
         """  # NOQA
         if self.resource is None:
@@ -731,6 +733,15 @@ class Org(object):
                     E.Limit(sp['limit']),
                     E.Default(sp['default']),
                     E.ProviderVdcStorageProfile(href=pvdc_sp.get('href'))))
+        if resource_guaranteed_memory is not None:
+            params.append(
+                E.ResourceGuaranteedMemory(resource_guaranteed_memory))
+        if resource_guaranteed_cpu is not None:
+            params.append(E.ResourceGuaranteedCpu(resource_guaranteed_cpu))
+        if vcpu_in_mhz is not None:
+            params.append(E.VCpuInMhz(vcpu_in_mhz))
+        if is_thin_provision is not None:
+            params.append(E.IsThinProvision(is_thin_provision))
         if network_pool_name is not None:
             npr = system.get_network_pool_reference(network_pool_name)
             href = npr.get('href')
@@ -741,7 +752,10 @@ class Org(object):
                     type=npr.get('type'),
                     name=npr.get('name')))
         params.append(pvdc)
-        params.append(E.UsesFastProvisioning(uses_fast_provisioning))
+        if uses_fast_provisioning is not None:
+            params.append(E.UsesFastProvisioning(uses_fast_provisioning))
+        if over_commit_allowed is not None:
+            params.append(E.OverCommitAllowed(over_commit_allowed))
         if vm_discovery_enabled is not None:
             params.append(E.VmDiscoveryEnabled(vm_discovery_enabled))
         return self.client.post_linked_resource(

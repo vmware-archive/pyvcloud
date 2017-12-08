@@ -16,6 +16,7 @@
 import os
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
+import requests
 import unittest
 import yaml
 
@@ -28,6 +29,9 @@ class TestCase(unittest.TestCase):
             config_file = os.environ['VCD_TEST_CONFIG_FILE']
         with open(config_file, 'r') as f:
             cls.config = yaml.load(f)
+        if not cls.config['vcd']['verify'] and \
+                cls.config['vcd']['disable_ssl_warnings']:
+            requests.packages.urllib3.disable_warnings()
         cls.client = Client(
             cls.config['vcd']['host'],
             api_version=cls.config['vcd']['api_version'],

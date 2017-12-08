@@ -85,7 +85,7 @@ def list_rights(ctx, role_name, org_name):
               '--org',
               'org_name',
               required=False,
-              metavar='[org]',
+              metavar='[org_name]',
               help='name of the org',
               )
 def create(ctx, role_name, description, rights, org_name):

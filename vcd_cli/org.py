@@ -1,3 +1,4 @@
+# VMware vCloud Director CLI
 #
 # Copyright (c) 2014 VMware, Inc. All Rights Reserved.
 #
@@ -77,9 +78,9 @@ def info(ctx, name):
         stderr(e, ctx)
 
 
-@org.command(short_help='list organizations')
+@org.command('list', short_help='list organizations')
 @click.pass_context
-def list(ctx):
+def list_orgs(ctx):
     try:
         client = ctx.obj['client']
         logged_in_org_name = ctx.obj['profiles'].get('org')

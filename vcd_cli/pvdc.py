@@ -1,4 +1,4 @@
-# vCloud Director CLI
+# VMware vCloud Director CLI
 #
 # Copyright (c) 2017 VMware, Inc. All Rights Reserved.
 #
@@ -13,11 +13,7 @@
 #
 
 import click
-from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.client import get_links
-from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.system import System
-from pyvcloud.vcd.utils import vdc_to_dict
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -32,7 +28,7 @@ def pvdc(ctx):
 \b
     Examples
         vcd pvdc list
-            Get list of provider virtual datacenters in current organization.
+            Get list of provider virtual datacenters.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:

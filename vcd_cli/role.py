@@ -19,7 +19,7 @@ def role(ctx):
         vcd role list
             Get list of roles in the current organization.
             
-        vcd role list_rights
+        vcd role list_rights myRole
             Get list of rights associated with a given role.
         
         vcd role create myRole myDescription 'Disk: View Properties' 'Provider vDC: Edit' --org myOrg

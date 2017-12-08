@@ -658,7 +658,14 @@ class Org(object):
                        network_quota=0,
                        vm_quota=0,
                        storage_profiles=[],
+                       resource_guaranteed_memory=0.0,
+                       resource_guaranteed_cpu=0.0,
+                       vcpu_in_mhz=1000,
+                       is_thin_provision=True,
+                       network_pool_name=None,
                        uses_fast_provisioning=True,
+                       over_commit_allowed=True,
+                       vm_discovery_enabled=None,
                        is_enabled=True):
         """
         Create Organization VDC in the current Org.
@@ -682,7 +689,15 @@ class Org(object):
                 units: (string) Units used to define limit. One of MB or GB.
                 limit: (int) Max number of units allocated for this storage profile.
                 default: (bool) True if this is default storage profile for this vDC.
+                       resource_guaranteed_memory=0.0,
+                       resource_guaranteed_cpu=0.0,
+                       vcpu_in_mhz=1000,
+                       is_thin_provision=True,
+                       network_pool_name=None,
         :param uses_fast_provisioning: Boolean to request fast provisioning.
+       uses_fast_provisioning=True,
+                       over_commit_allowed=True,
+                       vm_discovery_enabled=None,
         :param is_enabled: True if this vDC is enabled for use by the organization vDCs.
         :return:  A :class:`lxml.objectify.StringElement` object describing the new VDC.
         """  # NOQA
@@ -716,8 +731,19 @@ class Org(object):
                     E.Limit(sp['limit']),
                     E.Default(sp['default']),
                     E.ProviderVdcStorageProfile(href=pvdc_sp.get('href'))))
+        if network_pool_name is not None:
+            npr = system.get_network_pool_reference(network_pool_name)
+            href = npr.get('href')
+            params.append(
+                E.NetworkPoolReference(
+                    href=href,
+                    id=href.split('/')[-1],
+                    type=npr.get('type'),
+                    name=npr.get('name')))
         params.append(pvdc)
         params.append(E.UsesFastProvisioning(uses_fast_provisioning))
+        if vm_discovery_enabled is not None:
+            params.append(E.VmDiscoveryEnabled(vm_discovery_enabled))
         return self.client.post_linked_resource(
             resource_admin, RelationType.ADD, EntityType.VDCS_PARAMS.value,
             params)

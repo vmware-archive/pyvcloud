@@ -15,6 +15,7 @@
 
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.utils import get_admin_href
@@ -103,3 +104,19 @@ class System(object):
                 return profile
         raise Exception('PVDCSP not found (or)'
                         ' Access to resource is forbidden')
+
+    def list_network_pools(self):
+        resource = self.client.get_extension()
+        result = self.client.get_linked_resource(
+            resource, RelationType.DOWN,
+            EntityType.NETWORK_POOL_REFERENCES.value)
+        if hasattr(result, '{' + NSMAP['vmext'] + '}NetworkPoolReference'):
+            return result.NetworkPoolReference
+        else:
+            return []
+
+    def get_network_pool_reference(self, name):
+        for item in self.list_network_pools():
+            if item.get('name') == name:
+                return item
+        raise Exception('not found or access is forbidden')

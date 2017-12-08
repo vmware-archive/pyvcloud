@@ -184,6 +184,8 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.networkConfigSection+xml'
     NETWORK_CONNECTION_SECTION = \
         'application/vnd.vmware.vcloud.networkConnectionSection+xml'
+    NETWORK_POOL_REFERENCES = \
+        'application/vnd.vmware.admin.vmwNetworkPoolReferences+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'

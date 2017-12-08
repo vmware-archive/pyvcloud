@@ -173,15 +173,14 @@ def vapp_to_dict(vapp, metadata=None):
                 else:
                     value = '{}: {}'.format(
                         connection.get(
-                            '{' + NSMAP['vcloud'] + '}ipAddressingMode'
-                        ),
-                        connection.get('{' + NSMAP['vcloud'] + '}ipAddress')
-                    )
+                            '{' + NSMAP['vcloud'] + '}ipAddressingMode'),
+                        connection.get('{' + NSMAP['vcloud'] + '}ipAddress'))
                 result['%s: %s' % (k, element_name)] = value
             env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
             if len(env) > 0:
-                result['%s: %s' % (k, 'moid')] = env[0].get(
-                    '{' + NSMAP['ve'] + '}vCenterId')
+                result['%s: %s' %
+                       (k,
+                        'moid')] = env[0].get('{' + NSMAP['ve'] + '}vCenterId')
             if hasattr(vm, 'StorageProfile'):
                 result['%s: %s' % (k, 'storage-profile')] = \
                     vm.StorageProfile.get('name')

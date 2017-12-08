@@ -86,10 +86,10 @@ class VApp(object):
                 {
                     'type': 'xs:string'
                 }, E.Domain(domain, visibility=visibility), E.Key(key),
-                E.TypedValue({
-                    '{' + NSMAP['xsi'] + '}type':
-                    'MetadataStringValue'
-                }, E.Value(value))))
+                E.TypedValue(
+                    {
+                        '{' + NSMAP['xsi'] + '}type': 'MetadataStringValue'
+                    }, E.Value(value))))
         metadata = self.client.get_linked_resource(
             self.resource, RelationType.DOWN, EntityType.METADATA.value)
         return self.client.post_linked_resource(metadata, RelationType.ADD,

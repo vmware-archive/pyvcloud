@@ -22,7 +22,7 @@ def role(ctx):
         vcd role list_rights
             Get list of rights associated with a given role.
         
-        vcd role create role1 description 'Disk: View Properties' --org myOrg
+        vcd role create role1 description 'Disk: View Properties' 'Provider vDC: Edit' --org myOrg
             Create a role with zero or more rights in the specified Org or current Org in use.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
@@ -59,11 +59,9 @@ def list_roles(ctx):
 def list_rights(ctx, role_name, org_name):
     try:
         client = ctx.obj['client']
-        if org_name is not None:
-            org_href = client.get_org_by_name(org_name).get('href')
-        else:
-            org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, org_href)
+        if org_name is None:
+            org_name = ctx.obj['profiles'].get('org_in_use')
+        org = Org(client, resource=client.get_org_by_name(org_name))
         role_record = org.get_role(role_name)
         role = Role(client, href=role_record.get('href'))
         rights = role.list_rights()
@@ -93,11 +91,9 @@ def list_rights(ctx, role_name, org_name):
 def create(ctx, role_name, description, rights, org_name):
     try:
         client = ctx.obj['client']
-        if (org_name is not None):
-            org_href = client.get_org_by_name(org_name).get('href')
-        else:
-            org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, org_href)
+        if org_name is None:
+            org_name = ctx.obj['profiles'].get('org_in_use')
+        org = Org(client, resource=client.get_org_by_name(org_name))
         role = org.create_role(role_name, description, rights)
         stdout(to_dict(role, exclude=['Link', 'RightReferences']), ctx)
     except Exception as e:

@@ -80,9 +80,9 @@ class Org(object):
     def create_role(self, role_name, description, rights):
         """
         Creates a role in the organization
-        :param role_name: name of the role to be created
-        :param description: description of the role
-        :param rights: names of zero or more rights to be associated with the role
+        :param role_name: (str): name of the role to be created
+        :param description: (str): description of the role
+        :param rights: (tuple of (str)) names of zero or more rights to be associated with the role
         :return: RoleType just created
         """  # NOQA
         org_admin_resource = self.client.get_resource(self.href_admin)

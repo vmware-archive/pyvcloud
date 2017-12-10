@@ -91,7 +91,9 @@ class Org(object):
             E.RightReferences(),
             name=role_name
         )
-        for right in rights:
+        if rights is None:
+            rights = ()
+        for right in tuple(rights):
             right_record = self.get_right(right)
             role.RightReferences.append(
                 E.RightReference(name=right_record.get('name'),
@@ -612,24 +614,19 @@ class Org(object):
         """
         Retrieves corresponding record of the specified right.
         :param right_name: (str): The name of the right record to be retrieved
-        :return: (QueryResultRightRecordType): Right query result in records
-                 format
+        :return: (dict): Right record in dict format
         """  # NOQA
-        try:
-            rights_query = self.get_rights_query(('name', right_name))[0]
-            return rights_query.find_unique()
-        except MissingRecordException:
+        right_record = self.list_rights(('name', right_name))
+        if len(right_record) < 1:
             raise Exception('Right \'%s\' does not exist.' % right_name)
+        return right_record[0]
 
-    def get_rights_query(self, name_filter=None):
+    def list_rights(self, name_filter=None):
         """
         Get the typed query for the rights in the current Org
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
                              'right name'
-        :return: (tuple of (_TypedQuery, str))
-                  _TypedQuery object represents the query for the rights in
-                  the current Org
-                  str represents the resource type of the query object
+        :return: (list): (RightRecord) List of rights
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -639,7 +636,12 @@ class Org(object):
             resource_type,
             query_result_format=QueryResultFormat.RECORDS,
             equality_filter=name_filter)
-        return query, resource_type
+        records = list(query.execute())
+        result = []
+        if len(records) > 0:
+            for r in records:
+                result.append(to_dict(r, resource_type=resource_type, exclude=[]))
+        return result
 
     def get_catalog_access_control_settings(self, catalog_name):
         """

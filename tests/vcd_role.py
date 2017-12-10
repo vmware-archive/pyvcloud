@@ -45,7 +45,7 @@ class TestRole(TestCase):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         role_name = self.config['vcd']['role_name']
-        org.create_role(role_name, 'test role', {'vApp: Copy'})
+        org.create_role(role_name, 'test description', ('Disk: View Properties',))
         role_record = org.get_role(role_name)
         assert self.config['vcd']['role_name'] == role_record.get('name')
 

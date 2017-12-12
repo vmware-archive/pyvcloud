@@ -28,7 +28,6 @@ from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import access_settings_to_dict
-from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import to_dict
 import shutil
 import tarfile
@@ -71,6 +70,34 @@ class Org(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD, EntityType.ADMIN_CATALOG.value,
             catalog)
+
+    def create_role(self, role_name, description, rights):
+        """
+        Creates a role in the organization
+        :param role_name: (str): name of the role to be created
+        :param description: (str): description of the role
+        :param rights: (tuple of (str)) names of zero or more rights to be associated with the role
+        :return: RoleType just created
+        """  # NOQA
+        org_admin_resource = self.client.get_resource(self.href_admin)
+        role = E.Role(
+            E.Description(description),
+            E.RightReferences(),
+            name=role_name
+        )
+        if rights is None:
+            rights = ()
+        for right in tuple(rights):
+            right_record = self.get_right(right)
+            role.RightReferences.append(
+                E.RightReference(name=right_record.get('name'),
+                                 href=right_record.get('href'),
+                                 type=EntityType.RIGHT.value))
+        return self.client.post_linked_resource(
+            org_admin_resource,
+            RelationType.ADD,
+            EntityType.ROLE.value,
+            role)
 
     def delete_catalog(self, name):
         org = self.client.get_resource(self.href)
@@ -577,6 +604,39 @@ class Org(object):
             qfilter=org_filter)
         return query, resource_type
 
+    def get_right(self, right_name):
+        """
+        Retrieves corresponding record of the specified right.
+        :param right_name: (str): The name of the right record to be retrieved
+        :return: (dict): Right record in dict format
+        """  # NOQA
+        right_record = self.list_rights(('name', right_name))
+        if len(right_record) < 1:
+            raise Exception('Right \'%s\' does not exist.' % right_name)
+        return right_record[0]
+
+    def list_rights(self, name_filter=None):
+        """
+        Get the typed query for the rights in the current Org
+        :param name_filter: (tuple): (name ,'right name') Filter the rights by
+                             'right name'
+        :return: (list): (RightRecord) List of rights
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        resource_type = 'right'
+        query = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter)
+        records = list(query.execute())
+        result = []
+        if len(records) > 0:
+            for r in records:
+                result.append(to_dict(r, resource_type=resource_type, exclude=[]))
+        return result
+
     def get_catalog_access_control_settings(self, catalog_name):
         """
         Get the access control settings of a catalog.
@@ -625,20 +685,17 @@ class Org(object):
         return self.client.put_resource(catalog_href, new_owner,
                                         EntityType.OWNER.value)
 
-    def update_org(self, org_name, is_enabled=None):
+    def update_org(self, is_enabled=None):
         """
         Update an organization
-        :param org_name: (str): The name of the organization.
         :param is_enabled: (bool): enable/disable the organization
         :return: (AdminOrgType) updated org object.
         """  # NOQA
-        org = self.client.get_org_by_name(org_name)
-        org_admin_href = get_admin_href(org.get('href'))
-        org_admin_resource = self.client.get_resource(org_admin_href)
+        org_admin_resource = self.client.get_resource(self.href_admin)
         if is_enabled is not None:
             if hasattr(org_admin_resource, 'IsEnabled'):
                 org_admin_resource['IsEnabled'] = E.IsEnabled(is_enabled)
-                return self.client.put_resource(org_admin_href,
+                return self.client.put_resource(self.href_admin,
                                                 org_admin_resource,
                                                 EntityType.ADMIN_ORG.value)
         return org_admin_resource

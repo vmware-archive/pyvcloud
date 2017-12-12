@@ -191,6 +191,8 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.publishCatalogParams+xml'
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
     RASD_ITEM_LIST = 'application/vnd.vmware.vcloud.rasdItemsList+xml'
+    ROLE = 'application/vnd.vmware.admin.role+xml'
+    RIGHT = 'application/vnd.vmware.admin.right+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'
     TASK = 'application/vnd.vmware.vcloud.task+xml'
     TASKS_LIST = 'application/vnd.vmware.vcloud.tasksList+xml'

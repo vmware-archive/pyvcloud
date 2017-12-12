@@ -547,3 +547,20 @@ def use(ctx, name):
         }, ctx, message)
     except Exception as e:
         stderr(e, ctx)
+
+
+@vapp.command(short_help='compose a new vApp')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+def compose(ctx, name):
+    try:
+        client = ctx.obj['client']
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href)
+        catalog_resource = org.get_catalog(catalog)
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+    except Exception as e:
+        stderr(e, ctx)

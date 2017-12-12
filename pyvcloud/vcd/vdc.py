@@ -20,6 +20,8 @@ from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
+from pyvcloud.vcd.utils import access_settings_to_dict
+from pyvcloud.vcd.utils import control_access_params_to_dict
 
 
 class VDC(object):
@@ -554,3 +556,26 @@ class VDC(object):
 
         raise Exception(
             'Storage Profile named \'%s\' not found' % profile_name)
+
+    def get_access_control_settings(self):
+        """
+        Get the access control settings of the vdc.
+        :return: Access control settings of the vdc.
+        """  # NOQA
+        vdc_resource = self.get_resource()
+        control_access = self.client.get_linked_resource(
+            vdc_resource, RelationType.DOWN,
+            EntityType.CONTROL_ACCESS_PARAMS.value)
+
+        access_settings = []
+        if hasattr(control_access, 'AccessSettings') and \
+                hasattr(control_access.AccessSettings, 'AccessSetting') and \
+                len(control_access.AccessSettings.AccessSetting) > 0:
+            for access_setting in list(
+                    control_access.AccessSettings.AccessSetting):
+                access_settings.append(access_settings_to_dict(access_setting))
+        result = control_access_params_to_dict(control_access)
+        if len(access_settings) > 0:
+            result['AccessSettings'] = access_settings
+        return result
+

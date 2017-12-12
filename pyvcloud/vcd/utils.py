@@ -256,6 +256,16 @@ def access_settings_to_dict(access_setting):
     return result
 
 
+def control_access_params_to_dict(control_access):
+    result = {}
+    if hasattr(control_access, 'IsSharedToEveryone'):
+        result['is_shared_to_everyone'] = control_access[
+            'IsSharedToEveryone']
+    if hasattr(control_access, 'EveryoneAccessLevel'):
+        result['everyone_access_level'] = control_access['EveryoneAccessLevel']
+    return result
+
+
 def filter_attributes(resource_type):
     attributes = None
     if resource_type in ['adminTask', 'task']:

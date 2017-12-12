@@ -402,6 +402,9 @@ class _TaskMonitor(object):
     def _get_task_status(self, task_href):
         return self._client.get_resource(task_href)
 
+    def get_status(self, task):
+        return self._get_task_status(task.get('href')).get('status').lower()
+
 
 class Client(object):
     """A low-level interface to the vCloud Director REST API.

@@ -469,9 +469,7 @@ class VDC(object):
         Return information for an independent disk.
         :param name: (str): The name of the disk.
         :param disk_id: (str): The id of the disk.
-        :return: (list of tuples of (DiskType, list of str)):  An list of tuples. \
-                  Each tuple contains a :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType.DiskType` object and a list of vms utilizing the disk.
-        **service type:** ondemand, subscription, vcd
+        :return: Disk
         """  # NOQA
 
         if self.resource is None:
@@ -523,7 +521,6 @@ class VDC(object):
         etree.cleanup_namespaces(new_owner)
         return self.client.put_resource(
             disk.get('href') + '/owner/', new_owner, EntityType.OWNER.value)
-        return None
 
     def get_storage_profiles(self):
         """
@@ -569,3 +566,9 @@ class VDC(object):
         link = RelationType.ENABLE if enable else RelationType.DISABLE
         return self.client.post_linked_resource(resource_admin, link, None,
                                                 None)
+
+    def compose_vapp(self, new_vapp_name):
+        """
+        Compose a new vApp from existing virtual machines
+
+        """  # NOQA

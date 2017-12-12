@@ -1,3 +1,15 @@
+#
+# Copyright (c) 2017 VMware, Inc. All Rights Reserved.
+#
+# This product is licensed to you under the
+# Apache License, Version 2.0 (the "License").
+# You may not use this product except in compliance with the License.
+#
+# This product may include a number of subcomponents with
+# separate copyright notices and license terms. Your use of the source
+# code for the these subcomponents is subject to the terms and
+# conditions of the subcomponent's license, as noted in the LICENSE file.
+#
 import click
 
 from pyvcloud.vcd.org import Org
@@ -15,8 +27,9 @@ def right(ctx):
 
 \b
     Examples
-        vcd right list
-            Get list of roles in the specified or current organization.
+        vcd right list -o myOrg
+            Get list of rights in the specified organization 
+            (defaults to current organization in use).
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -39,7 +52,9 @@ def list_rights(ctx, org_name):
         if org_name is None:
             org_name = ctx.obj['profiles'].get('org_in_use')
         org = Org(client, resource=client.get_org_by_name(org_name))
-        result = org.list_rights()
-        stdout(result, ctx)
+        right_records = org.list_rights()
+        for right in right_records:
+            del right['href']
+        stdout(right_records, ctx)
     except Exception as e:
         stderr(e, ctx)

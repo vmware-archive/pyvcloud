@@ -266,6 +266,20 @@ def control_access_params_to_dict(control_access):
     return result
 
 
+def process_access_control_setting(control_access):
+    access_settings = []
+    if hasattr(control_access, 'AccessSettings') and \
+            hasattr(control_access.AccessSettings, 'AccessSetting') and \
+                    len(control_access.AccessSettings.AccessSetting) > 0:
+        for access_setting in list(
+                control_access.AccessSettings.AccessSetting):
+            access_settings.append(access_settings_to_dict(access_setting))
+    result = control_access_params_to_dict(control_access)
+    if len(access_settings) > 0:
+        result['AccessSettings'] = access_settings
+    return result
+
+
 def filter_attributes(resource_type):
     attributes = None
     if resource_type in ['adminTask', 'task']:

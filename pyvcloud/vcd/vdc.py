@@ -20,6 +20,7 @@ from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
+from pyvcloud.vcd.utils import get_admin_href
 
 
 class VDC(object):
@@ -31,7 +32,7 @@ class VDC(object):
         if resource is not None:
             self.name = resource.get('name')
             self.href = resource.get('href')
-        self.href_admin = self.href.replace('/api/vdc/', '/api/admin/vdc/')
+        self.href_admin = get_admin_href(self.href)
 
     def get_resource(self):
         if self.resource is None:

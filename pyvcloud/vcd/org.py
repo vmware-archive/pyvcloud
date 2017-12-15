@@ -634,7 +634,8 @@ class Org(object):
         result = []
         if len(records) > 0:
             for r in records:
-                result.append(to_dict(r, resource_type=resource_type, exclude=[]))
+                result.append(to_dict(r, resource_type=resource_type,
+                                      exclude=[]))
         return result
 
     def get_catalog_access_control_settings(self, catalog_name):

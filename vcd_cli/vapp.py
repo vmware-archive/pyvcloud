@@ -202,15 +202,18 @@ def list_vapps(ctx):
 
 @vapp.command(short_help='create a vApp')
 @click.pass_context
-@click.argument('catalog',
-                metavar='<catalog>',
-                required=True)
-@click.argument('template',
-                metavar='<template>',
-                required=True)
 @click.argument('name',
                 metavar='<name>',
                 required=True)
+@click.option('-D',
+              '--description',
+              metavar='description')
+@click.option('-g',
+              '--catalog',
+              metavar='catalog')
+@click.option('-t',
+              '--template',
+              metavar='template')
 @click.option('-n',
               '--network',
               'network',
@@ -274,29 +277,33 @@ def list_vapps(ctx):
               is_flag=True,
               default=False,
               help='Accept all EULAs')
-def create(ctx, catalog, template, name, network, memory, cpu, disk_size,
-           ip_allocation_mode, vm_name, hostname, storage_profile,
+def create(ctx, name, description, catalog, template, network, memory, cpu,
+           disk_size, ip_allocation_mode, vm_name, hostname, storage_profile,
            accept_all_eulas):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
-        vapp_resource = vdc.instantiate_vapp(
-            name,
-            catalog,
-            template,
-            network=network,
-            memory=memory,
-            cpu=cpu,
-            disk_size=disk_size,
-            deploy=True,
-            power_on=True,
-            accept_all_eulas=accept_all_eulas,
-            cust_script=None,
-            ip_allocation_mode=ip_allocation_mode,
-            vm_name=vm_name,
-            hostname=hostname,
-            storage_profile=storage_profile)
+        if catalog is None and template is None:
+            vapp_resource = vdc.create_vapp(name, description=description,
+                                            accept_all_eulas=accept_all_eulas)
+        else:
+            vapp_resource = vdc.instantiate_vapp(
+                name,
+                catalog,
+                template,
+                network=network,
+                memory=memory,
+                cpu=cpu,
+                disk_size=disk_size,
+                deploy=True,
+                power_on=True,
+                accept_all_eulas=accept_all_eulas,
+                cust_script=None,
+                ip_allocation_mode=ip_allocation_mode,
+                vm_name=vm_name,
+                hostname=hostname,
+                storage_profile=storage_profile)
         stdout(vapp_resource.Tasks.Task[0], ctx)
     except Exception as e:
         stderr(e, ctx)

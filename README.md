@@ -7,7 +7,7 @@ Command Line Interface for VMware vCloud Director.
 
 This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version. More information about commands and usage can be found in the [vcd-cli site](https://vmware.github.io/vcd-cli).
 
-`vcd-cli` uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), the Python SDK for VMware vCloud Director.
+`vcd-cli` uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), the Python SDK for VMware vCloud Director. It requires Python 3.
 
 Installation:
 =============

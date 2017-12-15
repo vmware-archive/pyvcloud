@@ -195,7 +195,9 @@ def login(ctx, user, host, password, api_version, org,
                         vdc_href=vdc_href,
                         log_request=profiles.get('log_request', default=False),
                         log_header=profiles.get('log_header', default=False),
-                        log_body=profiles.get('log_body', default=False))
+                        log_body=profiles.get('log_body', default=False),
+                        vapp='',
+                        vapp_href='')
         alt_text = '%s logged in, org: \'%s\', vdc: \'%s\'' % \
                    (user, org, in_use_vdc)
         stdout({'user': user, 'org': org,

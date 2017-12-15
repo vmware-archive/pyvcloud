@@ -13,6 +13,7 @@
 #
 
 import click
+import humanfriendly
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.org import Org
@@ -170,18 +171,18 @@ def use(ctx, name):
 @click.option(
     '-s',
     '--storage-profile',
-    'pvdcsp_name',
+    'sp_name',
     default='*',
     required=False,
-    metavar='[provider-vdc-storage-profile]',
+    metavar='[storage-profile]',
     help='Provider VDC Storage Profile.')
 @click.option(
     '--storage-profile-limit',
-    'pvdcsp_limit',
+    'sp_limit',
     default=0,
     required=False,
-    metavar='[provider-vdc-storage-profile-limit]',
-    help='Provider VDC Storage Profile limit, 0 means unlimited.')
+    metavar='[storage-profile-limit]',
+    help='Provider VDC Storage Profile limit (MB), 0 means unlimited.')
 @click.option(
     '-D',
     '--description',
@@ -204,16 +205,16 @@ def use(ctx, name):
     type=click.INT,
     help='Capacity limit relative to the value specified for Allocation.')
 def create(ctx, name, pvdc_name, network_pool_name, allocation_model,
-           pvdcsp_name, pvdcsp_limit, description, cpu_allocated, cpu_limit):
+           sp_name, sp_limit, description, cpu_allocated, cpu_limit):
     try:
         client = ctx.obj['client']
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href)
         storage_profiles = [{
-            'name': pvdcsp_name,
+            'name': sp_name,
             'enabled': True,
             'units': 'MB',
-            'limit': pvdcsp_limit,
+            'limit': sp_limit,
             'default': True
         }]
         vdc_resource = org.create_org_vdc(

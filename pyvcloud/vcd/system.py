@@ -80,12 +80,12 @@ class System(object):
         else:
             return []
 
-    def get_provider_vdc(self, pvdc_name):
+    def get_provider_vdc(self, name):
         for pvdc in self.list_provider_vdcs():
-            if pvdc.get('name') == pvdc_name:
+            if pvdc.get('name') == name:
                 return pvdc
-        raise Exception('PVDC not found (or)'
-                        ' Access to resource is forbidden')
+        raise Exception('Provider VDC \'%s\' not found or '
+                        'access to resource is forbidden' % name)
 
     def list_provider_vdc_storage_profiles(self, name=None):
         if name is not None:
@@ -102,8 +102,8 @@ class System(object):
         for profile in self.list_provider_vdc_storage_profiles(name):
             if profile.get('name') == name:
                 return profile
-        raise Exception('PVDCSP not found (or)'
-                        ' Access to resource is forbidden')
+        raise Exception('Storage profile \'%s\' not found or '
+                        'access to resource is forbidden.' % name)
 
     def list_network_pools(self):
         resource = self.client.get_extension()
@@ -119,4 +119,5 @@ class System(object):
         for item in self.list_network_pools():
             if item.get('name') == name:
                 return item
-        raise Exception('not found or access is forbidden')
+        raise Exception('Network pool \'%s\' not found or '
+                        'access to resource is forbidden' % name)

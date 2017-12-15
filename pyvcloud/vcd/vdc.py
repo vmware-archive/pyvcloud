@@ -572,3 +572,16 @@ class VDC(object):
         Compose a new vApp from existing virtual machines
 
         """  # NOQA
+
+    def delete_vdc(self):
+        """
+        Delete the current Organization vDC
+        :param vdc_name: The name of the org vdc to delete
+        :return:
+        """  # NOQA
+
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        return self.client.delete_linked_resource(self.resource,
+                                                  RelationType.REMOVE, None)

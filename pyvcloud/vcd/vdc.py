@@ -572,3 +572,23 @@ class VDC(object):
         Compose a new vApp from existing virtual machines
 
         """  # NOQA
+        pass
+
+
+    def create_vapp(self, name, description=None, accept_all_eulas=None):
+        """
+        Create a new empty vApp
+
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        params = E.ComposeVAppParams(name=name)
+        if description is not None:
+            params.append(E.Description(description))
+        if accept_all_eulas is not None:
+            params.append(E.AllEULAsAccepted(accept_all_eulas))
+
+
+        return self.client.post_linked_resource(self.resource,
+            RelationType.ADD, EntityType.COMPOSE_VAPP_PARAMS.value, params)

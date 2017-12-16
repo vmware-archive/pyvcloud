@@ -591,6 +591,7 @@ class VDC(object):
     def create_vapp(self, name, description=None, accept_all_eulas=None):
         """
         Create a new empty vApp
+        :param name: Name of the new vapp
 
         """  # NOQA
         if self.resource is None:
@@ -602,5 +603,6 @@ class VDC(object):
         if accept_all_eulas is not None:
             params.append(E.AllEULAsAccepted(accept_all_eulas))
 
-        return self.client.post_linked_resource(self.resource,
-            RelationType.ADD, EntityType.COMPOSE_VAPP_PARAMS.value, params)
+        return self.client.post_linked_resource(
+            self.resource, RelationType.ADD,
+            EntityType.COMPOSE_VAPP_PARAMS.value, params)

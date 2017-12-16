@@ -7,7 +7,7 @@ Command Line Interface for VMware vCloud Director.
 
 This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version. More information about commands and usage can be found in the [vcd-cli site](https://vmware.github.io/vcd-cli).
 
-`vcd-cli` uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), the Python SDK for VMware vCloud Director.
+`vcd-cli` uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), the Python SDK for VMware vCloud Director. It requires Python 3.
 
 Installation:
 =============
@@ -15,7 +15,7 @@ Installation:
 In general, `vcd-cli` can be installed with:
 
 ``` shell
-$ pip install --user vcd-cli
+$ pip3 install --user vcd-cli
 ```
 
 **Note** : To get a working setup on vanilla Ubuntu (tested with 16.04.03 LTS and Ubuntu 17.10 ) :
@@ -23,7 +23,7 @@ $ pip install --user vcd-cli
 1. Optionally set up a virtual environment to test out vcd-cli.
 
 ``` shell
-sudo apt-get install python3-venv
+sudo apt install python3-pip python3-venv
 python3 -m venv vcd-cli
 . vcd-cli/bin/activate
 ```
@@ -32,12 +32,12 @@ python3 -m venv vcd-cli
 
 ``` shell
 # Install gcc and Python3 headers required for pip installation.
-sudo apt-get install gcc python3-dev
+sudo apt install gcc python3-dev
 # Install wheel.  This has to be done first or you will get
 # messages that say: error: invalid command 'bdist_wheel'
-pip install wheel
+pip3 install wheel
 # Install vcd-cli
-pip install vcd-cli
+pip3 install vcd-cli
 # Test vcd-cli
 vcd version
 ```

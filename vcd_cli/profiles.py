@@ -51,7 +51,8 @@ class Profiles(object):
 
     def update(self, host, org, user, token, api_version, wkep, verify,
                disable_warnings, vdc, org_href, vdc_href,
-               log_request, log_header, log_body, name='default'):
+               log_request, log_header, log_body, vapp, vapp_href,
+               name='default'):
         if self.data is None:
             self.data = {}
         if 'profiles' not in self.data:
@@ -71,8 +72,10 @@ class Profiles(object):
         profile['wkep'] = wkep
         profile['org_in_use'] = str(org)
         profile['vdc_in_use'] = str(vdc)
+        profile['vapp_in_use'] = str(vapp)
         profile['org_href'] = str(org_href)
         profile['vdc_href'] = str(vdc_href)
+        profile['vapp_href'] = str(vapp_href)
         tmp = [profile]
         for p in self.data['profiles']:
             if p['name'] != name:

@@ -13,6 +13,7 @@
 #
 
 import click
+import humanfriendly
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.org import Org
@@ -126,14 +127,20 @@ def use(ctx, name):
                 resource = client.get_resource(org.get('href'))
                 for v in get_links(resource, media_type=EntityType.VDC.value):
                     if v.name == name:
+                        vdc_in_use = name
+                        vapp_in_use = ''
+                        vapp_href = ''
                         client.get_resource(v.href)
-                        ctx.obj['profiles'].set('vdc_in_use', str(name))
+                        ctx.obj['profiles'].set('vdc_in_use', vdc_in_use)
                         ctx.obj['profiles'].set('vdc_href', str(v.href))
-                        message = 'now using org: \'%s\', vdc: \'%s\'.' % \
-                                  (in_use_org_name, name)
+                        ctx.obj['profiles'].set('vapp_in_use', vapp_in_use)
+                        ctx.obj['profiles'].set('vapp_href', vapp_href)
+                        message = 'now using org: \'%s\', vdc: \'%s\', vApp: \'%s\'.' % \
+                                  (in_use_org_name, vdc_in_use, vapp_in_use)
                         stdout({
                             'org': in_use_org_name,
-                            'vdc': vdc
+                            'vdc': vdc_in_use,
+                            'vapp': vapp_in_use
                         }, ctx, message)
                         return
         raise Exception('not found')
@@ -170,18 +177,18 @@ def use(ctx, name):
 @click.option(
     '-s',
     '--storage-profile',
-    'pvdcsp_name',
+    'sp_name',
     default='*',
     required=False,
-    metavar='[provider-vdc-storage-profile]',
+    metavar='[storage-profile]',
     help='Provider VDC Storage Profile.')
 @click.option(
     '--storage-profile-limit',
-    'pvdcsp_limit',
+    'sp_limit',
     default=0,
     required=False,
-    metavar='[provider-vdc-storage-profile-limit]',
-    help='Provider VDC Storage Profile limit, 0 means unlimited.')
+    metavar='[storage-profile-limit]',
+    help='Provider VDC Storage Profile limit (MB), 0 means unlimited.')
 @click.option(
     '-D',
     '--description',
@@ -204,16 +211,16 @@ def use(ctx, name):
     type=click.INT,
     help='Capacity limit relative to the value specified for Allocation.')
 def create(ctx, name, pvdc_name, network_pool_name, allocation_model,
-           pvdcsp_name, pvdcsp_limit, description, cpu_allocated, cpu_limit):
+           sp_name, sp_limit, description, cpu_allocated, cpu_limit):
     try:
         client = ctx.obj['client']
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href)
         storage_profiles = [{
-            'name': pvdcsp_name,
+            'name': sp_name,
             'enabled': True,
             'units': 'MB',
-            'limit': pvdcsp_limit,
+            'limit': sp_limit,
             'default': True
         }]
         vdc_resource = org.create_org_vdc(
@@ -246,8 +253,16 @@ def delete(ctx, name):
     try:
         client = ctx.obj['client']
         in_use_org_href = ctx.obj['profiles'].get('org_href')
+        in_use_vdc = ctx.obj['profiles'].get('vdc_in_use')
         org = Org(client, in_use_org_href)
-        task = org.delete_org_vdc(name)
+        vdc_resource = org.get_vdc(name)
+        vdc = VDC(client, resource=vdc_resource)
+        task = vdc.delete_vdc()
+        if name == in_use_vdc:
+            ctx.obj['profiles'].set('vdc_in_use', '')
+            ctx.obj['profiles'].set('vdc_href', '')
+            ctx.obj['profiles'].set('vapp_in_use', '')
+            ctx.obj['profiles'].set('vapp_href', '')
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

@@ -49,5 +49,11 @@ class TestRole(TestCase):
         role_record = org.get_role(role_name)
         assert self.config['vcd']['role_name'] == role_record.get('name')
 
+    def test_list_rights_in_org(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        right_record_list = org.list_rights()
+        assert len(right_record_list) > 0
+
 if __name__ == '__main__':
     unittest.main()

@@ -20,6 +20,7 @@ from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
+from pyvcloud.vcd.utils import get_admin_href
 
 
 class VDC(object):
@@ -31,7 +32,7 @@ class VDC(object):
         if resource is not None:
             self.name = resource.get('name')
             self.href = resource.get('href')
-        self.href_admin = self.href.replace('/api/vdc/', '/api/admin/vdc/')
+        self.href_admin = get_admin_href(self.href)
 
     def get_resource(self):
         if self.resource is None:
@@ -567,13 +568,25 @@ class VDC(object):
         return self.client.post_linked_resource(resource_admin, link, None,
                                                 None)
 
+    def delete_vdc(self):
+        """
+        Delete the current Organization vDC
+        :param vdc_name: The name of the org vdc to delete
+        :return:
+        """  # NOQA
+
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        return self.client.delete_linked_resource(self.resource,
+                                                  RelationType.REMOVE, None)
+
     def compose_vapp(self, new_vapp_name):
         """
         Compose a new vApp from existing virtual machines
 
         """  # NOQA
         pass
-
 
     def create_vapp(self, name, description=None, accept_all_eulas=None):
         """
@@ -588,7 +601,6 @@ class VDC(object):
             params.append(E.Description(description))
         if accept_all_eulas is not None:
             params.append(E.AllEULAsAccepted(accept_all_eulas))
-
 
         return self.client.post_linked_resource(self.resource,
             RelationType.ADD, EntityType.COMPOSE_VAPP_PARAMS.value, params)

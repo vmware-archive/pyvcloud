@@ -66,11 +66,17 @@ class System(object):
         organization and any objects it contains that are in a state that
         normally allows removal.
         """  # NOQA
+
         org = self.client.get_org_by_name(org_name)
         org_href = get_admin_href(org.get('href'))
         return self.client.delete_resource(org_href, force, recursive)
 
     def list_provider_vdcs(self):
+        """
+        List provider VDCs in the system organization.
+
+        :return: a list of ProviderVdcReference items
+        """  # NOQA
         if self.admin_resource is None:
             self.admin_resource = self.client.get_resource(self.admin_href)
         if hasattr(self.admin_resource.ProviderVdcReferences,
@@ -80,14 +86,24 @@ class System(object):
         else:
             return []
 
-    def get_provider_vdc(self, pvdc_name):
+    def get_provider_vdc(self, name):
+        """
+        Return a provider VDC by name in the system organization.
+
+        :return: ProviderVdcReference item if found, raise Exception otherwise.
+        """  # NOQA
         for pvdc in self.list_provider_vdcs():
-            if pvdc.get('name') == pvdc_name:
+            if pvdc.get('name') == name:
                 return pvdc
-        raise Exception('PVDC not found (or)'
-                        ' Access to resource is forbidden')
+        raise Exception('Provider VDC \'%s\' not found or '
+                        'access to resource is forbidden' % name)
 
     def list_provider_vdc_storage_profiles(self, name=None):
+        """
+        List provider VDC storage profiles in the system organization.
+
+        :return: a list of ProviderVdcStorageProfile items
+        """  # NOQA
         if name is not None:
             query_filter = 'name==%s' % name
         else:
@@ -99,13 +115,23 @@ class System(object):
         return list(q.execute())
 
     def get_provider_vdc_storage_profile(self, name):
+        """
+        Return a provider VDC storage profile by name in the system organization.
+
+        :return: ProviderVdcStorageProfile item if found, raise Exception otherwise.
+        """  # NOQA
         for profile in self.list_provider_vdc_storage_profiles(name):
             if profile.get('name') == name:
                 return profile
-        raise Exception('PVDCSP not found (or)'
-                        ' Access to resource is forbidden')
+        raise Exception('Storage profile \'%s\' not found or '
+                        'access to resource is forbidden.' % name)
 
     def list_network_pools(self):
+        """
+        List network pools in the system organization.
+
+        :return: a list of NetworkPoolReference items
+        """  # NOQA
         resource = self.client.get_extension()
         result = self.client.get_linked_resource(
             resource, RelationType.DOWN,
@@ -116,7 +142,13 @@ class System(object):
             return []
 
     def get_network_pool_reference(self, name):
+        """
+        Return a network pool by name in the system organization.
+
+        :return: NetworkPoolReference item if found, raise Exception otherwise.
+        """  # NOQA
         for item in self.list_network_pools():
             if item.get('name') == name:
                 return item
-        raise Exception('not found or access is forbidden')
+        raise Exception('Network pool \'%s\' not found or '
+                        'access to resource is forbidden' % name)

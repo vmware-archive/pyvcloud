@@ -634,7 +634,8 @@ class Org(object):
         result = []
         if len(records) > 0:
             for r in records:
-                result.append(to_dict(r, resource_type=resource_type, exclude=[]))
+                result.append(to_dict(r, resource_type=resource_type,
+                                      exclude=[]))
         return result
 
     def get_catalog_access_control_settings(self, catalog_name):
@@ -727,7 +728,7 @@ class Org(object):
         """
         Create Organization VDC in the current Org.
         :param vdc_name (str): The name of the new org vdc.
-        :param provider_vdc_name (str): The name of the new provider vdc.
+        :param provider_vdc_name (str): The name of an existing provider vdc.
         :param description (str): The description of the new org vdc.
         :param allocation_model (str): The allocation model used by this vDC. One of AllocationVApp, AllocationPool or ReservationPool.
         :param cpu_units (str): The cpu units compute capacity allocated to this vDC. One of MHz or GHz
@@ -757,7 +758,7 @@ class Org(object):
         :param over_commit_allowed (bool): Set to false to disallow creation of the VDC if the AllocationModel is AllocationPool or ReservationPool
             and the ComputeCapacity you specified is greater than what the backing Provider VDC can supply. Defaults to true if empty or missing.
         :param vm_discovery_enabled (bool): True if discovery of vCenter VMs is enabled for resource pools backing this vDC.
-        :param is_enabled (bool): True if this vDC is enabled for use by the organization vDCs.
+        :param is_enabled (bool): True if this vDC is enabled for use by the organization users.
         :return:  A :class:`lxml.objectify.StringElement` object describing the new VDC.
         """  # NOQA
         if self.resource is None:
@@ -818,15 +819,3 @@ class Org(object):
         return self.client.post_linked_resource(
             resource_admin, RelationType.ADD, EntityType.VDCS_PARAMS.value,
             params)
-
-    def delete_org_vdc(self, name):
-        """
-        Delete Organization VDC in the current Org
-        :param vdc_name: The name of the org vdc to delete
-        :return:
-        """  # NOQA
-        from pyvcloud.vcd.vdc import VDC
-        vdc_resource = self.get_vdc(name)
-        vdc = VDC(self.client, resource=vdc_resource)
-        return self.client.delete_linked_resource(vdc.resource,
-                                                  RelationType.REMOVE, None)

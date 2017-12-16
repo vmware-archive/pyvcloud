@@ -22,8 +22,8 @@ import unittest
 
 class TestVDC(TestCase):
     def test_list_vdc(self):
-        org_to_use = self.client.get_org()
-        org = Org(self.client, href=org_to_use.get('href'))
+        org_resource = self.client.get_org()
+        org = Org(self.client, resource=org_resource)
         vdcs = org.list_vdcs()
         assert vdcs is not None
 

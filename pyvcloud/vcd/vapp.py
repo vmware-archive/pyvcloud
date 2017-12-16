@@ -52,7 +52,7 @@ class VApp(object):
                         connection = item.find('rasd:Connection', NSMAP)
                         if connection is not None:
                             return connection.get(
-                                '{http://www.vmware.com/vcloud/v1.5}ipAddress')
+                                '{' + NSMAP['vcloud'] + '}ipAddress')
         raise Exception('can\'t find ip address')
 
     def get_admin_password(self, vm_name):
@@ -86,10 +86,10 @@ class VApp(object):
                 {
                     'type': 'xs:string'
                 }, E.Domain(domain, visibility=visibility), E.Key(key),
-                E.TypedValue({
-                    '{http://www.w3.org/2001/XMLSchema-instance}type':
-                    'MetadataStringValue'
-                }, E.Value(value))))
+                E.TypedValue(
+                    {
+                        '{' + NSMAP['xsi'] + '}type': 'MetadataStringValue'
+                    }, E.Value(value))))
         metadata = self.client.get_linked_resource(
             self.resource, RelationType.DOWN, EntityType.METADATA.value)
         return self.client.post_linked_resource(metadata, RelationType.ADD,
@@ -105,8 +105,7 @@ class VApp(object):
                 if vm.get('name') == vm_name:
                     env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
                     if len(env) > 0:
-                        return env[0].get(
-                            '{http://www.vmware.com/schema/ovfenv}vCenterId')
+                        return env[0].get('{' + NSMAP['ve'] + '}vCenterId')
         return None
 
     def set_lease(self, deployment_lease=0, storage_lease=0):
@@ -184,7 +183,7 @@ class VApp(object):
                 RelationType.EDIT, EntityType.NETWORK_CONNECTION_SECTION.value,
                 self.resource.Children.Vm[0].NetworkConnectionSection)
 
-    def attach_disk_to_vm(self, disk_href, disk_type, disk_name, vm_name):
+    def attach_disk_to_vm(self, disk_href, vm_name):
         """
         Attach the independent disk to the VM with the given name in the vApp within a Virtual Data Center.
         :param disk_href: (str): The href of the disk resource.
@@ -194,7 +193,7 @@ class VApp(object):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
-            E.Disk(type=disk_type, href=disk_href))
+            E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
         return self.client.post_linked_resource(
             vm, RelationType.DISK_ATTACH,

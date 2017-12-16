@@ -104,6 +104,11 @@ def vdc_to_dict(vdc):
                 result['vapps'].append(n.get('name'))
             elif n.get('type') == EntityType.VAPP_TEMPLATE.value:
                 result['vapp_templates'].append(n.get('name'))
+    if hasattr(vdc, 'VdcStorageProfiles') and \
+            hasattr(vdc.VdcStorageProfiles, 'VdcStorageProfile'):
+        result['storage_profiles'] = []
+        for sp in vdc.VdcStorageProfiles.VdcStorageProfile:
+            result['storage_profiles'].append(sp.get('name'))
     return result
 
 
@@ -168,15 +173,14 @@ def vapp_to_dict(vapp, metadata=None):
                 else:
                     value = '{}: {}'.format(
                         connection.get(
-                            '{http://www.vmware.com/vcloud/v1.5}ipAddressingMode'  # NOQA
-                        ),
-                        connection.get(
-                            '{http://www.vmware.com/vcloud/v1.5}ipAddress'))
+                            '{' + NSMAP['vcloud'] + '}ipAddressingMode'),
+                        connection.get('{' + NSMAP['vcloud'] + '}ipAddress'))
                 result['%s: %s' % (k, element_name)] = value
             env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
             if len(env) > 0:
-                result['%s: %s' % (k, 'moid')] = env[0].get(
-                    '{http://www.vmware.com/schema/ovfenv}vCenterId')
+                result['%s: %s' %
+                       (k,
+                        'moid')] = env[0].get('{' + NSMAP['ve'] + '}vCenterId')
             if hasattr(vm, 'StorageProfile'):
                 result['%s: %s' % (k, 'storage-profile')] = \
                     vm.StorageProfile.get('name')
@@ -205,6 +209,21 @@ def vapp_to_dict(vapp, metadata=None):
                             nc.MACAddress.text
                     if hasattr(nc, 'IpAddress'):
                         result['%s: net-%s-ip' % (k, nci)] = nc.IpAddress.text
+            for setting in vm.VmSpecSection.DiskSection.DiskSettings:
+                if hasattr(setting, 'Disk'):
+                    result['%s: attached-disk-%s-name' %
+                           (k, setting.DiskId.text)] = \
+                           '%s' % (setting.Disk.get('name'))
+                    result['%s: attached-disk-%s-size-Mb' %
+                           (k, setting.DiskId.text)] = \
+                        '%s' % (setting.SizeMb.text)
+                    result['%s: attached-disk-%s-bus' %
+                           (k, setting.DiskId.text)] = \
+                        '%s' % (setting.BusNumber.text)
+                    result['%s: attached-disk-%s-unit' %
+                           (k, setting.DiskId.text)] = \
+                        '%s' % (setting.UnitNumber.text)
+
     result['status'] = VCLOUD_STATUS_MAP.get(int(vapp.get('status')))
     if metadata is not None and hasattr(metadata, 'MetadataEntry'):
         for me in metadata.MetadataEntry:
@@ -243,6 +262,11 @@ def disk_to_dict(disk):
         result['description'] = disk.Description
     if hasattr(disk, 'StorageProfile'):
         result['storageProfile'] = disk.StorageProfile.get('name')
+    if hasattr(disk, 'attached_vms') and \
+       hasattr(disk.attached_vms, 'VmReference'):
+        result['vms_attached'] = disk.attached_vms.VmReference.get('name')
+        result['vms_attached_id'] = disk.attached_vms.VmReference.get(
+            'href').split('/vm-')[-1]
     return result
 
 
@@ -264,7 +288,7 @@ def filter_attributes(resource_type):
         attributes = [
             'id', 'name', 'numberOfVMs', 'status', 'numberOfCpus',
             'memoryAllocationMB', 'storageKB', 'ownerName', 'isDeployed',
-            'isEnabled'
+            'isEnabled', 'vdcName'
         ]
     elif resource_type in ['adminCatalogItem', 'catalogItem']:
         attributes = [

@@ -36,23 +36,20 @@ def disk(ctx):
         vcd disk list
             Get list of independent disks in current virtual datacenter.
 \b
+        vcd disk create disk1 10g --description '10 GB Disk'
+            Create a 10 GB independent disk using the default storage profile.
+\b
         vcd disk info disk1
             Get details of the disk named 'disk1'.
 \b
         vcd disk info disk1 --id 91b3a2e2-fd02-412b-9914-9974d60b2351
             Get details of the disk named 'disk1' that has the supplied id.
 \b
-        vcd disk create disk1 1000 --description '1 KB Disk'
-            Create a new 1000 bytes (1 KB) independent disk named 'disk1' using the default storage profile.
-\b
-        vcd disk create disk1 $((10*1024*1024*1024)) --description '10 GiB Disk'
-            Create a 10 GiB independent disk using the default storage profile.
+        vcd disk update disk1 20g
+            Update an existing independent disk with new size.
 \b
         vcd disk delete disk1
             Delete an existing independent disk named 'disk1'.
-\b
-        vcd disk update disk1 $((15*1024*1024*1024))
-            Update an existing independent disk with new size, iops, description, name and storage profile.
     """  # NOQA
     if ctx.invoked_subcommand is not None:
         try:
@@ -96,13 +93,19 @@ def list_disks(ctx):
         disks = vdc.get_disks()
         result = []
         for disk in disks:
+            attached_vms = ''
+            if hasattr(disk, 'attached_vms') and \
+               hasattr(disk.attached_vms, 'VmReference'):
+                attached_vms = disk.attached_vms.VmReference.get('name')
             result.append({'name': disk.get('name'),
                            'id': extract_id(disk.get('id')),
+                           'owner': disk.Owner.User.get('name'),
                            'size': humanfriendly.format_size(
                                     int(disk.get('size'))),
                            'size_bytes': disk.get('size'),
                            'status': VCLOUD_STATUS_MAP.get(int(
-                                disk.get('status')))})
+                                disk.get('status'))),
+                           'vms_attached': attached_vms})
         stdout(result, ctx, show_id=True)
     except Exception as e:
         stderr(e, ctx)
@@ -114,8 +117,7 @@ def list_disks(ctx):
                 metavar='<name>',
                 required=True)
 @click.argument('size',
-                metavar='<size-bytes>',
-                type=click.INT,
+                metavar='<size>',
                 required=True)
 @click.option('-d',
               '--description',
@@ -135,7 +137,7 @@ def create(ctx, name, size, description, storage_profile):
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
         disk_resource = vdc.add_disk(name=name,
-                                     size=size,
+                                     size=humanfriendly.parse_size(size),
                                      description=description,
                                      storage_profile_name=storage_profile)
         stdout(disk_resource.Tasks.Task[0], ctx)
@@ -177,8 +179,7 @@ def delete(ctx, name, disk_id):
                 metavar='<name>',
                 required=True)
 @click.argument('size',
-                metavar='<new-size-bytes>',
-                type=click.INT,
+                metavar='<new-size>',
                 required=False)
 @click.option('-d',
               '--description',
@@ -218,7 +219,7 @@ def update(ctx, name, size, description, new_name, storage_profile, iops,
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
         task = vdc.update_disk(name,
-                               size,
+                               size=humanfriendly.parse_size(size),
                                new_name=new_name,
                                description=description,
                                storage_profile_name=storage_profile,

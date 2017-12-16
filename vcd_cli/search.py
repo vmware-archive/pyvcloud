@@ -70,6 +70,12 @@ def search(ctx, resource_type, query_filter):
         vcd search vapp -f 'metadata:cse.node.type==STRING:master'
             Search for vApps by metadata.
 \b
+        vcd search vapp -f 'metadata:vapp.origin.name==STRING:photon-custom-hw11-2.0-304b817.ova'
+            Search for vApps instantiated from template
+\b
+        vcd search vapp -f 'numberOfCpus=gt=4;memoryAllocationMB=gt=10000;storageKB=gt=10000000'
+            Search for resource intensive vApps
+\b
         vcd search vm
             Search for virtual machines.
     """  # NOQA

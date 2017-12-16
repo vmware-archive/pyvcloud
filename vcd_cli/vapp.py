@@ -1,4 +1,4 @@
-# vCloud CLI 0.1
+# VMware vCloud Director CLI
 #
 # Copyright (c) 2014 VMware, Inc. All Rights Reserved.
 #
@@ -138,8 +138,6 @@ def attach(ctx, vapp_name, vm_name, disk_name, disk_id):
         vapp = VApp(client, resource=vapp_resource)
         task = vapp.attach_disk_to_vm(
             disk_href=disk.get('href'),
-            disk_type=disk.get('type'),
-            disk_name=disk_name,
             vm_name=vm_name)
         stdout(task, ctx)
     except Exception as e:
@@ -522,5 +520,47 @@ def add_disk(ctx, name, vm_name, size, storage_profile):
         vapp = VApp(client, resource=vapp_resource)
         task = vapp.add_disk_to_vm(vm_name, size)
         stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command(short_help='set active vApp')
+@click.pass_context
+@click.argument('name', metavar='<name>', required=True)
+def use(ctx, name):
+    try:
+        client = ctx.obj['client']
+        in_use_org_name = ctx.obj['profiles'].get('org_in_use')
+        in_use_vdc_name = ctx.obj['profiles'].get('vdc_in_use')
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        vapp_resource = vdc.get_vapp(name)
+        vapp = VApp(client, resource=vapp_resource)
+        ctx.obj['profiles'].set('vapp_in_use', str(name))
+        ctx.obj['profiles'].set('vapp_href', str(vapp.href))
+        message = 'now using org: \'%s\', vdc: \'%s\', vApp: \'%s\'.' % \
+                  (in_use_org_name, in_use_vdc_name, name)
+        stdout({
+            'org': in_use_org_name,
+            'vdc': in_use_vdc_name,
+            'vapp': name
+        }, ctx, message)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command(short_help='compose a new vApp')
+@click.pass_context
+@click.argument('name',
+                metavar='<name>',
+                required=True)
+def compose(ctx, name):
+    try:
+        client = ctx.obj['client']
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href)
+        catalog_resource = org.get_catalog(catalog)
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
     except Exception as e:
         stderr(e, ctx)

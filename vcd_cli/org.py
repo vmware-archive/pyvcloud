@@ -1,3 +1,4 @@
+# VMware vCloud Director CLI
 #
 # Copyright (c) 2014 VMware, Inc. All Rights Reserved.
 #
@@ -80,9 +81,9 @@ def info(ctx, name):
         stderr(e, ctx)
 
 
-@org.command(short_help='list organizations')
+@org.command('list', short_help='list organizations')
 @click.pass_context
-def list(ctx):
+def list_orgs(ctx):
     try:
         client = ctx.obj['client']
         logged_in_org_name = ctx.obj['profiles'].get('org')
@@ -112,6 +113,8 @@ def use(ctx, name):
                 resource = client.get_resource(org.get('href'))
                 in_use_vdc = ''
                 vdc_href = ''
+                in_use_vapp = ''
+                vapp_href = ''
                 for v in get_links(resource, media_type=EntityType.VDC.value):
                     in_use_vdc = v.name
                     vdc_href = v.href
@@ -120,9 +123,15 @@ def use(ctx, name):
                 ctx.obj['profiles'].set('org_href', str(org.get('href')))
                 ctx.obj['profiles'].set('vdc_in_use', str(in_use_vdc))
                 ctx.obj['profiles'].set('vdc_href', str(vdc_href))
-                message = 'now using org: \'%s\', vdc: \'%s\'.' % \
-                          (name, in_use_vdc)
-                stdout({'org': name, 'vdc': in_use_vdc}, ctx, message)
+                ctx.obj['profiles'].set('vapp_in_use', str(in_use_vapp))
+                ctx.obj['profiles'].set('vapp_href', vapp_href)
+                message = 'now using org: \'%s\', vdc: \'%s\', vApp: \'%s\'.' % \
+                          (name, in_use_vdc, in_use_vapp)
+                stdout({
+                    'org': name,
+                    'vdc': in_use_vdc,
+                    'vapp': in_use_vapp
+                }, ctx, message)
                 return
         raise Exception('not found')
     except Exception as e:

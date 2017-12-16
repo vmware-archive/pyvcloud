@@ -1,4 +1,4 @@
-# vCloud CLI 0.1
+# VMware vCloud Director CLI
 #
 # Copyright (c) 2014 VMware, Inc. All Rights Reserved.
 #
@@ -50,7 +50,7 @@ def as_table(obj_list, header=None, show_id=False):
             headers.remove('id')
         table = []
         for obj in obj_list:
-            table.append([obj[k] for k in headers])
+            table.append([obj[k] if k in obj.keys() else '' for k in headers])
         return tabulate(table, headers)
 
 

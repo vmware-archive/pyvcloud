@@ -25,8 +25,8 @@ class TestVDC(TestCase):
         org = Org(self.client, resource=logged_in_org)
         vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, resource=vdc_resource)
-        access_control = vdc.get_access_control_settings()
-        assert len(access_control) > 0
+        access_control_settings = vdc.get_access_control_settings()
+        assert len(access_control_settings) > 0
 
 
 if __name__ == '__main__':

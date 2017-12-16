@@ -7,6 +7,7 @@ from pyvcloud.vcd.test import TestCase
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
 
+
 class TestVApp(TestCase):
 
     def test_001_instantiate_vapp(self):
@@ -261,8 +262,8 @@ class TestVApp(TestCase):
         vdc = VDC(self.client, resource=vdc_resource)
         vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
         vapp = VApp(self.client, resource=vapp_resource)
-        access_control = vapp.get_access_control_settings()
-        assert len(access_control) > 0
+        access_control_settings = vapp.get_access_control_settings()
+        assert len(access_control_settings) > 0
 
 
 if __name__ == '__main__':

@@ -20,7 +20,7 @@ from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.org import Org
-from pyvcloud.vcd.utils import process_access_control_setting
+from pyvcloud.vcd.utils import access_control_settings_to_dict
 
 
 class VDC(object):
@@ -559,11 +559,11 @@ class VDC(object):
     def get_access_control_settings(self):
         """
         Get the access control settings of the vdc.
-        :return: Access control settings of the vdc.
+        :return: (dict): Access control settings of the vdc.
         """  # NOQA
         vdc_resource = self.get_resource()
-        control_access = self.client.get_linked_resource(
+        access_control_settings = self.client.get_linked_resource(
             vdc_resource, RelationType.DOWN,
             EntityType.CONTROL_ACCESS_PARAMS.value)
-        return process_access_control_setting(control_access)
+        return access_control_settings_to_dict(access_control_settings)
 

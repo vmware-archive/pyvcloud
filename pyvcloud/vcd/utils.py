@@ -55,7 +55,7 @@ def org_to_dict(org):
     return result
 
 
-def vdc_to_dict(vdc):
+def vdc_to_dict(vdc, access_control_settings=None):
     result = {}
     result['name'] = vdc.get('name')
     result['id'] = extract_id(vdc.get('id'))
@@ -104,6 +104,8 @@ def vdc_to_dict(vdc):
                 result['vapps'].append(n.get('name'))
             elif n.get('type') == EntityType.VAPP_TEMPLATE.value:
                 result['vapp_templates'].append(n.get('name'))
+    if access_control_settings is not None:
+        result.update(access_control_settings)
     return result
 
 
@@ -114,7 +116,7 @@ def to_human(seconds):
     return '%sw, %sd, %sh' % (weeks, days, hours)
 
 
-def vapp_to_dict(vapp, metadata=None):
+def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
     result = {}
     result['name'] = vapp.get('name')
     result['id'] = extract_id(vapp.get('id'))
@@ -206,6 +208,8 @@ def vapp_to_dict(vapp, metadata=None):
                     if hasattr(nc, 'IpAddress'):
                         result['%s: net-%s-ip' % (k, nci)] = nc.IpAddress.text
     result['status'] = VCLOUD_STATUS_MAP.get(int(vapp.get('status')))
+    if access_control_settings is not None:
+        result.update(access_control_settings)
     if metadata is not None and hasattr(metadata, 'MetadataEntry'):
         for me in metadata.MetadataEntry:
             result['metadata: %s' % me.Key.text] = me.TypedValue.Value.text
@@ -246,37 +250,41 @@ def disk_to_dict(disk):
     return result
 
 
-def access_settings_to_dict(access_setting):
-    result = collections.OrderedDict()
-    if hasattr(access_setting, 'Subject'):
-        result['user_name'] = access_setting.Subject.get('name')
-        result['user_href'] = access_setting.Subject.get('href')
-    if hasattr(access_setting, 'AccessLevel'):
-        result['access_level'] = access_setting.AccessLevel
-    return result
-
-
-def control_access_params_to_dict(control_access):
+def access_setting_to_dict(access_setting, n):
     result = {}
-    if hasattr(control_access, 'IsSharedToEveryone'):
-        result['is_shared_to_everyone'] = control_access[
-            'IsSharedToEveryone']
-    if hasattr(control_access, 'EveryoneAccessLevel'):
-        result['everyone_access_level'] = control_access['EveryoneAccessLevel']
+    access_str = 'access-settings'
+    if hasattr(access_setting, 'Subject'):
+        result['%s-%s-subject-name' % (access_str, n)] = \
+            access_setting.Subject.get('name')
+    if hasattr(access_setting, 'Subject'):
+        result['%s-%s-subject-href' % (access_str, n)] = \
+            access_setting.Subject.get('href')
+    if hasattr(access_setting, 'Subject'):
+        result['%s-%s-subject-type' % (access_str, n)] = \
+            access_setting.Subject.get('type')
+    if hasattr(access_setting, 'AccessLevel'):
+        result['%s-%s-access-level' % (access_str, n)] = \
+            access_setting.AccessLevel
     return result
 
 
-def process_access_control_setting(control_access):
-    access_settings = []
-    if hasattr(control_access, 'AccessSettings') and \
-            hasattr(control_access.AccessSettings, 'AccessSetting') and \
-                    len(control_access.AccessSettings.AccessSetting) > 0:
+def access_control_settings_to_dict(access_control_settings):
+    result = {}
+    if hasattr(access_control_settings, 'IsSharedToEveryone'):
+        result['is_shared_to_everyone'] = access_control_settings[
+            'IsSharedToEveryone']
+    if hasattr(access_control_settings, 'EveryoneAccessLevel'):
+        result['everyone_access_level'] = access_control_settings[
+            'EveryoneAccessLevel']
+    if hasattr(access_control_settings, 'AccessSettings') and \
+            hasattr(access_control_settings.AccessSettings,
+                    'AccessSetting') and \
+                    len(access_control_settings.AccessSettings.AccessSetting) > 0:
+        n = 1
         for access_setting in list(
-                control_access.AccessSettings.AccessSetting):
-            access_settings.append(access_settings_to_dict(access_setting))
-    result = control_access_params_to_dict(control_access)
-    if len(access_settings) > 0:
-        result['AccessSettings'] = access_settings
+                access_control_settings.AccessSettings.AccessSetting):
+            result.update(access_setting_to_dict(access_setting, n))
+            n += 1
     return result
 
 

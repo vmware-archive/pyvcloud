@@ -250,24 +250,6 @@ def disk_to_dict(disk):
     return result
 
 
-def access_setting_to_dict(access_setting, n):
-    result = {}
-    access_str = 'access-settings'
-    if hasattr(access_setting, 'Subject'):
-        result['%s-%s-subject-name' % (access_str, n)] = \
-            access_setting.Subject.get('name')
-    if hasattr(access_setting, 'Subject'):
-        result['%s-%s-subject-href' % (access_str, n)] = \
-            access_setting.Subject.get('href')
-    if hasattr(access_setting, 'Subject'):
-        result['%s-%s-subject-type' % (access_str, n)] = \
-            access_setting.Subject.get('type')
-    if hasattr(access_setting, 'AccessLevel'):
-        result['%s-%s-access-level' % (access_str, n)] = \
-            access_setting.AccessLevel
-    return result
-
-
 def access_control_settings_to_dict(access_control_settings):
     result = {}
     if hasattr(access_control_settings, 'IsSharedToEveryone'):
@@ -279,11 +261,23 @@ def access_control_settings_to_dict(access_control_settings):
     if hasattr(access_control_settings, 'AccessSettings') and \
             hasattr(access_control_settings.AccessSettings,
                     'AccessSetting') and \
-                    len(access_control_settings.AccessSettings.AccessSetting) > 0:
+                len(access_control_settings.AccessSettings.AccessSetting) > 0:
         n = 1
         for access_setting in list(
                 access_control_settings.AccessSettings.AccessSetting):
-            result.update(access_setting_to_dict(access_setting, n))
+            access_str = 'access_settings'
+            if hasattr(access_setting, 'Subject'):
+                result['%s-%s-subject-name' % (access_str, n)] = \
+                    access_setting.Subject.get('name')
+            if hasattr(access_setting, 'Subject'):
+                result['%s-%s-subject-href' % (access_str, n)] = \
+                    access_setting.Subject.get('href')
+            if hasattr(access_setting, 'Subject'):
+                result['%s-%s-subject-type' % (access_str, n)] = \
+                    access_setting.Subject.get('type')
+            if hasattr(access_setting, 'AccessLevel'):
+                result['%s-%s-access-level' % (access_str, n)] = \
+                    access_setting.AccessLevel
             n += 1
     return result
 

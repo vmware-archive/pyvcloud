@@ -50,7 +50,8 @@ def disk(ctx):
 \b
         vcd disk delete disk1
             Delete an existing independent disk named 'disk1'.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

@@ -49,7 +49,8 @@ def org(ctx):
 \b
         vcd org update my-org-name --enable
             Update organization 'my-org-name', e.g. enable the organization
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)
@@ -125,8 +126,8 @@ def use(ctx, name):
                 ctx.obj['profiles'].set('vdc_href', str(vdc_href))
                 ctx.obj['profiles'].set('vapp_in_use', str(in_use_vapp))
                 ctx.obj['profiles'].set('vapp_href', vapp_href)
-                message = 'now using org: \'%s\', vdc: \'%s\', vApp: \'%s\'.' % \
-                          (name, in_use_vdc, in_use_vapp)
+                message = 'now using org: \'%s\', vdc: \'%s\', vApp: \'%s\'.' \
+                    % (name, in_use_vdc, in_use_vapp)
                 stdout({
                     'org': name,
                     'vdc': in_use_vdc,

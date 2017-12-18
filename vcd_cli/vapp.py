@@ -33,56 +33,82 @@ def vapp(ctx):
     """Manage vApps in vCloud Director.
 
 \b
+    Description
+        The vapp command manages vApps.
+\b
+        'vapp create' creates new vApps. When '--catalog' and '--template' are
+        not provided, it creates an empty vApp and VMs can be added later.
+        When specifying a template in a catalog, it instantiates the template
+        in the currect vDC.
+\b
+        'vapp add-vm' adds VMs to the vApp. When '--catalog' is used, the
+        <source-vapp> parameter refers to a template in the specified catalog
+        and the command will instantiate the <source-vm> found in the template.
+        If '--catalog' is not used, <source-vapp> refers to another vApp in the
+        vDC and the command will copy the <source-vm> found in the vApp. The
+        name of the VM and other options can be customized when the VM is added
+        to the vApp.
+\b
     Examples
         vcd vapp list
             Get list of vApps in current virtual datacenter.
 \b
-        vcd vapp info my-vapp
-            Get details of the vApp 'my-vapp'.
+        vcd vapp info vapp1
+            Get details of the vApp 'vapp1'.
 \b
-        vcd vapp create my-catalog my-template my-vapp
-            Create a new vApp with default settings.
+        vcd vapp create vapp1
+            Create an empty vApp with name 'vapp1'.
 \b
-        vcd vapp create my-catalog my-template my-vapp \\
+        vcd vapp create vapp1 --network net1
+            Create an empty vApp connected to a network.
+\b
+        vcd vapp create vapp1 -c catalog1 -t template1
+            Instantiate a vApp from a catalog template.
+\b
+        vcd vapp create vapp1 -c catalog1 -t template1 \\
                  --cpu 4 --memory 4096 --disk-size 20000 \\
                  --network net1 --ip-allocation-mode pool \\
-                 --hostname myhost --vm-name my-vm --accept-all-eulas \\
+                 --hostname myhost --vm-name vm1 --accept-all-eulas \\
                  --storage-profile '*'
-            Create a new vApp with customized settings.
+            Instantiate a vApp with customized settings.
 \b
-        vcd vapp delete my-vapp --yes --force
+        vcd vapp delete vapp1 --yes --force
             Delete a vApp.
 \b
-        vcd --no-wait vapp delete my-vapp --yes --force
+        vcd --no-wait vapp delete vapp1 --yes --force
             Delete a vApp without waiting for completion.
 \b
-        vcd vapp update-lease my-vapp 7776000
+        vcd vapp update-lease vapp1 7776000
             Set vApp lease to 90 days.
 \b
-        vcd vapp update-lease my-vapp 0
+        vcd vapp update-lease vapp1 0
             Set vApp lease to no expiration.
 \b
-        vcd vapp shutdown my-vapp --yes
+        vcd vapp shutdown vapp1 --yes
             Gracefully shutdown a vApp.
 \b
-        vcd vapp power-off my-vapp
+        vcd vapp power-off vapp1
             Power off a vApp.
 \b
-        vcd vapp power-on my-vapp
+        vcd vapp power-on vapp1
             Power on a vApp.
 \b
-        vcd vapp capture my-vapp my-catalog
+        vcd vapp capture vapp1 catalog1
             Capture a vApp as a template in a catalog.
 \b
-        vcd vapp attach my-vapp my-vm disk-name
+        vcd vapp attach vapp1 vm1 disk1
             Attach a disk to a VM in the given vApp.
 \b
-        vcd vapp detach my-vapp my-vm disk-name
+        vcd vapp detach vapp1 vm1 disk1
             Detach a disk from a VM in the given vApp.
 \b
-        vcd vapp add-disk my-vapp my-vm 10000
+        vcd vapp add-disk vapp1 vm1 10000
             Add a disk of 10000 MB to a VM.
-    """  # NOQA
+\b
+        vcd vapp add-vm vapp1 template1.ova vm1 -c catalog1
+            Add a VM to a vApp.
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)
@@ -205,10 +231,10 @@ def list_vapps(ctx):
 @click.argument('name',
                 metavar='<name>',
                 required=True)
-@click.option('-D',
+@click.option('-d',
               '--description',
               metavar='description')
-@click.option('-g',
+@click.option('-c',
               '--catalog',
               metavar='catalog')
 @click.option('-t',
@@ -237,7 +263,7 @@ def list_vapps(ctx):
               metavar='<MB>',
               type=click.INT,
               help='Amount of memory in MB')
-@click.option('-c',
+@click.option('-u',
               '--cpu',
               'cpu',
               required=False,
@@ -245,7 +271,7 @@ def list_vapps(ctx):
               metavar='<virtual-cpus>',
               type=click.INT,
               help='Number of CPUs')
-@click.option('-d',
+@click.option('-k',
               '--disk-size',
               'disk_size',
               required=False,
@@ -261,9 +287,7 @@ def list_vapps(ctx):
               help='VM name')
 @click.option('-o',
               '--hostname',
-              required=False,
-              default=None,
-              metavar='<hostname>',
+              metavar='hostname',
               help='Hostname')
 @click.option('storage_profile',
               '-s',
@@ -286,6 +310,7 @@ def create(ctx, name, description, catalog, template, network, memory, cpu,
         vdc = VDC(client, href=vdc_href)
         if catalog is None and template is None:
             vapp_resource = vdc.create_vapp(name, description=description,
+                                            network=network,
                                             accept_all_eulas=accept_all_eulas)
         else:
             vapp_resource = vdc.instantiate_vapp(
@@ -556,18 +581,74 @@ def use(ctx, name):
         stderr(e, ctx)
 
 
-@vapp.command(short_help='compose a new vApp')
+@vapp.command('add-vm', short_help='add VM to vApp')
 @click.pass_context
 @click.argument('name',
                 metavar='<name>',
                 required=True)
-def compose(ctx, name):
+@click.argument('source-vapp',
+                metavar='<source-vapp>',
+                required=True)
+@click.argument('source-vm',
+                metavar='<source-vm>',
+                required=True)
+@click.option('-c',
+              '--catalog',
+              metavar='<name>')
+@click.option('-t',
+              '--target-vm',
+              metavar='target-vm',
+              help='VM name to save as')
+@click.option('-o',
+              '--hostname',
+              metavar='hostname',
+              help='Hostname')
+@click.option('-n',
+              '--network',
+              metavar='network',
+              help='vApp network to connect to, first defined if omitted')
+@click.option('ip_allocation_mode',
+              '-i',
+              '--ip-allocation-mode',
+              type=click.Choice(['dhcp', 'pool']),
+              required=False,
+              default='dhcp',
+              metavar='ip-allocation-mode',
+              help='IP allocation mode')
+@click.option('storage_profile',
+              '-s',
+              '--storage-profile',
+              metavar='storage-profile',
+              help='Name of the storage profile for the VM')
+def add_vm(ctx, name, source_vapp, source_vm, catalog, target_vm, hostname,
+           network, ip_allocation_mode, storage_profile):
     try:
         client = ctx.obj['client']
         in_use_org_href = ctx.obj['profiles'].get('org_href')
         org = Org(client, in_use_org_href)
-        catalog_resource = org.get_catalog(catalog)
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
+        source_vapp_resource = None
+        if catalog is None:
+            source_vapp_resource = vdc.get_vapp(source_vapp)
+        else:
+            catalog_item = org.get_catalog_item(catalog, source_vapp)
+            source_vapp_resource = client.get_resource(
+                catalog_item.Entity.get('href'))
+        vapp_resource = vdc.get_vapp(name)
+        vapp = VApp(client, resource=vapp_resource)
+        assert source_vapp_resource is not None
+        spec = {'source_vm_name': source_vm, 'vapp': source_vapp_resource}
+        if target_vm is not None:
+            spec['target_vm_name'] = target_vm
+        if hostname is not None:
+            spec['hostname'] = hostname
+        if network is not None:
+            spec['network'] = network
+            spec['ip_allocation_mode'] = ip_allocation_mode
+        if storage_profile is not None:
+            spec['storage_profile'] = vdc.get_storage_profile(storage_profile)
+        task = vapp.add_vms([spec])
+        stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

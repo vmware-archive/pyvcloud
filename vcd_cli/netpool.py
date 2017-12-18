@@ -29,7 +29,8 @@ def netpool(ctx):
     Examples
         vcd netpool list
             Get list of network pools.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

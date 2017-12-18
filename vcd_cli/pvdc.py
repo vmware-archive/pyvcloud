@@ -29,7 +29,8 @@ def pvdc(ctx):
     Examples
         vcd pvdc list
             Get list of provider virtual datacenters.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

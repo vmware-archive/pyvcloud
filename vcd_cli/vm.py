@@ -48,6 +48,7 @@ def vm(ctx):
             'pa$$w0rd' root 'pa$$w0rd' /etc/hosts ./hosts.txt
             Download file from guest OS and save locally, requires access to vCenter.
     """  # NOQA
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

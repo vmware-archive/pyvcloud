@@ -112,6 +112,7 @@ def login(ctx, user, host, password, api_version, org,
             option has precedence over the environment variable.
 
     """
+
     if not verify_ssl_certs:
         if disable_warnings:
             pass

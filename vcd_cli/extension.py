@@ -31,7 +31,8 @@ def extension(ctx):
         vcd system extension list
             List available extension services.
 \b
-        vcd system extension create cse cse cse vcdext '/api/cluster, /api/cluster/.*, /api/cluster/.*/.*'
+        vcd system extension create cse cse cse vcdext \\
+            '/api/cluster, /api/cluster/.*, /api/cluster/.*/.*'
             Register a new extension service named 'cse'.
 \b
         vcd system extension delete cse
@@ -39,7 +40,8 @@ def extension(ctx):
 \b
         vcd system extension info cse
             Get details of an extension service named 'cse'.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

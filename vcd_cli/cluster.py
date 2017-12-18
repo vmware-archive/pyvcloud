@@ -46,7 +46,8 @@ def cluster(ctx):
 \b
         vcd cluster create c1 --nodes 0 --network net1
             Create a single node kubernetes cluster for dev/test.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

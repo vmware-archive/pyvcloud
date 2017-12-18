@@ -41,7 +41,8 @@ def task(ctx):
 \b
         vcd task update aborted 4a115aa5-9657-4d97-a8c2-3faf43fb45dd
             Abort task by id, requires login as 'system administrator'.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)
@@ -107,7 +108,6 @@ def update(ctx, status, task_id):
                                             RelationType.EDIT,
                                             EntityType.TASK.value,
                                             task)
-        # stdout(result, ctx)
         print(result)
     except Exception as e:
         import traceback

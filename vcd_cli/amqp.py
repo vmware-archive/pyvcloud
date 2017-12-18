@@ -41,7 +41,8 @@ def amqp(ctx):
 \b
         vcd system amqp set amqp-config.json --password guest
             Set AMQP configuration.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

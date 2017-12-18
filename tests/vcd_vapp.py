@@ -1,14 +1,12 @@
-import os
 import unittest
-import yaml
-from pyvcloud.vcd.client import BasicLoginCredentials
-from pyvcloud.vcd.client import Client
+
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.test import TestCase
-from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.vapp import VApp
+from pyvcloud.vcd.vdc import VDC
+
 
 class TestVApp(TestCase):
 
@@ -72,7 +70,7 @@ class TestVApp(TestCase):
         assert self.config['vcd']['vapp'] == vapp_resource.get('name')
         vm_name = self.config['vcd']['vm']
         vapp = VApp(self.client, resource=vapp_resource)
-        disk_size = 1024 # 1GB
+        disk_size = 1024  # 1GB
         result = vapp.add_disk_to_vm(vm_name, disk_size)
         task = self.client.get_task_monitor().wait_for_status(
                             task=result,
@@ -256,6 +254,17 @@ class TestVApp(TestCase):
                                 TaskStatus.CANCELED],
                             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
+
+    def test__1001_vapp_control_access_retrieval(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, resource=vdc_resource)
+        vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
+        vapp = VApp(self.client, resource=vapp_resource)
+        access_control_settings = vapp.get_access_control_settings()
+        assert len(access_control_settings) > 0
+
 
 if __name__ == '__main__':
     unittest.main()

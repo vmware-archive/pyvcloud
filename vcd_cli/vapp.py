@@ -106,7 +106,9 @@ def info(ctx, name):
         vapp_resource = vdc.get_vapp(name)
         vapp = VApp(client, resource=vapp_resource)
         md = vapp.get_metadata()
-        stdout(vapp_to_dict(vapp_resource, md), ctx)
+        access_control_settings = vapp.get_access_control_settings()
+        result = vapp_to_dict(vapp_resource, md, access_control_settings)
+        stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)
 

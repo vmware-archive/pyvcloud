@@ -70,21 +70,14 @@ def info(ctx, name):
         client = ctx.obj['client']
         in_use_org_name = ctx.obj['profiles'].get('org_in_use')
         in_use_vdc = ctx.obj['profiles'].get('vdc_in_use')
-        orgs = client.get_org_list()
-        result = {}
-        vdc_resource = None
-        for org in [o for o in orgs.Org if hasattr(orgs, 'Org')]:
-            if org.get('name') == in_use_org_name:
-                resource = client.get_resource(org.get('href'))
-                for v in get_links(resource, media_type=EntityType.VDC.value):
-                    if v.name == name:
-                        vdc_resource = client.get_resource(v.href)
-                        result = vdc_to_dict(vdc_resource)
-                        result['in_use'] = in_use_vdc == name
-                        result['org'] = in_use_org_name
-                        break
-        if vdc_resource is None:
-            raise Exception('not found')
+        org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, org_href)
+        vdc_resource = org.get_vdc(name)
+        vdc = VDC(client, resource=vdc_resource)
+        access_control_settings = vdc.get_access_control_settings()
+        result = vdc_to_dict(vdc_resource, access_control_settings)
+        result['in_use'] = in_use_vdc == name
+        result['org'] = in_use_org_name
         stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)

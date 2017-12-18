@@ -195,34 +195,38 @@ def vapp_to_dict(vapp, metadata=None):
                     result['%s: %s' % (k, element_name)] = value
             if hasattr(vm, 'NetworkConnectionSection'):
                 ncs = vm.NetworkConnectionSection
-                result['%s: %s' % (k, 'primary-net')] = \
-                    ncs.PrimaryNetworkConnectionIndex.text
-                for nc in ncs.NetworkConnection:
-                    nci = nc.NetworkConnectionIndex.text
-                    result['%s: net-%s' % (k, nci)] = nc.get('network')
-                    result['%s: net-%s-mode' % (k, nci)] = \
-                        nc.IpAddressAllocationMode.text
-                    result['%s: net-%s-connected' % (k, nci)] = \
-                        nc.IsConnected.text
-                    if hasattr(nc, 'MACAddress'):
-                        result['%s: net-%s-mac' % (k, nci)] = \
-                            nc.MACAddress.text
-                    if hasattr(nc, 'IpAddress'):
-                        result['%s: net-%s-ip' % (k, nci)] = nc.IpAddress.text
-            for setting in vm.VmSpecSection.DiskSection.DiskSettings:
-                if hasattr(setting, 'Disk'):
-                    result['%s: attached-disk-%s-name' %
-                           (k, setting.DiskId.text)] = \
-                           '%s' % (setting.Disk.get('name'))
-                    result['%s: attached-disk-%s-size-Mb' %
-                           (k, setting.DiskId.text)] = \
-                        '%s' % (setting.SizeMb.text)
-                    result['%s: attached-disk-%s-bus' %
-                           (k, setting.DiskId.text)] = \
-                        '%s' % (setting.BusNumber.text)
-                    result['%s: attached-disk-%s-unit' %
-                           (k, setting.DiskId.text)] = \
-                        '%s' % (setting.UnitNumber.text)
+                if 'PrimaryNetworkConnectionIndex' in ncs:
+                    result['%s: %s' % (k, 'primary-net')] = \
+                        ncs.PrimaryNetworkConnectionIndex.text
+                if 'NetworkConnection' in ncs:
+                    for nc in ncs.NetworkConnection:
+                        nci = nc.NetworkConnectionIndex.text
+                        result['%s: net-%s' % (k, nci)] = nc.get('network')
+                        result['%s: net-%s-mode' % (k, nci)] = \
+                            nc.IpAddressAllocationMode.text
+                        result['%s: net-%s-connected' % (k, nci)] = \
+                            nc.IsConnected.text
+                        if hasattr(nc, 'MACAddress'):
+                            result['%s: net-%s-mac' % (k, nci)] = \
+                                nc.MACAddress.text
+                        if hasattr(nc, 'IpAddress'):
+                            result['%s: net-%s-ip' % (k,
+                                                      nci)] = nc.IpAddress.text
+            if 'VmSpecSection' in vm:
+                for setting in vm.VmSpecSection.DiskSection.DiskSettings:
+                    if hasattr(setting, 'Disk'):
+                        result['%s: attached-disk-%s-name' %
+                               (k, setting.DiskId.text)] = \
+                               '%s' % (setting.Disk.get('name'))
+                        result['%s: attached-disk-%s-size-Mb' %
+                               (k, setting.DiskId.text)] = \
+                            '%s' % (setting.SizeMb.text)
+                        result['%s: attached-disk-%s-bus' %
+                               (k, setting.DiskId.text)] = \
+                            '%s' % (setting.BusNumber.text)
+                        result['%s: attached-disk-%s-unit' %
+                               (k, setting.DiskId.text)] = \
+                            '%s' % (setting.UnitNumber.text)
 
     result['status'] = VCLOUD_STATUS_MAP.get(int(vapp.get('status')))
     if metadata is not None and hasattr(metadata, 'MetadataEntry'):

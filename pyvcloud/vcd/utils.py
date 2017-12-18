@@ -267,16 +267,16 @@ def access_control_settings_to_dict(access_control_settings):
                 access_control_settings.AccessSettings.AccessSetting):
             access_str = 'access_settings'
             if hasattr(access_setting, 'Subject'):
-                result['%s-%s-subject-name' % (access_str, n)] = \
+                result['%s_%s_subject_name' % (access_str, n)] = \
                     access_setting.Subject.get('name')
             if hasattr(access_setting, 'Subject'):
-                result['%s-%s-subject-href' % (access_str, n)] = \
+                result['%s_%s_subject_href' % (access_str, n)] = \
                     access_setting.Subject.get('href')
             if hasattr(access_setting, 'Subject'):
-                result['%s-%s-subject-type' % (access_str, n)] = \
+                result['%s_%s_subject_type' % (access_str, n)] = \
                     access_setting.Subject.get('type')
             if hasattr(access_setting, 'AccessLevel'):
-                result['%s-%s-access-level' % (access_str, n)] = \
+                result['%s_%s_access_level' % (access_str, n)] = \
                     access_setting.AccessLevel
             n += 1
     return result

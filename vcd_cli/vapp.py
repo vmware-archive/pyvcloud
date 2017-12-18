@@ -606,7 +606,7 @@ def use(ctx, name):
 @click.option('-n',
               '--network',
               metavar='network',
-              help='vApp network to connect to, first defined if omitted')
+              help='vApp network to connect to')
 @click.option('ip_allocation_mode',
               '-i',
               '--ip-allocation-mode',

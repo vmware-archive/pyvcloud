@@ -137,12 +137,14 @@ class BasicLoginCredentials(object):
 class RelationType(Enum):
     ADD = 'add'
     ALTERNATE = 'alternate'
+    DISABLE = 'disable'
     DISK_ATTACH = 'disk:attach'
     DISK_DETACH = 'disk:detach'
     DOWN = 'down'
     DOWN_EXTENSIBILITY = 'down:extensibility'
     DOWNLOAD_DEFAULT = 'download:default'
     EDIT = 'edit'
+    ENABLE = 'enable'
     NEXT_PAGE = 'nextPage'
     POWER_OFF = 'power:powerOff'
     POWER_ON = 'power:powerOn'
@@ -182,6 +184,8 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.networkConfigSection+xml'
     NETWORK_CONNECTION_SECTION = \
         'application/vnd.vmware.vcloud.networkConnectionSection+xml'
+    NETWORK_POOL_REFERENCES = \
+        'application/vnd.vmware.admin.vmwNetworkPoolReferences+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
@@ -203,6 +207,8 @@ class EntityType(Enum):
     VAPP = 'application/vnd.vmware.vcloud.vApp+xml'
     VAPP_TEMPLATE = 'application/vnd.vmware.vcloud.vAppTemplate+xml'
     VDC = 'application/vnd.vmware.vcloud.vdc+xml'
+    VDCS_PARAMS = 'application/vnd.vmware.admin.createVdcParams+xml'
+    VMS = 'application/vnd.vmware.vcloud.vms+xml'
 
 
 class QueryResultFormat(Enum):
@@ -397,6 +403,9 @@ class _TaskMonitor(object):
 
     def _get_task_status(self, task_href):
         return self._client.get_resource(task_href)
+
+    def get_status(self, task):
+        return self._get_task_status(task.get('href')).get('status').lower()
 
 
 class Client(object):

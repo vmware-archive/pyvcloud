@@ -16,10 +16,11 @@ from lxml import etree
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.org import Org
+from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import access_control_settings_to_dict
 
 
@@ -32,6 +33,7 @@ class VDC(object):
         if resource is not None:
             self.name = resource.get('name')
             self.href = resource.get('href')
+        self.href_admin = get_admin_href(self.href)
 
     def get_resource(self):
         if self.resource is None:
@@ -456,8 +458,11 @@ class VDC(object):
                     self.resource.ResourceEntities.ResourceEntity:
 
                 if resourceEntity.get('type') == \
-                   "application/vnd.vmware.vcloud.disk+xml":
+                   EntityType.DISK.value:
                     disk = self.client.get_resource(resourceEntity.get('href'))
+                    attached_vms = self.client.get_linked_resource(
+                        disk, RelationType.DOWN, EntityType.VMS.value)
+                    disk['attached_vms'] = attached_vms
                     disks.append(disk)
         return disks
 
@@ -466,9 +471,7 @@ class VDC(object):
         Return information for an independent disk.
         :param name: (str): The name of the disk.
         :param disk_id: (str): The id of the disk.
-        :return: (list of tuples of (DiskType, list of str)):  An list of tuples. \
-                  Each tuple contains a :class:`pyvcloud.schema.vcd.v1_5.schemas.vcloud.diskType.DiskType` object and a list of vms utilizing the disk.
-        **service type:** ondemand, subscription, vcd
+        :return: Disk
         """  # NOQA
 
         if self.resource is None:
@@ -520,7 +523,6 @@ class VDC(object):
         etree.cleanup_namespaces(new_owner)
         return self.client.put_resource(
             disk.get('href') + '/owner/', new_owner, EntityType.OWNER.value)
-        return None
 
     def get_storage_profiles(self):
         """
@@ -555,6 +557,36 @@ class VDC(object):
 
         raise Exception(
             'Storage Profile named \'%s\' not found' % profile_name)
+
+    def enable_vdc(self, enable=True):
+        """
+        Enable current vdc
+        :param is_enabled: (bool): enable/disable the vdc
+        :return: (OrgVdcType) updated vdc object.
+        """  # NOQA
+        resource_admin = self.client.get_resource(self.href_admin)
+        link = RelationType.ENABLE if enable else RelationType.DISABLE
+        return self.client.post_linked_resource(resource_admin, link, None,
+                                                None)
+
+    def compose_vapp(self, new_vapp_name):
+        """
+        Compose a new vApp from existing virtual machines
+
+        """  # NOQA
+
+    def delete_vdc(self):
+        """
+        Delete the current Organization vDC
+        :param vdc_name: The name of the org vdc to delete
+        :return:
+        """  # NOQA
+
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        return self.client.delete_linked_resource(self.resource,
+                                                  RelationType.REMOVE, None)
 
     def get_access_control_settings(self):
         """

@@ -251,6 +251,12 @@ def disk_to_dict(disk):
 
 
 def access_control_settings_to_dict(access_control_settings):
+    """
+    Convert access control settings to dict.
+    :param access_control_settings: (ControlAccessParamsType): xml object
+    representing access control settings.
+    :return: (dict): dict representation of access control settings.
+    """
     result = {}
     if hasattr(access_control_settings, 'IsSharedToEveryone'):
         result['is_shared_to_everyone'] = access_control_settings[

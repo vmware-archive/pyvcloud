@@ -99,6 +99,17 @@ class Org(object):
             EntityType.ROLE.value,
             role)
 
+    def delete_role(self, name):
+        """
+        Deletes specified role from the organization
+        :param name: (str): name of the role
+        :return: None
+        """  #NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        role_record = self.get_role(name)
+        self.client.delete_resource(role_record.get('href'))
+
     def delete_catalog(self, name):
         org = self.client.get_resource(self.href)
         links = get_links(

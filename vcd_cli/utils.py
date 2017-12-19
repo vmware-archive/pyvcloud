@@ -209,13 +209,15 @@ def stderr(exception, ctx=None):
         click.echo(message)
         sys.exit(1)
     else:
-        if 'USE_COLORED_OUTPUT' not in environ.keys() or \
-           environ['USE_COLORED_OUTPUT'] == '1':
-            message = Fore.RED + str(message)
         click.echo('\x1b[2K\r', nl=False)
         if ctx is not None:
+            if ctx.find_root().params['is_colorized'] is True:
+                message = Fore.RED + str(message)
             ctx.fail(message)
         else:
+            if 'USE_COLORED_OUTPUT' in environ.keys() and \
+               environ['USE_COLORED_OUTPUT'] != '0':
+                message = Fore.RED + str(message)
             click.echo(message)
             sys.exit(1)
 

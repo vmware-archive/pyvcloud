@@ -50,6 +50,7 @@ def abort_if_false(ctx, param, value):
 @click.option('--colorized/--no-colorized',
               'is_colorized',
               default=True,
+              envvar='USE_COLORED_OUTPUT',
               help='print info in color or monochrome')
 def vcd(ctx,
         debug,

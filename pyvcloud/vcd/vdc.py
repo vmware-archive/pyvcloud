@@ -591,7 +591,7 @@ class VDC(object):
                     fence_mode='bridged',
                     accept_all_eulas=None):
         """
-        Create a new empty vApp in this VDC
+        Create a new vApp in this VDC
 
         :param name: (str) Name of the new vApp
         :param description: (str) Description of the new vApp

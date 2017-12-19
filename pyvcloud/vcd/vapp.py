@@ -247,7 +247,7 @@ class VApp(object):
         for vm in self.get_all_vms():
             if vm.get('name') == vm_name:
                 return vm
-        raise Exception('can\'t find VM')
+        raise Exception('can\'t find VM %s' % vm_name)
 
     def add_disk_to_vm(self, vm_name, disk_size):
         """Add a virtual disk to a virtual machine in the vApp.
@@ -320,20 +320,22 @@ class VApp(object):
         return networks[index].get('{' + NSMAP['ovf'] + '}name')
 
     def to_sourced_item(self, spec):
-        """Creates a SourcedItem from a dict.
+        """Creates a VM SourcedItem from a VM specification.
 
         :param spec: (dict) containing:
-            vapp: (resource)(required) source vApp or vAppTemplate resource
-            source_vm_name: (str)(required) source VM name
-            target_vm_name: (str)(optional) target VM name
-            hostname: (str)(optional) target guest hostname
-            password: (str)(optional) set the administrator password of this
+            vapp: (resource): (required) source vApp or vAppTemplate resource
+            source_vm_name: (str): (required) source VM name
+            target_vm_name: (str): (optional) target VM name
+            hostname: (str): (optional) target guest hostname
+            password: (str): (optional) set the administrator password of this
                 machine to this value
-            cust_script: (str)(optional) script to run on guest customization
-            network: (str)(optional) Name of the vApp network to connect.
+            password_auto: (bool): (optional) autogenerate administrator
+                password
+            cust_script: (str): (optional) script to run on guest customization
+            network: (str): (optional) Name of the vApp network to connect.
                 If omitted, the VM won't be connected to any network
-            storage_profile: (str)(optional) the name of the storage profile to
-                be used for this VM
+            storage_profile: (str): (optional) the name of the storage profile
+                to be used for this VM
 
         :return: SourcedItem
 
@@ -384,7 +386,15 @@ class VApp(object):
                 guest_customization_param.append(
                     E.ResetPasswordRequired(False))
             else:
-                guest_customization_param.append(E.AdminPasswordEnabled(False))
+                if 'password_auto' in spec:
+                    guest_customization_param.append(
+                        E.AdminPasswordEnabled(True))
+                    guest_customization_param.append(E.AdminPasswordAuto(True))
+                    guest_customization_param.append(
+                        E.ResetPasswordRequired(False))
+                else:
+                    guest_customization_param.append(
+                        E.AdminPasswordEnabled(False))
             if 'cust_script' in spec:
                 guest_customization_param.append(
                     E.CustomizationScript(spec['cust_script']))

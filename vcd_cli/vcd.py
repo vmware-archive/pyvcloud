@@ -15,6 +15,7 @@
 import click
 import pkg_resources
 import platform
+from colorama import init
 from vcd_cli.plugin import load_user_plugins
 from vcd_cli.utils import stdout
 
@@ -116,3 +117,4 @@ else:
     from vcd_cli import vdc  # NOQA
     from vcd_cli import vm  # NOQA
     load_user_plugins()
+    init(autoreset=True)

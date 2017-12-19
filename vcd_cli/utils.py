@@ -17,6 +17,7 @@ from colorama import Fore
 import json
 import logging
 from lxml.objectify import ObjectifiedElement
+from os import environ
 from pygments import formatters
 from pygments import highlight
 from pygments import lexers
@@ -202,7 +203,9 @@ def stderr(exception, ctx=None):
         click.echo(message)
         sys.exit(1)
     else:
-        message = Fore.RED + str(message) + Fore.BLACK
+        if 'USE_COLORED_OUTPUT' not in environ.keys() or \
+           environ['USE_COLORED_OUTPUT'] == '1':
+            message = Fore.RED + str(message)
         click.echo('\x1b[2K\r', nl=False)
         if ctx is not None:
             ctx.fail(message)

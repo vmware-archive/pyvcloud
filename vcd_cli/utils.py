@@ -129,8 +129,11 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                           separators=(',', ': '))
         if sys.version_info[0] < 3:
             text = str(text, 'utf-8')
-        click.echo(highlight(text, lexers.JsonLexer(),
-                             formatters.TerminalFormatter()))
+        if ctx.find_root().params['is_colorized'] is True:
+            click.echo(highlight(text, lexers.JsonLexer(),
+                                 formatters.TerminalFormatter()))
+        else:
+            click.echo(text)
     else:
         if alt_text is not None:
             text = alt_text
@@ -198,8 +201,11 @@ def stderr(exception, ctx=None):
                           separators=(',', ': '))
         if sys.version_info[0] < 3:
             text = str(text, 'utf-8')
-        message = highlight(text, lexers.JsonLexer(),
-                            formatters.TerminalFormatter())
+        if ctx.find_root().params['is_colorized'] is True:
+            message = highlight(text, lexers.JsonLexer(),
+                                formatters.TerminalFormatter())
+        else:
+            message = text
         click.echo(message)
         sys.exit(1)
     else:

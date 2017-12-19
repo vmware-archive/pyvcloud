@@ -47,10 +47,15 @@ def abort_if_false(ctx, param, value):
               is_flag=True,
               default=False,
               help='Don\'t wait for task')
+@click.option('--colorized/--no-colorized',
+              'is_colorized',
+              default=True,
+              help='print info in color or monochrome')
 def vcd(ctx,
         debug,
         json_output,
-        no_wait):
+        no_wait,
+        is_colorized):
     """VMware vCloud Director Command Line Interface."""
     if ctx.invoked_subcommand is None:
         click.secho(ctx.get_help())

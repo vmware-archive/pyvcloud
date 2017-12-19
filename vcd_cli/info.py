@@ -81,7 +81,7 @@ def info(ctx, resource_type, resource_id):
         elif len(records) > 1:
             raise Exception('multiple found')
         resource = client.get_resource(records[0].get('href'))
-        stdout_xml(resource)
+        stdout_xml(resource, ctx.find_root().params['is_colorized'])
         # result = to_dict(records[0], resource_type)
         # stdout(result, ctx, show_id=True)
     except Exception as e:

@@ -41,7 +41,7 @@ def vapp(ctx):
         When specifying a template in a catalog, it instantiates the template
         in the currect vDC.
 \b
-        'vapp add-vm' adds VMs to the vApp. When '--catalog' is used, the
+        'vapp add-vm' adds a VM to the vApp. When '--catalog' is used, the
         <source-vapp> parameter refers to a template in the specified catalog
         and the command will instantiate the <source-vm> found in the template.
         If '--catalog' is not used, <source-vapp> refers to another vApp in the
@@ -106,7 +106,9 @@ def vapp(ctx):
             Add a disk of 10000 MB to a VM.
 \b
         vcd vapp add-vm vapp1 template1.ova vm1 -c catalog1
-            Add a VM to a vApp.
+            Add a VM to a vApp. Instantiate the source VM \'vm1\' that is in
+            the \'template1.ova\' template in the \'catalog1\' catalog and
+            place the new VM inside \'vapp1\' vApp.
     """
 
     if ctx.invoked_subcommand is not None:
@@ -233,19 +235,22 @@ def list_vapps(ctx):
                 required=True)
 @click.option('-d',
               '--description',
-              metavar='description')
+              metavar='text',
+              help='vApp description')
 @click.option('-c',
               '--catalog',
-              metavar='catalog')
+              metavar='name',
+              help='Catalog where the template is')
 @click.option('-t',
               '--template',
-              metavar='template')
+              metavar='name',
+              help='Name of the template')
 @click.option('-n',
               '--network',
               'network',
               required=False,
               default=None,
-              metavar='<network>',
+              metavar='name',
               help='Network')
 @click.option('ip_allocation_mode',
               '-i',
@@ -253,7 +258,7 @@ def list_vapps(ctx):
               type=click.Choice(['dhcp', 'pool']),
               required=False,
               default='dhcp',
-              metavar='<ip-allocation-mode>',
+              metavar='mode',
               help='IP allocation mode')
 @click.option('-m',
               '--memory',
@@ -278,12 +283,12 @@ def list_vapps(ctx):
               default=None,
               metavar='<MB>',
               type=click.INT,
-              help='size of the vm home disk in MB')
+              help='Size of the vm home disk in MB')
 @click.option('-v',
               '--vm-name',
               required=False,
               default=None,
-              metavar='<vm-name>',
+              metavar='name',
               help='VM name')
 @click.option('-o',
               '--hostname',
@@ -294,7 +299,7 @@ def list_vapps(ctx):
               '--storage-profile',
               required=False,
               default=None,
-              metavar='<storage-profile>',
+              metavar='name',
               help='Name of the storage profile for the vApp')
 @click.option('-a',
               '--accept-all-eulas',
@@ -584,7 +589,7 @@ def use(ctx, name):
 @vapp.command('add-vm', short_help='add VM to vApp')
 @click.pass_context
 @click.argument('name',
-                metavar='<name>',
+                metavar='<target-vapp>',
                 required=True)
 @click.argument('source-vapp',
                 metavar='<source-vapp>',
@@ -594,18 +599,19 @@ def use(ctx, name):
                 required=True)
 @click.option('-c',
               '--catalog',
-              metavar='<name>')
+              metavar='name',
+              help='Name of the catalog if the source vApp is a template')
 @click.option('-t',
               '--target-vm',
-              metavar='target-vm',
-              help='VM name to save as')
+              metavar='name',
+              help='Rename the target VM with this name')
 @click.option('-o',
               '--hostname',
               metavar='hostname',
-              help='Hostname')
+              help='Customize VM and set hostname in the guest OS')
 @click.option('-n',
               '--network',
-              metavar='network',
+              metavar='name',
               help='vApp network to connect to')
 @click.option('ip_allocation_mode',
               '-i',
@@ -613,15 +619,19 @@ def use(ctx, name):
               type=click.Choice(['dhcp', 'pool']),
               required=False,
               default='dhcp',
-              metavar='ip-allocation-mode',
+              metavar='mode',
               help='IP allocation mode')
 @click.option('storage_profile',
               '-s',
               '--storage-profile',
-              metavar='storage-profile',
+              metavar='name',
               help='Name of the storage profile for the VM')
+@click.option('--password-auto',
+              is_flag=True,
+              default=False,
+              help='Autogenerate administrator password')
 def add_vm(ctx, name, source_vapp, source_vm, catalog, target_vm, hostname,
-           network, ip_allocation_mode, storage_profile):
+           network, ip_allocation_mode, storage_profile, password_auto):
     try:
         client = ctx.obj['client']
         in_use_org_href = ctx.obj['profiles'].get('org_href')
@@ -648,6 +658,8 @@ def add_vm(ctx, name, source_vapp, source_vm, catalog, target_vm, hostname,
             spec['ip_allocation_mode'] = ip_allocation_mode
         if storage_profile is not None:
             spec['storage_profile'] = vdc.get_storage_profile(storage_profile)
+        if password_auto:
+            spec['password_auto'] = True
         task = vapp.add_vms([spec])
         stdout(task, ctx)
     except Exception as e:

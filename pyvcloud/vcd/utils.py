@@ -342,7 +342,7 @@ def to_camel_case(name, names):
 
 def stdout_xml(the_xml, is_colorized=True):
     message = str(etree.tostring(the_xml, pretty_print=True), 'utf-8')
-    if is_colorized is True:
+    if is_colorized:
         print(highlight(message,
                         lexers.XmlLexer(), formatters.TerminalFormatter()))
     else:

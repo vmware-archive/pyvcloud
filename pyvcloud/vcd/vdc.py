@@ -20,6 +20,7 @@ from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
+from pyvcloud.vcd.utils import access_control_settings_to_dict
 from pyvcloud.vcd.utils import get_admin_href
 
 
@@ -584,23 +585,35 @@ class VDC(object):
         return self.client.delete_linked_resource(self.resource,
                                                   RelationType.REMOVE, None)
 
+    def get_access_control_settings(self):
+        """Get the access control settings of the vdc.
+
+        :return: (dict): Access control settings of the vdc.
+        """
+        vdc_resource = self.get_resource()
+        access_control_settings = self.client.get_linked_resource(
+            vdc_resource, RelationType.DOWN,
+            EntityType.CONTROL_ACCESS_PARAMS.value)
+        return access_control_settings_to_dict(access_control_settings)
+
     def create_vapp(self,
                     name,
                     description=None,
                     network=None,
                     fence_mode='bridged',
                     accept_all_eulas=None):
-        """
-        Create a new vApp in this VDC
+        """Create a new vApp in this VDC
 
         :param name: (str) Name of the new vApp
         :param description: (str) Description of the new vApp
         :param network: (str) Name of the OrgVDC network to connect the vApp to
         :param fence_mode: (str): Network fence mode.
             Possible values are `bridged` and `natRouted`
-        :param accept_all_eulas: (bool): True confirms acceptance of all EULAs in a vApp template.
-        :return:  A :class:`lxml.objectify.StringElement` object representing a sparsely populated vApp element in the target VDC.
-        """  # NOQA
+        :param accept_all_eulas: (bool): True confirms acceptance of all EULAs
+            in a vApp template.
+        :return:  A :class:`lxml.objectify.StringElement` object representing a
+            sparsely populated vApp element in the target VDC.
+        """
 
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

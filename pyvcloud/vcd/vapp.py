@@ -21,6 +21,7 @@ from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.utils import access_control_settings_to_dict
 
 
 class VApp(object):
@@ -288,6 +289,19 @@ class VApp(object):
         return self.client.put_resource(
             vm.get('href') + '/virtualHardwareSection/disks', disk_list,
             EntityType.RASD_ITEM_LIST.value)
+
+    def get_access_control_settings(self):
+        """Get the access control settings of the vapp.
+
+        :return: (dict): Access control settings of the vapp.
+        """
+
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        access_control_settings = self.client.get_linked_resource(
+            self.resource, RelationType.DOWN,
+            EntityType.CONTROL_ACCESS_PARAMS.value)
+        return access_control_settings_to_dict(access_control_settings)
 
     def get_all_networks(self):
         """Helper method that returns the list of networks defined in the vApp.

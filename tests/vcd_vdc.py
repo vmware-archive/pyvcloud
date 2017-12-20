@@ -105,6 +105,14 @@ class TestVDC(TestCase):
             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
 
+    def test_vdc_control_access_retrieval(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, resource=vdc_resource)
+        access_control_settings = vdc.get_access_control_settings()
+        assert len(access_control_settings) > 0
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
 import humanfriendly
 from lxml import etree
 from lxml.objectify import NoneElement
@@ -55,7 +54,7 @@ def org_to_dict(org):
     return result
 
 
-def vdc_to_dict(vdc):
+def vdc_to_dict(vdc, access_control_settings=None):
     result = {}
     result['name'] = vdc.get('name')
     result['id'] = extract_id(vdc.get('id'))
@@ -109,6 +108,8 @@ def vdc_to_dict(vdc):
         result['storage_profiles'] = []
         for sp in vdc.VdcStorageProfiles.VdcStorageProfile:
             result['storage_profiles'].append(sp.get('name'))
+    if access_control_settings is not None:
+        result.update(access_control_settings)
     return result
 
 
@@ -119,7 +120,7 @@ def to_human(seconds):
     return '%sw, %sd, %sh' % (weeks, days, hours)
 
 
-def vapp_to_dict(vapp, metadata=None):
+def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
     result = {}
     result['name'] = vapp.get('name')
     result['id'] = extract_id(vapp.get('id'))
@@ -229,6 +230,8 @@ def vapp_to_dict(vapp, metadata=None):
                             '%s' % (setting.UnitNumber.text)
 
     result['status'] = VCLOUD_STATUS_MAP.get(int(vapp.get('status')))
+    if access_control_settings is not None:
+        result.update(access_control_settings)
     if metadata is not None and hasattr(metadata, 'MetadataEntry'):
         for me in metadata.MetadataEntry:
             result['metadata: %s' % me.Key.text] = me.TypedValue.Value.text
@@ -274,13 +277,41 @@ def disk_to_dict(disk):
     return result
 
 
-def access_settings_to_dict(access_setting):
-    result = collections.OrderedDict()
-    if hasattr(access_setting, 'Subject'):
-        result['user_name'] = access_setting.Subject.get('name')
-        result['user_href'] = access_setting.Subject.get('href')
-    if hasattr(access_setting, 'AccessLevel'):
-        result['access_level'] = access_setting.AccessLevel
+def access_control_settings_to_dict(access_control_settings):
+    """Convert access control settings to dict.
+
+    :param access_control_settings: (ControlAccessParamsType): xml object
+    representing access control settings.
+    :return: (dict): dict representation of access control settings.
+    """
+    result = {}
+    if hasattr(access_control_settings, 'IsSharedToEveryone'):
+        result['is_shared_to_everyone'] = access_control_settings[
+            'IsSharedToEveryone']
+    if hasattr(access_control_settings, 'EveryoneAccessLevel'):
+        result['everyone_access_level'] = access_control_settings[
+            'EveryoneAccessLevel']
+    if hasattr(access_control_settings, 'AccessSettings') and \
+            hasattr(access_control_settings.AccessSettings,
+                    'AccessSetting') and \
+            len(access_control_settings.AccessSettings.AccessSetting) > 0:
+        n = 1
+        for access_setting in list(
+                access_control_settings.AccessSettings.AccessSetting):
+            access_str = 'access_settings'
+            if hasattr(access_setting, 'Subject'):
+                result['%s_%s_subject_name' % (access_str, n)] = \
+                    access_setting.Subject.get('name')
+            if hasattr(access_setting, 'Subject'):
+                result['%s_%s_subject_href' % (access_str, n)] = \
+                    access_setting.Subject.get('href')
+            if hasattr(access_setting, 'Subject'):
+                result['%s_%s_subject_type' % (access_str, n)] = \
+                    access_setting.Subject.get('type')
+            if hasattr(access_setting, 'AccessLevel'):
+                result['%s_%s_access_level' % (access_str, n)] = \
+                    access_setting.AccessLevel
+            n += 1
     return result
 
 

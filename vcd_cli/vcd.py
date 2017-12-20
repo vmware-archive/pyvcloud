@@ -67,8 +67,9 @@ def vcd(ctx,
     Environment Variables
         VCD_USE_COLORED_OUTPUT
             If this environment variable is set, and it's value is not '0',
-            the comand vcd info will print the output in color. It will be
-            overridden by the param --colorized/--no-colorized.
+            the command vcd info will print the output in color. The effect
+            of the environment variable will be overridden by the param
+            --colorized/--no-colorized.
      """
     if ctx.invoked_subcommand is None:
         click.secho(ctx.get_help())

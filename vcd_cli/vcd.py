@@ -12,10 +12,14 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-import click
-import pkg_resources
 import platform
+
+import click
+
 from colorama import init
+
+import pkg_resources
+
 from vcd_cli.plugin import load_user_plugins
 from vcd_cli.utils import stdout
 
@@ -50,14 +54,22 @@ def abort_if_false(ctx, param, value):
 @click.option('--colorized/--no-colorized',
               'is_colorized',
               default=True,
-              envvar='USE_COLORED_OUTPUT',
+              envvar='VCD_USE_COLORED_OUTPUT',
               help='print info in color or monochrome')
 def vcd(ctx,
         debug,
         json_output,
         no_wait,
         is_colorized):
-    """VMware vCloud Director Command Line Interface."""
+    """VMware vCloud Director Command Line Interface.
+
+\b
+    Environment Variables
+        VCD_USE_COLORED_OUTPUT
+            If this environment variable is set, and it's value is not '0',
+            the comand vcd info will print the output in color. It will be
+            overridden by the param --colorized/--no-colorized.
+     """
     if ctx.invoked_subcommand is None:
         click.secho(ctx.get_help())
         return

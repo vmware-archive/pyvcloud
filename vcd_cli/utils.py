@@ -12,24 +12,32 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-import click
-from colorama import Fore
 import json
 import logging
-from lxml.objectify import ObjectifiedElement
+import sys
+import traceback
 from os import environ
+
+import click
+
+from colorama import Fore
+
+from lxml.objectify import ObjectifiedElement
+
 from pygments import formatters
 from pygments import highlight
 from pygments import lexers
+
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.client import VcdErrorResponseException
 from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.utils import to_dict
+
 import requests
-import sys
+
 from tabulate import tabulate
-import traceback
+
 from vcd_cli.profiles import Profiles
 
 
@@ -129,7 +137,7 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                           separators=(',', ': '))
         if sys.version_info[0] < 3:
             text = str(text, 'utf-8')
-        if ctx.find_root().params['is_colorized'] is True:
+        if ctx.find_root().params['is_colorized']:
             click.echo(highlight(text, lexers.JsonLexer(),
                                  formatters.TerminalFormatter()))
         else:
@@ -201,7 +209,7 @@ def stderr(exception, ctx=None):
                           separators=(',', ': '))
         if sys.version_info[0] < 3:
             text = str(text, 'utf-8')
-        if ctx.find_root().params['is_colorized'] is True:
+        if ctx.find_root().params['is_colorized']:
             message = highlight(text, lexers.JsonLexer(),
                                 formatters.TerminalFormatter())
         else:
@@ -211,12 +219,12 @@ def stderr(exception, ctx=None):
     else:
         click.echo('\x1b[2K\r', nl=False)
         if ctx is not None:
-            if ctx.find_root().params['is_colorized'] is True:
+            if ctx.find_root().params['is_colorized']:
                 message = Fore.RED + str(message)
             ctx.fail(message)
         else:
-            if 'USE_COLORED_OUTPUT' in environ.keys() and \
-               environ['USE_COLORED_OUTPUT'] != '0':
+            if 'VCD_USE_COLORED_OUTPUT' in environ.keys() and \
+               environ['VCD_USE_COLORED_OUTPUT'] != '0':
                 message = Fore.RED + str(message)
             click.echo(message)
             sys.exit(1)

@@ -54,7 +54,7 @@ Here is a sample `vcd-cli` interaction with vCloud Director to create a virtual 
 The OVA used in the example can be downloaded with the command:
 
 ```shell
-   $ wget http://dl.bintray.com/vmware/photon/2.0/GA/ova/photon-custom-hw11-2.0-304b817.ova`
+   $ wget http://dl.bintray.com/vmware/photon/2.0/GA/ova/photon-custom-hw11-2.0-304b817.ova
 ```
 ## Documentation
 

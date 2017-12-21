@@ -248,7 +248,7 @@ class VApp(object):
         for vm in self.get_all_vms():
             if vm.get('name') == vm_name:
                 return vm
-        raise Exception('can\'t find VM %s' % vm_name)
+        raise Exception('Can\'t find VM %s' % vm_name)
 
     def add_disk_to_vm(self, vm_name, disk_size):
         """Add a virtual disk to a virtual machine in the vApp.

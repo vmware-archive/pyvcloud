@@ -13,7 +13,9 @@
 #
 
 import click
+
 from pyvcloud.vcd.system import System
+
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -29,7 +31,8 @@ def pvdc(ctx):
     Examples
         vcd pvdc list
             Get list of provider virtual datacenters.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

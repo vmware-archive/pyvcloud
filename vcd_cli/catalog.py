@@ -11,13 +11,17 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 from __future__ import division
-import click
+
 import os
+
+import click
+
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vapp import VApp
+
 from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -82,7 +86,8 @@ def catalog(ctx):
 \b
         vcd catalog update my-catalog -n 'new name' -d 'new description'
             Update the name and/or description of a catalog.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)
@@ -107,6 +112,9 @@ def info(ctx, catalog_name, item_name):
         if item_name is None:
             catalog = org.get_catalog(catalog_name)
             result = to_dict(catalog)
+            access_control_settings = org.get_catalog_access_control_settings(
+                catalog_name)
+            result.update(access_control_settings)
         else:
             catalog_item = org.get_catalog_item(catalog_name, item_name)
             result = to_dict(catalog_item)
@@ -116,31 +124,6 @@ def info(ctx, catalog_name, item_name):
             for k, v in template.items():
                 result['template-%s' % k] = v
         stdout(result, ctx)
-    except Exception as e:
-        stderr(e, ctx)
-
-
-@catalog.command('control-access',
-                 short_help='catalog control access details')
-@click.pass_context
-@click.argument('catalog-name',
-                metavar='<catalog-name>',
-                required=True)
-def control_access(ctx, catalog_name):
-    try:
-        client = ctx.obj['client']
-        in_use_org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, in_use_org_href)
-        control_access = org.get_catalog_access_control_settings(catalog_name)
-        stdout('Access Settings for catalog :' + catalog_name)
-        access_settings = control_access.get('AccessSettings')
-        del control_access['AccessSettings']
-        stdout(control_access, ctx)
-        stdout('')
-        if access_settings is not None:
-            stdout(access_settings, ctx, show_id=True)
-        else:
-            stdout('No access control information set for the catalog yet')
     except Exception as e:
         stderr(e, ctx)
 

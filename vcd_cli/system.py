@@ -13,7 +13,9 @@
 #
 
 import click
+
 from pyvcloud.vcd.client import _WellKnownEndpoint
+
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -24,7 +26,9 @@ from vcd_cli.vcd import vcd
 @vcd.group(short_help='manage system settings')
 @click.pass_context
 def system(ctx):
-    """Manage system settings in vCloud Director."""  # NOQA
+    """Manage system settings in vCloud Director.
+
+    """
 
     if ctx.invoked_subcommand is not None:
         try:

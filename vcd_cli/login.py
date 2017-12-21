@@ -13,13 +13,16 @@
 #
 
 import click
-from pyvcloud.vcd.client import _WellKnownEndpoint
+
 from pyvcloud.vcd.client import API_CURRENT_VERSIONS
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import _WellKnownEndpoint # NOQA
 from pyvcloud.vcd.client import get_links
+
 import requests
+
 from vcd_cli import browsercookie
 from vcd_cli.profiles import Profiles
 from vcd_cli.utils import as_metavar
@@ -112,6 +115,7 @@ def login(ctx, user, host, password, api_version, org,
             option has precedence over the environment variable.
 
     """
+
     if not verify_ssl_certs:
         if disable_warnings:
             pass

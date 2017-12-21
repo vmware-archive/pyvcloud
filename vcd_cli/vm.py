@@ -13,9 +13,11 @@
 #
 
 import click
+
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.vsphere import VSphere
+
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -48,6 +50,7 @@ def vm(ctx):
             'pa$$w0rd' root 'pa$$w0rd' /etc/hosts ./hosts.txt
             Download file from guest OS and save locally, requires access to vCenter.
     """  # NOQA
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

@@ -13,11 +13,13 @@
 #
 
 import click
+
 from vcd_cli.profiles import Profiles
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.vcd import vcd
+
 import yaml
 
 
@@ -27,6 +29,7 @@ def profile(ctx):
     """Manage user profiles
 
     """
+
     profiles = Profiles.load()
     click.echo(yaml.dump(profiles.data, default_flow_style=False))
 
@@ -37,6 +40,7 @@ def pwd(ctx):
     """Current resources in use
 
     """
+
     try:
         restore_session(ctx)
         host = ctx.obj['profiles'].get('host')

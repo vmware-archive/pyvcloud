@@ -12,14 +12,31 @@ Usage: vcd vdc [OPTIONS] COMMAND [ARGS]...
   
           vcd vdc use my-vdc
               Set virtual datacenter 'my-vdc' as default.
+  
+          vcd vdc create dev-vdc -p prov-vdc -n net-pool -s '*' \
+              -a ReservationPool -d 'vDC for development'
+              Create new virtual datacenter.
+  
+          vcd vdc disable dev-vdc
+              Disable virtual datacenter.
+  
+          vcd vdc enable dev-vdc
+              Enable virtual datacenter.
+  
+          vcd vdc delete -y dev-vdc
+              Delete virtual datacenter.
       
 
 Options:
   -h, --help  Show this message and exit.
 
 Commands:
-  info  show virtual datacenter details
-  list  list of virtual datacenters
-  use   set active virtual datacenter
+  create   create a virtual datacenter
+  delete   delete a virtual datacenter
+  disable  disable a virtual datacenter
+  enable   enable a virtual datacenter
+  info     show virtual datacenter details
+  list     list of virtual datacenters
+  use      set active virtual datacenter
 
 ```

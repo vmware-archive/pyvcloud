@@ -13,11 +13,14 @@
 #
 
 import click
+
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RESOURCE_TYPES
 from pyvcloud.vcd.utils import to_camel_case
 from pyvcloud.vcd.utils import to_dict
+
 from tabulate import tabulate
+
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -59,7 +62,8 @@ def search(ctx, resource_type, query_filter):
             Search for running tasks in current organization.
 \b
         vcd search admintask --filter 'status==running'
-            Search for running tasks in all organizations, system administrator only.
+            Search for running tasks in all organizations,
+            system administrator only.
 \b
         vcd search task --filter 'id==ffb96443-d7f3-4200-825d-0f297388ebc0'
             Search for a task by id
@@ -70,15 +74,18 @@ def search(ctx, resource_type, query_filter):
         vcd search vapp -f 'metadata:cse.node.type==STRING:master'
             Search for vApps by metadata.
 \b
-        vcd search vapp -f 'metadata:vapp.origin.name==STRING:photon-custom-hw11-2.0-304b817.ova'
+        vcd search vapp -f \\
+        'metadata:vapp.origin.name==STRING:photon-custom-hw11-2.0-304b817.ova'
             Search for vApps instantiated from template
 \b
-        vcd search vapp -f 'numberOfCpus=gt=4;memoryAllocationMB=gt=10000;storageKB=gt=10000000'
+        vcd search vapp -f \\
+        'numberOfCpus=gt=4;memoryAllocationMB=gt=10000;storageKB=gt=10000000'
             Search for resource intensive vApps
 \b
         vcd search vm
             Search for virtual machines.
-    """  # NOQA
+    """
+
     try:
         if resource_type is None:
             click.secho(ctx.get_help())

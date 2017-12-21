@@ -13,11 +13,14 @@
 #
 
 import click
+
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RESOURCE_TYPES
 from pyvcloud.vcd.utils import stdout_xml
 from pyvcloud.vcd.utils import to_camel_case
+
 from tabulate import tabulate
+
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import tabulate_names
@@ -37,10 +40,10 @@ def info(ctx, resource_type, resource_id):
 
 \b
     Description
-        Display details of a resource with the provided type and id.
-        Resource type is not case sensitive. When invoked without a resource
-        type, list the available types. Admin resources are only allowed when
-        the user is the system administrator.
+        The info command displays details of a resource with the provided type
+        and id. Resource type is not case sensitive. When invoked without a
+        resource type, list the available types. Admin resources are only
+        allowed when the user is the system administrator.
 \b
     Examples
         vcd info task ffb96443-d7f3-4200-825d-0f297388ebc0
@@ -54,14 +57,17 @@ def info(ctx, resource_type, resource_id):
         vcd catalog info my-catalog my-item
             Get details of an item listed in the previous command.
         vcd info catalogitem f653b137-0d14-4ea9-8f14-dcd2b7914110
-            Get details of the catalog item based on the 'id' listed in the previous command.
+            Get details of the catalog item based on the 'id' listed in the
+            previous command.
         vcd info vapptemplate 53b83b27-1f2b-488e-9020-a27aee8cb640
-            Get details of the vApp tepmlate based on the 'template-id' listed in the previous command.
+            Get details of the vApp tepmlate based on the 'template-id' listed
+            in the previous command.
 \b
     See Also
         Several 'vcd' commands provide the id of a resource, including the
         'vcd search' command.
-    """  # NOQA
+    """
+
     try:
         if resource_type is None or resource_id is None:
             click.secho(ctx.get_help())
@@ -81,9 +87,7 @@ def info(ctx, resource_type, resource_id):
         elif len(records) > 1:
             raise Exception('multiple found')
         resource = client.get_resource(records[0].get('href'))
-        stdout_xml(resource)
-        # result = to_dict(records[0], resource_type)
-        # stdout(result, ctx, show_id=True)
+        stdout_xml(resource, ctx.find_root().params['is_colorized'])
     except Exception as e:
         import traceback
         traceback.print_exc()

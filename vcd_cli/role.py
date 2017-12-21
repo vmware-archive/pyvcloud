@@ -1,4 +1,5 @@
 import click
+
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.role import Role
 
@@ -18,14 +19,16 @@ def role(ctx):
     Examples
         vcd role list
             Get list of roles in the current organization.
-            
+\b
         vcd role list_rights myRole
             Get list of rights associated with a given role.
-        
-        vcd role create myRole myDescription 'Disk: View Properties' 'Provider vDC: Edit' --org myOrg
-            Create a role with zero or more rights in the specified Organization(defaults to current
-             Organization in use)
-    """  # NOQA
+\b
+        vcd role create myRole myDescription 'Disk: View Properties' \\
+            'Provider vDC: Edit' --org myOrg
+            Create a role with zero or more rights in the specified
+            Organization (defaults to current Organization in use)
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)
@@ -71,8 +74,8 @@ def list_rights(ctx, role_name, org_name):
         stderr(e, ctx)
 
 
-@role.command('create', short_help='Creates role in the specified Organization (defaults to the '
-                                   'current organization in use')
+@role.command('create', short_help='Creates role in the specified Organization'
+              ' (defaults to the current Organization in use)')
 @click.pass_context
 @click.argument('role-name',
                 metavar='<role-name>',
@@ -100,4 +103,3 @@ def create(ctx, role_name, description, rights, org_name):
         stdout(to_dict(role, exclude=['Link', 'RightReferences']), ctx)
     except Exception as e:
         stderr(e, ctx)
-

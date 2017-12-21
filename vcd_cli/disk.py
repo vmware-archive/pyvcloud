@@ -13,12 +13,15 @@
 #
 
 import click
+
 import humanfriendly
+
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import disk_to_dict
 from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.vdc import VDC
+
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -50,7 +53,8 @@ def disk(ctx):
 \b
         vcd disk delete disk1
             Delete an existing independent disk named 'disk1'.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

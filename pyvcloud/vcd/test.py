@@ -18,6 +18,7 @@ from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
 import requests
 import unittest
+import warnings
 import yaml
 
 
@@ -47,4 +48,6 @@ class TestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.client.logout()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", ResourceWarning)
+            cls.client.logout()

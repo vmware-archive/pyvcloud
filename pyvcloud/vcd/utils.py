@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
 import humanfriendly
 from lxml import etree
 from lxml.objectify import NoneElement
@@ -197,34 +196,38 @@ def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
                     result['%s: %s' % (k, element_name)] = value
             if hasattr(vm, 'NetworkConnectionSection'):
                 ncs = vm.NetworkConnectionSection
-                result['%s: %s' % (k, 'primary-net')] = \
-                    ncs.PrimaryNetworkConnectionIndex.text
-                for nc in ncs.NetworkConnection:
-                    nci = nc.NetworkConnectionIndex.text
-                    result['%s: net-%s' % (k, nci)] = nc.get('network')
-                    result['%s: net-%s-mode' % (k, nci)] = \
-                        nc.IpAddressAllocationMode.text
-                    result['%s: net-%s-connected' % (k, nci)] = \
-                        nc.IsConnected.text
-                    if hasattr(nc, 'MACAddress'):
-                        result['%s: net-%s-mac' % (k, nci)] = \
-                            nc.MACAddress.text
-                    if hasattr(nc, 'IpAddress'):
-                        result['%s: net-%s-ip' % (k, nci)] = nc.IpAddress.text
-            for setting in vm.VmSpecSection.DiskSection.DiskSettings:
-                if hasattr(setting, 'Disk'):
-                    result['%s: attached-disk-%s-name' %
-                           (k, setting.DiskId.text)] = \
-                           '%s' % (setting.Disk.get('name'))
-                    result['%s: attached-disk-%s-size-Mb' %
-                           (k, setting.DiskId.text)] = \
-                        '%s' % (setting.SizeMb.text)
-                    result['%s: attached-disk-%s-bus' %
-                           (k, setting.DiskId.text)] = \
-                        '%s' % (setting.BusNumber.text)
-                    result['%s: attached-disk-%s-unit' %
-                           (k, setting.DiskId.text)] = \
-                        '%s' % (setting.UnitNumber.text)
+                if 'PrimaryNetworkConnectionIndex' in ncs:
+                    result['%s: %s' % (k, 'primary-net')] = \
+                        ncs.PrimaryNetworkConnectionIndex.text
+                if 'NetworkConnection' in ncs:
+                    for nc in ncs.NetworkConnection:
+                        nci = nc.NetworkConnectionIndex.text
+                        result['%s: net-%s' % (k, nci)] = nc.get('network')
+                        result['%s: net-%s-mode' % (k, nci)] = \
+                            nc.IpAddressAllocationMode.text
+                        result['%s: net-%s-connected' % (k, nci)] = \
+                            nc.IsConnected.text
+                        if hasattr(nc, 'MACAddress'):
+                            result['%s: net-%s-mac' % (k, nci)] = \
+                                nc.MACAddress.text
+                        if hasattr(nc, 'IpAddress'):
+                            result['%s: net-%s-ip' % (k,
+                                                      nci)] = nc.IpAddress.text
+            if 'VmSpecSection' in vm:
+                for setting in vm.VmSpecSection.DiskSection.DiskSettings:
+                    if hasattr(setting, 'Disk'):
+                        result['%s: attached-disk-%s-name' %
+                               (k, setting.DiskId.text)] = \
+                               '%s' % (setting.Disk.get('name'))
+                        result['%s: attached-disk-%s-size-Mb' %
+                               (k, setting.DiskId.text)] = \
+                            '%s' % (setting.SizeMb.text)
+                        result['%s: attached-disk-%s-bus' %
+                               (k, setting.DiskId.text)] = \
+                            '%s' % (setting.BusNumber.text)
+                        result['%s: attached-disk-%s-unit' %
+                               (k, setting.DiskId.text)] = \
+                            '%s' % (setting.UnitNumber.text)
 
     result['status'] = VCLOUD_STATUS_MAP.get(int(vapp.get('status')))
     if access_control_settings is not None:
@@ -275,8 +278,8 @@ def disk_to_dict(disk):
 
 
 def access_control_settings_to_dict(access_control_settings):
-    """
-    Convert access control settings to dict.
+    """Convert access control settings to dict.
+
     :param access_control_settings: (ControlAccessParamsType): xml object
     representing access control settings.
     :return: (dict): dict representation of access control settings.
@@ -291,7 +294,7 @@ def access_control_settings_to_dict(access_control_settings):
     if hasattr(access_control_settings, 'AccessSettings') and \
             hasattr(access_control_settings.AccessSettings,
                     'AccessSetting') and \
-                len(access_control_settings.AccessSettings.AccessSetting) > 0:
+            len(access_control_settings.AccessSettings.AccessSetting) > 0:
         n = 1
         for access_setting in list(
                 access_control_settings.AccessSettings.AccessSetting):

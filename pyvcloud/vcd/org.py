@@ -81,23 +81,18 @@ class Org(object):
         """  # NOQA
         org_admin_resource = self.client.get_resource(self.href_admin)
         role = E.Role(
-            E.Description(description),
-            E.RightReferences(),
-            name=role_name
-        )
+            E.Description(description), E.RightReferences(), name=role_name)
         if rights is None:
             rights = ()
         for right in tuple(rights):
             right_record = self.get_right(right)
             role.RightReferences.append(
-                E.RightReference(name=right_record.get('name'),
-                                 href=right_record.get('href'),
-                                 type=EntityType.RIGHT.value))
+                E.RightReference(
+                    name=right_record.get('name'),
+                    href=right_record.get('href'),
+                    type=EntityType.RIGHT.value))
         return self.client.post_linked_resource(
-            org_admin_resource,
-            RelationType.ADD,
-            EntityType.ROLE.value,
-            role)
+            org_admin_resource, RelationType.ADD, EntityType.ROLE.value, role)
 
     def delete_catalog(self, name):
         org = self.client.get_resource(self.href)
@@ -635,8 +630,8 @@ class Org(object):
         result = []
         if len(records) > 0:
             for r in records:
-                result.append(to_dict(r, resource_type=resource_type,
-                                      exclude=[]))
+                result.append(
+                    to_dict(r, resource_type=resource_type, exclude=[]))
         return result
 
     def get_catalog_access_control_settings(self, catalog_name):

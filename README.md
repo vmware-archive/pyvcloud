@@ -68,7 +68,7 @@ Previous versions and deprecated code can be found in this repository under [tag
 
 ## Contributing
 
-The *vcd-cli* project team welcomes contributions from the community. Before you start working with *vcd-cli*, please read our [Developer Certificate of Origin](https://cla.vmware.com/dco). All contributions to this repository must be signed as described on that page. Your signature certifies that you wrote the patch or have the right to pass it on as an open-source patch. For more detailed information, refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+The `vcd-cli` project team welcomes contributions from the community. Before you start working with `vcd-cli`, please read our [Developer Certificate of Origin](https://cla.vmware.com/dco). All contributions to this repository must be signed as described on that page. Your signature certifies that you wrote the patch or have the right to pass it on as an open-source patch. For more detailed information, refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

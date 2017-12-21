@@ -27,7 +27,7 @@ from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.system import System
-from pyvcloud.vcd.utils import access_settings_to_dict
+from pyvcloud.vcd.utils import access_control_settings_to_dict
 from pyvcloud.vcd.utils import to_dict
 import shutil
 import tarfile
@@ -81,23 +81,18 @@ class Org(object):
         """  # NOQA
         org_admin_resource = self.client.get_resource(self.href_admin)
         role = E.Role(
-            E.Description(description),
-            E.RightReferences(),
-            name=role_name
-        )
+            E.Description(description), E.RightReferences(), name=role_name)
         if rights is None:
             rights = ()
         for right in tuple(rights):
             right_record = self.get_right(right)
             role.RightReferences.append(
-                E.RightReference(name=right_record.get('name'),
-                                 href=right_record.get('href'),
-                                 type=EntityType.RIGHT.value))
+                E.RightReference(
+                    name=right_record.get('name'),
+                    href=right_record.get('href'),
+                    type=EntityType.RIGHT.value))
         return self.client.post_linked_resource(
-            org_admin_resource,
-            RelationType.ADD,
-            EntityType.ROLE.value,
-            role)
+            org_admin_resource, RelationType.ADD, EntityType.ROLE.value, role)
 
     def delete_catalog(self, name):
         org = self.client.get_resource(self.href)
@@ -407,6 +402,7 @@ class Org(object):
         for link in links:
             if name == link.name:
                 return self.client.get_resource(link.href)
+        raise Exception("Vdc \'%s\' not found" % name)
 
     def list_vdcs(self):
         if self.resource is None:
@@ -634,31 +630,21 @@ class Org(object):
         result = []
         if len(records) > 0:
             for r in records:
-                result.append(to_dict(r, resource_type=resource_type,
-                                      exclude=[]))
+                result.append(
+                    to_dict(r, resource_type=resource_type, exclude=[]))
         return result
 
     def get_catalog_access_control_settings(self, catalog_name):
         """
         Get the access control settings of a catalog.
         :param catalog_name: (str): The name of the catalog.
-        :return: Access control settings of the catalog.
+        :return: (dict): Access control settings of the catalog.
         """  # NOQA
         catalog_resource = self.get_catalog(name=catalog_name)
-        control_access = self.client.get_linked_resource(
+        access_control_settings = self.client.get_linked_resource(
             catalog_resource, RelationType.DOWN,
             EntityType.CONTROL_ACCESS_PARAMS.value)
-        access_settings = []
-        if hasattr(control_access, 'AccessSettings') and \
-                hasattr(control_access.AccessSettings, 'AccessSetting') and \
-                len(control_access.AccessSettings.AccessSetting) > 0:
-            for access_setting in list(
-                    control_access.AccessSettings.AccessSetting):
-                access_settings.append(access_settings_to_dict(access_setting))
-        result = to_dict(control_access)
-        if len(access_settings) > 0:
-            result['AccessSettings'] = access_settings
-        return result
+        return access_control_settings_to_dict(access_control_settings)
 
     def change_catalog_owner(self, catalog_name, user_name):
         """

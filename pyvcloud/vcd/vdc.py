@@ -20,6 +20,7 @@ from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
+from pyvcloud.vcd.utils import access_control_settings_to_dict
 from pyvcloud.vcd.utils import get_admin_href
 
 
@@ -100,12 +101,12 @@ class VDC(object):
             When provided, connects the VM to the network.
             It assumes one VM in the vApp and one NIC in the VM.
         :param fence_mode: (str): Fence mode.
-            Possible values are `bridge` and `natRouted`
+            Possible values are `bridged` and `natRouted`
         :param ip_allocation_mode: (str): IP allocation mode.
             Possible values are `pool`, `dhcp` and `static`
         :param deploy: (bool):
         :param power_on: (bool):
-        :param accept_all_eulas: (bool):
+        :param accept_all_eulas: (bool): True confirms acceptance of all EULAs in a vApp template.
         :param memory: (int):
         :param cpu: (int):
         :param disk_size: (int):
@@ -119,6 +120,7 @@ class VDC(object):
 
         :return:  A :class:`lxml.objectify.StringElement` object describing the new vApp.
         """  # NOQA
+
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -559,20 +561,16 @@ class VDC(object):
 
     def enable_vdc(self, enable=True):
         """
-        Enable current vdc
+        Enable current VDC
+
         :param is_enabled: (bool): enable/disable the vdc
         :return: (OrgVdcType) updated vdc object.
         """  # NOQA
+
         resource_admin = self.client.get_resource(self.href_admin)
         link = RelationType.ENABLE if enable else RelationType.DISABLE
         return self.client.post_linked_resource(resource_admin, link, None,
                                                 None)
-
-    def compose_vapp(self, new_vapp_name):
-        """
-        Compose a new vApp from existing virtual machines
-
-        """  # NOQA
 
     def delete_vdc(self):
         """
@@ -586,3 +584,73 @@ class VDC(object):
 
         return self.client.delete_linked_resource(self.resource,
                                                   RelationType.REMOVE, None)
+
+    def get_access_control_settings(self):
+        """Get the access control settings of the vdc.
+
+        :return: (dict): Access control settings of the vdc.
+        """
+        vdc_resource = self.get_resource()
+        access_control_settings = self.client.get_linked_resource(
+            vdc_resource, RelationType.DOWN,
+            EntityType.CONTROL_ACCESS_PARAMS.value)
+        return access_control_settings_to_dict(access_control_settings)
+
+    def create_vapp(self,
+                    name,
+                    description=None,
+                    network=None,
+                    fence_mode='bridged',
+                    accept_all_eulas=None):
+        """Create a new vApp in this VDC
+
+        :param name: (str) Name of the new vApp
+        :param description: (str) Description of the new vApp
+        :param network: (str) Name of the OrgVDC network to connect the vApp to
+        :param fence_mode: (str): Network fence mode.
+            Possible values are `bridged` and `natRouted`
+        :param accept_all_eulas: (bool): True confirms acceptance of all EULAs
+            in a vApp template.
+        :return:  A :class:`lxml.objectify.StringElement` object representing a
+            sparsely populated vApp element in the target VDC.
+        """
+
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        network_href = network_name = None
+        if network is not None:
+            if hasattr(self.resource, 'AvailableNetworks') and \
+               hasattr(self.resource.AvailableNetworks, 'Network'):
+                for n in self.resource.AvailableNetworks.Network:
+                    if network == n.get('name'):
+                        network_href = n.get('href')
+                        network_name = n.get('name')
+                        break
+            if network_href is None:
+                raise Exception(
+                    'Network \'%s\' not found in the Virtual Datacenter.' %
+                    network)
+
+        vapp_instantiation_param = None
+        if network_name is not None:
+            network_configuration = E.Configuration(
+                E.ParentNetwork(href=network_href), E.FenceMode(fence_mode))
+
+            vapp_instantiation_param = E.InstantiationParams(
+                E.NetworkConfigSection(
+                    E_OVF.Info('Configuration for logical networks'),
+                    E.NetworkConfig(
+                        network_configuration, networkName=network_name)))
+
+        params = E.ComposeVAppParams(name=name)
+        if description is not None:
+            params.append(E.Description(description))
+        if vapp_instantiation_param is not None:
+            params.append(vapp_instantiation_param)
+        if accept_all_eulas is not None:
+            params.append(E.AllEULAsAccepted(accept_all_eulas))
+
+        return self.client.post_linked_resource(
+            self.resource, RelationType.ADD,
+            EntityType.COMPOSE_VAPP_PARAMS.value, params)

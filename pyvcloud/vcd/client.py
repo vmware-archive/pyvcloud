@@ -152,6 +152,7 @@ class RelationType(Enum):
     POWER_RESET = 'power:reset'
     POWER_SHUTDOWN = 'power:shutdown'
     POWER_SUSPEND = 'power:suspend'
+    RECOMPOSE = 'recompose'
     REMOVE = 'remove'
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
@@ -168,6 +169,8 @@ class EntityType(Enum):
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
     CAPTURE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.captureVAppParams+xml'
+    COMPOSE_VAPP_PARAMS = \
+        'application/vnd.vmware.vcloud.composeVAppParams+xml'
     CONTROL_ACCESS_PARAMS = 'application/vnd.vmware.vcloud.controlAccess+xml'
     DISK = 'application/vnd.vmware.vcloud.disk+xml'
     DISK_ATTACH_DETACH_PARAMS = \
@@ -195,6 +198,8 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.publishCatalogParams+xml'
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
     RASD_ITEM_LIST = 'application/vnd.vmware.vcloud.rasdItemsList+xml'
+    RECOMPOSE_VAPP_PARAMS = \
+        'application/vnd.vmware.vcloud.recomposeVAppParams+xml'
     ROLE = 'application/vnd.vmware.admin.role+xml'
     RIGHT = 'application/vnd.vmware.admin.right+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'

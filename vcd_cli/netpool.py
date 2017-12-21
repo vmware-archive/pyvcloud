@@ -13,7 +13,9 @@
 #
 
 import click
+
 from pyvcloud.vcd.system import System
+
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout

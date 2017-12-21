@@ -13,6 +13,7 @@
 #
 
 import os
+
 import yaml
 
 VCD_CLI_USER_PATH = '~/.vcd-cli'

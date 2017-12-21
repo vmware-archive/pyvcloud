@@ -12,10 +12,12 @@
 #
 
 import click
+
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.utils import task_to_dict
+
 from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr

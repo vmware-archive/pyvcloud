@@ -13,11 +13,14 @@
 #
 
 import click
+
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RESOURCE_TYPES
 from pyvcloud.vcd.utils import to_camel_case
 from pyvcloud.vcd.utils import to_dict
+
 from tabulate import tabulate
+
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout

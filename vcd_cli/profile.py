@@ -13,11 +13,13 @@
 #
 
 import click
+
 from vcd_cli.profiles import Profiles
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.vcd import vcd
+
 import yaml
 
 

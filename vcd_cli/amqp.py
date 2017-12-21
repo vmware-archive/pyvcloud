@@ -12,11 +12,15 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-import click
+
 import json
+import sys
+
+import click
+
 from pyvcloud.vcd.amqp import AmqpService
 from pyvcloud.vcd.utils import to_dict
-import sys
+
 from vcd_cli.system import system
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr

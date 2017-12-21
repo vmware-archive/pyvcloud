@@ -13,11 +13,14 @@
 #
 
 import click
+
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RESOURCE_TYPES
 from pyvcloud.vcd.utils import stdout_xml
 from pyvcloud.vcd.utils import to_camel_case
+
 from tabulate import tabulate
+
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import tabulate_names
@@ -84,7 +87,7 @@ def info(ctx, resource_type, resource_id):
         elif len(records) > 1:
             raise Exception('multiple found')
         resource = client.get_resource(records[0].get('href'))
-        stdout_xml(resource)
+        stdout_xml(resource, ctx.find_root().params['is_colorized'])
     except Exception as e:
         import traceback
         traceback.print_exc()

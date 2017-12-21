@@ -13,12 +13,14 @@
 #
 
 import click
+
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
+
 from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -134,7 +136,9 @@ def info(ctx, name):
         vapp_resource = vdc.get_vapp(name)
         vapp = VApp(client, resource=vapp_resource)
         md = vapp.get_metadata()
-        stdout(vapp_to_dict(vapp_resource, md), ctx)
+        access_control_settings = vapp.get_access_control_settings()
+        result = vapp_to_dict(vapp_resource, md, access_control_settings)
+        stdout(result, ctx)
     except Exception as e:
         stderr(e, ctx)
 

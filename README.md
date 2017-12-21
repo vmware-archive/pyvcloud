@@ -6,7 +6,9 @@
 
 ## Quick Start
 
-Here is a sample `vcd-cli` interaction with vCloud Director to create a virtual machine and start using it:
+Below is a sample `vcd-cli` interaction with vCloud Director to create a virtual machine and start using it.
+
+Detailed command syntax and usage can be found in the [vcd-cli site](https://vmware.github.io/vcd-cli), along with the [installation](https://vmware.github.io/vcd-cli/install) instructions.
 
 ```shell
 
@@ -58,9 +60,9 @@ The OVA used in the example can be downloaded with the command:
 ```
 ## Documentation
 
-See our [site](https://vmware.github.io/vcd-cli).
+See the [vcd-cli site](https://vmware.github.io/vcd-cli) for detailed documentation and installation instructions.
 
-This project is under development, the commands, parameters and options might change over time. More information about commands and usage can be found in the [vcd-cli site](https://vmware.github.io/vcd-cli), along with the [installation](https://vmware.github.io/vcd-cli/install) instructions
+Please note that this project is under development, the commands, parameters and options might change over time.
 
 `vcd-cli` uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), the Python SDK for VMware vCloud Director. It requires Python 3.
 
@@ -72,4 +74,4 @@ The `vcd-cli` project team welcomes contributions from the community. Before you
 
 ## License
 
-[Apache 2](LICENSE.txt)
+[Apache-2.0](LICENSE.txt)

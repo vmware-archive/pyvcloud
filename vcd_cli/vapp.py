@@ -36,10 +36,10 @@ def vapp(ctx):
     Description
         The vapp command manages vApps.
 \b
-        'vapp create' creates new vApps. When '--catalog' and '--template' are
-        not provided, it creates an empty vApp and VMs can be added later.
-        When specifying a template in a catalog, it instantiates the template
-        in the currect vDC.
+        'vapp create' creates a new vApp in the current vDC. When '--catalog'
+        and '--template' are not provided, it creates an empty vApp and VMs can
+        be added later. When specifying a template in a catalog, it creates an
+        instance of the catalog template.
 \b
         'vapp add-vm' adds a VM to the vApp. When '--catalog' is used, the
         <source-vapp> parameter refers to a template in the specified catalog
@@ -645,9 +645,9 @@ def add_vm(ctx, name, source_vapp, source_vm, catalog, target_vm, hostname,
             catalog_item = org.get_catalog_item(catalog, source_vapp)
             source_vapp_resource = client.get_resource(
                 catalog_item.Entity.get('href'))
+        assert source_vapp_resource is not None
         vapp_resource = vdc.get_vapp(name)
         vapp = VApp(client, resource=vapp_resource)
-        assert source_vapp_resource is not None
         spec = {'source_vm_name': source_vm, 'vapp': source_vapp_resource}
         if target_vm is not None:
             spec['target_vm_name'] = target_vm

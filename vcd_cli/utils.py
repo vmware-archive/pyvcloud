@@ -11,12 +11,11 @@
 # code for the these subcomponents is subject to the terms and
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
-
 import json
 import logging
 import sys
 import traceback
-from os import environ
+from os import environ # NOQA
 
 import click
 

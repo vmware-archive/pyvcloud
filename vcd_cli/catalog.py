@@ -11,13 +11,17 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 from __future__ import division
-import click
+
 import os
+
+import click
+
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vapp import VApp
+
 from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -82,7 +86,8 @@ def catalog(ctx):
 \b
         vcd catalog update my-catalog -n 'new name' -d 'new description'
             Update the name and/or description of a catalog.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

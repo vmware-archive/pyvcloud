@@ -58,16 +58,15 @@ Options:
   -h, --help  Show this message and exit.
 
 Commands:
-  change-owner    change the ownership of catalog
-  control-access  catalog control access details
-  create          create a catalog
-  delete          delete a catalog or item
-  download        download item from catalog
-  info            show catalog or item details
-  list            list catalogs or items
-  share           share a catalog
-  unshare         unshare a catalog
-  update          rename catalog and/or change catalog description
-  upload          upload file to catalog
+  change-owner  change the ownership of catalog
+  create        create a catalog
+  delete        delete a catalog or item
+  download      download item from catalog
+  info          show catalog or item details
+  list          list catalogs or items
+  share         share a catalog
+  unshare       unshare a catalog
+  update        rename catalog and/or change catalog description
+  upload        upload file to catalog
 
 ```

@@ -12,15 +12,19 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
-import click
 from os.path import expanduser
 from os.path import join
+
+import click
+
 from pyvcloud.vcd.cluster import Cluster
+
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
 from vcd_cli.vcd import abort_if_false
 from vcd_cli.vcd import vcd
+
 import yaml
 
 
@@ -46,7 +50,8 @@ def cluster(ctx):
 \b
         vcd cluster create c1 --nodes 0 --network net1
             Create a single node kubernetes cluster for dev/test.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)

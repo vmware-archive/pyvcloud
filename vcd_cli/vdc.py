@@ -13,12 +13,13 @@
 #
 
 import click
-import humanfriendly
+
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import vdc_to_dict
 from pyvcloud.vcd.vdc import VDC
+
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -54,7 +55,8 @@ def vdc(ctx):
 \b
         vcd vdc delete -y dev-vdc
             Delete virtual datacenter.
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)
@@ -128,8 +130,9 @@ def use(ctx, name):
                         ctx.obj['profiles'].set('vdc_href', str(v.href))
                         ctx.obj['profiles'].set('vapp_in_use', vapp_in_use)
                         ctx.obj['profiles'].set('vapp_href', vapp_href)
-                        message = 'now using org: \'%s\', vdc: \'%s\', vApp: \'%s\'.' % \
-                                  (in_use_org_name, vdc_in_use, vapp_in_use)
+                        message = 'now using org: \'%s\', vdc: \'%s\', vApp:' \
+                            ' \'%s\'.' % (in_use_org_name, vdc_in_use,
+                                          vapp_in_use)
                         stdout({
                             'org': in_use_org_name,
                             'vdc': vdc_in_use,

@@ -28,9 +28,10 @@ def right(ctx):
 \b
     Examples
         vcd right list -o myOrg
-            Get list of rights in the specified organization 
+            Get list of rights in the specified organization
             (defaults to current organization in use).
-    """  # NOQA
+    """
+
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)
@@ -38,7 +39,8 @@ def right(ctx):
             stderr(e, ctx)
 
 
-@right.command('list', short_help='list rights in the specified or current org')
+@right.command('list',
+               short_help='list rights in the specified or current org')
 @click.pass_context
 @click.option('-o',
               '--org',

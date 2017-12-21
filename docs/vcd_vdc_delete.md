@@ -1,7 +1,8 @@
 ```
-Usage: vcd catalog control-access [OPTIONS] <catalog-name>
+Usage: vcd vdc delete [OPTIONS] <name>
 
 Options:
+  -y, --yes
   -h, --help  Show this message and exit.
 
 ```

@@ -18,7 +18,7 @@ from pyvcloud.vcd.client import API_CURRENT_VERSIONS
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd client import _WellKnownEndpoint # NOQA
+from pyvcloud.vcd.client import _WellKnownEndpoint # NOQA
 from pyvcloud.vcd.client import get_links
 
 import requests

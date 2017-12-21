@@ -13,9 +13,9 @@
 #
 import json
 import logging
-import os.environ
 import sys
 import traceback
+from os import environ # NOQA
 
 import click
 
@@ -222,8 +222,8 @@ def stderr(exception, ctx=None):
                 message = Fore.RED + str(message)
             ctx.fail(message)
         else:
-            if 'VCD_USE_COLORED_OUTPUT' in os.environ.keys() and \
-               os.environ['VCD_USE_COLORED_OUTPUT'] != '0':
+            if 'VCD_USE_COLORED_OUTPUT' in environ.keys() and \
+               environ['VCD_USE_COLORED_OUTPUT'] != '0':
                 message = Fore.RED + str(message)
             click.echo(message)
             sys.exit(1)

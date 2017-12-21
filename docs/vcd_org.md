@@ -15,6 +15,12 @@ Usage: vcd org [OPTIONS] COMMAND [ARGS]...
   
           vcd org create my-org-name my-org-fullname
               Create organization with 'my-org-name' and 'my-org-fullname'
+  
+          vcd org delete my-org-name
+              Delete organization 'my-org-name'
+  
+          vcd org update my-org-name --enable
+              Update organization 'my-org-name', e.g. enable the organization
       
 
 Options:
@@ -22,8 +28,10 @@ Options:
 
 Commands:
   create  create an organization
+  delete  delete an organization
   info    show org details
   list    list organizations
+  update  update an organization
   use     set active organization
 
 ```

@@ -1,4 +1,4 @@
-VMware vCloud Director CLI 19.2.4
+VMware vCloud Director Command Line Interface (vcd-cli) 19.2.4
 
 Copyright (c) 2014-2018 VMware, Inc. All Rights Reserved.
 

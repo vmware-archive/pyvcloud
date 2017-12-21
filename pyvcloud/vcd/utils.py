@@ -375,11 +375,13 @@ def to_camel_case(name, names):
     return result
 
 
-def stdout_xml(the_xml):
-    print(
-        highlight(
-            str(etree.tostring(the_xml, pretty_print=True), 'utf-8'),
-            lexers.XmlLexer(), formatters.TerminalFormatter()))
+def stdout_xml(the_xml, is_colorized=True):
+    message = str(etree.tostring(the_xml, pretty_print=True), 'utf-8')
+    if is_colorized:
+        print(highlight(message,
+                        lexers.XmlLexer(), formatters.TerminalFormatter()))
+    else:
+        print(message)
 
 
 def get_admin_href(href):

@@ -1,7 +1,7 @@
 `vcd-cli` requires Python 3.
 
-Ubuntu
--------
+## Ubuntu
+
 
 Ubuntu 16.04:
 
@@ -11,8 +11,8 @@ Ubuntu 16.04:
     $ pip3 install --user vcd-cli
 ```
 
-CentOS 7
---------
+## CentOS
+
 
 CentOS 7:
 
@@ -24,8 +24,7 @@ CentOS 7:
     $ pip3 install --user vcd-cli
 ```
 
-macOS:
-------
+## macOS
 
 On macOS, open a Terminal and enter the commands listed below (skip those that refer to a component already installed on your mac):
 
@@ -49,8 +48,7 @@ Install `vcd-cli`
     $ pip install --user vcd-cli
 ```
 
-Verify Installation:
---------------------
+## Verify Installation
 
 Display the version installed:
 
@@ -60,13 +58,11 @@ Display the version installed:
     vcd-cli, VMware vCloud Director Command Line Interface, 19.2.3
 ```
 
-Installation with virtualenv:
------------------------------
+## Installation with virtualenv
 
 It is also possible to install `vcd-cli` in a [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 
-Upgrade:
---------
+## Upgrade
 
 To upgrade an existing `vcd-cli` install, just run:
 
@@ -74,8 +70,7 @@ To upgrade an existing `vcd-cli` install, just run:
     $ pip install --user vcd-cli --upgrade
 ```
 
-Pre-releases:
--------------
+## Pre-releases
 
 The commands described above install the current stable version of `vcd-cli`. To install a pre-release version, enter:
 

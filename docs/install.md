@@ -1,9 +1,9 @@
 `vcd-cli` requires Python 3.
 
-Ubuntu:
+Ubuntu
 -------
 
-The following instructions have been tested with Ubuntu 16.04:
+Ubuntu 16.04:
 
 ``` shell
     $ sudo apt-get install python3-pip gcc python3-dev -y
@@ -11,11 +11,14 @@ The following instructions have been tested with Ubuntu 16.04:
     $ pip3 install --user vcd-cli
 ```
 
-CentOS 7:
+CentOS 7
 --------
+
+CentOS 7:
 
 ```shell
     $ sudo yum install epel-release python34 python34-devel python34-setuptools -y
+
     $ sudo easy_install-3.4 pip
 
     $ pip3 install --user vcd-cli

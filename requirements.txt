@@ -1,14 +1,6 @@
 click>=6.7
 colorama>=0.3.3
-cryptography>=2.0.3
 pyvcloud>=18.2.2
 tabulate>=0.7.5
-python-dateutil>=2.4.2
-xmltodict>=0.9.2
-PrettyTable>=0.7,<0.8
-six
-pytz
-oslo.utils
-pycrypto
+pycryptodome
 keyring
-humanfriendly

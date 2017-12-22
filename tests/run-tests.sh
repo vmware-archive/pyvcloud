@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 
 set -e
-./vcd-login.sh
+
+D=`dirname $0`
+$D/tenant-onboard.sh
+$D/tenant-operations.sh
+$D/cleanup.sh

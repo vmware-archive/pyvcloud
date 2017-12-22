@@ -1,4 +1,4 @@
-# vCloud CLI 10
+# VMware vCloud Director CLI 10
 # Copyright (c) 2014 VMware, Inc. All Rights Reserved.
 # This product is licensed to you under the
 # Apache License, Version 2.0 (the "License").

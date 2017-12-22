@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 mkdir -p /root/.ssh
 
@@ -7,9 +7,3 @@ echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/nPd1ZlLC60sWWj7SEmmqn5u6AAKkNmt90Y
 chmod go-rwx /root/.ssh
 chmod go-rwx /root/.ssh/authorized_keys
 restorecon -Rv /root/.ssh
-
-#password:
-#vca -x vapp info --vapp cen | grep "AdminPassword>"
-
-#echo 'DNS1=8.8.8.8' >> /etc/sysconfig/network-scripts/ifcfg-eth1
-

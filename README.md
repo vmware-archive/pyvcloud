@@ -1,202 +1,77 @@
-vcd-cli
-=======
+# vcd-cli
 
 [![License](https://img.shields.io/pypi/l/vcd-cli.svg)](https://pypi.python.org/pypi/vcd-cli) [![Stable Version](https://img.shields.io/pypi/v/vcd-cli.svg)](https://pypi.python.org/pypi/vcd-cli) [![Build Status](https://img.shields.io/travis/vmware/vcd-cli.svg?style=flat)](https://travis-ci.org/vmware/vcd-cli/)
 
-Command Line Interface for VMware vCloud Director.
+`vcd-cli` is the Command Line Interface for VMware vCloud Director.
 
-This project is under development, the commands and parameters might change over time. This README usually reflects the syntax of the latest version. More information about commands and usage can be found in the [vcd-cli site](https://vmware.github.io/vcd-cli).
+## Quick Start
+
+Below is a sample `vcd-cli` interaction with vCloud Director to create a virtual machine and start using it.
+
+Detailed command syntax and usage can be found in the [vcd-cli site](https://vmware.github.io/vcd-cli), along with the [installation](https://vmware.github.io/vcd-cli/install) instructions.
+
+```shell
+
+    $ vcd login myserviceprovider.com org1 usr1 --password secure_pass -w -i
+    usr1 logged in, org: 'org1', vdc: 'vdc1'
+
+    $ vcd catalog create catalog1
+    task: 893bff31-4bf6-48a6-84b8-55cee97e8349, Created Catalog catalog1(cc0a2b88-9e5a-4391-936f-df6e7902504b), result: success
+
+    $ vcd catalog upload catalog1 photon-custom-hw11-2.0-304b817.ova
+    upload 113,169,920 of 113,169,920 bytes, 100%
+    property    value
+    ----------  ----------------------------------
+    file        photon-custom-hw11-2.0-304b817.ova
+    size        113207424
+
+    $ vcd vapp create vapp1 --catalog catalog1 --template photon-custom-hw11-2.0-304b817.ova \
+      --network net1 --accept-all-eulas
+    task: 0f98685a-d11c-41d0-8de4-d3d4efad183a, Created Virtual Application vapp1(8fd8e774-d8b3-42ab-800c-a4992cca1fc2), result: success
+
+    $ vcd vapp list
+    isDeployed    isEnabled      memoryAllocationMB  name      numberOfCpus    numberOfVMs  ownerName    status        storageKB  vdcName
+    ------------  -----------  --------------------  ------  --------------  -------------  -----------  ----------  -----------  ---------
+    true          true                         2048  vapp1                1              1  usr1         POWERED_ON     16777216  vdc1
+
+    $ vcd vapp info vapp1
+    property                     value
+    ---------------------------  -------------------------------------
+    name                         vapp1
+    owner                        ['usr1']
+    status                       Powered on
+    vapp-net-1                   net1
+    vapp-net-1-mode              bridged
+    vm-1: 1 virtual CPU(s)       1
+    vm-1: 2048 MB of memory      2,048
+    vm-1: Hard disk 1            17,179,869,184 byte
+    vm-1: Network adapter 0      DHCP: 10.150.221.213
+    vm-1: computer-name          PhotonOS-001
+    vm-1: password               I!8z#z2N
+
+    $ ssh root@10.150.221.213
+    ...
+```
+
+The OVA used in the example can be downloaded with the command:
+
+```shell
+   $ wget http://dl.bintray.com/vmware/photon/2.0/GA/ova/photon-custom-hw11-2.0-304b817.ova
+```
+## Documentation
+
+See the [vcd-cli site](https://vmware.github.io/vcd-cli) for detailed documentation and installation instructions.
+
+Please note that this project is under development, the commands, parameters and options might change over time.
 
 `vcd-cli` uses [pyvcloud](https://github.com/vmware/pyvcloud "Title"), the Python SDK for VMware vCloud Director. It requires Python 3.
 
-Installation:
-=============
+Previous versions and deprecated code can be found in this repository under [tag 19.2.3](https://github.com/vmware/vcd-cli/tree/19.2.3).
 
-In general, `vcd-cli` can be installed with:
+## Contributing
 
-``` shell
-$ pip3 install --user vcd-cli
-```
+The `vcd-cli` project team welcomes contributions from the community. Before you start working with `vcd-cli`, please read our [Developer Certificate of Origin](https://cla.vmware.com/dco). All contributions to this repository must be signed as described on that page. Your signature certifies that you wrote the patch or have the right to pass it on as an open-source patch. For more detailed information, refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Note** : To get a working setup on vanilla Ubuntu (tested with 16.04.03 LTS and Ubuntu 17.10 ) :
+## License
 
-1. Optionally set up a virtual environment to test out vcd-cli.
-
-``` shell
-sudo apt install python3-pip python3-venv
-python3 -m venv vcd-cli
-. vcd-cli/bin/activate
-```
-2. The following commands set up a full environment on ubuntu.
-
-
-``` shell
-# Install gcc and Python3 headers required for pip installation.
-sudo apt install gcc python3-dev
-# Install wheel.  This has to be done first or you will get
-# messages that say: error: invalid command 'bdist_wheel'
-pip3 install wheel
-# Install vcd-cli
-pip3 install vcd-cli
-# Test vcd-cli
-vcd version
-```
-
-The module contains two commands:
-
-- `vca` the current cli
-- `vcd` the new cli under development
-
-Validation:
-
-``` shell
-$ vca --version
-
-vca-cli 19.0.1 (pyvcloud: 18.0.4.dev35)
-```
-
-```shell
-$ vcd version
-
-vcd-cli, VMware vCloud Director Command Line Interface, 19.0.1
-```
-
-See [vcd-cli wiki](https://github.com/vmware/vcd-cli/wiki) for additional installation details.
-
-
-Usage:
-======
-
-The `--help` option provides a list of available commands and options.
-
-Login:
-
-When the *password* argument is omitted, `vca-cli` prompts the user for the password. By default `vca-cli` caches the password (encrypted) and automatically re-login when the token expires. Below are some examples:
-
-```shell
-# vCA
-$ vca login 'email@company.com' --password 'p@$$w0rd' \
-            --instance 5a872845-6a7e-4e1d-b92a-99c45844417d \
-            --vdc vdc1
-
-# vCHS
-$ vca login 'email@company.com' --password 'p@$$w0rd' \
-            --host vchs.vmware.com
-
-# vCloud Director
-$ vca login 'email@company.com' --password 'p@$$w0rd' \
-            --host vcdhost.domain.com --org my-org
-
-# vCloud Director with self-signed SSL certificate
-$ vca -i login 'email@company.com' --password 'p@$$w0rd' \
-      --host vcdhost.domain.com --org my-org
-```
-
-Access to a virtual datacenter:
-
-```
-$ vca vdc info
-Details of Virtual Data Center 'vdc1', profile 'od':
-| Type              | Name                   |
-|-------------------+------------------------|
-| gateway           | gateway                |
-| network           | default-routed-network |
-| network           | net-101                |
-| vdcStorageProfile | SSD-Accelerated        |
-| vdcStorageProfile | Standard               |
-Compute capacity:
-| Resource    |   Allocated |   Limit |   Reserved |   Used |   Overhead |
-|-------------+-------------+---------+------------+--------+------------|
-| CPU (MHz)   |           0 |  130000 |          0 |      0 |          0 |
-| Memory (MB) |           0 |  102400 |          0 |      0 |          0 |
-Gateways:
-| Name    | External IPs                  | DHCP   | Firewall   | NAT   | VPN   | Networks                        | Syslog   | Uplinks      | Selected   |
-|---------+-------------------------------+--------+------------+-------+-------+---------------------------------+----------+--------------+------------|
-| gateway | 107.189.88.182, 107.189.90.65 | On     | Off        | On    | Off   | net-101, default-routed-network |          | d4p14v14-ext | *          |
-```
-
-Logout:
-
-```
-$ vca logout
-Logout successful for profile 'default'
-```
-
-Login with Session ID and SAML Support
----
-
-We are currently developing integration with SAML for single-sign on. For vCloud Director
-instances configured with SAML, login can be accomplished by specifying a valid session id or
-using a browser in the same computer.
-
-Login with a browser:
-
-1. Using Google `chrome`, login to vCloud Director
-2. On a command line, run the command:
-
-```
-$ vcd login vcd-host.vmware.com my-organization my_user_id --use-browser-session
-my_user_id logged in, org: 'my-organization', vdc: 'my-vdc'
-```
-
-Login with a valid session id:
-
-```
-$ vcd login session list chrome
-host                       session_id
---------------------------- --------------------------------
-vcd-host.vmware.com         ee968665bf3412d581bbc6192508eec4
-test-host1.eng.vmware.com   9f8d61446e464648aad40c59964d3fe0
-test-host2.eng.vmware.com   2b90cb9adf924ef7b5346ae9b4177bad
-
-$ vcd login vcd-host.vmware.com my-organization my_user_id \
-      --session-id ee968665bf3412d581bbc6192508eec4
-my_user_id logged in, org: 'my-organization', vdc: 'my-vdc'
-```
-
-This feature can be combined with the new functionality for uploading and downloading
-templates and iso files with `vcd-cli` for convenient file transfers in SAML enabled
-vCloud Director instances.
-
-vCloud Air Support
----
-
-We are transitioning to a new `vcd-cli` tool that eventually will replace `vca-cli`. The new `vcd-cli` will continue to support vCloud Air.
-
-To login to vCloud Air with the new `vcd-cli`:
-
-- Locate the `vCloud Director API URL` link in the vCloud Air console, for example: `https://p1v17-vcd.vchs.vmware.com:443/cloud/org/20-162/`
-- Identify the organization name at the end of the URL, `20-162` in the example.
-- Use your email and password in the `login` command.
-
-The general syntax of the `login` command is:
-
-```shell
-$ vcd login [OPTIONS] host organization user
-```
-
-Sample login to a vCA subscription service:
-
-```shell
-$ vcd login p1v17-vcd.vchs.vmware.com 20-162 'user@company.com' \
-            --password 'p@$$w0rd'
-```
-
-Sample login to a vCA on-demand service:
-
-```shell
-$ vcd login us-texas-1-14.vchs.vmware.com/api/compute ad96259e-2d36-44ad-9dd7-4586d45b43ca \
-            'user@company.com' --password 'p@$$w0rd'
-```
-
-Development
----
-
-macOS:
-
-```shell
-$ git clone https://github.com/vmware/vcd-cli.git
-$ cd vcd-cli
-$ pip install oslo.utils cryptography
-$ python setup.py develop
-```
+[Apache-2.0](LICENSE.txt)

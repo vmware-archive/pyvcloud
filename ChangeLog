@@ -1,7 +1,63 @@
 CHANGES
 =======
 
+19.2.3
+------
+
+* generated latest docs
+* merged with master; ordered imports
+* address review comments; updated pyvcloud dependency
+* Adding dependency on flake8-import-order
+* Fixing small typo
+* Fixing import order as per flake8\_import\_order, addressing review comments
+* address review comments
+* Tying colored output param to environment variable USE\_COLORED\_OUTPUT
+* Introducing top level param in vcd-cli to print info in monochrome
+* Fixing text color issue after an error, and also exposing option to turn off colored output entirely
+* Add access control settings info in the vdc,vapp and catalog info command (#144)
+* vcd vapp add-vm --network
+* VCDA-236 create empty vApp and add VMs
+* Improve CONTRIBUTING.md to make it more informative
+* improve current vapp state
+* Update README.md
+* review-1
+* create new empty vApp
+* Update README.md
+* compose new vapp
+* [vcd-cli] list rights in an org (Added copyright header and del href from right\_records)
+* [vcd-cli] list rights in an org
+* [vcd-cli] create role (minor correction - command help)
+* [vcd-cli] create role (addressed comments)
+* Create and delete OrgVDC and more
+* Create and delete OrgVDC and more
+* [vcd-cli] minor correction
+* [vcd-cli] create role in org (addressing comments)
+*  Removed org\_name in the update\_org (#138)
+* [vcd-cli] list rights in the organization
+* [vcd-cli] removed redundant imports
+* [vcd-cli] list rights in a role -removed redundant paranthesis
+* Changing the args format to pass param name and value. (#136)
+* [Pyvcloud] Command to create a role - Pep8 code style fixes
+* [vcd-cli] Command to create a role (few corrections)
+* Adding option for vapp attach and vapp detach commands to identify a disk by providing it's disk-id in addition to it's name
+* Enable/Disable Org, User. Add --enable option for create org. (#133)
+* [vcd-cli] Command to create a role
+* disk list owner
+* Update vdc.py
+* (List rights for a given role in an Org) Merge pull request #131 from sahithi/master
+* vcd-cli : correction of the command name (list-rights)
+* using humanfriendly
+* fixed disk size
+* changelog
+* correction in example
+* correction vcd role list example
+* [vcd-cli:Review comments addressed] List rights for a given role
+* vcd-cli: List rights for a given role. (remove stdout)
+* [vcd-cli] List rights for a given role (added org parameter)
+* [vcd-cli] List rights for a given role in an Org
+* Refactoring code to honor the movement of is\_admin field and related logic from pyvcloud\vcd\org.py to pyvcloud\vcd\client.py
 * fix vm command
+* Cmd for deleting an organization. (#123)
 * changelog
 
 19.2.2

@@ -1,6 +1,58 @@
 CHANGES
 =======
 
+18.2.2
+------
+
+* capitalized
+* Adding dependency on flake8-import-order
+* Removing redundant is True check
+* merged latest changes from upstream/main
+* Introducing capability to print xml in monochrome
+* address review comments. added auto-generate passwd
+* Add access control settings info in the vdc,vapp and catalog info command. (#152)
+* create empty vApp and add VM
+* yapf applied
+* merged master
+* added docstring to methods. admin href
+* improved vdc test
+* PR review changes and move delete\_vdc to VDC
+* create new vApp
+* disk and vapp
+* [pyvcloud] list rights in an org (Added unit test and renamed the file)
+* [Pyvcloud] create role (get rid of get\_rights\_query method)
+* unit tests
+* network pool to vdc creation
+* [Pyvcloud] create role in org (Addressing comments)
+* Removed org\_name in the update\_org. (#148)
+* use NSMAP
+* using NSMAP
+* re-run yapf
+* removed superfluous NOQA
+* adding multiple storage profiles to vDC creation improved vDC listing
+* formatted with yapf
+* doc
+* auto-formatted with yapf
+* merged with upstream
+* pep8 formatting using yapf, initial implementation of orgvdc create/enable/disable/delete, list provider vdc
+* [Pyvcloud] Command to create a role (pep8 corrections)
+* Enable/Disable Org, User. Add --enable option for create org. (#144)
+* [Pyvcloud] Command to create a role (unittests)
+* [Pyvcloud] Command to create a role
+* get\_disk(name, id) now alerts users if there are multiple namesake disks
+* (List rights for a given role) Merge pull request #140 from sahithi/develop
+* using humanfriendly
+* fixed disk size
+* [pyvcloud: Review comments addressed] List rights for a given role
+* Fixing typos, renaming field is\_logged\_in\_user\_sys\_admin to is\_sysadmin
+* [pyvcloud] List rights for a given role (Added docstrings)
+* [pyvcloud] List rights for a given role
+* minor code changes to meet flake8 validation
+* Refactoring is\_admin field in org.py, moving the relevant logic in client.py and fixing corresponding unit tests
+* changes from upstream
+*  SDK to delete an organization (#138)
+* changelog
+
 18.2.1
 ------
 
@@ -19,6 +71,7 @@ CHANGES
 * resolving conflicts in get\_user()
 * Added unit test for delete\_user. Refactored the function test\_create\_user to separate out actual test from the supporting code required to create an user
 * Changing filter criteria to org-ref instead of orgName in function get\_user()
+* Addressed comments (after fixing rebase)
 * Implement deletion of an user
 * VCDA-217: Formatting and code fix
 * VCDA-217 : Formatting and addressing review comments

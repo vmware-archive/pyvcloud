@@ -1,17 +1,11 @@
-pyvcloud
----
+## pyvcloud
 
 [![License](https://img.shields.io/pypi/l/pyvcloud.svg)](https://pypi.python.org/pypi/pyvcloud) [![Stable Version](https://img.shields.io/pypi/v/pyvcloud.svg)](https://pypi.python.org/pypi/pyvcloud) [![Build Status](https://img.shields.io/travis/vmware/pyvcloud.svg?style=flat)](https://travis-ci.org/vmware/pyvcloud/)
 
 `pyvcloud` is the Python SDK for VMware vCloud Director.
 
-This project is under development, the classes, methods and parameters might change over time. This README usually reflects the syntax of the latest version.
 
-We are rewriting `pyvcloud` for a more efficient and easy-to-use library. The new code is located under the [pyvcloud/vcd](pyvcloud/vcd) directory. The original code is still part of the SDK but we encourage to use (and contribute to) the new library. The new [vcd-cli](https://vmware.github.io/vcd-cli) is being developed with the new library implementation and can be used as a reference, in addition to the [unit tests](tests/run-tests.sh).
-
-
-Installation
----
+## Installation
 
 In general, `pyvcloud` can be installed with the following command:
 
@@ -22,10 +16,9 @@ $ pip install --user pyvcloud
 `pyvcloud` can also be installed with [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs).
 
 
-Testing
----
+## Testing
 
-Contributions to `pyvcloud` are welcome and they should include unit tests.
+Contributions to `pyvcloud` are welcome and it should include unit tests. See [Contributing](#Contributing) section below.
 
 Check out the latest version and install:
 
@@ -50,4 +43,21 @@ python -m unittest vcd_login vcd_catalog_setup
 python -m unittest vcd_catalog_setup.TestCatalogSetup.test_validate_ova
 ```
 
-See [tests/run-tests.sh](tests/run-tests.sh) for a list of current unit tests written for the new SDK implementation.
+See [tests](tests/) for a list of current unit tests written for the new SDK implementation.
+
+
+## Notes
+
+Please note that this project is under development and the interfaces might change over time.
+
+`pyvcloud` is used by [vcd-cli](https://vmware.github.io/vcd-cli), the Command Line Interface for VMware vCloud Director. It requires Python 3.
+
+Previous versions and deprecated code can be found in this repository under [tag 18.2.2](https://github.com/vmware/pyvcloud/tree/18.2.2).
+
+## Contributing
+
+The `pyvcloud` project team welcomes contributions from the community. Before you start working with `pyvcloud`, please read our [Developer Certificate of Origin](https://cla.vmware.com/dco). All contributions to this repository must be signed as described on that page. Your signature certifies that you wrote the patch or have the right to pass it on as an open-source patch. For more detailed information, refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+[Apache-2.0](LICENSE.txt)

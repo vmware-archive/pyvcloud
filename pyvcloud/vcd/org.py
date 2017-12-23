@@ -104,7 +104,7 @@ class Org(object):
         Deletes specified role from the organization
         :param name: (str): name of the role
         :return: None
-        """  #NOQA
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         role_record = self.get_role(name)

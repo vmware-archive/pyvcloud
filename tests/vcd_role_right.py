@@ -20,19 +20,19 @@ from pyvcloud.vcd.role import Role
 from pyvcloud.vcd.test import TestCase
 
 class TestRole(TestCase):
-    def test_list_role(self):
+    def test_01_list_role(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         roles = org.list_roles()
         assert len(roles) > 0
 
-    def test_get_role(self):
+    def test_02_get_role(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         role = org.get_role(self.config['vcd']['role_name'])
         assert self.config['vcd']['role_name'] == role.get('name')
 
-    def test_get_rights(self):
+    def test_03_get_rights(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         role_name = self.config['vcd']['role_name']
@@ -41,22 +41,21 @@ class TestRole(TestCase):
         rights = role.list_rights()
         assert len(rights) > 0
 
-    def test_create_role(self):
+    def test_04_create_role(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         role_name = self.config['vcd']['role_name']
         org.create_role(role_name, 'test description', ('Disk: View Properties',))
         role_record = org.get_role(role_name)
         assert self.config['vcd']['role_name'] == role_record.get('name')
-        org.delete_role(role_name)
 
-    def test_list_rights_in_org(self):
+    def test_05_list_rights_in_org(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         right_record_list = org.list_rights()
         assert len(right_record_list) > 0
 
-    def test_delete_role_in_org(self):
+    def test_06_delete_role_in_org(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         role_name = self.config['vcd']['role_name']

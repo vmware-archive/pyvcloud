@@ -20,7 +20,7 @@ class TestDiskSetup(TestCase):
         v = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, href=v.get('href'))
 
-        taskObj = vdc.add_disk(self.config['vcd']['disk'], 10*1024*1024, None, None, '10 MB Disk')
+        taskObj = vdc.add_disk(self.config['vcd']['disk'], 10*1024*1024, '200', None, None, '10 MB Disk')
 
 
 

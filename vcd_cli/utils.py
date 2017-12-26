@@ -13,6 +13,7 @@
 #
 import json
 import logging
+import re
 import sys
 import traceback
 from os import environ # NOQA
@@ -108,11 +109,18 @@ def spinning_cursor():
 
 spinner = spinning_cursor()
 
+last_message = ''
+
 
 def task_callback(task):
+    global last_message
     message = '\x1b[2K\r{0}: {1}, status: {2}'.format(
         task.get('operationName'), task.get('operation'), task.get('status')
     )
+    if message != last_message:
+        if last_message != '':
+            click.secho(re.sub(', status: .*$', '', last_message))
+        last_message = message
     if hasattr(task, 'Progress'):
         message += ', progress: %s%%' % task.Progress
     if task.get('status').lower() in [TaskStatus.QUEUED.value,
@@ -124,6 +132,7 @@ def task_callback(task):
 
 
 def stdout(obj, ctx=None, alt_text=None, show_id=False):
+    global last_message
     o = obj
     if ctx is not None and \
        'json_output' in ctx.find_root().params and \
@@ -157,6 +166,7 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                         text = as_table([to_dict(obj)], show_id=True)
                     else:
                         client = ctx.obj['client']
+                        last_message = ''
                         task = client.get_task_monitor().wait_for_status(
                                             task=obj,
                                             timeout=60,

@@ -213,20 +213,32 @@ def detach(ctx, vapp_name, vm_name, disk_name, disk_id):
 
 @vapp.command('list', short_help='list vApps')
 @click.pass_context
-def list_vapps(ctx):
+@click.argument('name',
+                metavar='[name]',
+                required=False)
+def list_vapps(ctx, name):
     try:
         client = ctx.obj['client']
         result = []
-        resource_type = 'adminVApp' if is_sysadmin(ctx) else 'vApp'
+        if name is None:
+            resource_type = 'adminVApp' if is_sysadmin(ctx) else 'vApp'
+            qfilter = None
+            attributes = None
+        else:
+            resource_type = 'adminVm' if is_sysadmin(ctx) else 'vm'
+            qfilter = 'containerName==%s' % name
+            attributes = ['name', 'containerName', 'ipAddress', 'status',
+                          'memoryMB', 'numberOfCpus']
         q = client.get_typed_query(resource_type,
                                    query_result_format=QueryResultFormat.
-                                   ID_RECORDS)
+                                   ID_RECORDS, qfilter=qfilter)
         records = list(q.execute())
         if len(records) == 0:
             result = 'not found'
         else:
             for r in records:
-                result.append(to_dict(r, resource_type=resource_type))
+                result.append(to_dict(r, resource_type=resource_type,
+                                      attributes=attributes))
         stdout(result, ctx, show_id=False)
     except Exception as e:
         stderr(e, ctx)

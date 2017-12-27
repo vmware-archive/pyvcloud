@@ -55,6 +55,9 @@ def vapp(ctx):
         vcd vapp list
             Get list of vApps in current virtual datacenter.
 \b
+        vcd vapp list vapp1
+            Get list of VMs in vApp 'vapp1'.
+\b
         vcd vapp info vapp1
             Get details of the vApp 'vapp1'.
 \b

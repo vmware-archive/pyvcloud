@@ -133,6 +133,7 @@ def task_callback(task):
 
 def stdout(obj, ctx=None, alt_text=None, show_id=False):
     global last_message
+    last_message = ''
     o = obj
     if ctx is not None and \
        'json_output' in ctx.find_root().params and \
@@ -166,7 +167,7 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                         text = as_table([to_dict(obj)], show_id=True)
                     else:
                         client = ctx.obj['client']
-                        last_message = ''
+                        # last_message = ''
                         task = client.get_task_monitor().wait_for_status(
                                             task=obj,
                                             timeout=60,

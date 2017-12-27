@@ -288,7 +288,7 @@ class VApp(object):
         disk_list.append(new_disk)
         return self.client.put_resource(
             vm.get('href') + '/virtualHardwareSection/disks', disk_list,
-            EntityType.RASD_ITEM_LIST.value)
+            EntityType.RASD_ITEMS_LIST.value)
 
     def get_access_control_settings(self):
         """Get the access control settings of the vapp.
@@ -353,8 +353,9 @@ class VApp(object):
             storage_profile: (str): (optional) the name of the storage profile
                 to be used for this VM
 
-        :return: SourcedItem
-
+        :return: SourcedItem: (:class:`lxml.objectify.StringElement`): object
+            representing the 'SourcedItem' xml object created from the
+            specification.
         """
 
         source_vapp = VApp(self.client, resource=spec['vapp'])
@@ -387,6 +388,7 @@ class VApp(object):
                         E.IsConnected(True),
                         E.IpAddressAllocationMode(ip_allocation_mode.upper()),
                         network=spec['network'])))
+
         needs_customization = 'disk_size' in spec or 'password' in spec or \
             'cust_script' in spec or 'hostname' in spec
         if needs_customization:
@@ -448,8 +450,9 @@ class VApp(object):
 
         """
 
-        params = E.RecomposeVAppParams(deploy='true' if deploy else 'false',
-                                       powerOn='true' if power_on else 'false')
+        params = E.RecomposeVAppParams(
+            deploy='true' if deploy else 'false',
+            powerOn='true' if power_on else 'false')
         for spec in specs:
             params.append(self.to_sourced_item(spec))
 

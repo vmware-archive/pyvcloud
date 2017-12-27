@@ -557,43 +557,38 @@ class Org(object):
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
 
-    def list_roles(self):
-        """
-        Retrieve the list of role in the current Org
-        :return: List of roles in the current Org
-        """  # NOQA
-        roles_query, resource_type = self.get_roles_query()
-        result = []
-        for r in list(roles_query.execute()):
-            result.append(
-                to_dict(
-                    r,
-                    resource_type=resource_type,
-                    exclude=['org', 'orgName', 'href']))
-        return result
+    # def list_roles(self):
+    #     """
+    #     Retrieve the list of role in the current Org
+    #     :return: List of roles in the current Org
+    #     """  # NOQA
+    #     roles_query, resource_type = self.get_roles_query()
+    #     result = []
+    #     for r in list(roles_query.execute()):
+    #         result.append(
+    #             to_dict(
+    #                 r,
+    #                 resource_type=resource_type,
+    #                 exclude=['org', 'orgName', 'href']))
+    #     return result
 
     def get_role(self, role_name):
         """
         Retrieve role object with a particular name in the current Org
         :param role_name: (str): The name of the role object to be retrieved
-        :return: (QueryResultRoleRecordType): Role query result in records
-                 format
+        :return: (dict): Role record in dict format
         """  # NOQA
-        try:
-            roles_query = self.get_roles_query(('name', role_name))[0]
-            return roles_query.find_unique()
-        except MissingRecordException:
+        role_record = self.list_roles(('name', role_name))
+        if len(role_record) < 1:
             raise Exception('Role \'%s\' does not exist.' % role_name)
+        return role_record[0]
 
-    def get_roles_query(self, name_filter=None):
+    def list_roles(self, name_filter=None):
         """
-        Get the typed query for the roles in the current Org
-        :param name_filter: (tuple): (name ,'role name') Filter the roles by
+        Get list of roles in the current Org
+        :param name_filter: (tuple): (name ,'role name') Filter roles by
                              'role name'
-        :return: (tuple of (_TypedQuery, str))
-                  _TypedQuery object represents the query for the roles in
-                  the current Org
-                  str represents the resource type of the query object
+        :return: (list): (RoleRecord) List of roles
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -609,7 +604,14 @@ class Org(object):
             query_result_format=QueryResultFormat.RECORDS,
             equality_filter=name_filter,
             qfilter=org_filter)
-        return query, resource_type
+        result = []
+        for r in list(query.execute()):
+            result.append(
+                to_dict(
+                    r,
+                    resource_type=resource_type,
+                    exclude=['org', 'orgName']))
+        return result
 
     def get_right(self, right_name):
         """
@@ -624,7 +626,7 @@ class Org(object):
 
     def list_rights(self, name_filter=None):
         """
-        Get the typed query for the rights in the current Org
+        Get list of the rights in the current Org
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
                              'right name'
         :return: (list): (RightRecord) List of rights

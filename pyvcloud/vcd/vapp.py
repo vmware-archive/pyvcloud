@@ -176,7 +176,7 @@ class VApp(object):
             self.resource = self.client.get_resource(self.href)
         vm = self.get_vm(vm_name)
         return self.client.post_linked_resource(
-            vm, RelationType.REBOOT, None, None)
+            vm, RelationType.POWER_RESET, None, None)
 
     def connect_vm(self, mode='DHCP', reset_mac_address=False):
         if self.resource is None:

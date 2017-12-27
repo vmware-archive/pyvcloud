@@ -157,6 +157,27 @@ class VApp(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_SHUTDOWN, None, None)
 
+    def power_off_vm(self, vm_name):
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        vm = self.get_vm(vm_name)
+        return self.client.post_linked_resource(
+            vm, RelationType.POWER_OFF, None, None)
+
+    def power_on_vm(self, vm_name):
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        vm = self.get_vm(vm_name)
+        return self.client.post_linked_resource(
+            vm, RelationType.POWER_ON, None, None)
+
+    def reboot_vm(self, vm_name):
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        vm = self.get_vm(vm_name)
+        return self.client.post_linked_resource(
+            vm, RelationType.POWER_RESET, None, None)
+
     def connect_vm(self, mode='DHCP', reset_mac_address=False):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

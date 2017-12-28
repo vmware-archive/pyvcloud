@@ -647,10 +647,13 @@ def use(ctx, name):
               help='Name of the storage profile for the VM')
 @click.option('--password-auto',
               is_flag=True,
-              default=False,
               help='Autogenerate administrator password')
+@click.option('--accept-all-eulas',
+              is_flag=True,
+              help='Accept all EULAs')
 def add_vm(ctx, name, source_vapp, source_vm, catalog, target_vm, hostname,
-           network, ip_allocation_mode, storage_profile, password_auto):
+           network, ip_allocation_mode, storage_profile, password_auto,
+           accept_all_eulas):
     try:
         client = ctx.obj['client']
         in_use_org_href = ctx.obj['profiles'].get('org_href')
@@ -677,9 +680,9 @@ def add_vm(ctx, name, source_vapp, source_vm, catalog, target_vm, hostname,
             spec['ip_allocation_mode'] = ip_allocation_mode
         if storage_profile is not None:
             spec['storage_profile'] = vdc.get_storage_profile(storage_profile)
-        if password_auto:
-            spec['password_auto'] = True
-        task = vapp.add_vms([spec])
+        if password_auto is not None:
+            spec['password_auto'] = password_auto
+        task = vapp.add_vms([spec], all_eulas_accepted=accept_all_eulas)
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

@@ -11,7 +11,7 @@ As an example, to add [CSE](https://vmware.github.io/container-service-extension
 Install CSE package with:
 
 ```shell
-    $ pip install container-service-extension --pre --upgrade
+$ pip install container-service-extension --pre --upgrade
 ```
 
 Edit `~/.vcd-cli/profiles.yaml` and add the following two lines between the `active` and `profiles` entries:
@@ -32,13 +32,13 @@ profiles:
 
 Validate the new commands are installed with:
 ```shell
-    $ vcd cse
-    Usage: vcd cse [OPTIONS] COMMAND [ARGS]...
+$ vcd cse
+Usage: vcd cse [OPTIONS] COMMAND [ARGS]...
 
   Work with kubernetes clusters in vCloud Director.
 
-      Examples
-          vcd cse cluster list
-              Get list of kubernetes clusters in current virtual datacenter.
-          ...
+    Examples
+        vcd cse cluster list
+            Get list of kubernetes clusters in current virtual datacenter.
+        ...
 ```

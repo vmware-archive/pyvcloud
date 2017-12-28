@@ -14,14 +14,6 @@
 <a href="vcd_catalog_upload">upload</a></li>
 </ul></li>
 <li>
-<a href="vcd_cluster">cluster</a><ul><li>
-<a href="vcd_cluster_config">config</a></li><li>
-<a href="vcd_cluster_create">create</a></li><li>
-<a href="vcd_cluster_delete">delete</a></li><li>
-<a href="vcd_cluster_list">list</a></li><li>
-<a href="vcd_cluster_save-config">save-config</a></li>
-</ul></li>
-<li>
 <a href="vcd_disk">disk</a><ul><li>
 <a href="vcd_disk_change-owner">change-owner</a></li><li>
 <a href="vcd_disk_create">create</a></li><li>
@@ -125,11 +117,8 @@
 <li>
 <a href="vcd_version">version</a></li><li>
 <a href="vcd_vm">vm</a><ul><li>
-<a href="vcd_vm_download">download</a></li><li>
 <a href="vcd_vm_info">info</a></li><li>
-<a href="vcd_vm_list">list</a></li><li>
-<a href="vcd_vm_run">run</a></li><li>
-<a href="vcd_vm_upload">upload</a></li></ul>
+<a href="vcd_vm_list">list</a></li></ul>
 </li></ul>
 </li></ul>
 </div>

@@ -117,8 +117,8 @@ def help(ctx, tree):
 if __name__ == '__main__':
     vcd()
 else:
+    load_user_plugins()
     from vcd_cli import catalog  # NOQA
-    from vcd_cli import cluster  # NOQA
     from vcd_cli import disk  # NOQA
     from vcd_cli import info  # NOQA
     from vcd_cli import login  # NOQA
@@ -135,5 +135,4 @@ else:
     from vcd_cli import vapp  # NOQA
     from vcd_cli import vdc  # NOQA
     from vcd_cli import vm  # NOQA
-    load_user_plugins()
     init(autoreset=True)

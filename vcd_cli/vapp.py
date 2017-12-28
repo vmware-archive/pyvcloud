@@ -55,6 +55,9 @@ def vapp(ctx):
         vcd vapp list
             Get list of vApps in current virtual datacenter.
 \b
+        vcd vapp list vapp1
+            Get list of VMs in vApp 'vapp1'.
+\b
         vcd vapp info vapp1
             Get details of the vApp 'vapp1'.
 \b
@@ -213,20 +216,32 @@ def detach(ctx, vapp_name, vm_name, disk_name, disk_id):
 
 @vapp.command('list', short_help='list vApps')
 @click.pass_context
-def list_vapps(ctx):
+@click.argument('name',
+                metavar='[name]',
+                required=False)
+def list_vapps(ctx, name):
     try:
         client = ctx.obj['client']
         result = []
-        resource_type = 'adminVApp' if is_sysadmin(ctx) else 'vApp'
+        if name is None:
+            resource_type = 'adminVApp' if is_sysadmin(ctx) else 'vApp'
+            qfilter = None
+            attributes = None
+        else:
+            resource_type = 'adminVm' if is_sysadmin(ctx) else 'vm'
+            qfilter = 'containerName==%s' % name
+            attributes = ['name', 'containerName', 'ipAddress', 'status',
+                          'memoryMB', 'numberOfCpus']
         q = client.get_typed_query(resource_type,
                                    query_result_format=QueryResultFormat.
-                                   ID_RECORDS)
+                                   ID_RECORDS, qfilter=qfilter)
         records = list(q.execute())
         if len(records) == 0:
             result = 'not found'
         else:
             for r in records:
-                result.append(to_dict(r, resource_type=resource_type))
+                result.append(to_dict(r, resource_type=resource_type,
+                                      attributes=attributes))
         stdout(result, ctx, show_id=False)
     except Exception as e:
         stderr(e, ctx)
@@ -632,10 +647,13 @@ def use(ctx, name):
               help='Name of the storage profile for the VM')
 @click.option('--password-auto',
               is_flag=True,
-              default=False,
               help='Autogenerate administrator password')
+@click.option('--accept-all-eulas',
+              is_flag=True,
+              help='Accept all EULAs')
 def add_vm(ctx, name, source_vapp, source_vm, catalog, target_vm, hostname,
-           network, ip_allocation_mode, storage_profile, password_auto):
+           network, ip_allocation_mode, storage_profile, password_auto,
+           accept_all_eulas):
     try:
         client = ctx.obj['client']
         in_use_org_href = ctx.obj['profiles'].get('org_href')
@@ -662,9 +680,9 @@ def add_vm(ctx, name, source_vapp, source_vm, catalog, target_vm, hostname,
             spec['ip_allocation_mode'] = ip_allocation_mode
         if storage_profile is not None:
             spec['storage_profile'] = vdc.get_storage_profile(storage_profile)
-        if password_auto:
-            spec['password_auto'] = True
-        task = vapp.add_vms([spec])
+        if password_auto is not None:
+            spec['password_auto'] = password_auto
+        task = vapp.add_vms([spec], all_eulas_accepted=accept_all_eulas)
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

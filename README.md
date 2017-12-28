@@ -68,6 +68,16 @@ Please note that this project is under development, the commands, parameters and
 
 Previous versions and deprecated code can be found in this repository under [tag 19.2.3](https://github.com/vmware/vcd-cli/tree/19.2.3).
 
+## Development
+
+If you want to develop, follow these steps:
+* Fork the repository
+* Clone the forked respoitory
+* Install vcd-cli from the local sources `pip3 install --user -e vcd-cli/` 
+* Add the path `~/.local/bin` to the PATH
+
+If you change the source, it is directly accessible with the `vcd` command
+
 ## Contributing
 
 The `vcd-cli` project team welcomes contributions from the community. Before you start working with `vcd-cli`, please read our [Developer Certificate of Origin](https://cla.vmware.com/dco). All contributions to this repository must be signed as described on that page. Your signature certifies that you wrote the patch or have the right to pass it on as an open-source patch. For more detailed information, refer to [CONTRIBUTING.md](CONTRIBUTING.md).

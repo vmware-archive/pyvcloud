@@ -435,7 +435,11 @@ class VApp(object):
 
         return sourced_item
 
-    def add_vms(self, specs, deploy=True, power_on=True):
+    def add_vms(self,
+                specs,
+                deploy=True,
+                power_on=True,
+                all_eulas_accepted=None):
         """Recompose the vApp and add VMs.
 
         :param specs: An array of VM specifications, see `to_sourced_item()`
@@ -444,6 +448,8 @@ class VApp(object):
             instantiation
         :param power_on: (bool): True if the vApp should be powered-on at
             instantiation
+        :param all_eulas_accepted: (bool): True confirms acceptance of all
+            EULAs in the vApp.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing a
             sparsely populated vApp element.
@@ -455,6 +461,8 @@ class VApp(object):
             powerOn='true' if power_on else 'false')
         for spec in specs:
             params.append(self.to_sourced_item(spec))
+        if all_eulas_accepted is not None:
+            params.append(E.AllEULAsAccepted(all_eulas_accepted))
 
         return self.client.post_linked_resource(
             self.resource, RelationType.RECOMPOSE,

@@ -95,6 +95,5 @@ class VM(object):
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        return self.client.post_linked_resource(self.resource,
-                                                       RelationType.POWER_ON,
-                                                       None, None)
+        return self.client.post_linked_resource(
+            self.resource, RelationType.POWER_ON, None, None)

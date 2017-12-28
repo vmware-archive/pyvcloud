@@ -167,7 +167,6 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                         text = as_table([to_dict(obj)], show_id=True)
                     else:
                         client = ctx.obj['client']
-                        # last_message = ''
                         task = client.get_task_monitor().wait_for_status(
                                             task=obj,
                                             timeout=60,

@@ -107,7 +107,7 @@ class TestVM(TestCase):
                             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
 
-    def test_0004_power_on(self):
+    def test_0004_power_reset(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])

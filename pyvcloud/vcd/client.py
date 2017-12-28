@@ -145,6 +145,7 @@ class RelationType(Enum):
     DOWNLOAD_DEFAULT = 'download:default'
     EDIT = 'edit'
     ENABLE = 'enable'
+    LINK_TO_TEMPLATE = 'linkToTemplate'
     NEXT_PAGE = 'nextPage'
     POWER_OFF = 'power:powerOff'
     POWER_ON = 'power:powerOn'

@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import RelationType
 
 class Role(object):
@@ -46,13 +45,22 @@ class Role(object):
                 rights.append({'name': right.get('name')})
         return rights
 
-    def unlink_role(self, name):
+    def unlink(self):
         """
-        Unlinks given role of an organization from its template.
-        :param name: (str): name of the role
+        Unlinks the role from its template.
         :return: None
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         self.client.post_linked_resource(
             self.resource, RelationType.UNLINK_FROM_TEMPLATE, EntityType.ROLE.value, None)
+
+    def link(self):
+        """
+        Links the role to its template.
+        :return: None
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        self.client.post_linked_resource(
+            self.resource, RelationType.LINK_TO_TEMPLATE, EntityType.ROLE.value, None)

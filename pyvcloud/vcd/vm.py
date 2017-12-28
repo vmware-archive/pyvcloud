@@ -23,21 +23,18 @@ class VM(object):
 
     """
 
-    def __init__(self, client, name=None, href=None, resource=None):
+    def __init__(self, client, href=None, resource=None):
         """Constructor.
 
         :param client: (Client): The client object to communicate with vCD.
-        :param name: (str): (optional) Name of the VM.
         :param href: (str): (optional) href of the VM.
         :param resource: (:class:`lxml.objectify.StringElement`): (optional)
             object describing the VM.
         """
         self.client = client
-        self.name = name
         self.href = href
         self.resource = resource
         if resource is not None:
-            self.name = resource.get('name')
             self.href = resource.get('href')
 
     def reload(self):
@@ -46,7 +43,6 @@ class VM(object):
         """
         self.resource = self.client.get_resource(self.href)
         if self.resource is not None:
-            self.name = self.resource.get('name')
             self.href = self.resource.get('href')
 
     def modify_cpu(self, virtual_quantity, cores_per_socket=None):
@@ -120,4 +116,30 @@ class VM(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_RESET, None, None)
 
+    def get_cpus(self):
+        """Returns the number of CPUs
 
+        :return: A dictionary with:
+            num_cpus: (int): number of cpus
+            num_cores_per_socket: (int): number of cores per socket
+        """
+
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        return {
+            'num_cpus':
+            int(self.resource.VmSpecSection.NumCpus.text),
+            'num_cores_per_socket':
+            int(self.resource.VmSpecSection.NumCoresPerSocket.text)
+        }
+
+    def get_memory(self):
+        """Returns the amount of memory in MB
+
+        :return: (int): Amount of memory in MB
+        """
+
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        return int(
+            self.resource.VmSpecSection.MemoryResourceMb.Configured.text)

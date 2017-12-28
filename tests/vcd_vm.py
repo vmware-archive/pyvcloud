@@ -26,7 +26,7 @@ from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.vm import VM
 
-class TestVAppVM(TestCase):
+class TestVM(TestCase):
 
     def test_0001_modify_cpu(self):
         logged_in_org = self.client.get_org()
@@ -52,6 +52,10 @@ class TestVAppVM(TestCase):
                                 TaskStatus.CANCELED],
                             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
+        vm.reload()
+        cpus = vm.get_cpus()
+        assert cpus['num_cpus'] == self.config['vcd']['cpu']
+        assert cpus['num_cores_per_socket'] == self.config['vcd']['cores_per_socket']
 
     def test_0002_modify_memory(self):
         logged_in_org = self.client.get_org()
@@ -76,6 +80,8 @@ class TestVAppVM(TestCase):
                                 TaskStatus.CANCELED],
                             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
+        vm.reload()
+        assert vm.get_memory() == self.config['vcd']['memory']
 
     def test_0003_power_on(self):
         logged_in_org = self.client.get_org()

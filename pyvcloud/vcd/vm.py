@@ -97,3 +97,27 @@ class VM(object):
             self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_ON, None, None)
+
+    def power_off(self):
+        """Powers off the VM.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing the
+            asynchronous task that operates the VM.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        return self.client.post_linked_resource(
+            self.resource, RelationType.POWER_OFF, None, None)
+
+    def power_reset(self):
+        """Powers reset the VM.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing the
+            asynchronous task that operates the VM.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        return self.client.post_linked_resource(
+            self.resource, RelationType.POWER_RESET, None, None)
+
+

@@ -48,7 +48,7 @@ class VApp(object):
             for vm in self.resource.Children.Vm:
                 if vm_name == vm.get('name'):
                     items = vm.xpath(
-                        '//ovf:VirtualHardwareSection/ovf:Item',
+                        'ovf:VirtualHardwareSection/ovf:Item',
                         namespaces=NSMAP)
                     for item in items:
                         connection = item.find('rasd:Connection', NSMAP)
@@ -105,7 +105,7 @@ class VApp(object):
         if hasattr(vapp, 'Children') and hasattr(vapp.Children, 'Vm'):
             for vm in vapp.Children.Vm:
                 if vm.get('name') == vm_name:
-                    env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
+                    env = vm.xpath('ovfenv:Environment', namespaces=NSMAP)
                     if len(env) > 0:
                         return env[0].get('{' + NSMAP['ve'] + '}vCenterId')
         return None
@@ -288,7 +288,7 @@ class VApp(object):
         disk_list.append(new_disk)
         return self.client.put_resource(
             vm.get('href') + '/virtualHardwareSection/disks', disk_list,
-            EntityType.RASD_ITEM_LIST.value)
+            EntityType.RASD_ITEMS_LIST.value)
 
     def get_access_control_settings(self):
         """Get the access control settings of the vapp.
@@ -345,14 +345,17 @@ class VApp(object):
                 machine to this value
             password_auto: (bool): (optional) autogenerate administrator
                 password
+            password_reset: (bool): (optional) True if the administrator
+                password for this virtual machine must be reset after first use
             cust_script: (str): (optional) script to run on guest customization
             network: (str): (optional) Name of the vApp network to connect.
                 If omitted, the VM won't be connected to any network
             storage_profile: (str): (optional) the name of the storage profile
                 to be used for this VM
 
-        :return: SourcedItem
-
+        :return: SourcedItem: (:class:`lxml.objectify.StringElement`): object
+            representing the 'SourcedItem' xml object created from the
+            specification.
         """
 
         source_vapp = VApp(self.client, resource=spec['vapp'])
@@ -385,6 +388,7 @@ class VApp(object):
                         E.IsConnected(True),
                         E.IpAddressAllocationMode(ip_allocation_mode.upper()),
                         network=spec['network'])))
+
         needs_customization = 'disk_size' in spec or 'password' in spec or \
             'cust_script' in spec or 'hostname' in spec
         if needs_customization:
@@ -397,18 +401,17 @@ class VApp(object):
                 guest_customization_param.append(E.AdminPasswordAuto(False))
                 guest_customization_param.append(
                     E.AdminPassword(spec['password']))
-                guest_customization_param.append(
-                    E.ResetPasswordRequired(False))
             else:
                 if 'password_auto' in spec:
                     guest_customization_param.append(
                         E.AdminPasswordEnabled(True))
                     guest_customization_param.append(E.AdminPasswordAuto(True))
-                    guest_customization_param.append(
-                        E.ResetPasswordRequired(False))
                 else:
                     guest_customization_param.append(
                         E.AdminPasswordEnabled(False))
+            if 'password_reset' in spec:
+                guest_customization_param.append(
+                    E.ResetPasswordRequired(spec['password_reset']))
             if 'cust_script' in spec:
                 guest_customization_param.append(
                     E.CustomizationScript(spec['cust_script']))
@@ -432,20 +435,34 @@ class VApp(object):
 
         return sourced_item
 
-    def add_vms(self, specs):
+    def add_vms(self,
+                specs,
+                deploy=True,
+                power_on=True,
+                all_eulas_accepted=None):
         """Recompose the vApp and add VMs.
 
         :param specs: An array of VM specifications, see `to_sourced_item()`
             method for specification details.
+        :param deploy: (bool): True if the vApp should be deployed at
+            instantiation
+        :param power_on: (bool): True if the vApp should be powered-on at
+            instantiation
+        :param all_eulas_accepted: (bool): True confirms acceptance of all
+            EULAs in the vApp.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing a
             sparsely populated vApp element.
 
         """
 
-        params = E.RecomposeVAppParams()
+        params = E.RecomposeVAppParams(
+            deploy='true' if deploy else 'false',
+            powerOn='true' if power_on else 'false')
         for spec in specs:
             params.append(self.to_sourced_item(spec))
+        if all_eulas_accepted is not None:
+            params.append(E.AllEULAsAccepted(all_eulas_accepted))
 
         return self.client.post_linked_resource(
             self.resource, RelationType.RECOMPOSE,

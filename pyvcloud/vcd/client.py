@@ -176,6 +176,8 @@ class EntityType(Enum):
     DISK_ATTACH_DETACH_PARAMS = \
         'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'
     DISK_CREATE_PARMS = 'application/vnd.vmware.vcloud.diskCreateParams+xml'
+    EDGE_GATEWAY_SERVICE_CONFIGURATION = \
+        'application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \

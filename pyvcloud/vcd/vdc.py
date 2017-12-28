@@ -18,10 +18,12 @@ from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import access_control_settings_to_dict
 from pyvcloud.vcd.utils import get_admin_href
+from pyvcloud.vcd.utils import to_dict
 
 
 class VDC(object):
@@ -338,6 +340,21 @@ class VDC(object):
                 if entity_type is None or \
                    entity_type.value == vapp.get('type'):
                     result.append({'name': vapp.get('name')})
+        return result
+
+    def list_edgegateways(self):
+        resource_type = 'edgeGateway'
+        result = []
+        q = self.client.get_typed_query(
+            resource_type, query_result_format=QueryResultFormat.ID_RECORDS)
+        records = list(q.execute())
+        if len(records) > 0:
+            for r in records:
+                result.append(
+                    to_dict(
+                        r,
+                        resource_type=resource_type,
+                        exclude=[]))
         return result
 
     def add_disk(self,

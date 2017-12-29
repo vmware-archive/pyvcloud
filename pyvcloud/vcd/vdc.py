@@ -657,19 +657,20 @@ class VDC(object):
             self.resource, RelationType.ADD,
             EntityType.COMPOSE_VAPP_PARAMS.value, params)
 
-    def create_directly_connected_vdc_network(
-            self, network_name,
-            description, parent_network_name):
-        """Create a new OrgVdc network directly connected to an external \
-            network.
+    def create_directly_connected_vdc_network(self,
+                                              network_name,
+                                              description,
+                                              parent_network_name):
+        """Create a new directly connected OrgVdc network in this VDC.
 
         :param network_name: (str) Name of the new network
         :param description: (str) Description of the new network
-        :param parent_network_name: (str) Name of the external network \
-            that the new network will be directly connected to.
-        :return: A :class:`lxml.objectify.StringElement` object representing \
+        :param parent_network_name: (str) Name of the external network
+            that the new network will be directly connected to
+        :return: A :class:`lxml.objectify.StringElement` object representing
             a sparsely populated OrgVdcNetwork element.
         """
+
         resource_admin = self.client.get_resource(self.href_admin)
         parent_network_href = None
         if hasattr(resource_admin, 'ProviderVdcReference'):

@@ -19,7 +19,6 @@ from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.test import TestCase
 from pyvcloud.vcd.vdc import VDC
 
-import pprint
 
 class TestNetwork(TestCase):
     def test_001_create_orgvdc_network(self):

@@ -1,6 +1,6 @@
 # vCloud CLI 0.1
 #
-# Copyright (c) 2014 VMware, Inc. All Rights Reserved.
+# Copyright (c) 2017 VMware, Inc. All Rights Reserved.
 #
 # This product is licensed to you under the
 # Apache License, Version 2.0 (the "License").
@@ -12,6 +12,11 @@
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
 
+from vcd_cli.profiles import Profiles
+
 
 def load_user_plugins():
-    pass
+    profiles = Profiles.load()
+    if 'extensions' in profiles.data and len(profiles.data) > 0:
+        for extension in profiles.data['extensions']:
+            __import__(extension)

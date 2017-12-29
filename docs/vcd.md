@@ -20,7 +20,6 @@ Options:
 
 Commands:
   catalog  work with catalogs
-  cluster  manage clusters
   disk     manage independent disks
   help     show help
   info     show resource details

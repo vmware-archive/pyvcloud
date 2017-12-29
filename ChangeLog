@@ -1,6 +1,25 @@
 CHANGES
 =======
 
+20.0.0
+------
+
+* removed dead code
+* eula and plugin
+* addressed comments
+* [vcd-cli] delete role from a given org (#146)
+* docs
+* VCDA-381/2/3/4/5
+* install
+* readme
+* readme
+* readme
+* readme
+* readme
+* cleanup deprecated code; end-to-end tests
+* removed vca command
+* auto
+
 19.2.3
 ------
 
@@ -11,6 +30,7 @@ CHANGES
 * Fixing small typo
 * Fixing import order as per flake8\_import\_order, addressing review comments
 * address review comments
+* Add code of conduct and PR/issue templates
 * Tying colored output param to environment variable USE\_COLORED\_OUTPUT
 * Introducing top level param in vcd-cli to print info in monochrome
 * Fixing text color issue after an error, and also exposing option to turn off colored output entirely

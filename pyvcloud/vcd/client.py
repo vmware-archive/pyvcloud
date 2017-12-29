@@ -15,15 +15,16 @@
 
 from datetime import datetime
 from datetime import timedelta
-from flufl.enum import Enum
 import json
 import logging
-from lxml import etree
-from lxml import objectify
-import requests
 import sys
 import time
 import urllib
+
+from flufl.enum import Enum
+from lxml import etree
+from lxml import objectify
+import requests
 
 SIZE_1MB = 1024 * 1024
 
@@ -193,6 +194,7 @@ class EntityType(Enum):
     ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
+    ORG_VDC_NETWORK = 'application/vnd.vmware.vcloud.orgVdcNetwork+xml'
     OWNER = 'application/vnd.vmware.vcloud.owner+xml'
     PUBLISH_CATALOG_PARAMS = \
         'application/vnd.vmware.admin.publishCatalogParams+xml'

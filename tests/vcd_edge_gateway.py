@@ -7,10 +7,10 @@ from pyvcloud.vcd.vdc import VDC
 
 class TestEdgeGateway(TestCase):
 
-    def test_001_list_edgegateways(self):
+    def test_001_list_edge_gateways(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         v = org.get_vdc(self.config['vcd']['vdc'])
-        vdc = VDC(self.client, href=v.get('href'))
-        edgeGateways = vdc.list_edgegateways()
-        assert len(edgeGateways) > 0
+        vdc = VDC(self.client, resource=v)
+        edge_gateways = vdc.list_edge_gateways()
+        assert len(edge_gateways) > 0

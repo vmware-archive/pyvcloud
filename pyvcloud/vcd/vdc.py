@@ -13,17 +13,17 @@
 # limitations under the License.
 
 from lxml import etree
+
 from pyvcloud.vcd.client import E
+from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
-from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import access_control_settings_to_dict
 from pyvcloud.vcd.utils import get_admin_href
-from pyvcloud.vcd.utils import to_dict
 
 
 class VDC(object):
@@ -342,20 +342,29 @@ class VDC(object):
                     result.append({'name': vapp.get('name')})
         return result
 
-    def list_edgegateways(self):
-        resource_type = 'edgeGateway'
-        result = []
-        q = self.client.get_typed_query(
-            resource_type, query_result_format=QueryResultFormat.ID_RECORDS)
-        records = list(q.execute())
-        if len(records) > 0:
-            for r in records:
-                result.append(
-                    to_dict(
-                        r,
-                        resource_type=resource_type,
-                        exclude=[]))
-        return result
+    def list_edge_gateways(self):
+        """
+        Request a list of edge gateways defined in a vdc.
+        :return: An array of :class:`lxml.objectify.StringElement` objects describing the existing edge gateways.
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        links = get_links(
+            self.resource,
+            rel=RelationType.EDGE_GATEWAYS,
+            media_type=EntityType.RECORDS.value)
+
+        vdc_edge_gateways = []
+        for vdc_edge_gateway_link in links:
+            vdc_edge_gateways.append(self.client.get_resource(vdc_edge_gateway_link.href))
+        edge_gateways = []
+        for QueryResultRecords in vdc_edge_gateways:
+            if hasattr(QueryResultRecords, 'EdgeGatewayRecord'):
+                for EdgeGatewayRecord in QueryResultRecords.EdgeGatewayRecord:
+                    if EdgeGatewayRecord.get('href') is not None:
+                        edge_gateways.append(
+                            self.client.get_resource(EdgeGatewayRecord.get('href')))
+        return edge_gateways
 
     def add_disk(self,
                  name,

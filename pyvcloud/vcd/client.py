@@ -40,6 +40,8 @@ NSMAP = {
     'http://www.vmware.com/vcloud/v1.5',
     've':
     'http://www.vmware.com/schema/ovfenv',
+    'vmw':
+    'http://www.vmware.com/schema/ovf',
     'vmext':
     'http://www.vmware.com/vcloud/extension/v1.5',
     'xs':
@@ -199,7 +201,8 @@ class EntityType(Enum):
     PUBLISH_CATALOG_PARAMS = \
         'application/vnd.vmware.admin.publishCatalogParams+xml'
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
-    RASD_ITEM_LIST = 'application/vnd.vmware.vcloud.rasdItemsList+xml'
+    RASD_ITEM = 'application/vnd.vmware.vcloud.rasdItem+xml'
+    RASD_ITEMS_LIST = 'application/vnd.vmware.vcloud.rasdItemsList+xml'
     RECOMPOSE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.recomposeVAppParams+xml'
     ROLE = 'application/vnd.vmware.admin.role+xml'

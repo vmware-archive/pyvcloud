@@ -107,7 +107,8 @@ class VDC(object):
             Possible values are `pool`, `dhcp` and `static`
         :param deploy: (bool):
         :param power_on: (bool):
-        :param accept_all_eulas: (bool): True confirms acceptance of all EULAs in a vApp template.
+        :param accept_all_eulas: (bool): True confirms acceptance of all EULAs
+            in a vApp template.
         :param memory: (int):
         :param cpu: (int):
         :param disk_size: (int):

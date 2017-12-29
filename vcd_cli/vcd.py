@@ -15,14 +15,10 @@
 import platform
 
 import click
-
 from colorama import init
-
 import pkg_resources
-
 from vcd_cli.plugin import load_user_plugins
 from vcd_cli.utils import stdout
-
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 

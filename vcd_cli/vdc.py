@@ -13,13 +13,11 @@
 #
 
 import click
-
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import vdc_to_dict
 from pyvcloud.vcd.vdc import VDC
-
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout

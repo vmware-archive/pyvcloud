@@ -73,7 +73,7 @@ def info(ctx, name):
         in_use_org_name = ctx.obj['profiles'].get('org_in_use')
         in_use_vdc = ctx.obj['profiles'].get('vdc_in_use')
         org_href = ctx.obj['profiles'].get('org_href')
-        org = Org(client, org_href)
+        org = Org(client, href=org_href)
         vdc_resource = org.get_vdc(name)
         vdc = VDC(client, resource=vdc_resource)
         access_control_settings = vdc.get_access_control_settings()

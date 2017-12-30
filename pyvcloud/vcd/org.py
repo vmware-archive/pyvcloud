@@ -27,7 +27,7 @@ from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.system import System
-from pyvcloud.vcd.utils import access_control_settings_to_dict
+from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import to_dict
 import shutil
 import tarfile
@@ -99,7 +99,7 @@ class Org(object):
         Deletes specified role from the organization
         :param name: (str): name of the role
         :return: None
-        """
+        """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         role_record = self.get_role(name)
@@ -649,13 +649,324 @@ class Org(object):
         """
         Get the access control settings of a catalog.
         :param catalog_name: (str): The name of the catalog.
-        :return: (dict): Access control settings of the catalog.
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+        the updated access control setting of the catalog.
         """  # NOQA
         catalog_resource = self.get_catalog(name=catalog_name)
         access_control_settings = self.client.get_linked_resource(
             catalog_resource, RelationType.DOWN,
             EntityType.CONTROL_ACCESS_PARAMS.value)
-        return access_control_settings_to_dict(access_control_settings)
+        return access_control_settings
+
+    def add_catalog_access_settings(self, catalog_name,
+                                    access_settings_list=None):
+        """
+        Add acl to a particular catalog.
+        :param catalog_name: (str): name of the catalog for which acl needs
+            to be added.
+        :param access_settings_list: (list of dict): list of access_setting
+            in the dict format. Each dict contains:
+            type: (str): type of the subject. One of 'org' or 'user'.
+            name: (str): name of the user or org.
+            access_level: (str): access_level of the particular subject. One of
+            'ReadOnly', 'Change', 'FullControl'
+            eg. [{'name': 'user', 'type': 'user1', 'access_level': 'Change'},
+            {'name': 'org1', 'type': 'org', 'access_level': 'ReadOnly'}]
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+        the updated access control setting of the catalog.
+        """  # NOQA
+        catalog_resource = self.get_catalog(name=catalog_name)
+        return self.add_access_settings(catalog_resource, access_settings_list)
+
+    def add_access_settings(self, resource, access_settings_list=None):
+        """
+        Add acl to a particular resource.
+        :param resource: (lxml.objectify.StringElement): resource for which
+            access_settings should be added.
+        :param access_settings_list: (list of dict): list of access_setting
+            in the dict format. Each dict contains:
+            type: (str): type of the subject. One of 'org' or 'user'.
+            name: (str): name of the user or org.
+            access_level: (str): access_level of the particular subject. One of
+            'ReadOnly', 'Change', 'FullControl'
+            eg. [{'name': 'user', 'type': 'user1', 'access_level': 'Change'},
+            {'name': 'org1', 'type': 'org', 'access_level': 'ReadOnly'}]
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the resource.
+        """  # NOQA
+        control_access_params = self.client.get_linked_resource(
+            resource, RelationType.DOWN,
+            EntityType.CONTROL_ACCESS_PARAMS.value)
+
+        # if access_settings_list is None, nothing to add.
+        if access_settings_list is not None:
+            # get the current access settings for the particular resource
+            old_access_settings_params = None
+            if hasattr(control_access_params, 'AccessSettings'):
+                old_access_settings_params = control_access_params. \
+                    AccessSettings
+
+                # discard the AccessSettings fro control_access_params as we
+                #  will be constructing a new one based on access_settings_list
+                control_access_params.remove(old_access_settings_params)
+
+            # remove common access_setting between access_settings_list
+            # and old_access_settings_params
+            for access_setting in list(access_settings_list):
+                subject_name = access_setting['name']
+                subject_type = access_setting['type']
+                matched_access_setting = \
+                    self.search_for_access_setting_by_subject(
+                        subject_name, subject_type,
+                        old_access_settings_params)
+                if matched_access_setting is not None:
+                    old_access_settings_params.remove(matched_access_setting)
+
+            new_access_settings_params = \
+                self.convert_access_settings_list_to_params(
+                    access_settings_list)
+
+            # combine the new and old access settings
+            if hasattr(old_access_settings_params, 'AccessSetting'):
+                for old_access_setting in list(
+                        old_access_settings_params.AccessSetting):
+                    new_access_settings_params.append(old_access_setting)
+
+            control_access_params.append(new_access_settings_params)
+
+            return self.client.post_linked_resource(
+                resource, RelationType.CONTROL_ACCESS,
+                EntityType.CONTROL_ACCESS_PARAMS.value, control_access_params)
+
+        return control_access_params
+
+    def remove_catalog_access_settings(self, catalog_name,
+                                       access_settings_list=None,
+                                       remove_all=False):
+        """
+        Remove acl from a particular catalog.
+        :param catalog_name: (name): catalog name from which access_settings 
+            should be removed.
+        :param access_settings_list: (list of dict): list of access_setting
+            in the dict format. Each dict contains:
+            type: (str): type of the subject. One of 'org' or 'user'.
+            name: (str): name of the user or org.
+            eg. [{'name': 'user', 'type': 'user1'},
+            {'name': 'org1', 'type': 'org']
+            :param remove_all: (bool) : True if all the acl of the resource
+            should be removed
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the catalog.
+        """  # NOQA
+        catalog_resource = self.get_catalog(name=catalog_name)
+        return self.remove_access_settings(catalog_resource,
+                                           access_settings_list, remove_all)
+
+    def remove_access_settings(self, resource,
+                               access_settings_list=None,
+                               remove_all=False):
+        """
+        Remove acl from a particular resource.
+        :param resource: (lxml.objectify.StringElement): resource from which
+            access_settings should be removed.
+        :param access_settings_list: (list of dict): list of access_setting
+            in the dict format. Each dict contains:
+            type: (str): type of the subject. One of 'org' or 'user'.
+            name: (str): name of the user or org.
+            eg. [{'name': 'user', 'type': 'user1'},
+            {'name': 'org1', 'type': 'org']
+            :param remove_all: (bool) : True if all the acl of the resource
+            should be removed.
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the resource.
+        """  # NOQA
+        control_access_params = self.client.get_linked_resource(
+            resource, RelationType.DOWN,
+            EntityType.CONTROL_ACCESS_PARAMS.value)
+
+        # get the current access settings for the particular resource
+        old_access_settings_params = None
+        if hasattr(control_access_params, 'AccessSettings'):
+            old_access_settings_params = control_access_params.AccessSettings
+
+            # discard the AccessSettings from control_access_params as we
+            # will be constructing a new one based on access_settings_list
+            control_access_params.remove(old_access_settings_params)
+
+        # if remove_all is True, nothing to remove from
+        # old_access_settings_params. AccessSettings is already discarded
+        # from control_access_params
+        if remove_all is False:
+            # remove common AccessSetting between access_settings_list
+            # and old_access_settings_params
+            for access_setting in list(access_settings_list):
+                subject_name = access_setting['name']
+                subject_type = access_setting['type']
+                matched_access_setting = \
+                    self.search_for_access_setting_by_subject(
+                        subject_name, subject_type,
+                        old_access_settings_params)
+                if matched_access_setting is None:
+                    raise Exception(
+                        'Subject \'%s:%s\' not found in the '
+                        'existing acl' % (subject_type, subject_name))
+                else:
+                    old_access_settings_params.remove(matched_access_setting)
+            # appending the the modified AccessSettings to
+            # control_access_params if at least 1 AccessSetting exist in it.
+            if hasattr(old_access_settings_params, 'AccessSetting'):
+                control_access_params.append(old_access_settings_params)
+
+        return self.client.post_linked_resource(
+            resource, RelationType.CONTROL_ACCESS,
+            EntityType.CONTROL_ACCESS_PARAMS.value, control_access_params)
+
+    def share_catalog_access(self, catalog_name, everyone_access_level):
+        """
+        Share the catalog to all members of the organization  with a 
+        particular access level.
+        :param catalog_name: (str): catalog name whose access should be
+            shared to everyone.
+        :param everyone_access_level: (str) : access level when sharing the
+            resource with everyone. One of 'ReadOnly', 'Change', 'FullControl'
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the catalog.
+        """  # NOQA
+        catalog_resource = self.get_catalog(name=catalog_name)
+        return self.share_access(catalog_resource, everyone_access_level)
+
+    def share_access(self, resource, everyone_access_level='ReadOnly'):
+        """
+        Share the resource to all members of the organization  with a 
+        particular access level.
+        :param resource: (lxml.objectify.StringElement): resource whose
+            access should be shared to everyone.
+        :param everyone_access_level: (str) : access level when sharing the
+            resource with everyone. One of 'ReadOnly', 'Change', 'FullControl'
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the resource.
+        """  # NOQA
+        control_access_params = self.client.get_linked_resource(
+            resource, RelationType.DOWN,
+            EntityType.CONTROL_ACCESS_PARAMS.value)
+
+        control_access_params['IsSharedToEveryone'] = \
+            E.IsSharedToEveryone(True)
+        if everyone_access_level is not None:
+            if hasattr(control_access_params, 'EveryoneAccessLevel'):
+                control_access_params['EveryoneAccessLevel'] = \
+                    E.EveryoneAccessLevel(everyone_access_level)
+            else:
+                # EveryoneAccessLevel should be just after IsSharedToEveryone
+                # (first element) in case there are any AccessSettings
+                control_access_params.insert(1, E.EveryoneAccessLevel(
+                    everyone_access_level))
+
+        return self.client.post_linked_resource(
+            resource, RelationType.CONTROL_ACCESS,
+            EntityType.CONTROL_ACCESS_PARAMS.value, control_access_params)
+
+    def unshare_catalog_access(self, catalog_name):
+        """
+        Unshare the catalog from all members of current organization.
+        :param catalog_name: (str): catalog name whose access should be
+            unshared from everyone.
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the resource.
+        """  # NOQA
+        catalog_resource = self.get_catalog(name=catalog_name)
+        return self.unshare_access(catalog_resource)
+
+    def unshare_access(self, resource):
+        """
+        Unshare the resource from all members of current organization
+        :param resource: (lxml.objectify.StringElement): resource whose
+            access should be unshared from everyone
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the resource.
+        """  # NOQA
+        control_access_params = self.client.get_linked_resource(
+            resource, RelationType.DOWN,
+            EntityType.CONTROL_ACCESS_PARAMS.value)
+
+        control_access_params['IsSharedToEveryone'] = \
+            E.IsSharedToEveryone(False)
+        # EveryoneAccessLevel should not exist when
+        # IsSharedToEveryone is false
+        if hasattr(control_access_params, 'EveryoneAccessLevel'):
+            everyone_access_level = getattr(control_access_params,
+                                            'EveryoneAccessLevel')
+            control_access_params.remove(everyone_access_level)
+
+        return self.client.post_linked_resource(
+            resource, RelationType.CONTROL_ACCESS,
+            EntityType.CONTROL_ACCESS_PARAMS.value, control_access_params)
+
+    def convert_access_settings_list_to_params(self, access_settings_list):
+        """ convert access_settings_list to xml object of type
+        AccessSettingsType
+        :param access_settings_list: (list of dict): list of access_setting
+            in the dict format. Each dict contains:
+            type: (str): type of the subject. One of 'org' or 'user'
+            name: (str): subject name
+            access_level: (str): access_level of each subject. One of
+            'ReadOnly', 'Change', 'FullControl'.
+            eg. [{'name': 'user', 'type': 'user1', 'access_level': 'Change'},
+            {'name': 'org1', 'type': 'org', 'access_level': 'ReadOnly'}]
+        :return: A :class:`lxml.objectify.StringElement` object
+        representing xml of type AccessSettingsType
+        """  # NOQA
+        access_settings_params = E.AccessSettings()
+        for access_setting in access_settings_list:
+            if access_setting["type"] == 'user':
+                subject_href = self.get_user(access_setting['name']). \
+                    get('href')
+                subject_name = access_setting['name']
+                subject_type = EntityType.USER.value
+            else:
+                subject_href = get_admin_href(
+                    self.client.get_org_by_name(
+                        access_setting['name']).get(
+                        'href'))
+                subject_name = access_setting['name']
+                subject_type = EntityType.ADMIN_ORG.value
+
+            access_setting_params = E.AccessSetting(
+                E.Subject(name=subject_name,
+                          href=subject_href,
+                          type=subject_type),
+                E.AccessLevel(access_setting['access_level'])
+            )
+            access_settings_params.append(access_setting_params)
+        return access_settings_params
+
+    @staticmethod
+    def search_for_access_setting_by_subject(subject_name,
+                                             subject_type,
+                                             access_settings_params):
+        """
+        Search for a particular AccessSetting object based on the subject name
+        and type
+        :param subject_name: (str): name of the subject
+        :param subject_type: (str): type of the subject. One of 'org', 'user'
+        :param access_settings_params: (lxml.objectify.StringElement):
+            AccessSettings xml object which needs to searched by subject.
+        :return:  A :class:`lxml.objectify.StringElement` object
+            representing a access setting matching the given subject.
+        """  # NOQA
+        subject_type_to_entity_dict = {'user': EntityType.USER.value,
+                                       'org': EntityType.ADMIN_ORG.value}
+        if hasattr(access_settings_params, 'AccessSetting'):
+            for access_setting_params in \
+                    access_settings_params.AccessSetting:
+                # if the subject name and type matches with the
+                # access_setting_params, return it.
+                if (access_setting_params.Subject.attrib['name'].lower()
+                    == subject_name.lower()) and \
+                        (access_setting_params.Subject.attrib['type'] ==
+                         subject_type_to_entity_dict[subject_type]):
+                    return access_setting_params
+        return None
 
     def change_catalog_owner(self, catalog_name, user_name):
         """
@@ -724,19 +1035,19 @@ class Org(object):
                        is_enabled=True):
         """
         Create Organization VDC in the current Org.
-        :param vdc_name (str): The name of the new org vdc.
-        :param provider_vdc_name (str): The name of an existing provider vdc.
-        :param description (str): The description of the new org vdc.
-        :param allocation_model (str): The allocation model used by this vDC. One of AllocationVApp, AllocationPool or ReservationPool.
-        :param cpu_units (str): The cpu units compute capacity allocated to this vDC. One of MHz or GHz
-        :param cpu_allocated (int): Capacity that is committed to be available.
-        :param cpu_limit (int): Capacity limit relative to the value specified for Allocation.
-        :param mem_units (str): The memory units compute capacity allocated to this vDC. One of MB or GB.
-        :param mem_allocated (int): Memory capacity that is committed to be available.
-        :param mem_limit (int): Memory capacity limit relative to the value specified for Allocation.
-        :param nic_quota (int): Maximum number of virtual NICs allowed in this vDC. Defaults to 0, which specifies an unlimited number.
-        :param network_quota (int): Maximum number of network objects that can be deployed in this vDC. Defaults to 0, which means no networks can be deployed.
-        :param vm_quota (int): The maximum number of VMs that can be created in this vDC. Defaults to 0, which specifies an unlimited number.
+        :param vdc_name: (str): The name of the new org vdc.
+        :param provider_vdc_name: (str): The name of an existing provider vdc.
+        :param description: (str): The description of the new org vdc.
+        :param allocation_model: (str): The allocation model used by this  vDC. One of AllocationVApp, AllocationPool or ReservationPool.
+        :param cpu_units: (str): The cpu units compute capacity allocated to this vDC. One of MHz or GHz
+        :param cpu_allocated: (int): Capacity that is committed to be available.
+        :param cpu_limit: (int): Capacity limit relative to the value specified for Allocation.
+        :param mem_units: (str): The memory units compute capacity allocated to this vDC. One of MB or GB.
+        :param mem_allocated: (int): Memory capacity that is committed to be available.
+        :param mem_limit: (int): Memory capacity limit relative to the value specified for Allocation.
+        :param nic_quota: (int): Maximum number of virtual NICs allowed in this vDC. Defaults to 0, which specifies an unlimited number.
+        :param network_quota: (int): Maximum number of network objects that  can be deployed in this vDC. Defaults to 0, which means no networks can be deployed.
+        :param vm_quota: (int): The maximum number of VMs that can be created in this vDC. Defaults to 0, which specifies an unlimited number.
         :param storage_profiles: List of provider vDC storage profiles to add to this vDC.
             Each item is a dictionary that should include the following elements:
                 name: (string) name of the PVDC storage profile.
@@ -744,18 +1055,18 @@ class Org(object):
                 units: (string) Units used to define limit. One of MB or GB.
                 limit: (int) Max number of units allocated for this storage profile.
                 default: (bool) True if this is default storage profile for this vDC.
-        :param resource_guaranteed_memory (float): Percentage of allocated CPU resources guaranteed to vApps deployed in this vDC.
+        :param resource_guaranteed_memory: (float): Percentage of allocated  CPU resources guaranteed to vApps deployed in this vDC.
             Value defaults to 1.0 if the element is empty.
-        :param resource_guaranteed_cpu (float): Percentage of allocated memory resources guaranteed to vApps deployed in this vDC.
+        :param resource_guaranteed_cpu: (float): Percentage of allocated memory resources guaranteed to vApps deployed in this vDC.
             Value defaults to 1.0 if the element is empty.
-        :param vcpu_in_mhz (int): Specifies the clock frequency, in Megahertz, for any virtual CPU that is allocated to a VM.
-        :param is_thin_provision (bool): Boolean to request thin provisioning.
-        :param network_pool_name (str): Reference to a network pool in the Provider vDC.
-        :param uses_fast_provisioning (bool): Boolean to request fast provisioning.
-        :param over_commit_allowed (bool): Set to false to disallow creation of the VDC if the AllocationModel is AllocationPool or ReservationPool
+        :param vcpu_in_mhz: (int): Specifies the clock frequency, in Megahertz, for any virtual CPU that is allocated to a VM.
+        :param is_thin_provision: (bool): Boolean to request thin provisioning.
+        :param network_pool_name: (str): Reference to a network pool in the Provider vDC.
+        :param uses_fast_provisioning: (bool): Boolean to request fast provisioning.
+        :param over_commit_allowed: (bool): Set to false to disallow creation of the VDC if the AllocationModel is AllocationPool or ReservationPool
             and the ComputeCapacity you specified is greater than what the backing Provider VDC can supply. Defaults to true if empty or missing.
-        :param vm_discovery_enabled (bool): True if discovery of vCenter VMs is enabled for resource pools backing this vDC.
-        :param is_enabled (bool): True if this vDC is enabled for use by the organization users.
+        :param vm_discovery_enabled: (bool): True if discovery of vCenter VMs is enabled for resource pools backing this vDC.
+        :param is_enabled: (bool): True if this vDC is enabled for use by the organization users.
         :return:  A :class:`lxml.objectify.StringElement` object describing the new VDC.
         """  # NOQA
         if self.resource is None:

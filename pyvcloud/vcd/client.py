@@ -139,6 +139,7 @@ class BasicLoginCredentials(object):
 class RelationType(Enum):
     ADD = 'add'
     ALTERNATE = 'alternate'
+    CONTROL_ACCESS = 'controlAccess'
     DISABLE = 'disable'
     DISK_ATTACH = 'disk:attach'
     DISK_DETACH = 'disk:detach'
@@ -167,6 +168,7 @@ class EntityType(Enum):
     ADMIN_CATALOG = 'application/vnd.vmware.admin.catalog+xml'
     ADMIN_SERVICE = 'application/vnd.vmware.admin.service+xml'
     API_EXTENSIBILITY = 'application/vnd.vmware.vcloud.apiextensibility+xml'
+    ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     AMQP_SETTINGS = 'application/vnd.vmware.admin.amqpSettings+xml'
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
     CAPTURE_VAPP_PARAMS = \
@@ -192,7 +194,6 @@ class EntityType(Enum):
     NETWORK_POOL_REFERENCES = \
         'application/vnd.vmware.admin.vmwNetworkPoolReferences+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'
-    ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
     OWNER = 'application/vnd.vmware.vcloud.owner+xml'

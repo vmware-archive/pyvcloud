@@ -29,7 +29,7 @@ def network(ctx):
     Examples
         vcd network create 'direct-net1' --type 'vdc-direct' \\
             --description 'directly connected orgvdc network' \\
-            --parent-network 'ext-net1'
+            --parent 'ext-net1'
             Create an org vdc network which is directly connected \\
                 to an external network
     """
@@ -51,7 +51,8 @@ def network(ctx):
     required=True,
     metavar='<type>',
     default=None,
-    help='Type of the network to be created (viz. vdc-direct/vdc-isolated).')
+    help='Type of the network to be created (viz. '
+         'vdc-direct/vdc-isolated).')
 @click.option(
     '-d',
     '--description',
@@ -72,11 +73,14 @@ def create(ctx, name, type, description, parent_network_name):
         client = ctx.obj['client']
         in_use_vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=in_use_vdc_href)
-        if type.lower() == 'vdc-direct':
+        if type.casefold() == 'vdc-direct'.casefold():
             result = vdc.create_directly_connected_vdc_network(
                 network_name=name,
                 description=description,
                 parent_network_name=parent_network_name)
             stdout(result.Tasks.Task[0], ctx)
+        else:
+            raise Exception('Invalid supplied network type %s'
+                             % type)
     except Exception as e:
         stderr(e, ctx)

@@ -20,20 +20,20 @@ from pyvcloud.vcd.test import TestCase
 
 
 class TestCatalog(TestCase):
-    def test_01_catalog_exists(self):
-        logged_in_org = self.client.get_org()
-        org = Org(self.client, resource=logged_in_org)
-        catalog = org.get_catalog(self.config['vcd']['catalog'])
-        assert self.config['vcd']['catalog'] == catalog.get('name')
-
-    def test_02_change_catalog_owner(self):
-        logged_in_org = self.client.get_org()
-        org = Org(self.client, resource=logged_in_org)
-        org.change_catalog_owner(self.config['vcd']['catalog'],
-                                 self.config['vcd']['new_catalog_owner'])
-        catalog_resource = org.get_catalog_resource(self.config['vcd']['catalog'], True)
-        assert self.config['vcd']['new_catalog_owner'] \
-               == catalog_resource.Owner.User.get('name')
+    # def test_01_catalog_exists(self):
+    #     logged_in_org = self.client.get_org()
+    #     org = Org(self.client, resource=logged_in_org)
+    #     catalog = org.get_catalog(self.config['vcd']['catalog'])
+    #     assert self.config['vcd']['catalog'] == catalog.get('name')
+    #
+    # def test_02_change_catalog_owner(self):
+    #     logged_in_org = self.client.get_org()
+    #     org = Org(self.client, resource=logged_in_org)
+    #     org.change_catalog_owner(self.config['vcd']['catalog'],
+    #                              self.config['vcd']['new_catalog_owner'])
+    #     catalog_resource = org.get_catalog_resource(self.config['vcd']['catalog'], True)
+    #     assert self.config['vcd']['new_catalog_owner'] \
+    #            == catalog_resource.Owner.User.get('name')
 
     def test_03_remove_all_catalog_access(self):
         org_in_use = self.client.get_org_by_name(

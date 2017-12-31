@@ -835,6 +835,31 @@ class Client(object):
                     return org
         raise Exception('org \'%s\' not found' % org_name)
 
+    def get_user_in_org(self, user_name, org_href):
+        """
+        Retrieve user record from a particular org.
+        :param user_name: user name of the record to be retrieved.
+        :param org_href: org where the user belongs.
+        :return: User record
+        """  # NOQA
+        org_resource = self.client.get_resource(org_href)
+        resource_type = 'user'
+        org_filter = None
+        if self.client.is_sysadmin():
+            resource_type = 'adminUser'
+            org_filter = 'org==%s' % org_resource.get('href')
+        query = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.REFERENCES,
+            equality_filter=('name', user_name),
+            qfilter=org_filter)
+        records = list(query.execute())
+        if len(records) == 0:
+            raise Exception('user not found')
+        elif len(records) > 1:
+            raise Exception('multiple users found')
+        return self.client.get_resource(records[0].get('href'))
+
     def _get_query_list_map(self):
         if self._query_list_map is None:
             self._query_list_map = {}

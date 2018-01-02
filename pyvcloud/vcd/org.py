@@ -670,8 +670,6 @@ class Org(object):
             name: (str): name of the user or org.
             access_level: (str): access_level of the particular subject. One of
             'ReadOnly', 'Change', 'FullControl'
-            eg. [{'name': 'user', 'type': 'user1', 'access_level': 'Change'},
-            {'name': 'org1', 'type': 'org', 'access_level': 'ReadOnly'}]
         :return:  A :class:`lxml.objectify.StringElement` object representing
         the updated access control setting of the catalog.
         """  # NOQA
@@ -690,8 +688,6 @@ class Org(object):
             in the dict format. Each dict contains:
             type: (str): type of the subject. One of 'org' or 'user'.
             name: (str): name of the user or org.
-            eg. [{'name': 'user', 'type': 'user1'},
-            {'name': 'org1', 'type': 'org']
             :param remove_all: (bool) : True if all the acl of the resource
             should be removed
         :return:  A :class:`lxml.objectify.StringElement` object representing

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from lxml import objectify
+from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
 
@@ -64,3 +66,43 @@ class Role(object):
             self.resource = self.client.get_resource(self.href)
         self.client.post_linked_resource(
             self.resource, RelationType.LINK_TO_TEMPLATE, EntityType.ROLE.value, None)
+
+    def add_rights(self, right_records):
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        updated_resource = self.resource
+        for right_record in list(right_records):
+            updated_resource.RightReferences.append(
+                E.RightReference(
+                    name=right_record.get('name'),
+                    href=right_record.get('href'),
+                    type=EntityType.RIGHT.value))
+        objectify.deannotate(updated_resource)
+        self.client.put_resource(
+            self.href, updated_resource, EntityType.ROLE.value)
+
+    def remove_rights(self, rights):
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        updated_resource = self.resource
+        if hasattr(self.resource, 'RightReferences') and \
+                hasattr(self.resource.RightReferences, 'RightReference'):
+            rightReferenceList = self.resource.RightReferences.RightReference
+            for rightReference in rightReferenceList:
+                for right in rights:
+                    if rightReference.get('name') == right:
+                        updated_resource.RightReferences.remove(rightReference)
+                        rights.remove(right)
+                        break
+                if len(rights) == 0:
+                    break
+        if len(rights) > 0:
+            print ('Skipping removal of below rights as they do not exist in the role', ','.join(rights))
+        objectify.deannotate(updated_resource)
+        self.client.put_resource(
+            self.href, updated_resource, EntityType.ROLE.value)
+
+
+
+
+

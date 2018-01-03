@@ -611,7 +611,7 @@ class Org(object):
 
     def list_rights(self, name_filter=None):
         """
-        Get list of the rights in the current Org
+        Get list of rights in the current Org
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
                              'right name'
         :return: (list): (RightRecord) List of rights

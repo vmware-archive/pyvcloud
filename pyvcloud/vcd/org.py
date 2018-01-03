@@ -94,6 +94,17 @@ class Org(object):
         return self.client.post_linked_resource(
             org_admin_resource, RelationType.ADD, EntityType.ROLE.value, role)
 
+    def delete_role(self, name):
+        """
+        Deletes specified role from the organization
+        :param name: (str): name of the role
+        :return: None
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        role_record = self.get_role(name)
+        self.client.delete_resource(role_record.get('href'))
+
     def delete_catalog(self, name):
         org = self.client.get_resource(self.href)
         links = get_links(

@@ -836,12 +836,14 @@ class Client(object):
         raise Exception('org \'%s\' not found' % org_name)
 
     def get_user_in_org(self, user_name, org_href):
-        """
-        Retrieve user record from a particular org.
+        """Retrieve user record from a particular org.
+
         :param user_name: user name of the record to be retrieved.
         :param org_href: org where the user belongs.
+
         :return: User record
-        """  # NOQA
+
+        """
         org_resource = self.client.get_resource(org_href)
         resource_type = 'user'
         org_filter = None

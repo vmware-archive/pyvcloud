@@ -22,27 +22,29 @@ from pyvcloud.vcd.utils import get_admin_href
 
 class Acl(object):
     def __init__(self, client, resource):
-        """
-            Constructor for Acl objects.
-            :param client: (pyvcloud.vcd.client): The client.
-            :param resource: (lxml.objectify.ObjectifiedElement): XML 
+        """Constructor for Acl objects.
+
+        :param client: (pyvcloud.vcd.client): The client.
+        :param resource: (lxml.objectify.ObjectifiedElement): XML
             representation of the entity in which acl belongs to.
-            """  # NOQA
+        """
         self.client = client
         self.resource = resource
 
     def add_access_settings(self, access_settings_list=None):
-        """
-        Add acl to resource.
+        """Add acl to resource.
+
         :param access_settings_list: (list of dict): list of access_setting
             in the dict format. Each dict contains:
             type: (str): type of the subject. One of 'org' or 'user'.
             name: (str): name of the user or org.
             access_level: (str): access_level of the particular subject. One of
             'ReadOnly', 'Change', 'FullControl'
+
         :return:  A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the resource.
-        """  # NOQA
+
+        """
         control_access_params = self.client.get_linked_resource(
             self.resource, RelationType.DOWN,
             EntityType.CONTROL_ACCESS_PARAMS.value)
@@ -92,17 +94,19 @@ class Acl(object):
     def remove_access_settings(self,
                                access_settings_list=None,
                                remove_all=False):
-        """
-        Remove acl from resource.
+        """Remove acl from resource.
+
         :param access_settings_list: (list of dict): list of access_setting
             in the dict format. Each dict contains:
             type: (str): type of the subject. One of 'org' or 'user'.
             name: (str): name of the user or org.
-            :param remove_all: (bool) : True if all the acl of the resource
+        :param remove_all: (bool) : True if all the acl of the resource
             should be removed.
+
         :return:  A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the resource.
-        """  # NOQA
+
+        """
         control_access_params = self.client.get_linked_resource(
             self.resource, RelationType.DOWN,
             EntityType.CONTROL_ACCESS_PARAMS.value)
@@ -145,14 +149,16 @@ class Acl(object):
             EntityType.CONTROL_ACCESS_PARAMS.value, control_access_params)
 
     def share_access(self, everyone_access_level='ReadOnly'):
-        """
-        Share the resource to all members of the organization with a 
-        particular access level.
+        """Share the resource to all members of the organization.
+
         :param everyone_access_level: (str) : access level when sharing the
             resource with everyone. One of 'ReadOnly', 'Change', 'FullControl'
+            'ReadOnly' by default.
+
         :return:  A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the resource.
-        """  # NOQA
+
+        """
         control_access_params = self.client.get_linked_resource(
             self.resource, RelationType.DOWN,
             EntityType.CONTROL_ACCESS_PARAMS.value)
@@ -174,11 +180,12 @@ class Acl(object):
             EntityType.CONTROL_ACCESS_PARAMS.value, control_access_params)
 
     def unshare_access(self):
-        """
-        Unshare the resource from all members of current organization
+        """Unshare the resource from all members of current organization.
+
         :return:  A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the resource.
-        """  # NOQA
+
+        """
         control_access_params = self.client.get_linked_resource(
             self.resource, RelationType.DOWN,
             EntityType.CONTROL_ACCESS_PARAMS.value)
@@ -197,17 +204,19 @@ class Acl(object):
             EntityType.CONTROL_ACCESS_PARAMS.value, control_access_params)
 
     def convert_access_settings_list_to_params(self, access_settings_list):
-        """ Convert access_settings_list to xml object of type
-        AccessSettingsType
+        """Convert access_settings_list to object of type AccessSettingsType
+
         :param access_settings_list: (list of dict): list of access_setting
             in the dict format. Each dict contains:
             type: (str): type of the subject. One of 'org' or 'user'
             name: (str): subject name
             access_level: (str): access_level of each subject. One of
             'ReadOnly', 'Change', 'FullControl'.
+
         :return: A :class:`lxml.objectify.StringElement` object
         representing xml of type AccessSettingsType
-        """  # NOQA
+
+        """
         access_settings_params = E.AccessSettings()
         for access_setting in access_settings_list:
             if access_setting["type"] == 'user':
@@ -239,16 +248,16 @@ class Acl(object):
     def search_for_access_setting_by_subject(subject_name,
                                              subject_type,
                                              access_settings_params):
-        """
-        Search for a particular AccessSetting object based on the subject name
-        and type
+        """Search AccessSetting object based on the subject name and type
+
         :param subject_name: (str): name of the subject
         :param subject_type: (str): type of the subject. One of 'org', 'user'
         :param access_settings_params: (lxml.objectify.StringElement):
             AccessSettings xml object which needs to searched by subject.
+
         :return:  A :class:`lxml.objectify.StringElement` object
             representing a access setting matching the given subject.
-        """  # NOQA
+        """
         subject_type_to_entity_dict = {'user': EntityType.USER.value,
                                        'org': EntityType.ADMIN_ORG.value}
         if hasattr(access_settings_params, 'AccessSetting'):

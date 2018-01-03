@@ -844,13 +844,13 @@ class Client(object):
         :return: User record
 
         """
-        org_resource = self.client.get_resource(org_href)
+        org_resource = self.get_resource(org_href)
         resource_type = 'user'
         org_filter = None
-        if self.client.is_sysadmin():
+        if self.is_sysadmin():
             resource_type = 'adminUser'
             org_filter = 'org==%s' % org_resource.get('href')
-        query = self.client.get_typed_query(
+        query = self.get_typed_query(
             resource_type,
             query_result_format=QueryResultFormat.REFERENCES,
             equality_filter=('name', user_name),
@@ -860,7 +860,7 @@ class Client(object):
             raise Exception('user not found')
         elif len(records) > 1:
             raise Exception('multiple users found')
-        return self.client.get_resource(records[0].get('href'))
+        return self.get_resource(records[0].get('href'))
 
     def _get_query_list_map(self):
         if self._query_list_map is None:

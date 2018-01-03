@@ -69,7 +69,7 @@ class TestRole(TestCase):
         role = Role(self.client, href=role_record.get('href'))
         role.link()
 
-    def test_07_unlink_role_from_template(self):
+    def test_08_unlink_role_from_template(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         role_name = self.config['vcd']['role_name']

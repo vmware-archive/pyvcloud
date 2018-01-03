@@ -557,21 +557,6 @@ class Org(object):
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
 
-    # def list_roles(self):
-    #     """
-    #     Retrieve the list of role in the current Org
-    #     :return: List of roles in the current Org
-    #     """  # NOQA
-    #     roles_query, resource_type = self.get_roles_query()
-    #     result = []
-    #     for r in list(roles_query.execute()):
-    #         result.append(
-    #             to_dict(
-    #                 r,
-    #                 resource_type=resource_type,
-    #                 exclude=['org', 'orgName', 'href']))
-    #     return result
-
     def get_role(self, role_name):
         """
         Retrieve role object with a particular name in the current Org

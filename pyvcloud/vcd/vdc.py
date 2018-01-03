@@ -355,7 +355,7 @@ class VDC(object):
         :param size: (int): The size of the new disk in bytes.
         :param bus_type: (str): The bus type of the new disk.
         :param bus_subtype: (str): The bus subtype  of the new disk.
-        :param iops: (str): The iops of the new disk.
+        :param iops: (int): The iops of the new disk.
         :param description: (str): A description of the new disk.
         :param storage_profile_name: (str): The name of an existing storage profile to be used by the new disk.
         :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk.

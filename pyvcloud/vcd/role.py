@@ -16,12 +16,13 @@
 
 class Role(object):
     def __init__(self, client, href=None, resource=None):
-        """
-        Constructor for Role object
+        """Constructor for Role object
+
         :param client: (pyvcloud.vcd.client): The client.
         :param href: URI of the Role entity
-        :param resource: (lxml.objectify.ObjectifiedElement): XML representation of the entity.
-        """  # NOQA
+        :param resource: (lxml.objectify.ObjectifiedElement): XML
+            representation of the entity.
+        """
         self.client = client
         self.href = href
         self.resource = resource
@@ -30,10 +31,10 @@ class Role(object):
             self.name = resource.get('name')
 
     def list_rights(self):
-        """
-        List rights associated with the role
+        """List rights associated with the role
+
         :return: list of names of rights for a given role.
-        """  # NOQA
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         rights = []

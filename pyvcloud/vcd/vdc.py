@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from lxml import etree
+
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
@@ -89,9 +90,10 @@ class VDC(object):
                          vm_name=None,
                          hostname=None,
                          storage_profile=None):
-        """
-        Instantiate a vApp from a vApp template in a catalog.
-        If customization parameters are provided, it will customize the VM and guest OS, taking some assumptions.
+        """Instantiate a vApp from a vApp template in a catalog.
+
+        If customization parameters are provided, it will customize the VM and
+        guest OS, taking some assumptions.
         See each parameter for details.
 
         :param name: (str): The name of the new vApp.
@@ -115,12 +117,13 @@ class VDC(object):
         :param cust_script: (str):
         :param vm_name: (str): When provided, set the name of the VM.
             It assumes one VM in the vApp.
-        :param hostname: (str): When provided, set the hostname of the guest os.
-            It assumes one VM in the vApp.
+        :param hostname: (str): When provided, set the hostname of the guest
+            os. It assumes one VM in the vApp.
         :param storage_profile: (str):
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the new vApp.
-        """  # NOQA
+        :return:  A :class:`lxml.objectify.StringElement` object describing the
+            new vApp.
+        """
 
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -348,16 +351,18 @@ class VDC(object):
                  bus_sub_type=None,
                  description=None,
                  storage_profile_name=None):
-        """
-        Request the creation of an indendent disk.
+        """Request the creation of an indendent disk.
+
         :param name: (str): The name of the new disk.
         :param size: (int): The size of the new disk in bytes.
         :param bus_type: (str): The bus type of the new disk.
         :param bus_subtype: (str): The bus subtype  of the new disk.
         :param description: (str): A description of the new disk.
-        :param storage_profile_name: (str): The name of an existing storage profile to be used by the new disk.
-        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk.
-        """  # NOQA
+        :param storage_profile_name: (str): The name of an existing storage
+            profile to be used by the new disk.
+        :return:  A :class:`lxml.objectify.StringElement` object describing
+            the asynchronous Task creating the disk.
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -386,17 +391,19 @@ class VDC(object):
                     storage_profile_name=None,
                     iops=None,
                     disk_id=None):
-        """
-        Update an existing independent disk.
+        """Update an existing independent disk.
+
         :param name: (str): The existing name of the disk.
         :param size: (int): The size of the new disk in bytes.
         :param new_name: (str): The new name for the disk.
         :param iops: (str): The new iops for the disk.
-        :param storage_profile_name: (str): The storage profile that the disk belongs to.
+        :param storage_profile_name: (str): The storage profile that the disk
+            belongs to.
         :param description: (str): A description of the new disk.
         :param disk_id: (str): The disk_id of the existing disk.
-        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk.
-        """  # NOQA
+        :return:  A :class:`lxml.objectify.StringElement` object describing the
+            asynchronous Task creating the disk.
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -426,13 +433,14 @@ class VDC(object):
             disk, RelationType.EDIT, EntityType.DISK.value, disk_params)
 
     def delete_disk(self, name, disk_id=None):
-        """
-        Delete an existing independent disk.
+        """Delete an existing independent disk.
+
         :param name: (str): The name of the Disk to delete.
         :param disk_id: (str): The id of the disk to delete.
         :param description: (str): The id of the existing disk.
-        :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk.
-        """  # NOQA
+        :return:  A :class:`lxml.objectify.StringElement` object describing the
+            asynchronous Task creating the disk.
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -445,11 +453,11 @@ class VDC(object):
                                                   None)
 
     def get_disks(self):
-        """
-        Request a list of independent disks defined in a vdc.
-        :return: An array of :class:`lxml.objectify.StringElement` objects describing the existing Disks.
-        """  # NOQA
+        """Request a list of independent disks defined in a vdc.
 
+        :return: An array of :class:`lxml.objectify.StringElement` objects
+            describing the existing Disks.
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -469,12 +477,12 @@ class VDC(object):
         return disks
 
     def get_disk(self, name, disk_id=None):
-        """
-        Return information for an independent disk.
+        """Return information for an independent disk.
+
         :param name: (str): The name of the disk.
         :param disk_id: (str): The id of the disk.
         :return: Disk
-        """  # NOQA
+        """
 
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -506,13 +514,14 @@ class VDC(object):
             return result
 
     def change_disk_owner(self, name, user_href, disk_id=None):
-        """
-        Change the ownership of an independent disk to a given user.
+        """Change the ownership of an independent disk to a given user.
+
         :param name: Name of the independent disk.
         :param user_href: Href of the new Owner or User.
-        :param disk_id: Disk Id (Required if there are multiple disks with same name).
+        :param disk_id: Disk Id (Required if there are multiple disks
+            with same name).
         :return: None
-        """ # NOQA
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -527,10 +536,11 @@ class VDC(object):
             disk.get('href') + '/owner/', new_owner, EntityType.OWNER.value)
 
     def get_storage_profiles(self):
+        """Request a list of the Storage Profiles defined in a VDC.
+
+        :return: An array of :class:`lxml.objectify.StringElement` objects
+            describing the existing Storage Profiles.
         """
-        Request a list of the Storage Profiles defined in a Virtual Data Center.
-        :return: An array of :class:`lxml.objectify.StringElement` objects describing the existing Storage Profiles.
-        """  # NOQA
         profile_list = []
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -543,11 +553,13 @@ class VDC(object):
         return None
 
     def get_storage_profile(self, profile_name):
-        """
-        Request a specific Storage Profile within a Virtual Data Center.
+        """Request a specific Storage Profile within a Virtual Data Center.
+
         :param profile_name: (str): The name of the requested storage profile.
-        :return: (VdcStorageProfileType)  A :class:`lxml.objectify.StringElement` object describing the requested storage profile.
-        """  # NOQA
+        :return: (VdcStorageProfileType)
+            A :class:`lxml.objectify.StringElement` object describing the
+            requested storage profile.
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -561,12 +573,11 @@ class VDC(object):
             'Storage Profile named \'%s\' not found' % profile_name)
 
     def enable_vdc(self, enable=True):
-        """
-        Enable current VDC
+        """Enable current VDC
 
         :param is_enabled: (bool): enable/disable the vdc
         :return: (OrgVdcType) updated vdc object.
-        """  # NOQA
+        """
 
         resource_admin = self.client.get_resource(self.href_admin)
         link = RelationType.ENABLE if enable else RelationType.DISABLE
@@ -574,11 +585,11 @@ class VDC(object):
                                                 None)
 
     def delete_vdc(self):
-        """
-        Delete the current Organization vDC
+        """Delete the current Organization vDC
+
         :param vdc_name: The name of the org vdc to delete
         :return:
-        """  # NOQA
+        """
 
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

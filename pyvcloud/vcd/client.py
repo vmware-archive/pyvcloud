@@ -13,17 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime
-from datetime import timedelta
-from flufl.enum import Enum
+import datetime
 import json
 import logging
-from lxml import etree
-from lxml import objectify
-import requests
 import sys
 import time
 import urllib
+from datetime import timedelta
+
+import requests
+from flufl.enum import Enum
+from lxml import etree
+from lxml import objectify
 
 SIZE_1MB = 1024 * 1024
 
@@ -159,6 +160,7 @@ class RelationType(Enum):
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
     TASK_CANCEL = 'task:cancel'
+    UNDEPLOY = 'undeploy'
     UP = 'up'
 
 
@@ -209,6 +211,7 @@ class EntityType(Enum):
     TASK = 'application/vnd.vmware.vcloud.task+xml'
     TASKS_LIST = 'application/vnd.vmware.vcloud.tasksList+xml'
     TEXT_XML = 'text/xml'
+    UNDEPLOY = 'application/vnd.vmware.vcloud.undeployVAppParams+xml'
     UPLOAD_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.uploadVAppTemplateParams+xml'
     USER = 'application/vnd.vmware.admin.user+xml'
@@ -345,6 +348,7 @@ class TaskStatus(Enum):
 
 class _TaskMonitor(object):
     _DEFAULT_POLL_SEC = 5
+    _DEFAULT_TIMEOUT_SEC = 600
 
     def __init__(self, client):
         self._client = client
@@ -358,21 +362,21 @@ class _TaskMonitor(object):
                         callback=None):
         """Waits for task to reach expected status.
 
-         * @param task
-         *            task returned by post or put calls.
-         * @param timeout
-         *            time (in seconds, floating point, fractional) to wait for task to finish.
-         * @param pollFrequency
-         *            time (in seconds, as above) with which task will be polled.
-         * @param failOnStatus
-         *            task will fail if this {@link TaskStatus} is reached. If this parameter is null then
-         *            either task will achieve expected target status or throw {@link TimeOutException}.
-         * @param expectedTargetStatus
-         *            list of expected alternative target status.
-         * @return {@link TaskType} from list of expected target status.
-         * @throws TimeoutException
-         *             exception thrown when task is not finished within given time.
-        """  # NOQA
+         :param task: (Task): task returned by post or put calls.
+         :param timeout: (float): time (in seconds, floating point, fractional)
+            to wait for task to finish.
+         :param poll_requency: (float): time (in seconds, as above) with which
+            task will be polled.
+         :param fail_on_status: (str): task will fail if this
+            {@link TaskStatus} is reached. If this parameter is null then
+            either task will achieve expected target status or throw
+            {@link TimeOutException}.
+         :param expectedTargetStatus: (list): list of expected alternative
+            target status.
+         :return (Task): from list of expected target status.
+         :throws TimeoutException: (Exception): exception thrown when task is
+            not finished within given time.
+        """
         task_href = task.get('href')
         start_time = datetime.now()
         while True:
@@ -408,6 +412,50 @@ class _TaskMonitor(object):
             poll_frequency,
             TaskStatus.ERROR, [TaskStatus.SUCCESS],
             callback=callback)
+
+    def wait_for_status_or_raise(self,
+                                 task,
+                                 timeout=_DEFAULT_TIMEOUT_SEC,
+                                 poll_frequency=_DEFAULT_POLL_SEC,
+                                 fail_on_statuses=[
+                                     TaskStatus.ABORTED, TaskStatus.CANCELED,
+                                     TaskStatus.ERROR
+                                 ],
+                                 success_on_statuses=[TaskStatus.SUCCESS],
+                                 callback=None):
+        """Waits for task to reach expected status.
+
+         :param task: (Task): task returned by post or put calls.
+         :param timeout: (float): time (in seconds, floating point, fractional)
+            to wait for task to finish.
+         :param poll_requency: (float): time (in seconds, as above) with which
+            task will be polled.
+         :param fail_on_statuses: (list): method will raise an exception if any
+            of the (TaskStatus) in this list is reached. If this parameter is
+            null then either task will achieve expected target status or throw
+            (TimeOutException)..
+         :param expected_target_status: (list): list of expected target status.
+         :return (Task): from list of expected target status.
+         :throws TimeoutException: (Exception): exception thrown when task is
+            not finished within given time.
+        """
+        task_href = task.get('href')
+        start_time = datetime.now()
+        while True:
+            task = self._get_task_status(task_href)
+            if callback is not None:
+                callback(task)
+            task_status = task.get('status').lower()
+            for status in success_on_statuses:
+                if task_status == status.value.lower():
+                    return task
+            for status in fail_on_statuses:
+                if task_status == status.value.lower():
+                    raise VcdTaskException(task_status, task.Error)
+            if start_time - datetime.now() > timedelta(seconds=timeout):
+                break
+            time.sleep(poll_frequency)
+        raise Exception("Task timeout")
 
     def _get_task_status(self, task_href):
         return self._client.get_resource(task_href)
@@ -822,11 +870,11 @@ class Client(object):
         return self._get_wk_resource(_WellKnownEndpoint.ORG_LIST)
 
     def get_org_by_name(self, org_name):
-        """
-        Retrieve an organization.
+        """Retrieve an organization.
+
         :param org_name: name of the org to be retrieved.
         :return: Org record.
-        """  # NOQA
+        """
         orgs = self.get_org_list()
         if hasattr(orgs, 'Org'):
             for org in orgs.Org:

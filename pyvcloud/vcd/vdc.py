@@ -345,25 +345,15 @@ class VDC(object):
     def list_edge_gateways(self):
         """
         Request a list of edge gateways defined in a vdc.
-        :return: An array of :class:`lxml.objectify.StringElement` objects describing the existing edge gateways.
+        :return: An array of the existing edge gateways.
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        links = get_links(
-            self.resource,
-            rel=RelationType.EDGE_GATEWAYS,
-            media_type=EntityType.RECORDS.value)
+        links = self.client.get_linked_resource(self.resource, RelationType.EDGE_GATEWAYS, EntityType.RECORDS.value)
 
-        vdc_edge_gateways = []
-        for vdc_edge_gateway_link in links:
-            vdc_edge_gateways.append(self.client.get_resource(vdc_edge_gateway_link.href))
         edge_gateways = []
-        for QueryResultRecords in vdc_edge_gateways:
-            if hasattr(QueryResultRecords, 'EdgeGatewayRecord'):
-                for EdgeGatewayRecord in QueryResultRecords.EdgeGatewayRecord:
-                    if EdgeGatewayRecord.get('href') is not None:
-                        edge_gateways.append(
-                            self.client.get_resource(EdgeGatewayRecord.get('href')))
+        for e in links.EdgeGatewayRecord:
+            edge_gateways.append({'name': e.get('name'), 'href': e.get('href')})
         return edge_gateways
 
     def add_disk(self,

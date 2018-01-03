@@ -24,14 +24,6 @@ from vcd_cli.vcd import vcd
 @click.pass_context
 def network(ctx):
     """Work with networks in vCloud Director.
-
-\b
-    Examples
-        vcd network create 'direct-net1' --type 'vdc-direct' \\
-            --description 'directly connected orgvdc network' \\
-            --parent 'ext-net1'
-            Create an org vdc network which is directly connected \\
-                to an external network
     """
 
     if ctx.invoked_subcommand is not None:
@@ -41,18 +33,30 @@ def network(ctx):
             stderr(e, ctx)
 
 
-@network.command('create', short_help='create a new network in vcd')
+@network.group(short_help='work with directly connected org vdc networks')
+@click.pass_context
+def direct(ctx):
+    """Work with directly connected org vdc networks.
+
+\b
+    Examples
+        vcd network direct create 'direct-net1' \\
+            --description 'directly connected orgvdc network' \\
+            --parent 'ext-net1'
+            Create an org vdc network which is directly connected \\
+                to an external network
+    """
+    if ctx.invoked_subcommand is not None:
+        try:
+            restore_session(ctx)
+        except Exception as e:
+            stderr(e, ctx)
+
+
+@direct.command('create', short_help='create a new directly connected org vdc '
+                'network in vcd')
 @click.pass_context
 @click.argument('name', metavar='<name>', required=True)
-@click.option(
-    '-t',
-    '--type',
-    'type',
-    required=True,
-    metavar='<type>',
-    default=None,
-    help='Type of the network to be created (viz. '
-         'vdc-direct/vdc-isolated).')
 @click.option(
     '-d',
     '--description',
@@ -68,19 +72,15 @@ def network(ctx):
     required=False,
     metavar='<external network>',
     help='Name of the external network to be connected to.')
-def create(ctx, name, type, description, parent_network_name):
+def create(ctx, name, description, parent_network_name):
     try:
         client = ctx.obj['client']
         in_use_vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=in_use_vdc_href)
-        if type.casefold() == 'vdc-direct'.casefold():
-            result = vdc.create_directly_connected_vdc_network(
-                network_name=name,
-                description=description,
-                parent_network_name=parent_network_name)
-            stdout(result.Tasks.Task[0], ctx)
-        else:
-            raise Exception('Invalid supplied network type %s'
-                             % type)
+        result = vdc.create_directly_connected_vdc_network(
+            network_name=name,
+            description=description,
+            parent_network_name=parent_network_name)
+        stdout(result.Tasks.Task[0], ctx)
     except Exception as e:
         stderr(e, ctx)

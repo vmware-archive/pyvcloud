@@ -169,6 +169,17 @@ class TestVM(TestCase):
         task = self.client.get_task_monitor().wait_for_status_or_raise(task)
         assert task.get('status') == TaskStatus.SUCCESS.value
 
+    def test_0007_delete(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=v.get('href'))
+        assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
+        vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
+        vapp = VApp(self.client, resource=vapp_resource)
+        task = vapp.delete_vms([self.config['vcd']['vm']])
+        task = self.client.get_task_monitor().wait_for_status_or_raise(task)
+        assert task.get('status') == TaskStatus.SUCCESS.value
 
 if __name__ == '__main__':
     unittest.main()

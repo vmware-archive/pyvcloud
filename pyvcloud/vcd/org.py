@@ -557,23 +557,23 @@ class Org(object):
         return self.client.delete_resource(user.get('href'))
 
     def get_role(self, role_name):
-        """
-        Retrieve role object with a particular name in the current Org
+        """Retrieve role object with a particular name in the current Org
+
         :param role_name: (str): The name of the role object to be retrieved
         :return: (dict): Role record in dict format
-        """  # NOQA
+        """
         role_record = self.list_roles(('name', role_name))
         if len(role_record) < 1:
             raise Exception('Role \'%s\' does not exist.' % role_name)
         return role_record[0]
 
     def list_roles(self, name_filter=None):
-        """
-        Retrieve the list of roles in the current Org
+        """Retrieve the list of roles in the current Org
+
         :param name_filter: (tuple): (name ,'role name') Filter roles by
                              'role name'
         :return: (list): (RoleRecord) List of roles
-        """  # NOQA
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -598,23 +598,23 @@ class Org(object):
         return result
 
     def get_right(self, right_name):
-        """
-        Retrieves corresponding record of the specified right.
+        """Retrieves corresponding record of the specified right.
+
         :param right_name: (str): The name of the right record to be retrieved
         :return: (dict): Right record in dict format
-        """  # NOQA
+        """
         right_record = self.list_rights(('name', right_name))
         if len(right_record) < 1:
             raise Exception('Right \'%s\' does not exist.' % right_name)
         return right_record[0]
 
     def list_rights(self, name_filter=None):
-        """
-        Retrieve the list of rights in the current Org
+        """Retrieve the list of rights in the current Org
+
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
                              'right name'
         :return: (list): (RightRecord) List of rights
-        """  # NOQA
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 

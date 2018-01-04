@@ -64,13 +64,13 @@ def direct(ctx):
     required=False,
     metavar='<description>',
     default='',
-    help='Description of the network.')
+    help='Description of the network to be created.')
 @click.option(
     '-P',
     '--parent',
     'parent_network_name',
     required=False,
-    metavar='<external network>',
+    metavar='<external network name>',
     help='Name of the external network to be connected to.')
 def create(ctx, name, description, parent_network_name):
     try:

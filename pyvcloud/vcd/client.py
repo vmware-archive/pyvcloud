@@ -147,6 +147,7 @@ class RelationType(Enum):
     DOWNLOAD_DEFAULT = 'download:default'
     EDIT = 'edit'
     ENABLE = 'enable'
+    LINK_TO_TEMPLATE = 'linkToTemplate'
     NEXT_PAGE = 'nextPage'
     POWER_OFF = 'power:powerOff'
     POWER_ON = 'power:powerOn'
@@ -159,6 +160,7 @@ class RelationType(Enum):
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
     TASK_CANCEL = 'task:cancel'
+    UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'
     UP = 'up'
 
 

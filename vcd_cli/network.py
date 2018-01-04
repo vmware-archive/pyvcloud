@@ -20,7 +20,7 @@ from vcd_cli.utils import stdout
 from vcd_cli.vcd import vcd
 
 
-@vcd.group(short_help='work with vcd network')
+@vcd.group(short_help='work with vcd networks')
 @click.pass_context
 def network(ctx):
     """Work with networks in vCloud Director.
@@ -69,10 +69,19 @@ def direct(ctx):
     '-P',
     '--parent',
     'parent_network_name',
-    required=False,
+    required=True,
     metavar='<external network name>',
     help='Name of the external network to be connected to.')
-def create(ctx, name, description, parent_network_name):
+@click.option(
+    '-s/-ns',
+    '--shared/--not-shared',
+    'is_shared',
+    is_flag=True,
+    required=False,
+    default=False,
+    help='Share/don\'t share the netowrk with other VDC(s) in the '
+         'organization.')
+def create(ctx, name, description, parent_network_name, is_shared):
     try:
         client = ctx.obj['client']
         in_use_vdc_href = ctx.obj['profiles'].get('vdc_href')
@@ -80,7 +89,8 @@ def create(ctx, name, description, parent_network_name):
         result = vdc.create_directly_connected_vdc_network(
             network_name=name,
             description=description,
-            parent_network_name=parent_network_name)
+            parent_network_name=parent_network_name,
+            is_shared=is_shared)
         stdout(result.Tasks.Task[0], ctx)
     except Exception as e:
         stderr(e, ctx)

@@ -92,11 +92,11 @@ def version(ctx):
 
 
 def print_command(cmd, level=0):
-    click.echo(' '+(' '*level*2)+' ', nl=False)
+    click.echo(' ' + (' ' * level * 2) + ' ', nl=False)
     click.echo(cmd.name)
     if type(cmd) == click.core.Group:
         for k in sorted(cmd.commands.keys()):
-            print_command(cmd.commands[k], level+1)
+            print_command(cmd.commands[k], level + 1)
 
 
 @vcd.command(short_help='show help')

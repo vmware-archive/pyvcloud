@@ -168,16 +168,16 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False):
                     else:
                         client = ctx.obj['client']
                         task = client.get_task_monitor().wait_for_status(
-                                            task=obj,
-                                            timeout=60,
-                                            poll_frequency=2,
-                                            fail_on_status=None,
-                                            expected_target_statuses=[
-                                                TaskStatus.SUCCESS,
-                                                TaskStatus.ABORTED,
-                                                TaskStatus.ERROR,
-                                                TaskStatus.CANCELED],
-                                            callback=task_callback)
+                            task=obj,
+                            timeout=60,
+                            poll_frequency=2,
+                            fail_on_status=None,
+                            expected_target_statuses=[
+                                TaskStatus.SUCCESS,
+                                TaskStatus.ABORTED,
+                                TaskStatus.ERROR,
+                                TaskStatus.CANCELED],
+                            callback=task_callback)
                         if task.get('status') == TaskStatus.ERROR.value:
                             text = 'task: %s, result: %s, message: %s' % \
                                    (extract_id(task.get('id')),

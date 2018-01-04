@@ -123,8 +123,10 @@ def create(ctx, role_name, description, rights, org_name):
     except Exception as e:
         stderr(e, ctx)
 
-@role.command('delete', short_help='Deletes role in the specified Organization (defaults to the '
-                                   'current organization in use')
+
+@role.command('delete', short_help='Deletes role in the specified Organization'
+                                   '(defaults to the current organization in '
+                                   'use')
 @click.pass_context
 @click.argument('role-name',
                 metavar='<role-name>',

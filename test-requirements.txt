@@ -1,6 +1,5 @@
 tox
 flake8
-flake8-import-order
 hacking
 mock
 yapf

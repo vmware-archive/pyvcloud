@@ -128,20 +128,27 @@ def list_disks(ctx):
               'description',
               required=False,
               metavar='<description>',
-              help='Description')
+              help='Description of the independent disk')
+@click.option('-io',
+              '--iops',
+              'iops',
+              required=False,
+              metavar='<iops>',
+              help='Iops of the independent disk')
 @click.option('storage_profile',
               '-s',
               '--storage-profile',
               required=False,
               metavar='<storage-profile>',
               help='Name of Storage Profile to be used for new disk.')
-def create(ctx, name, size, description, storage_profile):
+def create(ctx, name, size, iops, description, storage_profile):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
         disk_resource = vdc.add_disk(name=name,
                                      size=humanfriendly.parse_size(size),
+                                     iops=iops,
                                      description=description,
                                      storage_profile_name=storage_profile)
         stdout(disk_resource.Tasks.Task[0], ctx)

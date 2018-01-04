@@ -96,6 +96,15 @@ def vapp(ctx):
         vcd vapp power-off vapp1
             Power off a vApp.
 \b
+        vcd vapp power-off vapp1 vm1 vm2
+            Power off vm1 and vm2 of vapp1.
+\b
+        vcd vapp undeploy vapp1 vm1 vm2
+            Undeploy vm1 and vm2 of vapp1.
+\b
+        vcd vapp delete vapp1 vm1 vm2
+            Delete vm1 and vm2 from vapp1.
+\b
         vcd vapp power-on vapp1
             Power on a vApp.
 \b

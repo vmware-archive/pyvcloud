@@ -15,6 +15,7 @@
 
 import unittest
 
+from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.test import TestCase
 from pyvcloud.vcd.vdc import VDC
@@ -27,10 +28,22 @@ class TestNetwork(TestCase):
         org = Org(self.client, href=org_record.get('href'))
         vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
         vdc = VDC(self.client, href=vdc_resource.get('href'))
-        vdc.create_directly_connected_vdc_network(
+        result = vdc.create_directly_connected_vdc_network(
             network_name=self.config['vcd']['vdc_direct_network_name'],
             description='Dummy description',
             parent_network_name=self.config['vcd']['ext_network_name'])
+        task = self.client.get_task_monitor().wait_for_status(
+                            task=result.Tasks.Task[0],
+                            timeout=60,
+                            poll_frequency=2,
+                            fail_on_status=None,
+                            expected_target_statuses=[
+                                TaskStatus.SUCCESS,
+                                TaskStatus.ABORTED,
+                                TaskStatus.ERROR,
+                                TaskStatus.CANCELED],
+                            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
 
 
 if __name__ == '__main__':

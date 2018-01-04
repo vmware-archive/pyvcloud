@@ -663,9 +663,9 @@ class VDC(object):
                                               parent_network_name):
         """Create a new directly connected OrgVdc network in this VDC.
 
-        :param network_name: (str) Name of the new network
-        :param description: (str) Description of the new network
-        :param parent_network_name: (str) Name of the external network
+        :param network_name: (str): Name of the new network
+        :param description: (str): Description of the new network
+        :param parent_network_name: (str): Name of the external network
             that the new network will be directly connected to
         :return: A :class:`lxml.objectify.StringElement` object representing
             a sparsely populated OrgVdcNetwork element.

@@ -22,7 +22,6 @@ from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import get_links
-from pyvcloud.vcd.client import MissingRecordException
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
@@ -95,8 +94,8 @@ class Org(object):
             org_admin_resource, RelationType.ADD, EntityType.ROLE.value, role)
 
     def delete_role(self, name):
-        """
-        Deletes specified role from the organization
+        """Deletes specified role from the organization
+
         :param name: (str): name of the role
         :return: None
         """
@@ -570,7 +569,7 @@ class Org(object):
 
     def list_roles(self, name_filter=None):
         """
-        Get list of roles in the current Org
+        Retrieve the list of roles in the current Org
         :param name_filter: (tuple): (name ,'role name') Filter roles by
                              'role name'
         :return: (list): (RoleRecord) List of roles
@@ -611,7 +610,7 @@ class Org(object):
 
     def list_rights(self, name_filter=None):
         """
-        Get list of rights in the current Org
+        Retrieve the list of rights in the current Org
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
                              'right name'
         :return: (list): (RightRecord) List of rights

@@ -666,13 +666,16 @@ class VDC(object):
     def create_directly_connected_vdc_network(self,
                                               network_name,
                                               description,
-                                              parent_network_name):
+                                              parent_network_name,
+                                              is_shared=False):
         """Create a new directly connected OrgVdc network in this VDC.
 
         :param network_name: (str): Name of the new network
         :param description: (str): Description of the new network
         :param parent_network_name: (str): Name of the external network
             that the new network will be directly connected to
+        :param is_shared: (bool): True, is the network is shared with \
+            other VDC(s) in the organization else False
         :return: A :class:`lxml.objectify.StringElement` object representing
             a sparsely populated OrgVdcNetwork element.
         """
@@ -707,6 +710,7 @@ class VDC(object):
             E.ParentNetwork(href=parent_network_href))
         vdc_network_configuration.append(E.FenceMode('bridged'))
         request_payload.append(vdc_network_configuration)
+        request_payload.append(E.IsShared(is_shared))
 
         return self.client.post_linked_resource(
             resource_admin,

@@ -347,14 +347,16 @@ class VDC(object):
                  size,
                  bus_type=None,
                  bus_sub_type=None,
+                 iops=None,
                  description=None,
                  storage_profile_name=None):
         """
-        Request the creation of an indendent disk.
+        Request the creation of an independent disk.
         :param name: (str): The name of the new disk.
         :param size: (int): The size of the new disk in bytes.
         :param bus_type: (str): The bus type of the new disk.
         :param bus_subtype: (str): The bus subtype  of the new disk.
+        :param iops: (int): The iops of the new disk.
         :param description: (str): A description of the new disk.
         :param storage_profile_name: (str): The name of an existing storage profile to be used by the new disk.
         :return:  A :class:`lxml.objectify.StringElement` object describing the asynchronous Task creating the disk.
@@ -362,7 +364,11 @@ class VDC(object):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
-        disk_params = E.DiskCreateParams(E.Disk(name=name, size=str(size)))
+        if iops is None:
+            disk_params = E.DiskCreateParams(E.Disk(name=name, size=str(size)))
+        else:
+            disk_params = E.DiskCreateParams(E.Disk(name=name, size=str(size),
+                                                    iops=iops))
 
         if description is not None:
             disk_params.Disk.append(E.Description(description))

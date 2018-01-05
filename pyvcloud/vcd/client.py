@@ -15,15 +15,16 @@
 
 from datetime import datetime
 from datetime import timedelta
-from flufl.enum import Enum
 import json
 import logging
-from lxml import etree
-from lxml import objectify
-import requests
 import sys
 import time
 import urllib
+
+from flufl.enum import Enum
+from lxml import etree
+from lxml import objectify
+import requests
 
 SIZE_1MB = 1024 * 1024
 
@@ -39,6 +40,8 @@ NSMAP = {
     'http://www.vmware.com/vcloud/v1.5',
     've':
     'http://www.vmware.com/schema/ovfenv',
+    'vmw':
+    'http://www.vmware.com/schema/ovf',
     'vmext':
     'http://www.vmware.com/vcloud/extension/v1.5',
     'xs':
@@ -195,11 +198,13 @@ class EntityType(Enum):
     ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
+    ORG_VDC_NETWORK = 'application/vnd.vmware.vcloud.orgVdcNetwork+xml'
     OWNER = 'application/vnd.vmware.vcloud.owner+xml'
     PUBLISH_CATALOG_PARAMS = \
         'application/vnd.vmware.admin.publishCatalogParams+xml'
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'
-    RASD_ITEM_LIST = 'application/vnd.vmware.vcloud.rasdItemsList+xml'
+    RASD_ITEM = 'application/vnd.vmware.vcloud.rasdItem+xml'
+    RASD_ITEMS_LIST = 'application/vnd.vmware.vcloud.rasdItemsList+xml'
     RECOMPOSE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.recomposeVAppParams+xml'
     ROLE = 'application/vnd.vmware.admin.role+xml'

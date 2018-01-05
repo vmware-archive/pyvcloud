@@ -18,6 +18,7 @@ from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
 
+
 class Role(object):
     def __init__(self, client, href=None, resource=None):
         """
@@ -48,24 +49,26 @@ class Role(object):
         return rights
 
     def unlink(self):
-        """
-        Unlinks the role from its template.
+        """Unlinks the role from its template.
+
         :return: None
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         self.client.post_linked_resource(
-            self.resource, RelationType.UNLINK_FROM_TEMPLATE, EntityType.ROLE.value, None)
+            self.resource, RelationType.UNLINK_FROM_TEMPLATE,
+            EntityType.ROLE.value, None)
 
     def link(self):
-        """
-        Links the role to its template.
+        """Links the role to its template.
+
         :return: None
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         self.client.post_linked_resource(
-            self.resource, RelationType.LINK_TO_TEMPLATE, EntityType.ROLE.value, None)
+            self.resource, RelationType.LINK_TO_TEMPLATE,
+            EntityType.ROLE.value, None)
 
     def add_rights(self, right_records):
         if self.resource is None:

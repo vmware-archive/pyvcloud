@@ -22,7 +22,6 @@ from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import get_links
-from pyvcloud.vcd.client import MissingRecordException
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
@@ -95,8 +94,8 @@ class Org(object):
             org_admin_resource, RelationType.ADD, EntityType.ROLE.value, role)
 
     def delete_role(self, name):
-        """
-        Deletes specified role from the organization
+        """Deletes specified role from the organization
+
         :param name: (str): name of the role
         :return: None
         """
@@ -557,39 +556,24 @@ class Org(object):
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
 
-    # def list_roles(self):
-    #     """
-    #     Retrieve the list of role in the current Org
-    #     :return: List of roles in the current Org
-    #     """  # NOQA
-    #     roles_query, resource_type = self.get_roles_query()
-    #     result = []
-    #     for r in list(roles_query.execute()):
-    #         result.append(
-    #             to_dict(
-    #                 r,
-    #                 resource_type=resource_type,
-    #                 exclude=['org', 'orgName', 'href']))
-    #     return result
-
     def get_role(self, role_name):
-        """
-        Retrieve role object with a particular name in the current Org
+        """Retrieve role object with a particular name in the current Org
+
         :param role_name: (str): The name of the role object to be retrieved
         :return: (dict): Role record in dict format
-        """  # NOQA
+        """
         role_record = self.list_roles(('name', role_name))
         if len(role_record) < 1:
             raise Exception('Role \'%s\' does not exist.' % role_name)
         return role_record[0]
 
     def list_roles(self, name_filter=None):
-        """
-        Get list of roles in the current Org
+        """Retrieve the list of roles in the current Org
+
         :param name_filter: (tuple): (name ,'role name') Filter roles by
                              'role name'
         :return: (list): (RoleRecord) List of roles
-        """  # NOQA
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -614,23 +598,23 @@ class Org(object):
         return result
 
     def get_right(self, right_name):
-        """
-        Retrieves corresponding record of the specified right.
+        """Retrieves corresponding record of the specified right.
+
         :param right_name: (str): The name of the right record to be retrieved
         :return: (dict): Right record in dict format
-        """  # NOQA
+        """
         right_record = self.list_rights(('name', right_name))
         if len(right_record) < 1:
             raise Exception('Right \'%s\' does not exist.' % right_name)
         return right_record[0]
 
     def list_rights(self, name_filter=None):
-        """
-        Get list of the rights in the current Org
+        """Retrieve the list of rights in the current Org
+
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
                              'right name'
         :return: (list): (RightRecord) List of rights
-        """  # NOQA
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 

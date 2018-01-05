@@ -158,7 +158,7 @@ def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
             k = 'vm-%s' % n
             result[k + ': name'] = vm.get('name')
             items = vm.xpath(
-                '//ovf:VirtualHardwareSection/ovf:Item', namespaces=NSMAP)
+                'ovf:VirtualHardwareSection/ovf:Item', namespaces=NSMAP)
             for item in items:
                 element_name = item.find('rasd:ElementName', NSMAP)
                 connection = item.find('rasd:Connection', NSMAP)
@@ -177,7 +177,7 @@ def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
                             '{' + NSMAP['vcloud'] + '}ipAddressingMode'),
                         connection.get('{' + NSMAP['vcloud'] + '}ipAddress'))
                 result['%s: %s' % (k, element_name)] = value
-            env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
+            env = vm.xpath('ovfenv:Environment', namespaces=NSMAP)
             if len(env) > 0:
                 result['%s: %s' %
                        (k,
@@ -387,3 +387,10 @@ def stdout_xml(the_xml, is_colorized=True):
 
 def get_admin_href(href):
     return href.replace('/api/', '/api/admin/')
+
+
+def get_admin_extension_href(href):
+    if '/api/admin/' in href:
+        return href.replace('/api/admin/', '/api/admin/extension/')
+    else:
+        return href.replace('/api/', '/api/admin/extension/')

@@ -20,7 +20,6 @@ from pyvcloud.vcd.role import Role
 from pyvcloud.vcd.test import TestCase
 
 class TestRole(TestCase):
-
     def test_01_list_role(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
@@ -62,16 +61,21 @@ class TestRole(TestCase):
         role_name = self.config['vcd']['role_name']
         org.delete_role(role_name)
 
-    def test_07_link_role_To_Template(self):
+    def test_07_link_role_to_template(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         role_name = self.config['vcd']['role_name']
+        role_record = org.get_role(role_name)
+        role = Role(self.client, href=role_record.get('href'))
+        role.link()
 
-    def test_08_unlink_role_From_Template(self):
+    def test_08_unlink_role_from_template(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         role_name = self.config['vcd']['role_name']
-
+        role_record = org.get_role(role_name)
+        role = Role(self.client, href=role_record.get('href'))
+        role.unlink()
 
     def test_09_add_rights_To_Role(self):
         logged_in_org = self.client.get_org()
@@ -95,7 +99,6 @@ class TestRole(TestCase):
         record = org.get_right('vApp: Edit VM CPU')
         right_records.append(record)
         role.remove_rights(right_records)
-
 
 if __name__ == '__main__':
     unittest.main()

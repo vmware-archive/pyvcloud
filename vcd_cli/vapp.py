@@ -391,12 +391,11 @@ def delete(ctx, name, vm_names, force):
         vdc = VDC(client, href=vdc_href)
         if len(vm_names) == 0:
             task = vdc.delete_vapp(name, force)
-            stdout(task, ctx)
         else:
             vapp_resource = vdc.get_vapp(name)
             vapp = VApp(client, resource=vapp_resource)
             task = vapp.delete_vms(vm_names)
-            stdout(task, ctx)
+        stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)
 

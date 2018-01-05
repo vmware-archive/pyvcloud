@@ -33,10 +33,14 @@ class Acl(object):
         """
         self.client = client
         self.parent_resource = parent_resource
-        if resource is None:
+        self.resource = resource
+
+    def get_resource(self):
+        if self.resource is None:
             self.resource = self.client.get_linked_resource(
                 self.parent_resource, RelationType.DOWN,
                 EntityType.CONTROL_ACCESS_PARAMS.value)
+        return self.resource
 
     def add_access_settings(self, access_settings_list=None):
         """Append a new access control list to the existing ACL of the parent
@@ -53,6 +57,8 @@ class Acl(object):
             the updated access control setting of the resource.
 
         """
+
+        self.resource = self.get_resource()
 
         # if access_settings_list is None, nothing to add.
         if access_settings_list is None:
@@ -118,6 +124,8 @@ class Acl(object):
             the updated access control setting of the resource.
 
         """
+        self.resource = self.get_resource()
+
         # if access_settings_list is None and remove_all is False, nothing to
         # remove.
         if access_settings_list is None and remove_all is False:
@@ -176,6 +184,8 @@ class Acl(object):
             the updated access control setting of the resource.
 
         """
+        self.resource = self.get_resource()
+
         control_access_params = self.resource
 
         control_access_params['IsSharedToEveryone'] = \
@@ -204,6 +214,8 @@ class Acl(object):
             the updated access control setting of the resource.
 
         """
+        self.resource = self.get_resource()
+
         control_access_params = self.resource
 
         control_access_params['IsSharedToEveryone'] = \

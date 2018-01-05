@@ -15,15 +15,16 @@
 
 from datetime import datetime
 from datetime import timedelta
-from flufl.enum import Enum
 import json
 import logging
-from lxml import etree
-from lxml import objectify
-import requests
 import sys
 import time
 import urllib
+
+from flufl.enum import Enum
+from lxml import etree
+from lxml import objectify
+import requests
 
 SIZE_1MB = 1024 * 1024
 
@@ -148,6 +149,7 @@ class RelationType(Enum):
     DOWNLOAD_DEFAULT = 'download:default'
     EDIT = 'edit'
     ENABLE = 'enable'
+    LINK_TO_TEMPLATE = 'linkToTemplate'
     NEXT_PAGE = 'nextPage'
     POWER_OFF = 'power:powerOff'
     POWER_ON = 'power:powerOn'
@@ -160,6 +162,7 @@ class RelationType(Enum):
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
     TASK_CANCEL = 'task:cancel'
+    UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'
     UP = 'up'
 
 
@@ -196,6 +199,7 @@ class EntityType(Enum):
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
+    ORG_VDC_NETWORK = 'application/vnd.vmware.vcloud.orgVdcNetwork+xml'
     OWNER = 'application/vnd.vmware.vcloud.owner+xml'
     PUBLISH_CATALOG_PARAMS = \
         'application/vnd.vmware.admin.publishCatalogParams+xml'

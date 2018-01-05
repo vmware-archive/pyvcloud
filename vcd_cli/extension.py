@@ -34,7 +34,7 @@ def extension(ctx):
             List available extension services.
 \b
         vcd system extension create cse cse cse vcdext \\
-            '/api/cluster, /api/cluster/.*, /api/cluster/.*/.*'
+            '/api/cse, /api/cse/.*, /api/cse/.*/.*'
             Register a new extension service named 'cse'.
 \b
         vcd system extension delete cse
@@ -70,7 +70,7 @@ def list(ctx):
 def info(ctx, name):
     try:
         ext = ctx.obj['ext']
-        stdout(ext.get_extension(name), ctx)
+        stdout(ext.get_extension_info(name), ctx)
     except Exception as e:
         stderr(e, ctx)
 

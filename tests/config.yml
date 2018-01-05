@@ -1,13 +1,15 @@
 vcd:
-  host: 127.0.0.1:8443
-  org: System
-  user: administrator
+  host: vcd-host.vmware.com
+  org: org1
+  user: usr1
   storage_profile: 'Silver Storage'
   disk: Disk1
-  password: 'ca$hc0w'
+  password: 'pa$$w0rd'
   api_version: '29.0'
   catalog: 'cse'
   template: 'k8s-u.ova'
   verify: False
-  disable_ssl_warnings: True
-  role_name: 'vApp User'
+  role_name: System Administrator
+  user_name: TestUser-
+  org_name: TestOrg
+  org_full_name: TestOrgFullName

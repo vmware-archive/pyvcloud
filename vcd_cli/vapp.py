@@ -108,6 +108,9 @@ def vapp(ctx):
         vcd vapp power-on vapp1
             Power on a vApp.
 \b
+        vcd vapp power-on vapp1 vm1 vm2
+            Power on vm1 and vm2 of vapp1.
+\b
         vcd vapp capture vapp1 catalog1
             Capture a vApp as a template in a catalog.
 \b
@@ -528,7 +531,7 @@ def undeploy(ctx, name, vm_names, force, action):
         stderr(e, ctx)
 
 
-@vapp.command('power-on', short_help='power on a vApp')
+@vapp.command('power-on', short_help='power on a vApp or VM(s)')
 @click.pass_context
 @click.argument('name',
                 required=True)
@@ -541,7 +544,14 @@ def power_on(ctx, name, vm_names):
         vdc = VDC(client, href=vdc_href)
         vapp_resource = vdc.get_vapp(name)
         vapp = VApp(client, resource=vapp_resource)
-        task = vapp.power_on()
+        if len(vm_names) == 0:
+            task = vapp.power_on()
+            stdout(task, ctx)
+        else:
+            for vm_name in vm_names:
+                vm = VM(client, resource=vapp.get_vm(vm_name))
+                task = vm.power_on()
+                stdout(task, ctx)
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

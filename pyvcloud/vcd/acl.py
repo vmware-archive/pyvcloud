@@ -15,8 +15,8 @@
 
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.utils import get_admin_href
 
 
@@ -43,7 +43,9 @@ class Acl(object):
         return self.resource
 
     def add_access_settings(self, access_settings_list=None):
-        """Append a new access control list to the existing ACL of the parent
+        """Add access settings.
+
+        Append a new access control list to the existing ACL of the parent
         resource
 
         :param access_settings_list: (list of dict): list of access_setting
@@ -110,7 +112,9 @@ class Acl(object):
     def remove_access_settings(self,
                                access_settings_list=None,
                                remove_all=False):
-        """Remove a list of access settings from the existing ACL of the parent
+        """Remove access settings.
+
+        Remove a list of access settings from the existing ACL of the parent
         resource
 
         :param access_settings_list: (list of dict): list of access_setting

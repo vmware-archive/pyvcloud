@@ -660,7 +660,7 @@ class Org(object):
 
     def add_catalog_access_settings(self, catalog_name,
                                     access_settings_list=None):
-        """Add acl to a particular catalog.
+        """Add access settings to a particular catalog.
 
         :param catalog_name: (str): name of the catalog for which acl needs
             to be added.
@@ -681,15 +681,15 @@ class Org(object):
     def remove_catalog_access_settings(self, catalog_name,
                                        access_settings_list=None,
                                        remove_all=False):
-        """Remove acl from a particular catalog.
+        """Remove access settings from a particular catalog.
 
-        :param catalog_name: (name): catalog name from which access_settings 
+        :param catalog_name: (name): catalog name from which access_settings
             should be removed.
         :param access_settings_list: (list of dict): list of access_setting
             in the dict format. Each dict contains:
             type: (str): type of the subject. One of 'org' or 'user'.
             name: (str): name of the user or org.
-        :param remove_all: (bool) : True if all the acl of the resource
+        :param remove_all: (bool) : True if all access settings of the catalog
             should be removed
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
@@ -706,7 +706,7 @@ class Org(object):
         :param catalog_name: (str): catalog name whose access should be
             shared to everyone.
         :param everyone_access_level: (str) : access level when sharing the
-            resource with everyone. One of 'ReadOnly', 'Change', 'FullControl'
+            catalog with everyone. One of 'ReadOnly', 'Change', 'FullControl'
             'ReadOnly' by default.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing

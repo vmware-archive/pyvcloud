@@ -78,27 +78,42 @@ class TestRole(TestCase):
         role.unlink()
 
     def test_09_add_rights_To_Role(self):
-        logged_in_org = self.client.get_org()
-        org = Org(self.client, resource=logged_in_org)
+        org_in_use = self.config['vcd']['org_in_use']
+        org = Org(self.client, href=self.client.get_org_by_name(org_in_use).get('href'))
         role_name = self.config['vcd']['role_name']
+        right_name = self.config['vcd']['right_name']
+
         role_record = org.get_role(role_name)
         role = Role(self.client, href=role_record.get('href'))
-        right_records = []
-        record = org.get_right('vApp: Edit VM CPU')
-        right_records.append(record)
-        role.add_rights(right_records)
 
+        right_records = []
+        right_records.append(org.get_right(right_name))
+        updated_role_resource = role.add_rights(right_records)
+        success = False
+        if hasattr(updated_role_resource, 'RightReferences') and \
+                hasattr(updated_role_resource.RightReferences, 'RightReference'):
+            for right in updated_role_resource.RightReferences.RightReference:
+                if right.get('name') == right_name:
+                    success = True
+        assert success
 
     def test_10_remove_rights_from_role(self):
-        logged_in_org = self.client.get_org_by_name('testOrg')
-        org = Org(self.client, resource=logged_in_org)
+        org_in_use = self.config['vcd']['org_in_use']
+        org = Org(self.client, href = self.client.get_org_by_name(org_in_use).get('href'))
         role_name = self.config['vcd']['role_name']
+        right_name = self.config['vcd']['right_name']
+
         role_record = org.get_role(role_name)
         role = Role(self.client, href=role_record.get('href'))
-        right_records = []
-        record = org.get_right('vApp: Edit VM CPU')
-        right_records.append(record)
-        role.remove_rights(right_records)
+
+        updated_role_resource = role.remove_rights([right_name])
+        success = True
+        if hasattr(updated_role_resource, 'RightReferences') and \
+                hasattr(updated_role_resource.RightReferences, 'RightReference'):
+            for right in updated_role_resource.RightReferences.RightReference:
+                if right.get('name') == right_name:
+                    success = False
+        assert success
 
 if __name__ == '__main__':
     unittest.main()

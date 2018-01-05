@@ -490,6 +490,8 @@ class VApp(object):
         """
 
         params = E.RecomposeVAppParams()
+        if not is instance(names, list):
+            raise Exception('Param \'names\' should be an array of VM names')
         for name in names:
             vm = self.get_vm(name)
             params.append(E.DeleteItem(href=vm.get('href')))

@@ -667,7 +667,7 @@ class VDC(object):
                                               network_name,
                                               description,
                                               parent_network_name,
-                                              is_shared=False):
+                                              is_shared=None):
         """Create a new directly connected OrgVdc network in this VDC.
 
         :param network_name: (str): Name of the new network
@@ -710,7 +710,8 @@ class VDC(object):
             E.ParentNetwork(href=parent_network_href))
         vdc_network_configuration.append(E.FenceMode('bridged'))
         request_payload.append(vdc_network_configuration)
-        request_payload.append(E.IsShared(is_shared))
+        if is_shared is not None:
+            request_payload.append(E.IsShared(is_shared))
 
         return self.client.post_linked_resource(
             resource_admin,

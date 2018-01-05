@@ -88,7 +88,7 @@ class VM(object):
         """Powers on the VM.
 
         :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates the VM.
+            asynchronous task that operates on the VM.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -99,7 +99,7 @@ class VM(object):
         """Powers off the VM.
 
         :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates the VM.
+            asynchronous task that operates on the VM.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -110,7 +110,7 @@ class VM(object):
         """Powers reset the VM.
 
         :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates the VM.
+            asynchronous task that operates on the VM.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -121,7 +121,7 @@ class VM(object):
         """Undeploy the VM.
 
         :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates the VM.
+            asynchronous task that operates on the VM.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

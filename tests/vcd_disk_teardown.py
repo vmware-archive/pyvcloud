@@ -33,7 +33,7 @@ class TestDiskTeardown(TestCase):
                         task=taskObj,
                         timeout=30,
                         poll_frequency=2,
-                        fail_on_status=None,
+                        fail_on_statuses=None,
                         expected_target_statuses=[
                             TaskStatus.SUCCESS,
                             TaskStatus.ABORTED,

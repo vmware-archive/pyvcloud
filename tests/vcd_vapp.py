@@ -27,7 +27,7 @@ class TestVApp(TestCase):
                             task=result.Tasks.Task[0],
                             timeout=60,
                             poll_frequency=2,
-                            fail_on_status=None,
+                            fail_on_statuses=None,
                             expected_target_statuses=[
                                 TaskStatus.SUCCESS,
                                 TaskStatus.ABORTED,
@@ -51,7 +51,7 @@ class TestVApp(TestCase):
                             task=result,
                             timeout=60,
                             poll_frequency=2,
-                            fail_on_status=None,
+                            fail_on_statuses=None,
                             expected_target_statuses=[
                                 TaskStatus.SUCCESS,
                                 TaskStatus.ABORTED,
@@ -76,7 +76,7 @@ class TestVApp(TestCase):
                             task=result,
                             timeout=60,
                             poll_frequency=2,
-                            fail_on_status=None,
+                            fail_on_statuses=None,
                             expected_target_statuses=[
                                 TaskStatus.SUCCESS,
                                 TaskStatus.ABORTED,
@@ -103,7 +103,7 @@ class TestVApp(TestCase):
                             task=result.Tasks.Task[0],
                             timeout=60,
                             poll_frequency=2,
-                            fail_on_status=None,
+                            fail_on_statuses=None,
                             expected_target_statuses=[
                                 TaskStatus.SUCCESS,
                                 TaskStatus.ABORTED,
@@ -150,7 +150,7 @@ class TestVApp(TestCase):
                             task=result,
                             timeout=60,
                             poll_frequency=2,
-                            fail_on_status=None,
+                            fail_on_statuses=None,
                             expected_target_statuses=[
                                 TaskStatus.SUCCESS,
                                 TaskStatus.ABORTED,
@@ -177,7 +177,7 @@ class TestVApp(TestCase):
                             task=result.Tasks.Task[0],
                             timeout=60,
                             poll_frequency=2,
-                            fail_on_status=None,
+                            fail_on_statuses=None,
                             expected_target_statuses=[
                                 TaskStatus.SUCCESS,
                                 TaskStatus.ABORTED,
@@ -226,7 +226,7 @@ class TestVApp(TestCase):
                             task=result,
                             timeout=60,
                             poll_frequency=2,
-                            fail_on_status=None,
+                            fail_on_statuses=None,
                             expected_target_statuses=[
                                 TaskStatus.SUCCESS,
                                 TaskStatus.ABORTED,
@@ -246,7 +246,7 @@ class TestVApp(TestCase):
                             task=result,
                             timeout=60,
                             poll_frequency=2,
-                            fail_on_status=None,
+                            fail_on_statuses=None,
                             expected_target_statuses=[
                                 TaskStatus.SUCCESS,
                                 TaskStatus.ABORTED,

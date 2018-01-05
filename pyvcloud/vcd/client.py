@@ -13,18 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
+from datetime import timedelta
 import json
 import logging
 import sys
 import time
 import urllib
-from datetime import datetime
-from datetime import timedelta
 
-import requests
 from flufl.enum import Enum
 from lxml import etree
 from lxml import objectify
+import requests
 
 SIZE_1MB = 1024 * 1024
 
@@ -353,76 +353,27 @@ class _TaskMonitor(object):
     def __init__(self, client):
         self._client = client
 
-    def wait_for_status(self,
-                        task,
-                        timeout,
-                        poll_frequency,
-                        fail_on_status,
-                        expected_target_statuses,
-                        callback=None):
-        """Waits for task to reach expected status.
-
-         :param task: (Task): task returned by post or put calls.
-         :param timeout: (float): time (in seconds, floating point, fractional)
-            to wait for task to finish.
-         :param poll_requency: (float): time (in seconds, as above) with which
-            task will be polled.
-         :param fail_on_status: (str): task will fail if this
-            {@link TaskStatus} is reached. If this parameter is null then
-            either task will achieve expected target status or throw
-            {@link TimeOutException}.
-         :param expectedTargetStatus: (list): list of expected alternative
-            target status.
-         :return (Task): from list of expected target status.
-         :throws TimeoutException: (Exception): exception thrown when task is
-            not finished within given time.
-        """
-        task_href = task.get('href')
-        start_time = datetime.now()
-        while True:
-            task = self._get_task_status(task_href)
-            if callback is not None:
-                callback(task)
-            task_status = task.get('status').lower()
-            for status in expected_target_statuses:
-                if task_status == status.value.lower():
-                    return task
-                else:
-                    if fail_on_status is not None and \
-                       task_status == fail_on_status.value.lower():
-                        raise VcdTaskException(
-                            'Expected task status "%s" but got "%s"' %
-                            (status.value.lower(), task_status), task.Error)
-
-                if start_time - datetime.now() > timedelta(seconds=timeout):
-                    break
-
-            time.sleep(poll_frequency)
-
-        raise Exception("Task timeout")  # TODO(clean up)
-
     def wait_for_success(self,
                          task,
-                         timeout,
+                         timeout=_DEFAULT_TIMEOUT_SEC,
                          poll_frequency=_DEFAULT_POLL_SEC,
                          callback=None):
         return self.wait_for_status(
             task,
             timeout,
-            poll_frequency,
-            TaskStatus.ERROR, [TaskStatus.SUCCESS],
+            poll_frequency, [TaskStatus.ERROR], [TaskStatus.SUCCESS],
             callback=callback)
 
-    def wait_for_status_or_raise(self,
-                                 task,
-                                 timeout=_DEFAULT_TIMEOUT_SEC,
-                                 poll_frequency=_DEFAULT_POLL_SEC,
-                                 fail_on_statuses=[
-                                     TaskStatus.ABORTED, TaskStatus.CANCELED,
-                                     TaskStatus.ERROR
-                                 ],
-                                 success_on_statuses=[TaskStatus.SUCCESS],
-                                 callback=None):
+    def wait_for_status(self,
+                        task,
+                        timeout=_DEFAULT_TIMEOUT_SEC,
+                        poll_frequency=_DEFAULT_POLL_SEC,
+                        fail_on_statuses=[
+                            TaskStatus.ABORTED, TaskStatus.CANCELED,
+                            TaskStatus.ERROR
+                        ],
+                        expected_target_statuses=[TaskStatus.SUCCESS],
+                        callback=None):
         """Waits for task to reach expected status.
 
          :param task: (Task): task returned by post or put calls.
@@ -434,11 +385,18 @@ class _TaskMonitor(object):
             of the (TaskStatus) in this list is reached. If this parameter is
             null then either task will achieve expected target status or throw
             (TimeOutException)..
-         :param expected_target_status: (list): list of expected target status.
+         :param expected_target_statuses: (list): list of expected target
+            status.
          :return (Task): from list of expected target status.
          :throws TimeoutException: (Exception): exception thrown when task is
             not finished within given time.
         """
+        if fail_on_statuses is None:
+            _fail_on_statuses = []
+        elif isinstance(fail_on_statuses, TaskStatus):
+            _fail_on_statuses[fail_on_statuses]
+        else:
+            _fail_on_statuses = fail_on_statuses
         task_href = task.get('href')
         start_time = datetime.now()
         while True:
@@ -446,10 +404,10 @@ class _TaskMonitor(object):
             if callback is not None:
                 callback(task)
             task_status = task.get('status').lower()
-            for status in success_on_statuses:
+            for status in expected_target_statuses:
                 if task_status == status.value.lower():
                     return task
-            for status in fail_on_statuses:
+            for status in _fail_on_statuses:
                 if task_status == status.value.lower():
                     raise VcdTaskException(task_status, task.Error)
             if start_time - datetime.now() > timedelta(seconds=timeout):

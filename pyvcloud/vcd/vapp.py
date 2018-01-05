@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 from copy import deepcopy
 
 from lxml import etree
@@ -482,16 +483,16 @@ class VApp(object):
     def delete_vms(self, names):
         """Recompose the vApp and delete VMs.
 
-        :param names: An array of names (str) of the VMs to delete from the
-            vApp.
+        :param names: A list or tuple of names (str) of the VMs to delete
+            from the vApp.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing a
             sparsely populated vApp element.
         """
 
         params = E.RecomposeVAppParams()
-        if not isinstance(names, list):
-            raise Exception('Param \'names\' should be an array of VM names')
+        if not isinstance(names, collections.Iterable):
+            raise Exception('Param \'names\' should be a list of VM names')
         for name in names:
             vm = self.get_vm(name)
             params.append(E.DeleteItem(href=vm.get('href')))

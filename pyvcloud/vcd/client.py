@@ -166,9 +166,9 @@ class RelationType(Enum):
 class EntityType(Enum):
     ADMIN = 'application/vnd.vmware.admin.vcloud+xml'
     ADMIN_CATALOG = 'application/vnd.vmware.admin.catalog+xml'
+    ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     ADMIN_SERVICE = 'application/vnd.vmware.admin.service+xml'
     API_EXTENSIBILITY = 'application/vnd.vmware.vcloud.apiextensibility+xml'
-    ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     AMQP_SETTINGS = 'application/vnd.vmware.admin.amqpSettings+xml'
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
     CAPTURE_VAPP_PARAMS = \
@@ -836,20 +836,20 @@ class Client(object):
         raise Exception('org \'%s\' not found' % org_name)
 
     def get_user_in_org(self, user_name, org_href):
-        """Retrieve user record from a particular org.
+        """Retrieve user  from a particular org.
 
-        :param user_name: user name of the record to be retrieved.
+        :param user_name: user name to be retrieved.
         :param org_href: org where the user belongs.
 
-        :return: User record
+        :return:  A :class:`lxml.objectify.StringElement` object
+        representing the user
 
         """
-        org_resource = self.get_resource(org_href)
         resource_type = 'user'
         org_filter = None
         if self.is_sysadmin():
             resource_type = 'adminUser'
-            org_filter = 'org==%s' % org_resource.get('href')
+            org_filter = 'org==%s' % org_href
         query = self.get_typed_query(
             resource_type,
             query_result_format=QueryResultFormat.REFERENCES,
@@ -857,7 +857,7 @@ class Client(object):
             qfilter=org_filter)
         records = list(query.execute())
         if len(records) == 0:
-            raise Exception('user not found')
+            raise Exception('user \'%s\' not found' % user_name)
         elif len(records) > 1:
             raise Exception('multiple users found')
         return self.get_resource(records[0].get('href'))

@@ -21,18 +21,26 @@ from pyvcloud.vcd.utils import get_admin_href
 
 
 class Acl(object):
-    def __init__(self, client, resource):
-        """Constructor for Acl objects.
+    def __init__(self, client, parent_resource, resource=None):
+        """Constructor for Acl object.
 
         :param client: (pyvcloud.vcd.client): The client.
-        :param resource: (lxml.objectify.ObjectifiedElement): XML
-            representation of the entity in which acl belongs to.
+        :param parent_resource: (lxml.objectify.ObjectifiedElement): XML
+            representation of the parent entity whose Access Control List this
+            object operates on.
+        :param resource: (lxml.objectify.ObjectifiedElement): Xml
+            representation of the Access Control List of the parent object.
         """
         self.client = client
-        self.resource = resource
+        self.parent_resource = parent_resource
+        if resource is None:
+            self.resource = self.client.get_linked_resource(
+                self.parent_resource, RelationType.DOWN,
+                EntityType.CONTROL_ACCESS_PARAMS.value)
 
     def add_access_settings(self, access_settings_list=None):
-        """Add acl to resource.
+        """Append a new access control list to the existing ACL of the parent
+        resource
 
         :param access_settings_list: (list of dict): list of access_setting
             in the dict format. Each dict contains:
@@ -45,56 +53,59 @@ class Acl(object):
             the updated access control setting of the resource.
 
         """
-        control_access_params = self.client.get_linked_resource(
-            self.resource, RelationType.DOWN,
-            EntityType.CONTROL_ACCESS_PARAMS.value)
 
         # if access_settings_list is None, nothing to add.
-        if access_settings_list is not None:
-            # get the current access settings for the particular resource
-            old_access_settings_params = None
-            if hasattr(control_access_params, 'AccessSettings'):
-                old_access_settings_params = control_access_params. \
-                    AccessSettings
+        if access_settings_list is None:
+            return self.resource
 
-                # discard the AccessSettings fro control_access_params as we
-                #  will be constructing a new one based on access_settings_list
-                control_access_params.remove(old_access_settings_params)
+        control_access_params = self.resource
+        # get the current access settings of the parent resource
+        old_access_settings_params = None
+        if hasattr(control_access_params, 'AccessSettings'):
+            old_access_settings_params = control_access_params. \
+                AccessSettings
 
-            # remove common access_setting between access_settings_list
-            # and old_access_settings_params
-            for access_setting in list(access_settings_list):
-                subject_name = access_setting['name']
-                subject_type = access_setting['type']
-                matched_access_setting = \
-                    self.search_for_access_setting_by_subject(
-                        subject_name, subject_type,
-                        old_access_settings_params)
-                if matched_access_setting is not None:
-                    old_access_settings_params.remove(matched_access_setting)
+            # discard the AccessSettings from control_access_params as we
+            #  will be constructing a new one based on access_settings_list
+            control_access_params.remove(old_access_settings_params)
 
-            new_access_settings_params = \
-                self.convert_access_settings_list_to_params(
-                    access_settings_list)
+        # remove common access_setting between access_settings_list
+        # and old_access_settings_params
+        for access_setting in access_settings_list:
+            subject_name = access_setting['name']
+            subject_type = access_setting['type']
+            matched_access_setting = \
+                self.search_for_access_setting_by_subject(
+                    subject_name, subject_type,
+                    old_access_settings_params)
+            if matched_access_setting is not None:
+                old_access_settings_params.remove(matched_access_setting)
 
-            # combine the new and old access settings
-            if hasattr(old_access_settings_params, 'AccessSetting'):
-                for old_access_setting in list(
-                        old_access_settings_params.AccessSetting):
-                    new_access_settings_params.append(old_access_setting)
+        new_access_settings_params = \
+            self.convert_access_settings_list_to_params(
+                access_settings_list)
 
-            control_access_params.append(new_access_settings_params)
+        # combine the new and old access settings
+        if hasattr(old_access_settings_params, 'AccessSetting'):
+            for old_access_setting in list(
+                    old_access_settings_params.AccessSetting):
+                new_access_settings_params.append(old_access_setting)
 
-            return self.client.post_linked_resource(
-                self.resource, RelationType.CONTROL_ACCESS,
-                EntityType.CONTROL_ACCESS_PARAMS.value, control_access_params)
+        control_access_params.append(new_access_settings_params)
 
-        return control_access_params
+        self.resource = self.client.\
+            post_linked_resource(self.parent_resource,
+                                 RelationType.CONTROL_ACCESS,
+                                 EntityType.CONTROL_ACCESS_PARAMS.
+                                 value,
+                                 control_access_params)
+        return self.resource
 
     def remove_access_settings(self,
                                access_settings_list=None,
                                remove_all=False):
-        """Remove acl from resource.
+        """Remove a list of access settings from the existing ACL of the parent
+        resource
 
         :param access_settings_list: (list of dict): list of access_setting
             in the dict format. Each dict contains:
@@ -107,11 +118,13 @@ class Acl(object):
             the updated access control setting of the resource.
 
         """
-        control_access_params = self.client.get_linked_resource(
-            self.resource, RelationType.DOWN,
-            EntityType.CONTROL_ACCESS_PARAMS.value)
+        # if access_settings_list is None and remove_all is False, nothing to
+        # remove.
+        if access_settings_list is None and remove_all is False:
+            return self.resource
 
-        # get the current access settings for the particular resource
+        control_access_params = self.resource
+        # get the current access settings from parent resource
         old_access_settings_params = None
         if hasattr(control_access_params, 'AccessSettings'):
             old_access_settings_params = control_access_params.AccessSettings
@@ -126,7 +139,7 @@ class Acl(object):
         if remove_all is False:
             # remove common AccessSetting between access_settings_list
             # and old_access_settings_params
-            for access_setting in list(access_settings_list):
+            for access_setting in access_settings_list:
                 subject_name = access_setting['name']
                 subject_type = access_setting['type']
                 matched_access_setting = \
@@ -140,13 +153,17 @@ class Acl(object):
                 else:
                     old_access_settings_params.remove(matched_access_setting)
             # appending the the modified old_access_settings_params to
-            # control_access_params if at least 1 AccessSetting exist in it.
+            # control_access_params if at least 1 AccessSetting exist in
+            # old_access_settings_params.
             if hasattr(old_access_settings_params, 'AccessSetting'):
                 control_access_params.append(old_access_settings_params)
 
-        return self.client.post_linked_resource(
-            self.resource, RelationType.CONTROL_ACCESS,
-            EntityType.CONTROL_ACCESS_PARAMS.value, control_access_params)
+        self.resource = self.\
+            client.post_linked_resource(self.parent_resource,
+                                        RelationType.CONTROL_ACCESS,
+                                        EntityType.CONTROL_ACCESS_PARAMS.value,
+                                        control_access_params)
+        return self.resource
 
     def share_access(self, everyone_access_level='ReadOnly'):
         """Share the resource to all members of the organization.
@@ -159,9 +176,7 @@ class Acl(object):
             the updated access control setting of the resource.
 
         """
-        control_access_params = self.client.get_linked_resource(
-            self.resource, RelationType.DOWN,
-            EntityType.CONTROL_ACCESS_PARAMS.value)
+        control_access_params = self.resource
 
         control_access_params['IsSharedToEveryone'] = \
             E.IsSharedToEveryone(True)
@@ -175,9 +190,12 @@ class Acl(object):
                 control_access_params.insert(1, E.EveryoneAccessLevel(
                     everyone_access_level))
 
-        return self.client.post_linked_resource(
-            self.resource, RelationType.CONTROL_ACCESS,
-            EntityType.CONTROL_ACCESS_PARAMS.value, control_access_params)
+        self.resource = self. \
+            client.post_linked_resource(self.parent_resource,
+                                        RelationType.CONTROL_ACCESS,
+                                        EntityType.CONTROL_ACCESS_PARAMS.value,
+                                        control_access_params)
+        return self.resource
 
     def unshare_access(self):
         """Unshare the resource from all members of current organization.
@@ -186,9 +204,7 @@ class Acl(object):
             the updated access control setting of the resource.
 
         """
-        control_access_params = self.client.get_linked_resource(
-            self.resource, RelationType.DOWN,
-            EntityType.CONTROL_ACCESS_PARAMS.value)
+        control_access_params = self.resource
 
         control_access_params['IsSharedToEveryone'] = \
             E.IsSharedToEveryone(False)
@@ -199,9 +215,12 @@ class Acl(object):
                                             'EveryoneAccessLevel')
             control_access_params.remove(everyone_access_level)
 
-        return self.client.post_linked_resource(
-            self.resource, RelationType.CONTROL_ACCESS,
-            EntityType.CONTROL_ACCESS_PARAMS.value, control_access_params)
+        self.resource = self. \
+            client.post_linked_resource(self.parent_resource,
+                                        RelationType.CONTROL_ACCESS,
+                                        EntityType.CONTROL_ACCESS_PARAMS.value,
+                                        control_access_params)
+        return self.resource
 
     def convert_access_settings_list_to_params(self, access_settings_list):
         """Convert access_settings_list to object of type AccessSettingsType
@@ -220,26 +239,32 @@ class Acl(object):
         access_settings_params = E.AccessSettings()
         for access_setting in access_settings_list:
             if access_setting["type"] == 'user':
-                org_href = find_link(self.resource, RelationType.UP,
+                org_href = find_link(self.parent_resource, RelationType.UP,
                                      EntityType.ORG.value).href
                 subject_href = self.client.get_user_in_org(
                     access_setting['name'],
                     org_href).get('href')
-                subject_name = access_setting['name']
                 subject_type = EntityType.USER.value
-            else:
+            elif access_setting["type"] == 'org':
                 subject_href = get_admin_href(
                     self.client.get_org_by_name(
                         access_setting['name']).get(
                         'href'))
-                subject_name = access_setting['name']
                 subject_type = EntityType.ADMIN_ORG.value
+            else:
+                raise Exception("Invalid subject type")
 
+            subject_name = access_setting['name']
+            # Make 'ReadOnly' the default access_level if it is not specified.
+            if 'access_level' in access_setting:
+                access_level = access_setting['access_level']
+            else:
+                access_level = 'ReadOnly'
             access_setting_params = E.AccessSetting(
                 E.Subject(name=subject_name,
                           href=subject_href,
                           type=subject_type),
-                E.AccessLevel(access_setting['access_level'])
+                E.AccessLevel(access_level)
             )
             access_settings_params.append(access_setting_params)
         return access_settings_params

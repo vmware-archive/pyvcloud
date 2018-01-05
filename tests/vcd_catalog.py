@@ -53,8 +53,7 @@ class TestCatalog(TestCase):
                 {'name': self.config['vcd']['access_user1'], 'type': 'user',
                  'access_level': 'ReadOnly'},
                 {'name': self.config['vcd']['access_user'], 'type': 'user',
-                 'access_level':
-                     'Change'},
+                 'access_level':'Change'},
                 {'name': self.config['vcd']['access_org'], 'type': 'org',
                  'access_level': 'ReadOnly'}
 

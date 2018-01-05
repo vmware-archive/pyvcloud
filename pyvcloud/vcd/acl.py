@@ -223,8 +223,7 @@ class Acl(object):
         # EveryoneAccessLevel should not exist when
         # IsSharedToEveryone is false
         if hasattr(control_access_params, 'EveryoneAccessLevel'):
-            everyone_access_level = getattr(control_access_params,
-                                            'EveryoneAccessLevel')
+            everyone_access_level = control_access_params.EveryoneAccessLevel
             control_access_params.remove(everyone_access_level)
 
         self.resource = self. \

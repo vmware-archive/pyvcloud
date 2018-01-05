@@ -836,7 +836,7 @@ class Client(object):
         raise Exception('org \'%s\' not found' % org_name)
 
     def get_user_in_org(self, user_name, org_href):
-        """Retrieve user  from a particular org.
+        """Retrieve user from a particular org.
 
         :param user_name: user name to be retrieved.
         :param org_href: org where the user belongs.

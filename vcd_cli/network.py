@@ -66,14 +66,14 @@ def direct(ctx):
     default='',
     help='Description of the network to be created.')
 @click.option(
-    '-P',
+    '-p',
     '--parent',
     'parent_network_name',
     required=True,
     metavar='<external network name>',
     help='Name of the external network to be connected to.')
 @click.option(
-    '-s/-ns',
+    '-s/-n',
     '--shared/--not-shared',
     'is_shared',
     is_flag=True,

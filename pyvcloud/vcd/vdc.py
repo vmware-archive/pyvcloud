@@ -21,6 +21,7 @@ from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import access_control_settings_to_dict
+from pyvcloud.vcd.utils import get_admin_extension_href
 from pyvcloud.vcd.utils import get_admin_href
 
 
@@ -661,3 +662,59 @@ class VDC(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD,
             EntityType.COMPOSE_VAPP_PARAMS.value, params)
+
+    def create_directly_connected_vdc_network(self,
+                                              network_name,
+                                              description,
+                                              parent_network_name,
+                                              is_shared=None):
+        """Create a new directly connected OrgVdc network in this VDC.
+
+        :param network_name: (str): Name of the new network
+        :param description: (str): Description of the new network
+        :param parent_network_name: (str): Name of the external network
+            that the new network will be directly connected to
+        :param is_shared: (bool): True, is the network is shared with \
+            other VDC(s) in the organization else False
+        :return: A :class:`lxml.objectify.StringElement` object representing
+            a sparsely populated OrgVdcNetwork element.
+        """
+
+        resource_admin = self.client.get_resource(self.href_admin)
+        parent_network_href = None
+        if hasattr(resource_admin, 'ProviderVdcReference'):
+            pvdc_admin_href = resource_admin.ProviderVdcReference.get('href')
+            pvdc_admin_ext_href = get_admin_extension_href(pvdc_admin_href)
+            pvdc_resource = self.client.get_resource(pvdc_admin_ext_href)
+
+            available_network_tag = '{' + NSMAP['vcloud'] + \
+                                    '}AvailableNetworks'
+            if hasattr(pvdc_resource, available_network_tag) and \
+               hasattr(pvdc_resource[available_network_tag], 'Network'):
+                for ext_net in pvdc_resource[available_network_tag].Network:
+                    if parent_network_name == ext_net.get('name'):
+                        parent_network_href = ext_net.get('href')
+                        break
+        else:
+            raise Exception('User doesn\'t have enough permission to view '
+                            'Provider Virtual Datacenter backing Virtual '
+                            'Datacenter %s' % self.name)
+        if parent_network_href is None:
+            raise Exception('Network \'%s\' not found in the Provider '
+                            'Virtual Datacenter.' % parent_network_name)
+
+        request_payload = E.OrgVdcNetwork(name=network_name)
+        request_payload.append(E.Description(description))
+        vdc_network_configuration = E.Configuration()
+        vdc_network_configuration.append(
+            E.ParentNetwork(href=parent_network_href))
+        vdc_network_configuration.append(E.FenceMode('bridged'))
+        request_payload.append(vdc_network_configuration)
+        if is_shared is not None:
+            request_payload.append(E.IsShared(is_shared))
+
+        return self.client.post_linked_resource(
+            resource_admin,
+            RelationType.ADD,
+            EntityType.ORG_VDC_NETWORK.value,
+            request_payload)

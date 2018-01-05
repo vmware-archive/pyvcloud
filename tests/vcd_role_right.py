@@ -95,6 +95,7 @@ class TestRole(TestCase):
             for right in updated_role_resource.RightReferences.RightReference:
                 if right.get('name') == right_name:
                     success = True
+                    break
         assert success
 
     def test_10_remove_rights_from_role(self):
@@ -113,6 +114,7 @@ class TestRole(TestCase):
             for right in updated_role_resource.RightReferences.RightReference:
                 if right.get('name') == right_name:
                     success = False
+                    break
         assert success
 
 if __name__ == '__main__':

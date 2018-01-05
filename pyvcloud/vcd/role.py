@@ -76,7 +76,6 @@ class Role(object):
 
         :return: A :class:`lxml.objectify.StringElement` object representing
         the updated role resource.
-
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -97,7 +96,6 @@ class Role(object):
 
         :return: A :class:`lxml.objectify.StringElement` object representing
                 the updated role resource.
-
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

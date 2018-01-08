@@ -72,22 +72,26 @@ class Role(object):
     def add_rights(self, right_records):
         """Adds list of rights to a given role
 
-        :param: right_records: (list): List of right records
+        :param right_records: (list): List of right records (dict)
+            right_record is a (dict) containing:
+                href: (str): href of the right
+                name: (str): name of the right
 
-        :return: A :class:`lxml.objectify.StringElement` object representing
+        :return A :class:`lxml.objectify.StringElement` object representing
         the updated role resource.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        updated_resource = self.resource
-        for right_record in list(right_records):
-            updated_resource.RightReferences.append(
+        updated_role_resource = self.resource
+        for right_record in right_records:
+            updated_role_resource.RightReferences.append(
                 E.RightReference(
                     name=right_record.get('name'),
                     href=right_record.get('href'),
                     type=EntityType.RIGHT.value))
-        return self.client.put_resource(
-            self.href, updated_resource, EntityType.ROLE.value)
+        self.resource = self.client.put_resource(
+            self.href, updated_role_resource, EntityType.ROLE.value)
+        return self.resource
 
     def remove_rights(self, rights):
         """Removes list of rights from a given role
@@ -100,20 +104,21 @@ class Role(object):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         rights = list(rights)
-        updated_resource = self.resource
+        updated_role_resource = self.resource
         if hasattr(self.resource, 'RightReferences') and \
                 hasattr(self.resource.RightReferences, 'RightReference'):
             rightReferenceList = self.resource.RightReferences.RightReference
-            for rightReference in rightReferenceList:
-                for right in rights:
+            for rightReference in list(rightReferenceList):
+                for right in list(rights):
                     if rightReference.get('name') == right:
-                        updated_resource.RightReferences.remove(rightReference)
+                        updated_role_resource.RightReferences.remove(rightReference)
                         rights.remove(right)
                         break
                 if len(rights) == 0:
                     break
         if len(rights) > 0:
-            print('Skipping removal of rights [', ', '.join(rights), ']\
-             as they do not exist in the role')
-        return self.client.put_resource(
-            self.href, updated_resource, EntityType.ROLE.value)
+            print("Skipping removal of rights [", ', '.join(rights), "]"
+             " as they are not associated with the role")
+        self.resource = self.client.put_resource(
+            self.href, updated_role_resource, EntityType.ROLE.value)
+        return self.resource

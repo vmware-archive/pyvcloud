@@ -77,7 +77,7 @@ class TestRole(TestCase):
         role = Role(self.client, href=role_record.get('href'))
         role.unlink()
 
-    def test_09_add_rights_To_Role(self):
+    def test_09_add_rights_to_Role(self):
         org_in_use = self.config['vcd']['org_in_use']
         org = Org(self.client, href=self.client.get_org_by_name(org_in_use).get('href'))
         role_name = self.config['vcd']['role_name']

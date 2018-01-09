@@ -147,6 +147,7 @@ class RelationType(Enum):
     DOWN = 'down'
     DOWN_EXTENSIBILITY = 'down:extensibility'
     DOWNLOAD_DEFAULT = 'download:default'
+    EDGE_GATEWAYS = 'edgeGateways'
     EDIT = 'edit'
     ENABLE = 'enable'
     LINK_TO_TEMPLATE = 'linkToTemplate'
@@ -183,6 +184,9 @@ class EntityType(Enum):
     DISK_ATTACH_DETACH_PARAMS = \
         'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'
     DISK_CREATE_PARMS = 'application/vnd.vmware.vcloud.diskCreateParams+xml'
+    EDGE_GATEWAY = 'application/vnd.vmware.admin.edgeGateway+xml'
+    EDGE_GATEWAY_SERVICE_CONFIGURATION = \
+        'application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
@@ -208,6 +212,7 @@ class EntityType(Enum):
     RASD_ITEMS_LIST = 'application/vnd.vmware.vcloud.rasdItemsList+xml'
     RECOMPOSE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.recomposeVAppParams+xml'
+    RECORDS = 'application/vnd.vmware.vcloud.query.records+xml'
     ROLE = 'application/vnd.vmware.admin.role+xml'
     RIGHT = 'application/vnd.vmware.admin.right+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'

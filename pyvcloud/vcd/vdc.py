@@ -13,12 +13,14 @@
 # limitations under the License.
 
 from lxml import etree
+
 from pyvcloud.vcd.client import E
+from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import access_control_settings_to_dict
 from pyvcloud.vcd.utils import get_admin_extension_href
@@ -342,6 +344,20 @@ class VDC(object):
                    entity_type.value == vapp.get('type'):
                     result.append({'name': vapp.get('name')})
         return result
+
+    def list_edge_gateways(self):
+        """
+        Request a list of edge gateways defined in a vdc.
+        :return: An array of the existing edge gateways.
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        links = self.client.get_linked_resource(self.resource, RelationType.EDGE_GATEWAYS, EntityType.RECORDS.value)
+
+        edge_gateways = []
+        for e in links.EdgeGatewayRecord:
+            edge_gateways.append({'name': e.get('name'), 'href': e.get('href')})
+        return edge_gateways
 
     def create_disk(self,
                  name,

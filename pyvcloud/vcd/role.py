@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
@@ -81,15 +82,16 @@ class Role(object):
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
+        updated_resource = deepcopy(self.resource)
         for right in rights:
             right_record = org.get_right(right)
-            self.resource.RightReferences.append(
+            updated_resource.RightReferences.append(
                 E.RightReference(
                     name=right_record.get('name'),
                     href=right_record.get('href'),
                     type=EntityType.RIGHT.value))
         return self.client.put_resource(
-            self.href, self.resource, EntityType.ROLE.value)
+            self.href, updated_resource, EntityType.ROLE.value)
 
     def remove_rights(self, rights):
         """Removes list of rights from a given role
@@ -101,13 +103,14 @@ class Role(object):
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
+        updated_resource = deepcopy(self.resource)
         if hasattr(self.resource, 'RightReferences') and \
                 hasattr(self.resource.RightReferences, 'RightReference'):
-            rightReferenceList = self.resource.RightReferences.RightReference
+            rightReferenceList = updated_resource.RightReferences.RightReference
             for rightReference in list(rightReferenceList):
                 for right in rights:
                     if rightReference.get('name') == right:
-                        self.resource.RightReferences.remove(rightReference)
+                        updated_resource.RightReferences.remove(rightReference)
                         break
         return self.client.put_resource(
-            self.href, self.resource, EntityType.ROLE.value)
+            self.href, updated_resource, EntityType.ROLE.value)

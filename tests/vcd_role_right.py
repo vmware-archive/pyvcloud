@@ -86,9 +86,7 @@ class TestRole(TestCase):
         role_record = org.get_role(role_name)
         role = Role(self.client, href=role_record.get('href'))
 
-        right_records = []
-        right_records.append(org.get_right(right_name))
-        updated_role_resource = role.add_rights(right_records)
+        updated_role_resource = role.add_rights([right_name], org)
         success = False
         if hasattr(updated_role_resource, 'RightReferences') and \
                 hasattr(updated_role_resource.RightReferences, 'RightReference'):

@@ -43,6 +43,32 @@ class Extension(object):
             query_result_format=QueryResultFormat.ID_RECORDS).find_unique()
         return to_dict(ext, self.ATTRIBUTES)
 
+    def get_api_filters(self, service_id):
+        """Return the API filters defined for the service.
+
+        :param service_id: (str): The id of the extension service.
+        :return: (lxml.objectify.ObjectifiedElement): list with the API filters
+            registered for the API extension.
+        """
+        return self.client.get_typed_query(
+            'apiFilter',
+            equality_filter=('service', service_id),
+            query_result_format=QueryResultFormat.ID_RECORDS).execute()
+
+    def get_extension_info(self, name):
+        """Return the info about an API extension.
+
+        :param name: (str): The name of the extension service.
+        :return: (dict): dictionary with the information about the extension.
+        """
+        ext = self.get_extension(name)
+        filters = self.get_api_filters(ext['id'])
+        n = 1
+        for f in filters:
+            ext['filter_%s' % n] = f.get('urlPattern')
+            n += 1
+        return ext
+
     def add_extension(self, name, namespace, routing_key, exchange, patterns):
         params = E_VMEXT.Service({'name': name})
         params.append(E_VMEXT.Namespace(namespace))

@@ -1,5 +1,5 @@
 ```
-Usage: vcd vapp power-off [OPTIONS] <name> [VM_NAMES]...
+Usage: vcd cse cluster delete [OPTIONS] NAME
 
 Options:
   -y, --yes

@@ -8,7 +8,7 @@ Usage: vcd system extension [OPTIONS] COMMAND [ARGS]...
               List available extension services.
   
           vcd system extension create cse cse cse vcdext \
-              '/api/cluster, /api/cluster/.*, /api/cluster/.*/.*'
+              '/api/cse, /api/cse/.*, /api/cse/.*/.*'
               Register a new extension service named 'cse'.
   
           vcd system extension delete cse

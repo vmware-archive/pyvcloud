@@ -1,8 +1,7 @@
 ```
-Usage: vcd vapp shutdown [OPTIONS] NAME
+Usage: vcd cse system info [OPTIONS]
 
 Options:
-  -y, --yes
   -h, --help  Show this message and exit.
 
 ```

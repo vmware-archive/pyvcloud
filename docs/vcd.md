@@ -20,12 +20,15 @@ Options:
 
 Commands:
   catalog  work with catalogs
+  cse      manage kubernetes clusters
   disk     manage independent disks
+  gateway  manage edge gateways
   help     show help
   info     show resource details
   login    login to vCD
   logout   logout from vCD
   netpool  work with network pools
+  network  work with vcd networks
   org      work with organizations
   profile  manage profiles
   pvdc     work with provider virtual datacenters

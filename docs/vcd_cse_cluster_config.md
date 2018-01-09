@@ -1,8 +1,8 @@
 ```
-Usage: vcd vapp shutdown [OPTIONS] NAME
+Usage: vcd cse cluster config [OPTIONS] NAME
 
 Options:
-  -y, --yes
+  -s, --save
   -h, --help  Show this message and exit.
 
 ```

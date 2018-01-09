@@ -1,5 +1,5 @@
 ```
-Usage: vcd role list [OPTIONS]
+Usage: vcd role link [OPTIONS] <role-name>
 
 Options:
   -o, --org [org-name]  name of the org

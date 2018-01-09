@@ -1,8 +1,7 @@
 ```
-Usage: vcd vapp shutdown [OPTIONS] NAME
+Usage: vcd cse node list [OPTIONS] NAME
 
 Options:
-  -y, --yes
   -h, --help  Show this message and exit.
 
 ```

@@ -10,6 +10,7 @@ Options:
   -i, --ip-allocation-mode mode  IP allocation mode
   -s, --storage-profile name     Name of the storage profile for the VM
   --password-auto                Autogenerate administrator password
+  --accept-all-eulas             Accept all EULAs
   -h, --help                     Show this message and exit.
 
 ```

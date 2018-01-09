@@ -2,6 +2,14 @@
 <ul><li>
 <a href="vcd">vcd</a><ul><li>
 <a href="vcd_catalog">catalog</a><ul><li>
+<a href="vcd_catalog_acl">acl</a><ul><li>
+<a href="vcd_catalog_acl_add">add</a></li><li>
+<a href="vcd_catalog_acl_list">list</a></li><li>
+<a href="vcd_catalog_acl_remove">remove</a></li><li>
+<a href="vcd_catalog_acl_share">share</a></li><li>
+<a href="vcd_catalog_acl_unshare">unshare</a></li>
+</ul></li>
+<li>
 <a href="vcd_catalog_change-owner">change-owner</a></li><li>
 <a href="vcd_catalog_create">create</a></li><li>
 <a href="vcd_catalog_delete">delete</a></li><li>
@@ -14,6 +22,35 @@
 <a href="vcd_catalog_upload">upload</a></li>
 </ul></li>
 <li>
+<a href="vcd_cse">cse</a><ul><li>
+<a href="vcd_cse_cluster">cluster</a><ul><li>
+<a href="vcd_cse_cluster_config">config</a></li><li>
+<a href="vcd_cse_cluster_create">create</a></li><li>
+<a href="vcd_cse_cluster_delete">delete</a></li><li>
+<a href="vcd_cse_cluster_info">info</a></li><li>
+<a href="vcd_cse_cluster_list">list</a></li>
+</ul></li>
+<li>
+<a href="vcd_cse_node">node</a><ul><li>
+<a href="vcd_cse_node_create">create</a></li><li>
+<a href="vcd_cse_node_delete">delete</a></li><li>
+<a href="vcd_cse_node_list">list</a></li>
+</ul></li>
+<li>
+<a href="vcd_cse_system">system</a><ul><li>
+<a href="vcd_cse_system_disable">disable</a></li><li>
+<a href="vcd_cse_system_enable">enable</a></li><li>
+<a href="vcd_cse_system_info">info</a></li><li>
+<a href="vcd_cse_system_stop">stop</a></li>
+</ul></li>
+<li>
+<a href="vcd_cse_template">template</a><ul><li>
+<a href="vcd_cse_template_list">list</a></li>
+</ul></li>
+<li>
+<a href="vcd_cse_version">version</a></li>
+</ul></li>
+<li>
 <a href="vcd_disk">disk</a><ul><li>
 <a href="vcd_disk_change-owner">change-owner</a></li><li>
 <a href="vcd_disk_create">create</a></li><li>
@@ -23,12 +60,22 @@
 <a href="vcd_disk_update">update</a></li>
 </ul></li>
 <li>
+<a href="vcd_gateway">gateway</a><ul><li>
+<a href="vcd_gateway_list">list</a></li>
+</ul></li>
+<li>
 <a href="vcd_help">help</a></li><li>
 <a href="vcd_info">info</a></li><li>
 <a href="vcd_login">login</a></li><li>
 <a href="vcd_logout">logout</a></li><li>
 <a href="vcd_netpool">netpool</a><ul><li>
 <a href="vcd_netpool_list">list</a></li>
+</ul></li>
+<li>
+<a href="vcd_network">network</a><ul><li>
+<a href="vcd_network_direct">direct</a><ul><li>
+<a href="vcd_network_direct_create">create</a></li>
+</ul></li>
 </ul></li>
 <li>
 <a href="vcd_org">org</a><ul><li>
@@ -52,8 +99,11 @@
 <li>
 <a href="vcd_role">role</a><ul><li>
 <a href="vcd_role_create">create</a></li><li>
+<a href="vcd_role_delete">delete</a></li><li>
+<a href="vcd_role_link">link</a></li><li>
 <a href="vcd_role_list">list</a></li><li>
-<a href="vcd_role_list-rights">list-rights</a></li>
+<a href="vcd_role_list-rights">list-rights</a></li><li>
+<a href="vcd_role_unlink">unlink</a></li>
 </ul></li>
 <li>
 <a href="vcd_search">search</a></li><li>
@@ -101,6 +151,7 @@
 <a href="vcd_vapp_power-off">power-off</a></li><li>
 <a href="vcd_vapp_power-on">power-on</a></li><li>
 <a href="vcd_vapp_shutdown">shutdown</a></li><li>
+<a href="vcd_vapp_undeploy">undeploy</a></li><li>
 <a href="vcd_vapp_update-lease">update-lease</a></li><li>
 <a href="vcd_vapp_use">use</a></li>
 </ul></li>

@@ -1,10 +1,40 @@
 CHANGES
 =======
 
+20.1.0
+------
+
+* updated dependencies
+* Update test-requirements.txt
+* removed unused force option
+* addressed review comments
+* renamed file to gateway to be conformant to the command
+* fixed command name to gateway, don't use camel case, change method name to list\_gateways
+* Implementing catalog update acl commands (#153)
+* refactored wait\_for\_status, added VM delete
+* VCDA-419 retrieve api filter for extension
+* addressed review comments
+* Changing params to create command as per review command
+* Adding param to share the network with other VDC(s) in the org
+* Link/Unlink role to its template (#154)
+* VCDA-258: Provide an optional parameter to specify IOPS during creation (#149)
+* Fixing help strings as per review comments
+* vcd vapp examples
+* power-off, undeploy, delete VM
+* Changing the command structuer as per the new design doc
+* install
+* Fixing small typos
+* flake8 validation fixes
+* Command to create directky connected org vdc network
+* docs
+* docs
+
 20.0.0
 ------
 
 * removed dead code
+* added edgegateway
+* added howto develop
 * eula and plugin
 * addressed comments
 * [vcd-cli] delete role from a given org (#146)

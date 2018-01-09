@@ -23,6 +23,9 @@ Usage: vcd vapp [OPTIONS] COMMAND [ARGS]...
           vcd vapp list
               Get list of vApps in current virtual datacenter.
   
+          vcd vapp list vapp1
+              Get list of VMs in vApp 'vapp1'.
+  
           vcd vapp info vapp1
               Get details of the vApp 'vapp1'.
   
@@ -60,8 +63,20 @@ Usage: vcd vapp [OPTIONS] COMMAND [ARGS]...
           vcd vapp power-off vapp1
               Power off a vApp.
   
+          vcd vapp power-off vapp1 vm1 vm2
+              Power off vm1 and vm2 of vapp1.
+  
+          vcd vapp undeploy vapp1 vm1 vm2
+              Undeploy vm1 and vm2 of vapp1.
+  
+          vcd vapp delete vapp1 vm1 vm2
+              Delete vm1 and vm2 from vapp1.
+  
           vcd vapp power-on vapp1
               Power on a vApp.
+  
+          vcd vapp power-on vapp1 vm1 vm2
+              Power on vm1 and vm2 of vapp1.
   
           vcd vapp capture vapp1 catalog1
               Capture a vApp as a template in a catalog.
@@ -91,13 +106,14 @@ Commands:
   capture       save a vApp as a template
   change-owner  change vApp owner
   create        create a vApp
-  delete        delete a vApp
+  delete        delete a vApp or VM(s)
   detach        detach disk from VM in vApp
   info          show vApp details
   list          list vApps
   power-off     power off a vApp
-  power-on      power on a vApp
+  power-on      power on a vApp or VM(s)
   shutdown      shutdown a vApp
+  undeploy      undeploy a vApp or VM(s)
   update-lease  update vApp lease
   use           set active vApp
 

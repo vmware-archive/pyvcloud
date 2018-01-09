@@ -1,8 +1,7 @@
 ```
-Usage: vcd vapp shutdown [OPTIONS] NAME
+Usage: vcd catalog acl unshare [OPTIONS] <catalog-name>
 
 Options:
-  -y, --yes
   -h, --help  Show this message and exit.
 
 ```

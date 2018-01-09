@@ -382,11 +382,11 @@ def create(ctx, name, description, catalog, template, network, memory, cpu,
               is_flag=True,
               callback=abort_if_false,
               expose_value=False,
-              prompt='Are you sure you want to delete the vApp or the VM(s)')
+              prompt='Are you sure you want to delete the vApp or the VM(s)?')
 @click.option('-f',
               '--force',
               is_flag=True,
-              help='Force delete running vApp or VM(s)')
+              help='Force delete running VM(s). Only applies to vApp delete.')
 def delete(ctx, name, vm_names, force):
     try:
         client = ctx.obj['client']
@@ -466,11 +466,7 @@ def change_owner(ctx, vapp_name, user_name):
               callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to power off the vApp?')
-@click.option('-f',
-              '--force',
-              is_flag=True,
-              help='Force power off running vApps')
-def power_off(ctx, name, vm_names, force):
+def power_off(ctx, name, vm_names):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')

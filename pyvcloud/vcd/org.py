@@ -16,18 +16,17 @@
 from lxml import etree
 from lxml import objectify
 import os
+from pyvcloud.vcd.acl import Acl
 from pyvcloud.vcd.client import _TaskMonitor
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import get_links
-from pyvcloud.vcd.client import MissingRecordException
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.system import System
-from pyvcloud.vcd.utils import access_control_settings_to_dict
 from pyvcloud.vcd.utils import to_dict
 import shutil
 import tarfile
@@ -95,11 +94,11 @@ class Org(object):
             org_admin_resource, RelationType.ADD, EntityType.ROLE.value, role)
 
     def delete_role(self, name):
-        """
-        Deletes specified role from the organization
+        """Deletes specified role from the organization
+
         :param name: (str): name of the role
         :return: None
-        """
+        """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         role_record = self.get_role(name)
@@ -557,44 +556,24 @@ class Org(object):
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
 
-    def list_roles(self):
-        """
-        Retrieve the list of role in the current Org
-        :return: List of roles in the current Org
-        """  # NOQA
-        roles_query, resource_type = self.get_roles_query()
-        result = []
-        for r in list(roles_query.execute()):
-            result.append(
-                to_dict(
-                    r,
-                    resource_type=resource_type,
-                    exclude=['org', 'orgName', 'href']))
-        return result
-
     def get_role(self, role_name):
-        """
-        Retrieve role object with a particular name in the current Org
-        :param role_name: (str): The name of the role object to be retrieved
-        :return: (QueryResultRoleRecordType): Role query result in records
-                 format
-        """  # NOQA
-        try:
-            roles_query = self.get_roles_query(('name', role_name))[0]
-            return roles_query.find_unique()
-        except MissingRecordException:
-            raise Exception('Role \'%s\' does not exist.' % role_name)
+        """Retrieve role object with a particular name in the current Org
 
-    def get_roles_query(self, name_filter=None):
+        :param role_name: (str): The name of the role object to be retrieved
+        :return: (dict): Role record in dict format
         """
-        Get the typed query for the roles in the current Org
-        :param name_filter: (tuple): (name ,'role name') Filter the roles by
+        role_record = self.list_roles(('name', role_name))
+        if len(role_record) < 1:
+            raise Exception('Role \'%s\' does not exist.' % role_name)
+        return role_record[0]
+
+    def list_roles(self, name_filter=None):
+        """Retrieve the list of roles in the current Org
+
+        :param name_filter: (tuple): (name ,'role name') Filter roles by
                              'role name'
-        :return: (tuple of (_TypedQuery, str))
-                  _TypedQuery object represents the query for the roles in
-                  the current Org
-                  str represents the resource type of the query object
-        """  # NOQA
+        :return: (list): (RoleRecord) List of roles
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -609,26 +588,33 @@ class Org(object):
             query_result_format=QueryResultFormat.RECORDS,
             equality_filter=name_filter,
             qfilter=org_filter)
-        return query, resource_type
+        result = []
+        for r in list(query.execute()):
+            result.append(
+                to_dict(
+                    r,
+                    resource_type=resource_type,
+                    exclude=['org', 'orgName']))
+        return result
 
     def get_right(self, right_name):
-        """
-        Retrieves corresponding record of the specified right.
+        """Retrieves corresponding record of the specified right.
+
         :param right_name: (str): The name of the right record to be retrieved
         :return: (dict): Right record in dict format
-        """  # NOQA
+        """
         right_record = self.list_rights(('name', right_name))
         if len(right_record) < 1:
             raise Exception('Right \'%s\' does not exist.' % right_name)
         return right_record[0]
 
     def list_rights(self, name_filter=None):
-        """
-        Get the typed query for the rights in the current Org
+        """Retrieve the list of rights in the current Org
+
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
                              'right name'
         :return: (list): (RightRecord) List of rights
-        """  # NOQA
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -649,13 +635,85 @@ class Org(object):
         """
         Get the access control settings of a catalog.
         :param catalog_name: (str): The name of the catalog.
-        :return: (dict): Access control settings of the catalog.
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+        the updated access control setting of the catalog.
         """  # NOQA
         catalog_resource = self.get_catalog(name=catalog_name)
         access_control_settings = self.client.get_linked_resource(
             catalog_resource, RelationType.DOWN,
             EntityType.CONTROL_ACCESS_PARAMS.value)
-        return access_control_settings_to_dict(access_control_settings)
+        return access_control_settings
+
+    def add_catalog_access_settings(self, catalog_name,
+                                    access_settings_list=None):
+        """Add access settings to a particular catalog.
+
+        :param catalog_name: (str): name of the catalog for which acl needs
+            to be added.
+        :param access_settings_list: (list of dict): list of access_setting
+            in the dict format. Each dict contains:
+            type: (str): type of the subject. One of 'org' or 'user'.
+            name: (str): name of the user or org.
+            access_level: (str): access_level of the particular subject. One of
+            'ReadOnly', 'Change', 'FullControl'
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+        the updated access control setting of the catalog.
+        """
+        catalog_resource = self.get_catalog(name=catalog_name)
+        acl = Acl(self.client, catalog_resource)
+        return acl.add_access_settings(access_settings_list)
+
+    def remove_catalog_access_settings(self, catalog_name,
+                                       access_settings_list=None,
+                                       remove_all=False):
+        """Remove access settings from a particular catalog.
+
+        :param catalog_name: (name): catalog name from which access_settings
+            should be removed.
+        :param access_settings_list: (list of dict): list of access_setting
+            in the dict format. Each dict contains:
+            type: (str): type of the subject. One of 'org' or 'user'.
+            name: (str): name of the user or org.
+        :param remove_all: (bool) : True if all access settings of the catalog
+            should be removed
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the catalog.
+        """
+        catalog_resource = self.get_catalog(name=catalog_name)
+        acl = Acl(self.client, catalog_resource)
+        return acl.remove_access_settings(access_settings_list, remove_all)
+
+    def share_catalog_access(self, catalog_name,
+                             everyone_access_level='ReadOnly'):
+        """Share the catalog to all members of the organization.
+
+        :param catalog_name: (str): catalog name whose access should be
+            shared to everyone.
+        :param everyone_access_level: (str) : access level when sharing the
+            catalog with everyone. One of 'ReadOnly', 'Change', 'FullControl'
+            'ReadOnly' by default.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the catalog.
+        """
+        catalog_resource = self.get_catalog(name=catalog_name)
+        acl = Acl(self.client, catalog_resource)
+        return acl.share_access(everyone_access_level)
+
+    def unshare_catalog_access(self, catalog_name):
+        """Unshare the catalog from all members of current organization.
+
+        :param catalog_name: (str): catalog name whose access should be
+            unshared from everyone.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the resource.
+        """
+        catalog_resource = self.get_catalog(name=catalog_name)
+        acl = Acl(self.client, catalog_resource)
+        return acl.unshare_access()
 
     def change_catalog_owner(self, catalog_name, user_name):
         """
@@ -724,19 +782,19 @@ class Org(object):
                        is_enabled=True):
         """
         Create Organization VDC in the current Org.
-        :param vdc_name (str): The name of the new org vdc.
-        :param provider_vdc_name (str): The name of an existing provider vdc.
-        :param description (str): The description of the new org vdc.
-        :param allocation_model (str): The allocation model used by this vDC. One of AllocationVApp, AllocationPool or ReservationPool.
-        :param cpu_units (str): The cpu units compute capacity allocated to this vDC. One of MHz or GHz
-        :param cpu_allocated (int): Capacity that is committed to be available.
-        :param cpu_limit (int): Capacity limit relative to the value specified for Allocation.
-        :param mem_units (str): The memory units compute capacity allocated to this vDC. One of MB or GB.
-        :param mem_allocated (int): Memory capacity that is committed to be available.
-        :param mem_limit (int): Memory capacity limit relative to the value specified for Allocation.
-        :param nic_quota (int): Maximum number of virtual NICs allowed in this vDC. Defaults to 0, which specifies an unlimited number.
-        :param network_quota (int): Maximum number of network objects that can be deployed in this vDC. Defaults to 0, which means no networks can be deployed.
-        :param vm_quota (int): The maximum number of VMs that can be created in this vDC. Defaults to 0, which specifies an unlimited number.
+        :param vdc_name: (str): The name of the new org vdc.
+        :param provider_vdc_name: (str): The name of an existing provider vdc.
+        :param description: (str): The description of the new org vdc.
+        :param allocation_model: (str): The allocation model used by this  vDC. One of AllocationVApp, AllocationPool or ReservationPool.
+        :param cpu_units: (str): The cpu units compute capacity allocated to this vDC. One of MHz or GHz
+        :param cpu_allocated: (int): Capacity that is committed to be available.
+        :param cpu_limit: (int): Capacity limit relative to the value specified for Allocation.
+        :param mem_units: (str): The memory units compute capacity allocated to this vDC. One of MB or GB.
+        :param mem_allocated: (int): Memory capacity that is committed to be available.
+        :param mem_limit: (int): Memory capacity limit relative to the value specified for Allocation.
+        :param nic_quota: (int): Maximum number of virtual NICs allowed in this vDC. Defaults to 0, which specifies an unlimited number.
+        :param network_quota: (int): Maximum number of network objects that  can be deployed in this vDC. Defaults to 0, which means no networks can be deployed.
+        :param vm_quota: (int): The maximum number of VMs that can be created in this vDC. Defaults to 0, which specifies an unlimited number.
         :param storage_profiles: List of provider vDC storage profiles to add to this vDC.
             Each item is a dictionary that should include the following elements:
                 name: (string) name of the PVDC storage profile.
@@ -744,18 +802,18 @@ class Org(object):
                 units: (string) Units used to define limit. One of MB or GB.
                 limit: (int) Max number of units allocated for this storage profile.
                 default: (bool) True if this is default storage profile for this vDC.
-        :param resource_guaranteed_memory (float): Percentage of allocated CPU resources guaranteed to vApps deployed in this vDC.
+        :param resource_guaranteed_memory: (float): Percentage of allocated  CPU resources guaranteed to vApps deployed in this vDC.
             Value defaults to 1.0 if the element is empty.
-        :param resource_guaranteed_cpu (float): Percentage of allocated memory resources guaranteed to vApps deployed in this vDC.
+        :param resource_guaranteed_cpu: (float): Percentage of allocated memory resources guaranteed to vApps deployed in this vDC.
             Value defaults to 1.0 if the element is empty.
-        :param vcpu_in_mhz (int): Specifies the clock frequency, in Megahertz, for any virtual CPU that is allocated to a VM.
-        :param is_thin_provision (bool): Boolean to request thin provisioning.
-        :param network_pool_name (str): Reference to a network pool in the Provider vDC.
-        :param uses_fast_provisioning (bool): Boolean to request fast provisioning.
-        :param over_commit_allowed (bool): Set to false to disallow creation of the VDC if the AllocationModel is AllocationPool or ReservationPool
+        :param vcpu_in_mhz: (int): Specifies the clock frequency, in Megahertz, for any virtual CPU that is allocated to a VM.
+        :param is_thin_provision: (bool): Boolean to request thin provisioning.
+        :param network_pool_name: (str): Reference to a network pool in the Provider vDC.
+        :param uses_fast_provisioning: (bool): Boolean to request fast provisioning.
+        :param over_commit_allowed: (bool): Set to false to disallow creation of the VDC if the AllocationModel is AllocationPool or ReservationPool
             and the ComputeCapacity you specified is greater than what the backing Provider VDC can supply. Defaults to true if empty or missing.
-        :param vm_discovery_enabled (bool): True if discovery of vCenter VMs is enabled for resource pools backing this vDC.
-        :param is_enabled (bool): True if this vDC is enabled for use by the organization users.
+        :param vm_discovery_enabled: (bool): True if discovery of vCenter VMs is enabled for resource pools backing this vDC.
+        :param is_enabled: (bool): True if this vDC is enabled for use by the organization users.
         :return:  A :class:`lxml.objectify.StringElement` object describing the new VDC.
         """  # NOQA
         if self.resource is None:

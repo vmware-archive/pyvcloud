@@ -93,9 +93,10 @@ class VDC(object):
                          vm_name=None,
                          hostname=None,
                          storage_profile=None):
-        """
-        Instantiate a vApp from a vApp template in a catalog.
-        If customization parameters are provided, it will customize the VM and guest OS, taking some assumptions.
+        """Instantiate a vApp from a vApp template in a catalog.
+
+        If customization parameters are provided, it will customize the VM and
+        guest OS, taking some assumptions.
         See each parameter for details.
 
         :param name: (str): The name of the new vApp.
@@ -119,12 +120,13 @@ class VDC(object):
         :param cust_script: (str):
         :param vm_name: (str): When provided, set the name of the VM.
             It assumes one VM in the vApp.
-        :param hostname: (str): When provided, set the hostname of the guest os.
-            It assumes one VM in the vApp.
+        :param hostname: (str): When provided, set the hostname of the guest
+            OS. It assumes one VM in the vApp.
         :param storage_profile: (str):
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the new vApp.
-        """  # NOQA
+        :return:  A :class:`lxml.objectify.StringElement` object describing the
+            new vApp.
+        """
 
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -352,8 +354,9 @@ class VDC(object):
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        links = self.client.get_linked_resource(self.resource, RelationType.EDGE_GATEWAYS, EntityType.RECORDS.value)
-
+        links = self.client.get_linked_resource(self.resource,
+                                                RelationType.EDGE_GATEWAYS,
+                                                EntityType.RECORDS.value)
         edge_gateways = []
         for e in links.EdgeGatewayRecord:
             edge_gateways.append({'name': e.get('name'), 'href': e.get('href')})
@@ -496,7 +499,6 @@ class VDC(object):
         :return: An array of :class:`lxml.objectify.StringElement` \
             objects describing the existing Disks.
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -588,10 +590,11 @@ class VDC(object):
             disk.get('href') + '/owner/', new_owner, EntityType.OWNER.value)
 
     def get_storage_profiles(self):
+        """Request a list of the Storage Profiles defined in a VDC.
+
+        :return: An array of :class:`lxml.objectify.StringElement` objects
+            describing the existing Storage Profiles.
         """
-        Request a list of the Storage Profiles defined in a Virtual Data Center.
-        :return: An array of :class:`lxml.objectify.StringElement` objects describing the existing Storage Profiles.
-        """  # NOQA
         profile_list = []
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -604,11 +607,13 @@ class VDC(object):
         return None
 
     def get_storage_profile(self, profile_name):
-        """
-        Request a specific Storage Profile within a Virtual Data Center.
+        """Request a specific Storage Profile within a Virtual Data Center.
+
         :param profile_name: (str): The name of the requested storage profile.
-        :return: (VdcStorageProfileType)  A :class:`lxml.objectify.StringElement` object describing the requested storage profile.
-        """  # NOQA
+        :return: (VdcStorageProfileType)
+            A :class:`lxml.objectify.StringElement` object describing the
+            requested storage profile.
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -622,12 +627,11 @@ class VDC(object):
             'Storage Profile named \'%s\' not found' % profile_name)
 
     def enable_vdc(self, enable=True):
-        """
-        Enable current VDC
+        """Enable current VDC
 
         :param is_enabled: (bool): enable/disable the vdc
         :return: (OrgVdcType) updated vdc object.
-        """  # NOQA
+        """
 
         resource_admin = self.client.get_resource(self.href_admin)
         link = RelationType.ENABLE if enable else RelationType.DISABLE
@@ -635,11 +639,11 @@ class VDC(object):
                                                 None)
 
     def delete_vdc(self):
-        """
-        Delete the current Organization vDC
+        """Delete the current Organization vDC
+
         :param vdc_name: The name of the org vdc to delete
         :return:
-        """  # NOQA
+        """
 
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

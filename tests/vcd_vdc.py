@@ -61,7 +61,7 @@ class TestVDC(TestCase):
             task=vdc_resource.Tasks.Task[0],
             timeout=30,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
@@ -97,7 +97,7 @@ class TestVDC(TestCase):
             task=t,
             timeout=30,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED

@@ -19,6 +19,7 @@ from lxml.objectify import NoneElement
 from pygments import formatters
 from pygments import highlight
 from pygments import lexers
+
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
@@ -218,7 +219,7 @@ def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
                     if hasattr(setting, 'Disk'):
                         result['%s: attached-disk-%s-name' %
                                (k, setting.DiskId.text)] = \
-                               '%s' % (setting.Disk.get('name'))
+                            '%s' % (setting.Disk.get('name'))
                         result['%s: attached-disk-%s-size-Mb' %
                                (k, setting.DiskId.text)] = \
                             '%s' % (setting.SizeMb.text)

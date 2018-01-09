@@ -27,7 +27,7 @@ class TestVApp(TestCase):
             task=result.Tasks.Task[0],
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
@@ -50,7 +50,7 @@ class TestVApp(TestCase):
             task=result,
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
@@ -74,7 +74,7 @@ class TestVApp(TestCase):
             task=result,
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
@@ -101,15 +101,14 @@ class TestVApp(TestCase):
             task=result.Tasks.Task[0],
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
             ],
             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
-        # vdc.reload()
-        vdc.resource = vdc.client.get_resource(vdc.href)
+        vdc.reload()
         vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
         vm = vapp_resource.xpath(
             '//vcloud:VApp/vcloud:Children/vcloud:Vm', namespaces=NSMAP)
@@ -149,7 +148,7 @@ class TestVApp(TestCase):
             task=result.Tasks.Task[0],
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
@@ -194,7 +193,7 @@ class TestVApp(TestCase):
             task=result,
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED

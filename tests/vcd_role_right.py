@@ -61,5 +61,21 @@ class TestRole(TestCase):
         role_name = self.config['vcd']['role_name']
         org.delete_role(role_name)
 
+    def test_07_link_role_to_template(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        role_name = self.config['vcd']['role_name']
+        role_record = org.get_role(role_name)
+        role = Role(self.client, href=role_record.get('href'))
+        role.link()
+
+    def test_08_unlink_role_from_template(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        role_name = self.config['vcd']['role_name']
+        role_record = org.get_role(role_name)
+        role = Role(self.client, href=role_record.get('href'))
+        role.unlink()
+
 if __name__ == '__main__':
     unittest.main()

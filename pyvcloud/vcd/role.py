@@ -88,9 +88,8 @@ class Role(object):
                     name=right_record.get('name'),
                     href=right_record.get('href'),
                     type=EntityType.RIGHT.value))
-        self.resource = self.client.put_resource(
+        return self.client.put_resource(
             self.href, self.resource, EntityType.ROLE.value)
-        return self.resource
 
     def remove_rights(self, rights):
         """Removes list of rights from a given role
@@ -110,6 +109,5 @@ class Role(object):
                     if rightReference.get('name') == right:
                         self.resource.RightReferences.remove(rightReference)
                         break
-        self.resource = self.client.put_resource(
+        return self.client.put_resource(
             self.href, self.resource, EntityType.ROLE.value)
-        return self.resource

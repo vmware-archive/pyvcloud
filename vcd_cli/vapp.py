@@ -497,17 +497,13 @@ def power_off(ctx, name, vm_names):
               callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to undeploy the vApp or VM(s)?')
-@click.option('-f',
-              '--force',
-              is_flag=True,
-              help='Force undeploy running vApp or VM(s)')
 @click.option('--action',
               type=click.Choice(['default', 'powerOff', 'suspend', 'shutdown',
                                  'force']),
               required=False,
               default='default',
               help='Undeploy power action')
-def undeploy(ctx, name, vm_names, force, action):
+def undeploy(ctx, name, vm_names, action):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')

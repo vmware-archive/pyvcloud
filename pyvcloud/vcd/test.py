@@ -14,12 +14,14 @@
 # limitations under the License.
 
 import os
-from pyvcloud.vcd.client import BasicLoginCredentials
-from pyvcloud.vcd.client import Client
-import requests
 import unittest
 import warnings
+
+import requests
 import yaml
+
+from pyvcloud.vcd.client import BasicLoginCredentials
+from pyvcloud.vcd.client import Client
 
 
 class TestCase(unittest.TestCase):

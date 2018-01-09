@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
@@ -87,7 +88,7 @@ class VM(object):
         """Powers on the VM.
 
         :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates the VM.
+            asynchronous task that operates on the VM.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -98,7 +99,7 @@ class VM(object):
         """Powers off the VM.
 
         :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates the VM.
+            asynchronous task that operates on the VM.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -109,12 +110,25 @@ class VM(object):
         """Powers reset the VM.
 
         :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates the VM.
+            asynchronous task that operates on the VM.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_RESET, None, None)
+
+    def undeploy(self, action='default'):
+        """Undeploy the VM.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing the
+            asynchronous task that operates on the VM.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        params = E.UndeployVAppParams(E.UndeployPowerAction(action))
+        return self.client.post_linked_resource(
+            self.resource, RelationType.UNDEPLOY, EntityType.UNDEPLOY.value,
+            params)
 
     def get_cpus(self):
         """Returns the number of CPUs

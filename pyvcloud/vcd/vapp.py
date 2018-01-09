@@ -13,9 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 from copy import deepcopy
+
 from lxml import etree
 from lxml import objectify
+
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
@@ -124,11 +127,11 @@ class VApp(object):
             EntityType.LEASE_SETTINGS.value)
 
     def change_owner(self, href):
-        """
-        Change the ownership of vApp to a given user.
+        """Change the ownership of vApp to a given user.
+
         :param href: Href of the new owner or user.
         :return: None.
-        """ # NOQA
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         new_owner = self.resource.Owner
@@ -138,6 +141,14 @@ class VApp(object):
         return self.client.put_resource(
             self.resource.get('href') + '/owner/', new_owner,
             EntityType.OWNER.value)
+
+    def undeploy(self, action='default'):
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        params = E.UndeployVAppParams(E.UndeployPowerAction(action))
+        return self.client.post_linked_resource(
+            self.resource, RelationType.UNDEPLOY, EntityType.UNDEPLOY.value,
+            params)
 
     def power_off(self):
         if self.resource is None:
@@ -186,33 +197,44 @@ class VApp(object):
                 self.resource.Children.Vm[0].NetworkConnectionSection)
 
     def attach_disk_to_vm(self, disk_href, vm_name):
+        """Attach the independent disk to the VM with the given name
+
+        :param disk_href: (str): The href of the disk to be attached.
+        :param vm_name: (str): The name of the VM to which the disk \
+            will be attached.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing \
+            the asynchronous Task of attaching the disk.
+
+        :raises: Exception: If the named VM cannot be located or another error
+            occurs.
         """
-        Attach the independent disk to the VM with the given name in the vApp within a Virtual Data Center.
-        :param disk_href: (str): The href of the disk resource.
-        :param vm_name: (str): The name of the VM.
-        :return: (vmType)  A :class:`lxml.objectify.StringElement` object describing the requested VM.
-        """  # NOQA
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
             E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
+
         return self.client.post_linked_resource(
             vm, RelationType.DISK_ATTACH,
             EntityType.DISK_ATTACH_DETACH_PARAMS.value,
             disk_attach_or_detach_params)
 
-    def detach_disk_from_vm(self, disk_href, disk_type, disk_name, vm_name):
+    def detach_disk_from_vm(self, disk_href, vm_name):
+        """Detach the independent disk from the VM with the given name
+
+        :param disk_href: (str): The href of the disk to be detached.
+        :param vm_name: (str): The name of the VM to which the disk \
+            will be detached.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing \
+            the asynchronous Task of detaching the disk.
+
+        :raises: Exception: If the named VM cannot be located or another error
+            occurs.
         """
-        Detach the independent disk from the VM with the given name in the vApp within a Virtual Data Center.
-        :param disk_href: (str): The href of the disk resource.
-        :param vm_name: (str): The name of the VM.
-        :return: (vmType)  A :class:`lxml.objectify.StringElement` object describing the requested VM.
-        """  # NOQA
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
-            E.Disk(type=disk_type, href=disk_href))
+            E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
         return self.client.post_linked_resource(
             vm, RelationType.DISK_DETACH,
@@ -248,7 +270,7 @@ class VApp(object):
         for vm in self.get_all_vms():
             if vm.get('name') == vm_name:
                 return vm
-        raise Exception('Can\'t find VM %s' % vm_name)
+        raise Exception('Can\'t find VM \'%s\'' % vm_name)
 
     def add_disk_to_vm(self, vm_name, disk_size):
         """Add a virtual disk to a virtual machine in the vApp.
@@ -463,7 +485,24 @@ class VApp(object):
             params.append(self.to_sourced_item(spec))
         if all_eulas_accepted is not None:
             params.append(E.AllEULAsAccepted(all_eulas_accepted))
+        return self.client.post_linked_resource(
+            self.resource, RelationType.RECOMPOSE,
+            EntityType.RECOMPOSE_VAPP_PARAMS.value, params)
 
+    def delete_vms(self, names):
+        """Recompose the vApp and delete VMs.
+
+        :param names: A list or tuple of names (str) of the VMs to delete
+            from the vApp.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing a
+            sparsely populated vApp element.
+        """
+
+        params = E.RecomposeVAppParams()
+        for name in names:
+            vm = self.get_vm(name)
+            params.append(E.DeleteItem(href=vm.get('href')))
         return self.client.post_linked_resource(
             self.resource, RelationType.RECOMPOSE,
             EntityType.RECOMPOSE_VAPP_PARAMS.value, params)

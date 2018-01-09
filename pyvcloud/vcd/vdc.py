@@ -499,10 +499,6 @@ class VDC(object):
         :return: An array of :class:`lxml.objectify.StringElement` \
             objects describing the existing Disks.
         """
-
-        :return: An array of :class:`lxml.objectify.StringElement` objects
-            describing the existing Disks.
-        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 

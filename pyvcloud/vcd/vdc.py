@@ -15,16 +15,18 @@
 from lxml import etree
 
 from pyvcloud.vcd.client import E
+from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import access_control_settings_to_dict
 from pyvcloud.vcd.utils import get_admin_extension_href
 from pyvcloud.vcd.utils import get_admin_href
 
+import pprint
 
 class VDC(object):
     def __init__(self, client, name=None, href=None, resource=None):
@@ -345,122 +347,158 @@ class VDC(object):
                     result.append({'name': vapp.get('name')})
         return result
 
-    def add_disk(self,
+    def list_edge_gateways(self):
+        """
+        Request a list of edge gateways defined in a vdc.
+        :return: An array of the existing edge gateways.
+        """  # NOQA
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        links = self.client.get_linked_resource(self.resource,
+                                                RelationType.EDGE_GATEWAYS,
+                                                EntityType.RECORDS.value)
+        edge_gateways = []
+        for e in links.EdgeGatewayRecord:
+            edge_gateways.append({'name': e.get('name'), 'href': e.get('href')})
+        return edge_gateways
+
+    def create_disk(self,
                  name,
                  size,
                  bus_type=None,
                  bus_sub_type=None,
-                 iops=None,
                  description=None,
-                 storage_profile_name=None):
+                 storage_profile_name=None,
+                 iops=None):
         """Request the creation of an indendent disk.
 
         :param name: (str): The name of the new disk.
         :param size: (int): The size of the new disk in bytes.
         :param bus_type: (str): The bus type of the new disk.
         :param bus_subtype: (str): The bus subtype  of the new disk.
-        :param iops: (int): The iops of the new disk.
         :param description: (str): A description of the new disk.
-        :param storage_profile_name: (str): The name of an existing storage
-            profile to be used by the new disk.
-        :return:  A :class:`lxml.objectify.StringElement` object describing
-            the asynchronous Task creating the disk.
+        :param storage_profile_name: (str): The name of an existing \
+            storage profile to be used by the new disk.
+        :param iops: (int): Iops requirement of the new disk.
+
+        :return:  A :class:`lxml.objectify.StringElement` object containing \
+            the sparse representation of the new disk and the asynchronus \
+            Task that is creating the disk.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
-        if iops is None:
-            disk_params = E.DiskCreateParams(E.Disk(name=name, size=str(size)))
-        else:
-            disk_params = E.DiskCreateParams(E.Disk(name=name, size=str(size),
-                                                    iops=iops))
+        disk_params = E.DiskCreateParams(E.Disk(name=name, size=str(size)))
+        if iops is not None:
+            disk_params.Disk.set('iops', iops)
 
         if description is not None:
             disk_params.Disk.append(E.Description(description))
 
         if bus_type is not None and bus_sub_type is not None:
-            disk_params.Disk.attrib['busType'] = bus_type
-            disk_params.Disk.attrib['busSubType'] = bus_sub_type
+            disk_params.Disk.set('busType', bus_type)
+            disk_params.Disk.set('busSubType', bus_sub_type)
 
         if storage_profile_name is not None:
             storage_profile = self.get_storage_profile(storage_profile_name)
-            disk_params.Disk.append(storage_profile)
+            disk_params.Disk.append(E.StorageProfile(
+                name=storage_profile_name,
+                href=storage_profile.get('href'),
+                type=storage_profile.get('type')))
 
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD,
             EntityType.DISK_CREATE_PARMS.value, disk_params)
 
     def update_disk(self,
-                    name,
-                    size,
+                    name=None,
+                    disk_id=None,
                     new_name=None,
-                    description=None,
-                    storage_profile_name=None,
-                    iops=None,
-                    disk_id=None):
+                    new_size=None,
+                    new_description=None,
+                    new_storage_profile_name=None,
+                    new_iops=None):
         """Update an existing independent disk.
 
-        :param name: (str): The existing name of the disk.
-        :param size: (int): The size of the new disk in bytes.
-        :param new_name: (str): The new name for the disk.
-        :param iops: (str): The new iops for the disk.
-        :param storage_profile_name: (str): The storage profile that the disk
-            belongs to.
-        :param description: (str): A description of the new disk.
-        :param disk_id: (str): The disk_id of the existing disk.
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous Task creating the disk.
+        :param name: (str): The name of the existing disk.
+        :param disk_id: (str): The id of the existing disk.
+        :param new_name: (str): The new name of the disk
+        :param new_size: (int): The new size of the disk in bytes.
+        :param new_description: (str): The new description of the disk.
+        :param new_storage_profile_name: (str): The new storage profile that \
+            the disk will be moved to.
+        :param new_iops: (int): The new iops requirement of the disk.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing \
+            the asynchronous Task updating the disk.
+
+        :raises: Exception: If the named disk cannot be located or some \
+            other error occurs.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
-        if iops is None:
-            disk_params = E.Disk(name=name, size=str(size))
-        else:
-            disk_params = E.Disk(name=name, size=str(size), iops=iops)
-
-        if description is not None:
-            disk_params.append(E.Description(description))
-
         if disk_id is not None:
-            disk = self.get_disk(None, disk_id)
+            disk = self.get_disk(disk_id=disk_id)
         else:
-            disk = self.get_disk(name)
+            disk = self.get_disk(name=name)
 
-        if storage_profile_name is not None:
-            storage_profile = self.get_storage_profile(storage_profile_name)
-            sp = etree.XML(etree.tostring(storage_profile, pretty_print=True))
-            sp_href = sp.attrib['href']
-            disk_params.append(
-                E.StorageProfile(href=sp_href, name=storage_profile_name))
-        if disk is None:
-            raise Exception('Could not locate Disk %s for update. ' % disk_id)
+        disk_params = E.Disk()
+        if new_name is not None:
+            disk_params.set('name', new_name)
+        else:
+            disk_params.set('name', disk.get('name'))
+
+        if new_size is not None:
+            disk_params.set('size', str(new_size))
+        else:
+            disk_params.set('size', disk.get('size'))
+
+        if new_description is not None:
+            disk_params.append(E.Description(new_description))
+
+        if new_storage_profile_name is not None:
+            new_sp = self.get_storage_profile(new_storage_profile_name)
+            disk_params.append(E.StorageProfile(
+                name=new_storage_profile_name,
+                href=new_sp.get('href'),
+                type=new_sp.get('type')))
+
+        if new_iops is not None:
+            disk_params.set('iops', str(new_iops))
 
         return self.client.put_linked_resource(
             disk, RelationType.EDIT, EntityType.DISK.value, disk_params)
 
-    def delete_disk(self, name, disk_id=None):
+    def delete_disk(self, name=None, disk_id=None):
         """Delete an existing independent disk.
 
         :param name: (str): The name of the Disk to delete.
         :param disk_id: (str): The id of the disk to delete.
-        :param description: (str): The id of the existing disk.
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous Task creating the disk.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing \
+            the asynchronous Task deleting the disk.
+
+        :raises: Exception: If the named disk cannot be located or some \
+            other error occurs.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
         if disk_id is not None:
-            disk = self.get_disk(None, disk_id)
+            disk = self.get_disk(disk_id=disk_id)
         else:
-            disk = self.get_disk(name)
+            disk = self.get_disk(name=name)
 
         return self.client.delete_linked_resource(disk, RelationType.REMOVE,
                                                   None)
 
     def get_disks(self):
         """Request a list of independent disks defined in a vdc.
+
+        :return: An array of :class:`lxml.objectify.StringElement` \
+            objects describing the existing Disks.
+        """
 
         :return: An array of :class:`lxml.objectify.StringElement` objects
             describing the existing Disks.
@@ -474,8 +512,7 @@ class VDC(object):
             for resourceEntity in \
                     self.resource.ResourceEntities.ResourceEntity:
 
-                if resourceEntity.get('type') == \
-                   EntityType.DISK.value:
+                if resourceEntity.get('type') == EntityType.DISK.value:
                     disk = self.client.get_resource(resourceEntity.get('href'))
                     attached_vms = self.client.get_linked_resource(
                         disk, RelationType.DOWN, EntityType.VMS.value)
@@ -483,13 +520,21 @@ class VDC(object):
                     disks.append(disk)
         return disks
 
-    def get_disk(self, name, disk_id=None):
+    def get_disk(self, name=None, disk_id=None):
         """Return information for an independent disk.
 
         :param name: (str): The name of the disk.
         :param disk_id: (str): The id of the disk.
-        :return: Disk
+
+        :return: A :class:`lxml.objectify.StringElement` object describing \
+            the existing disk.
+
+        :raises: Exception: If the named disk cannot be located or some \
+            other error occurs.
         """
+
+        if name is None and disk_id is None:
+            raise Exception('Unable to idendify disk without name or id.')
 
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -513,29 +558,35 @@ class VDC(object):
                         result = disk
                     else:
                         raise Exception('Found multiple disks with name %s'
-                                        ', please specify disk id along '
-                                        'with disk name. ' % disk.get('name'))
+                                        ', please identify disk via disk-id.'
+                                        % disk.get('name'))
         if result is None:
             raise Exception('No disk found with the given name/id.')
         else:
             return result
 
-    def change_disk_owner(self, name, user_href, disk_id=None):
+    def change_disk_owner(self, user_href, name=None, disk_id=None):
         """Change the ownership of an independent disk to a given user.
 
+        :param user_href: Href of the new owner (user).
         :param name: Name of the independent disk.
-        :param user_href: Href of the new Owner or User.
-        :param disk_id: Disk Id (Required if there are multiple disks
-            with same name).
+        :param disk_id: The id of the disk (required if there are multiple \
+            disks with same name).
+
         :return: None
+
+        :raises: Exception: If the named disk cannot be located or some \
+            other error occurs.
         """
+
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
         if disk_id is not None:
-            disk = self.get_disk(None, disk_id)
+            disk = self.get_disk(disk_id=disk_id)
         else:
-            disk = self.get_disk(name)
+            disk = self.get_disk(name=name)
+
         new_owner = disk.Owner
         new_owner.User.set('href', user_href)
         etree.cleanup_namespaces(new_owner)

@@ -197,35 +197,44 @@ class VApp(object):
                 self.resource.Children.Vm[0].NetworkConnectionSection)
 
     def attach_disk_to_vm(self, disk_href, vm_name):
-        """Attach the independent disk to the VM in the vApp within a VDC.
+        """Attach the independent disk to the VM with the given name
 
-        :param disk_href: (str): The href of the disk resource.
-        :param vm_name: (str): The name of the VM.
-        :return: (vmType)  A :class:`lxml.objectify.StringElement` object
-            describing the requested VM.
+        :param disk_href: (str): The href of the disk to be attached.
+        :param vm_name: (str): The name of the VM to which the disk \
+            will be attached.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing \
+            the asynchronous Task of attaching the disk.
+
+        :raises: Exception: If the named VM cannot be located or another error
+            occurs.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
             E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
+
         return self.client.post_linked_resource(
             vm, RelationType.DISK_ATTACH,
             EntityType.DISK_ATTACH_DETACH_PARAMS.value,
             disk_attach_or_detach_params)
 
-    def detach_disk_from_vm(self, disk_href, disk_type, disk_name, vm_name):
-        """Detach the independent disk from the VM in the vApp within a VDC.
+    def detach_disk_from_vm(self, disk_href, vm_name):
+        """Detach the independent disk from the VM with the given name
 
-        :param disk_href: (str): The href of the disk resource.
-        :param vm_name: (str): The name of the VM.
-        :return: (vmType)  A :class:`lxml.objectify.StringElement` object
-            describing the requested VM.
+        :param disk_href: (str): The href of the disk to be detached.
+        :param vm_name: (str): The name of the VM to which the disk \
+            will be detached.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing \
+            the asynchronous Task of detaching the disk.
+
+        :raises: Exception: If the named VM cannot be located or another error
+            occurs.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
-            E.Disk(type=disk_type, href=disk_href))
+            E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
         return self.client.post_linked_resource(
             vm, RelationType.DISK_DETACH,

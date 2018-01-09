@@ -491,8 +491,6 @@ class VApp(object):
         """
 
         params = E.RecomposeVAppParams()
-        if not isinstance(names, collections.Iterable):
-            raise Exception('Param \'names\' should be a list of VM names')
         for name in names:
             vm = self.get_vm(name)
             params.append(E.DeleteItem(href=vm.get('href')))

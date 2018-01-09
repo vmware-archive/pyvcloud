@@ -379,11 +379,11 @@ class _TaskMonitor(object):
          :param task: (Task): task returned by post or put calls.
          :param timeout: (float): time (in seconds, floating point, fractional)
             to wait for task to finish.
-         :param poll_requency: (float): time (in seconds, as above) with which
+         :param poll_frequency: (float): time (in seconds, as above) with which
             task will be polled.
          :param fail_on_statuses: (list): method will raise an exception if any
             of the (TaskStatus) in this list is reached. If this parameter is
-            null then either task will achieve expected target status or throw
+            None then either task will achieve expected target status or throw
             (TimeOutException)..
          :param expected_target_statuses: (list): list of expected target
             status.

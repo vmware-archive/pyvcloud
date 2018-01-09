@@ -388,7 +388,7 @@ class _TaskMonitor(object):
          :param fail_on_statuses: (list): method will raise an exception if any
             of the (TaskStatus) in this list is reached. If this parameter is
             None then either task will achieve expected target status or throw
-            (TimeOutException)..
+            (TimeOutException).
          :param expected_target_statuses: (list): list of expected target
             status.
          :return (Task): from list of expected target status.

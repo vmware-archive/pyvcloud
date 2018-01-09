@@ -119,7 +119,7 @@ class VDC(object):
         :param vm_name: (str): When provided, set the name of the VM.
             It assumes one VM in the vApp.
         :param hostname: (str): When provided, set the hostname of the guest
-            os. It assumes one VM in the vApp.
+            OS. It assumes one VM in the vApp.
         :param storage_profile: (str):
 
         :return:  A :class:`lxml.objectify.StringElement` object describing the

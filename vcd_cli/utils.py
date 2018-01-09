@@ -19,24 +19,18 @@ import traceback
 from os import environ # NOQA
 
 import click
-
 from colorama import Fore
-
 from lxml.objectify import ObjectifiedElement
-
 from pygments import formatters
 from pygments import highlight
 from pygments import lexers
-
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.client import VcdErrorResponseException
 from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.utils import to_dict
-
 import requests
-
 from tabulate import tabulate
 
 from vcd_cli.profiles import Profiles
@@ -318,3 +312,17 @@ def access_settings_to_list(control_access_params, org_in_use=''):
                                access_setting.Subject.get('type')],
                            'access_level': access_setting.AccessLevel})
     return result
+
+
+def extract_name_and_id(user_input):
+    """
+    Determines if the string user_input is a name or an id.
+    :param user_input: (str): input string from user
+    :return: (name, id) pair
+    """
+    name = id = None
+    if user_input.lower().startswith('id:'):
+        id = user_input[3:]
+    else:
+        name = user_input
+    return name, id

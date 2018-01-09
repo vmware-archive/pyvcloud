@@ -13,7 +13,6 @@
 #
 
 import click
-
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import to_dict
@@ -22,6 +21,7 @@ from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.vm import VM
 
+from vcd_cli.utils import extract_name_and_id
 from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -170,20 +170,18 @@ def info(ctx, name):
 @click.argument('disk-name',
                 metavar='<disk-name>',
                 required=True)
-@click.option('-i',
-              '--id',
-              'disk_id',
-              required=False,
-              metavar='<id>',
-              help='Disk id')
-def attach(ctx, vapp_name, vm_name, disk_name, disk_id):
+def attach(ctx, vapp_name, vm_name, disk_name):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
-        disk = vdc.get_disk(disk_name, disk_id)
+
+        disk_name, disk_id = extract_name_and_id(disk_name)
+        disk = vdc.get_disk(name=disk_name, disk_id=disk_id)
+
         vapp_resource = vdc.get_vapp(vapp_name)
         vapp = VApp(client, resource=vapp_resource)
+
         task = vapp.attach_disk_to_vm(
             disk_href=disk.get('href'),
             vm_name=vm_name)
@@ -203,24 +201,20 @@ def attach(ctx, vapp_name, vm_name, disk_name, disk_id):
 @click.argument('disk-name',
                 metavar='<disk-name>',
                 required=True)
-@click.option('-i',
-              '--id',
-              'disk_id',
-              required=False,
-              metavar='<id>',
-              help='Disk id')
-def detach(ctx, vapp_name, vm_name, disk_name, disk_id):
+def detach(ctx, vapp_name, vm_name, disk_name):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
-        disk = vdc.get_disk(disk_name, disk_id)
+
+        disk_name, disk_id = extract_name_and_id(disk_name)
+        disk = vdc.get_disk(name=disk_name, disk_id=disk_id)
+
         vapp_resource = vdc.get_vapp(vapp_name)
         vapp = VApp(client, resource=vapp_resource)
+
         task = vapp.detach_disk_from_vm(
             disk_href=disk.get('href'),
-            disk_type=disk.get('type'),
-            disk_name=disk_name,
             vm_name=vm_name)
         stdout(task, ctx)
     except Exception as e:

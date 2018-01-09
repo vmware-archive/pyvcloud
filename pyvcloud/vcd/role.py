@@ -73,7 +73,6 @@ class Role(object):
         """Adds list of rights to a given role
 
         :param rights: (list): List of right names
-
         :param org: (pyvcloud.vcd.org.Org): The Organization to which
         the role belongs
 

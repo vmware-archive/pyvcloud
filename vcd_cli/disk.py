@@ -105,10 +105,10 @@ def list_disks(ctx):
                            'id': extract_id(disk.get('id')),
                            'owner': disk.Owner.User.get('name'),
                            'size': humanfriendly.format_size(
-                                    int(disk.get('size'))),
+                               int(disk.get('size'))),
                            'size_bytes': disk.get('size'),
                            'status': VCLOUD_STATUS_MAP.get(int(
-                                disk.get('status'))),
+                               disk.get('status'))),
                            'vms_attached': attached_vms})
         stdout(result, ctx, show_id=True)
     except Exception as e:

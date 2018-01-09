@@ -17,10 +17,12 @@ Ubuntu 16.04:
 CentOS 7:
 
 ```shell
-    $ sudo yum install epel-release python34 python34-devel python34-setuptools -y
-
-    $ sudo easy_install-3.4 pip
-
+    $ sudo yum update
+    $ sudo yum install -y yum-utils
+    $ sudo yum groupinstall -y development
+    $ sudo yum -y install https://centos7.iuscommunity.org/ius-release.rpm
+    $ sudo yum -y install python36u python36u-pip python36u-devel
+    $ sudo easy_install-3.6 pip
     $ pip3 install --user vcd-cli
 ```
 

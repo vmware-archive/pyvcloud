@@ -20,6 +20,7 @@ from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.utils import vapp_to_dict
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
+from pyvcloud.vcd.vm import VM
 
 from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
@@ -95,8 +96,20 @@ def vapp(ctx):
         vcd vapp power-off vapp1
             Power off a vApp.
 \b
+        vcd vapp power-off vapp1 vm1 vm2
+            Power off vm1 and vm2 of vapp1.
+\b
+        vcd vapp undeploy vapp1 vm1 vm2
+            Undeploy vm1 and vm2 of vapp1.
+\b
+        vcd vapp delete vapp1 vm1 vm2
+            Delete vm1 and vm2 from vapp1.
+\b
         vcd vapp power-on vapp1
             Power on a vApp.
+\b
+        vcd vapp power-on vapp1 vm1 vm2
+            Power on vm1 and vm2 of vapp1.
 \b
         vcd vapp capture vapp1 catalog1
             Capture a vApp as a template in a catalog.
@@ -358,27 +371,33 @@ def create(ctx, name, description, catalog, template, network, memory, cpu,
         stderr(e, ctx)
 
 
-@vapp.command(short_help='delete a vApp')
+@vapp.command(short_help='delete a vApp or VM(s)')
 @click.pass_context
 @click.argument('name',
-                metavar='<name>',
                 required=True)
+@click.argument('vm-names',
+                nargs=-1)
 @click.option('-y',
               '--yes',
               is_flag=True,
               callback=abort_if_false,
               expose_value=False,
-              prompt='Are you sure you want to delete the vApp?')
+              prompt='Are you sure you want to delete the vApp or the VM(s)?')
 @click.option('-f',
               '--force',
               is_flag=True,
-              help='Force delete running vApps')
-def delete(ctx, name, force):
+              help='Force delete running VM(s). Only applies to vApp delete.')
+def delete(ctx, name, vm_names, force):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
-        task = vdc.delete_vapp(name, force)
+        if len(vm_names) == 0:
+            task = vdc.delete_vapp(name, force)
+        else:
+            vapp_resource = vdc.get_vapp(name)
+            vapp = VApp(client, resource=vapp_resource)
+            task = vapp.delete_vms(vm_names)
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)
@@ -439,42 +458,92 @@ def change_owner(ctx, vapp_name, user_name):
 @click.argument('name',
                 metavar='<name>',
                 required=True)
+@click.argument('vm-names',
+                nargs=-1)
 @click.option('-y',
               '--yes',
               is_flag=True,
               callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to power off the vApp?')
-@click.option('-f',
-              '--force',
-              is_flag=True,
-              help='Force power off running vApps')
-def power_off(ctx, name, force):
+def power_off(ctx, name, vm_names):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
         vapp_resource = vdc.get_vapp(name)
         vapp = VApp(client, resource=vapp_resource)
-        task = vapp.power_off()
-        stdout(task, ctx)
+        if len(vm_names) == 0:
+            task = vapp.power_off()
+            stdout(task, ctx)
+        else:
+            for vm_name in vm_names:
+                vm = VM(client, resource=vapp.get_vm(vm_name))
+                task = vm.power_off()
+                stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)
 
 
-@vapp.command('power-on', short_help='power on a vApp')
+@vapp.command('undeploy', short_help='undeploy a vApp or VM(s)')
 @click.pass_context
 @click.argument('name',
-                metavar='<name>',
                 required=True)
-def power_on(ctx, name):
+@click.argument('vm-names',
+                nargs=-1)
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to undeploy the vApp or VM(s)?')
+@click.option('--action',
+              type=click.Choice(['default', 'powerOff', 'suspend', 'shutdown',
+                                 'force']),
+              required=False,
+              default='default',
+              help='Undeploy power action')
+def undeploy(ctx, name, vm_names, action):
     try:
         client = ctx.obj['client']
         vdc_href = ctx.obj['profiles'].get('vdc_href')
         vdc = VDC(client, href=vdc_href)
         vapp_resource = vdc.get_vapp(name)
         vapp = VApp(client, resource=vapp_resource)
-        task = vapp.power_on()
+        if len(vm_names) == 0:
+            task = vapp.undeploy(action)
+            stdout(task, ctx)
+        else:
+            for vm_name in vm_names:
+                vm = VM(client, href=vapp.get_vm(vm_name).get('href'))
+                vm.reload()
+                task = vm.undeploy(action)
+                stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.command('power-on', short_help='power on a vApp or VM(s)')
+@click.pass_context
+@click.argument('name',
+                required=True)
+@click.argument('vm-names',
+                nargs=-1)
+def power_on(ctx, name, vm_names):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        vapp_resource = vdc.get_vapp(name)
+        vapp = VApp(client, resource=vapp_resource)
+        if len(vm_names) == 0:
+            task = vapp.power_on()
+            stdout(task, ctx)
+        else:
+            for vm_name in vm_names:
+                vm = VM(client, resource=vapp.get_vm(vm_name))
+                task = vm.power_on()
+                stdout(task, ctx)
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)
@@ -483,7 +552,6 @@ def power_on(ctx, name):
 @vapp.command('shutdown', short_help='shutdown a vApp')
 @click.pass_context
 @click.argument('name',
-                metavar='<name>',
                 required=True)
 @click.option('-y',
               '--yes',
@@ -538,11 +606,11 @@ def capture(ctx, name, catalog, template, customizable):
         if template is None:
             template = vapp_resource.get('name')
         task = org.capture_vapp(
-                     catalog_resource,
-                     vapp_href=vapp_resource.get('href'),
-                     catalog_item_name=template,
-                     description='',
-                     customize_on_instantiate=customizable == 'customizable')
+            catalog_resource,
+            vapp_href=vapp_resource.get('href'),
+            catalog_item_name=template,
+            description='',
+            customize_on_instantiate=customizable == 'customizable')
         stdout(task, ctx)
     except Exception as e:
         stderr(e, ctx)

@@ -140,6 +140,7 @@ class BasicLoginCredentials(object):
 class RelationType(Enum):
     ADD = 'add'
     ALTERNATE = 'alternate'
+    CONTROL_ACCESS = 'controlAccess'
     DISABLE = 'disable'
     DISK_ATTACH = 'disk:attach'
     DISK_DETACH = 'disk:detach'
@@ -148,6 +149,7 @@ class RelationType(Enum):
     DOWNLOAD_DEFAULT = 'download:default'
     EDIT = 'edit'
     ENABLE = 'enable'
+    LINK_TO_TEMPLATE = 'linkToTemplate'
     NEXT_PAGE = 'nextPage'
     POWER_OFF = 'power:powerOff'
     POWER_ON = 'power:powerOn'
@@ -161,12 +163,14 @@ class RelationType(Enum):
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
     TASK_CANCEL = 'task:cancel'
     UNDEPLOY = 'undeploy'
+    UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'
     UP = 'up'
 
 
 class EntityType(Enum):
     ADMIN = 'application/vnd.vmware.admin.vcloud+xml'
     ADMIN_CATALOG = 'application/vnd.vmware.admin.catalog+xml'
+    ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     ADMIN_SERVICE = 'application/vnd.vmware.admin.service+xml'
     API_EXTENSIBILITY = 'application/vnd.vmware.vcloud.apiextensibility+xml'
     AMQP_SETTINGS = 'application/vnd.vmware.admin.amqpSettings+xml'
@@ -194,9 +198,9 @@ class EntityType(Enum):
     NETWORK_POOL_REFERENCES = \
         'application/vnd.vmware.admin.vmwNetworkPoolReferences+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'
-    ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
+    ORG_VDC_NETWORK = 'application/vnd.vmware.vcloud.orgVdcNetwork+xml'
     OWNER = 'application/vnd.vmware.vcloud.owner+xml'
     PUBLISH_CATALOG_PARAMS = \
         'application/vnd.vmware.admin.publishCatalogParams+xml'
@@ -839,6 +843,33 @@ class Client(object):
                 if org.get('name') == org_name:
                     return org
         raise Exception('org \'%s\' not found' % org_name)
+
+    def get_user_in_org(self, user_name, org_href):
+        """Retrieve user from a particular org.
+
+        :param user_name: user name to be retrieved.
+        :param org_href: org where the user belongs.
+
+        :return:  A :class:`lxml.objectify.StringElement` object
+        representing the user
+
+        """
+        resource_type = 'user'
+        org_filter = None
+        if self.is_sysadmin():
+            resource_type = 'adminUser'
+            org_filter = 'org==%s' % org_href
+        query = self.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.REFERENCES,
+            equality_filter=('name', user_name),
+            qfilter=org_filter)
+        records = list(query.execute())
+        if len(records) == 0:
+            raise Exception('user \'%s\' not found' % user_name)
+        elif len(records) > 1:
+            raise Exception('multiple users found')
+        return self.get_resource(records[0].get('href'))
 
     def _get_query_list_map(self):
         if self._query_list_map is None:

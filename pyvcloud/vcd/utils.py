@@ -388,3 +388,10 @@ def stdout_xml(the_xml, is_colorized=True):
 
 def get_admin_href(href):
     return href.replace('/api/', '/api/admin/')
+
+
+def get_admin_extension_href(href):
+    if '/api/admin/' in href:
+        return href.replace('/api/admin/', '/api/admin/extension/')
+    else:
+        return href.replace('/api/', '/api/admin/extension/')

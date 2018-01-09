@@ -82,10 +82,7 @@ class Role(object):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         for right in rights:
-            try:
-                right_record = org.get_right(right)
-            except Exception as e:
-                print(e)
+            right_record = org.get_right(right)
             self.resource.RightReferences.append(
                 E.RightReference(
                     name=right_record.get('name'),
@@ -105,22 +102,14 @@ class Role(object):
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        rights = list(rights)
         if hasattr(self.resource, 'RightReferences') and \
                 hasattr(self.resource.RightReferences, 'RightReference'):
             rightReferenceList = self.resource.RightReferences.RightReference
             for rightReference in list(rightReferenceList):
-                for right in list(rights):
+                for right in rights:
                     if rightReference.get('name') == right:
                         self.resource.RightReferences.remove(rightReference)
-                        rights.remove(right)
                         break
-                if len(rights) == 0:
-                    break
-        if len(rights) > 0:
-            print("Skipping removal of rights [",
-                  ', '.join(rights),
-                  "] which are not associated with the role")
         self.resource = self.client.put_resource(
             self.href, self.resource, EntityType.ROLE.value)
         return self.resource

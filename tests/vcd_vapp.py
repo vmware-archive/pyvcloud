@@ -24,28 +24,15 @@ class TestVApp(TestCase):
             deploy=False,
             power_on=False)
         task = self.client.get_task_monitor().wait_for_status(
-<<<<<<< HEAD
-                            task=result.Tasks.Task[0],
-                            timeout=60,
-                            poll_frequency=2,
-                            fail_on_statuses=None,
-                            expected_target_statuses=[
-                                TaskStatus.SUCCESS,
-                                TaskStatus.ABORTED,
-                                TaskStatus.ERROR,
-                                TaskStatus.CANCELED],
-                            callback=None)
-=======
             task=result.Tasks.Task[0],
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
             ],
             callback=None)
->>>>>>> master
         assert task.get('status') == TaskStatus.SUCCESS.value
 
     def test_011_update_vapp_network(self):
@@ -60,28 +47,15 @@ class TestVApp(TestCase):
                                               'net2',
                                               self.config['vcd']['fence_mode'])
         task = self.client.get_task_monitor().wait_for_status(
-<<<<<<< HEAD
-                            task=result,
-                            timeout=60,
-                            poll_frequency=2,
-                            fail_on_statuses=None,
-                            expected_target_statuses=[
-                                TaskStatus.SUCCESS,
-                                TaskStatus.ABORTED,
-                                TaskStatus.ERROR,
-                                TaskStatus.CANCELED],
-                            callback=None)
-=======
             task=result,
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
             ],
             callback=None)
->>>>>>> master
         assert task.get('status') == TaskStatus.SUCCESS.value
 
     def test_012_add_disk(self):
@@ -97,28 +71,15 @@ class TestVApp(TestCase):
         disk_size = 1024  # 1GB
         result = vapp.add_disk_to_vm(vm_name, disk_size)
         task = self.client.get_task_monitor().wait_for_status(
-<<<<<<< HEAD
-                            task=result,
-                            timeout=60,
-                            poll_frequency=2,
-                            fail_on_statuses=None,
-                            expected_target_statuses=[
-                                TaskStatus.SUCCESS,
-                                TaskStatus.ABORTED,
-                                TaskStatus.ERROR,
-                                TaskStatus.CANCELED],
-                            callback=None)
-=======
             task=result,
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
             ],
             callback=None)
->>>>>>> master
         assert task.get('status') == TaskStatus.SUCCESS.value
 
     def test_100_instantiate_vapp_identical(self):
@@ -137,31 +98,17 @@ class TestVApp(TestCase):
             power_on=False,
             identical=True)
         task = self.client.get_task_monitor().wait_for_status(
-<<<<<<< HEAD
-                            task=result.Tasks.Task[0],
-                            timeout=60,
-                            poll_frequency=2,
-                            fail_on_statuses=None,
-                            expected_target_statuses=[
-                                TaskStatus.SUCCESS,
-                                TaskStatus.ABORTED,
-                                TaskStatus.ERROR,
-                                TaskStatus.CANCELED],
-                            callback=None)
-=======
             task=result.Tasks.Task[0],
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
             ],
             callback=None)
->>>>>>> master
         assert task.get('status') == TaskStatus.SUCCESS.value
-        # vdc.reload()
-        vdc.resource = vdc.client.get_resource(vdc.href)
+        vdc.reload()
         vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
         vm = vapp_resource.xpath(
             '//vcloud:VApp/vcloud:Children/vcloud:Vm', namespaces=NSMAP)
@@ -179,38 +126,8 @@ class TestVApp(TestCase):
         vapp.change_owner(user_resource.get('href'))
 
         vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
-<<<<<<< HEAD
-        new_user = vapp_resource.Owner.User.get('name')
-        assert self.config['vcd']['new_vapp_user'] == vapp_resource.Owner.User.get('name')
-
-    def test_101_attach_disk_to_vm_in_vapp(self):
-        logged_in_org = self.client.get_org()
-        org = Org(self.client, resource=logged_in_org)
-        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
-        vdc = VDC(self.client, href=vdc_resource.get('href'))
-        assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
-        vapp = vdc.get_vapp(self.config['vcd']['vapp'])
-        assert self.config['vcd']['vapp'] == vapp.get('name')
-        vapp_instance = VApp(self.client, resource=vapp)
-        disk = vdc.get_disk(self.config['vcd']['disk'])
-        vm_name = self.config['vcd']['vm']
-        result = vapp_instance.attach_disk_to_vm(disk.get('href'), disk.get('type'), disk.get('name'), vm_name)
-        task = self.client.get_task_monitor().wait_for_status(
-                            task=result,
-                            timeout=60,
-                            poll_frequency=2,
-                            fail_on_statuses=None,
-                            expected_target_statuses=[
-                                TaskStatus.SUCCESS,
-                                TaskStatus.ABORTED,
-                                TaskStatus.ERROR,
-                                TaskStatus.CANCELED],
-                            callback=None)
-        assert task.get('status') == TaskStatus.SUCCESS.value
-=======
         assert self.config['vcd']['new_vapp_user'] == \
             vapp_resource.Owner.User.get('name')
->>>>>>> master
 
     def test_110_instantiate_vapp_custom_disk_size(self):
         logged_in_org = self.client.get_org()
@@ -228,28 +145,15 @@ class TestVApp(TestCase):
             power_on=False,
             disk_size=self.config['vcd']['disk_size_new'])
         task = self.client.get_task_monitor().wait_for_status(
-<<<<<<< HEAD
-                            task=result.Tasks.Task[0],
-                            timeout=60,
-                            poll_frequency=2,
-                            fail_on_statuses=None,
-                            expected_target_statuses=[
-                                TaskStatus.SUCCESS,
-                                TaskStatus.ABORTED,
-                                TaskStatus.ERROR,
-                                TaskStatus.CANCELED],
-                            callback=None)
-=======
             task=result.Tasks.Task[0],
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
             ],
             callback=None)
->>>>>>> master
         assert task.get('status') == TaskStatus.SUCCESS.value
         vdc.resource = vdc.client.get_resource(vdc.href)
         vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
@@ -278,34 +182,6 @@ class TestVApp(TestCase):
         # cleanup
         self.test_100_delete_vapp()
 
-<<<<<<< HEAD
-    def test_111_detach_disk_from_vm_in_vapp(self):
-        logged_in_org = self.client.get_org()
-        org = Org(self.client, resource=logged_in_org)
-        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
-        vdc = VDC(self.client, href=vdc_resource.get('href'))
-        assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
-        vapp = vdc.get_vapp(self.config['vcd']['vapp'])
-        assert self.config['vcd']['vapp'] == vapp.get('name')
-        vapp_instance = VApp(self.client, resource=vapp)
-        disk = vdc.get_disk(self.config['vcd']['disk'])
-        vm_name = self.config['vcd']['vm']
-        result = vapp_instance.detach_disk_from_vm(disk.get('href'), disk.get('type'), disk.get('name'), vm_name)
-        task = self.client.get_task_monitor().wait_for_status(
-                            task=result,
-                            timeout=60,
-                            poll_frequency=2,
-                            fail_on_statuses=None,
-                            expected_target_statuses=[
-                                TaskStatus.SUCCESS,
-                                TaskStatus.ABORTED,
-                                TaskStatus.ERROR,
-                                TaskStatus.CANCELED],
-                            callback=None)
-        assert task.get('status') == TaskStatus.SUCCESS.value
-
-=======
->>>>>>> master
     def test_1000_delete_vapp(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
@@ -314,28 +190,15 @@ class TestVApp(TestCase):
         assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
         result = vdc.delete_vapp(self.config['vcd']['vapp'], force=True)
         task = self.client.get_task_monitor().wait_for_status(
-<<<<<<< HEAD
-                            task=result,
-                            timeout=60,
-                            poll_frequency=2,
-                            fail_on_statuses=None,
-                            expected_target_statuses=[
-                                TaskStatus.SUCCESS,
-                                TaskStatus.ABORTED,
-                                TaskStatus.ERROR,
-                                TaskStatus.CANCELED],
-                            callback=None)
-=======
             task=result,
             timeout=60,
             poll_frequency=2,
-            fail_on_status=None,
+            fail_on_statuses=None,
             expected_target_statuses=[
                 TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
                 TaskStatus.CANCELED
             ],
             callback=None)
->>>>>>> master
         assert task.get('status') == TaskStatus.SUCCESS.value
 
     def test__1001_vapp_control_access_retrieval(self):

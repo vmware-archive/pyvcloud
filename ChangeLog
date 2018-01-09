@@ -1,6 +1,21 @@
 CHANGES
 =======
 
+19.0.0
+------
+
+* fixed test name
+* addressed review comments
+* Adding more functionality/tests to VM class
+* add accept-all-eulas param
+* Improve CONTRIBUTING.md to make it more informative (#153)
+* added license to test file
+* VCDA-386/7/8
+* Delete role from a given org (#154)
+* cleanup and new options
+* VCDA-213 cleanup pyvcloud repository
+* auto
+
 18.2.2
 ------
 

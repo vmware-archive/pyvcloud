@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from copy import deepcopy
+
 from lxml import etree
 from lxml import objectify
 from pyvcloud.vcd.client import E
@@ -48,7 +49,7 @@ class VApp(object):
             for vm in self.resource.Children.Vm:
                 if vm_name == vm.get('name'):
                     items = vm.xpath(
-                        '//ovf:VirtualHardwareSection/ovf:Item',
+                        'ovf:VirtualHardwareSection/ovf:Item',
                         namespaces=NSMAP)
                     for item in items:
                         connection = item.find('rasd:Connection', NSMAP)
@@ -105,7 +106,7 @@ class VApp(object):
         if hasattr(vapp, 'Children') and hasattr(vapp.Children, 'Vm'):
             for vm in vapp.Children.Vm:
                 if vm.get('name') == vm_name:
-                    env = vm.xpath('//ovfenv:Environment', namespaces=NSMAP)
+                    env = vm.xpath('ovfenv:Environment', namespaces=NSMAP)
                     if len(env) > 0:
                         return env[0].get('{' + NSMAP['ve'] + '}vCenterId')
         return None
@@ -186,33 +187,44 @@ class VApp(object):
                 self.resource.Children.Vm[0].NetworkConnectionSection)
 
     def attach_disk_to_vm(self, disk_href, vm_name):
+        """Attach the independent disk to the VM with the given name
+
+        :param disk_href: (str): The href of the disk to be attached.
+        :param vm_name: (str): The name of the VM to which the disk \
+            will be attached.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing \
+            the asynchronous Task of attaching the disk.
+
+        :raises: Exception: If the named VM cannot be located or another error
+            occurs.
         """
-        Attach the independent disk to the VM with the given name in the vApp within a Virtual Data Center.
-        :param disk_href: (str): The href of the disk resource.
-        :param vm_name: (str): The name of the VM.
-        :return: (vmType)  A :class:`lxml.objectify.StringElement` object describing the requested VM.
-        """  # NOQA
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
             E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
+
         return self.client.post_linked_resource(
             vm, RelationType.DISK_ATTACH,
             EntityType.DISK_ATTACH_DETACH_PARAMS.value,
             disk_attach_or_detach_params)
 
-    def detach_disk_from_vm(self, disk_href, disk_type, disk_name, vm_name):
+    def detach_disk_from_vm(self, disk_href, vm_name):
+        """Detach the independent disk from the VM with the given name
+
+        :param disk_href: (str): The href of the disk to be detached.
+        :param vm_name: (str): The name of the VM to which the disk \
+            will be detached.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing \
+            the asynchronous Task of detaching the disk.
+
+        :raises: Exception: If the named VM cannot be located or another error
+            occurs.
         """
-        Detach the independent disk from the VM with the given name in the vApp within a Virtual Data Center.
-        :param disk_href: (str): The href of the disk resource.
-        :param vm_name: (str): The name of the VM.
-        :return: (vmType)  A :class:`lxml.objectify.StringElement` object describing the requested VM.
-        """  # NOQA
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
-            E.Disk(type=disk_type, href=disk_href))
+            E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
         return self.client.post_linked_resource(
             vm, RelationType.DISK_DETACH,
@@ -288,7 +300,7 @@ class VApp(object):
         disk_list.append(new_disk)
         return self.client.put_resource(
             vm.get('href') + '/virtualHardwareSection/disks', disk_list,
-            EntityType.RASD_ITEM_LIST.value)
+            EntityType.RASD_ITEMS_LIST.value)
 
     def get_access_control_settings(self):
         """Get the access control settings of the vapp.
@@ -345,14 +357,17 @@ class VApp(object):
                 machine to this value
             password_auto: (bool): (optional) autogenerate administrator
                 password
+            password_reset: (bool): (optional) True if the administrator
+                password for this virtual machine must be reset after first use
             cust_script: (str): (optional) script to run on guest customization
             network: (str): (optional) Name of the vApp network to connect.
                 If omitted, the VM won't be connected to any network
             storage_profile: (str): (optional) the name of the storage profile
                 to be used for this VM
 
-        :return: SourcedItem
-
+        :return: SourcedItem: (:class:`lxml.objectify.StringElement`): object
+            representing the 'SourcedItem' xml object created from the
+            specification.
         """
 
         source_vapp = VApp(self.client, resource=spec['vapp'])
@@ -385,6 +400,7 @@ class VApp(object):
                         E.IsConnected(True),
                         E.IpAddressAllocationMode(ip_allocation_mode.upper()),
                         network=spec['network'])))
+
         needs_customization = 'disk_size' in spec or 'password' in spec or \
             'cust_script' in spec or 'hostname' in spec
         if needs_customization:
@@ -397,18 +413,17 @@ class VApp(object):
                 guest_customization_param.append(E.AdminPasswordAuto(False))
                 guest_customization_param.append(
                     E.AdminPassword(spec['password']))
-                guest_customization_param.append(
-                    E.ResetPasswordRequired(False))
             else:
                 if 'password_auto' in spec:
                     guest_customization_param.append(
                         E.AdminPasswordEnabled(True))
                     guest_customization_param.append(E.AdminPasswordAuto(True))
-                    guest_customization_param.append(
-                        E.ResetPasswordRequired(False))
                 else:
                     guest_customization_param.append(
                         E.AdminPasswordEnabled(False))
+            if 'password_reset' in spec:
+                guest_customization_param.append(
+                    E.ResetPasswordRequired(spec['password_reset']))
             if 'cust_script' in spec:
                 guest_customization_param.append(
                     E.CustomizationScript(spec['cust_script']))
@@ -432,20 +447,34 @@ class VApp(object):
 
         return sourced_item
 
-    def add_vms(self, specs):
+    def add_vms(self,
+                specs,
+                deploy=True,
+                power_on=True,
+                all_eulas_accepted=None):
         """Recompose the vApp and add VMs.
 
         :param specs: An array of VM specifications, see `to_sourced_item()`
             method for specification details.
+        :param deploy: (bool): True if the vApp should be deployed at
+            instantiation
+        :param power_on: (bool): True if the vApp should be powered-on at
+            instantiation
+        :param all_eulas_accepted: (bool): True confirms acceptance of all
+            EULAs in the vApp.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing a
             sparsely populated vApp element.
 
         """
 
-        params = E.RecomposeVAppParams()
+        params = E.RecomposeVAppParams(
+            deploy='true' if deploy else 'false',
+            powerOn='true' if power_on else 'false')
         for spec in specs:
             params.append(self.to_sourced_item(spec))
+        if all_eulas_accepted is not None:
+            params.append(E.AllEULAsAccepted(all_eulas_accepted))
 
         return self.client.post_linked_resource(
             self.resource, RelationType.RECOMPOSE,

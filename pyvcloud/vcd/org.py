@@ -13,13 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import shutil
-import tarfile
-import tempfile
-import time
-import traceback
-
 from lxml import etree
 from lxml import objectify
 import os
@@ -35,6 +28,11 @@ from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import to_dict
+import shutil
+import tarfile
+import tempfile
+import time
+import traceback
 
 DEFAULT_CHUNK_SIZE = 1024 * 1024
 
@@ -635,18 +633,16 @@ class Org(object):
                     to_dict(r, resource_type=resource_type, exclude=[]))
         return result
 
-    def get_catalog_access_control_settings(self, catalog_name):
-        """Get the access control settings of a catalog.
-
+    def get_catalog_access_settings(self, catalog_name):
+        """Get the access settings of a catalog.
+        
         :param catalog_name: (str): The name of the catalog.
         :return:  A :class:`lxml.objectify.StringElement` object representing
-        the updated access control setting of the catalog.
+            the access settings of the catalog.
         """  # NOQA
         catalog_resource = self.get_catalog(name=catalog_name)
-        access_control_settings = self.client.get_linked_resource(
-            catalog_resource, RelationType.DOWN,
-            EntityType.CONTROL_ACCESS_PARAMS.value)
-        return access_control_settings
+        acl = Acl(self.client, catalog_resource)
+        return acl.get_access_settings()
 
     def add_catalog_access_settings(self, catalog_name,
                                     access_settings_list=None):
@@ -713,7 +709,7 @@ class Org(object):
             unshared from everyone.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
-            the updated access control setting of the resource.
+            the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)

@@ -31,7 +31,8 @@ class TestCatalog(TestCase):
         org = Org(self.client, resource=logged_in_org)
         org.change_catalog_owner(self.config['vcd']['catalog'],
                                  self.config['vcd']['new_catalog_owner'])
-        catalog_resource = org.get_catalog_resource(self.config['vcd']['catalog'], True)
+        catalog_resource = org.get_catalog_resource(
+            self.config['vcd']['catalog'], True)
         assert self.config['vcd']['new_catalog_owner'] \
                == catalog_resource.Owner.User.get('name')
 
@@ -66,8 +67,7 @@ class TestCatalog(TestCase):
         org = Org(self.client, resource=org_in_use)
         catalog = org.get_catalog(self.config['vcd']['catalog'])
         assert self.config['vcd']['catalog'] == catalog.get('name')
-        control_access = org.get_catalog_access_control_settings(
-            catalog.get('name'))
+        control_access = org.get_catalog_access_settings(catalog.get('name'))
         assert len(control_access.AccessSettings.AccessSetting) == 3
 
     def test_06_remove_catalog_access(self):

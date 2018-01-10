@@ -105,13 +105,75 @@ class TestVDC(TestCase):
             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
 
-    def test_vdc_control_access_retrieval(self):
+    def test_01_remove_all_vdc_access(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, resource=vdc_resource)
-        access_control_settings = vdc.get_access_control_settings()
-        assert len(access_control_settings) > 0
+        vdc.share_access()
+        control_access = vdc.remove_access_settings(remove_all=True)
+        self.assertFalse(hasattr(control_access, 'AccessSettings'))
+
+    def test_02_add_vdc_access(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, resource=vdc_resource)
+        control_access = vdc.add_access_settings(
+            access_settings_list=[
+                {'name': self.config['vcd']['access_user'], 'type': 'user'},
+                {'name': self.config['vcd']['access_user1'], 'type': 'user',
+                 'access_level': 'ReadOnly'}
+            ])
+        assert len(control_access.AccessSettings.AccessSetting) == 2
+
+    def test_03_get_vdc_access(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, resource=vdc_resource)
+        control_access = vdc.get_access_settings()
+        assert len(control_access.AccessSettings.AccessSetting) == 2
+
+    def test_04_remove_vdc_access(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, resource=vdc_resource)
+        control_access = vdc.remove_access_settings(
+            access_settings_list=[
+                {'name': self.config['vcd']['access_user'], 'type': 'user'}
+            ])
+        assert len(control_access.AccessSettings.AccessSetting) == 1
+
+    def test_05_share_vdc_access(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, resource=vdc_resource)
+        control_access = vdc.share_access()
+        assert control_access.IsSharedToEveryone.text == 'true'
+        assert control_access.EveryoneAccessLevel.text == 'ReadOnly'
+
+    def test_06_unshare_vdc_access(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, resource=vdc_resource)
+        control_access = vdc.unshare_access()
+        assert control_access.IsSharedToEveryone.text == 'false'
+
+    def test_10_remove_last_vdc_access(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, resource=vdc_resource)
+        vdc.share_access()
+        control_access = vdc.remove_access_settings(
+            access_settings_list=[
+                {'name': self.config['vcd']['access_user1'], 'type': 'user'}
+            ])
+        self.assertFalse(hasattr(control_access, 'AccessSettings'))
 
 
 if __name__ == '__main__':

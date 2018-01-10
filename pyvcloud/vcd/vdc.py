@@ -14,19 +14,17 @@
 
 from lxml import etree
 
+from pyvcloud.vcd.acl import Acl
 from pyvcloud.vcd.client import E
-from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.org import Org
-from pyvcloud.vcd.utils import access_control_settings_to_dict
 from pyvcloud.vcd.utils import get_admin_extension_href
 from pyvcloud.vcd.utils import get_admin_href
 
-import pprint
 
 class VDC(object):
     def __init__(self, client, name=None, href=None, resource=None):
@@ -651,16 +649,72 @@ class VDC(object):
         return self.client.delete_linked_resource(self.resource,
                                                   RelationType.REMOVE, None)
 
-    def get_access_control_settings(self):
-        """Get the access control settings of the vdc.
+    def get_access_settings(self):
+        """Get the access settings of the vdc.
 
-        :return: (dict): Access control settings of the vdc.
+       :return:  A :class:`lxml.objectify.StringElement` object representing
+            the access settings of the vdc.
         """
-        vdc_resource = self.get_resource()
-        access_control_settings = self.client.get_linked_resource(
-            vdc_resource, RelationType.DOWN,
-            EntityType.CONTROL_ACCESS_PARAMS.value)
-        return access_control_settings_to_dict(access_control_settings)
+        acl = Acl(self.client, self.get_resource())
+        return acl.get_access_settings()
+
+    def add_access_settings(self, access_settings_list=None):
+        """Add access settings to a particular vdc.
+
+        :param access_settings_list: (list of dict): list of access_setting
+            in the dict format. Each dict contains:
+            type: (str): type of the subject. 'Only 'user' allowed for vdc.
+            name: (str): name of the user.
+            access_level: (str): access_level of the particular subject.
+            Only 'ReadOnly' allowed for vdc.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+        the updated access control setting of the vdc.
+        """
+        acl = Acl(self.client,  self.get_resource())
+        return acl.add_access_settings(access_settings_list)
+
+    def remove_access_settings(self,
+                               access_settings_list=None,
+                               remove_all=False):
+        """Remove access settings from a particular vdc.
+
+        :param access_settings_list: (list of dict): list of access_setting
+            in the dict format. Each dict contains:
+            type: (str): type of the subject. Only 'user' allowed for vdc.
+            name: (str): name of the user.
+        :param remove_all: (bool) : True if all access settings of the vdc
+            should be removed
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the vdc.
+        """
+        acl = Acl(self.client, self.get_resource())
+        return acl.remove_access_settings(access_settings_list, remove_all)
+
+    def share_access(self, everyone_access_level='ReadOnly'):
+        """Share the vdc to all members of the organization.
+
+        :param everyone_access_level: (str) : access level when sharing the
+            vdc with everyone. Only 'ReadOnly' allowed for vdc.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the vdc.
+        """
+        acl = Acl(self.client,  self.get_resource())
+        return acl.share_access(everyone_access_level)
+
+    def unshare_access(self):
+        """Unshare the vdc from all members of current organization.
+
+        Should give individual access to at least one user before un sharing
+        access to the whole org.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the vdc.
+        """
+        acl = Acl(self.client,  self.get_resource())
+        return acl.unshare_access()
 
     def create_vapp(self,
                     name,

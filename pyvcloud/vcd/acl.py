@@ -16,6 +16,7 @@
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import MissingLinkException
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.utils import get_admin_href
 
@@ -41,6 +42,30 @@ class Acl(object):
                 self.parent_resource, RelationType.DOWN,
                 EntityType.CONTROL_ACCESS_PARAMS.value)
         return self.resource
+
+    def update_resource(self, control_access_params):
+        # vdc acl is updated though PUT instead of POST
+        if self.parent_resource.attrib.get('type') == EntityType.VDC.value:
+            self.resource = self.client. \
+                put_linked_resource(self.parent_resource,
+                                    RelationType.CONTROL_ACCESS,
+                                    EntityType.CONTROL_ACCESS_PARAMS.value,
+                                    control_access_params)
+        else:
+            self.resource = self.client. \
+                post_linked_resource(self.parent_resource,
+                                     RelationType.CONTROL_ACCESS,
+                                     EntityType.CONTROL_ACCESS_PARAMS.value,
+                                     control_access_params)
+        return self.resource
+
+    def get_access_settings(self):
+        """Get the access settings of the parent resource.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the access settings of the parent resource.
+        """
+        return self.get_resource()
 
     def add_access_settings(self, access_settings_list=None):
         """Add access settings.
@@ -100,14 +125,7 @@ class Acl(object):
                 new_access_settings_params.append(old_access_setting)
 
         control_access_params.append(new_access_settings_params)
-
-        self.resource = self.client.\
-            post_linked_resource(self.parent_resource,
-                                 RelationType.CONTROL_ACCESS,
-                                 EntityType.CONTROL_ACCESS_PARAMS.
-                                 value,
-                                 control_access_params)
-        return self.resource
+        return self.update_resource(control_access_params)
 
     def remove_access_settings(self,
                                access_settings_list=None,
@@ -170,12 +188,7 @@ class Acl(object):
             if hasattr(old_access_settings_params, 'AccessSetting'):
                 control_access_params.append(old_access_settings_params)
 
-        self.resource = self.\
-            client.post_linked_resource(self.parent_resource,
-                                        RelationType.CONTROL_ACCESS,
-                                        EntityType.CONTROL_ACCESS_PARAMS.value,
-                                        control_access_params)
-        return self.resource
+        return self.update_resource(control_access_params)
 
     def share_access(self, everyone_access_level='ReadOnly'):
         """Share the resource to all members of the organization.
@@ -204,12 +217,7 @@ class Acl(object):
                 control_access_params.insert(1, E.EveryoneAccessLevel(
                     everyone_access_level))
 
-        self.resource = self. \
-            client.post_linked_resource(self.parent_resource,
-                                        RelationType.CONTROL_ACCESS,
-                                        EntityType.CONTROL_ACCESS_PARAMS.value,
-                                        control_access_params)
-        return self.resource
+        return self.update_resource(control_access_params)
 
     def unshare_access(self):
         """Unshare the resource from all members of current organization.
@@ -230,12 +238,7 @@ class Acl(object):
             everyone_access_level = control_access_params.EveryoneAccessLevel
             control_access_params.remove(everyone_access_level)
 
-        self.resource = self. \
-            client.post_linked_resource(self.parent_resource,
-                                        RelationType.CONTROL_ACCESS,
-                                        EntityType.CONTROL_ACCESS_PARAMS.value,
-                                        control_access_params)
-        return self.resource
+        return self.update_resource(control_access_params)
 
     def convert_access_settings_list_to_params(self, access_settings_list):
         """Convert access_settings_list to object of type AccessSettingsType
@@ -254,8 +257,7 @@ class Acl(object):
         access_settings_params = E.AccessSettings()
         for access_setting in access_settings_list:
             if access_setting["type"] == 'user':
-                org_href = find_link(self.parent_resource, RelationType.UP,
-                                     EntityType.ORG.value).href
+                org_href = self.get_parent_org_href()
                 subject_href = self.client.get_user_in_org(
                     access_setting['name'],
                     org_href).get('href')
@@ -283,6 +285,22 @@ class Acl(object):
             )
             access_settings_params.append(access_setting_params)
         return access_settings_params
+
+    def get_parent_org_href(self):
+        """Return the href of the org where the parent resource belongs to.
+
+        :return: (str): org href of the parent resource.
+        """
+        try:
+            org_href = find_link(self.parent_resource, RelationType.UP,
+                                 EntityType.ORG.value).href
+        except MissingLinkException:
+            # for vapp, have to get the org via vdc
+            vdc_href = find_link(self.parent_resource, RelationType.UP,
+                                 EntityType.VDC.value).href
+            org_href = find_link(self.client.get_resource(vdc_href),
+                                 RelationType.UP, EntityType.ORG.value).href
+        return org_href
 
     @staticmethod
     def search_for_access_setting_by_subject(subject_name,

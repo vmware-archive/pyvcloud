@@ -147,6 +147,7 @@ class RelationType(Enum):
     DOWN = 'down'
     DOWN_EXTENSIBILITY = 'down:extensibility'
     DOWNLOAD_DEFAULT = 'download:default'
+    EDGE_GATEWAYS = 'edgeGateways'
     EDIT = 'edit'
     ENABLE = 'enable'
     LINK_TO_TEMPLATE = 'linkToTemplate'
@@ -162,6 +163,7 @@ class RelationType(Enum):
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
     TASK_CANCEL = 'task:cancel'
+    UNDEPLOY = 'undeploy'
     UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'
     UP = 'up'
 
@@ -183,6 +185,9 @@ class EntityType(Enum):
     DISK_ATTACH_DETACH_PARAMS = \
         'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'
     DISK_CREATE_PARMS = 'application/vnd.vmware.vcloud.diskCreateParams+xml'
+    EDGE_GATEWAY = 'application/vnd.vmware.admin.edgeGateway+xml'
+    EDGE_GATEWAY_SERVICE_CONFIGURATION = \
+        'application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
@@ -208,12 +213,14 @@ class EntityType(Enum):
     RASD_ITEMS_LIST = 'application/vnd.vmware.vcloud.rasdItemsList+xml'
     RECOMPOSE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.recomposeVAppParams+xml'
+    RECORDS = 'application/vnd.vmware.vcloud.query.records+xml'
     ROLE = 'application/vnd.vmware.admin.role+xml'
     RIGHT = 'application/vnd.vmware.admin.right+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'
     TASK = 'application/vnd.vmware.vcloud.task+xml'
     TASKS_LIST = 'application/vnd.vmware.vcloud.tasksList+xml'
     TEXT_XML = 'text/xml'
+    UNDEPLOY = 'application/vnd.vmware.vcloud.undeployVAppParams+xml'
     UPLOAD_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.uploadVAppTemplateParams+xml'
     USER = 'application/vnd.vmware.admin.user+xml'
@@ -350,34 +357,55 @@ class TaskStatus(Enum):
 
 class _TaskMonitor(object):
     _DEFAULT_POLL_SEC = 5
+    _DEFAULT_TIMEOUT_SEC = 600
 
     def __init__(self, client):
         self._client = client
 
+    def wait_for_success(self,
+                         task,
+                         timeout=_DEFAULT_TIMEOUT_SEC,
+                         poll_frequency=_DEFAULT_POLL_SEC,
+                         callback=None):
+        return self.wait_for_status(
+            task,
+            timeout,
+            poll_frequency, [TaskStatus.ERROR], [TaskStatus.SUCCESS],
+            callback=callback)
+
     def wait_for_status(self,
                         task,
-                        timeout,
-                        poll_frequency,
-                        fail_on_status,
-                        expected_target_statuses,
+                        timeout=_DEFAULT_TIMEOUT_SEC,
+                        poll_frequency=_DEFAULT_POLL_SEC,
+                        fail_on_statuses=[
+                            TaskStatus.ABORTED, TaskStatus.CANCELED,
+                            TaskStatus.ERROR
+                        ],
+                        expected_target_statuses=[TaskStatus.SUCCESS],
                         callback=None):
         """Waits for task to reach expected status.
 
-         * @param task
-         *            task returned by post or put calls.
-         * @param timeout
-         *            time (in seconds, floating point, fractional) to wait for task to finish.
-         * @param pollFrequency
-         *            time (in seconds, as above) with which task will be polled.
-         * @param failOnStatus
-         *            task will fail if this {@link TaskStatus} is reached. If this parameter is null then
-         *            either task will achieve expected target status or throw {@link TimeOutException}.
-         * @param expectedTargetStatus
-         *            list of expected alternative target status.
-         * @return {@link TaskType} from list of expected target status.
-         * @throws TimeoutException
-         *             exception thrown when task is not finished within given time.
-        """  # NOQA
+         :param task: (Task): task returned by post or put calls.
+         :param timeout: (float): time (in seconds, floating point, fractional)
+            to wait for task to finish.
+         :param poll_frequency: (float): time (in seconds, as above) with which
+            task will be polled.
+         :param fail_on_statuses: (list): method will raise an exception if any
+            of the (TaskStatus) in this list is reached. If this parameter is
+            None then either task will achieve expected target status or throw
+            (TimeOutException).
+         :param expected_target_statuses: (list): list of expected target
+            status.
+         :return (Task): from list of expected target status.
+         :throws TimeoutException: (Exception): exception thrown when task is
+            not finished within given time.
+        """
+        if fail_on_statuses is None:
+            _fail_on_statuses = []
+        elif isinstance(fail_on_statuses, TaskStatus):
+            _fail_on_statuses[fail_on_statuses]
+        else:
+            _fail_on_statuses = fail_on_statuses
         task_href = task.get('href')
         start_time = datetime.now()
         while True:
@@ -388,31 +416,13 @@ class _TaskMonitor(object):
             for status in expected_target_statuses:
                 if task_status == status.value.lower():
                     return task
-                else:
-                    if fail_on_status is not None and \
-                       task_status == fail_on_status.value.lower():
-                        raise VcdTaskException(
-                            'Expected task status "%s" but got "%s"' %
-                            (status.value.lower(), task_status), task.Error)
-
-                if start_time - datetime.now() > timedelta(seconds=timeout):
-                    break
-
+            for status in _fail_on_statuses:
+                if task_status == status.value.lower():
+                    raise VcdTaskException(task_status, task.Error)
+            if start_time - datetime.now() > timedelta(seconds=timeout):
+                break
             time.sleep(poll_frequency)
-
-        raise Exception("Task timeout")  # TODO(clean up)
-
-    def wait_for_success(self,
-                         task,
-                         timeout,
-                         poll_frequency=_DEFAULT_POLL_SEC,
-                         callback=None):
-        return self.wait_for_status(
-            task,
-            timeout,
-            poll_frequency,
-            TaskStatus.ERROR, [TaskStatus.SUCCESS],
-            callback=callback)
+        raise Exception("Task timeout")
 
     def _get_task_status(self, task_href):
         return self._client.get_resource(task_href)
@@ -827,11 +837,11 @@ class Client(object):
         return self._get_wk_resource(_WellKnownEndpoint.ORG_LIST)
 
     def get_org_by_name(self, org_name):
-        """
-        Retrieve an organization.
+        """Retrieve an organization.
+
         :param org_name: name of the org to be retrieved.
         :return: Org record.
-        """  # NOQA
+        """
         orgs = self.get_org_list()
         if hasattr(orgs, 'Org'):
             for org in orgs.Org:

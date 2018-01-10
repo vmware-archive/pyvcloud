@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import shutil
+import tarfile
+import tempfile
+import time
+import traceback
+
 from lxml import etree
 from lxml import objectify
 import os
@@ -28,11 +35,6 @@ from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import to_dict
-import shutil
-import tarfile
-import tempfile
-import time
-import traceback
 
 DEFAULT_CHUNK_SIZE = 1024 * 1024
 

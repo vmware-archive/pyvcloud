@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
+from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
 
@@ -68,3 +70,48 @@ class Role(object):
         self.client.post_linked_resource(
             self.resource, RelationType.LINK_TO_TEMPLATE,
             EntityType.ROLE.value, None)
+
+    def add_rights(self, rights, org):
+        """Adds list of rights to a given role
+
+        :param rights: (list): List of right names
+        :param org: (pyvcloud.vcd.org.Org): The Organization to which
+        the role belongs
+
+        :return A :class:`lxml.objectify.StringElement` object representing
+        the updated role resource.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        updated_resource = deepcopy(self.resource)
+        for right in rights:
+            right_record = org.get_right(right)
+            updated_resource.RightReferences.append(
+                E.RightReference(
+                    name=right_record.get('name'),
+                    href=right_record.get('href'),
+                    type=EntityType.RIGHT.value))
+        return self.client.put_resource(
+            self.href, updated_resource, EntityType.ROLE.value)
+
+    def remove_rights(self, rights):
+        """Removes list of rights from a given role
+
+        :param: rights: (list): List of right names
+
+        :return: A :class:`lxml.objectify.StringElement` object representing
+                the updated role resource.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        updated_resource = deepcopy(self.resource)
+        if hasattr(self.resource, 'RightReferences') and \
+                hasattr(self.resource.RightReferences, 'RightReference'):
+            rightReferenceList = updated_resource.RightReferences.RightReference
+            for rightReference in list(rightReferenceList):
+                for right in rights:
+                    if rightReference.get('name') == right:
+                        updated_resource.RightReferences.remove(rightReference)
+                        break
+        return self.client.put_resource(
+            self.href, updated_resource, EntityType.ROLE.value)

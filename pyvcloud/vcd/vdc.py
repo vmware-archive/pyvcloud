@@ -341,10 +341,11 @@ class VDC(object):
         result = []
         if hasattr(self.resource, 'ResourceEntities') and \
            hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
-            for vapp in self.resource.ResourceEntities.ResourceEntity:
+            for resource in self.resource.ResourceEntities.ResourceEntity:
                 if entity_type is None or \
-                   entity_type.value == vapp.get('type'):
-                    result.append({'name': vapp.get('name')})
+                   entity_type.value == resource.get('type'):
+                    result.append({'name': resource.get('name'),
+                                   'type': resource.get('type')})
         return result
 
     def list_edge_gateways(self):

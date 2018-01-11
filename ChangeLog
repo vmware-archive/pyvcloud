@@ -1,12 +1,47 @@
 CHANGES
 =======
 
+19.1.0
+------
+
+* fixed merge error
+* fixed merge conflicts
+* merged with master
+* minor doc fixes
+* merged master
+* addressed review comments
+* VCDA-311 For independent disk related operation, name of the disk can now be None. Added logic to handle situation when neither name nor id has been specified
+* Implementing catalog update acl commands (#163)
+* addressed review comments
+* VCDA-419 add api filters to extension info
+* addressed review comments
+* addressed review comments
+* addressed review comments
+* Changing default value of is\_shared to None from False
+* Adding extra param to populate IsShared tag in the payload XML
+* Link/Unlink a given role to its template (#164)
+* VCDA-258: Provide an optional parameter to specify IOPS during creation (#158)
+* Making small changes as per review comments
+* added delete vm test
+* changelog
+* changelog
+* test vm undeploy
+* work with VMs
+* Add code of conduct and PR/issue templates (#156)
+* use get\_linked\_resource instead of get\_resource, only return name and href instead of whole edge gateway resource
+* changelog
+* flake8 validation fixes
+* Fixing a small logical error : In few tests we are sending OrgRecord instead of Org resource to Org constructor
+* Adding ability to create directly connected org vdc networks
+* get the edgegateways on the vdc, rather than on the org, adjusted method name to list\_edge\_gateways
+
 19.0.0
 ------
 
 * fixed test name
 * addressed review comments
 * Adding more functionality/tests to VM class
+* added support for listing the edgegateways of a vdc
 * add accept-all-eulas param
 * Improve CONTRIBUTING.md to make it more informative (#153)
 * added license to test file

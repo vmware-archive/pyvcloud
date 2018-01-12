@@ -22,7 +22,7 @@ from pyvcloud.vcd.vdc import VDC
 
 
 class TestNetwork(TestCase):
-    def test_001_create_orgvdc_network(self):
+    def test_010_create_direct_orgvdc_network(self):
         org_record = self.client.get_org_by_name(
             self.config['vcd']['org_name'])
         org = Org(self.client, href=org_record.get('href'))
@@ -30,19 +30,25 @@ class TestNetwork(TestCase):
         vdc = VDC(self.client, href=vdc_resource.get('href'))
         result = vdc.create_directly_connected_vdc_network(
             network_name=self.config['vcd']['vdc_direct_network_name'],
-            description='Dummy description',
-            parent_network_name=self.config['vcd']['ext_network_name'])
-        task = self.client.get_task_monitor().wait_for_status(
-                            task=result.Tasks.Task[0],
-                            timeout=60,
-                            poll_frequency=2,
-                            fail_on_status=None,
-                            expected_target_statuses=[
-                                TaskStatus.SUCCESS,
-                                TaskStatus.ABORTED,
-                                TaskStatus.ERROR,
-                                TaskStatus.CANCELED],
-                            callback=None)
+            parent_network_name=self.config['vcd']['ext_network_name'],
+            description='Dummy description')
+        task = self.client.get_task_monitor().wait_for_success(
+            task=result.Tasks.Task[0])
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
+    def test_020_create_isolated_orgvdc_network(self):
+        org_record = self.client.get_org_by_name(
+            self.config['vcd']['org_name'])
+        org = Org(self.client, href=org_record.get('href'))
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+        result = vdc.create_isolated_vdc_network(
+            network_name=self.config['vcd']['vdc_isolated_network_name'],
+            gateway_ip=self.config['vcd']['isolated_network_gateway_ip'],
+            netmask=self.config['vcd']['isolated_network_gateway_netmask'],
+            description='Dummy description')
+        task = self.client.get_task_monitor().wait_for_success(
+            task=result.Tasks.Task[0])
         assert task.get('status') == TaskStatus.SUCCESS.value
 
 

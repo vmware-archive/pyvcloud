@@ -18,7 +18,7 @@ $ pip install --user pyvcloud
 
 ## Testing
 
-Contributions to `pyvcloud` are welcome and it should include unit tests. See [Contributing](CONTRIBUTING.md) guide for details.
+Contributions to `pyvcloud` are welcome and it should include unit tests. See the [contributing guide](CONTRIBUTING.md) for details.
 
 Check out the latest version and install:
 

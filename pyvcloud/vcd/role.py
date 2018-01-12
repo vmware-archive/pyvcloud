@@ -107,8 +107,8 @@ class Role(object):
         updated_resource = deepcopy(self.resource)
         if hasattr(self.resource, 'RightReferences') and \
                 hasattr(self.resource.RightReferences, 'RightReference'):
-            rightReferenceList = updated_resource.RightReferences.RightReference
-            for rightReference in list(rightReferenceList):
+            rightReferences = updated_resource.RightReferences.RightReference
+            for rightReference in list(rightReferences):
                 for right in rights:
                     if rightReference.get('name') == right:
                         updated_resource.RightReferences.remove(rightReference)

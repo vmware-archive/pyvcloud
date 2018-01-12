@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import shutil
 import tarfile
 import tempfile
@@ -600,6 +599,53 @@ class Org(object):
                     resource_type=resource_type,
                     exclude=['org', 'orgName']))
         return result
+
+    def add_rights(self, rights):
+        """Adds set of rights to the organization
+
+        :param rights: (tuple): tuple of right names
+
+        :return A :class:`lxml.objectify.StringElement` object representing
+        the updated Org rights resource.
+        """
+        org_admin_resource = self.client.get_resource(self.href_admin)
+        org_rights = E.OrgRights()
+        for right in rights:
+            right_record = self.get_right(right)
+            org_rights.append(
+                E.RightReference(
+                    name=right_record.get('name'),
+                    href=right_record.get('href'),
+                    type=EntityType.RIGHT.value))
+        return self.client.post_linked_resource(
+            org_admin_resource.RightReferences,
+            RelationType.ADD,
+            EntityType.ORG_RIGHTS.value,
+            org_rights)
+
+    def remove_rights(self, rights):
+        """Removes set of rights from the organization
+
+        :param rights: (tuple): tuple of right names
+
+        :return A :class:`lxml.objectify.StringElement` object representing
+        the updated Org rights resource.
+        """
+        org_admin_resource = self.client.get_resource(self.href_admin)
+        org_rights_resource = self.client.get_resource(
+            org_admin_resource.RightReferences.get('href'))
+        if hasattr(org_rights_resource, 'RightReference'):
+            for rightReference in list(org_rights_resource.RightReference):
+                for right in rights:
+                    if rightReference.get('name') == right:
+                        org_rights_resource.remove(rightReference)
+                        break
+            return self.client.put_linked_resource(
+                org_admin_resource.RightReferences,
+                RelationType.EDIT,
+                EntityType.ORG_RIGHTS.value,
+                org_rights_resource)
+        return org_rights_resource
 
     def get_right(self, right_name):
         """Retrieves corresponding record of the specified right.

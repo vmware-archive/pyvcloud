@@ -297,7 +297,6 @@ class Acl(object):
         :return: (str): org href of the parent resource.
         """
         if 'VApp' in self.parent_resource.tag:
-            print(type(self.parent_resource))
             # for vapp, have to get the org via vdc
             vdc_href = find_link(self.parent_resource, RelationType.UP,
                                  EntityType.VDC.value).href

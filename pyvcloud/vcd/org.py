@@ -582,6 +582,7 @@ class Org(object):
 
         org_filter = None
         resource_type = 'role'
+
         if self.client.is_sysadmin():
             resource_type = 'adminRole'
             org_filter = 'org==%s' % self.resource.get('href')
@@ -632,19 +633,21 @@ class Org(object):
         the updated Org rights resource.
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
-        org_rights_resource = self.client.get_resource(
-            org_admin_resource.RightReferences.get('href'))
-        if hasattr(org_rights_resource, 'RightReference'):
-            for rightReference in list(org_rights_resource.RightReference):
-                for right in rights:
-                    if rightReference.get('name') == right:
-                        org_rights_resource.remove(rightReference)
-                        break
-            return self.client.put_linked_resource(
-                org_admin_resource.RightReferences,
-                RelationType.EDIT,
-                EntityType.ORG_RIGHTS.value,
-                org_rights_resource)
+        org_rights_resource = None
+        if hasattr(org_admin_resource, 'RightReferences'):
+            org_rights_resource = self.client.get_resource(
+                org_admin_resource.RightReferences.get('href'))
+            if hasattr(org_rights_resource, 'RightReference'):
+                for right_reference in list(org_rights_resource.RightReference):
+                    for right in rights:
+                        if right_reference.get('name') == right:
+                            org_rights_resource.remove(right_reference)
+                            break
+                return self.client.put_linked_resource(
+                    org_admin_resource.RightReferences,
+                    RelationType.EDIT,
+                    EntityType.ORG_RIGHTS.value,
+                    org_rights_resource)
         return org_rights_resource
 
     def get_right(self, right_name):
@@ -653,13 +656,13 @@ class Org(object):
         :param right_name: (str): The name of the right record to be retrieved
         :return: (dict): Right record in dict format
         """
-        right_record = self.list_rights(('name', right_name))
+        right_record = self.list_all_rights(('name', right_name))
         if len(right_record) < 1:
             raise Exception('Right \'%s\' does not exist.' % right_name)
         return right_record[0]
 
-    def list_rights(self, name_filter=None):
-        """Retrieve the list of rights in the current Org
+    def list_all_rights(self, name_filter=None):
+        """Retrieves the list of all rights available
 
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
                              'right name'
@@ -680,6 +683,20 @@ class Org(object):
                 result.append(
                     to_dict(r, resource_type=resource_type, exclude=[]))
         return result
+
+    def list_my_rights(self):
+        """Retrieves the list of rights associated with the Organization
+
+        :return: (list): (RightReference) List of rights
+        """
+        org_admin_resource = self.client.get_resource(self.href_admin)
+        rights = []
+        if hasattr(org_admin_resource, 'RightReferences') and \
+                hasattr(org_admin_resource.RightReferences, 'RightReference'):
+            for rightReference in \
+                    org_admin_resource.RightReferences.RightReference:
+                rights.append(to_dict(rightReference, exclude=['type']))
+        return rights
 
     def get_catalog_access_control_settings(self, catalog_name):
         """Get the access control settings of a catalog.

@@ -107,11 +107,11 @@ class Role(object):
         updated_resource = deepcopy(self.resource)
         if hasattr(self.resource, 'RightReferences') and \
                 hasattr(self.resource.RightReferences, 'RightReference'):
-            rightReferences = updated_resource.RightReferences.RightReference
-            for rightReference in list(rightReferences):
+            right_references = updated_resource.RightReferences.RightReference
+            for right_reference in list(right_references):
                 for right in rights:
-                    if rightReference.get('name') == right:
-                        updated_resource.RightReferences.remove(rightReference)
+                    if right_reference.get('name') == right:
+                        updated_resource.RightReferences.remove(right_reference)
                         break
         return self.client.put_resource(
             self.href, updated_resource, EntityType.ROLE.value)

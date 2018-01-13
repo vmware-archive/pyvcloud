@@ -12,12 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from copy import deepcopy
 
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.client import MissingLinkException
 from pyvcloud.vcd.client import find_link
+from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.utils import get_admin_href
 
 
@@ -44,6 +44,13 @@ class Acl(object):
         return self.resource
 
     def update_resource(self, control_access_params):
+        """Update the access settings of the parent resource.
+
+        :param control_access_params: (lxml.objectify.StringElement) :
+        access settings to be updated.
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access settings of the parent resource.
+        """
         # vdc acl is updated though PUT instead of POST
         if self.parent_resource.attrib.get('type') == EntityType.VDC.value:
             self.resource = self.client. \
@@ -82,16 +89,14 @@ class Acl(object):
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the resource.
-
         """
-
         self.resource = self.get_resource()
 
         # if access_settings_list is None, nothing to add.
         if access_settings_list is None:
             return self.resource
 
-        control_access_params = self.resource
+        control_access_params = deepcopy(self.resource)
         # get the current access settings of the parent resource
         old_access_settings_params = None
         if hasattr(control_access_params, 'AccessSettings'):
@@ -153,7 +158,7 @@ class Acl(object):
         if access_settings_list is None and remove_all is False:
             return self.resource
 
-        control_access_params = self.resource
+        control_access_params = deepcopy(self.resource)
         # get the current access settings from parent resource
         old_access_settings_params = None
         if hasattr(control_access_params, 'AccessSettings'):
@@ -194,7 +199,7 @@ class Acl(object):
         """Share the resource to all members of the organization.
 
         :param everyone_access_level: (str) : access level when sharing the
-            resource with everyone. One of 'ReadOnly', 'Change', 'FullControl'
+            resource with everyone. One of 'ReadOnly', 'Change', 'FullControl'.
             'ReadOnly' by default.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
@@ -203,7 +208,7 @@ class Acl(object):
         """
         self.resource = self.get_resource()
 
-        control_access_params = self.resource
+        control_access_params = deepcopy(self.resource)
 
         control_access_params['IsSharedToEveryone'] = \
             E.IsSharedToEveryone(True)
@@ -228,7 +233,7 @@ class Acl(object):
         """
         self.resource = self.get_resource()
 
-        control_access_params = self.resource
+        control_access_params = deepcopy(self.resource)
 
         control_access_params['IsSharedToEveryone'] = \
             E.IsSharedToEveryone(False)
@@ -257,7 +262,7 @@ class Acl(object):
         access_settings_params = E.AccessSettings()
         for access_setting in access_settings_list:
             if access_setting["type"] == 'user':
-                org_href = self.get_parent_org_href()
+                org_href = self.get_org_href()
                 subject_href = self.client.get_user_in_org(
                     access_setting['name'],
                     org_href).get('href')
@@ -286,21 +291,21 @@ class Acl(object):
             access_settings_params.append(access_setting_params)
         return access_settings_params
 
-    def get_parent_org_href(self):
+    def get_org_href(self):
         """Return the href of the org where the parent resource belongs to.
 
         :return: (str): org href of the parent resource.
         """
-        try:
-            org_href = find_link(self.parent_resource, RelationType.UP,
-                                 EntityType.ORG.value).href
-        except MissingLinkException:
+        if 'VApp' in self.parent_resource.tag:
+            print(type(self.parent_resource))
             # for vapp, have to get the org via vdc
             vdc_href = find_link(self.parent_resource, RelationType.UP,
                                  EntityType.VDC.value).href
-            org_href = find_link(self.client.get_resource(vdc_href),
-                                 RelationType.UP, EntityType.ORG.value).href
-        return org_href
+            return find_link(self.client.get_resource(vdc_href),
+                             RelationType.UP, EntityType.ORG.value).href
+        else:
+            return find_link(self.parent_resource, RelationType.UP,
+                             EntityType.ORG.value).href
 
     @staticmethod
     def search_for_access_setting_by_subject(subject_name,

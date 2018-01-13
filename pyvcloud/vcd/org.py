@@ -637,11 +637,11 @@ class Org(object):
 
     def get_catalog_access_settings(self, catalog_name):
         """Get the access settings of a catalog.
-        
+
         :param catalog_name: (str): The name of the catalog.
         :return:  A :class:`lxml.objectify.StringElement` object representing
             the access settings of the catalog.
-        """  # NOQA
+        """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
         return acl.get_access_settings()

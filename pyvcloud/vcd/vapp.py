@@ -349,9 +349,9 @@ class VApp(object):
 
         :param access_settings_list: (list of dict): list of access_setting
             in the dict format. Each dict contains:
-            type: (str): type of the subject. Only 'user' allowed for vdc.
+            type: (str): type of the subject. Only 'user' allowed for vapp.
             name: (str): name of the user.
-        :param remove_all: (bool) : True if all access settings of the vdc
+        :param remove_all: (bool) : True if all access settings of the vapp
             should be removed
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
@@ -364,7 +364,7 @@ class VApp(object):
         """Share the vapp to all members of the organization.
 
         :param everyone_access_level: (str) : access level when sharing the
-            vdc with everyone. One of 'ReadOnly', 'Change', 'FullControl'
+            vapp with everyone. One of 'ReadOnly', 'Change', 'FullControl'.
             'ReadOnly' by default.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing

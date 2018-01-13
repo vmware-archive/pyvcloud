@@ -666,7 +666,7 @@ class VDC(object):
             type: (str): type of the subject. 'Only 'user' allowed for vdc.
             name: (str): name of the user.
             access_level: (str): access_level of the particular subject.
-            Only 'ReadOnly' allowed for vdc.
+            Only 'ReadOnly' is allowed for vdc.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
         the updated access control setting of the vdc.
@@ -696,7 +696,7 @@ class VDC(object):
         """Share the vdc to all members of the organization.
 
         :param everyone_access_level: (str) : access level when sharing the
-            vdc with everyone. Only 'ReadOnly' allowed for vdc.
+            vdc with everyone. Only 'ReadOnly' is allowed for vdc.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the vdc.
@@ -707,7 +707,7 @@ class VDC(object):
     def unshare_access(self):
         """Unshare the vdc from all members of current organization.
 
-        Should give individual access to at least one user before un sharing
+        Should give individual access to at least one user before unsharing
         access to the whole org.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing

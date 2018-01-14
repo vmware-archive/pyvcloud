@@ -559,10 +559,22 @@ class Org(object):
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
 
+    def get_role_resource(self, role_name):
+        """ Retrieves resource of a given role.
+
+        :param role_name: name of the role
+
+        :return A :class:`lxml.objectify.StringElement` object representing
+        the role resource.
+        """
+        role_record = self.get_role(role_name)
+        return self.client.get_resource(role_record.get('href'))
+
     def get_role(self, role_name):
         """Retrieve role object with a particular name in the current Org
 
         :param role_name: (str): The name of the role object to be retrieved
+
         :return: (dict): Role record in dict format
         """
         role_record = self.list_roles(('name', role_name))
@@ -649,6 +661,17 @@ class Org(object):
                     EntityType.ORG_RIGHTS.value,
                     org_rights_resource)
         return org_rights_resource
+
+    def get_right_resource(self, right_name):
+        """ Retrieves resource of a given right.
+
+        :param right_name: name of the right
+
+        :return A :class:`lxml.objectify.StringElement` object representing
+        the right resource.
+        """
+        right_record = self.get_right(right_name)
+        return self.client.get_resource(right_record.get('href'))
 
     def get_right(self, right_name):
         """Retrieves corresponding record of the specified right.

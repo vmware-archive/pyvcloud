@@ -131,6 +131,7 @@ else:
     from vcd_cli import task  # NOQA
     from vcd_cli import user  # NOQA
     from vcd_cli import vapp  # NOQA
+    from vcd_cli import vc  # NOQA
     from vcd_cli import vdc  # NOQA
     from vcd_cli import vm  # NOQA
     init(autoreset=True)

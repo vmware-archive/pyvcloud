@@ -38,9 +38,8 @@ class Acl(object):
 
     def get_resource(self):
         if self.resource is None:
-            self.resource = self.client.get_linked_resource(
-                self.parent_resource, RelationType.DOWN,
-                EntityType.CONTROL_ACCESS_PARAMS.value)
+            self.resource = self.client.get_resource(
+                self.parent_resource.get('href') + '/controlAccess/')
         return self.resource
 
     def update_resource(self, control_access_params):
@@ -53,17 +52,13 @@ class Acl(object):
         """
         # vdc acl is updated though PUT instead of POST
         if self.parent_resource.attrib.get('type') == EntityType.VDC.value:
-            self.resource = self.client. \
-                put_linked_resource(self.parent_resource,
-                                    RelationType.CONTROL_ACCESS,
-                                    EntityType.CONTROL_ACCESS_PARAMS.value,
-                                    control_access_params)
+            self.resource = self.client.put_resource(
+                self.parent_resource.get('href') + '/action/controlAccess/',
+                control_access_params, EntityType.CONTROL_ACCESS_PARAMS.value)
         else:
-            self.resource = self.client. \
-                post_linked_resource(self.parent_resource,
-                                     RelationType.CONTROL_ACCESS,
-                                     EntityType.CONTROL_ACCESS_PARAMS.value,
-                                     control_access_params)
+            self.resource = self.client.post_resource(
+                self.parent_resource.get('href') + '/action/controlAccess/',
+                control_access_params, EntityType.CONTROL_ACCESS_PARAMS.value)
         return self.resource
 
     def get_access_settings(self):

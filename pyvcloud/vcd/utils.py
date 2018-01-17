@@ -135,7 +135,7 @@ def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
     n = 0
     for item in items:
         n += 1
-        network_name = item.get('{http://schemas.dmtf.org/ovf/envelope/1}name')
+        network_name = item.get('{' + NSMAP['ovf'] + '}name')
         result['vapp-net-%s' % n] = network_name
         if hasattr(vapp, 'NetworkConfigSection'):
             for nc in vapp.NetworkConfigSection.NetworkConfig:

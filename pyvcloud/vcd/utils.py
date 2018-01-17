@@ -72,17 +72,26 @@ def vdc_to_dict(vdc, access_control_settings=None):
             'allocated': str(vdc.ComputeCapacity.Cpu.Allocated),
             'limit': str(vdc.ComputeCapacity.Cpu.Limit),
             'reserved': str(vdc.ComputeCapacity.Cpu.Reserved),
-            'used': str(vdc.ComputeCapacity.Cpu.Used),
-            'overhead': str(vdc.ComputeCapacity.Cpu.Overhead)
+            'used': str(vdc.ComputeCapacity.Cpu.Used)
         }
+        if hasattr(vdc.ComputeCapacity.Cpu, 'Overhead'):
+            result['cpu_capacity'] = str(vdc.ComputeCapacity.Cpu.Overhead)
         result['mem_capacity'] = {
-            'units': str(vdc.ComputeCapacity.Memory.Units),
-            'allocated': str(vdc.ComputeCapacity.Memory.Allocated),
-            'limit': str(vdc.ComputeCapacity.Memory.Limit),
-            'reserved': str(vdc.ComputeCapacity.Memory.Reserved),
-            'used': str(vdc.ComputeCapacity.Memory.Used),
-            'overhead': str(vdc.ComputeCapacity.Memory.Overhead)
+            'units':
+            str(vdc.ComputeCapacity.Memory.Units),
+            'allocated':
+            str(vdc.ComputeCapacity.Memory.Allocated),
+            'limit':
+            str(vdc.ComputeCapacity.Memory.Limit),
+            'reserved':
+            str(vdc.ComputeCapacity.Memory.Reserved),
+            'used':
+            humanfriendly.format_size(
+                int(str(vdc.ComputeCapacity.Memory.Used)) * humanfriendly.
+                parse_size('1 %s' % str(vdc.ComputeCapacity.Memory.Units)))
         }
+        if hasattr(vdc.ComputeCapacity.Memory, 'Overhead'):
+            result['mem_capacity'] = str(vdc.ComputeCapacity.Memory.Overhead)
     if hasattr(vdc, 'AllocationModel'):
         result['allocation_model'] = str(vdc.AllocationModel)
     if hasattr(vdc, 'VmQuota'):
@@ -135,7 +144,7 @@ def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
     n = 0
     for item in items:
         n += 1
-        network_name = item.get('{http://schemas.dmtf.org/ovf/envelope/1}name')
+        network_name = item.get('{' + NSMAP['ovf'] + '}name')
         result['vapp-net-%s' % n] = network_name
         if hasattr(vapp, 'NetworkConfigSection'):
             for nc in vapp.NetworkConfigSection.NetworkConfig:

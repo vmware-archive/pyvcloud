@@ -1,15 +1,29 @@
 vcd:
-  host: vcd-host.vmware.com
-  org: org1
-  user: usr1
-  storage_profile: 'Silver Storage'
-  disk: Disk1
-  password: 'pa$$w0rd'
+  host: bos1-vcd-sp-static-202-34.eng.vmware.com
+  org: System
+  user: administrator
+  password: '********'
   api_version: '29.0'
   catalog: 'cse'
-  template: 'k8s-u.ova'
+  template: 'ubuntu-16.04-server-cloudimg-amd64.ova'
+  vm: 'ubuntu-xenial-16.04-cloudimg-20171011'
+  local_template: '/Users/vmware/sw/photon-custom-hw10-1.0-62c543d.ova'
+  org_to_use: org1
+  vdc: vdc1
+  new_vdc: v2
+  network: global
+  vapp: kp
+  vm: node-t59b
+  cpu: 1
+  cores_per_socket: 1
+  memory: 1024
+  fence_mode: bridged
   verify: False
-  role_name: System Administrator
-  user_name: TestUser-
-  org_name: TestOrg
-  org_full_name: TestOrgFullName
+  disable_ssl_warnings: True
+  provider_vdc: pvdc-2017-11-28-14-47-16.712
+  network_pool: pvdc-2017-11-28-14-47-16.712-VXLAN-NP
+  storage_profile: '*'
+  hostname: ubuntu
+  ip_allocation_mode: dhcp
+  extension_name: cse
+  vcenter: vc1

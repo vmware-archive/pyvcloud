@@ -560,7 +560,7 @@ class Org(object):
         return self.client.delete_resource(user.get('href'))
 
     def get_role_resource(self, role_name):
-        """ Retrieves resource of a given role.
+        """Retrieves resource of a given role.
 
         :param role_name: name of the role
 
@@ -650,7 +650,8 @@ class Org(object):
             org_rights_resource = self.client.get_resource(
                 org_admin_resource.RightReferences.get('href'))
             if hasattr(org_rights_resource, 'RightReference'):
-                for right_reference in list(org_rights_resource.RightReference):
+                for right_reference in \
+                        list(org_rights_resource.RightReference):
                     for right in rights:
                         if right_reference.get('name') == right:
                             org_rights_resource.remove(right_reference)
@@ -663,7 +664,7 @@ class Org(object):
         return org_rights_resource
 
     def get_right_resource(self, right_name):
-        """ Retrieves resource of a given right.
+        """Retrieves resource of a given right.
 
         :param right_name: name of the right
 

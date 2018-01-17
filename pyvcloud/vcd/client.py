@@ -285,9 +285,11 @@ class MissingLinkException(LinkException):
     def __init__(self, href, rel, media_type):
         super(MissingLinkException, self).__init__(href, rel, media_type)
 
+
 class VcdErrorException(Exception):
     def __init__(self, status_code):
         self.status_code = status_code
+
 
 class VcdErrorResponseException(VcdErrorException):
     def __init__(self, status_code, request_id, vcd_error):

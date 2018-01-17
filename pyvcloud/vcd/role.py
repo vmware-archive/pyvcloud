@@ -111,7 +111,8 @@ class Role(object):
             for right_reference in list(right_references):
                 for right in rights:
                     if right_reference.get('name') == right:
-                        updated_resource.RightReferences.remove(right_reference)
+                        updated_resource.RightReferences\
+                            .remove(right_reference)
                         break
         return self.client.put_resource(
             self.href, updated_resource, EntityType.ROLE.value)

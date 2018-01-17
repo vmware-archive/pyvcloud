@@ -638,7 +638,8 @@ class Org(object):
             org_rights_resource = self.client.get_resource(
                 org_admin_resource.RightReferences.get('href'))
             if hasattr(org_rights_resource, 'RightReference'):
-                for right_reference in list(org_rights_resource.RightReference):
+                for right_reference in \
+                        list(org_rights_resource.RightReference):
                     for right in rights:
                         if right_reference.get('name') == right:
                             org_rights_resource.remove(right_reference)

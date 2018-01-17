@@ -22,7 +22,6 @@ import traceback
 
 from lxml import etree
 from lxml import objectify
-import os
 from pyvcloud.vcd.acl import Acl
 from pyvcloud.vcd.client import _TaskMonitor
 from pyvcloud.vcd.client import E
@@ -596,9 +595,8 @@ class Org(object):
         for r in list(query.execute()):
             result.append(
                 to_dict(
-                    r,
-                    resource_type=resource_type,
-                    exclude=['org', 'orgName']))
+                    r, resource_type=resource_type, exclude=['org',
+                                                             'orgName']))
         return result
 
     def get_right(self, right_name):
@@ -646,7 +644,8 @@ class Org(object):
         acl = Acl(self.client, catalog_resource)
         return acl.get_access_settings()
 
-    def add_catalog_access_settings(self, catalog_name,
+    def add_catalog_access_settings(self,
+                                    catalog_name,
                                     access_settings_list=None):
         """Add access settings to a particular catalog.
 
@@ -666,7 +665,8 @@ class Org(object):
         acl = Acl(self.client, catalog_resource)
         return acl.add_access_settings(access_settings_list)
 
-    def remove_catalog_access_settings(self, catalog_name,
+    def remove_catalog_access_settings(self,
+                                       catalog_name,
                                        access_settings_list=None,
                                        remove_all=False):
         """Remove access settings from a particular catalog.
@@ -687,7 +687,8 @@ class Org(object):
         acl = Acl(self.client, catalog_resource)
         return acl.remove_access_settings(access_settings_list, remove_all)
 
-    def share_catalog_with_org_members(self, catalog_name,
+    def share_catalog_with_org_members(self,
+                                       catalog_name,
                                        everyone_access_level='ReadOnly'):
         """Share the catalog to all members of the organization.
 

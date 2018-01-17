@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
 from copy import deepcopy
 
 from lxml import etree
@@ -214,7 +213,6 @@ class VApp(object):
         :raises: Exception: If the named VM cannot be located or another error
             occurs.
         """
-
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
             E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
@@ -237,7 +235,6 @@ class VApp(object):
         :raises: Exception: If the named VM cannot be located or another error
             occurs.
         """
-
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
             E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
@@ -252,7 +249,6 @@ class VApp(object):
         :return: ([vmType])  A array of :class:`lxml.objectify.StringElement`
             object describing the requested VMs.
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         if hasattr(self.resource, 'Children') and \
@@ -269,7 +265,6 @@ class VApp(object):
         :return: (vmType)  A :class:`lxml.objectify.StringElement` object
             describing the requested VM.
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         for vm in self.get_all_vms():
@@ -291,7 +286,6 @@ class VApp(object):
         :raises: Exception: If the named VM cannot be located or another error
             occured.
         """
-
         vm = self.get_vm(vm_name)
         disk_list = self.client.get_resource(
             vm.get('href') + '/virtualHardwareSection/disks')
@@ -388,7 +382,6 @@ class VApp(object):
         :return:  A :class:`lxml.objectify.StringElement` object with the list
             of vApp networks.
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         return self.resource.xpath(
@@ -406,7 +399,6 @@ class VApp(object):
         :return:  A :class:`string` with the name of the requested network if
             exists.
         """
-
         networks = self.get_all_networks()
         if networks is None or len(networks) < index + 1:
             raise Exception('Can\'t find the specified vApp network')
@@ -436,7 +428,6 @@ class VApp(object):
             representing the 'SourcedItem' xml object created from the
             specification.
         """
-
         source_vapp = VApp(self.client, resource=spec['vapp'])
         source_vm_resource = source_vapp.get_vm(spec['source_vm_name'])
 
@@ -534,7 +525,6 @@ class VApp(object):
             sparsely populated vApp element.
 
         """
-
         params = E.RecomposeVAppParams(
             deploy='true' if deploy else 'false',
             powerOn='true' if power_on else 'false')
@@ -555,7 +545,6 @@ class VApp(object):
         :return:  A :class:`lxml.objectify.StringElement` object representing a
             sparsely populated vApp element.
         """
-
         params = E.RecomposeVAppParams()
         for name in names:
             vm = self.get_vm(name)

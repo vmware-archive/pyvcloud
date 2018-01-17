@@ -18,9 +18,9 @@ from pyvcloud.vcd.acl import Acl
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import get_admin_extension_href
 from pyvcloud.vcd.utils import get_admin_href
@@ -125,7 +125,6 @@ class VDC(object):
         :return:  A :class:`lxml.objectify.StringElement` object describing the
             new vApp.
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -342,8 +341,10 @@ class VDC(object):
             for resource in self.resource.ResourceEntities.ResourceEntity:
                 if entity_type is None or \
                    entity_type.value == resource.get('type'):
-                    result.append({'name': resource.get('name'),
-                                   'type': resource.get('type')})
+                    result.append({
+                        'name': resource.get('name'),
+                        'type': resource.get('type')
+                    })
         return result
 
     def list_edge_gateways(self):
@@ -358,17 +359,20 @@ class VDC(object):
                                                 EntityType.RECORDS.value)
         edge_gateways = []
         for e in links.EdgeGatewayRecord:
-            edge_gateways.append({'name': e.get('name'), 'href': e.get('href')})
+            edge_gateways.append({
+                'name': e.get('name'),
+                'href': e.get('href')
+            })
         return edge_gateways
 
     def create_disk(self,
-                 name,
-                 size,
-                 bus_type=None,
-                 bus_sub_type=None,
-                 description=None,
-                 storage_profile_name=None,
-                 iops=None):
+                    name,
+                    size,
+                    bus_type=None,
+                    bus_sub_type=None,
+                    description=None,
+                    storage_profile_name=None,
+                    iops=None):
         """Request the creation of an indendent disk.
 
         :param name: (str): The name of the new disk.
@@ -400,10 +404,11 @@ class VDC(object):
 
         if storage_profile_name is not None:
             storage_profile = self.get_storage_profile(storage_profile_name)
-            disk_params.Disk.append(E.StorageProfile(
-                name=storage_profile_name,
-                href=storage_profile.get('href'),
-                type=storage_profile.get('type')))
+            disk_params.Disk.append(
+                E.StorageProfile(
+                    name=storage_profile_name,
+                    href=storage_profile.get('href'),
+                    type=storage_profile.get('type')))
 
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD,
@@ -458,10 +463,11 @@ class VDC(object):
 
         if new_storage_profile_name is not None:
             new_sp = self.get_storage_profile(new_storage_profile_name)
-            disk_params.append(E.StorageProfile(
-                name=new_storage_profile_name,
-                href=new_sp.get('href'),
-                type=new_sp.get('type')))
+            disk_params.append(
+                E.StorageProfile(
+                    name=new_storage_profile_name,
+                    href=new_sp.get('href'),
+                    type=new_sp.get('type')))
 
         if new_iops is not None:
             disk_params.set('iops', str(new_iops))
@@ -553,8 +559,8 @@ class VDC(object):
                         result = disk
                     else:
                         raise Exception('Found multiple disks with name %s'
-                                        ', please identify disk via disk-id.'
-                                        % disk.get('name'))
+                                        ', please identify disk via disk-id.' %
+                                        disk.get('name'))
         if result is None:
             raise Exception('No disk found with the given name/id.')
         else:
@@ -573,7 +579,6 @@ class VDC(object):
         :raises: Exception: If the named disk cannot be located or some \
             other error occurs.
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -631,7 +636,6 @@ class VDC(object):
         :param is_enabled: (bool): enable/disable the vdc
         :return: (OrgVdcType) updated vdc object.
         """
-
         resource_admin = self.client.get_resource(self.href_admin)
         link = RelationType.ENABLE if enable else RelationType.DISABLE
         return self.client.post_linked_resource(resource_admin, link, None,
@@ -654,8 +658,8 @@ class VDC(object):
         """Get the access settings of the vdc.
 
        :return:  A :class:`lxml.objectify.StringElement` object representing
-            the access settings of the vdc.
-        """
+        the access settings of the vdc.
+       """
         acl = Acl(self.client, self.get_resource())
         return acl.get_access_settings()
 
@@ -672,7 +676,7 @@ class VDC(object):
         :return:  A :class:`lxml.objectify.StringElement` object representing
         the updated access control setting of the vdc.
         """
-        acl = Acl(self.client,  self.get_resource())
+        acl = Acl(self.client, self.get_resource())
         return acl.add_access_settings(access_settings_list)
 
     def remove_access_settings(self,
@@ -702,7 +706,7 @@ class VDC(object):
         :return:  A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the vdc.
         """
-        acl = Acl(self.client,  self.get_resource())
+        acl = Acl(self.client, self.get_resource())
         return acl.share_with_org_members(everyone_access_level)
 
     def unshare_from_org_members(self):
@@ -714,7 +718,7 @@ class VDC(object):
         :return:  A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the vdc.
         """
-        acl = Acl(self.client,  self.get_resource())
+        acl = Acl(self.client, self.get_resource())
         return acl.unshare_from_org_members()
 
     def create_vapp(self,
@@ -827,7 +831,5 @@ class VDC(object):
             request_payload.append(E.IsShared(is_shared))
 
         return self.client.post_linked_resource(
-            resource_admin,
-            RelationType.ADD,
-            EntityType.ORG_VDC_NETWORK.value,
+            resource_admin, RelationType.ADD, EntityType.ORG_VDC_NETWORK.value,
             request_payload)

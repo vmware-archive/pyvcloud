@@ -149,7 +149,6 @@ class Acl(object):
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the resource.
-
         """
         self.resource = self.get_resource()
 
@@ -182,9 +181,9 @@ class Acl(object):
                         subject_name, subject_type,
                         old_access_settings_params)
                 if matched_access_setting is None:
-                    raise Exception(
-                        'Subject \'%s:%s\' not found in the '
-                        'existing acl' % (subject_type, subject_name))
+                    raise Exception('Subject \'%s:%s\' not found in the '
+                                    'existing acl' % (subject_type,
+                                                      subject_name))
                 else:
                     old_access_settings_params.remove(matched_access_setting)
             # appending the the modified old_access_settings_params to
@@ -219,8 +218,8 @@ class Acl(object):
             else:
                 # EveryoneAccessLevel should be just after IsSharedToEveryone
                 # (first element) in case there are any AccessSettings
-                control_access_params.insert(1, E.EveryoneAccessLevel(
-                    everyone_access_level))
+                control_access_params.insert(
+                    1, E.EveryoneAccessLevel(everyone_access_level))
 
         return self.update_resource(control_access_params)
 
@@ -246,7 +245,7 @@ class Acl(object):
         return self.update_resource(control_access_params)
 
     def convert_access_settings_list_to_params(self, access_settings_list):
-        """Convert access_settings_list to object of type AccessSettingsType
+        """Convert access_settings_list to object of type AccessSettingsType.
 
         :param access_settings_list: (list of dict): list of access_setting
             in the dict format. Each dict contains:
@@ -264,14 +263,12 @@ class Acl(object):
             if access_setting["type"] == 'user':
                 org_href = self.get_org_href()
                 subject_href = self.client.get_user_in_org(
-                    access_setting['name'],
-                    org_href).get('href')
+                    access_setting['name'], org_href).get('href')
                 subject_type = EntityType.USER.value
             elif access_setting["type"] == 'org':
                 subject_href = get_admin_href(
                     self.client.get_org_by_name(
-                        access_setting['name']).get(
-                        'href'))
+                        access_setting['name']).get('href'))
                 subject_type = EntityType.ADMIN_ORG.value
             else:
                 raise Exception("Invalid subject type")
@@ -283,11 +280,9 @@ class Acl(object):
             else:
                 access_level = 'ReadOnly'
             access_setting_params = E.AccessSetting(
-                E.Subject(name=subject_name,
-                          href=subject_href,
-                          type=subject_type),
-                E.AccessLevel(access_level)
-            )
+                E.Subject(
+                    name=subject_name, href=subject_href, type=subject_type),
+                E.AccessLevel(access_level))
             access_settings_params.append(access_setting_params)
         return access_settings_params
 
@@ -300,17 +295,17 @@ class Acl(object):
             # for vapp, have to get the org via vdc
             vdc_href = find_link(self.parent_resource, RelationType.UP,
                                  EntityType.VDC.value).href
-            return find_link(self.client.get_resource(vdc_href),
-                             RelationType.UP, EntityType.ORG.value).href
+            return find_link(
+                self.client.get_resource(vdc_href), RelationType.UP,
+                EntityType.ORG.value).href
         else:
             return find_link(self.parent_resource, RelationType.UP,
                              EntityType.ORG.value).href
 
     @staticmethod
-    def search_for_access_setting_by_subject(subject_name,
-                                             subject_type,
+    def search_for_access_setting_by_subject(subject_name, subject_type,
                                              access_settings_params):
-        """Search AccessSetting object based on the subject name and type
+        """Search AccessSetting object based on the subject name and type.
 
         :param subject_name: (str): name of the subject
         :param subject_type: (str): type of the subject. One of 'org', 'user'
@@ -320,8 +315,10 @@ class Acl(object):
         :return:  A :class:`lxml.objectify.StringElement` object
             representing a access setting matching the given subject.
         """
-        subject_type_to_entity_dict = {'user': EntityType.USER.value,
-                                       'org': EntityType.ADMIN_ORG.value}
+        subject_type_to_entity_dict = {
+            'user': EntityType.USER.value,
+            'org': EntityType.ADMIN_ORG.value
+        }
         if hasattr(access_settings_params, 'AccessSetting'):
             for access_setting_params in \
                     access_settings_params.AccessSetting:

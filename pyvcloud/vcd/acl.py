@@ -38,8 +38,9 @@ class Acl(object):
 
     def get_resource(self):
         if self.resource is None:
-            self.resource = self.client.get_resource(
-                self.parent_resource.get('href') + '/controlAccess/')
+            self.resource = self.client.get_linked_resource(
+                self.parent_resource, RelationType.DOWN,
+                EntityType.CONTROL_ACCESS_PARAMS.value)
         return self.resource
 
     def update_resource(self, control_access_params):
@@ -52,13 +53,17 @@ class Acl(object):
         """
         # vdc acl is updated though PUT instead of POST
         if self.parent_resource.attrib.get('type') == EntityType.VDC.value:
-            self.resource = self.client.put_resource(
-                self.parent_resource.get('href') + '/action/controlAccess/',
-                control_access_params, EntityType.CONTROL_ACCESS_PARAMS.value)
+            self.resource = self.client. \
+                put_linked_resource(self.parent_resource,
+                                    RelationType.CONTROL_ACCESS,
+                                    EntityType.CONTROL_ACCESS_PARAMS.value,
+                                    control_access_params)
         else:
-            self.resource = self.client.post_resource(
-                self.parent_resource.get('href') + '/action/controlAccess/',
-                control_access_params, EntityType.CONTROL_ACCESS_PARAMS.value)
+            self.resource = self.client. \
+                post_linked_resource(self.parent_resource,
+                                     RelationType.CONTROL_ACCESS,
+                                     EntityType.CONTROL_ACCESS_PARAMS.value,
+                                     control_access_params)
         return self.resource
 
     def get_access_settings(self):
@@ -190,7 +195,7 @@ class Acl(object):
 
         return self.update_resource(control_access_params)
 
-    def share_access(self, everyone_access_level='ReadOnly'):
+    def share_with_org_members(self, everyone_access_level='ReadOnly'):
         """Share the resource to all members of the organization.
 
         :param everyone_access_level: (str) : access level when sharing the
@@ -219,7 +224,7 @@ class Acl(object):
 
         return self.update_resource(control_access_params)
 
-    def unshare_access(self):
+    def unshare_from_org_members(self):
         """Unshare the resource from all members of current organization.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing

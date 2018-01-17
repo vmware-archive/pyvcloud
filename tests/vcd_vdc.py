@@ -110,7 +110,7 @@ class TestVDC(TestCase):
         org = Org(self.client, resource=logged_in_org)
         vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, resource=vdc_resource)
-        vdc.share_access()
+        vdc.share_with_org_members()
         control_access = vdc.remove_access_settings(remove_all=True)
         self.assertFalse(hasattr(control_access, 'AccessSettings'))
 
@@ -151,7 +151,7 @@ class TestVDC(TestCase):
         org = Org(self.client, resource=logged_in_org)
         vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, resource=vdc_resource)
-        control_access = vdc.share_access()
+        control_access = vdc.share_with_org_members()
         assert control_access.IsSharedToEveryone.text == 'true'
         assert control_access.EveryoneAccessLevel.text == 'ReadOnly'
 
@@ -160,7 +160,7 @@ class TestVDC(TestCase):
         org = Org(self.client, resource=logged_in_org)
         vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, resource=vdc_resource)
-        control_access = vdc.unshare_access()
+        control_access = vdc.unshare_from_org_members()
         assert control_access.IsSharedToEveryone.text == 'false'
 
     def test_10_remove_last_vdc_access(self):
@@ -168,7 +168,7 @@ class TestVDC(TestCase):
         org = Org(self.client, resource=logged_in_org)
         vdc_resource = org.get_vdc(self.config['vcd']['vdc'])
         vdc = VDC(self.client, resource=vdc_resource)
-        vdc.share_access()
+        vdc.share_with_org_members()
         control_access = vdc.remove_access_settings(
             access_settings_list=[
                 {'name': self.config['vcd']['access_user1'], 'type': 'user'}

@@ -360,7 +360,7 @@ class VApp(object):
         acl = Acl(self.client, self.get_resource())
         return acl.remove_access_settings(access_settings_list, remove_all)
 
-    def share_access(self, everyone_access_level='ReadOnly'):
+    def share_with_org_members(self, everyone_access_level='ReadOnly'):
         """Share the vapp to all members of the organization.
 
         :param everyone_access_level: (str) : access level when sharing the
@@ -371,16 +371,16 @@ class VApp(object):
             the updated access control setting of the vapp.
         """
         acl = Acl(self.client, self.get_resource())
-        return acl.share_access(everyone_access_level)
+        return acl.share_with_org_members(everyone_access_level)
 
-    def unshare_access(self):
+    def unshare_from_org_members(self):
         """Unshare the vapp from all members of current organization.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the vapp.
         """
         acl = Acl(self.client, self.get_resource())
-        return acl.unshare_access()
+        return acl.unshare_from_org_members()
 
     def get_all_networks(self):
         """Helper method that returns the list of networks defined in the vApp.

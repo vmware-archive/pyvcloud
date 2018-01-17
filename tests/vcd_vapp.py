@@ -256,7 +256,8 @@ class TestVApp(TestCase):
         vdc = VDC(self.client, resource=vdc_resource)
         vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
         vapp = VApp(self.client, resource=vapp_resource)
-        control_access = vapp.share_access(everyone_access_level='ReadOnly')
+        control_access = vapp.share_with_org_members(
+            everyone_access_level='ReadOnly')
         assert control_access.IsSharedToEveryone.text == 'true'
         assert control_access.EveryoneAccessLevel.text == 'ReadOnly'
 
@@ -267,7 +268,7 @@ class TestVApp(TestCase):
         vdc = VDC(self.client, resource=vdc_resource)
         vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
         vapp = VApp(self.client, resource=vapp_resource)
-        control_access = vapp.unshare_access()
+        control_access = vapp.unshare_from_org_members()
         assert control_access.IsSharedToEveryone.text == 'false'
 
 

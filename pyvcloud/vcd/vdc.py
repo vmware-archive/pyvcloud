@@ -692,7 +692,7 @@ class VDC(object):
         acl = Acl(self.client, self.get_resource())
         return acl.remove_access_settings(access_settings_list, remove_all)
 
-    def share_access(self, everyone_access_level='ReadOnly'):
+    def share_with_org_members(self, everyone_access_level='ReadOnly'):
         """Share the vdc to all members of the organization.
 
         :param everyone_access_level: (str) : access level when sharing the
@@ -702,9 +702,9 @@ class VDC(object):
             the updated access control setting of the vdc.
         """
         acl = Acl(self.client,  self.get_resource())
-        return acl.share_access(everyone_access_level)
+        return acl.share_with_org_members(everyone_access_level)
 
-    def unshare_access(self):
+    def unshare_from_org_members(self):
         """Unshare the vdc from all members of current organization.
 
         Should give individual access to at least one user before unsharing
@@ -714,7 +714,7 @@ class VDC(object):
             the updated access control setting of the vdc.
         """
         acl = Acl(self.client,  self.get_resource())
-        return acl.unshare_access()
+        return acl.unshare_from_org_members()
 
     def create_vapp(self,
                     name,

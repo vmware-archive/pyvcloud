@@ -687,8 +687,8 @@ class Org(object):
         acl = Acl(self.client, catalog_resource)
         return acl.remove_access_settings(access_settings_list, remove_all)
 
-    def share_catalog_access(self, catalog_name,
-                             everyone_access_level='ReadOnly'):
+    def share_catalog_with_org_members(self, catalog_name,
+                                       everyone_access_level='ReadOnly'):
         """Share the catalog to all members of the organization.
 
         :param catalog_name: (str): catalog name whose access should be
@@ -702,9 +702,9 @@ class Org(object):
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
-        return acl.share_access(everyone_access_level)
+        return acl.share_with_org_members(everyone_access_level)
 
-    def unshare_catalog_access(self, catalog_name):
+    def unshare_catalog_with_org_members(self, catalog_name):
         """Unshare the catalog from all members of current organization.
 
         :param catalog_name: (str): catalog name whose access should be
@@ -715,7 +715,7 @@ class Org(object):
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
-        return acl.unshare_access()
+        return acl.unshare_from_org_members()
 
     def change_catalog_owner(self, catalog_name, user_name):
         """Change the ownership of Catalog to a given user

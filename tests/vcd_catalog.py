@@ -101,7 +101,7 @@ class TestCatalog(TestCase):
         org_in_use = self.client.get_org_by_name(
             self.config['vcd']['org_in_use'])
         org = Org(self.client, resource=org_in_use)
-        control_access = org.share_catalog_access(
+        control_access = org.share_catalog_with_org_members(
             self.config['vcd']['catalog'],
             everyone_access_level='ReadOnly')
         assert control_access.IsSharedToEveryone.text == 'true'
@@ -111,7 +111,7 @@ class TestCatalog(TestCase):
         org_in_use = self.client.get_org_by_name(
             self.config['vcd']['org_in_use'])
         org = Org(self.client, resource=org_in_use)
-        control_access = org.unshare_catalog_access(
+        control_access = org.unshare_catalog_with_org_members(
             self.config['vcd']['catalog'])
         assert control_access.IsSharedToEveryone.text == 'false'
 

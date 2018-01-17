@@ -157,3 +157,17 @@ class VM(object):
             self.resource = self.client.get_resource(self.href)
         return int(
             self.resource.VmSpecSection.MemoryResourceMb.Configured.text)
+
+    def get_vc(self):
+        """Returns the vCenter where this VM is located
+
+        :return: (str): Name of the vCenter
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        for record in self.resource.VCloudExtension[
+                '{' + NSMAP['vmext'] + '}VmVimInfo'].iterchildren():
+            if hasattr(record, '{' + NSMAP['vmext'] + '}VimObjectType'):
+                if 'VIRTUAL_MACHINE' == record.VimObjectType.text:
+                    return record.VimServerRef.get('name')
+        return None

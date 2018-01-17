@@ -13,93 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyvcloud.vcd.client import E_VMEXT
-from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.client import QueryResultFormat
-from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.utils import to_dict
-
 
 class Extension(object):
 
-    TYPE_NAME = 'adminService'
-    ATTRIBUTES = [
-        'name', 'namespace', 'enabled', 'exchange', 'routingKey', 'priority',
-        'isAuthorizationEnabled', 'href', 'id'
-    ]
-
     def __init__(self, client):
         self.client = client
+        self.resource = None
 
-    def list_extensions(self):
-        query = self.client.get_typed_query(
-            self.TYPE_NAME, query_result_format=QueryResultFormat.ID_RECORDS)
-        return [to_dict(r, self.ATTRIBUTES) for r in query.execute()]
-
-    def get_extension(self, name):
-        ext = self.client.get_typed_query(
-            self.TYPE_NAME,
-            equality_filter=('name', name),
-            query_result_format=QueryResultFormat.ID_RECORDS).find_unique()
-        return to_dict(ext, self.ATTRIBUTES)
-
-    def get_api_filters(self, service_id):
-        """Return the API filters defined for the service.
-
-        :param service_id: (str): The id of the extension service.
-        :return: (lxml.objectify.ObjectifiedElement): list with the API filters
-            registered for the API extension.
-        """
-        return self.client.get_typed_query(
-            'apiFilter',
-            equality_filter=('service', service_id),
-            query_result_format=QueryResultFormat.ID_RECORDS).execute()
-
-    def get_extension_info(self, name):
-        """Return the info about an API extension.
-
-        :param name: (str): The name of the extension service.
-        :return: (dict): dictionary with the information about the extension.
-        """
-        ext = self.get_extension(name)
-        filters = self.get_api_filters(ext['id'])
-        n = 1
-        for f in filters:
-            ext['filter_%s' % n] = f.get('urlPattern')
-            n += 1
-        return ext
-
-    def add_extension(self, name, namespace, routing_key, exchange, patterns):
-        params = E_VMEXT.Service({'name': name})
-        params.append(E_VMEXT.Namespace(namespace))
-        params.append(E_VMEXT.Enabled('true'))
-        params.append(E_VMEXT.RoutingKey(routing_key))
-        params.append(E_VMEXT.Exchange(exchange))
-        filters = E_VMEXT.ApiFilters()
-        for pattern in patterns:
-            filters.append(
-                E_VMEXT.ApiFilter(E_VMEXT.UrlPattern(pattern.strip())))
-        params.append(filters)
-        ext = self.client.get_extension()
-        ext_services = self.client.get_linked_resource(
-            ext, RelationType.DOWN, EntityType.EXTENSION_SERVICES.value)
-        return self.client.post_linked_resource(ext_services, RelationType.ADD,
-                                                EntityType.ADMIN_SERVICE.value,
-                                                params)
-
-    def enable_extension(self, name, enabled=True):
-        record = self.client.get_typed_query(
-            self.TYPE_NAME,
-            equality_filter=('name', name),
-            query_result_format=QueryResultFormat.RECORDS).find_unique()
-        params = E_VMEXT.Service({'name': name})
-        params.append(E_VMEXT.Namespace(record.get('namespace')))
-        params.append(E_VMEXT.Enabled('true' if enabled else 'false'))
-        params.append(E_VMEXT.RoutingKey(record.get('routingKey')))
-        params.append(E_VMEXT.Exchange(record.get('exchange')))
-        self.client.put_resource(record.get('href'), params, None)
-        return record.get('href')
-
-    def delete_extension(self, name):
-        href = self.enable_extension(name, enabled=False)
-        return self.client.delete_resource(href)
+    def get_resource(self):
+        if self.resource is None:
+            self.resource = self.client.get_extension()
+        return self.resource

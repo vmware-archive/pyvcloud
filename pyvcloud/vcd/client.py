@@ -228,6 +228,7 @@ class EntityType(Enum):
     VAPP_TEMPLATE = 'application/vnd.vmware.vcloud.vAppTemplate+xml'
     VDC = 'application/vnd.vmware.vcloud.vdc+xml'
     VDCS_PARAMS = 'application/vnd.vmware.admin.createVdcParams+xml'
+    VIM_SERVER_REFS = 'application/vnd.vmware.admin.vmwVimServerReferences+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'
 
 
@@ -240,7 +241,6 @@ class QueryResultFormat(Enum):
 
 
 class _WellKnownEndpoint(Enum):
-    # ENTITY_RESOLVER = ()
     LOGGED_IN_ORG = (RelationType.DOWN, EntityType.ORG.value)
     ORG_VDC = (RelationType.DOWN, EntityType.VDC.value)
     ORG_NETWORK = (RelationType.DOWN, EntityType.ORG_NETWORK.value)
@@ -922,9 +922,9 @@ class Client(object):
         if wk_type in self._session_endpoints:
             return self._session_endpoints[wk_type]
         else:
-            raise Exception('Endpoint of type \'%s\' not found, please login '\
-                            'with the necessary credentials and access level.'
-                      % wk_type.value[1])
+            raise Exception(
+                'The current user does not have access to the resource (%s).'
+                % str(wk_type).split('.')[-1])
 
 
 def find_link(resource, rel, media_type, fail_if_absent=True):

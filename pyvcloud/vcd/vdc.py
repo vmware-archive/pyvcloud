@@ -26,7 +26,6 @@ from pyvcloud.vcd.utils import access_control_settings_to_dict
 from pyvcloud.vcd.utils import get_admin_extension_href
 from pyvcloud.vcd.utils import get_admin_href
 
-import pprint
 
 class VDC(object):
     def __init__(self, client, name=None, href=None, resource=None):
@@ -360,17 +359,20 @@ class VDC(object):
                                                 EntityType.RECORDS.value)
         edge_gateways = []
         for e in links.EdgeGatewayRecord:
-            edge_gateways.append({'name': e.get('name'), 'href': e.get('href')})
+            edge_gateways.append({
+                'name': e.get('name'),
+                'href': e.get('href')
+            })
         return edge_gateways
 
     def create_disk(self,
-                 name,
-                 size,
-                 bus_type=None,
-                 bus_sub_type=None,
-                 description=None,
-                 storage_profile_name=None,
-                 iops=None):
+                    name,
+                    size,
+                    bus_type=None,
+                    bus_sub_type=None,
+                    description=None,
+                    storage_profile_name=None,
+                    iops=None):
         """Request the creation of an indendent disk.
 
         :param name: (str): The name of the new disk.
@@ -402,10 +404,11 @@ class VDC(object):
 
         if storage_profile_name is not None:
             storage_profile = self.get_storage_profile(storage_profile_name)
-            disk_params.Disk.append(E.StorageProfile(
-                name=storage_profile_name,
-                href=storage_profile.get('href'),
-                type=storage_profile.get('type')))
+            disk_params.Disk.append(
+                E.StorageProfile(
+                    name=storage_profile_name,
+                    href=storage_profile.get('href'),
+                    type=storage_profile.get('type')))
 
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD,
@@ -460,10 +463,11 @@ class VDC(object):
 
         if new_storage_profile_name is not None:
             new_sp = self.get_storage_profile(new_storage_profile_name)
-            disk_params.append(E.StorageProfile(
-                name=new_storage_profile_name,
-                href=new_sp.get('href'),
-                type=new_sp.get('type')))
+            disk_params.append(
+                E.StorageProfile(
+                    name=new_storage_profile_name,
+                    href=new_sp.get('href'),
+                    type=new_sp.get('type')))
 
         if new_iops is not None:
             disk_params.set('iops', str(new_iops))
@@ -555,8 +559,8 @@ class VDC(object):
                         result = disk
                     else:
                         raise Exception('Found multiple disks with name %s'
-                                        ', please identify disk via disk-id.'
-                                        % disk.get('name'))
+                                        ', please identify disk via disk-id.' %
+                                        disk.get('name'))
         if result is None:
             raise Exception('No disk found with the given name/id.')
         else:
@@ -724,15 +728,15 @@ class VDC(object):
 
     def create_directly_connected_vdc_network(self,
                                               network_name,
-                                              description,
                                               parent_network_name,
+                                              description=None,
                                               is_shared=None):
         """Create a new directly connected OrgVdc network in this VDC.
 
         :param network_name: (str): Name of the new network
-        :param description: (str): Description of the new network
         :param parent_network_name: (str): Name of the external network
             that the new network will be directly connected to
+        :param description: (str): Description of the new network
         :param is_shared: (bool): True, is the network is shared with \
             other VDC(s) in the organization else False
         :return: A :class:`lxml.objectify.StringElement` object representing
@@ -763,7 +767,8 @@ class VDC(object):
                             'Virtual Datacenter.' % parent_network_name)
 
         request_payload = E.OrgVdcNetwork(name=network_name)
-        request_payload.append(E.Description(description))
+        if description is not None:
+            request_payload.append(E.Description(description))
         vdc_network_configuration = E.Configuration()
         vdc_network_configuration.append(
             E.ParentNetwork(href=parent_network_href))
@@ -773,7 +778,97 @@ class VDC(object):
             request_payload.append(E.IsShared(is_shared))
 
         return self.client.post_linked_resource(
-            resource_admin,
-            RelationType.ADD,
-            EntityType.ORG_VDC_NETWORK.value,
+            resource_admin, RelationType.ADD, EntityType.ORG_VDC_NETWORK.value,
+            request_payload)
+
+    def create_isolated_vdc_network(self,
+                                    network_name,
+                                    gateway_ip,
+                                    netmask,
+                                    description=None,
+                                    primary_dns_ip=None,
+                                    secondary_dns_ip=None,
+                                    dns_suffix=None,
+                                    ip_range_start=None,
+                                    ip_range_end=None,
+                                    is_dhcp_enabled=None,
+                                    default_lease_time=None,
+                                    max_lease_time=None,
+                                    dhcp_ip_range_start=None,
+                                    dhcp_ip_range_end=None,
+                                    is_shared=None):
+        """Create a new isolated OrgVdc network in this VDC.
+
+        :param network_name: (str): Name of the new network
+        :param gateway_ip (str): IP address of the gateway of the new network
+        :param netmask (str): Network mask
+        :param description: (str): Description of the new network
+        :param primary_dns_ip (str): IP address of primary DNS server.
+        :param secondary_dns_ip (str): IP address of secondary DNS Server
+        :param dns_suffix (str): DNS suffix
+        :param ip_range_start (str): Start address of the IP ranges used for \
+            static pool allocation in the network
+        :param ip_range_end (str): End address of the IP ranges used for \
+            static pool allocation in the network
+        :param is_dhcp_enabled (bool): Is DHCP service enabled on the new \
+            network
+        :param default_lease_time (int): Default lease in seconds for DHCP \
+            addresses.
+        :param max_lease_time (int): Max lease in seconds for DHCP addresses
+        :param dhcp_ip_range_start (str): Start address of the IP range \
+            used for DHCP addresses
+        :param dhcp_ip_range_end (str): End address of the IP range used for \
+            DHCP addresses
+        :param is_shared: (bool): True, if the network is shared with other \
+            VDC(s) in the organization else False
+        :return: A :class:`lxml.objectify.StringElement` object representing
+            a sparsely populated OrgVdcNetwork element
+        """
+
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        request_payload = E.OrgVdcNetwork(name=network_name)
+        if description is not None:
+            request_payload.append(E.Description(description))
+
+        vdc_network_configuration = E.Configuration()
+        ip_scope = E.IpScope()
+        ip_scope.append(E.IsInherited('false'))
+        ip_scope.append(E.Gateway(gateway_ip))
+        ip_scope.append(E.Netmask(netmask))
+        if primary_dns_ip is not None:
+            ip_scope.append(E.Dns1(primary_dns_ip))
+        if secondary_dns_ip is not None:
+            ip_scope.append(E.Dns2(secondary_dns_ip))
+        if dns_suffix is not None:
+            ip_scope.append(E.DnsSuffix(dns_suffix))
+        if ip_range_start is not None and ip_range_end is not None:
+            ip_range = E.IpRange()
+            ip_range.append(E.StartAddress(ip_range_start))
+            ip_range.append(E.EndAddress(ip_range_end))
+            ip_scope.append(E.IpRanges(ip_range))
+        vdc_network_configuration.append(E.IpScopes(ip_scope))
+        vdc_network_configuration.append(E.FenceMode('isolated'))
+        request_payload.append(vdc_network_configuration)
+
+        dhcp_service = E.DhcpService()
+        if is_dhcp_enabled is not None:
+            dhcp_service.append(E.IsEnabled(is_dhcp_enabled))
+        if default_lease_time is not None:
+            dhcp_service.append(E.DefaultLeaseTime(str(default_lease_time)))
+        if max_lease_time is not None:
+            dhcp_service.append(E.MaxLeaseTime(str(max_lease_time)))
+        if dhcp_ip_range_start is not None and dhcp_ip_range_end is not None:
+            dhcp_ip_range = E.IpRange()
+            dhcp_ip_range.append(E.StartAddress(dhcp_ip_range_start))
+            dhcp_ip_range.append(E.EndAddress(dhcp_ip_range_end))
+            dhcp_service.append(dhcp_ip_range)
+        request_payload.append(E.ServiceConfig(dhcp_service))
+
+        if is_shared is not None:
+            request_payload.append(E.IsShared(is_shared))
+
+        return self.client.post_linked_resource(
+            self.resource, RelationType.ADD, EntityType.ORG_VDC_NETWORK.value,
             request_payload)

@@ -14,7 +14,7 @@
 
 import click
 
-from pyvcloud.vcd.extension import Extension
+from pyvcloud.vcd.api_extension import APIExtension
 
 from vcd_cli.system import system
 from vcd_cli.utils import restore_session
@@ -23,7 +23,7 @@ from vcd_cli.utils import stdout
 from vcd_cli.vcd import abort_if_false
 
 
-@system.group(short_help='manage extensions')
+@system.group(short_help='manage extension services')
 @click.pass_context
 def extension(ctx):
     """Manage Extension Services in vCloud Director.
@@ -47,7 +47,7 @@ def extension(ctx):
     if ctx.invoked_subcommand is not None:
         try:
             restore_session(ctx)
-            ctx.obj['ext'] = Extension(ctx.obj['client'])
+            ctx.obj['ext'] = APIExtension(ctx.obj['client'])
         except Exception as e:
             stderr(e, ctx)
 

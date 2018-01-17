@@ -47,9 +47,9 @@ def vm(ctx):
             stderr(e, ctx)
 
 
-@vm.command(short_help='list VMs')
+@vm.command('list', short_help='list VMs')
 @click.pass_context
-def list(ctx):
+def list_vms(ctx):
     try:
         raise Exception('not implemented')
     except Exception as e:

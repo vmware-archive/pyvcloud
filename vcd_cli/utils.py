@@ -11,6 +11,7 @@
 # code for the these subcomponents is subject to the terms and
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
+import collections
 import json
 import logging
 import re
@@ -26,6 +27,7 @@ from pygments import highlight
 from pygments import lexers
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.client import VcdErrorResponseException
 from pyvcloud.vcd.utils import extract_id
@@ -45,7 +47,8 @@ def is_sysadmin(ctx):
     return org_name == 'System'
 
 
-def as_table(obj_list, show_id=False, sort_headers=True):
+def as_table(obj_list, show_id=False, sort_headers=True,
+             hide_fields=['href', 'type']):
     if len(obj_list) == 0:
         return ''
     else:
@@ -55,9 +58,13 @@ def as_table(obj_list, show_id=False, sort_headers=True):
             headers = obj_list[0].keys()
         if not show_id and 'id' in headers:
             headers.remove('id')
+        for field in hide_fields:
+            if field in headers:
+                headers.remove(field)
         table = []
         for obj in obj_list:
-            table.append([obj[k] if k in obj.keys() else '' for k in headers])
+            table.append(
+                [obj.get(k) if k in obj.keys() else '' for k in headers])
         return tabulate(table, headers)
 
 
@@ -158,7 +165,7 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False, sort_headers=True):
             if 'task_href' in obj:
                 obj = ctx.obj['client'].get_resource(obj.get('task_href'))
             if isinstance(obj, ObjectifiedElement):
-                if obj.tag == '{http://www.vmware.com/vcloud/v1.5}Task':
+                if obj.tag == '{' + NSMAP['vcloud'] + '}Task':
                     if ctx is not None and \
                        hasattr(ctx.find_root().params, 'no_wait') and \
                        ctx.find_root().params['no_wait']:
@@ -187,6 +194,13 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False, sort_headers=True):
                                    (extract_id(task.get('id')),
                                     task.get('operation'),
                                     task.get('status'))
+                elif ctx.command.name == 'list' and \
+                    isinstance(obj, collections.Iterable):
+                    text = as_table(obj)
+                elif ctx.command.name == 'info':
+                    text = as_table([{'property': k, 'value': v} for k, v in
+                                    sorted(to_dict(obj).items())],
+                                    show_id=show_id)
                 else:
                     text = as_table(to_dict(obj), show_id=show_id)
             elif not isinstance(obj, list):

@@ -607,7 +607,7 @@ class Org(object):
         :param rights: (tuple): tuple of right names
 
         :return A :class:`lxml.objectify.StringElement` object representing
-        the updated Org rights resource.
+        the updated Org rights
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         org_rights = E.OrgRights()
@@ -630,7 +630,7 @@ class Org(object):
         :param rights: (tuple): tuple of right names
 
         :return A :class:`lxml.objectify.StringElement` object representing
-        the updated Org rights resource.
+        the updated Org rights
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         org_rights_resource = None
@@ -657,13 +657,14 @@ class Org(object):
         :param right_name: (str): The name of the right record to be retrieved
         :return: (dict): Right record in dict format
         """
-        right_record = self.list_all_rights(('name', right_name))
+        right_record = self.list_rights_available_in_system(
+            ('name', right_name))
         if len(right_record) < 1:
             raise Exception('Right \'%s\' does not exist.' % right_name)
         return right_record[0]
 
-    def list_all_rights(self, name_filter=None):
-        """Retrieves the list of all rights available
+    def list_rights_available_in_system(self, name_filter=None):
+        """Retrieves the list of all rights available in the System.
 
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
                              'right name'
@@ -685,7 +686,7 @@ class Org(object):
                     to_dict(r, resource_type=resource_type, exclude=[]))
         return result
 
-    def list_my_rights(self):
+    def list_rights_of_org(self):
         """Retrieves the list of rights associated with the Organization.
 
         :return: (list): (RightReference) List of rights

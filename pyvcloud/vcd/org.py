@@ -550,7 +550,7 @@ class Org(object):
         return self.client.get_resource(records[0].get('href'))
 
     def delete_user(self, user_name):
-        """Delete user record from current organization
+        """Delete user record from current organization.
 
         :param user_name: (str) name of the user that (org/sys)admins wants to
             delete
@@ -571,7 +571,7 @@ class Org(object):
         return role_record[0]
 
     def list_roles(self, name_filter=None):
-        """Retrieve the list of roles in the current Org
+        """Retrieve the list of roles in the current Org.
 
         :param name_filter: (tuple): (name ,'role name') Filter roles by
                              'role name'
@@ -602,7 +602,7 @@ class Org(object):
         return result
 
     def add_rights(self, rights):
-        """Adds set of rights to the organization
+        """Adds set of rights to the organization.
 
         :param rights: (tuple): tuple of right names
 
@@ -625,7 +625,7 @@ class Org(object):
             org_rights)
 
     def remove_rights(self, rights):
-        """Removes set of rights from the organization
+        """Removes set of rights from the organization.
 
         :param rights: (tuple): tuple of right names
 
@@ -686,7 +686,7 @@ class Org(object):
         return result
 
     def list_my_rights(self):
-        """Retrieves the list of rights associated with the Organization
+        """Retrieves the list of rights associated with the Organization.
 
         :return: (list): (RightReference) List of rights
         """

@@ -297,7 +297,7 @@ class Org(object):
                         chunk_size=chunk_size,
                         size=source_file['size'],
                         callback=callback)
-                    if num_bytes != source_file['size']:
+                    if num_bytes != int(source_file['size']):
                         raise Exception('download incomplete for file %s' %
                                         source_file['href'])
                     files.append(source_file)

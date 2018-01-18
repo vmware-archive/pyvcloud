@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import shutil
 import tarfile
 import tempfile
@@ -21,7 +22,7 @@ import traceback
 
 from lxml import etree
 from lxml import objectify
-import os
+
 from pyvcloud.vcd.acl import Acl
 from pyvcloud.vcd.client import _TaskMonitor
 from pyvcloud.vcd.client import E
@@ -297,7 +298,7 @@ class Org(object):
                         chunk_size=chunk_size,
                         size=source_file['size'],
                         callback=callback)
-                    if num_bytes != source_file['size']:
+                    if num_bytes != int(source_file['size']):
                         raise Exception('download incomplete for file %s' %
                                         source_file['href'])
                     files.append(source_file)
@@ -700,20 +701,19 @@ class Org(object):
                 rights.append(to_dict(rightReference, exclude=['type']))
         return rights
 
-    def get_catalog_access_control_settings(self, catalog_name):
-        """Get the access control settings of a catalog.
+    def get_catalog_access_settings(self, catalog_name):
+        """Get the access settings of a catalog.
 
         :param catalog_name: (str): The name of the catalog.
         :return:  A :class:`lxml.objectify.StringElement` object representing
-        the updated access control setting of the catalog.
-        """  # NOQA
+            the access settings of the catalog.
+        """
         catalog_resource = self.get_catalog(name=catalog_name)
-        access_control_settings = self.client.get_linked_resource(
-            catalog_resource, RelationType.DOWN,
-            EntityType.CONTROL_ACCESS_PARAMS.value)
-        return access_control_settings
+        acl = Acl(self.client, catalog_resource)
+        return acl.get_access_settings()
 
-    def add_catalog_access_settings(self, catalog_name,
+    def add_catalog_access_settings(self,
+                                    catalog_name,
                                     access_settings_list=None):
         """Add access settings to a particular catalog.
 
@@ -733,7 +733,8 @@ class Org(object):
         acl = Acl(self.client, catalog_resource)
         return acl.add_access_settings(access_settings_list)
 
-    def remove_catalog_access_settings(self, catalog_name,
+    def remove_catalog_access_settings(self,
+                                       catalog_name,
                                        access_settings_list=None,
                                        remove_all=False):
         """Remove access settings from a particular catalog.
@@ -754,8 +755,9 @@ class Org(object):
         acl = Acl(self.client, catalog_resource)
         return acl.remove_access_settings(access_settings_list, remove_all)
 
-    def share_catalog_access(self, catalog_name,
-                             everyone_access_level='ReadOnly'):
+    def share_catalog_with_org_members(self,
+                                       catalog_name,
+                                       everyone_access_level='ReadOnly'):
         """Share the catalog to all members of the organization.
 
         :param catalog_name: (str): catalog name whose access should be
@@ -769,20 +771,20 @@ class Org(object):
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
-        return acl.share_access(everyone_access_level)
+        return acl.share_with_org_members(everyone_access_level)
 
-    def unshare_catalog_access(self, catalog_name):
+    def unshare_catalog_with_org_members(self, catalog_name):
         """Unshare the catalog from all members of current organization.
 
         :param catalog_name: (str): catalog name whose access should be
             unshared from everyone.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
-            the updated access control setting of the resource.
+            the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
-        return acl.unshare_access()
+        return acl.unshare_from_org_members()
 
     def change_catalog_owner(self, catalog_name, user_name):
         """Change the ownership of Catalog to a given user

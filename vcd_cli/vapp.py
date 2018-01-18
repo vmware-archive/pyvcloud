@@ -13,6 +13,7 @@
 #
 
 import click
+
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.utils import to_dict
@@ -22,6 +23,8 @@ from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.vm import VM
 
 from vcd_cli.utils import extract_name_and_id
+from vcd_cli.utils import access_settings_to_list
+from vcd_cli.utils import acl_str_to_list_of_dict
 from vcd_cli.utils import is_sysadmin
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
@@ -152,7 +155,7 @@ def info(ctx, name):
         vapp_resource = vdc.get_vapp(name)
         vapp = VApp(client, resource=vapp_resource)
         md = vapp.get_metadata()
-        access_control_settings = vapp.get_access_control_settings()
+        access_control_settings = vapp.get_access_settings()
         result = vapp_to_dict(vapp_resource, md, access_control_settings)
         stdout(result, ctx)
     except Exception as e:
@@ -746,5 +749,176 @@ def add_vm(ctx, name, source_vapp, source_vm, catalog, target_vm, hostname,
             spec['password_auto'] = password_auto
         task = vapp.add_vms([spec], all_eulas_accepted=accept_all_eulas)
         stdout(task, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vapp.group(short_help='work with vapp acl')
+@click.pass_context
+def acl(ctx):
+    """Work with vapp access control list.
+
+\b
+   Description
+        Work with vapp access control list in the current Organization.
+\b
+        vcd vapp acl add my-vapp 'user:TestUser1:Change'  \\
+            'user:TestUser2:FullControl' 'user:TestUser3'
+            Add one or more access setting to the specified vapp.
+            access-list is specified in the format
+            'user:<username>:<access-level>'
+            access-level is one of 'ReadOnly', 'Change', 'FullControl'
+            'ReadOnly' by default. eg. 'user:TestUser3'
+\b
+        vcd vapp acl remove my-vapp 'user:TestUser1' 'user:TestUser2'
+            Remove one or more acl from the specified vapp. access-list is
+            specified in the format 'user:username'
+\b
+        vcd vapp acl share my-vapp --access-level ReadOnly
+            Share vapp access to all members of the current organization.
+            access-level is one of 'ReadOnly', 'Change', 'FullControl'.
+            'ReadOnly' by default.
+\b
+        vcd vapp acl unshare my-vapp
+            Unshare  vapp access from  all members of the current
+            organization.
+\b
+        vcd vapp acl list my-vapp
+            List acl of a vapp.
+
+
+    """
+    if ctx.invoked_subcommand is not None:
+        try:
+            restore_session(ctx)
+        except Exception as e:
+            stderr(e, ctx)
+
+
+@acl.command(short_help='add access settings to a particular vapp')
+@click.pass_context
+@click.argument('vapp-name',
+                metavar='<vapp-name>')
+@click.argument('access-list',
+                nargs=-1,
+                required=True)
+def add(ctx, vapp_name, access_list):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        vapp = VApp(client, resource=vdc.get_vapp(vapp_name))
+
+        vapp.add_access_settings(
+            access_settings_list=acl_str_to_list_of_dict(access_list))
+        stdout('Access settings added to vapp \'%s\'.' % vapp_name, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@acl.command(short_help='remove access settings from a particular vapp')
+@click.pass_context
+@click.argument('vapp-name',
+                metavar='<vapp-name>')
+@click.argument('access-list',
+                nargs=-1,
+                required=False)
+@click.option('--all',
+              is_flag=True,
+              required=False,
+              default=False,
+              metavar='[all]',
+              help='remove all the access settings from the vapp')
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to remove access settings?')
+def remove(ctx, vapp_name, access_list, all):
+    try:
+        if all:
+            click.confirm(
+                'Do you want to remove all access settings from the vapp '
+                '\'%s\'' % vapp_name,
+                abort=True)
+
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        vapp = VApp(client, resource=vdc.get_vapp(vapp_name))
+
+        vapp.remove_access_settings(
+            access_settings_list=acl_str_to_list_of_dict(access_list),
+            remove_all=all)
+        stdout('Access settings removed from vapp \'%s\'.' % vapp_name, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@acl.command(short_help='share vapp access to all members of the current v'
+             'organization')
+@click.pass_context
+@click.argument('vapp-name',
+                metavar='<vapp-name>')
+@click.option('access_level',
+              '--access-level',
+              type=click.Choice(
+                  ['ReadOnly', 'Change', 'FullControl']),
+              required=False,
+              default='ReadOnly',
+              metavar='<access-level>',
+              help='access level at which the vapp is shared. ReadOnly by'
+                   ' default')
+def share(ctx, vapp_name, access_level):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        vapp = VApp(client, resource=vdc.get_vapp(vapp_name))
+
+        vapp.share_with_org_members(everyone_access_level=access_level)
+        stdout('Vapp \'%s\' shared to all members of the org \'%s\'.'
+               % (vapp_name, ctx.obj['profiles'].get('org_in_use')), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@acl.command(short_help='unshare vapp access from members of the '
+                        'current organization')
+@click.pass_context
+@click.argument('vapp-name',
+                metavar='<vapp-name>')
+def unshare(ctx, vapp_name):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        vapp = VApp(client, resource=vdc.get_vapp(vapp_name))
+
+        vapp.unshare_from_org_members()
+        stdout('Vapp \'%s\' unshared from all members of the org \'%s\'.'
+               % (vapp_name, ctx.obj['profiles'].get('org_in_use')), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@acl.command('list', short_help='list vapp access control list')
+@click.pass_context
+@click.argument('vapp-name',
+                metavar='<vapp-name>')
+def list_acl(ctx, vapp_name):
+    try:
+        client = ctx.obj['client']
+        vdc_href = ctx.obj['profiles'].get('vdc_href')
+        vdc = VDC(client, href=vdc_href)
+        vapp = VApp(client, resource=vdc.get_vapp(vapp_name))
+
+        acl = vapp.get_access_settings()
+        stdout(
+            access_settings_to_list(
+                acl, ctx.obj['profiles'].get('org_in_use')),
+            ctx,
+            sort_headers=False)
     except Exception as e:
         stderr(e, ctx)

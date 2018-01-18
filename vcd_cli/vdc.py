@@ -14,10 +14,14 @@
 
 import click
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import MissingLinkException
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.org import Org
+from pyvcloud.vcd.utils import access_settings_to_dict
 from pyvcloud.vcd.utils import vdc_to_dict
 from pyvcloud.vcd.vdc import VDC
+from vcd_cli.utils import access_settings_to_list
+from vcd_cli.utils import acl_str_to_list_of_dict
 from vcd_cli.utils import restore_session
 from vcd_cli.utils import stderr
 from vcd_cli.utils import stdout
@@ -74,8 +78,13 @@ def info(ctx, name):
         org = Org(client, href=org_href)
         vdc_resource = org.get_vdc(name)
         vdc = VDC(client, resource=vdc_resource)
-        access_control_settings = vdc.get_access_control_settings()
-        result = vdc_to_dict(vdc_resource, access_control_settings)
+        access_settings = None
+        try:
+            access_settings = vdc.get_access_settings()
+        except MissingLinkException:
+            pass
+        result = vdc_to_dict(vdc_resource,
+                             access_settings_to_dict(access_settings))
         result['in_use'] = in_use_vdc == name
         result['org'] = in_use_org_name
         stdout(result, ctx)
@@ -288,5 +297,175 @@ def disable(ctx, name):
         vdc_resource = org.get_vdc(name)
         vdc = VDC(client, resource=vdc_resource)
         vdc.enable_vdc(False)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@vdc.group(short_help='work with vdc acl')
+@click.pass_context
+def acl(ctx):
+    """Work with vdc access control list.
+
+\b
+   Description
+        Work with vapp access control list in the current Organization.
+        Access should be present to at least 1 user in the org all the time.
+
+\b
+        vcd vdc acl add my-vdc 'user:TestUser1:ReadOnly'  \\
+            'user:TestUser2' 'user:TestUser3'
+            Add one or more access setting to the specified vdc.
+            access-list is specified in the format
+            'user:<username>:<access-level>'
+            access-level is only'ReadOnly' for vdc access setting.
+            'ReadOnly' by default. eg. 'user:TestUser3'
+\b
+        vcd vdc acl remove my-vdc 'user:TestUser1' 'user:TestUser2'
+            Remove one or more access setting from the specified vdc.
+            access-list is specified in the format 'user:username'.
+\b
+        vcd vdc acl share my-vdc
+            Share vdc access to all members of the current organization at
+            access-level 'ReadOnly'.
+\b
+        vcd vdc acl unshare my-vdc
+            Unshare  vdc access from  all members of the current
+            organization. Should give individual access to at least one user
+            before this operation.
+\b
+        vcd vdc acl list my-vdc
+            List acl of a vdc.
+
+
+    """
+    if ctx.invoked_subcommand is not None:
+        try:
+            restore_session(ctx)
+        except Exception as e:
+            stderr(e, ctx)
+
+
+@acl.command(short_help='add access settings to a particular vdc')
+@click.pass_context
+@click.argument('vdc-name',
+                metavar='<vdc-name>')
+@click.argument('access-list',
+                nargs=-1,
+                required=True)
+def add(ctx, vdc_name, access_list):
+    try:
+        client = ctx.obj['client']
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href)
+        vdc_resource = org.get_vdc(vdc_name)
+        vdc = VDC(client, resource=vdc_resource)
+
+        vdc.add_access_settings(
+            access_settings_list=acl_str_to_list_of_dict(access_list))
+        stdout('Access settings added to vdc \'%s\'.' % vdc_name, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@acl.command(short_help='remove access settings from a particular vdc')
+@click.pass_context
+@click.argument('vdc-name',
+                metavar='<vdc-name>')
+@click.argument('access-list',
+                nargs=-1,
+                required=False)
+@click.option('--all',
+              is_flag=True,
+              required=False,
+              default=False,
+              metavar='[all]',
+              help='remove all the access settings from the vdc.')
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to remove access settings?')
+def remove(ctx, vdc_name, access_list, all):
+    try:
+        client = ctx.obj['client']
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+
+        if all:
+            click.confirm(
+                'Do you want to remove all access settings from the vdc '
+                '\'%s\'' % vdc_name,
+                abort=True)
+
+        org = Org(client, in_use_org_href)
+        vdc_resource = org.get_vdc(vdc_name)
+        vdc = VDC(client, resource=vdc_resource)
+
+        vdc.remove_access_settings(
+            access_settings_list=acl_str_to_list_of_dict(access_list),
+            remove_all=all)
+        stdout('Access settings removed from vdc \'%s\'.' % vdc_name, ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@acl.command(short_help='share vdc access to all members of the current '
+                        'organization')
+@click.pass_context
+@click.argument('vdc-name',
+                metavar='<vdc-name>')
+def share(ctx, vdc_name):
+    try:
+        client = ctx.obj['client']
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href)
+        vdc_resource = org.get_vdc(vdc_name)
+        vdc = VDC(client, resource=vdc_resource)
+
+        vdc.share_with_org_members()
+        stdout('Vdc \'%s\' shared to all members of the org \'%s\'.'
+               % (vdc_name, ctx.obj['profiles'].get('org_in_use')), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@acl.command(short_help='unshare vdc access from members of the '
+                        'current organization')
+@click.pass_context
+@click.argument('vdc-name',
+                metavar='<vdc-name>')
+def unshare(ctx, vdc_name):
+    try:
+        client = ctx.obj['client']
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href)
+        vdc_resource = org.get_vdc(vdc_name)
+        vdc = VDC(client, resource=vdc_resource)
+
+        vdc.unshare_from_org_members()
+        stdout('Vdc \'%s\' unshared from all members of the org \'%s\'.'
+               % (vdc_name, ctx.obj['profiles'].get('org_in_use')), ctx)
+    except Exception as e:
+        stderr(e, ctx)
+
+
+@acl.command('list', short_help='list vdc access control list')
+@click.pass_context
+@click.argument('vdc-name',
+                metavar='<vdc-name>')
+def list_acl(ctx, vdc_name):
+    try:
+        client = ctx.obj['client']
+        in_use_org_href = ctx.obj['profiles'].get('org_href')
+        org = Org(client, in_use_org_href)
+        vdc_resource = org.get_vdc(vdc_name)
+        vdc = VDC(client, resource=vdc_resource)
+
+        acl = vdc.get_access_settings()
+        stdout(
+            access_settings_to_list(
+                acl, ctx.obj['profiles'].get('org_in_use')),
+            ctx,
+            sort_headers=False)
     except Exception as e:
         stderr(e, ctx)

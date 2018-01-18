@@ -203,7 +203,7 @@ def delete(ctx, user_name):
         stderr(e, ctx)
 
 
-@user.command(short_help='update an user in current organizaton')
+@user.command(short_help='update an user in current organization')
 @click.pass_context
 @click.argument('user_name',
                 metavar='<user_name>',

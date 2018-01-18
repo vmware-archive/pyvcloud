@@ -287,27 +287,27 @@ def disk_to_dict(disk):
     return result
 
 
-def access_control_settings_to_dict(access_control_settings):
-    """Convert access control settings to dict.
+def access_settings_to_dict(control_access_params):
+    """Convert access settings to dict.
 
-    :param access_control_settings: (ControlAccessParamsType): xml object
-    representing access control settings.
+    :param control_access_params: (ControlAccessParamsType): xml object
+    representing access settings.
     :return: (dict): dict representation of access control settings.
     """
     result = {}
-    if hasattr(access_control_settings, 'IsSharedToEveryone'):
-        result['is_shared_to_everyone'] = access_control_settings[
+    if hasattr(control_access_params, 'IsSharedToEveryone'):
+        result['is_shared_to_everyone'] = control_access_params[
             'IsSharedToEveryone']
-    if hasattr(access_control_settings, 'EveryoneAccessLevel'):
-        result['everyone_access_level'] = access_control_settings[
+    if hasattr(control_access_params, 'EveryoneAccessLevel'):
+        result['everyone_access_level'] = control_access_params[
             'EveryoneAccessLevel']
-    if hasattr(access_control_settings, 'AccessSettings') and \
-            hasattr(access_control_settings.AccessSettings,
+    if hasattr(control_access_params, 'AccessSettings') and \
+            hasattr(control_access_params.AccessSettings,
                     'AccessSetting') and \
-            len(access_control_settings.AccessSettings.AccessSetting) > 0:
+            len(control_access_params.AccessSettings.AccessSetting) > 0:
         n = 1
         for access_setting in list(
-                access_control_settings.AccessSettings.AccessSetting):
+                control_access_params.AccessSettings.AccessSetting):
             access_str = 'access_settings'
             if hasattr(access_setting, 'Subject'):
                 result['%s_%s_subject_name' % (access_str, n)] = \

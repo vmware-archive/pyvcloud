@@ -72,17 +72,26 @@ def vdc_to_dict(vdc, access_control_settings=None):
             'allocated': str(vdc.ComputeCapacity.Cpu.Allocated),
             'limit': str(vdc.ComputeCapacity.Cpu.Limit),
             'reserved': str(vdc.ComputeCapacity.Cpu.Reserved),
-            'used': str(vdc.ComputeCapacity.Cpu.Used),
-            'overhead': str(vdc.ComputeCapacity.Cpu.Overhead)
+            'used': str(vdc.ComputeCapacity.Cpu.Used)
         }
+        if hasattr(vdc.ComputeCapacity.Cpu, 'Overhead'):
+            result['cpu_capacity'] = str(vdc.ComputeCapacity.Cpu.Overhead)
         result['mem_capacity'] = {
-            'units': str(vdc.ComputeCapacity.Memory.Units),
-            'allocated': str(vdc.ComputeCapacity.Memory.Allocated),
-            'limit': str(vdc.ComputeCapacity.Memory.Limit),
-            'reserved': str(vdc.ComputeCapacity.Memory.Reserved),
-            'used': str(vdc.ComputeCapacity.Memory.Used),
-            'overhead': str(vdc.ComputeCapacity.Memory.Overhead)
+            'units':
+            str(vdc.ComputeCapacity.Memory.Units),
+            'allocated':
+            str(vdc.ComputeCapacity.Memory.Allocated),
+            'limit':
+            str(vdc.ComputeCapacity.Memory.Limit),
+            'reserved':
+            str(vdc.ComputeCapacity.Memory.Reserved),
+            'used':
+            humanfriendly.format_size(
+                int(str(vdc.ComputeCapacity.Memory.Used)) * humanfriendly.
+                parse_size('1 %s' % str(vdc.ComputeCapacity.Memory.Units)))
         }
+        if hasattr(vdc.ComputeCapacity.Memory, 'Overhead'):
+            result['mem_capacity'] = str(vdc.ComputeCapacity.Memory.Overhead)
     if hasattr(vdc, 'AllocationModel'):
         result['allocation_model'] = str(vdc.AllocationModel)
     if hasattr(vdc, 'VmQuota'):
@@ -135,7 +144,7 @@ def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
     n = 0
     for item in items:
         n += 1
-        network_name = item.get('{http://schemas.dmtf.org/ovf/envelope/1}name')
+        network_name = item.get('{' + NSMAP['ovf'] + '}name')
         result['vapp-net-%s' % n] = network_name
         if hasattr(vapp, 'NetworkConfigSection'):
             for nc in vapp.NetworkConfigSection.NetworkConfig:
@@ -278,27 +287,27 @@ def disk_to_dict(disk):
     return result
 
 
-def access_control_settings_to_dict(access_control_settings):
-    """Convert access control settings to dict.
+def access_settings_to_dict(control_access_params):
+    """Convert access settings to dict.
 
-    :param access_control_settings: (ControlAccessParamsType): xml object
-    representing access control settings.
+    :param control_access_params: (ControlAccessParamsType): xml object
+    representing access settings.
     :return: (dict): dict representation of access control settings.
     """
     result = {}
-    if hasattr(access_control_settings, 'IsSharedToEveryone'):
-        result['is_shared_to_everyone'] = access_control_settings[
+    if hasattr(control_access_params, 'IsSharedToEveryone'):
+        result['is_shared_to_everyone'] = control_access_params[
             'IsSharedToEveryone']
-    if hasattr(access_control_settings, 'EveryoneAccessLevel'):
-        result['everyone_access_level'] = access_control_settings[
+    if hasattr(control_access_params, 'EveryoneAccessLevel'):
+        result['everyone_access_level'] = control_access_params[
             'EveryoneAccessLevel']
-    if hasattr(access_control_settings, 'AccessSettings') and \
-            hasattr(access_control_settings.AccessSettings,
+    if hasattr(control_access_params, 'AccessSettings') and \
+            hasattr(control_access_params.AccessSettings,
                     'AccessSetting') and \
-            len(access_control_settings.AccessSettings.AccessSetting) > 0:
+            len(control_access_params.AccessSettings.AccessSetting) > 0:
         n = 1
         for access_setting in list(
-                access_control_settings.AccessSettings.AccessSetting):
+                control_access_params.AccessSettings.AccessSetting):
             access_str = 'access_settings'
             if hasattr(access_setting, 'Subject'):
                 result['%s_%s_subject_name' % (access_str, n)] = \

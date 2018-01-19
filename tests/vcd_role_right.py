@@ -19,6 +19,7 @@ from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.role import Role
 from pyvcloud.vcd.test import TestCase
 
+
 class TestRole(TestCase):
     def test_01_list_role(self):
         logged_in_org = self.client.get_org()
@@ -76,6 +77,69 @@ class TestRole(TestCase):
         role_record = org.get_role(role_name)
         role = Role(self.client, href=role_record.get('href'))
         role.unlink()
+
+    def test_09_add_rights_to_Role(self):
+        org_in_use = self.config['vcd']['org_in_use']
+        org = Org(self.client, href=self.client.get_org_by_name(org_in_use).get('href'))
+        role_name = self.config['vcd']['role_name']
+        right_name = self.config['vcd']['right_name']
+
+        role_record = org.get_role(role_name)
+        role = Role(self.client, href=role_record.get('href'))
+
+        updated_role_resource = role.add_rights([right_name], org)
+        success = False
+        if hasattr(updated_role_resource, 'RightReferences') and \
+                hasattr(updated_role_resource.RightReferences, 'RightReference'):
+            for right in updated_role_resource.RightReferences.RightReference:
+                if right.get('name') == right_name:
+                    success = True
+                    break
+        assert success
+
+    def test_10_remove_rights_from_role(self):
+        org_in_use = self.config['vcd']['org_in_use']
+        org = Org(self.client, href = self.client.get_org_by_name(org_in_use).get('href'))
+        role_name = self.config['vcd']['role_name']
+        right_name = self.config['vcd']['right_name']
+
+        role_record = org.get_role(role_name)
+        role = Role(self.client, href=role_record.get('href'))
+
+        updated_role_resource = role.remove_rights([right_name])
+        success = True
+        if hasattr(updated_role_resource, 'RightReferences') and \
+                hasattr(updated_role_resource.RightReferences, 'RightReference'):
+            for right in updated_role_resource.RightReferences.RightReference:
+                if right.get('name') == right_name:
+                    success = False
+                    break
+        assert success
+
+    def test_11_add_rights_to_org(self):
+        org_in_use = self.config['vcd']['org_in_use']
+        org = Org(self.client, href=self.client.get_org_by_name(org_in_use).get('href'))
+        role_name = self.config['vcd']['role_name']
+        right_name = self.config['vcd']['right_name']
+        right_record_list = org.list_rights_of_org()
+        no_of_rights_before = len(right_record_list)
+        org.add_rights([right_name])
+        org.reload()
+        right_record_list = org.list_rights_of_org()
+        no_of_rights_after = len(right_record_list)
+        assert no_of_rights_before < no_of_rights_after
+
+    def test_12_remove_rights_from_org(self):
+        org_in_use = self.config['vcd']['org_in_use']
+        org = Org(self.client, href=self.client.get_org_by_name(org_in_use).get('href'))
+        right_name = self.config['vcd']['right_name']
+        right_record_list = org.list_rights_of_org()
+        no_of_rights_before = len(right_record_list)
+        org.remove_rights([right_name])
+        org.reload()
+        right_record_list = org.list_rights_of_org()
+        no_of_rights_after = len(right_record_list)
+        assert no_of_rights_before > no_of_rights_after
 
 if __name__ == '__main__':
     unittest.main()

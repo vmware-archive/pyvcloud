@@ -204,6 +204,7 @@ class EntityType(Enum):
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'
+    ORG_RIGHTS = 'application/vnd.vmware.admin.org.rights+xml'
     ORG_VDC_NETWORK = 'application/vnd.vmware.vcloud.orgVdcNetwork+xml'
     OWNER = 'application/vnd.vmware.vcloud.owner+xml'
     PROVIDERVDCPARAMS = \
@@ -230,6 +231,7 @@ class EntityType(Enum):
     VAPP_TEMPLATE = 'application/vnd.vmware.vcloud.vAppTemplate+xml'
     VDC = 'application/vnd.vmware.vcloud.vdc+xml'
     VDCS_PARAMS = 'application/vnd.vmware.admin.createVdcParams+xml'
+    VIM_SERVER_REFS = 'application/vnd.vmware.admin.vmwVimServerReferences+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'
 
 
@@ -242,7 +244,6 @@ class QueryResultFormat(Enum):
 
 
 class _WellKnownEndpoint(Enum):
-    # ENTITY_RESOLVER = ()
     LOGGED_IN_ORG = (RelationType.DOWN, EntityType.ORG.value)
     ORG_VDC = (RelationType.DOWN, EntityType.VDC.value)
     ORG_NETWORK = (RelationType.DOWN, EntityType.ORG_NETWORK.value)
@@ -300,14 +301,14 @@ class VcdErrorResponseException(VcdErrorException):
 
     def __str__(self):
         return \
-            'VcdErrorResponseException; ' + \
-            (('%d: no <Error> in response body' % self.status_code)
+            'Status code: ' + \
+            (('%d, <empty response body>' % self.status_code)
                 if self.vcd_error is None else
-                ('%d/%s: %s' %
+                ('%d/%s, %s' %
                  (self.status_code,
                   self.vcd_error.get('minorErrorCode'),
                   self.vcd_error.get('message')))) + \
-            (' (request ID: %s)' % self.request_id)
+            (' (request id: %s)' % self.request_id)
 
 
 class VcdTaskException(Exception):
@@ -341,9 +342,14 @@ def _response_has_content(response):
     return response.content is not None and len(response.content) > 0
 
 
-def _objectify_response(response):
-    return objectify.fromstring(response.content) \
-        if _response_has_content(response) else None
+def _objectify_response(response, as_object=True):
+    if _response_has_content(response):
+        if as_object:
+            return objectify.fromstring(response.content)
+        else:
+            return etree.fromstring(response.content)
+    else:
+        return None
 
 
 class TaskStatus(Enum):
@@ -537,7 +543,7 @@ class Client(object):
                 sc,
                 self._get_response_request_id(response),
                 r) if r is not None else \
-                Exception("Unknown login failure")
+                Exception('Login failed.')
 
         session = objectify.fromstring(response.content)
         self._session_endpoints = _get_session_endpoints(session)
@@ -623,13 +629,17 @@ class Client(object):
         sc = response.status_code
 
         if 200 <= sc <= 299:
-            return _objectify_response(response) if objectify_results else \
-                etree.fromstring(response.content)
+            return _objectify_response(response, objectify_results)
 
         if 400 <= sc <= 499:
             raise VcdErrorResponseException(
                 sc, self._get_response_request_id(response),
-                objectify.fromstring(response.content))
+                _objectify_response(response, objectify_results))
+
+        if sc == 500:
+            raise VcdErrorResponseException(
+                sc, self._get_response_request_id(response),
+                _objectify_response(response, objectify_results))
 
         raise Exception("Unsupported HTTP status code (%d) encountered" % sc)
 
@@ -912,7 +922,12 @@ class Client(object):
         return self.get_resource(self._get_wk_endpoint(wk_type))
 
     def _get_wk_endpoint(self, wk_type):
-        return self._session_endpoints[wk_type]
+        if wk_type in self._session_endpoints:
+            return self._session_endpoints[wk_type]
+        else:
+            raise Exception(
+                'The current user does not have access to the resource (%s).'
+                % str(wk_type).split('.')[-1])
 
 
 def find_link(resource, rel, media_type, fail_if_absent=True):

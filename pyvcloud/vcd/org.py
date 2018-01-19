@@ -22,7 +22,7 @@ import traceback
 
 from lxml import etree
 from lxml import objectify
-import os
+
 from pyvcloud.vcd.acl import Acl
 from pyvcloud.vcd.client import _TaskMonitor
 from pyvcloud.vcd.client import E
@@ -298,7 +298,7 @@ class Org(object):
                         chunk_size=chunk_size,
                         size=source_file['size'],
                         callback=callback)
-                    if num_bytes != source_file['size']:
+                    if num_bytes != int(source_file['size']):
                         raise Exception('download incomplete for file %s' %
                                         source_file['href'])
                     files.append(source_file)
@@ -551,7 +551,7 @@ class Org(object):
         return self.client.get_resource(records[0].get('href'))
 
     def delete_user(self, user_name):
-        """Delete user record from current organization
+        """Delete user record from current organization.
 
         :param user_name: (str) name of the user that (org/sys)admins wants to
             delete
@@ -572,7 +572,7 @@ class Org(object):
         return role_record[0]
 
     def list_roles(self, name_filter=None):
-        """Retrieve the list of roles in the current Org
+        """Retrieve the list of roles in the current Org.
 
         :param name_filter: (tuple): (name ,'role name') Filter roles by
                              'role name'
@@ -583,6 +583,7 @@ class Org(object):
 
         org_filter = None
         resource_type = 'role'
+
         if self.client.is_sysadmin():
             resource_type = 'adminRole'
             org_filter = 'org==%s' % self.resource.get('href')
@@ -601,19 +602,70 @@ class Org(object):
                     exclude=['org', 'orgName']))
         return result
 
+    def add_rights(self, rights):
+        """Adds set of rights to the organization.
+
+        :param rights: (tuple): tuple of right names
+
+        :return A :class:`lxml.objectify.StringElement` object representing
+        the updated Org rights
+        """
+        org_admin_resource = self.client.get_resource(self.href_admin)
+        org_rights = E.OrgRights()
+        for right in rights:
+            right_record = self.get_right(right)
+            org_rights.append(
+                E.RightReference(
+                    name=right_record.get('name'),
+                    href=right_record.get('href'),
+                    type=EntityType.RIGHT.value))
+        return self.client.post_linked_resource(
+            org_admin_resource.RightReferences,
+            RelationType.ADD,
+            EntityType.ORG_RIGHTS.value,
+            org_rights)
+
+    def remove_rights(self, rights):
+        """Removes set of rights from the organization.
+
+        :param rights: (tuple): tuple of right names
+
+        :return A :class:`lxml.objectify.StringElement` object representing
+        the updated Org rights
+        """
+        org_admin_resource = self.client.get_resource(self.href_admin)
+        org_rights_resource = None
+        if hasattr(org_admin_resource, 'RightReferences'):
+            org_rights_resource = self.client.get_resource(
+                org_admin_resource.RightReferences.get('href'))
+            if hasattr(org_rights_resource, 'RightReference'):
+                for right in rights:
+                    for right_reference in \
+                            list(org_rights_resource.RightReference):
+                        if right_reference.get('name') == right:
+                            org_rights_resource.remove(right_reference)
+                            break
+                return self.client.put_linked_resource(
+                    org_admin_resource.RightReferences,
+                    RelationType.EDIT,
+                    EntityType.ORG_RIGHTS.value,
+                    org_rights_resource)
+        return org_rights_resource
+
     def get_right(self, right_name):
         """Retrieves corresponding record of the specified right.
 
         :param right_name: (str): The name of the right record to be retrieved
         :return: (dict): Right record in dict format
         """
-        right_record = self.list_rights(('name', right_name))
+        right_record = self.list_rights_available_in_system(
+            ('name', right_name))
         if len(right_record) < 1:
             raise Exception('Right \'%s\' does not exist.' % right_name)
         return right_record[0]
 
-    def list_rights(self, name_filter=None):
-        """Retrieve the list of rights in the current Org
+    def list_rights_available_in_system(self, name_filter=None):
+        """Retrieves the list of all rights available in the System.
 
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
                              'right name'
@@ -635,20 +687,33 @@ class Org(object):
                     to_dict(r, resource_type=resource_type, exclude=[]))
         return result
 
-    def get_catalog_access_control_settings(self, catalog_name):
-        """Get the access control settings of a catalog.
+    def list_rights_of_org(self):
+        """Retrieves the list of rights associated with the Organization.
+
+        :return: (list): (RightReference) List of rights
+        """
+        org_admin_resource = self.client.get_resource(self.href_admin)
+        rights = []
+        if hasattr(org_admin_resource, 'RightReferences') and \
+                hasattr(org_admin_resource.RightReferences, 'RightReference'):
+            for rightReference in \
+                    org_admin_resource.RightReferences.RightReference:
+                rights.append(to_dict(rightReference, exclude=['type']))
+        return rights
+
+    def get_catalog_access_settings(self, catalog_name):
+        """Get the access settings of a catalog.
 
         :param catalog_name: (str): The name of the catalog.
         :return:  A :class:`lxml.objectify.StringElement` object representing
-        the updated access control setting of the catalog.
-        """  # NOQA
+            the access settings of the catalog.
+        """
         catalog_resource = self.get_catalog(name=catalog_name)
-        access_control_settings = self.client.get_linked_resource(
-            catalog_resource, RelationType.DOWN,
-            EntityType.CONTROL_ACCESS_PARAMS.value)
-        return access_control_settings
+        acl = Acl(self.client, catalog_resource)
+        return acl.get_access_settings()
 
-    def add_catalog_access_settings(self, catalog_name,
+    def add_catalog_access_settings(self,
+                                    catalog_name,
                                     access_settings_list=None):
         """Add access settings to a particular catalog.
 
@@ -668,7 +733,8 @@ class Org(object):
         acl = Acl(self.client, catalog_resource)
         return acl.add_access_settings(access_settings_list)
 
-    def remove_catalog_access_settings(self, catalog_name,
+    def remove_catalog_access_settings(self,
+                                       catalog_name,
                                        access_settings_list=None,
                                        remove_all=False):
         """Remove access settings from a particular catalog.
@@ -689,8 +755,9 @@ class Org(object):
         acl = Acl(self.client, catalog_resource)
         return acl.remove_access_settings(access_settings_list, remove_all)
 
-    def share_catalog_access(self, catalog_name,
-                             everyone_access_level='ReadOnly'):
+    def share_catalog_with_org_members(self,
+                                       catalog_name,
+                                       everyone_access_level='ReadOnly'):
         """Share the catalog to all members of the organization.
 
         :param catalog_name: (str): catalog name whose access should be
@@ -704,20 +771,20 @@ class Org(object):
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
-        return acl.share_access(everyone_access_level)
+        return acl.share_with_org_members(everyone_access_level)
 
-    def unshare_catalog_access(self, catalog_name):
+    def unshare_catalog_with_org_members(self, catalog_name):
         """Unshare the catalog from all members of current organization.
 
         :param catalog_name: (str): catalog name whose access should be
             unshared from everyone.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
-            the updated access control setting of the resource.
+            the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
-        return acl.unshare_access()
+        return acl.unshare_from_org_members()
 
     def change_catalog_owner(self, catalog_name, user_name):
         """Change the ownership of Catalog to a given user

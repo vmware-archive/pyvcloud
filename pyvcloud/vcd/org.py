@@ -159,7 +159,7 @@ class Org(object):
         :param new_catalog_name: (str): The new name of the catalog.
         :param description: (str): The new description of the catalog.
         :return:  A :class:`lxml.objectify.StringElement` object describing
-        the updated catalog.
+            the updated catalog.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -430,7 +430,23 @@ class Org(object):
                      vapp_href,
                      catalog_item_name,
                      description,
-                     customize_on_instantiate=False):
+                     customize_on_instantiate=False,
+                     overwrite=False):
+        """Capture a vApp as a catalog item template.
+
+        :param catalog_resource: (`lxml.objectify.StringElement`): The
+            catalog.
+        :param vapp_href: (str): The href of the vApp to capture.
+        :param catalog_item_name: (str): The name of the target catalog item.
+        :param description: (str): The description of the catalog item.
+        :param customize_on_instantiate: (bool): A flag indicating if the
+            vApp to be instantiated from this vApp template can be customized.
+        :param overwrite: (bool): A flag indicating if the item in the catalog
+            will be overwrite if it already exists. If it doesn't exists, this
+            flag is not used.
+        :return:  A :class:`lxml.objectify.StringElement` object describing
+            the updated catalog item.
+        """
         contents = E.CaptureVAppParams(
             E.Description(description),
             E.Source(href=vapp_href),
@@ -440,6 +456,16 @@ class Org(object):
                 E.CustomizationSection(
                     E_OVF.Info('VApp template customization section'),
                     E.CustomizeOnInstantiate('true')))
+        if overwrite:
+            try:
+                item = self.get_catalog_item(catalog_resource.get('name'),
+                                             catalog_item_name)
+                contents.append(E.TargetCatalogItem(href=item.get('href'),
+                                                    id=item.get('id'),
+                                                    type=item.get('type'),
+                                                    name=item.get('name')))
+            except Exception:
+                pass
         return self.client.post_linked_resource(
             catalog_resource,
             rel=RelationType.ADD,

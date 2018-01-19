@@ -121,11 +121,11 @@ class TestRole(TestCase):
         org = Org(self.client, href=self.client.get_org_by_name(org_in_use).get('href'))
         role_name = self.config['vcd']['role_name']
         right_name = self.config['vcd']['right_name']
-        right_record_list = org.list_my_rights()
+        right_record_list = org.list_rights_of_org()
         no_of_rights_before = len(right_record_list)
         org.add_rights([right_name])
         org.reload()
-        right_record_list = org.list_my_rights()
+        right_record_list = org.list_rights_of_org()
         no_of_rights_after = len(right_record_list)
         assert no_of_rights_before < no_of_rights_after
 
@@ -133,11 +133,11 @@ class TestRole(TestCase):
         org_in_use = self.config['vcd']['org_in_use']
         org = Org(self.client, href=self.client.get_org_by_name(org_in_use).get('href'))
         right_name = self.config['vcd']['right_name']
-        right_record_list = org.list_my_rights()
+        right_record_list = org.list_rights_of_org()
         no_of_rights_before = len(right_record_list)
         org.remove_rights([right_name])
         org.reload()
-        right_record_list = org.list_my_rights()
+        right_record_list = org.list_rights_of_org()
         no_of_rights_after = len(right_record_list)
         assert no_of_rights_before > no_of_rights_after
 

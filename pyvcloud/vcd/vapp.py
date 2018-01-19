@@ -13,18 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
 from copy import deepcopy
 
 from lxml import etree
 from lxml import objectify
 
+from pyvcloud.vcd.acl import Acl
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.utils import access_control_settings_to_dict
 
 
 class VApp(object):
@@ -36,6 +35,11 @@ class VApp(object):
         if resource is not None:
             self.name = resource.get('name')
             self.href = resource.get('href')
+
+    def get_resource(self):
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        return self.resource
 
     def reload(self):
         self.resource = self.client.get_resource(self.href)
@@ -209,7 +213,6 @@ class VApp(object):
         :raises: Exception: If the named VM cannot be located or another error
             occurs.
         """
-
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
             E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
@@ -232,7 +235,6 @@ class VApp(object):
         :raises: Exception: If the named VM cannot be located or another error
             occurs.
         """
-
         disk_attach_or_detach_params = E.DiskAttachOrDetachParams(
             E.Disk(type=EntityType.DISK.value, href=disk_href))
         vm = self.get_vm(vm_name)
@@ -247,7 +249,6 @@ class VApp(object):
         :return: ([vmType])  A array of :class:`lxml.objectify.StringElement`
             object describing the requested VMs.
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         if hasattr(self.resource, 'Children') and \
@@ -264,7 +265,6 @@ class VApp(object):
         :return: (vmType)  A :class:`lxml.objectify.StringElement` object
             describing the requested VM.
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         for vm in self.get_all_vms():
@@ -286,7 +286,6 @@ class VApp(object):
         :raises: Exception: If the named VM cannot be located or another error
             occured.
         """
-
         vm = self.get_vm(vm_name)
         disk_list = self.client.get_resource(
             vm.get('href') + '/virtualHardwareSection/disks')
@@ -312,18 +311,70 @@ class VApp(object):
             vm.get('href') + '/virtualHardwareSection/disks', disk_list,
             EntityType.RASD_ITEMS_LIST.value)
 
-    def get_access_control_settings(self):
-        """Get the access control settings of the vapp.
+    def get_access_settings(self):
+        """Get the access settings of the vapp.
 
-        :return: (dict): Access control settings of the vapp.
+       :return:  A :class:`lxml.objectify.StringElement` object representing
+            the access settings of the vapp.
         """
+        acl = Acl(self.client, self.get_resource())
+        return acl.get_access_settings()
 
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        access_control_settings = self.client.get_linked_resource(
-            self.resource, RelationType.DOWN,
-            EntityType.CONTROL_ACCESS_PARAMS.value)
-        return access_control_settings_to_dict(access_control_settings)
+    def add_access_settings(self, access_settings_list=None):
+        """Add access settings to a particular vapp.
+
+        :param access_settings_list: (list of dict): list of access_setting
+            in the dict format. Each dict contains:
+            type: (str): type of the subject. Only 'user' allowed for vapp.
+            name: (str): name of the user.
+            access_level: (str): access_level of the particular subject. One of
+            'ReadOnly', 'Change', 'FullControl'
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+        the updated access control setting of the vapp.
+        """
+        acl = Acl(self.client, self.get_resource())
+        return acl.add_access_settings(access_settings_list)
+
+    def remove_access_settings(self,
+                               access_settings_list=None,
+                               remove_all=False):
+        """Remove access settings from a particular vapp.
+
+        :param access_settings_list: (list of dict): list of access_setting
+            in the dict format. Each dict contains:
+            type: (str): type of the subject. Only 'user' allowed for vapp.
+            name: (str): name of the user.
+        :param remove_all: (bool) : True if all access settings of the vapp
+            should be removed
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the vapp.
+        """
+        acl = Acl(self.client, self.get_resource())
+        return acl.remove_access_settings(access_settings_list, remove_all)
+
+    def share_with_org_members(self, everyone_access_level='ReadOnly'):
+        """Share the vapp to all members of the organization.
+
+        :param everyone_access_level: (str) : access level when sharing the
+            vapp with everyone. One of 'ReadOnly', 'Change', 'FullControl'.
+            'ReadOnly' by default.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the vapp.
+        """
+        acl = Acl(self.client, self.get_resource())
+        return acl.share_with_org_members(everyone_access_level)
+
+    def unshare_from_org_members(self):
+        """Unshare the vapp from all members of current organization.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the vapp.
+        """
+        acl = Acl(self.client, self.get_resource())
+        return acl.unshare_from_org_members()
 
     def get_all_networks(self):
         """Helper method that returns the list of networks defined in the vApp.
@@ -331,7 +382,6 @@ class VApp(object):
         :return:  A :class:`lxml.objectify.StringElement` object with the list
             of vApp networks.
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         return self.resource.xpath(
@@ -349,7 +399,6 @@ class VApp(object):
         :return:  A :class:`string` with the name of the requested network if
             exists.
         """
-
         networks = self.get_all_networks()
         if networks is None or len(networks) < index + 1:
             raise Exception('Can\'t find the specified vApp network')
@@ -379,7 +428,6 @@ class VApp(object):
             representing the 'SourcedItem' xml object created from the
             specification.
         """
-
         source_vapp = VApp(self.client, resource=spec['vapp'])
         source_vm_resource = source_vapp.get_vm(spec['source_vm_name'])
 
@@ -477,7 +525,6 @@ class VApp(object):
             sparsely populated vApp element.
 
         """
-
         params = E.RecomposeVAppParams(
             deploy='true' if deploy else 'false',
             powerOn='true' if power_on else 'false')
@@ -498,7 +545,6 @@ class VApp(object):
         :return:  A :class:`lxml.objectify.StringElement` object representing a
             sparsely populated vApp element.
         """
-
         params = E.RecomposeVAppParams()
         for name in names:
             vm = self.get_vm(name)

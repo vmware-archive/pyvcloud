@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import logging
 import unittest
 import warnings
 
@@ -47,6 +48,13 @@ class TestCase(unittest.TestCase):
             BasicLoginCredentials(cls.config['vcd']['user'],
                                   cls.config['vcd']['org'],
                                   cls.config['vcd']['password']))
+        logging.basicConfig(
+            filename='tests.log',
+            level=logging.DEBUG,
+            format='%(asctime)s %(name)-12s %(lineno)s '
+                   '%(levelname)-8s %(message)s',
+            datefmt='%m-%d %H:%M:%S')
+        cls.logger = logging.getLogger(__name__)
 
     @classmethod
     def tearDownClass(cls):

@@ -20,6 +20,7 @@ from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.utils import get_admin_href
 
+
 class System(object):
     def __init__(self, client, admin_href=None, admin_resource=None):
         """Constructor for System objects
@@ -147,4 +148,3 @@ class System(object):
                 return item
         raise Exception('Network pool \'%s\' not found or '
                         'access to resource is forbidden' % name)
-    

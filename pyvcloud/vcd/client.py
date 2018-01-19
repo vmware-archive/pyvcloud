@@ -163,6 +163,7 @@ class RelationType(Enum):
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
     TASK_CANCEL = 'task:cancel'
+    DEPLOY = 'deploy'
     UNDEPLOY = 'undeploy'
     UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'
     UP = 'up'
@@ -181,6 +182,7 @@ class EntityType(Enum):
     COMPOSE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.composeVAppParams+xml'
     CONTROL_ACCESS_PARAMS = 'application/vnd.vmware.vcloud.controlAccess+xml'
+    DEPLOY = 'application/vnd.vmware.vcloud.deployVAppParams+xml'
     DISK = 'application/vnd.vmware.vcloud.disk+xml'
     DISK_ATTACH_DETACH_PARAMS = \
         'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'

@@ -563,7 +563,7 @@ class Org(object):
     def get_role_resource(self, role_name):
         """Retrieves resource of a given role.
 
-        :param role_name: name of the role
+        :param role_name: (str):name of the role
 
         :return A :class:`lxml.objectify.StringElement` object representing
         the role.
@@ -667,7 +667,7 @@ class Org(object):
     def get_right_resource(self, right_name):
         """Retrieves resource of a given right.
 
-        :param right_name: name of the right
+        :param right_name: (str): name of the right
 
         :return A :class:`lxml.objectify.StringElement` object representing
         the right.

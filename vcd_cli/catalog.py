@@ -559,4 +559,3 @@ def list_acl(ctx, catalog_name):
             sort_headers=False)
     except Exception as e:
         stderr(e, ctx)
-

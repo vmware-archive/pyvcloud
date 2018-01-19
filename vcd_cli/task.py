@@ -16,7 +16,9 @@ import click
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import TaskStatus
+from pyvcloud.vcd.task import Task
 from pyvcloud.vcd.utils import task_to_dict
+from pyvcloud.vcd.utils import to_dict
 
 from vcd_cli.utils import as_metavar
 from vcd_cli.utils import restore_session
@@ -66,16 +68,27 @@ def info(ctx, task_id):
         stderr(e, ctx)
 
 
-@task.command(short_help='list tasks')
+@task.command('list', short_help='list tasks')
 @click.pass_context
 @click.argument('status',
                 type=click.Choice(TaskStatus._enums.keys()),
                 metavar=as_metavar(TaskStatus._enums.keys()),
-                required=False)
-def list(ctx, status):
-    stdout('use the search command:')
-    stdout('   vcd search task      --filter ''status==running''')
-    stdout('   vcd search admintask --filter ''status==running''')
+                required=False,
+                nargs=-1)
+def list_tasks(ctx, status):
+    try:
+        client = ctx.obj['client']
+        task_obj = Task(client)
+        records = task_obj.list_tasks(filter_statuses=status)
+        result = []
+        for r in records:
+            result.append(to_dict(r, attributes=['name', 'status',
+                                                 'objectName', 'ownerName',
+                                                 'orgName', 'startDate',
+                                                 'serviceNamespace', 'id']))
+        stdout(result, ctx, show_id=True)
+    except Exception as e:
+        stderr(e, ctx)
 
 
 @task.command(short_help='wait until task is complete')

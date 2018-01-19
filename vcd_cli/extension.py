@@ -117,7 +117,7 @@ def create(ctx, name, namespace, routing_key, exchange, patterns):
               prompt='Are you sure you want to unregister it?')
 def delete(ctx, name):
     try:
-        ext = Extension(ctx.obj['client'])
+        ext = ctx.obj['ext']
         ext.delete_extension(name)
     except Exception as e:
         stderr(e, ctx)

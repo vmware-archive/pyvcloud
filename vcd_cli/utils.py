@@ -28,10 +28,12 @@ from pygments import lexers
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import MissingLinkException
+from pyvcloud.vcd.client import MissingRecordException
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.client import VcdErrorResponseException
 from pyvcloud.vcd.utils import extract_id
+from pyvcloud.vcd.utils import task_to_dict
 from pyvcloud.vcd.utils import to_dict
 import requests
 from tabulate import tabulate
@@ -67,6 +69,10 @@ def as_table(obj_list, show_id=False, sort_headers=True,
                 [obj.get(k) if k in obj.keys() else '' for k in headers])
         return tabulate(table, headers)
 
+
+def as_prop_value_list(obj, show_id=True):
+    return as_table([{'property': k, 'value': v} for k, v in
+                    sorted(obj.items())], show_id=show_id)
 
 def as_metavar(values):
     result = ''
@@ -130,10 +136,9 @@ def task_callback(task):
         last_message = message
     if hasattr(task, 'Progress'):
         message += ', progress: %s%%' % task.Progress
-    if task.get('status').lower() in [
-            TaskStatus.QUEUED.value, TaskStatus.PENDING.value,
-            TaskStatus.PRE_RUNNING.value, TaskStatus.RUNNING.value
-    ]:
+    if task.get('status').lower() in [TaskStatus.QUEUED.value,
+                                      TaskStatus.PRE_RUNNING.value,
+                                      TaskStatus.RUNNING.value]:
         message += ' %s ' % next(spinner)
     click.secho(message, nl=False)
 
@@ -167,15 +172,15 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False, sort_headers=True):
             if isinstance(obj, ObjectifiedElement):
                 if obj.tag == '{' + NSMAP['vcloud'] + '}Task':
                     if ctx is not None and \
-                       hasattr(ctx.find_root().params, 'no_wait') and \
+                       'no_wait' in ctx.find_root().params and \
                        ctx.find_root().params['no_wait']:
-                        text = as_table([to_dict(obj)], show_id=True)
+                        text = as_prop_value_list(obj, show_id=show_id)
                     else:
                         client = ctx.obj['client']
                         task = client.get_task_monitor().wait_for_status(
                             task=obj,
                             timeout=60,
-                            poll_frequency=2,
+                            poll_frequency=5,
                             fail_on_statuses=None,
                             expected_target_statuses=[
                                 TaskStatus.SUCCESS, TaskStatus.ABORTED,
@@ -213,12 +218,7 @@ def stdout(obj, ctx=None, alt_text=None, show_id=False, sort_headers=True):
                     else:
                         value = v
                     obj1[k] = value
-                text = as_table(
-                    [{
-                        'property': k,
-                        'value': v
-                    } for k, v in sorted(obj1.items())],
-                    show_id=show_id)
+                text = as_prop_value_list(obj1, show_id=show_id)
             else:
                 text = as_table(
                     obj, show_id=show_id, sort_headers=sort_headers)
@@ -243,6 +243,8 @@ def stderr(exception, ctx=None):
             message = str(exception)
     elif type(exception) == MissingLinkException:
         message = str(exception)
+    elif type(exception) == MissingRecordException:
+        message = 'Record not found.'
     elif hasattr(exception, 'message'):
         message = exception.message
     else:

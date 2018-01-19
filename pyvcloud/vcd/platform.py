@@ -39,7 +39,7 @@ class Platform(object):
         """List vCenter servers attached to the system.
 
         :return: (lxml.objectify.ObjectifiedElement): list of vCenter
-            resources.
+            references.
         """
         return self.client.get_linked_resource(
             self.extension.get_resource(),
@@ -49,9 +49,43 @@ class Platform(object):
     def get_vcenter(self, name):
         """Get a vCenter attached to the system by name.
 
+        :param name: (str): The name of vCenter.
+
         :return: (lxml.objectify.ObjectifiedElement): vCenter resource.
         """
         for record in self.list_vcenters():
             if record.get('name') == name:
                 return self.client.get_resource(record.get('href'))
         return None
+
+    def list_external_networks(self):
+        """List all external networks available in the system
+
+        :return:  A list of :class:`lxml.objectify.StringElement` objects
+            representing the external network references.
+        """
+        ext_net_refs = self.client.get_linked_resource(
+            self.extension.get_resource(),
+            RelationType.DOWN,
+            EntityType.EXTERNAL_NETWORK_REFS.value)
+
+        if hasattr(ext_net_refs, 'ExternalNetworkReference'):
+            return ext_net_refs.ExternalNetworkReference
+
+        return []
+
+    def get_external_network(self, name):
+        """Fetch an external network resource identified by it's name.
+
+        :param name: (str): The name of the external network.
+
+        :return: A :class:`lxml.objectify.StringElement` object representing
+            the reference to external network.
+
+        :raises: Exception: If the named external network cannot be located.
+        """
+        ext_net_refs = self.list_external_networks()
+        for ext_net in ext_net_refs:
+            if ext_net.get('name') == name:
+                return self.client.get_resource(ext_net.get('href'))
+        raise Exception('External network \'%s\' not found.' % name)

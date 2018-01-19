@@ -284,6 +284,12 @@ def add_right(ctx, role_name, rights, org_name):
               required=False,
               metavar='[org-name]',
               help='name of the org')
+@click.option('-y',
+              '--yes',
+              is_flag=True,
+              callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to remove rights from the role?')
 def remove_right(ctx, role_name, rights, org_name):
     try:
         client = ctx.obj['client']

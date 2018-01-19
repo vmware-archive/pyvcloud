@@ -430,7 +430,8 @@ class Org(object):
                      vapp_href,
                      catalog_item_name,
                      description,
-                     customize_on_instantiate=False):
+                     customize_on_instantiate=False,
+                     overwrite=False):
         contents = E.CaptureVAppParams(
             E.Description(description),
             E.Source(href=vapp_href),
@@ -440,6 +441,13 @@ class Org(object):
                 E.CustomizationSection(
                     E_OVF.Info('VApp template customization section'),
                     E.CustomizeOnInstantiate('true')))
+        if overwrite:
+            item = self.get_catalog_item(catalog_resource.get('name'),
+                                         catalog_item_name)
+            contents.append(E.TargetCatalogItem(href=item.get('href'),
+                                                id=item.get('id'),
+                                                type=item.get('type'),
+                                                name=item.get('name')))
         return self.client.post_linked_resource(
             catalog_resource,
             rel=RelationType.ADD,

@@ -607,7 +607,7 @@ class VDC(object):
            hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
             for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
                 profile_list.append(profile)
-                return profile_list
+            return profile_list
         return None
 
     def get_storage_profile(self, profile_name):

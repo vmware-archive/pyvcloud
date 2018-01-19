@@ -353,14 +353,13 @@ def _objectify_response(response, as_object=True):
 
 
 class TaskStatus(Enum):
-    QUEUED = "queued"
-    PENDING = "pending"
-    PRE_RUNNING = "pre-running"
-    RUNNING = "running"
-    SUCCESS = "success"
-    ABORTED = "aborted"
-    ERROR = "error"
-    CANCELED = "canceled"
+    QUEUED = 'queued'
+    PRE_RUNNING = 'preRunning'
+    RUNNING = 'running'
+    SUCCESS = 'success'
+    ERROR = 'error'
+    CANCELED = 'canceled'
+    ABORTED = 'aborted'
 
 
 class _TaskMonitor(object):

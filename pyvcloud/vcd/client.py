@@ -190,6 +190,8 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
+    EXTERNAL_NETWORK_REFS = \
+        'application/vnd.vmware.admin.vmwExternalNetworkReferences+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'

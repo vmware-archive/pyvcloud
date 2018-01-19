@@ -1,6 +1,19 @@
 CHANGES
 =======
 
+* VCDA-451: work with pending tasks
+* VCDA-230 & VCDA-234: Add or remove rights from organization (#174)
+* VCDA-331: catalog\_item download fails with 'No such file or directory' error. (#175)
+*  Implementing SDK methods to update acl of vdc and vapp (#169)
+* VCDA-369: Adding capability to create isolated OrgVDC networks
+* VCDA-354: CSE support multiple vCenters
+* VCDA-369: Adding capability to create isolated OrgVDC networks
+* VCDA-248 error handling on invalid session
+* Update README.md
+* Update README.md
+* Added list resources example
+* VCDA-226 & VCDA-233 Add or Remove rights from a given role (#167)
+
 19.1.0
 ------
 

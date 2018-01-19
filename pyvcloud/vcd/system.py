@@ -78,7 +78,7 @@ class System(object):
         """
         if self.admin_resource is None:
             self.admin_resource = self.client.get_resource(self.admin_href)
-        if hasattr(self.admin_resource, 'ProviderVdcReference') and \
+        if hasattr(self.admin_resource, 'ProviderVdcReferences') and \
            hasattr(self.admin_resource.ProviderVdcReferences,
                    'ProviderVdcReference'):
             return self.admin_resource.ProviderVdcReferences.\

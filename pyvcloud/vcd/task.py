@@ -16,7 +16,9 @@
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
+from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import TaskStatus
 
 
 class Task(object):
@@ -67,3 +69,38 @@ class Task(object):
         else:
             return self.client.put_resource(task_href, t,
                                             EntityType.TASK.value)
+
+    def list_tasks(self,
+                   filter_status_list=[
+                       TaskStatus.QUEUED.value, TaskStatus.PRE_RUNNING.value,
+                       TaskStatus.RUNNING.value
+                   ],
+                   newer_first=True):
+        """Return a list of tasks accesible by the user, filtered by status.
+
+        :param filter_status_list: ([str]): The status of tasks to query.
+
+        :return:  A list of :class:`lxml.objectify.StringElement` objects
+            with the tasks that match the status filter
+        """
+        query_filter = ''
+        for f in filter_status_list:
+            query_filter += 'status==%s,' % f
+        if len(query_filter) > 0:
+            query_filter = query_filter[:-1]
+        sort_asc = None
+        sort_desc = None
+        if newer_first:
+            sort_desc = 'startDate'
+        else:
+            sort_asc = 'startDate'
+        resource_type_cc = 'task'
+        if self.client.is_sysadmin():
+            resource_type_cc = 'adminTask'
+        q = self.client.get_typed_query(
+            resource_type_cc,
+            query_result_format=QueryResultFormat.ID_RECORDS,
+            qfilter=query_filter,
+            sort_asc=sort_asc,
+            sort_desc=sort_desc)
+        return q.execute()

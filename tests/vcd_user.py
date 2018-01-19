@@ -25,7 +25,7 @@ class TestUser(TestCase):
     def create_user(self, user_name, enabled=False):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
-        role = org.get_role(self.config['vcd']['role_name'])
+        role = org.get_role_record(self.config['vcd']['role_name'])
         role_href = role.get('href')
         return org.create_user(user_name, "password", role_href, "Full Name",
                                "Description", "xyz@mail.com", "408-487-9087",

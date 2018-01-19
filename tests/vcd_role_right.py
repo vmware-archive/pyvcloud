@@ -30,14 +30,14 @@ class TestRole(TestCase):
     def test_02_get_role(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
-        role = org.get_role(self.config['vcd']['role_name'])
+        role = org.get_role_record(self.config['vcd']['role_name'])
         assert self.config['vcd']['role_name'] == role.get('name')
 
     def test_03_get_rights(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         role_name = self.config['vcd']['role_name']
-        role_record = org.get_role(role_name)
+        role_record = org.get_role_record(role_name)
         role = Role(self.client, href=role_record.get('href'))
         rights = role.list_rights()
         assert len(rights) > 0
@@ -47,7 +47,7 @@ class TestRole(TestCase):
         org = Org(self.client, resource=logged_in_org)
         role_name = self.config['vcd']['role_name']
         org.create_role(role_name, 'test description', ('Disk: View Properties',))
-        role_record = org.get_role(role_name)
+        role_record = org.get_role_record(role_name)
         assert self.config['vcd']['role_name'] == role_record.get('name')
 
     def test_05_list_rights_in_org(self):
@@ -66,7 +66,7 @@ class TestRole(TestCase):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         role_name = self.config['vcd']['role_name']
-        role_record = org.get_role(role_name)
+        role_record = org.get_role_record(role_name)
         role = Role(self.client, href=role_record.get('href'))
         role.link()
 
@@ -74,7 +74,7 @@ class TestRole(TestCase):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)
         role_name = self.config['vcd']['role_name']
-        role_record = org.get_role(role_name)
+        role_record = org.get_role_record(role_name)
         role = Role(self.client, href=role_record.get('href'))
         role.unlink()
 
@@ -84,7 +84,7 @@ class TestRole(TestCase):
         role_name = self.config['vcd']['role_name']
         right_name = self.config['vcd']['right_name']
 
-        role_record = org.get_role(role_name)
+        role_record = org.get_role_record(role_name)
         role = Role(self.client, href=role_record.get('href'))
 
         updated_role_resource = role.add_rights([right_name], org)
@@ -103,7 +103,7 @@ class TestRole(TestCase):
         role_name = self.config['vcd']['role_name']
         right_name = self.config['vcd']['right_name']
 
-        role_record = org.get_role(role_name)
+        role_record = org.get_role_record(role_name)
         role = Role(self.client, href=role_record.get('href'))
 
         updated_role_resource = role.remove_rights([right_name])

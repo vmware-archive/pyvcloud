@@ -87,7 +87,7 @@ class Org(object):
         if rights is None:
             rights = ()
         for right in tuple(rights):
-            right_record = self.get_right(right)
+            right_record = self.get_right_record(right)
             role.RightReferences.append(
                 E.RightReference(
                     name=right_record.get('name'),
@@ -104,7 +104,7 @@ class Org(object):
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        role_record = self.get_role(name)
+        role_record = self.get_role_record(name)
         self.client.delete_resource(role_record.get('href'))
 
     def delete_catalog(self, name):
@@ -566,13 +566,13 @@ class Org(object):
         :param role_name: name of the role
 
         :return A :class:`lxml.objectify.StringElement` object representing
-        the role resource.
+        the role.
         """
-        role_record = self.get_role(role_name)
+        role_record = self.get_role_record(role_name)
         return self.client.get_resource(role_record.get('href'))
 
-    def get_role(self, role_name):
-        """Retrieve role object with a particular name in the current Org
+    def get_role_record(self, role_name):
+        """Retrieve role record with a particular name in the current Org
 
         :param role_name: (str): The name of the role object to be retrieved
 
@@ -625,7 +625,7 @@ class Org(object):
         org_admin_resource = self.client.get_resource(self.href_admin)
         org_rights = E.OrgRights()
         for right in rights:
-            right_record = self.get_right(right)
+            right_record = self.get_right_record(right)
             org_rights.append(
                 E.RightReference(
                     name=right_record.get('name'),
@@ -670,12 +670,12 @@ class Org(object):
         :param right_name: name of the right
 
         :return A :class:`lxml.objectify.StringElement` object representing
-        the right resource.
+        the right.
         """
-        right_record = self.get_right(right_name)
+        right_record = self.get_right_record(right_name)
         return self.client.get_resource(right_record.get('href'))
 
-    def get_right(self, right_name):
+    def get_right_record(self, right_name):
         """Retrieves corresponding record of the specified right.
 
         :param right_name: (str): The name of the right record to be retrieved

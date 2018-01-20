@@ -4,17 +4,15 @@
 
 `pyvcloud` is the Python SDK for VMware vCloud Director.
 
-
 ## Installation
 
 In general, `pyvcloud` can be installed with the following command:
-
 ```shell
 $ pip install --user pyvcloud
 ```
-
-`pyvcloud` can also be installed with [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs).
-
+Depending on your operating system and distribution you
+may need additional packages to install successfully. See
+[install.md](docs/install.md) for full details.
 
 ## Testing
 

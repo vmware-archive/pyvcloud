@@ -152,6 +152,7 @@ class RelationType(Enum):
     ENABLE = 'enable'
     LINK_TO_TEMPLATE = 'linkToTemplate'
     NEXT_PAGE = 'nextPage'
+    ORG_VDC_NETWORKS = 'orgVdcNetworks'
     POWER_OFF = 'power:powerOff'
     POWER_ON = 'power:powerOn'
     POWER_REBOOT = 'power:reboot'

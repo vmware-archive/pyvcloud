@@ -152,6 +152,7 @@ class RelationType(Enum):
     ENABLE = 'enable'
     LINK_TO_TEMPLATE = 'linkToTemplate'
     NEXT_PAGE = 'nextPage'
+    ORG_VDC_NETWORKS = 'orgVdcNetworks'
     POWER_OFF = 'power:powerOff'
     POWER_ON = 'power:powerOn'
     POWER_REBOOT = 'power:reboot'
@@ -254,6 +255,13 @@ class _WellKnownEndpoint(Enum):
                          EntityType.API_EXTENSIBILITY.value)
     EXTENSION = (RelationType.DOWN, EntityType.EXTENSION.value)
     ORG_LIST = (RelationType.DOWN, EntityType.ORG_LIST.value)
+
+
+class FenceMode(Enum):
+    ISOLATED = 'isolated'
+    DIRECT = 'direct'
+    BRIDGED = 'bridged'
+    NAT_ROUTED = 'natRouted'
 
 
 class MultipleRecordsException(Exception):

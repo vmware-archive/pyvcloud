@@ -201,13 +201,13 @@ class VApp(object):
                 self.resource.Children.Vm[0].NetworkConnectionSection)
 
     def attach_disk_to_vm(self, disk_href, vm_name):
-        """Attach the independent disk to the VM with the given name
+        """Attach the independent disk to the VM with the given name.
 
         :param disk_href: (str): The href of the disk to be attached.
-        :param vm_name: (str): The name of the VM to which the disk \
+        :param vm_name: (str): The name of the VM to which the disk
             will be attached.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing \
+        :return:  A :class:`lxml.objectify.StringElement` object describing
             the asynchronous Task of attaching the disk.
 
         :raises: Exception: If the named VM cannot be located or another error
@@ -223,13 +223,13 @@ class VApp(object):
             disk_attach_or_detach_params)
 
     def detach_disk_from_vm(self, disk_href, vm_name):
-        """Detach the independent disk from the VM with the given name
+        """Detach the independent disk from the VM with the given name.
 
         :param disk_href: (str): The href of the disk to be detached.
-        :param vm_name: (str): The name of the VM to which the disk \
+        :param vm_name: (str): The name of the VM to which the disk
             will be detached.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing \
+        :return:  A :class:`lxml.objectify.StringElement` object describing
             the asynchronous Task of detaching the disk.
 
         :raises: Exception: If the named VM cannot be located or another error
@@ -276,7 +276,8 @@ class VApp(object):
         """Add a virtual disk to a virtual machine in the vApp.
 
         It assumes that the VM has already at least one virtual hard disk
-        and will attempt to create another one with similar characteristics.
+            and will attempt to create another one with similar
+            characteristics.
 
         :param vm_name: (str): The name of the vm to be customized.
         :param disk_size: (int): The size of the disk to be added, in MBs.
@@ -314,7 +315,7 @@ class VApp(object):
     def get_access_settings(self):
         """Get the access settings of the vapp.
 
-       :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return:  A :class:`lxml.objectify.StringElement` object representing
             the access settings of the vapp.
         """
         acl = Acl(self.client, self.get_resource())
@@ -325,10 +326,10 @@ class VApp(object):
 
         :param access_settings_list: (list of dict): list of access_setting
             in the dict format. Each dict contains:
-            type: (str): type of the subject. Only 'user' allowed for vapp.
-            name: (str): name of the user.
-            access_level: (str): access_level of the particular subject. One of
-            'ReadOnly', 'Change', 'FullControl'
+            - type: (str): type of the subject. Only 'user' allowed for vapp.
+            - name: (str): name of the user.
+            - access_level: (str): access_level of the particular subject. One
+                of 'ReadOnly', 'Change', 'FullControl'
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
         the updated access control setting of the vapp.
@@ -343,8 +344,8 @@ class VApp(object):
 
         :param access_settings_list: (list of dict): list of access_setting
             in the dict format. Each dict contains:
-            type: (str): type of the subject. Only 'user' allowed for vapp.
-            name: (str): name of the user.
+            - type: (str): type of the subject. Only 'user' allowed for vapp.
+            - name: (str): name of the user.
         :param remove_all: (bool) : True if all access settings of the vapp
             should be removed
 

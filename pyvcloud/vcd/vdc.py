@@ -348,10 +348,10 @@ class VDC(object):
         return result
 
     def list_edge_gateways(self):
-        """
-        Request a list of edge gateways defined in a vdc.
+        """Request a list of edge gateways defined in a vdc.
+
         :return: An array of the existing edge gateways.
-        """  # NOQA
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         links = self.client.get_linked_resource(self.resource,
@@ -533,7 +533,6 @@ class VDC(object):
         :raises: Exception: If the named disk cannot be located or some
             other error occurs.
         """
-
         if name is None and disk_id is None:
             raise Exception('Unable to idendify disk without name or id.')
 
@@ -631,7 +630,7 @@ class VDC(object):
             'Storage Profile named \'%s\' not found' % profile_name)
 
     def enable_vdc(self, enable=True):
-        """Enable current vdc
+        """Enable current vdc.
 
         :param is_enabled: (bool): enable/disable the vdc
         :return: (OrgVdcType) updated vdc object.
@@ -642,12 +641,11 @@ class VDC(object):
                                                 None)
 
     def delete_vdc(self):
-        """Delete the current Organization vDC
+        """Delete the current Organization vdc.
 
         :param vdc_name: The name of the org vdc to delete
         :return:
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -657,9 +655,9 @@ class VDC(object):
     def get_access_settings(self):
         """Get the access settings of the vdc.
 
-       :return:  A :class:`lxml.objectify.StringElement` object representing
-           the access settings of the vdc.
-       """
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the access settings of the vdc.
+        """
         acl = Acl(self.client, self.get_resource())
         return acl.get_access_settings()
 
@@ -727,7 +725,7 @@ class VDC(object):
                     network=None,
                     fence_mode='bridged',
                     accept_all_eulas=None):
-        """Create a new vApp in this vdc
+        """Create a new vApp in this vdc.
 
         :param name: (str) Name of the new vApp
         :param description: (str) Description of the new vApp
@@ -739,7 +737,6 @@ class VDC(object):
         :return:  A :class:`lxml.objectify.StringElement` object representing a
             sparsely populated vApp element in the target vdc.
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -796,7 +793,6 @@ class VDC(object):
         :return: A :class:`lxml.objectify.StringElement` object representing
             a sparsely populated OrgVdcNetwork element.
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
@@ -862,7 +858,6 @@ class VDC(object):
         :return: A :class:`lxml.objectify.StringElement` object representing
             a sparsely populated OrgVdcNetwork element
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 

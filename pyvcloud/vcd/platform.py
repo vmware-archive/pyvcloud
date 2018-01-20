@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.extension import Extension
@@ -26,9 +25,11 @@ class Platform(object):
         client (str): Low level client to connect to vCD.
         extension (:obj:`pyvcloud.vcd.Extension`, optional): It holds an
             Extension object to interact with vCD admin extension.
+
     """
+
     def __init__(self, client):
-        """Constructor for vSphere Platform Resources
+        """Constructor for vSphere Platform Resources.
 
         :param client:  (pyvcloud.vcd.client): The client.
         """
@@ -42,8 +43,7 @@ class Platform(object):
             references.
         """
         return self.client.get_linked_resource(
-            self.extension.get_resource(),
-            RelationType.DOWN,
+            self.extension.get_resource(), RelationType.DOWN,
             EntityType.VIM_SERVER_REFS.value).VimServerReference
 
     def get_vcenter(self, name):
@@ -59,14 +59,13 @@ class Platform(object):
         return None
 
     def list_external_networks(self):
-        """List all external networks available in the system
+        """List all external networks available in the system.
 
         :return:  A list of :class:`lxml.objectify.StringElement` objects
             representing the external network references.
         """
         ext_net_refs = self.client.get_linked_resource(
-            self.extension.get_resource(),
-            RelationType.DOWN,
+            self.extension.get_resource(), RelationType.DOWN,
             EntityType.EXTERNAL_NETWORK_REFS.value)
 
         if hasattr(ext_net_refs, 'ExternalNetworkReference'):

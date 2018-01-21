@@ -87,7 +87,7 @@ class Org(object):
         if rights is None:
             rights = ()
         for right in tuple(rights):
-            right_record = self.get_right(right)
+            right_record = self.get_right_record(right)
             role.RightReferences.append(
                 E.RightReference(
                     name=right_record.get('name'),
@@ -104,7 +104,7 @@ class Org(object):
         """  # NOQA
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        role_record = self.get_role(name)
+        role_record = self.get_role_record(name)
         self.client.delete_resource(role_record.get('href'))
 
     def delete_catalog(self, name):
@@ -159,7 +159,7 @@ class Org(object):
         :param new_catalog_name: (str): The new name of the catalog.
         :param description: (str): The new description of the catalog.
         :return:  A :class:`lxml.objectify.StringElement` object describing
-        the updated catalog.
+            the updated catalog.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -430,7 +430,23 @@ class Org(object):
                      vapp_href,
                      catalog_item_name,
                      description,
-                     customize_on_instantiate=False):
+                     customize_on_instantiate=False,
+                     overwrite=False):
+        """Capture vApp as a catalog item template.
+
+        :param catalog_resource: (`lxml.objectify.StringElement`): The
+            catalog.
+        :param vapp_href: (str): The href of the vApp to capture.
+        :param catalog_item_name: (str): The name of the target catalog item.
+        :param description: (str): The description of the catalog item.
+        :param customize_on_instantiate: (bool): A flag indicating if the
+            vApp to be instantiated from this vApp template can be customized.
+        :param overwrite: (bool): A flag indicating if the item in the catalog
+            has to be overwritten if it already exists. If it doesn't exists,
+            this flag is not used.
+        :return:  A :class:`lxml.objectify.StringElement` object describing
+            the updated catalog item.
+        """
         contents = E.CaptureVAppParams(
             E.Description(description),
             E.Source(href=vapp_href),
@@ -440,6 +456,16 @@ class Org(object):
                 E.CustomizationSection(
                     E_OVF.Info('VApp template customization section'),
                     E.CustomizeOnInstantiate('true')))
+        if overwrite:
+            try:
+                item = self.get_catalog_item(catalog_resource.get('name'),
+                                             catalog_item_name)
+                contents.append(E.TargetCatalogItem(href=item.get('href'),
+                                                    id=item.get('id'),
+                                                    type=item.get('type'),
+                                                    name=item.get('name')))
+            except Exception:
+                pass
         return self.client.post_linked_resource(
             catalog_resource,
             rel=RelationType.ADD,
@@ -560,10 +586,22 @@ class Org(object):
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
 
-    def get_role(self, role_name):
-        """Retrieve role object with a particular name in the current Org
+    def get_role_resource(self, role_name):
+        """Retrieves resource of a given role.
+
+        :param role_name: (str):name of the role
+
+        :return A :class:`lxml.objectify.StringElement` object representing
+        the role.
+        """
+        role_record = self.get_role_record(role_name)
+        return self.client.get_resource(role_record.get('href'))
+
+    def get_role_record(self, role_name):
+        """Retrieve role record with a particular name in the current Org
 
         :param role_name: (str): The name of the role object to be retrieved
+
         :return: (dict): Role record in dict format
         """
         role_record = self.list_roles(('name', role_name))
@@ -613,7 +651,7 @@ class Org(object):
         org_admin_resource = self.client.get_resource(self.href_admin)
         org_rights = E.OrgRights()
         for right in rights:
-            right_record = self.get_right(right)
+            right_record = self.get_right_record(right)
             org_rights.append(
                 E.RightReference(
                     name=right_record.get('name'),
@@ -652,7 +690,18 @@ class Org(object):
                     org_rights_resource)
         return org_rights_resource
 
-    def get_right(self, right_name):
+    def get_right_resource(self, right_name):
+        """Retrieves resource of a given right.
+
+        :param right_name: (str): name of the right
+
+        :return A :class:`lxml.objectify.StringElement` object representing
+        the right.
+        """
+        right_record = self.get_right_record(right_name)
+        return self.client.get_resource(right_record.get('href'))
+
+    def get_right_record(self, right_name):
         """Retrieves corresponding record of the specified right.
 
         :param right_name: (str): The name of the right record to be retrieved

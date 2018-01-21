@@ -85,7 +85,7 @@ class Role(object):
             self.resource = self.client.get_resource(self.href)
         updated_resource = deepcopy(self.resource)
         for right in rights:
-            right_record = org.get_right(right)
+            right_record = org.get_right_record(right)
             updated_resource.RightReferences.append(
                 E.RightReference(
                     name=right_record.get('name'),

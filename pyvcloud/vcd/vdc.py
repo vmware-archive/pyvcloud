@@ -22,7 +22,7 @@ from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.org import Org
-from pyvcloud.vcd.utils import get_admin_extension_href
+from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import get_admin_href
 
 
@@ -100,7 +100,7 @@ class VDC(object):
         :param name: (str): The name of the new vApp.
         :param catalog: (str): The name of the catalog.
         :param template: (str): The name of the vApp template.
-        :param network: (str): The name of a VDC network.
+        :param network: (str): The name of a vdc network.
             When provided, connects the VM to the network.
             It assumes one VM in the vApp and one NIC in the VM.
         :param fence_mode: (str): Fence mode.
@@ -380,13 +380,13 @@ class VDC(object):
         :param bus_type: (str): The bus type of the new disk.
         :param bus_subtype: (str): The bus subtype  of the new disk.
         :param description: (str): A description of the new disk.
-        :param storage_profile_name: (str): The name of an existing \
+        :param storage_profile_name: (str): The name of an existing
             storage profile to be used by the new disk.
         :param iops: (int): Iops requirement of the new disk.
 
-        :return:  A :class:`lxml.objectify.StringElement` object containing \
-            the sparse representation of the new disk and the asynchronus \
-            Task that is creating the disk.
+        :return:  A :class:`lxml.objectify.StringElement` object containing
+            the sparse representation of the new disk and the asynchronus task
+            that is creating the disk.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -429,14 +429,14 @@ class VDC(object):
         :param new_name: (str): The new name of the disk
         :param new_size: (int): The new size of the disk in bytes.
         :param new_description: (str): The new description of the disk.
-        :param new_storage_profile_name: (str): The new storage profile that \
+        :param new_storage_profile_name: (str): The new storage profile that
             the disk will be moved to.
         :param new_iops: (int): The new iops requirement of the disk.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing \
-            the asynchronous Task updating the disk.
+        :return:  A :class:`lxml.objectify.StringElement` object describing
+            the asynchronous task updating the disk.
 
-        :raises: Exception: If the named disk cannot be located or some \
+        :raises: Exception: If the named disk cannot be located or some
             other error occurs.
         """
         if self.resource is None:
@@ -481,10 +481,10 @@ class VDC(object):
         :param name: (str): The name of the Disk to delete.
         :param disk_id: (str): The id of the disk to delete.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing \
+        :return:  A :class:`lxml.objectify.StringElement` object describing
             the asynchronous Task deleting the disk.
 
-        :raises: Exception: If the named disk cannot be located or some \
+        :raises: Exception: If the named disk cannot be located or some
             other error occurs.
         """
         if self.resource is None:
@@ -501,7 +501,7 @@ class VDC(object):
     def get_disks(self):
         """Request a list of independent disks defined in a vdc.
 
-        :return: An array of :class:`lxml.objectify.StringElement` \
+        :return: An array of :class:`lxml.objectify.StringElement`
             objects describing the existing Disks.
         """
         if self.resource is None:
@@ -527,10 +527,10 @@ class VDC(object):
         :param name: (str): The name of the disk.
         :param disk_id: (str): The id of the disk.
 
-        :return: A :class:`lxml.objectify.StringElement` object describing \
+        :return: A :class:`lxml.objectify.StringElement` object describing
             the existing disk.
 
-        :raises: Exception: If the named disk cannot be located or some \
+        :raises: Exception: If the named disk cannot be located or some
             other error occurs.
         """
 
@@ -571,12 +571,12 @@ class VDC(object):
 
         :param user_href: Href of the new owner (user).
         :param name: Name of the independent disk.
-        :param disk_id: The id of the disk (required if there are multiple \
+        :param disk_id: The id of the disk (required if there are multiple
             disks with same name).
 
         :return: None
 
-        :raises: Exception: If the named disk cannot be located or some \
+        :raises: Exception: If the named disk cannot be located or some
             other error occurs.
         """
         if self.resource is None:
@@ -594,7 +594,7 @@ class VDC(object):
             disk.get('href') + '/owner/', new_owner, EntityType.OWNER.value)
 
     def get_storage_profiles(self):
-        """Request a list of the Storage Profiles defined in a VDC.
+        """Request a list of the Storage Profiles defined in a vdc.
 
         :return: An array of :class:`lxml.objectify.StringElement` objects
             describing the existing Storage Profiles.
@@ -607,7 +607,7 @@ class VDC(object):
            hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
             for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
                 profile_list.append(profile)
-                return profile_list
+            return profile_list
         return None
 
     def get_storage_profile(self, profile_name):
@@ -631,7 +631,7 @@ class VDC(object):
             'Storage Profile named \'%s\' not found' % profile_name)
 
     def enable_vdc(self, enable=True):
-        """Enable current VDC
+        """Enable current vdc
 
         :param is_enabled: (bool): enable/disable the vdc
         :return: (OrgVdcType) updated vdc object.
@@ -658,7 +658,7 @@ class VDC(object):
         """Get the access settings of the vdc.
 
        :return:  A :class:`lxml.objectify.StringElement` object representing
-        the access settings of the vdc.
+           the access settings of the vdc.
        """
         acl = Acl(self.client, self.get_resource())
         return acl.get_access_settings()
@@ -674,7 +674,7 @@ class VDC(object):
             Only 'ReadOnly' is allowed for vdc.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
-        the updated access control setting of the vdc.
+            the updated access control setting of the vdc.
         """
         acl = Acl(self.client, self.get_resource())
         return acl.add_access_settings(access_settings_list)
@@ -727,7 +727,7 @@ class VDC(object):
                     network=None,
                     fence_mode='bridged',
                     accept_all_eulas=None):
-        """Create a new vApp in this VDC
+        """Create a new vApp in this vdc
 
         :param name: (str) Name of the new vApp
         :param description: (str) Description of the new vApp
@@ -737,7 +737,7 @@ class VDC(object):
         :param accept_all_eulas: (bool): True confirms acceptance of all EULAs
             in a vApp template.
         :return:  A :class:`lxml.objectify.StringElement` object representing a
-            sparsely populated vApp element in the target VDC.
+            sparsely populated vApp element in the target vdc.
         """
 
         if self.resource is None:
@@ -785,40 +785,24 @@ class VDC(object):
                                               parent_network_name,
                                               description=None,
                                               is_shared=None):
-        """Create a new directly connected OrgVdc network in this VDC.
+        """Create a new directly connected OrgVdc network in this vdc.
 
         :param network_name: (str): Name of the new network
         :param parent_network_name: (str): Name of the external network
             that the new network will be directly connected to
         :param description: (str): Description of the new network
-        :param is_shared: (bool): True, is the network is shared with \
-            other VDC(s) in the organization else False
+        :param is_shared: (bool): True, is the network is shared with
+            other vdc(s) in the organization else False
         :return: A :class:`lxml.objectify.StringElement` object representing
             a sparsely populated OrgVdcNetwork element.
         """
 
-        resource_admin = self.client.get_resource(self.href_admin)
-        parent_network_href = None
-        if hasattr(resource_admin, 'ProviderVdcReference'):
-            pvdc_admin_href = resource_admin.ProviderVdcReference.get('href')
-            pvdc_admin_ext_href = get_admin_extension_href(pvdc_admin_href)
-            pvdc_resource = self.client.get_resource(pvdc_admin_ext_href)
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
 
-            available_network_tag = '{' + NSMAP['vcloud'] + \
-                                    '}AvailableNetworks'
-            if hasattr(pvdc_resource, available_network_tag) and \
-               hasattr(pvdc_resource[available_network_tag], 'Network'):
-                for ext_net in pvdc_resource[available_network_tag].Network:
-                    if parent_network_name == ext_net.get('name'):
-                        parent_network_href = ext_net.get('href')
-                        break
-        else:
-            raise Exception('User doesn\'t have enough permission to view '
-                            'Provider Virtual Datacenter backing Virtual '
-                            'Datacenter %s' % self.name)
-        if parent_network_href is None:
-            raise Exception('Network \'%s\' not found in the Provider '
-                            'Virtual Datacenter.' % parent_network_name)
+        platform = Platform(self.client)
+        parent_network = platform.get_external_network(parent_network_name)
+        parent_network_href = parent_network.get('href')
 
         request_payload = E.OrgVdcNetwork(name=network_name)
         if description is not None:
@@ -832,8 +816,7 @@ class VDC(object):
             request_payload.append(E.IsShared(is_shared))
 
         return self.client.post_linked_resource(
-            resource_admin, RelationType.ADD, EntityType.ORG_VDC_NETWORK.value,
-            resource_admin, RelationType.ADD, EntityType.ORG_VDC_NETWORK.value,
+            self.resource, RelationType.ADD, EntityType.ORG_VDC_NETWORK.value,
             request_payload)
 
     def create_isolated_vdc_network(self,
@@ -852,7 +835,7 @@ class VDC(object):
                                     dhcp_ip_range_start=None,
                                     dhcp_ip_range_end=None,
                                     is_shared=None):
-        """Create a new isolated OrgVdc network in this VDC.
+        """Create a new isolated OrgVdc network in this vdc.
 
         :param network_name: (str): Name of the new network
         :param gateway_ip (str): IP address of the gateway of the new network
@@ -861,21 +844,21 @@ class VDC(object):
         :param primary_dns_ip (str): IP address of primary DNS server.
         :param secondary_dns_ip (str): IP address of secondary DNS Server
         :param dns_suffix (str): DNS suffix
-        :param ip_range_start (str): Start address of the IP ranges used for \
+        :param ip_range_start (str): Start address of the IP ranges used for
             static pool allocation in the network
-        :param ip_range_end (str): End address of the IP ranges used for \
+        :param ip_range_end (str): End address of the IP ranges used for
             static pool allocation in the network
-        :param is_dhcp_enabled (bool): Is DHCP service enabled on the new \
+        :param is_dhcp_enabled (bool): Is DHCP service enabled on the new
             network
-        :param default_lease_time (int): Default lease in seconds for DHCP \
+        :param default_lease_time (int): Default lease in seconds for DHCP
             addresses.
         :param max_lease_time (int): Max lease in seconds for DHCP addresses
-        :param dhcp_ip_range_start (str): Start address of the IP range \
+        :param dhcp_ip_range_start (str): Start address of the IP range
             used for DHCP addresses
-        :param dhcp_ip_range_end (str): End address of the IP range used for \
+        :param dhcp_ip_range_end (str): End address of the IP range used for
             DHCP addresses
-        :param is_shared: (bool): True, if the network is shared with other \
-            VDC(s) in the organization else False
+        :param is_shared: (bool): True, if the network is shared with other
+            vdc(s) in the organization else False
         :return: A :class:`lxml.objectify.StringElement` object representing
             a sparsely populated OrgVdcNetwork element
         """

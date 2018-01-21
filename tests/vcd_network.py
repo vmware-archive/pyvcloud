@@ -17,6 +17,7 @@ import unittest
 
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.org import Org
+from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.test import TestCase
 from pyvcloud.vcd.vdc import VDC
 
@@ -50,6 +51,11 @@ class TestNetwork(TestCase):
         task = self.client.get_task_monitor().wait_for_success(
             task=result.Tasks.Task[0])
         assert task.get('status') == TaskStatus.SUCCESS.value
+
+    def test_030_list_external_networks(self):
+        platform = Platform(self.client)
+        ext_net_refs = platform.list_external_networks()
+        assert len(ext_net_refs) > 0
 
 
 if __name__ == '__main__':

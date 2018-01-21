@@ -192,6 +192,8 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
+    EXTERNAL_NETWORK_REFS = \
+        'application/vnd.vmware.admin.vmwExternalNetworkReferences+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
@@ -353,14 +355,13 @@ def _objectify_response(response, as_object=True):
 
 
 class TaskStatus(Enum):
-    QUEUED = "queued"
-    PENDING = "pending"
-    PRE_RUNNING = "pre-running"
-    RUNNING = "running"
-    SUCCESS = "success"
-    ABORTED = "aborted"
-    ERROR = "error"
-    CANCELED = "canceled"
+    QUEUED = 'queued'
+    PRE_RUNNING = 'preRunning'
+    RUNNING = 'running'
+    SUCCESS = 'success'
+    ERROR = 'error'
+    CANCELED = 'canceled'
+    ABORTED = 'aborted'
 
 
 class _TaskMonitor(object):

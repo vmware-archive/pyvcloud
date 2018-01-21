@@ -146,24 +146,29 @@ class VApp(object):
             self.resource.get('href') + '/owner/', new_owner,
             EntityType.OWNER.value)
 
-    def deploy(self, power_on=True,
-               force_customization=False):
+    def deploy(self, power_on=None,
+               force_customization=None):
         """Deploys the vApp.
 
         Deploying the vApp will allocate all resources assigned to the vApp.
+        TODO: Add lease_deployment_seconds param after PR 2036925 is fixed.
+        :param power_on: (bool): Specifies whether to power on/off vapp/VM
 
-        :param power_on: (bool): True by default, unless otherwise specified.
-        :param force_customization: (bool): Used to specify whether to force \
+        on deployment. True by default, unless otherwise specified.
+        :param force_customization: (bool): Used to specify whether to force
+
         customization on deployment, if not set default value is false.
 
-        :return: A :class:`lxml.objectify.StringElement` object describing \
+        :return: A :class:`lxml.objectify.StringElement` object describing
             the asynchronous Task deploying the vApp.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         deploy_vapp_params = E.DeployVAppParams()
-        deploy_vapp_params.set('powerOn', str(power_on).lower())
-        deploy_vapp_params.set('forceCustomization',
+        if power_on is not None:
+            deploy_vapp_params.set('powerOn', str(power_on).lower())
+        if force_customization is not None:
+            deploy_vapp_params.set('forceCustomization',
                                str(force_customization).lower())
         return self.client.post_linked_resource(
             self.resource, RelationType.DEPLOY, EntityType.DEPLOY.value,
@@ -196,9 +201,9 @@ class VApp(object):
             self.resource, RelationType.POWER_SHUTDOWN, None, None)
 
     def power_reset(self):
-        """Resets  a vApp.
+        """Resets a vApp.
 
-        :return: A :class:`lxml.objectify.StringElement` object describing \
+        :return: A :class:`lxml.objectify.StringElement` object describing
             the asynchronous Task resetting the vApp.
         """
         if self.resource is None:

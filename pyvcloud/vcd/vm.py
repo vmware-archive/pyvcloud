@@ -83,7 +83,7 @@ class VM(object):
              '}ElementName'] = '%s virtual CPU(s)' % virtual_quantity
         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = virtual_quantity
         return self.client.put_resource(uri, item, EntityType.RASD_ITEM.value)
-
+            
     def power_on(self):
         """Powers on the VM.
 

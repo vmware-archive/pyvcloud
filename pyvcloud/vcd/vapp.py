@@ -152,6 +152,8 @@ class VApp(object):
 
         Deploying the vApp will allocate all resources assigned to the vApp.
         TODO: Add lease_deployment_seconds param after PR 2036925 is fixed.
+        https://jira.eng.vmware.com/browse/VCDA-465
+        
         :param power_on: (bool): Specifies whether to power on/off vapp/VM
 
         on deployment. True by default, unless otherwise specified.

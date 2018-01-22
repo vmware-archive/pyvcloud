@@ -141,6 +141,7 @@ class RelationType(Enum):
     ADD = 'add'
     ALTERNATE = 'alternate'
     CONTROL_ACCESS = 'controlAccess'
+    DEPLOY = 'deploy'
     DISABLE = 'disable'
     DISK_ATTACH = 'disk:attach'
     DISK_DETACH = 'disk:detach'
@@ -181,6 +182,7 @@ class EntityType(Enum):
     COMPOSE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.composeVAppParams+xml'
     CONTROL_ACCESS_PARAMS = 'application/vnd.vmware.vcloud.controlAccess+xml'
+    DEPLOY = 'application/vnd.vmware.vcloud.deployVAppParams+xml'
     DISK = 'application/vnd.vmware.vcloud.disk+xml'
     DISK_ATTACH_DETACH_PARAMS = \
         'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'

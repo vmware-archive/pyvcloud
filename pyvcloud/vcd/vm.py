@@ -117,6 +117,27 @@ class VM(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_RESET, None, None)
 
+    def deploy(self, power_on=True,
+               force_customization=False):
+        """Deploys the VM.
+
+        Deploying the VM will allocate all resources assigned
+        to the VM. If an already deployed VM is attempted to deploy,
+        an exception is raised.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing the
+            asynchronous task that operates on the VM.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        deploy_vm_params = E.DeployVAppParams()
+        deploy_vm_params.set('powerOn', str(power_on).lower())
+        deploy_vm_params.set('forceCustomization',
+                             str(force_customization).lower())
+        return self.client.post_linked_resource(
+            self.resource, RelationType.DEPLOY, EntityType.DEPLOY.value,
+            deploy_vm_params)
+
     def undeploy(self, action='default'):
         """Undeploy the VM.
 

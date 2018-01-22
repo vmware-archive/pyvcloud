@@ -153,10 +153,10 @@ class VApp(object):
         Deploying the vApp will allocate all resources assigned to the vApp.
         TODO: Add lease_deployment_seconds param after PR 2036925 is fixed.
         https://jira.eng.vmware.com/browse/VCDA-465
-        
         :param power_on: (bool): Specifies whether to power on/off vapp/VM
 
         on deployment. True by default, unless otherwise specified.
+        :param lease_deployment_seconds: (str): Deployment lease in seconds.
         :param force_customization: (bool): Used to specify whether to force
 
         customization on deployment, if not set default value is false.
@@ -171,7 +171,7 @@ class VApp(object):
             deploy_vapp_params.set('powerOn', str(power_on).lower())
         if force_customization is not None:
             deploy_vapp_params.set('forceCustomization',
-                               str(force_customization).lower())
+                                   str(force_customization).lower())
         return self.client.post_linked_resource(
             self.resource, RelationType.DEPLOY, EntityType.DEPLOY.value,
             deploy_vapp_params)

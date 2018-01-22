@@ -199,9 +199,9 @@ class VApp(object):
     def shutdown(self):
         """Shuts down a vApp.
 
-            :return: A :class:`lxml.objectify.StringElement` object describing
-                the asynchronous Task shutting down the vApp.
-            """
+        :return: A :class:`lxml.objectify.StringElement` object describing
+            the asynchronous Task shutting down the vApp.
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(

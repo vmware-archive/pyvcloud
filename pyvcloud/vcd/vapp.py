@@ -146,8 +146,7 @@ class VApp(object):
             self.resource.get('href') + '/owner/', new_owner,
             EntityType.OWNER.value)
 
-    def deploy(self, power_on=None,
-               force_customization=None):
+    def deploy(self, power_on=None, force_customization=None):
         """Deploys the vApp.
 
         Deploying the vApp will allocate all resources assigned to the vApp.
@@ -197,6 +196,11 @@ class VApp(object):
             self.resource, RelationType.POWER_ON, None, None)
 
     def shutdown(self):
+        """Shutdown the vApp.
+
+        :return: A :class:`lxml.objectify.StringElement` object describing
+            the asynchronous Task shutting down the vApp.
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(
@@ -212,6 +216,17 @@ class VApp(object):
             self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_RESET, None, None)
+
+    def reboot(self):
+        """Reboots the vApp.
+
+        :return: A :class:`lxml.objectify.StringElement` object describing
+            the asynchronous Task rebooting the vApp.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        return self.client.post_linked_resource(
+            self.resource, RelationType.POWER_REBOOT, None, None)
 
     def connect_vm(self, mode='DHCP', reset_mac_address=False):
         if self.resource is None:

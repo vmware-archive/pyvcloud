@@ -139,28 +139,6 @@ class VM(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_RESET, None, None)
 
-    def reboot(self):
-        """Reboots the VM.
-
-        :return: A :class:`lxml.objectify.StringElement` object describing \
-            the asynchronous Task rebooting the vApp.
-        """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_REBOOT, None, None)
-
-    def shutdown(self):
-        """Shuts down a VM.
-
-        :return: A :class:`lxml.objectify.StringElement` object describing \
-            the asynchronous Task resetting the vApp.
-        """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_SHUTDOWN, None, None)
-
     def deploy(self, power_on=True,
                force_customization=False):
         """Deploys the VM.

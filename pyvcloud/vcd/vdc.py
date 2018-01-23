@@ -18,6 +18,7 @@ from pyvcloud.vcd.acl import Acl
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
@@ -78,7 +79,7 @@ class VDC(object):
                          catalog,
                          template,
                          network=None,
-                         fence_mode='bridged',
+                         fence_mode=FenceMode.BRIDGED.value,
                          ip_allocation_mode='dhcp',
                          deploy=True,
                          power_on=True,
@@ -350,7 +351,8 @@ class VDC(object):
     def list_edge_gateways(self):
         """Request a list of edge gateways defined in a vdc.
 
-        :return: An array of the existing edge gateways.
+        :return: A list of :class:`lxml.objectify.StringElement' objects
+            representing existing edge gateway records.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -426,7 +428,7 @@ class VDC(object):
 
         :param name: (str): The name of the existing disk.
         :param disk_id: (str): The id of the existing disk.
-        :param new_name: (str): The new name of the disk
+        :param new_name: (str): The new name of the disk.
         :param new_size: (int): The new size of the disk in bytes.
         :param new_description: (str): The new description of the disk.
         :param new_storage_profile_name: (str): The new storage profile that
@@ -482,7 +484,7 @@ class VDC(object):
         :param disk_id: (str): The id of the disk to delete.
 
         :return:  A :class:`lxml.objectify.StringElement` object describing
-            the asynchronous Task deleting the disk.
+            the asynchronous task deleting the disk.
 
         :raises: Exception: If the named disk cannot be located or some
             other error occurs.
@@ -501,8 +503,8 @@ class VDC(object):
     def get_disks(self):
         """Request a list of independent disks defined in a vdc.
 
-        :return: An array of :class:`lxml.objectify.StringElement`
-            objects describing the existing Disks.
+        :return: A list of :class:`lxml.objectify.StringElement' objects
+            describing the existing disks.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -595,8 +597,8 @@ class VDC(object):
     def get_storage_profiles(self):
         """Request a list of the Storage Profiles defined in a vdc.
 
-        :return: An array of :class:`lxml.objectify.StringElement` objects
-            describing the existing Storage Profiles.
+        :return: A list of :class:`lxml.objectify.StringElement' objects
+            representing the existing storage profiles.
         """
         profile_list = []
         if self.resource is None:
@@ -632,7 +634,7 @@ class VDC(object):
     def enable_vdc(self, enable=True):
         """Enable current vdc.
 
-        :param is_enabled: (bool): enable/disable the vdc
+        :param is_enabled: (bool): enable/disable the vdc.
         :return: (OrgVdcType) updated vdc object.
         """
         resource_admin = self.client.get_resource(self.href_admin)
@@ -641,7 +643,7 @@ class VDC(object):
                                                 None)
 
     def delete_vdc(self):
-        """Delete the current Organization vdc.
+        """Delete the current Organization vDC.
 
         :param vdc_name: The name of the org vdc to delete
         :return:
@@ -723,13 +725,14 @@ class VDC(object):
                     name,
                     description=None,
                     network=None,
-                    fence_mode='bridged',
+                    fence_mode=FenceMode.BRIDGED.value,
                     accept_all_eulas=None):
         """Create a new vApp in this vdc.
 
-        :param name: (str) Name of the new vApp
-        :param description: (str) Description of the new vApp
-        :param network: (str) Name of the OrgVDC network to connect the vApp to
+        :param name: (str) Name of the new vApp.
+        :param description: (str) Description of the new vApp.
+        :param network: (str) Name of the OrgVDC network the vApp will
+            connect to.
         :param fence_mode: (str): Network fence mode.
             Possible values are `bridged` and `natRouted`
         :param accept_all_eulas: (bool): True confirms acceptance of all EULAs
@@ -784,12 +787,13 @@ class VDC(object):
                                               is_shared=None):
         """Create a new directly connected OrgVdc network in this vdc.
 
-        :param network_name: (str): Name of the new network
+        :param network_name: (str): Name of the new network.
         :param parent_network_name: (str): Name of the external network
-            that the new network will be directly connected to
-        :param description: (str): Description of the new network
-        :param is_shared: (bool): True, is the network is shared with
-            other vdc(s) in the organization else False
+            that the new network will be directly connected to.
+        :param description: (str): Description of the new network.
+        :param is_shared: (bool): True, if the network is shared with
+            other vdc(s) in the organization, else False.
+
         :return: A :class:`lxml.objectify.StringElement` object representing
             a sparsely populated OrgVdcNetwork element.
         """
@@ -806,7 +810,7 @@ class VDC(object):
         vdc_network_configuration = E.Configuration()
         vdc_network_configuration.append(
             E.ParentNetwork(href=parent_network_href))
-        vdc_network_configuration.append(E.FenceMode('bridged'))
+        vdc_network_configuration.append(E.FenceMode(FenceMode.BRIDGED.value))
         request_payload.append(vdc_network_configuration)
         if is_shared is not None:
             request_payload.append(E.IsShared(is_shared))
@@ -833,30 +837,31 @@ class VDC(object):
                                     is_shared=None):
         """Create a new isolated OrgVdc network in this vdc.
 
-        :param network_name: (str): Name of the new network
-        :param gateway_ip (str): IP address of the gateway of the new network
-        :param netmask (str): Network mask
-        :param description: (str): Description of the new network
+        :param network_name: (str): Name of the new network.
+        :param gateway_ip (str): IP address of the gateway of the new network.
+        :param netmask (str): Network mask.
+        :param description: (str): Description of the new network.
         :param primary_dns_ip (str): IP address of primary DNS server.
-        :param secondary_dns_ip (str): IP address of secondary DNS Server
-        :param dns_suffix (str): DNS suffix
+        :param secondary_dns_ip (str): IP address of secondary DNS Server.
+        :param dns_suffix (str): DNS suffix.
         :param ip_range_start (str): Start address of the IP ranges used for
-            static pool allocation in the network
+            static pool allocation in the network.
         :param ip_range_end (str): End address of the IP ranges used for
-            static pool allocation in the network
+            static pool allocation in the network.
         :param is_dhcp_enabled (bool): Is DHCP service enabled on the new
-            network
+            network.
         :param default_lease_time (int): Default lease in seconds for DHCP
             addresses.
-        :param max_lease_time (int): Max lease in seconds for DHCP addresses
+        :param max_lease_time (int): Max lease in seconds for DHCP addresses.
         :param dhcp_ip_range_start (str): Start address of the IP range
-            used for DHCP addresses
+            used for DHCP addresses.
         :param dhcp_ip_range_end (str): End address of the IP range used for
-            DHCP addresses
+            DHCP addresses.
         :param is_shared: (bool): True, if the network is shared with other
-            vdc(s) in the organization else False
+            vdc(s) in the organization, else False.
+
         :return: A :class:`lxml.objectify.StringElement` object representing
-            a sparsely populated OrgVdcNetwork element
+            a sparsely populated OrgVdcNetwork element.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -882,7 +887,7 @@ class VDC(object):
             ip_range.append(E.EndAddress(ip_range_end))
             ip_scope.append(E.IpRanges(ip_range))
         vdc_network_configuration.append(E.IpScopes(ip_scope))
-        vdc_network_configuration.append(E.FenceMode('isolated'))
+        vdc_network_configuration.append(E.FenceMode(FenceMode.ISOLATED.value))
         request_payload.append(vdc_network_configuration)
 
         dhcp_service = E.DhcpService()
@@ -905,3 +910,136 @@ class VDC(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD, EntityType.ORG_VDC_NETWORK.value,
             request_payload)
+
+    def list_orgvdc_network_records(self):
+        """Fetch all the orgvdc networks in the current vdc.
+
+        :return:  A list of :class:`lxml.objectify.StringElement` objects
+            representing all orgvdc network records.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        records = self.client.get_linked_resource(
+            self.resource, RelationType.ORG_VDC_NETWORKS,
+            EntityType.RECORDS.value)
+
+        if hasattr(records, 'OrgVdcNetworkRecord'):
+            return records.OrgVdcNetworkRecord
+        else:
+            return []
+
+    def list_orgvdc_network_resources(self, name=None, type=None):
+        """Fetch orgvdc networks with filtering by name and type.
+
+        :param name (str): Name of the networks we want to retrieve.
+        :param type (str): Type of networks we want to retrieve, valid values
+            are 'bridged' and 'isolated'.
+
+        :return:  A list of :class:`lxml.objectify.StringElement` objects
+            representing orgvdc network resources.
+        """
+        records = self.list_orgvdc_network_records()
+        result = []
+        for record in records:
+            orgvdc_network_resource = \
+                self.client.get_resource(record.get('href'))
+            if type is not None:
+                if hasattr(orgvdc_network_resource, 'Configuration') and \
+                   hasattr(orgvdc_network_resource.Configuration, 'FenceMode'):
+                    fence_mode = str(
+                        orgvdc_network_resource.Configuration.FenceMode)
+                    if fence_mode.lower() != type.lower():
+                        continue
+                else:
+                    continue
+            if name is not None:
+                if orgvdc_network_resource.get('name') != name:
+                    continue
+            result.append(orgvdc_network_resource)
+        return result
+
+    def list_orgvdc_direct_networks(self):
+        """Fetch all directly connected orgvdc networks in the current vdc.
+
+        :return:  A list of :class:`lxml.objectify.StringElement` objects
+            representing all directly connected orgvdc network resources.
+        """
+        return self.list_orgvdc_network_resources(type=FenceMode.BRIDGED.value)
+
+    def list_orgvdc_isolated_networks(self):
+        """Fetch all isolated orgvdc networks in the current vdc.
+
+        :return:  A list of :class:`lxml.objectify.StringElement` objects
+            representing all isolated orgvdc network resources.
+        """
+        return self.list_orgvdc_network_resources(
+            type=FenceMode.ISOLATED.value)
+
+    def get_direct_orgvdc_network(self, name):
+        """Retrieve a directly connected orgvdc network in the current vdc.
+
+        :param name (str): Name of the orgvdc network we want to retieve.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            a directly connected orgvdc network resource.
+
+        :raises: Exception: If orgvdc network with the given name is not found.
+        """
+        result = self.list_orgvdc_network_resources(
+            name=name, type=FenceMode.BRIDGED.value)
+        if len(result) == 0:
+            raise Exception(
+                'OrgVdc network with name \'%s\' not found.' % name)
+        return result[0]
+
+    def get_isolated_orgvdc_network(self, name):
+        """Retrieve an isolated orgvdc network in the current vdc.
+
+        :param name (str): Name of the orgvdc network we want to retieve.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            an isolated orgvdc network resource.
+
+        :raises: Exception: If orgvdc network with the given name is not found.
+        """
+        result = self.list_orgvdc_network_resources(
+            name=name, type=FenceMode.ISOLATED.value)
+        if len(result) == 0:
+            raise Exception(
+                'OrgVdc network with name \'%s\' not found.' % name)
+        return result[0]
+
+    def delete_direct_orgvdc_network(self, name, force=False):
+        """Delete a directly connected orgvdc network in the current vdc.
+
+        :param name (str): Name of the orgvdc network to be deleted.
+        :param force (bool): If True, will instruct vcd to force delete
+            the network, ignoring whether it's connected to a vm or vapp
+            network or not.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing
+            the asynchronous task that's deleting the network.
+
+        :raises: Exception: If orgvdc network with the given name is not found.
+        """
+        net_resource = self.get_direct_orgvdc_network(name)
+        return self.client.delete_resource(
+            net_resource.get('href'), force=force)
+
+    def delete_isolated_orgvdc_network(self, name, force=False):
+        """Delete an isolated orgvdc network in the current vdc.
+
+        :param name (str): Name of the orgvdc network to be deleted.
+        :param force (bool): If True, will instruct vcd to force delete
+            the network, ignoring whether it's connected to a vm or vapp
+            network or not.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing
+            the asynchronous task that's deleting the network.
+
+        :raises: Exception: If orgvdc network with the given name is not found.
+        """
+        net_resource = self.get_isolated_orgvdc_network(name)
+        return self.client.delete_resource(
+            net_resource.get('href'), force=force)

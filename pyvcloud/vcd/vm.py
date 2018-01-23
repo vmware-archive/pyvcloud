@@ -20,9 +20,7 @@ from pyvcloud.vcd.client import RelationType
 
 
 class VM(object):
-    """A helper class to work with Virtual Machines.
-
-    """
+    """A helper class to work with Virtual Machines."""
 
     def __init__(self, client, href=None, resource=None):
         """Constructor.
@@ -39,9 +37,7 @@ class VM(object):
             self.href = resource.get('href')
 
     def reload(self):
-        """Updates the xml representation of the VM with the lastest from vCD.
-
-        """
+        """Updates the xml representation of the VM from vCD."""
         self.resource = self.client.get_resource(self.href)
         if self.resource is not None:
             self.href = self.resource.get('href')
@@ -56,7 +52,6 @@ class VM(object):
         :return:  A :class:`lxml.objectify.StringElement` object describing the
             asynchronous task that updates the VM.
         """
-
         uri = self.href + '/virtualHardwareSection/cpu'
         if cores_per_socket is None:
             cores_per_socket = virtual_quantity
@@ -76,7 +71,6 @@ class VM(object):
         :return:  A :class:`lxml.objectify.StringElement` object describing the
             asynchronous task that updates the VM.
         """
-
         uri = self.href + '/virtualHardwareSection/memory'
         item = self.client.get_resource(uri)
         item['{' + NSMAP['rasd'] +
@@ -152,13 +146,12 @@ class VM(object):
             params)
 
     def get_cpus(self):
-        """Returns the number of CPUs
+        """Returns the number of CPUs.
 
         :return: A dictionary with:
             num_cpus: (int): number of cpus
             num_cores_per_socket: (int): number of cores per socket
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         return {
@@ -169,18 +162,17 @@ class VM(object):
         }
 
     def get_memory(self):
-        """Returns the amount of memory in MB
+        """Returns the amount of memory in MB.
 
         :return: (int): Amount of memory in MB
         """
-
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         return int(
             self.resource.VmSpecSection.MemoryResourceMb.Configured.text)
 
     def get_vc(self):
-        """Returns the vCenter where this VM is located
+        """Returns the vCenter where this VM is located.
 
         :return: (str): Name of the vCenter
         """

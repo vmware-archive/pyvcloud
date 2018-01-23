@@ -1,7 +1,13 @@
 CHANGES
 =======
 
+* VCDA-409: validate PEP8 compliance
 * VCDA-451: work with pending tasks
+* Issue#142: Fixed bug in vdc.py : get\_storage\_profiles() that was returning only first storage profile. (#181)
+* VCDA-451: work with pending tasks
+* VCDA-229 & VCDA-455: Show Info of Right and Role (#176)
+* VCDA-394: Introduce capability to list external networks
+* VCDA-394: Introduce capability to list external networks and find them by name
 * VCDA-230 & VCDA-234: Add or remove rights from organization (#174)
 * VCDA-331: catalog\_item download fails with 'No such file or directory' error. (#175)
 *  Implementing SDK methods to update acl of vdc and vapp (#169)

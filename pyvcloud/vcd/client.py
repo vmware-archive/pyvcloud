@@ -328,9 +328,11 @@ class VcdTaskException(Exception):
 
 
 def _get_session_endpoints(session):
-    """Build and return a map keyed by well-known endpoints, yielding hrefs, from a <Session>
+    """Return a map of well known endpoings.
 
-    """  # NOQA
+    Build and return a map keyed by well-known endpoints, yielding hrefs,
+        from a <Session>
+    """
     smap = {}
     for endpoint in _WellKnownEndpoint:
         (rel, media_type) = endpoint.value
@@ -394,19 +396,19 @@ class _TaskMonitor(object):
                         callback=None):
         """Waits for task to reach expected status.
 
-         :param task: (Task): task returned by post or put calls.
-         :param timeout: (float): time (in seconds, floating point, fractional)
+        :param task: (Task): task returned by post or put calls.
+        :param timeout: (float): time (in seconds, floating point, fractional)
             to wait for task to finish.
-         :param poll_frequency: (float): time (in seconds, as above) with which
+        :param poll_frequency: (float): time (in seconds, as above) with which
             task will be polled.
-         :param fail_on_statuses: (list): method will raise an exception if any
+        :param fail_on_statuses: (list): method will raise an exception if any
             of the (TaskStatus) in this list is reached. If this parameter is
             None then either task will achieve expected target status or throw
             (TimeOutException).
-         :param expected_target_statuses: (list): list of expected target
+        :param expected_target_statuses: (list): list of expected target
             status.
-         :return (Task): from list of expected target status.
-         :throws TimeoutException: (Exception): exception thrown when task is
+        :return (Task): from list of expected target status.
+        :throws TimeoutException: (Exception): exception thrown when task is
             not finished within given time.
         """
         if fail_on_statuses is None:
@@ -441,9 +443,7 @@ class _TaskMonitor(object):
 
 
 class Client(object):
-    """A low-level interface to the vCloud Director REST API.
-
-    """
+    """A low-level interface to the vCloud Director REST API."""
 
     _REQUEST_ID_HDR_NAME = 'X-VMWARE-VCLOUD-REQUEST-ID'
 
@@ -461,8 +461,10 @@ class Client(object):
                 self._uri += 'api'
             else:
                 self._uri += '/api'
-            if not (self._uri.startswith('https://')
-                    or self._uri.startswith('http://')):
+            if self._uri.startswith('https://') or self._uri.startswith(
+                    'http://'):
+                pass
+            else:
                 self._uri = 'https://' + self._uri
 
         self._api_version = api_version
@@ -524,9 +526,7 @@ class Client(object):
         return self._api_version
 
     def set_credentials(self, creds):
-        """Sets the credentials used for authentication.
-
-        """
+        """Sets the credentials used for authentication."""
         new_session = requests.Session()
         response = self._do_request_prim(
             'POST',
@@ -755,9 +755,10 @@ class Client(object):
         return bytes_written
 
     def put_resource(self, uri, contents, media_type, objectify_results=True):
-        """Puts the specified contents to the specified resource.  (Does an HTTP PUT.)
+        """Puts the specified contents to the specified resource.
 
-        """  # NOQA
+        This method does an HTTP PUT.
+        """
         return self._do_request(
             'PUT',
             uri,
@@ -766,16 +767,20 @@ class Client(object):
             objectify_results=objectify_results)
 
     def put_linked_resource(self, resource, rel, media_type, contents):
-        """Puts the contents of the resource referenced by the link with the specified rel and mediaType in the specified resource.
+        """Puts to a resource link.
 
-        """  # NOQA
+        Puts the contents of the resource referenced by the link with the
+            specified rel and mediaType in the specified resource.
+        """
         return self.put_resource(
             find_link(resource, rel, media_type).href, contents, media_type)
 
     def post_resource(self, uri, contents, media_type, objectify_results=True):
-        """Posts the specified contents to the specified resource.  (Does an HTTP POST.)
+        """Posts to a resource link.
 
-        """  # NOQA
+        Posts the specified contents to the specified resource.
+            (Does an HTTP POST.)
+        """
         return self._do_request(
             'POST',
             uri,
@@ -784,23 +789,28 @@ class Client(object):
             objectify_results=objectify_results)
 
     def post_linked_resource(self, resource, rel, media_type, contents):
-        """Posts the contents of the resource referenced by the link with the specified rel and mediaType in the specified resource.
+        """Posts to a resource link.
 
-        """  # NOQA
+        Posts the contents of the resource referenced by the link with the
+            specified rel and mediaType in the specified resource.
+        """
         return self.post_resource(
             find_link(resource, rel, media_type).href, contents, media_type)
 
     def get_resource(self, uri, objectify_results=True):
-        """Gets the specified contents to the specified resource.  (Does an HTTP GET.)
+        """Gets the specified contents to the specified resource.
 
-        """  # NOQA
+        This method does an HTTP GET.
+        """
         return self._do_request(
             'GET', uri, objectify_results=objectify_results)
 
     def get_linked_resource(self, resource, rel, media_type):
-        """Gets the contents of the resource referenced by the link with the specified rel and mediaType in the specified resource.
+        """Gets the content of the resource link.
 
-        """  # NOQA
+        Gets the contents of the resource referenced by the link with the
+            specified rel and mediaType in the specified resource.
+        """
         return self.get_resource(find_link(resource, rel, media_type).href)
 
     def delete_resource(self, uri, force=False, recursive=False):
@@ -808,45 +818,35 @@ class Client(object):
         return self._do_request('DELETE', full_uri)
 
     def delete_linked_resource(self, resource, rel, media_type):
-        """Deletes the resource referenced by the link with the specified rel and mediaType in the specified resource.
+        """Deletes the resource referenced by the link.
 
-        """  # NOQA
+        Deletes the resource referenced by the link with the specified rel and
+            mediaType in the specified resource.
+        """
         return self.delete_resource(find_link(resource, rel, media_type).href)
 
     def get_admin(self):
-        """Returns the "admin" root resource type.
-
-        """
+        """Returns the "admin" root resource type."""
         return self._get_wk_resource(_WellKnownEndpoint.ADMIN)
 
     def get_query_list(self):
-        """Returns the list of supported queries.
-
-        """
+        """Returns the list of supported queries."""
         return self._get_wk_resource(_WellKnownEndpoint.QUERY_LIST)
 
     def get_org(self):
-        """Returns the logged in org.
-
-        """
+        """Returns the logged in org."""
         return self._get_wk_resource(_WellKnownEndpoint.LOGGED_IN_ORG)
 
     def get_extensibility(self):
-        """Returns the 'extensibility' resource type.
-
-        """
+        """Returns the 'extensibility' resource type."""
         return self._get_wk_resource(_WellKnownEndpoint.API_EXTENSIBILITY)
 
     def get_extension(self):
-        """Returns the 'extension' resource type.
-
-        """
+        """Returns the 'extension' resource type."""
         return self._get_wk_resource(_WellKnownEndpoint.EXTENSION)
 
     def get_org_list(self):
-        """Returns the list of organizations.
-
-        """
+        """Returns the list of organizationsself."""
         return self._get_wk_resource(_WellKnownEndpoint.ORG_LIST)
 
     def get_org_by_name(self, org_name):
@@ -869,8 +869,7 @@ class Client(object):
         :param org_href: org where the user belongs.
 
         :return:  A :class:`lxml.objectify.StringElement` object
-        representing the user
-
+            representing the user
         """
         resource_type = 'user'
         org_filter = None
@@ -927,24 +926,24 @@ class Client(object):
             return self._session_endpoints[wk_type]
         else:
             raise Exception(
-                'The current user does not have access to the resource (%s).'
-                % str(wk_type).split('.')[-1])
+                'The current user does not have access to the resource (%s).' %
+                str(wk_type).split('.')[-1])
 
 
 def find_link(resource, rel, media_type, fail_if_absent=True):
-    """Returns the link of the specified rel and type in the specified resource
+    """Returns the link of the specified rel and type in the resource.
 
-     * @param resource the resource with the link
-     * @param rel the rel of the desired link
-     * @param mediaType media type of content
-     * @param failIfAbsent controls whether an exception is thrown if there's \
-              not exactly one link of the specified rel and media type
-     * @return the link, or null if no such link is present and failIfAbsent \
-               is false
-     * @throws MissingLinkException if no link of the specified rel and media \
-               type is found
-     * @throws MultipleLinksException if multiple links of the specified rel \
-               and media type are found
+    * @param resource the resource with the link
+    * @param rel the rel of the desired link
+    * @param mediaType media type of content
+    * @param failIfAbsent controls whether an exception is thrown if there's
+        not exactly one link of the specified rel and media type
+    * @return the link, or null if no such link is present and failIfAbsent
+        is false
+    * @throws MissingLinkException if no link of the specified rel and media
+        type is found
+    * @throws MultipleLinksException if multiple links of the specified rel
+        and media type are found
     """
     links = get_links(resource, rel, media_type)
     num_links = len(links)
@@ -960,13 +959,12 @@ def find_link(resource, rel, media_type, fail_if_absent=True):
 
 
 def get_links(resource, rel=RelationType.DOWN, media_type=None):
-    """Returns all the links of the specified rel and type in the resource
+    """Returns all the links of the specified rel and type in the resource.
 
-     * @param resource the resource with the link
-     * @param rel the rel of the desired link
-     * @param mediaType media type of content
-     * @return the links (could be an empty list)
-
+    * @param resource the resource with the link
+    * @param rel the rel of the desired link
+    * @param mediaType media type of content
+    * @return the links (could be an empty list)
     """
     links = []
     for link in resource.findall('{http://www.vmware.com/vcloud/v1.5}Link'):
@@ -982,9 +980,7 @@ def get_links(resource, rel=RelationType.DOWN, media_type=None):
 
 
 class Link(object):
-    """Abstraction over <Link> elements.
-
-    """
+    """Abstraction over <Link> elements."""
 
     def __init__(self, link_elem):
         self.rel = link_elem.get('rel')
@@ -1055,9 +1051,11 @@ class _AbstractQuery(object):
                 next_page_uri, objectify_results=True)
 
     def find_unique(self):
-        """Convenience wrapper over execute() for the case where exactly one match is expected.
+        """Convenience wrapper over execute().
 
-        """  # NOQA
+        Convenience wrapper over execute() for the case where exactly one match
+            is expected.
+        """
         query_results = self.execute()
 
         # Make sure we got at least one result record

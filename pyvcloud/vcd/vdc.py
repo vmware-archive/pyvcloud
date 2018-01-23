@@ -54,7 +54,7 @@ class VDC(object):
                     if vapp.get('name') == name:
                         result.append(vapp.get('href'))
         if len(result) == 0:
-            raise Exception('not found')
+            raise Exception('vApp named \'%s\' not found' % name)
         elif len(result) > 1:
             raise Exception('more than one found, use the vapp-id')
         return result[0]

@@ -81,9 +81,9 @@ class VM(object):
     def shutdown(self):
         """Shutdown the VM.
 
-            :return: A :class:`lxml.objectify.StringElement` object describing
-                the asynchronous Task shutting down the VM.
-            """
+        :return: A :class:`lxml.objectify.StringElement` object describing
+            the asynchronous Task shutting down the VM.
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         return self.client.post_linked_resource(
@@ -133,8 +133,7 @@ class VM(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_RESET, None, None)
 
-    def deploy(self, power_on=True,
-               force_customization=False):
+    def deploy(self, power_on=True, force_customization=False):
         """Deploys the VM.
 
         Deploying the VM will allocate all resources assigned

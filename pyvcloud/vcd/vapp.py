@@ -146,8 +146,7 @@ class VApp(object):
             self.resource.get('href') + '/owner/', new_owner,
             EntityType.OWNER.value)
 
-    def deploy(self, power_on=None,
-               force_customization=None):
+    def deploy(self, power_on=None, force_customization=None):
         """Deploys the vApp.
 
         Deploying the vApp will allocate all resources assigned to the vApp.

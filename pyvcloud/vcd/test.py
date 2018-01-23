@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import logging
+import os
 import unittest
 import warnings
 
@@ -52,7 +52,7 @@ class TestCase(unittest.TestCase):
             filename='tests.log',
             level=logging.DEBUG,
             format='%(asctime)s %(name)-12s %(lineno)s '
-                   '%(levelname)-8s %(message)s',
+            '%(levelname)-8s %(message)s',
             datefmt='%m-%d %H:%M:%S')
         cls.logger = logging.getLogger(__name__)
 

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from copy import deepcopy
+
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
@@ -21,12 +22,13 @@ from pyvcloud.vcd.client import RelationType
 
 class Role(object):
     def __init__(self, client, href=None, resource=None):
-        """Constructor for Role object
+        """Constructor for Role object.
 
         :param client: (pyvcloud.vcd.client): The client.
         :param href: URI of the Role entity
         :param resource: (lxml.objectify.ObjectifiedElement): XML
             representation of the entity.
+
         """
         self.client = client
         self.href = href
@@ -36,7 +38,7 @@ class Role(object):
             self.name = resource.get('name')
 
     def list_rights(self):
-        """List rights associated with the role
+        """List rights associated with the role.
 
         :return: list of names of rights for a given role.
         """
@@ -56,9 +58,9 @@ class Role(object):
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        self.client.post_linked_resource(
-            self.resource, RelationType.UNLINK_FROM_TEMPLATE,
-            EntityType.ROLE.value, None)
+        self.client.post_linked_resource(self.resource,
+                                         RelationType.UNLINK_FROM_TEMPLATE,
+                                         EntityType.ROLE.value, None)
 
     def link(self):
         """Links the role to its template.
@@ -67,12 +69,12 @@ class Role(object):
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
-        self.client.post_linked_resource(
-            self.resource, RelationType.LINK_TO_TEMPLATE,
-            EntityType.ROLE.value, None)
+        self.client.post_linked_resource(self.resource,
+                                         RelationType.LINK_TO_TEMPLATE,
+                                         EntityType.ROLE.value, None)
 
     def add_rights(self, rights, org):
-        """Adds list of rights to a given role
+        """Adds list of rights to a given role.
 
         :param rights: (list): List of right names
         :param org: (pyvcloud.vcd.org.Org): The Organization to which
@@ -91,11 +93,11 @@ class Role(object):
                     name=right_record.get('name'),
                     href=right_record.get('href'),
                     type=EntityType.RIGHT.value))
-        return self.client.put_resource(
-            self.href, updated_resource, EntityType.ROLE.value)
+        return self.client.put_resource(self.href, updated_resource,
+                                        EntityType.ROLE.value)
 
     def remove_rights(self, rights):
-        """Removes list of rights from a given role
+        """Removes list of rights from a given role.
 
         :param: rights: (list): List of right names
 
@@ -114,5 +116,5 @@ class Role(object):
                         updated_resource.RightReferences\
                             .remove(right_reference)
                         break
-        return self.client.put_resource(
-            self.href, updated_resource, EntityType.ROLE.value)
+        return self.client.put_resource(self.href, updated_resource,
+                                        EntityType.ROLE.value)

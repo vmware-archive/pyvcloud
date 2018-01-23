@@ -23,12 +23,13 @@ from pyvcloud.vcd.utils import get_admin_href
 
 class System(object):
     def __init__(self, client, admin_href=None, admin_resource=None):
-        """Constructor for System objects
+        """Constructor for System objects.
 
         :param client:  (pyvcloud.vcd.client): The client.
         :param admin_href: URI representing _WellKnownEndpoint.ADMIN.
         :param admin_resource: (lxml.objectify.ObjectifiedElement): XML
         representation of admin_href.
+
         """
         self.client = client
         self.admin_href = admin_href
@@ -60,13 +61,12 @@ class System(object):
 
         :param org_name: (str): name of the org to be deleted.
         :param force: (bool): pass force=True  along with recursive=True to
-        remove an organization and any objects it contains, regardless of
-        their state.
+            remove an organization and any objects it contains, regardless of
+            their state.
         :param recursive: (bool): pass recursive=True  to remove an
-        organization and any objects it contains that are in a state that
-        normally allows removal.
+            organization and any objects it contains that are in a state that
+            normally allows removal.
         """
-
         org = self.client.get_org_by_name(org_name)
         org_href = get_admin_href(org.get('href'))
         return self.client.delete_resource(org_href, force, recursive)

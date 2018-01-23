@@ -73,7 +73,7 @@ class Org(object):
             catalog)
 
     def create_role(self, role_name, description, rights):
-        """Creates a role in the organization
+        """Creates a role in the organization.
 
         :param role_name: (str): name of the role to be created
         :param description: (str): description of the role
@@ -97,11 +97,11 @@ class Org(object):
             org_admin_resource, RelationType.ADD, EntityType.ROLE.value, role)
 
     def delete_role(self, name):
-        """Deletes specified role from the organization
+        """Deletes specified role from the organization.
 
         :param name: (str): name of the role
         :return: None
-        """  # NOQA
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         role_record = self.get_role_record(name)
@@ -458,12 +458,14 @@ class Org(object):
                     E.CustomizeOnInstantiate('true')))
         if overwrite:
             try:
-                item = self.get_catalog_item(catalog_resource.get('name'),
-                                             catalog_item_name)
-                contents.append(E.TargetCatalogItem(href=item.get('href'),
-                                                    id=item.get('id'),
-                                                    type=item.get('type'),
-                                                    name=item.get('name')))
+                item = self.get_catalog_item(
+                    catalog_resource.get('name'), catalog_item_name)
+                contents.append(
+                    E.TargetCatalogItem(
+                        href=item.get('href'),
+                        id=item.get('id'),
+                        type=item.get('type'),
+                        name=item.get('name')))
             except Exception:
                 pass
         return self.client.post_linked_resource(
@@ -490,7 +492,7 @@ class Org(object):
                     is_external=False,
                     is_alert_enabled=False,
                     is_enabled=False):
-        """Create User in the current Org
+        """Create User in the current Org.
 
         :param user_name: The username of the user
         :param password: The password of the user
@@ -537,7 +539,7 @@ class Org(object):
             resource_admin, RelationType.ADD, EntityType.USER.value, user)
 
     def update_user(self, user_name, is_enabled=None):
-        """Update an User
+        """Update an User.
 
         :param user_name: (str): username of the user
         :param is_enabled: (bool): enable/disable the user
@@ -552,7 +554,7 @@ class Org(object):
         return user
 
     def get_user(self, user_name):
-        """Retrieve user record from current Organization
+        """Retrieve user record from current Organization.
 
         :param user_name: user name of the record to be retrieved
         :return: User record
@@ -592,13 +594,13 @@ class Org(object):
         :param role_name: (str):name of the role
 
         :return A :class:`lxml.objectify.StringElement` object representing
-        the role.
+            the role.
         """
         role_record = self.get_role_record(role_name)
         return self.client.get_resource(role_record.get('href'))
 
     def get_role_record(self, role_name):
-        """Retrieve role record with a particular name in the current Org
+        """Retrieve role record with a particular name in the current Org.
 
         :param role_name: (str): The name of the role object to be retrieved
 
@@ -635,9 +637,8 @@ class Org(object):
         for r in list(query.execute()):
             result.append(
                 to_dict(
-                    r,
-                    resource_type=resource_type,
-                    exclude=['org', 'orgName']))
+                    r, resource_type=resource_type, exclude=['org',
+                                                             'orgName']))
         return result
 
     def add_rights(self, rights):
@@ -658,10 +659,8 @@ class Org(object):
                     href=right_record.get('href'),
                     type=EntityType.RIGHT.value))
         return self.client.post_linked_resource(
-            org_admin_resource.RightReferences,
-            RelationType.ADD,
-            EntityType.ORG_RIGHTS.value,
-            org_rights)
+            org_admin_resource.RightReferences, RelationType.ADD,
+            EntityType.ORG_RIGHTS.value, org_rights)
 
     def remove_rights(self, rights):
         """Removes set of rights from the organization.
@@ -684,10 +683,8 @@ class Org(object):
                             org_rights_resource.remove(right_reference)
                             break
                 return self.client.put_linked_resource(
-                    org_admin_resource.RightReferences,
-                    RelationType.EDIT,
-                    EntityType.ORG_RIGHTS.value,
-                    org_rights_resource)
+                    org_admin_resource.RightReferences, RelationType.EDIT,
+                    EntityType.ORG_RIGHTS.value, org_rights_resource)
         return org_rights_resource
 
     def get_right_resource(self, right_name):
@@ -707,8 +704,8 @@ class Org(object):
         :param right_name: (str): The name of the right record to be retrieved
         :return: (dict): Right record in dict format
         """
-        right_record = self.list_rights_available_in_system(
-            ('name', right_name))
+        right_record = self.list_rights_available_in_system(('name',
+                                                             right_name))
         if len(right_record) < 1:
             raise Exception('Right \'%s\' does not exist.' % right_name)
         return right_record[0]
@@ -776,7 +773,7 @@ class Org(object):
             'ReadOnly', 'Change', 'FullControl'
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
-        the updated access control setting of the catalog.
+            the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -836,7 +833,7 @@ class Org(object):
         return acl.unshare_from_org_members()
 
     def change_catalog_owner(self, catalog_name, user_name):
-        """Change the ownership of Catalog to a given user
+        """Change the ownership of Catalog to a given user.
 
         :param catalog_name: Catalog whose ownership needs to be changed
         :param user_name: New Owner of the Catalog
@@ -862,7 +859,7 @@ class Org(object):
                                         EntityType.OWNER.value)
 
     def update_org(self, is_enabled=None):
-        """Update an organization
+        """Update an organization.
 
         :param is_enabled: (bool): enable/disable the organization
         :return: (AdminOrgType) updated org object.

@@ -85,7 +85,7 @@ class VM(object):
         return self.client.put_resource(uri, item, EntityType.RASD_ITEM.value)
 
     def shutdown(self):
-        """Shuts down a VM.
+        """Shutdown the VM.
 
             :return: A :class:`lxml.objectify.StringElement` object describing
                 the asynchronous Task shutting down the VM.

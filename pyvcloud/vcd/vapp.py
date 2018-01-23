@@ -197,7 +197,7 @@ class VApp(object):
             self.resource, RelationType.POWER_ON, None, None)
 
     def shutdown(self):
-        """Shuts down a vApp.
+        """Shutdown the vApp.
 
         :return: A :class:`lxml.objectify.StringElement` object describing
             the asynchronous Task shutting down the vApp.

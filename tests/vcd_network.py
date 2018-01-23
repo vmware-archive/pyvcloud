@@ -29,6 +29,7 @@ class TestNetwork(TestCase):
         org = Org(self.client, href=org_record.get('href'))
         vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
         vdc = VDC(self.client, href=vdc_resource.get('href'))
+
         result = vdc.create_directly_connected_vdc_network(
             network_name=self.config['vcd']['vdc_direct_network_name'],
             parent_network_name=self.config['vcd']['ext_network_name'],
@@ -43,6 +44,7 @@ class TestNetwork(TestCase):
         org = Org(self.client, href=org_record.get('href'))
         vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
         vdc = VDC(self.client, href=vdc_resource.get('href'))
+
         result = vdc.create_isolated_vdc_network(
             network_name=self.config['vcd']['vdc_isolated_network_name'],
             gateway_ip=self.config['vcd']['isolated_network_gateway_ip'],
@@ -56,6 +58,52 @@ class TestNetwork(TestCase):
         platform = Platform(self.client)
         ext_net_refs = platform.list_external_networks()
         assert len(ext_net_refs) > 0
+
+    def test_040_list_direct_orgvdc_networks(self):
+        org_record = self.client.get_org_by_name(
+            self.config['vcd']['org_name'])
+        org = Org(self.client, href=org_record.get('href'))
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+
+        result = vdc.list_orgvdc_direct_networks()
+        assert len(result) > 0
+
+    def test_050_list_isolated_orgvdc_networks(self):
+        org_record = self.client.get_org_by_name(
+            self.config['vcd']['org_name'])
+        org = Org(self.client, href=org_record.get('href'))
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+
+        result = vdc.list_orgvdc_isolated_networks()
+        assert len(result) > 0
+
+    def test_190_delete_direct_orgvdc_networks(self):
+        org_record = self.client.get_org_by_name(
+            self.config['vcd']['org_name'])
+        org = Org(self.client, href=org_record.get('href'))
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+
+        result = vdc.delete_direct_orgvdc_network(
+            name=self.config['vcd']['vdc_direct_network_name'], force=True)
+        task = self.client.get_task_monitor().wait_for_success(
+            task=result)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
+    def test_200_delete_isolated_orgvdc_networks(self):
+        org_record = self.client.get_org_by_name(
+            self.config['vcd']['org_name'])
+        org = Org(self.client, href=org_record.get('href'))
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+
+        result = vdc.delete_isolated_orgvdc_network(
+            name=self.config['vcd']['vdc_isolated_network_name'], force=True)
+        task = self.client.get_task_monitor().wait_for_success(
+            task=result)
+        assert task.get('status') == TaskStatus.SUCCESS.value
 
 
 if __name__ == '__main__':

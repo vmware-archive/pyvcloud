@@ -129,7 +129,7 @@ class Platform(object):
             vmwprovidervdcparams.append(E_VMEXT.IsEnabled(isEnabled))
         for i in storageProfiles:
             vmwprovidervdcparams.append(E_VMEXT.StorageProfile(i))
-        stdout_xml(vmwprovidervdcparams)
+        
         return self.client.post_linked_resource(self.extension.get_resource(),
             rel=RelationType.ADD,
             media_type=EntityType.PROVIDERVDCPARAMS.value, 

@@ -21,8 +21,8 @@ from pyvcloud.vcd.utils import get_admin_href
 
 class PVDC(object):
     def __init__(self, client, href=None, resource=None):
-        """
-        Constructor for PVDC object
+        """Constructor for a PVDC object.
+
         :param client:  (pyvcloud.vcd.client): The client.
         :param href: (str): URI of the entity.
         :param resource: (lxml.objectify.ObjectifiedElement): XML
@@ -48,8 +48,7 @@ class PVDC(object):
             self.href = self.resource.get('href')
 
     def get_vdc_references(self):
-        """
-        List provider VDC references backed by the Provider VDC.
+        """List provider VDC references backed by the Provider VDC.
 
         :return: (VdcReferences)  A :class:`lxml.objectify.StringElement`
                                   object describing the VDC References.

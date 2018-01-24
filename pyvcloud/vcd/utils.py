@@ -124,10 +124,13 @@ def vdc_to_dict(vdc, access_control_settings=None):
 
 
 def pvdc_to_dict(pvdc, refs=None, metadata=None):
-    """Converts a Provider Virtual Datacenter resource to a python dictionary. n
+    """Converts a Provider Virtual Datacenter resource to a python dictionary.
+
     :param pvdc: (ProviderVdcType): xml object
-    :param pvdc: (VdcReferences): xml object retrieved from the ProviderVdcType.
-    :param pvdc: (Metadata): xml object metadata retrieved from the ProviderVdcType.
+    :param pvdc: (VdcReferences): xml object retrieved from
+           the ProviderVdcType.
+    :param pvdc: (Metadata): xml object metadata retrieved from
+           the ProviderVdcType.
     :return: (dict): dict representation of pvdc object.
     """
     result = {}

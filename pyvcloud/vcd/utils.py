@@ -124,10 +124,16 @@ def vdc_to_dict(vdc, access_control_settings=None):
 
 
 def pvdc_to_dict(pvdc, refs=None, metadata=None):
+    """Converts a Provider Virtual Datacenter resource to a python dictionary. n
+    :param pvdc: (ProviderVdcType): xml object
+    :param pvdc: (VdcReferences): xml object retrieved from the ProviderVdcType.
+    :param pvdc: (Metadata): xml object metadata retrieved from the ProviderVdcType.
+    :return: (dict): dict representation of pvdc object.
+    """
     result = {}
     result['name'] = pvdc.get('name')
     result['id'] = extract_id(pvdc.get('id'))
-    result['description'] = str('%s' % pvdc.Description)
+    result['description'] = str(pvdc.Description)
     if hasattr(pvdc, 'IsEnabled'):
         result['is_enabled'] = bool(pvdc.IsEnabled)
     if hasattr(pvdc, 'AvailableNetworks') and \

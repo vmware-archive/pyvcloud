@@ -1,5 +1,5 @@
 # VMware vCloud Director Python SDK
-# Copyright (c) 2014 VMware, Inc. All Rights Reserved.
+# Copyright (c) 2018 VMware, Inc. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -20,16 +20,15 @@ from pyvcloud.vcd.utils import get_admin_href
 
 
 class PVDC(object):
-    def __init__(self, client, name=None, href=None, resource=None):
+    def __init__(self, client, href=None, resource=None):
         """
         Constructor for PVDC object
         :param client:  (pyvcloud.vcd.client): The client.
-        :param href: URI representing _WellKnownEndpoint.ADMIN.
+        :param href: (str): URI of the entity.
         :param resource: (lxml.objectify.ObjectifiedElement): XML
-        representation of href.
-        """  # NOQA
+            representation of the entity.
+        """
         self.client = client
-        self.name = name
         self.href = href
         self.resource = resource
         if resource is not None:

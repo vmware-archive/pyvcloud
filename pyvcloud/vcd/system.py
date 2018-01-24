@@ -148,11 +148,3 @@ class System(object):
                 return item
         raise Exception('Network pool \'%s\' not found or '
                         'access to resource is forbidden' % name)
-
-    def extract_id(urn):
-        if urn is None:
-            return None
-        if ':' in urn:
-            return urn.split(':')[-1]
-        else:
-            return urn

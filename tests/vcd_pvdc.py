@@ -12,7 +12,7 @@ class TestPVDC(TestCase):
         pvdc = platform.create_provider_vdc(
             vimServerName=self.config['vcd']['vimServerName'],
             resourcePoolNames=self.config['vcd']['resourcePoolNames'],
-            storageProfile=self.config['vcd']['storageProfile'],
+            storageProfiles=self.config['vcd']['storageProfiles'],
             pvdcName=self.config['vcd']['pvdcName'],
             isEnabled=self.config['vcd']['isEnabled'],
             description=self.config['vcd']['description'])

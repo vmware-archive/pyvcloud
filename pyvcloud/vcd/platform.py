@@ -16,6 +16,9 @@
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.extension import Extension
+from pyvcloud.vcd.client import E, E_VMEXT
+from pyvcloud.vcd.client import QueryResultFormat
+from pyvcloud.vcd.utils import get_admin_href, stdout_xml
 
 
 class Platform(object):
@@ -58,6 +61,82 @@ class Platform(object):
                 return self.client.get_resource(record.get('href'))
         return None
 
+    def list_resource_pool_morefs(self, vimServerName, resourcePoolNames):
+        """
+        Input is a VC name and a list of available resourcePoolNames, 
+        Output is VC href and a list of the resourcePoolNames corresponding 
+            moRefs
+        """ #NOQA
+        query_filter = 'name==%s' % vimServerName
+        q = self.client.get_typed_query(
+            'virtualCenter',
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=query_filter)
+        hrefs = list(q.execute())
+        for h in hrefs:
+            if vimServerName == h.get('name'):
+                href = h.get('href')
+                break
+        moRefs = []
+        respools = self.client.get_resource(href + '/resourcePoolList')
+        if (hasattr(respools, 'ResourcePool')):
+            for rp in respools.ResourcePool:
+                if (rp.DataStoreRefs.VimObjectRef.VimServerRef.get('name') \
+                    == vimServerName):
+                        name = rp.get('name')
+                        moref = rp.MoRef.text
+                        for r in resourcePoolNames:
+                            if name == r:
+                                if moref not in moRefs: #possible bug in vCD
+                                    moRefs.append(moref)
+                                break
+        return href, moRefs
+        
+    def create_provider_vdc(self,
+                            vimServerName,
+                            resourcePoolNames,
+                            storageProfiles,
+                            pvdcName=None,
+                            isEnabled=None,
+                            defaultPassword=None,
+                            defaultUsername=None,
+                            description=None,
+                            highestSuppHWVers=None,
+                            hostRefs=[],
+                            vCloudExtension=None,
+                            vxlanNetworkPool=None):
+        """
+        Create a Provider Virtual Datacenter. Translates user-friendly input
+        parameters to internal object references.
+        """ #NOQA                    
+        href, moRefs = self.list_resource_pool_morefs(vimServerName, 
+            resourcePoolNames)
+
+        if pvdcName is None:
+            vmwprovidervdcparams = E.VMWProviderVdcParams()
+        else:
+            vmwprovidervdcparams = E_VMEXT.VMWProviderVdcParams(name=pvdcName)
+        if description is not None:
+            vmwprovidervdcparams.append(E.Description(description))
+        resourcepoolrefs = E_VMEXT.ResourcePoolRefs()
+        vimobjectref = E_VMEXT.VimObjectRef()
+        vimobjectref.append(E_VMEXT.VimServerRef(href=href))
+        for z in moRefs:
+            vimobjectref.append(E_VMEXT.MoRef(z))
+        vimobjectref.append(E_VMEXT.VimObjectType('RESOURCE_POOL'))
+        resourcepoolrefs.append(vimobjectref)
+        vmwprovidervdcparams.append(resourcepoolrefs)
+        vmwprovidervdcparams.append(E_VMEXT.VimServer(href=href))
+        if isEnabled is not None:
+            vmwprovidervdcparams.append(E_VMEXT.IsEnabled(isEnabled))
+        for i in storageProfiles:
+            vmwprovidervdcparams.append(E_VMEXT.StorageProfile(i))
+        
+        return self.client.post_linked_resource(self.extension.get_resource(),
+            rel=RelationType.ADD,
+            media_type=EntityType.PROVIDERVDCPARAMS.value, 
+            contents=vmwprovidervdcparams)
+            
     def list_external_networks(self):
         """List all external networks available in the system.
 

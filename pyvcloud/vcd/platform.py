@@ -85,7 +85,7 @@ class Platform(object):
                         moref = rp.MoRef.text
                         for r in resourcePoolNames:
                             if name == r:
-                                if moref not in moRefs:
+                                if moref not in moRefs: #possible bug in vCD
                                     moRefs.append(moref)
                                 break
         return href, moRefs

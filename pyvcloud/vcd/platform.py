@@ -93,7 +93,7 @@ class Platform(object):
     def create_provider_vdc(self,
                             vimServerName,
                             resourcePoolNames,
-                            storageProfile,
+                            storageProfiles,
                             pvdcName=None,
                             isEnabled=None,
                             defaultPassword=None,
@@ -127,7 +127,8 @@ class Platform(object):
         vmwprovidervdcparams.append(E_VMEXT.VimServer(href=href))
         if isEnabled is not None:
             vmwprovidervdcparams.append(E_VMEXT.IsEnabled(isEnabled))
-        vmwprovidervdcparams.append(E_VMEXT.StorageProfile(storageProfile))
+        for i in storageProfiles:
+            vmwprovidervdcparams.append(E_VMEXT.StorageProfile(i))
         stdout_xml(vmwprovidervdcparams)
         return self.client.post_linked_resource(self.extension.get_resource(),
             rel=RelationType.ADD,

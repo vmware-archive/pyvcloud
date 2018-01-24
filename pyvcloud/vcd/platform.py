@@ -85,7 +85,8 @@ class Platform(object):
                         moref = rp.MoRef.text
                         for r in resourcePoolNames:
                             if name == r:
-                                moRefs.append(moref)
+                                if moref not in moRefs:
+                                    moRefs.append(moref)
                                 break
         return href, moRefs
         
@@ -127,9 +128,7 @@ class Platform(object):
         if isEnabled is not None:
             vmwprovidervdcparams.append(E_VMEXT.IsEnabled(isEnabled))
         vmwprovidervdcparams.append(E_VMEXT.StorageProfile(storageProfile))
-        
-        #ext_href = self.admin_href + "extension"
-        #ext = self.client.get_resource(ext_href)
+        stdout_xml(vmwprovidervdcparams)
         return self.client.post_linked_resource(self.extension.get_resource(),
             rel=RelationType.ADD,
             media_type=EntityType.PROVIDERVDCPARAMS.value, 

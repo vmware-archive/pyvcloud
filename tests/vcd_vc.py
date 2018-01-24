@@ -14,8 +14,10 @@
 # limitations under the License.
 
 import unittest
-from pyvcloud.vcd.test import TestCase
+
 from pyvcloud.vcd.platform import Platform
+from pyvcloud.vcd.test import TestCase
+
 
 class TestVC(TestCase):
 
@@ -32,6 +34,15 @@ class TestVC(TestCase):
         self.logger.debug('vCenter: name=%s, url=%s' %
                           (vcenter.get('name'), vcenter.Url.text))
         assert vcenter is not None
+
+    def test_0003_get_vc_negative(self):
+        try:
+            platform = Platform(self.client)
+            platform.get_vcenter(self.config['vcd']['vcenter_invalid'])
+            assert False
+        except Exception as e:
+            assert 'not found' in str(e).lower()
+
 
 if __name__ == '__main__':
     unittest.main()

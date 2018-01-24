@@ -20,6 +20,7 @@ from pyvcloud.vcd.client import E, E_VMEXT
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.utils import get_admin_href, stdout_xml
 
+
 class Platform(object):
     """Helper class to interact with vSphere Platform resources.
 
@@ -59,7 +60,7 @@ class Platform(object):
             if record.get('name') == name:
                 return self.client.get_resource(record.get('href'))
         return None
-        
+
     def list_resource_pool_morefs(self, vimServerName, resourcePoolNames):
         """
         Input is a VC name and a list of available resourcePoolNames, 

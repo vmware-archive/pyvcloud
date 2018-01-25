@@ -380,7 +380,7 @@ class VDC(object):
         :param name: (str): The name of the new disk.
         :param size: (int): The size of the new disk in bytes.
         :param bus_type: (str): The bus type of the new disk.
-        :param bus_subtype: (str): The bus subtype  of the new disk.
+        :param bus_sub_type: (str): The bus subtype  of the new disk.
         :param description: (str): A description of the new disk.
         :param storage_profile_name: (str): The name of an existing
             storage profile to be used by the new disk.
@@ -634,7 +634,7 @@ class VDC(object):
     def enable_vdc(self, enable=True):
         """Enable current vdc.
 
-        :param is_enabled: (bool): enable/disable the vdc.
+        :param enable: (bool): enable/disable the vdc.
         :return: (OrgVdcType) updated vdc object.
         """
         resource_admin = self.client.get_resource(self.href_admin)
@@ -838,24 +838,24 @@ class VDC(object):
         """Create a new isolated OrgVdc network in this vdc.
 
         :param network_name: (str): Name of the new network.
-        :param gateway_ip (str): IP address of the gateway of the new network.
-        :param netmask (str): Network mask.
+        :param gateway_ip: (str): IP address of the gateway of the new network.
+        :param netmask: (str): Network mask.
         :param description: (str): Description of the new network.
-        :param primary_dns_ip (str): IP address of primary DNS server.
-        :param secondary_dns_ip (str): IP address of secondary DNS Server.
-        :param dns_suffix (str): DNS suffix.
-        :param ip_range_start (str): Start address of the IP ranges used for
+        :param primary_dns_ip: (str): IP address of primary DNS server.
+        :param secondary_dns_ip: (str): IP address of secondary DNS Server.
+        :param dns_suffix: (str): DNS suffix.
+        :param ip_range_start: (str): Start address of the IP ranges used for
             static pool allocation in the network.
-        :param ip_range_end (str): End address of the IP ranges used for
+        :param ip_range_end: (str): End address of the IP ranges used for
             static pool allocation in the network.
-        :param is_dhcp_enabled (bool): Is DHCP service enabled on the new
+        :param is_dhcp_enabled: (bool): Is DHCP service enabled on the new
             network.
-        :param default_lease_time (int): Default lease in seconds for DHCP
+        :param default_lease_time: (int): Default lease in seconds for DHCP
             addresses.
-        :param max_lease_time (int): Max lease in seconds for DHCP addresses.
-        :param dhcp_ip_range_start (str): Start address of the IP range
+        :param max_lease_time: (int): Max lease in seconds for DHCP addresses.
+        :param dhcp_ip_range_start: (str): Start address of the IP range
             used for DHCP addresses.
-        :param dhcp_ip_range_end (str): End address of the IP range used for
+        :param dhcp_ip_range_end: (str): End address of the IP range used for
             DHCP addresses.
         :param is_shared: (bool): True, if the network is shared with other
             vdc(s) in the organization, else False.
@@ -932,8 +932,8 @@ class VDC(object):
     def list_orgvdc_network_resources(self, name=None, type=None):
         """Fetch orgvdc networks with filtering by name and type.
 
-        :param name (str): Name of the networks we want to retrieve.
-        :param type (str): Type of networks we want to retrieve, valid values
+        :param name: (str): Name of the networks we want to retrieve.
+        :param type: (str): Type of networks we want to retrieve, valid values
             are 'bridged' and 'isolated'.
 
         :return:  A list of :class:`lxml.objectify.StringElement` objects
@@ -979,7 +979,7 @@ class VDC(object):
     def get_direct_orgvdc_network(self, name):
         """Retrieve a directly connected orgvdc network in the current vdc.
 
-        :param name (str): Name of the orgvdc network we want to retieve.
+        :param name: (str): Name of the orgvdc network we want to retrieve.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
             a directly connected orgvdc network resource.
@@ -996,7 +996,7 @@ class VDC(object):
     def get_isolated_orgvdc_network(self, name):
         """Retrieve an isolated orgvdc network in the current vdc.
 
-        :param name (str): Name of the orgvdc network we want to retieve.
+        :param name: (str): Name of the orgvdc network we want to retrieve.
 
         :return:  A :class:`lxml.objectify.StringElement` object representing
             an isolated orgvdc network resource.
@@ -1013,8 +1013,8 @@ class VDC(object):
     def delete_direct_orgvdc_network(self, name, force=False):
         """Delete a directly connected orgvdc network in the current vdc.
 
-        :param name (str): Name of the orgvdc network to be deleted.
-        :param force (bool): If True, will instruct vcd to force delete
+        :param name: (str): Name of the orgvdc network to be deleted.
+        :param force: (bool): If True, will instruct vcd to force delete
             the network, ignoring whether it's connected to a vm or vapp
             network or not.
 
@@ -1030,8 +1030,8 @@ class VDC(object):
     def delete_isolated_orgvdc_network(self, name, force=False):
         """Delete an isolated orgvdc network in the current vdc.
 
-        :param name (str): Name of the orgvdc network to be deleted.
-        :param force (bool): If True, will instruct vcd to force delete
+        :param name: (str): Name of the orgvdc network to be deleted.
+        :param force: (bool): If True, will instruct vcd to force delete
             the network, ignoring whether it's connected to a vm or vapp
             network or not.
 

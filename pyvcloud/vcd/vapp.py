@@ -22,6 +22,7 @@ from pyvcloud.vcd.acl import Acl
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
@@ -612,17 +613,21 @@ class VApp(object):
             self.resource, RelationType.RECOMPOSE,
             EntityType.RECOMPOSE_VAPP_PARAMS.value, params)
 
-    def connect_org_vdc_network(self, orgvdc_network_name, retain_ip=False,
-                                is_deployed=False):
-        """Connect an orgvdc network to the vapp.
+    def connect_org_vdc_network(self,
+                                orgvdc_network_name,
+                                retain_ip=None,
+                                is_deployed=None,
+                                fence_mode=FenceMode.BRIDGED.value):
+        """Connect the vapp to an orgvdc network.
 
         :param orgvdc_network_name: (str): name of the orgvdc network to be
             connected
         :param retain_ip: (bool): True if  the network resources such as
-            IP/MAC of router will be retained across deployments. False by
-            default.
+            IP/MAC of router will be retained across deployments.
         :param is_deployed: (bool): True if this orgvdc network has been
-            deployed. False by default.
+            deployed.
+        :param fence_mode: (str): Controls connectivity to the parent
+            network. One of bridged, isolated or natRouted. bridged by default.
 
         :return: A :class:`lxml.objectify.StringElement` object representing
             the updated NetworkConfigSection of the vapp.
@@ -641,22 +646,24 @@ class VApp(object):
         orgvdc_network_href = orgvdc_networks[0].get('href')
 
         network_configuration_section = \
-            self.get_network_configuration_section()
+            deepcopy(self.resource.NetworkConfigSection)
 
-        matched_orgvdc_network_config = self.search_for_network_config_by_name(
-            orgvdc_network_name, network_configuration_section)
+        matched_orgvdc_network_config = \
+            self._search_for_network_config_by_name(
+                orgvdc_network_name, network_configuration_section)
         if matched_orgvdc_network_config is not None:
             raise Exception("Orgvdc network \'%s\' is already connected to "
                             "vapp." % orgvdc_network_name)
 
-        network_config = E.Configuration(
-            E.ParentNetwork(href=orgvdc_network_href), E.FenceMode('bridged'),
-            E.RetainNetInfoAcrossDeployments(retain_ip))
-
-        network_configuration_section.append(
-            E.NetworkConfig(
-                network_config, E.IsDeployed(is_deployed),
-                networkName=orgvdc_network_name))
+        configuration = E.Configuration(
+            E.ParentNetwork(href=orgvdc_network_href), E.FenceMode(fence_mode))
+        if retain_ip is not None:
+            configuration.append(E.RetainNetInfoAcrossDeployments(retain_ip))
+        network_config = E.NetworkConfig(
+            configuration, networkName=orgvdc_network_name)
+        if is_deployed is not None:
+            network_config.append(E.IsDeployed(is_deployed))
+        network_configuration_section.append(network_config)
 
         return self.client.put_linked_resource(
             self.resource.NetworkConfigSection, RelationType.EDIT,
@@ -664,10 +671,10 @@ class VApp(object):
             network_configuration_section)
 
     def disconnect_org_vdc_network(self, orgvdc_network_name):
-        """Disconnect an orgvdc network from the vapp.
+        """Disconnect the vapp from an orgvdc network.
 
         :param orgvdc_network_name: (str): name of the orgvdc
-            network to be disconnected
+            network to be disconnected.
 
         :return: A :class:`lxml.objectify.StringElement` object
             representing the updated NetworkConfigSection of the vapp.
@@ -675,10 +682,11 @@ class VApp(object):
         :raises: Exception: If orgvdc network is not connected to the vapp.
         """
         network_configuration_section = \
-            self.get_network_configuration_section()
+            deepcopy(self.resource.NetworkConfigSection)
 
-        matched_orgvdc_network_config = self.search_for_network_config_by_name(
-            orgvdc_network_name, network_configuration_section)
+        matched_orgvdc_network_config = \
+            self._search_for_network_config_by_name(
+                orgvdc_network_name, network_configuration_section)
         if matched_orgvdc_network_config is None:
             raise Exception("Orgvdc network \'%s\' is not attached to the vapp"
                             % orgvdc_network_name)
@@ -690,24 +698,16 @@ class VApp(object):
             EntityType.NETWORK_CONFIG_SECTION.value,
             network_configuration_section)
 
-    def get_network_configuration_section(self):
-        """Get the NetworkConfigSection of a vapp.
-
-        :return: A :class:`lxml.objectify.StringElement` object
-            representing the  NetworkConfigSection of the vapp.
-        """
-        return self.client.get_resource(
-            self.resource.get('href') + '/networkConfigSection/')
-
     @staticmethod
-    def search_for_network_config_by_name(orgvdc_network_name,
-                                          network_configuration_section):
+    def _search_for_network_config_by_name(orgvdc_network_name,
+                                           network_configuration_section):
         """Search for the NetworkConfig element by orgvdc network name.
 
         :param orgvdc_network_name: (str): name of the orgvdc network to be
             searched.
         :param network_configuration_section :(lxml.objectify.StringElement):
             NetworkConfigSection of a vapp.
+
         :return: A :class:`lxml.objectify.StringElement` object
             representing the  NetworkConfig element in NetworkConfigSection.
         """

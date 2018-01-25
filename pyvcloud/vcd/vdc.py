@@ -360,11 +360,12 @@ class VDC(object):
                                                 RelationType.EDGE_GATEWAYS,
                                                 EntityType.RECORDS.value)
         edge_gateways = []
-        for e in links.EdgeGatewayRecord:
-            edge_gateways.append({
-                'name': e.get('name'),
-                'href': e.get('href')
-            })
+        if hasattr(links, 'EdgeGatewayRecord'):
+            for e in links.EdgeGatewayRecord:
+                edge_gateways.append({
+                    'name': e.get('name'),
+                    'href': e.get('href')
+                })
         return edge_gateways
 
     def create_disk(self,

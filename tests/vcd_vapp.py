@@ -115,6 +115,50 @@ class TestVApp(TestCase):
         assert len(vm) > 0
         assert vm[0].get('name') == self.config['vcd']['vm']
 
+    def test_101_connect_orgvdc_network(self):
+        org_in_use = self.config['vcd']['org_in_use']
+        org = Org(self.client,
+                  href=self.client.get_org_by_name(org_in_use).get('href'))
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=v.get('href'))
+        vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
+        vapp = VApp(self.client, resource=vapp_resource)
+        result = vapp.connect_org_vdc_network(self.config['vcd'][
+                                                 'orgvdc_network'])
+        task = self.client.get_task_monitor().wait_for_status(
+            task=result,
+            timeout=60,
+            poll_frequency=2,
+            fail_on_statuses=None,
+            expected_target_statuses=[
+                TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
+                TaskStatus.CANCELED
+            ],
+            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
+    def test_102_disconnect_orgvdc_network(self):
+        org_in_use = self.config['vcd']['org_in_use']
+        org = Org(self.client,
+                  href=self.client.get_org_by_name(org_in_use).get('href'))
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=v.get('href'))
+        vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
+        vapp = VApp(self.client, resource=vapp_resource)
+        result = vapp.disconnect_org_vdc_network(self.config['vcd'][
+                                                 'orgvdc_network'])
+        task = self.client.get_task_monitor().wait_for_status(
+            task=result,
+            timeout=60,
+            poll_frequency=2,
+            fail_on_statuses=None,
+            expected_target_statuses=[
+                TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
+                TaskStatus.CANCELED
+            ],
+            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
     def test_11_change_owner(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)

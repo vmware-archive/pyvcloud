@@ -560,19 +560,12 @@ class Client(object):
         self._session = new_session
         self._session.headers['x-vcloud-authorization'] = \
             response.headers['x-vcloud-authorization']
-
-        if session.get('org') == 'System':
-            self._is_sysadmin = True
-        else:
-            self._is_sysadmin = False
+        self._is_sysadmin = self._is_sys_admin(session.get('org'))
 
     def rehydrate(self, state):
         self._session = requests.Session()
         self._session.headers['x-vcloud-authorization'] = state.get('token')
-        if state.get('org') == 'System':
-            self._is_sysadmin = True
-        else:
-            self._is_sysadmin = False
+        self._is_sysadmin = self._is_sys_admin(state.get('org'))
         wkep = state.get('wkep')
         self._session_endpoints = {}
         for endpoint in _WellKnownEndpoint:
@@ -596,11 +589,7 @@ class Client(object):
 
         session = objectify.fromstring(response.content)
 
-        if session.get('org') == 'System':
-            self._is_sysadmin = True
-        else:
-            self._is_sysadmin = False
-
+        self._is_sysadmin = self._is_sys_admin(session.get('org'))
         self._session_endpoints = _get_session_endpoints(session)
         self._session = new_session
         self._session.headers['x-vcloud-authorization'] = \
@@ -610,6 +599,11 @@ class Client(object):
     def logout(self):
         uri = self._uri + '/session'
         return self._do_request('DELETE', uri)
+
+    def _is_sys_admin(self, logged_in_org):
+        if logged_in_org.lower() == 'system':
+            return True
+        return False
 
     def is_sysadmin(self):
         return self._is_sysadmin
@@ -866,7 +860,7 @@ class Client(object):
         orgs = self.get_org_list()
         if hasattr(orgs, 'Org'):
             for org in orgs.Org:
-                if org.get('name') == org_name:
+                if org.get('name').lower() == org_name.lower():
                     return org
         raise Exception('org \'%s\' not found' % org_name)
 

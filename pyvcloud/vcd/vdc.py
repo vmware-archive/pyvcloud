@@ -55,8 +55,10 @@ class VDC(object):
                         result.append(vapp.get('href'))
         if len(result) == 0:
             raise Exception('vApp named \'%s\' not found' % name)
+
         elif len(result) > 1:
-            raise Exception('more than one found, use the vapp-id')
+            raise Exception("Found multiple vApps named " +
+                            "\'%s\', use the vapp-id to identify." % name)
         return result[0]
 
     def reload(self):

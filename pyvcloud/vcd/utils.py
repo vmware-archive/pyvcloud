@@ -123,6 +123,105 @@ def vdc_to_dict(vdc, access_control_settings=None):
     return result
 
 
+def pvdc_to_dict(pvdc, refs=None, metadata=None):
+    """Converts a Provider Virtual Datacenter resource to a python dictionary.
+
+    :param pvdc: (ProviderVdcType): xml object
+    :param pvdc: (VdcReferences): xml object retrieved from
+           the ProviderVdcType.
+    :param pvdc: (Metadata): xml object metadata retrieved from
+           the ProviderVdcType.
+    :return: (dict): dict representation of pvdc object.
+    """
+    result = {}
+    result['name'] = pvdc.get('name')
+    result['id'] = extract_id(pvdc.get('id'))
+    result['description'] = str(pvdc.Description)
+    if hasattr(pvdc, 'IsEnabled'):
+        result['is_enabled'] = bool(pvdc.IsEnabled)
+    if hasattr(pvdc, 'AvailableNetworks') and \
+            hasattr(pvdc.AvailableNetworks, 'Network'):
+        result['networks'] = []
+        for n in pvdc.AvailableNetworks.Network:
+            result['networks'].append(n.get('name'))
+
+    if hasattr(pvdc, 'ComputeCapacity'):
+        result['cpu_capacity'] = {
+            'units': str(pvdc.ComputeCapacity.Cpu.Units),
+            'total': str(pvdc.ComputeCapacity.Cpu.Total)
+        }
+        # process optional elements
+        if hasattr(pvdc.ComputeCapacity.Cpu, 'Allocation'):
+            result['cpu_capacity']['allocation'] = \
+                str(pvdc.ComputeCapacity.Cpu.Allocation)
+        if hasattr(pvdc.ComputeCapacity.Cpu, 'Reserved'):
+            result['cpu_capacity']['reserved'] = \
+                str(pvdc.ComputeCapacity.Cpu.Reserved)
+        if hasattr(pvdc.ComputeCapacity.Cpu, 'Used'):
+            result['cpu_capacity']['used'] = \
+                str(pvdc.ComputeCapacity.Cpu.Used)
+        if hasattr(pvdc.ComputeCapacity.Cpu, 'Overhead'):
+            result['cpu_capacity']['overhead'] = \
+                str(pvdc.ComputeCapacity.Cpu.Overhead)
+
+        result['mem_capacity'] = {
+            'units': str(pvdc.ComputeCapacity.Memory.Units),
+            'total': str(pvdc.ComputeCapacity.Memory.Total)
+        }
+        # process optional elements
+        if hasattr(pvdc.ComputeCapacity.Memory, 'Allocation'):
+            result['mem_capacity']['allocation'] = \
+                str(pvdc.ComputeCapacity.Memory.Allocation)
+        if hasattr(pvdc.ComputeCapacity.Memory, 'Reserved'):
+            result['mem_capacity']['reserved'] = \
+                str(pvdc.ComputeCapacity.Memory.Reserved)
+        if hasattr(pvdc.ComputeCapacity.Memory, 'Used'):
+            result['mem_capacity']['used'] = \
+                str(pvdc.ComputeCapacity.Memory.Used)
+        if hasattr(pvdc.ComputeCapacity.Memory, 'Overhead'):
+            result['mem_capacity']['overhead'] = \
+                str(pvdc.ComputeCapacity.Memory.Overhead)
+
+    if hasattr(pvdc, 'Capabilities') and \
+            hasattr(pvdc.Capabilities, 'SupportedHardwareVersions') and \
+            hasattr(pvdc.Capabilities.SupportedHardwareVersions,
+                    'SupportedHardwareVersion'):
+        result['supported_hw'] = []
+        for n in pvdc.Capabilities.SupportedHardwareVersions. \
+                SupportedHardwareVersion:
+            result['supported_hw'].append(str(n))
+
+    if hasattr(pvdc, 'Owner'):
+        result['owner'] = str(pvdc.Owner)
+
+    if hasattr(pvdc, 'StorageProfiles') and \
+            hasattr(pvdc.StorageProfiles, 'ProviderVdcStorageProfile'):
+        result['storage_profiles'] = []
+        for sp in pvdc.StorageProfiles.ProviderVdcStorageProfile:
+            result['storage_profiles'].append(sp.get('name'))
+
+    if hasattr(pvdc, 'NetworkPoolReferences') and \
+            hasattr(pvdc.NetworkPoolReferences, 'NetworkPoolReference'):
+        result['network_pools'] = []
+        for np in pvdc.NetworkPoolReferences.NetworkPoolReference:
+            result['network_pools'].append(np.get('name'))
+
+    if metadata is not None and hasattr(metadata, 'MetadataEntry'):
+        for me in metadata.MetadataEntry:
+            result['metadata: %s' % me.Key.text] = me.TypedValue.Value.text
+
+    if hasattr(pvdc, 'Vdcs') and \
+            hasattr(pvdc.Vdcs, 'Vdc'):
+        result['vdc_refs'] = []
+        for ref in pvdc.VdcReference:
+            result['vdc_refs'].append(ref.get('name'))
+    elif refs is not None and hasattr(refs, 'VdcReference'):
+        result['vdc_refs'] = []
+        for ref in refs.VdcReference:
+            result['vdc_refs'].append(ref.get('name'))
+    return result
+
+
 def to_human(seconds):
     weeks = seconds / (7 * 24 * 60 * 60)
     days = seconds / (24 * 60 * 60) - 7 * weeks

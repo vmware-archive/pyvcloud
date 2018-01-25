@@ -52,11 +52,13 @@ class Platform(object):
         :param name: (str): The name of vCenter.
 
         :return: (lxml.objectify.ObjectifiedElement): vCenter resource.
+
+        :raises: Exception: If the named vCenter cannot be located.
         """
         for record in self.list_vcenters():
             if record.get('name') == name:
                 return self.client.get_resource(record.get('href'))
-        return None
+        raise Exception('vCenter \'%s\' not found' % name)
 
     def list_external_networks(self):
         """List all external networks available in the system.

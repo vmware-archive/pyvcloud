@@ -629,8 +629,8 @@ class VApp(object):
         :param fence_mode: (str): Controls connectivity to the parent
             network. One of bridged, isolated or natRouted. bridged by default.
 
-        :return: A :class:`lxml.objectify.StringElement` object representing
-            the updated NetworkConfigSection of the vapp.
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the asynchronous task that is connecting the network.
 
         :raises: Exception: If orgvdc network does not exist in the vdc or if
         it is already connected to the vapp.
@@ -676,8 +676,8 @@ class VApp(object):
         :param orgvdc_network_name: (str): name of the orgvdc
             network to be disconnected.
 
-        :return: A :class:`lxml.objectify.StringElement` object
-            representing the updated NetworkConfigSection of the vapp.
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the asynchronous task that is disconnecting the network.
 
         :raises: Exception: If orgvdc network is not connected to the vapp.
         """

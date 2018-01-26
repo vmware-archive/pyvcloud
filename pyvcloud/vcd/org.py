@@ -560,16 +560,17 @@ class Org(object):
 
         :return:  (UserRecord): User record.
         """
-        user_record = self.list_users(user_name)
+        user_record = list(self.list_users(('name', user_name)))
 
         if len(user_record) < 1:
             raise Exception('User \'%s\' does not exist.' % user_name)
-        return user_record[0]
+        return self.client.get_resource(user_record[0].get('href'))
 
     def list_users(self, name_filter=None):
         """Retrieve the list of users in the current Org.
 
-        :param name_filter: (str): Filter users by user name.
+        :param name_filter: (tuple): (name ,'username') Filter roles by
+            'user name'
 
         :return: (list): (UserRecord) List of users.
         """
@@ -586,12 +587,7 @@ class Org(object):
             equality_filter=name_filter,
             qfilter=org_filter)
 
-        result = []
-        for r in list(query.execute()):
-            result.append(
-                to_dict(
-                    r, resource_type=resource_type, exclude=['org']))
-        return result
+        return query.execute()
 
     def delete_user(self, user_name):
         """Delete user record from current organization.

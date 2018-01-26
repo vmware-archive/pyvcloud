@@ -233,6 +233,7 @@ class EntityType(Enum):
     VAPP = 'application/vnd.vmware.vcloud.vApp+xml'
     VAPP_TEMPLATE = 'application/vnd.vmware.vcloud.vAppTemplate+xml'
     VDC = 'application/vnd.vmware.vcloud.vdc+xml'
+    VDC_REFERENCES = 'application/vnd.vmware.admin.vdcReferences+xml'
     VDCS_PARAMS = 'application/vnd.vmware.admin.createVdcParams+xml'
     VIM_SERVER_REFS = 'application/vnd.vmware.admin.vmwVimServerReferences+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'

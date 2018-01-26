@@ -556,8 +556,20 @@ class Org(object):
     def get_user(self, user_name):
         """Retrieve user record from current Organization.
 
-        :param user_name: user name of the record to be retrieved
-        :return: User record
+        :param: (str): user_name: user name of the record to be retrieved
+        :return:  (UserRecord): User record.
+        """
+        user_record = self.list_users(user_name)
+
+        if len(user_record) < 1:
+            raise Exception('User \'%s\' does not exist.' % user_name)
+        return user_record[0]
+
+    def list_users(self, name_filter=None):
+        """Retrieve the list of users in the current Org.
+
+        :param name_filter: (str): Filter users by user name.
+        :return: (list): (UserRecord) List of users.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -568,15 +580,16 @@ class Org(object):
             org_filter = 'org==%s' % self.resource.get('href')
         query = self.client.get_typed_query(
             resource_type,
-            query_result_format=QueryResultFormat.REFERENCES,
-            equality_filter=('name', user_name),
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter,
             qfilter=org_filter)
-        records = list(query.execute())
-        if len(records) == 0:
-            raise Exception('user not found')
-        elif len(records) > 1:
-            raise Exception('multiple users found')
-        return self.client.get_resource(records[0].get('href'))
+
+        result = []
+        for r in list(query.execute()):
+            result.append(
+                to_dict(
+                    r, resource_type=resource_type, exclude=['org']))
+        return result
 
     def delete_user(self, user_name):
         """Delete user record from current organization.

@@ -557,6 +557,7 @@ class Org(object):
         """Retrieve user record from current Organization.
 
         :param: (str): user_name: user name of the record to be retrieved
+
         :return:  (UserRecord): User record.
         """
         user_record = self.list_users(user_name)
@@ -569,6 +570,7 @@ class Org(object):
         """Retrieve the list of users in the current Org.
 
         :param name_filter: (str): Filter users by user name.
+
         :return: (list): (UserRecord) List of users.
         """
         if self.resource is None:

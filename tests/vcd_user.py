@@ -42,6 +42,12 @@ class TestUser(TestCase):
         org = Org(self.client, resource=logged_in_org)
         return org.update_user(user_name, is_enabled)
 
+    def test_00_list_users(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        users = org.list_users()
+        assert len(users) > 0
+
     def test_01_create_and_delete_user(self):
         user_name = self.config['vcd']['user_name'].join(
             random.sample(string.ascii_lowercase, 8))

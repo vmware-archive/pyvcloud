@@ -29,6 +29,8 @@ class PVDC(object):
             representation of the entity.
         """
         self.client = client
+        if href is None and resource is None:
+            raise TypeError("PVDC initialization failed as arguments are invalid or None")
         self.href = href
         self.resource = resource
         if resource is not None:

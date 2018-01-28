@@ -33,7 +33,8 @@ class System(object):
         """
         self.client = client
         if admin_href is None and admin_resource is None:
-            raise TypeError("System initialization failed as arguments are invalid or None")
+            raise TypeError("System initialization failed as arguments"
+                            " are either invalid or None")
         self.admin_href = admin_href
         self.admin_resource = admin_resource
         if admin_resource is not None:

@@ -34,7 +34,8 @@ class VApp(object):
         self.client = client
         self.name = name
         if href is None and resource is None:
-            raise TypeError("VApp initialization failed as arguments are invalid or None")
+            raise TypeError("VApp initialization failed as arguments"
+                            " are either invalid or None")
         self.href = href
         self.resource = resource
         if resource is not None:

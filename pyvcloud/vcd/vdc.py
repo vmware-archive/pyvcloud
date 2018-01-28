@@ -32,7 +32,8 @@ class VDC(object):
         self.client = client
         self.name = name
         if href is None and resource is None:
-            raise TypeError("VDC initialization failed as arguments are invalid or None")
+            raise TypeError("VDC initialization failed as arguments"
+                            " are either invalid or None")
         self.href = href
         self.resource = resource
         if resource is not None:

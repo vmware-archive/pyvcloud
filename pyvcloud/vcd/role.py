@@ -32,7 +32,8 @@ class Role(object):
         """
         self.client = client
         if href is None and resource is None:
-            raise TypeError("Role initialization failed as arguments are invalid or None")
+            raise TypeError("Role initialization failed as arguments"
+                            " are either invalid or None")
         self.href = href
         self.resource = resource
         if resource is not None:

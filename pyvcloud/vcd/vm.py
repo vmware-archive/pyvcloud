@@ -149,7 +149,7 @@ class VM(object):
         if name is not None:
             snapshot_vm_params.set('name', str(name).lower())
         return self.client.post_linked_resource(
-            self.resource, RelationType.SNAPSHOT_CREATE, 
+            self.resource, RelationType.SNAPSHOT_CREATE,
             EntityType.SNAPSHOT_CREATE.value, snapshot_vm_params)
 
     def deploy(self, power_on=True, force_customization=False):

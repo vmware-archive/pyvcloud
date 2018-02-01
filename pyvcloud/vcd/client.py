@@ -259,7 +259,7 @@ class _WellKnownEndpoint(Enum):
                          EntityType.API_EXTENSIBILITY.value)
     EXTENSION = (RelationType.DOWN, EntityType.EXTENSION.value)
     ORG_LIST = (RelationType.DOWN, EntityType.ORG_LIST.value)
-    SNAPSHOT_CREATE = (RelationType.SNAPSHOT_CREATE, 
+    SNAPSHOT_CREATE = (RelationType.SNAPSHOT_CREATE,
                        EntityType.SNAPSHOT_CREATE.value)
 
 

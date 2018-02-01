@@ -133,6 +133,25 @@ class VM(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_RESET, None, None)
 
+    def snapshot_create(self, memory=None, quiesce=None, name=None):
+        """Snapshot the VM.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing the
+            asynchronous task that operates on the VM.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        snapshot_vm_params = E.CreateSnapshotParams()
+        if memory is not None:
+            snapshot_vm_params.set('memory', str(memory).lower())
+        if quiesce is not None:
+            snapshot_vm_params.set('quiesce', str(quiesce).lower())
+        if name is not None:
+            snapshot_vm_params.set('name', str(name).lower())
+        return self.client.post_linked_resource(
+            self.resource, RelationType.SNAPSHOT_CREATE, 
+            EntityType.SNAPSHOT_CREATE.value, snapshot_vm_params)
+
     def deploy(self, power_on=True, force_customization=False):
         """Deploys the VM.
 

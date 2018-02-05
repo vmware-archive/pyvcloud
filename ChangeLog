@@ -1,7 +1,21 @@
 CHANGES
 =======
 
-* VCDA-409: validate PEP8 compliance
+19.1.1
+------
+
+* Updated requirements with version info (#194)
+* VCDA-441 PVDC info - list pvdc storage profiles
+* VCDA-421 & VCDA-422: Implementing SDK methods and cli commands to connect/disconnect ovdc\_network to/from vapp. (#190)
+* addressed review comments
+* VCDA-370: Functions dealing with org name and user name are now case insensitive #191
+* VCDA-472: get\_vcenter() in platform.py should raise exception when a vCenter with the user provided name can't be found. #193
+* VCDA-471: Fixed listing of edge gateways, when there are none in the system #192
+* VCDA-180: Add detailed installation instructions for pyvcloud (#189)
+* VCDA-365,366: Shutdown and Reboot a vapp/VM (#185)
+* VCDA-395 and VCDA-396: Add support for listing and deleting org vdc networks
+* VCDA-409: validate PEP8 compliance (#183)
+* VCDA-344,367:Reset/Deploy vapp/vm (#180)
 * VCDA-451: work with pending tasks
 * Issue#142: Fixed bug in vdc.py : get\_storage\_profiles() that was returning only first storage profile. (#181)
 * VCDA-451: work with pending tasks
@@ -10,7 +24,7 @@ CHANGES
 * VCDA-394: Introduce capability to list external networks and find them by name
 * VCDA-230 & VCDA-234: Add or remove rights from organization (#174)
 * VCDA-331: catalog\_item download fails with 'No such file or directory' error. (#175)
-*  Implementing SDK methods to update acl of vdc and vapp (#169)
+* Implementing SDK methods to update acl of vdc and vapp (#169)
 * VCDA-369: Adding capability to create isolated OrgVDC networks
 * VCDA-354: CSE support multiple vCenters
 * VCDA-369: Adding capability to create isolated OrgVDC networks

@@ -638,8 +638,10 @@ class VApp(object):
         :raises: Exception: If orgvdc network does not exist in the vdc or if
         it is already connected to the vapp.
         """
-        vdc = VDC(self.client, href=find_link(self.resource, RelationType.UP,
-                                              EntityType.VDC.value).href)
+        vdc = VDC(
+            self.client,
+            href=find_link(self.resource, RelationType.UP,
+                           EntityType.VDC.value).href)
         orgvdc_networks = \
             vdc.list_orgvdc_network_resources(orgvdc_network_name)
         if len(orgvdc_networks) == 0:

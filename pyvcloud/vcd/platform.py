@@ -120,8 +120,7 @@ class Platform(object):
                         moref = rp.MoRef.text
                         for r in resourcePoolNames:
                             if name == r:
-                                if moref not in moRefs: #workaround Bug 2041875
-                                    moRefs.append(moref)
+                                moRefs.append(moref)
                                 break
         return href, moRefs
         

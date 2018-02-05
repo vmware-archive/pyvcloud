@@ -3,6 +3,4 @@ flake8
 flake8-import-order
 flake8_docstrings
 hacking
-nose>=1.3.6
-nose-testconfig>=0.9.1
 yapf

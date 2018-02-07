@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import urllib.parse
+import uuid
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.extension import Extension
@@ -94,18 +96,37 @@ class Platform(object):
                 return self.client.get_resource(ext_net.get('href'))
         raise Exception('External network \'%s\' not found.' % name)
 
+    def vxlan_network_pool_to_href(self, vxlanNetworkPool):
+        """
+        Input is a vxlanNetworkPool name
+        Output is a vxlanNetworkPool href
+        """ #NoQA
+        query_filter = 'name==%s' % urllib.parse.quote_plus(vxlanNetworkPool)
+        q = self.client.get_typed_query(
+            'networkPool',
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=query_filter)
+        hrefs = list(q.execute())
+        href = None
+        for h in hrefs:
+            if vxlanNetworkPool == h.get('name'):
+                href = h.get('href')
+                break
+        return href
+        
     def list_resource_pool_morefs(self, vimServerName, resourcePoolNames):
         """
         Input is a VC name and a list of available resourcePoolNames, 
         Output is VC href and a list of the resourcePoolNames corresponding 
             moRefs
-        """ #NOQA
-        query_filter = 'name==%s' % vimServerName
+        """ #NoQA
+        query_filter = 'name==%s' % urllib.parse.quote_plus(vimServerName)
         q = self.client.get_typed_query(
             'virtualCenter',
             query_result_format=QueryResultFormat.RECORDS,
             qfilter=query_filter)
         hrefs = list(q.execute())
+        href = None
         for h in hrefs:
             if vimServerName == h.get('name'):
                 href = h.get('href')
@@ -130,12 +151,8 @@ class Platform(object):
                             storageProfiles,
                             pvdcName=None,
                             isEnabled=None,
-                            defaultPassword=None,
-                            defaultUsername=None,
                             description=None,
                             highestSuppHWVers=None,
-                            hostRefs=[],
-                            vCloudExtension=None,
                             vxlanNetworkPool=None):
         """
         Create a Provider Virtual Datacenter. Translates user-friendly input
@@ -159,11 +176,22 @@ class Platform(object):
         resourcepoolrefs.append(vimobjectref)
         vmwprovidervdcparams.append(resourcepoolrefs)
         vmwprovidervdcparams.append(E_VMEXT.VimServer(href=href))
+        if vxlanNetworkPool is not None:
+            href = self.vxlan_network_pool_to_href(vxlanNetworkPool)
+            vmwprovidervdcparams.append(E_VMEXT.VxlanNetworkPool(href=href))
+        if highestSuppHWVers is not None:
+            vmwprovidervdcparams.append( \
+                E_VMEXT.HighestSupportedHardwareVersion(highestSuppHWVers))
         if isEnabled is not None:
             vmwprovidervdcparams.append(E_VMEXT.IsEnabled(isEnabled))
         for i in storageProfiles:
             vmwprovidervdcparams.append(E_VMEXT.StorageProfile(i))
-        
+        dun = uuid.uuid4().hex
+        defaultUsername = 'USR' + dun[:8]
+        defaultPassword = 'PWD' + dun[:8]
+        vmwprovidervdcparams.append(E_VMEXT.DefaultPassword(defaultPassword))
+        vmwprovidervdcparams.append(E_VMEXT.DefaultUsername(defaultUsername))
+
         return self.client.post_linked_resource(self.extension.get_resource(),
             rel=RelationType.ADD,
             media_type=EntityType.PROVIDERVDCPARAMS.value, 

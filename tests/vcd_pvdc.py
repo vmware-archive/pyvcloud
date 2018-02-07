@@ -15,7 +15,9 @@ class TestPVDC(TestCase):
             storageProfiles=self.config['vcd']['storageProfiles'],
             pvdcName=self.config['vcd']['pvdcName'],
             isEnabled=self.config['vcd']['isEnabled'],
-            description=self.config['vcd']['description'])
+            description=self.config['vcd']['description'], 
+            highestSuppHWVers=self.config['vcd']['highestSuppHWVers'],
+            vxlanNetworkPool=self.config['vcd']['vxlanNetworkPool'])
         stdout_xml(pvdc)
         assert self.config['vcd']['pvdcName'] == pvdc.get('name')
         

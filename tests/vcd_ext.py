@@ -13,24 +13,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import unittest
-import yaml
-from pyvcloud.vcd.client import Client
-from pyvcloud.vcd.client import NSMAP
-from pyvcloud.vcd.client import TaskStatus
-from pyvcloud.vcd.extension import Extension
+
+from pyvcloud.vcd.api_extension import APIExtension
 from pyvcloud.vcd.test import TestCase
+
 
 class TestExtension(TestCase):
 
-    def test_0001_get_extension(self):
-        extension = Extension(self.client)
+    def test_0001_create_extension(self):
+        extension = APIExtension(self.client)
+        extension.add_extension(self.config['vcd']['extension_name'],
+                                self.config['vcd']['extension_namespace'],
+                                self.config['vcd']['routing_key'],
+                                self.config['vcd']['exchange'],
+                                self.config['vcd']['patterns'].split(','))
+
+    def test_0002_get_extension(self):
+        extension = APIExtension(self.client)
         ext_info = extension.get_extension_info(
-                self.config['vcd']['extension_name'])
+            self.config['vcd']['extension_name'],
+            self.config['vcd']['extension_namespace'])
         assert ext_info
         assert ext_info['name'] == self.config['vcd']['extension_name']
+        assert ext_info['namespace'] == \
+            self.config['vcd']['extension_namespace']
         assert ext_info['filter_1'].startswith('/api/')
+
+    def test_0003_delete_extension(self):
+        extension = APIExtension(self.client)
+        extension.delete_extension(self.config['vcd']['extension_name'],
+                                   self.config['vcd']['extension_namespace'])
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
 include requirements.txt
 include README.rst
-include LICENSE
+include LICENSE.txt
 recursive-include pyvcloud *.py

@@ -1,0 +1,90 @@
+##########################
+# CONNECTION INFORMATION #
+##########################
+
+# Fill in the vCloud Dirctor host and sysadmin information here.  This 
+# account will be used to issue tenant setup commands. 
+vcd_host: "192.168.120.5"
+vcd_admin_user: "administrator"
+vcd_admin_password: "********"
+
+#####################
+# TENANT DEFINITION #
+#####################
+
+# NOTE: Generally speaking the properties that define entities like orgs, 
+# VDCs, and the like are the same as pyvcloud API arguments.  You can add
+# more properties so long as they match the APIs in which they are used.
+
+# Name of the org we would like to see. 
+org: "Test1"
+
+# A user that we will create. 
+user: 
+  name: "user1"
+  password: "********"
+  role: "Organization Administrator"
+
+# A VDC that we will create.  The provider_vdc_name, network_pool_name, 
+# and storage profile should match your installation. 
+vdc: 
+  vdc_name: "VDC-A"
+  description: "Test VDC A"
+  provider_vdc_name: "pvdc-2018-02-08-03-10-22.938"
+  network_pool_name: "pvdc-2018-02-08-03-10-22.938-VXLAN-NP"
+  storage_profiles:
+    - name: "*"
+      enabled: True
+      units: "MB"
+      limit: 100000
+      default: True
+  network_quota: 100
+
+# A catalog that we will create. 
+catalog: 
+  name: "Test-Catalog"
+  description: "A test catalog"
+
+# One or more items that will be loaded in the catalog. Specify the full
+# path of files. 
+catalog_items: 
+  - item_name: "Photon-1"
+    description: "Photon 1 VM"
+    catalog_name: "Test-Catalog"
+    file_name: "/home/admin/ovf/photon-custom-hw11-1.0-62c543d.ova"
+  - item_name: "Tiny-Linux"
+    description: "Tiny Linux VM"
+    catalog_name: "Test-Catalog"
+    file_name: "/home/admin/ovf/Tiny-Linux-VM.ova"
+
+# One or more networks that we would like to create.  In this example only 
+# isolated networks are included. 
+networks:
+  isolated:
+    - network_name: "isolated-network-1"
+      gateway_ip: "192.168.10.1" 
+      netmask: "255.255.255.0"
+      description: "Isolated network"
+      ip_range_start: "192.168.10.100"
+      ip_range_end: "192.168.10.149"
+
+# One or more vApps we would like to create.  The catalog, template, and 
+# network must match names previously defined in this file or that already
+# exist in vCD. 
+vapps: 
+  - name: "vApp-Photon-1"
+    catalog: "Test-Catalog"
+    template: "Photon-1"
+    network: "isolated-network-1"
+    ip_allocation_mode: "pool"
+    accept_all_eulas: "True"
+    password: "secret"
+    vm_name: "Demo-VM"
+    hostname: "Demo-Host"
+  - name: "vApp-Tiny-Linux"
+    catalog: "Test-Catalog"
+    template: "Tiny-Linux"
+    network: "isolated-network-1"
+    accept_all_eulas: "True"
+    vm_name: "Tiny-VM"
+    hostname: "Tiny-Host"

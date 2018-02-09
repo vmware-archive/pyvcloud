@@ -135,7 +135,16 @@ class VM(object):
 
     def snapshot_create(self, memory=None, quiesce=None, name=None):
         """Snapshot the VM.
-
+        
+        :param memory: (bool): True if the snapshot should include the
+            virtual machine's memory.
+        :param quiesce: (bool): True if the file system of the virtual machine
+            should be quiesced before the snapshot is created.
+            (Requires VMware tools installed)
+        :param name: (bool): Typically used to name or identify the subject
+            of the request. For example, the name of the object being created
+            or modified. 
+        
         :return:  A :class:`lxml.objectify.StringElement` object describing the
             asynchronous task that operates on the VM.
         """

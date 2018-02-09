@@ -168,12 +168,12 @@ class Platform(object):
         if description is not None:
             vmwprovidervdcparams.append(E.Description(description))
         resourcepoolrefs = E_VMEXT.ResourcePoolRefs()
-        vimobjectref = E_VMEXT.VimObjectRef()
-        vimobjectref.append(E_VMEXT.VimServerRef(href=href))
         for z in moRefs:
+            vimobjectref = E_VMEXT.VimObjectRef()
+            vimobjectref.append(E_VMEXT.VimServerRef(href=href))
             vimobjectref.append(E_VMEXT.MoRef(z))
-        vimobjectref.append(E_VMEXT.VimObjectType('RESOURCE_POOL'))
-        resourcepoolrefs.append(vimobjectref)
+            vimobjectref.append(E_VMEXT.VimObjectType('RESOURCE_POOL'))
+            resourcepoolrefs.append(vimobjectref)
         vmwprovidervdcparams.append(resourcepoolrefs)
         vmwprovidervdcparams.append(E_VMEXT.VimServer(href=href))
         if vxlanNetworkPool is not None:
@@ -191,7 +191,7 @@ class Platform(object):
         defaultPassword = 'PWD' + dun[:8]
         vmwprovidervdcparams.append(E_VMEXT.DefaultPassword(defaultPassword))
         vmwprovidervdcparams.append(E_VMEXT.DefaultUsername(defaultUsername))
-
+        stdout_xml(vmwprovidervdcparams)
         return self.client.post_linked_resource(self.extension.get_resource(),
             rel=RelationType.ADD,
             media_type=EntityType.PROVIDERVDCPARAMS.value, 

@@ -68,7 +68,7 @@ print("Fetching VM...")
 vm_resource = vapp.get_vm(vm)
 vm = VM(client, resource=vm_resource)
 
-print("Createing Snapshot...")
+print("Creating Snapshot...")
 snaphot_resource = vm.snapshot_create(memory=False, quiesce=False)
 print("Waiting for Snapshot finish...")
 task_monitor.wait_for_success(snaphot_resource)

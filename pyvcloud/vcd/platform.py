@@ -191,7 +191,7 @@ class Platform(object):
         defaultPassword = 'PWD' + dun[:8]
         vmwprovidervdcparams.append(E_VMEXT.DefaultPassword(defaultPassword))
         vmwprovidervdcparams.append(E_VMEXT.DefaultUsername(defaultUsername))
-        stdout_xml(vmwprovidervdcparams)
+
         return self.client.post_linked_resource(self.extension.get_resource(),
             rel=RelationType.ADD,
             media_type=EntityType.PROVIDERVDCPARAMS.value, 

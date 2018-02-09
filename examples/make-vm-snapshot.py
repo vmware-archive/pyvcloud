@@ -12,7 +12,7 @@
 # code for the these subcomponents is subject to the terms and
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
-# Illustrates how to list all vApps within a single vDC.
+# Illustrates how to make a snapshot from the VM in a vApp.
 #
 
 import sys

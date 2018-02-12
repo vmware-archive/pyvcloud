@@ -224,6 +224,7 @@ class EntityType(Enum):
     RECORDS = 'application/vnd.vmware.vcloud.query.records+xml'
     ROLE = 'application/vnd.vmware.admin.role+xml'
     RIGHT = 'application/vnd.vmware.admin.right+xml'
+    SNAPSHOT_CREATE = 'application/vnd.vmware.vcloud.createSnapshotParams+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'
     TASK = 'application/vnd.vmware.vcloud.task+xml'
     TASKS_LIST = 'application/vnd.vmware.vcloud.tasksList+xml'
@@ -260,6 +261,8 @@ class _WellKnownEndpoint(Enum):
                          EntityType.API_EXTENSIBILITY.value)
     EXTENSION = (RelationType.DOWN, EntityType.EXTENSION.value)
     ORG_LIST = (RelationType.DOWN, EntityType.ORG_LIST.value)
+    SNAPSHOT_CREATE = (RelationType.SNAPSHOT_CREATE,
+                       EntityType.SNAPSHOT_CREATE.value)
 
 
 class FenceMode(Enum):

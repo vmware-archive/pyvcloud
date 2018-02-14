@@ -120,9 +120,9 @@ class Platform(object):
         raise Exception('vxlan_network_pool \'%s\' not found' % vxlan_network_pool_name)
 
     def get_resource_pool_morefs(self, vim_server, resource_pool_names):
-        """Fetch href of VC and list of moRefs for resource_pool_names.
+        """Fetch list of moRefs for a given list of resource_pool_names.
 
-        :param vim_server_name: (str) vim_server_name (VC name)
+        :param vim_server record
         :param resource_pool_names: (list) list of resource_pool_names
         :return: list of moRefs of resourcePools
         :raises: Exception: if any ResourcePoolName cannot be found.

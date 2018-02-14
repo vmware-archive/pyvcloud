@@ -164,6 +164,29 @@ class VM(object):
             self.resource, RelationType.SNAPSHOT_CREATE,
             EntityType.SNAPSHOT_CREATE.value, snapshot_vm_params)
 
+    def snapshot_revert_to_current(self):
+        """Reverts a virtual machine to the current snapshot, if any.
+
+        :return: A :class:`lxml.objectify.StringElement` object describing
+            the asynchronous Task shutting down the VM.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        return self.client.post_linked_resource(
+            self.resource, RelationType.SNAPSHOT_REVERT_TO_CURRENT, None, None)
+
+    def snapshot_remove_all(self):
+        """Removes all user created snapshots for a virtual machine.
+
+        :return: A :class:`lxml.objectify.StringElement` object describing
+            the asynchronous Task shutting down the VM.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+        return self.client.post_linked_resource(
+            self.resource, RelationType.SNAPSHOT_REMOVE_ALL, None, None)
+
+
     def deploy(self, power_on=True, force_customization=False):
         """Deploys the VM.
 

@@ -164,6 +164,7 @@ class RelationType(Enum):
     REMOVE = 'remove'
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
+    SNAPSHOT_REMOVE_ALL = 'snapshot:removeAll'
     TASK_CANCEL = 'task:cancel'
     UNDEPLOY = 'undeploy'
     UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'

@@ -97,73 +97,55 @@ class Platform(object):
                 return self.client.get_resource(ext_net.get('href'))
         raise Exception('External network \'%s\' not found.' % name)
 
-    def get_vxlan_network_pool_href(self, vxlan_network_pool):
-        """Fetch a vxlan_networ_pool href by its name.
+    def get_vxlan_network_pool(self, vxlan_network_pool_name):
+        """Fetch a vxlan_networ_pool by its name.
 
-        :param vxlan_network_pool: (str): The name of the vxlan_network_pool
-
-        :return: (lxml.objectify.ObjectifiedElement): href of vxlan_network_pool
-
-        :raises: Exception: If the named vxlan_network_pool cannot be located.
+        :param vxlan_network_pool_name: (str): name of the vxlan_network_pool
+        :return: (lxml.objectify.ObjectifiedElement): vxlan_network_pool
+        :raises: Exception: If the named vxlan_network_pool cannot be found.
         """
-        query_filter = 'name==%s' % urllib.parse.quote_plus(vxlan_network_pool)
-        q = self.client.get_typed_query(
+        query_filter = 'name==%s' % urllib.parse.quote_plus(vxlan_network_pool_name)
+        query = self.client.get_typed_query(
             'networkPool',
             query_result_format=QueryResultFormat.RECORDS,
             qfilter=query_filter)
-        hrefs = list(q.execute())
-        href = None
-        for h in hrefs:
-            if vxlan_network_pool == h.get('name'):
-                href = h.get('href')
+        records = list(query.execute())
+        vxlan_network_pool_record = None
+        for record in records:
+            if vxlan_network_pool_name == record.get('name'):
+                vxlan_network_pool_record = record
                 break
-        if href is not None:
-            return href
-        raise Exception('vxlan_network_pool \'%s\' not found' % vxlan_network_pool)
+        if vxlan_network_pool_record is not None:
+            return vxlan_network_pool_record
+        raise Exception('vxlan_network_pool \'%s\' not found' % vxlan_network_pool_name)
 
-    def list_resource_pool_morefs(self, vim_server_name, resource_pool_names):
+    def get_resource_pool_morefs(self, vim_server, resource_pool_names):
         """Fetch href of VC and list of moRefs for resource_pool_names.
 
         :param vim_server_name: (str) vim_server_name (VC name)
-
         :param resource_pool_names: (list) list of resource_pool_names
-
-        :return: (tuple): href of named VC and list of moRefs of resourcePools
-
-        :raises: Exception: if vim_server_name not Found or
-        :   any ResourcePoolName is not found.
+        :return: list of moRefs of resourcePools
+        :raises: Exception: if any ResourcePoolName cannot be found.
         """
-        query_filter = 'name==%s' % urllib.parse.quote_plus(vim_server_name)
-        q = self.client.get_typed_query(
-            'virtualCenter',
-            query_result_format=QueryResultFormat.RECORDS,
-            qfilter=query_filter)
-        hrefs = list(q.execute())
-        href = None
-        for h in hrefs:
-            if vim_server_name == h.get('name'):
-                href = h.get('href')
-                break
         moRefs = []
-        respools = self.client.get_resource(href + '/resourcePoolList')
-        if (hasattr(respools, 'ResourcePool')):
-            for resPoolName in resource_pool_names:
-                resPoolFound = False
-                for rp in respools.ResourcePool:  # all respools on VC
-                    if (rp.DataStoreRefs.VimObjectRef.VimServerRef.
-                       get('name') == vim_server_name):  # rp belongs to VC
-                        name = rp.get('name')
-                        moref = rp.MoRef.text
-                        if name == resPoolName:
+        href = vim_server.get('href')
+        resource_pool_list = self.client.get_resource(href + '/resourcePoolList')
+        if (hasattr(resource_pool_list, 'ResourcePool')):
+            for resource_pool_name in resource_pool_names:
+                res_pool_found = False
+                for resource_pool in resource_pool_list.ResourcePool:  # all respools on VC
+                    if (resource_pool.DataStoreRefs.VimObjectRef.VimServerRef.
+                       get('name') == vim_server.get('name')):  # rp belongs to VC
+                        name = resource_pool.get('name')
+                        moref = resource_pool.MoRef.text
+                        if name == resource_pool_name:
                             moRefs.append(moref)
-                            resPoolFound = True
+                            res_pool_found = True
                             break
-                if not resPoolFound:
+                if not res_pool_found:
                     raise Exception('resource pool \'%s\' not Found' %
-                                    resPoolName)
-        if href is None:
-            raise Exception('vim_server_name \'%s\' not found' % vim_server_name)
-        return href, moRefs
+                                    resource_pool_name)
+        return moRefs
 
     def create_provider_vdc(self,
                             vim_server_name,
@@ -177,47 +159,42 @@ class Platform(object):
         """Create a Provider Virtual Datacenter.
 
         :param: vim_server_name: (str) vim_server_name (VC name)
-
         :param: resource_pool_names: (list) list of resource_pool_names
-
         :param: storage_profiles: (list) list of storageProfile namespace
-
         :param: pvdc_name: (str) name of PVDC to be created
-
         :param: is_enabled (boolean) enable flag
-
         :param: description (str) description of pvdc
-
         :param: highest_supp_hw_vers (str) highest supported hardware vers number
-
         :param: vxlan_network_pool (str) name of vxlan_network_pool
-
-        :return: PVDC just created.
+        :return: A :class:lxml.objectify.StringElement object describing the new provider VDC.
         """
-        href, moRefs = self.list_resource_pool_morefs(vim_server_name,
-                                                      resource_pool_names)
+        vc_record = self.get_vcenter(vim_server_name)
+        vc_href = vc_record.get('href')
+        rp_morefs = self.get_resource_pool_morefs(vim_server=vc_record,
+                                               resource_pool_names=resource_pool_names)
         vmw_provider_vdc_params = E_VMEXT.VMWProviderVdcParams(name=pvdc_name)
         if description is not None:
             vmw_provider_vdc_params.append(E.Description(description))
         resource_pool_refs = E_VMEXT.ResourcePoolRefs()
-        for z in moRefs:
+        for rp_moref in rp_morefs:
             vim_object_ref = E_VMEXT.VimObjectRef()
-            vim_object_ref.append(E_VMEXT.VimServerRef(href=href))
-            vim_object_ref.append(E_VMEXT.MoRef(z))
+            vim_object_ref.append(E_VMEXT.VimServerRef(href=vc_href))
+            vim_object_ref.append(E_VMEXT.MoRef(rp_moref))
             vim_object_ref.append(E_VMEXT.VimObjectType('RESOURCE_POOL'))
             resource_pool_refs.append(vim_object_ref)
         vmw_provider_vdc_params.append(resource_pool_refs)
-        vmw_provider_vdc_params.append(E_VMEXT.VimServer(href=href))
+        vmw_provider_vdc_params.append(E_VMEXT.VimServer(href=vc_href))
         if vxlan_network_pool is not None:
-            href = self.get_vxlan_network_pool_href(vxlan_network_pool)
-            vmw_provider_vdc_params.append(E_VMEXT.VxlanNetworkPool(href=href))
+            vxlan_network_pool_record = self.get_vxlan_network_pool(vxlan_network_pool)
+            vx_href = vxlan_network_pool_record.get('href')
+            vmw_provider_vdc_params.append(E_VMEXT.VxlanNetworkPool(href=vx_href))
         if highest_supp_hw_vers is not None:
             vmw_provider_vdc_params.append(
                 E_VMEXT.HighestSupportedHardwareVersion(highest_supp_hw_vers))
         if is_enabled is not None:
             vmw_provider_vdc_params.append(E_VMEXT.IsEnabled(is_enabled))
-        for storProfile in storage_profiles:
-            vmw_provider_vdc_params.append(E_VMEXT.StorageProfile(storProfile))
+        for storage_profile in storage_profiles:
+            vmw_provider_vdc_params.append(E_VMEXT.StorageProfile(storage_profile))
         random_username_suffix = uuid.uuid4().hex
         default_user = 'USR' + random_username_suffix[:8]
         default_pwd = 'PWD' + random_username_suffix[:8]
@@ -228,4 +205,4 @@ class Platform(object):
                                                 rel=RelationType.ADD,
                                                 media_type=EntityType.
                                                 PROVIDER_VDC_PARAMS.value,
-                                                contents=vmw_provider_vdc_params)  # NoQA
+                                                contents=vmw_provider_vdc_params)

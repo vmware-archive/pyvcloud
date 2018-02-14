@@ -100,8 +100,8 @@ class Platform(object):
     def get_vxlan_network_pool(self, vxlan_network_pool_name):
         """Fetch a vxlan_networ_pool by its name.
 
-        :param vxlan_network_pool_name: (str): name of the vxlan_network_pool
-        :return: (lxml.objectify.ObjectifiedElement): vxlan_network_pool
+        :param: vxlan_network_pool_name (str): name of the vxlan_network_pool.
+        :return: (lxml.objectify.ObjectifiedElement): vxlan_network_pool.
         :raises: Exception: If the named vxlan_network_pool cannot be found.
         """
         query_filter = 'name==%s' % urllib.parse.quote_plus(vxlan_network_pool_name)
@@ -119,33 +119,32 @@ class Platform(object):
             return vxlan_network_pool_record
         raise Exception('vxlan_network_pool \'%s\' not found' % vxlan_network_pool_name)
 
-    def get_resource_pool_morefs(self, vim_server, resource_pool_names):
-        """Fetch list of moRefs for a given list of resource_pool_names.
+    def get_resource_pool_morefs(self, vc_name, vc_href, resource_pool_names):
+        """Fetch list of morefs for a given list of resource_pool_names.
 
-        :param vim_server record
-        :param resource_pool_names: (list) list of resource_pool_names
-        :return: list of moRefs of resourcePools
-        :raises: Exception: if any ResourcePoolName cannot be found.
+        :param: vc_name (str): vim_server name.
+        :param: vc_href (href): vim_server href.
+        :param: resource_pool_names (list): list of resource_pool_names.
+        :return: list of morefs corresponding to resource_pool_names.
+        :raises: Exception: if any resource_pool_name cannot be found.
         """
-        moRefs = []
-        href = vim_server.get('href')
-        resource_pool_list = self.client.get_resource(href + '/resourcePoolList')
-        if (hasattr(resource_pool_list, 'ResourcePool')):
+        morefs = []
+        resource_pool_list = self.client.get_resource(vc_href + '/resourcePoolList')
+        if hasattr(resource_pool_list, 'ResourcePool'):
             for resource_pool_name in resource_pool_names:
                 res_pool_found = False
                 for resource_pool in resource_pool_list.ResourcePool:  # all respools on VC
-                    if (resource_pool.DataStoreRefs.VimObjectRef.VimServerRef.
-                       get('name') == vim_server.get('name')):  # rp belongs to VC
+                    if resource_pool.DataStoreRefs.VimObjectRef.VimServerRef.get('name') == vc_name:  # rp belongs to VC
                         name = resource_pool.get('name')
                         moref = resource_pool.MoRef.text
                         if name == resource_pool_name:
-                            moRefs.append(moref)
+                            morefs.append(moref)
                             res_pool_found = True
                             break
                 if not res_pool_found:
                     raise Exception('resource pool \'%s\' not Found' %
                                     resource_pool_name)
-        return moRefs
+        return morefs
 
     def create_provider_vdc(self,
                             vim_server_name,
@@ -158,20 +157,21 @@ class Platform(object):
                             vxlan_network_pool=None):
         """Create a Provider Virtual Datacenter.
 
-        :param: vim_server_name: (str) vim_server_name (VC name)
-        :param: resource_pool_names: (list) list of resource_pool_names
-        :param: storage_profiles: (list) list of storageProfile namespace
-        :param: pvdc_name: (str) name of PVDC to be created
-        :param: is_enabled (boolean) enable flag
-        :param: description (str) description of pvdc
-        :param: highest_supp_hw_vers (str) highest supported hardware vers number
-        :param: vxlan_network_pool (str) name of vxlan_network_pool
+        :param: vim_server_name (str): vim_server_name (VC name).
+        :param: resource_pool_names (list): list of resource_pool_names.
+        :param: storage_profiles (list): list of storageProfile namespace.
+        :param: pvdc_name (str): name of PVDC to be created.
+        :param: is_enabled (boolean): enable flag.
+        :param: description (str): description of pvdc.
+        :param: highest_supp_hw_vers (str): highest supported hardware vers number.
+        :param: vxlan_network_pool (str): name of vxlan_network_pool.
         :return: A :class:lxml.objectify.StringElement object describing the new provider VDC.
         """
         vc_record = self.get_vcenter(vim_server_name)
         vc_href = vc_record.get('href')
-        rp_morefs = self.get_resource_pool_morefs(vim_server=vc_record,
-                                               resource_pool_names=resource_pool_names)
+        rp_morefs = self.get_resource_pool_morefs(vc_name=vim_server_name, 
+                                                  vc_href=vc_href,
+                                                  resource_pool_names=resource_pool_names)
         vmw_provider_vdc_params = E_VMEXT.VMWProviderVdcParams(name=pvdc_name)
         if description is not None:
             vmw_provider_vdc_params.append(E.Description(description))

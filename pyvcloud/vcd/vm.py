@@ -186,7 +186,6 @@ class VM(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.SNAPSHOT_REMOVE_ALL, None, None)
 
-
     def deploy(self, power_on=True, force_customization=False):
         """Deploys the VM.
 

@@ -104,7 +104,8 @@ class Platform(object):
         :return: (lxml.objectify.ObjectifiedElement): vxlan_network_pool.
         :raises: Exception: If the named vxlan_network_pool cannot be found.
         """
-        query_filter = 'name==%s' % urllib.parse.quote_plus(vxlan_network_pool_name)
+        query_filter = 'name==%s' % urllib.parse.quote_plus(
+            vxlan_network_pool_name)
         query = self.client.get_typed_query(
             'networkPool',
             query_result_format=QueryResultFormat.RECORDS,
@@ -117,7 +118,8 @@ class Platform(object):
                 break
         if vxlan_network_pool_record is not None:
             return vxlan_network_pool_record
-        raise Exception('vxlan_network_pool \'%s\' not found' % vxlan_network_pool_name)
+        raise Exception('vxlan_network_pool \'%s\' not found' %
+                        vxlan_network_pool_name)
 
     def get_resource_pool_morefs(self, vc_name, vc_href, resource_pool_names):
         """Fetch list of morefs for a given list of resource_pool_names.
@@ -129,12 +131,14 @@ class Platform(object):
         :raises: Exception: if any resource_pool_name cannot be found.
         """
         morefs = []
-        resource_pool_list = self.client.get_resource(vc_href + '/resourcePoolList')
+        resource_pool_list = self.client.get_resource(vc_href +
+                                                      '/resourcePoolList')
         if hasattr(resource_pool_list, 'ResourcePool'):
             for resource_pool_name in resource_pool_names:
                 res_pool_found = False
-                for resource_pool in resource_pool_list.ResourcePool:  # all respools on VC
-                    if resource_pool.DataStoreRefs.VimObjectRef.VimServerRef.get('name') == vc_name:  # rp belongs to VC
+                for resource_pool in resource_pool_list.ResourcePool:
+                    if resource_pool.DataStoreRefs.VimObjectRef.VimServerRef.\
+                       get('name') == vc_name:  # rp belongs to VC
                         name = resource_pool.get('name')
                         moref = resource_pool.MoRef.text
                         if name == resource_pool_name:
@@ -163,18 +167,19 @@ class Platform(object):
         :param: pvdc_name (str): name of PVDC to be created.
         :param: is_enabled (boolean): enable flag.
         :param: description (str): description of pvdc.
-        :param: highest_supp_hw_vers (str): highest supported hardware vers number.
+        :param: highest_supp_hw_vers (str): highest supported hw vers number.
         :param: vxlan_network_pool (str): name of vxlan_network_pool.
-        :return: A :class:lxml.objectify.StringElement object describing the new provider VDC.
+        :return: A :class:lxml.objectify.StringElement object describing the
+        :        new provider VDC.
         """
         vc_record = self.get_vcenter(vim_server_name)
         vc_href = vc_record.get('href')
-        rp_morefs = self.get_resource_pool_morefs(vc_name=vim_server_name, 
-                                                  vc_href=vc_href,
-                                                  resource_pool_names=resource_pool_names)
-        vmw_provider_vdc_params = E_VMEXT.VMWProviderVdcParams(name=pvdc_name)
+        rp_morefs = self.get_resource_pool_morefs(vim_server_name,
+                                                  vc_href,
+                                                  resource_pool_names)
+        vmw_prov_vdc_params = E_VMEXT.VMWProviderVdcParams(name=pvdc_name)
         if description is not None:
-            vmw_provider_vdc_params.append(E.Description(description))
+            vmw_prov_vdc_params.append(E.Description(description))
         resource_pool_refs = E_VMEXT.ResourcePoolRefs()
         for rp_moref in rp_morefs:
             vim_object_ref = E_VMEXT.VimObjectRef()
@@ -182,27 +187,30 @@ class Platform(object):
             vim_object_ref.append(E_VMEXT.MoRef(rp_moref))
             vim_object_ref.append(E_VMEXT.VimObjectType('RESOURCE_POOL'))
             resource_pool_refs.append(vim_object_ref)
-        vmw_provider_vdc_params.append(resource_pool_refs)
-        vmw_provider_vdc_params.append(E_VMEXT.VimServer(href=vc_href))
+        vmw_prov_vdc_params.append(resource_pool_refs)
+        vmw_prov_vdc_params.append(E_VMEXT.VimServer(href=vc_href))
         if vxlan_network_pool is not None:
-            vxlan_network_pool_record = self.get_vxlan_network_pool(vxlan_network_pool)
+            vxlan_network_pool_record = self.get_vxlan_network_pool(
+                vxlan_network_pool)
             vx_href = vxlan_network_pool_record.get('href')
-            vmw_provider_vdc_params.append(E_VMEXT.VxlanNetworkPool(href=vx_href))
+            vmw_prov_vdc_params.append(E_VMEXT.VxlanNetworkPool(
+                href=vx_href))
         if highest_supp_hw_vers is not None:
-            vmw_provider_vdc_params.append(
+            vmw_prov_vdc_params.append(
                 E_VMEXT.HighestSupportedHardwareVersion(highest_supp_hw_vers))
         if is_enabled is not None:
-            vmw_provider_vdc_params.append(E_VMEXT.IsEnabled(is_enabled))
+            vmw_prov_vdc_params.append(E_VMEXT.IsEnabled(is_enabled))
         for storage_profile in storage_profiles:
-            vmw_provider_vdc_params.append(E_VMEXT.StorageProfile(storage_profile))
+            vmw_prov_vdc_params.append(E_VMEXT.StorageProfile(
+                storage_profile))
         random_username_suffix = uuid.uuid4().hex
         default_user = 'USR' + random_username_suffix[:8]
         default_pwd = 'PWD' + random_username_suffix[:8]
-        vmw_provider_vdc_params.append(E_VMEXT.DefaultPassword(default_pwd))
-        vmw_provider_vdc_params.append(E_VMEXT.DefaultUsername(default_user))
+        vmw_prov_vdc_params.append(E_VMEXT.DefaultPassword(default_pwd))
+        vmw_prov_vdc_params.append(E_VMEXT.DefaultUsername(default_user))
 
         return self.client.post_linked_resource(self.extension.get_resource(),
                                                 rel=RelationType.ADD,
                                                 media_type=EntityType.
                                                 PROVIDER_VDC_PARAMS.value,
-                                                contents=vmw_provider_vdc_params)
+                                                contents=vmw_prov_vdc_params)

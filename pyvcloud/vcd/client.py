@@ -213,7 +213,7 @@ class EntityType(Enum):
     ORG_VDC_NETWORK = 'application/vnd.vmware.vcloud.orgVdcNetwork+xml'
     OWNER = 'application/vnd.vmware.vcloud.owner+xml'
     PROVIDER_VDC_PARAMS = \
-    'application/vnd.vmware.admin.createProviderVdcParams+xml'
+        'application/vnd.vmware.admin.createProviderVdcParams+xml'
     PUBLISH_CATALOG_PARAMS = \
         'application/vnd.vmware.admin.publishCatalogParams+xml'
     QUERY_LIST = 'application/vnd.vmware.vcloud.query.queryList+xml'

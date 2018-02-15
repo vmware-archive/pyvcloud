@@ -373,6 +373,26 @@ class VDC(object):
                 })
         return edge_gateways
 
+    def get_nat_rules(self, edge_gateway_name):
+        """Request the nat rules of an edge gateway.
+
+        :return: A list of :class:`lxml.objectify.StringElement' objects
+            representing the nat rules.
+        """
+        edge_gateways = self.list_edge_gateways()
+        nat_rules = []
+        for edge_gateway in edge_gateways:
+            if edge_gateway_name == edge_gateway.get('name'):
+                edge_gateway_full = self.client.get_resource(edge_gateway.get('href'))
+                if hasattr(edge_gateway_full, 'Configuration') and \
+                   hasattr(edge_gateway_full.Configuration, 'EdgeGatewayServiceConfiguration') and \
+                   hasattr(edge_gateway_full.Configuration.EdgeGatewayServiceConfiguration, 'NatService'):
+                    for nat_rule in edge_gateway_full.Configuration.EdgeGatewayServiceConfiguration.NatService.NatRule:
+                        nat_rules.append(nat_rule)
+                    return nat_rules
+        raise Exception(
+            'No NAT Rules found for Edge Gateway \'%s\'' % edge_gateway_name)
+
     def create_disk(self,
                     name,
                     size,

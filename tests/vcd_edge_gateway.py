@@ -29,3 +29,11 @@ class TestEdgeGateway(TestCase):
         vdc = VDC(self.client, resource=v)
         edge_gateways = vdc.list_edge_gateways()
         assert len(edge_gateways) > 0
+
+    def test_002_get_nat_rules(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, resource=v)
+        nat_rules = vdc.get_nat_rules(self.config['vcd']['edge_gateway'])
+        assert len(nat_rules) > 0

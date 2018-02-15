@@ -12,7 +12,7 @@
 # code for the these subcomponents is subject to the terms and
 # conditions of the subcomponent's license, as noted in the LICENSE file.
 #
-# Illustrates how to revert back the vm to the current snapshot.
+# Illustrates how to create, revert and remove snapshot from the VM in vApp.
 #
 
 import sys
@@ -68,10 +68,21 @@ print("Fetching VM...")
 vm_resource = vapp.get_vm(vm)
 vm = VM(client, resource=vm_resource)
 
+print("Creating Snapshot...")
+snaphot_resource = vm.snapshot_create(memory=False, quiesce=False)
+print("Waiting for Snapshot finish...")
+task_monitor.wait_for_success(snaphot_resource)
+
 print("Revert Back To Current Snapshot...")
 snaphot_resource = vm.snapshot_revert_to_current()
 print("Waiting for Revert finish...")
 task_monitor.wait_for_success(snaphot_resource)
+
+print("Remove All Snapshot...")
+snaphot_resource = vm.snapshot_remove_all()
+print("Waiting for Revert finish...")
+task_monitor.wait_for_success(snaphot_resource)
+
 # Log out.
 print("Logging out")
 client.logout()

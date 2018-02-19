@@ -74,6 +74,7 @@ print("Waiting for Snapshot finish...")
 task_monitor.wait_for_success(snaphot_resource)
 
 print("Revert Back To Current Snapshot...")
+vm.reload()
 snaphot_resource = vm.snapshot_revert_to_current()
 print("Waiting for Revert finish...")
 task_monitor.wait_for_success(snaphot_resource)

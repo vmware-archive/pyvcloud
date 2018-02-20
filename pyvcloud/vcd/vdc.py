@@ -380,6 +380,9 @@ class VDC(object):
 
         :return: A list of :class:`lxml.objectify.StringElement' objects
             representing the nat rules.
+
+        :raises: Exception: if there is no edge gateway with the provided name.
+        :raises: Exception: if there are no nat rules on the edge gateway with the provided name.
         """
         edge_gateways = self.list_edge_gateways()
         nat_rules = []

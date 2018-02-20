@@ -391,9 +391,13 @@ class VDC(object):
                    hasattr(edge_gateway_full.Configuration.EdgeGatewayServiceConfiguration, 'NatService'):
                     for nat_rule in edge_gateway_full.Configuration.EdgeGatewayServiceConfiguration.NatService.NatRule:
                         nat_rules.append(nat_rule)
+                if len(nat_rules) > 0:
                     return nat_rules
+                else:
+                    raise Exception(
+                        'No NAT Rules found for Edge Gateway \'%s\'' % edge_gateway_name)
         raise Exception(
-            'No NAT Rules found for Edge Gateway \'%s\'' % edge_gateway_name)
+            'Edge Gateway not found \'%s\'' % edge_gateway_name)
 
     def create_disk(self,
                     name,

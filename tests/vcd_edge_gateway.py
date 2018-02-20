@@ -37,3 +37,12 @@ class TestEdgeGateway(TestCase):
         vdc = VDC(self.client, resource=v)
         nat_rules = vdc.get_nat_rules(self.config['vcd']['edge_gateway'])
         assert len(nat_rules) > 0
+
+    def test_003_get_nat_rules_edge_gateway_not_existent(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, resource=v)
+        with self.assertRaisesRegex(Exception, 'Edge Gateway not found \''+self.config['vcd']['edge_gateway']+'_not_existent\'') as exception:
+            vdc.get_nat_rules(self.config['vcd']['edge_gateway']+'_not_existent')
+        print(exception.exception)

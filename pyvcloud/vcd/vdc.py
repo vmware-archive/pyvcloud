@@ -376,6 +376,8 @@ class VDC(object):
     def get_nat_rules(self, edge_gateway_name):
         """Request the nat rules of an edge gateway.
 
+        :param edge_gateway_name: (str): The name of the edge gateway.
+
         :return: A list of :class:`lxml.objectify.StringElement' objects
             representing the nat rules.
         """

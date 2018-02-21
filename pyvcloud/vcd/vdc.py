@@ -382,23 +382,30 @@ class VDC(object):
             representing the nat rules.
 
         :raises: Exception: if there is no edge gateway with the provided name.
-        :raises: Exception: if there are no nat rules on the edge gateway with the provided name.
+        :raises: Exception: if there are no nat rules on the edge gateway
+            with the provided name.
         """
         edge_gateways = self.list_edge_gateways()
         nat_rules = []
         for edge_gateway in edge_gateways:
             if edge_gateway_name == edge_gateway.get('name'):
-                edge_gateway_full = self.client.get_resource(edge_gateway.get('href'))
+                edge_gateway_full = \
+                    self.client.get_resource(edge_gateway.get('href'))
                 if hasattr(edge_gateway_full, 'Configuration') and \
-                   hasattr(edge_gateway_full.Configuration, 'EdgeGatewayServiceConfiguration') and \
-                   hasattr(edge_gateway_full.Configuration.EdgeGatewayServiceConfiguration, 'NatService'):
-                    for nat_rule in edge_gateway_full.Configuration.EdgeGatewayServiceConfiguration.NatService.NatRule:
+                   hasattr(edge_gateway_full.Configuration,
+                           'EdgeGatewayServiceConfiguration') and \
+                   hasattr(edge_gateway_full.Configuration.
+                           EdgeGatewayServiceConfiguration,
+                           'NatService'):
+                    for nat_rule in edge_gateway_full.Configuration.\
+                            EdgeGatewayServiceConfiguration.NatService.NatRule:
                         nat_rules.append(nat_rule)
                 if len(nat_rules) > 0:
                     return nat_rules
                 else:
                     raise Exception(
-                        'No NAT Rules found for Edge Gateway \'%s\'' % edge_gateway_name)
+                        'No NAT Rules found for Edge Gateway \'%s\''
+                        % edge_gateway_name)
         raise Exception(
             'Edge Gateway not found \'%s\'' % edge_gateway_name)
 

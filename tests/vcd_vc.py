@@ -42,7 +42,20 @@ class TestVC(TestCase):
             assert False
         except Exception as e:
             assert 'not found' in str(e).lower()
-
-
+    
+    def attach_vc(self):
+        platform = Platform(self.client)
+        
+        vc = platform.attach_vcenter(
+            vim_server_name=self.config['vcd']['vimServerName'],
+            vim_server_host=self.config['vcd']['vimServerHost'],
+            vim_admin_user=self.config['vcd']['vimAdminUser'],
+            vim_admin_pwd=self.config['vcd']['vimAdminPwd'],
+            nsx_server_name=self.config['vcd']['NSXServerName'],
+            nsx_host=self.config['vcd']['NSXHost'],
+            nsx_admin_user=self.config['vcd']['NSXAdminUser'],
+            nsx_admin_pwd=self.config['vcd']['NSXAdminPwd'])
+        assert self.config['vcd']['vimServerName'] == vc.VimServer.get('name')
+        
 if __name__ == '__main__':
     unittest.main()

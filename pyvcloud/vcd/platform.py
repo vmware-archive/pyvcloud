@@ -214,3 +214,45 @@ class Platform(object):
                                                 media_type=EntityType.
                                                 PROVIDER_VDC_PARAMS.value,
                                                 contents=vmw_prov_vdc_params)
+
+    def attach_vcenter(self,
+                       vim_server_name,
+                       vim_server_host,
+                       vim_admin_user,
+                       vim_admin_pwd,
+                       nsx_server_name,
+                       nsx_host=None,
+                       nsx_admin_user=None,
+                       nsx_admin_pwd=None):
+        """Register (attach) a VirtualCenter server (also known as VimServer).
+
+        :param: vim_server_name (str): vim_server_name (VC name).
+        :param: vim_server_host (str): FQDN or IP address of VC host.
+        :param: vim_admin_user (str): vim_admin user.
+        :param: vim_admin_pwd (str): vim_admin password.
+        :param: nsx_server_name (str): NSX server name.
+        :param: nsx_host (str): FQDN or IP address of NSX host.
+        :param: nsx_admin_user (str): NSX admin user.
+        :param: nsx_admin_pwd (str): NSX admin password.
+        :return: A :class:lxml.objectify.StringElement object describing the
+        :        newly registered (attached) VimServer.
+        """
+        register_vim_server_params = E_VMEXT.RegisterVimServerParams()
+        vim_server = E_VMEXT.VimServer(name=vim_server_name)
+        vim_server.append(E_VMEXT.Username(vim_admin_user))
+        vim_server.append(E_VMEXT.Password(vim_admin_pwd))
+        vim_server.append(E_VMEXT.Url('https://' + vim_server_host + ':443'))
+        vim_server.append(E_VMEXT.IsEnabled('true'))
+        register_vim_server_params.append(vim_server)
+        shield_manager = E_VMEXT.ShieldManager(name=nsx_server_name)
+        shield_manager.append(E_VMEXT.Username(nsx_admin_user))
+        shield_manager.append(E_VMEXT.Password(nsx_admin_pwd))
+        shield_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))
+        register_vim_server_params.append(shield_manager)
+
+        return self.client.\
+            post_linked_resource(self.extension.get_resource(),
+                                 rel=RelationType.ADD,
+                                 media_type=EntityType.
+                                 REGISTER_VIM_SERVER_PARAMS.value,
+                                 contents=register_vim_server_params)

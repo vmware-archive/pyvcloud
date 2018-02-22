@@ -223,7 +223,8 @@ class Platform(object):
                        nsx_server_name,
                        nsx_host=None,
                        nsx_admin_user=None,
-                       nsx_admin_pwd=None):
+                       nsx_admin_pwd=None,
+                       is_enabled=None):
         """Register (attach) a VirtualCenter server (also known as VimServer).
 
         :param: vim_server_name (str): vim_server_name (VC name).
@@ -242,7 +243,8 @@ class Platform(object):
         vim_server.append(E_VMEXT.Username(vim_admin_user))
         vim_server.append(E_VMEXT.Password(vim_admin_pwd))
         vim_server.append(E_VMEXT.Url('https://' + vim_server_host + ':443'))
-        vim_server.append(E_VMEXT.IsEnabled('true'))
+        if is_enabled is not None:
+            vim_server.append(E_VMEXT.IsEnabled(is_enabled))
         register_vim_server_params.append(vim_server)
         shield_manager = E_VMEXT.ShieldManager(name=nsx_server_name)
         shield_manager.append(E_VMEXT.Username(nsx_admin_user))

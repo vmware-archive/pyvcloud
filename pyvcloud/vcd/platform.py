@@ -246,11 +246,12 @@ class Platform(object):
         if is_enabled is not None:
             vim_server.append(E_VMEXT.IsEnabled(is_enabled))
         register_vim_server_params.append(vim_server)
-        shield_manager = E_VMEXT.ShieldManager(name=nsx_server_name)
-        shield_manager.append(E_VMEXT.Username(nsx_admin_user))
-        shield_manager.append(E_VMEXT.Password(nsx_admin_pwd))
-        shield_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))
-        register_vim_server_params.append(shield_manager)
+        if nsx_server_name is not None:
+            shield_manager = E_VMEXT.ShieldManager(name=nsx_server_name)
+            shield_manager.append(E_VMEXT.Username(nsx_admin_user))
+            shield_manager.append(E_VMEXT.Password(nsx_admin_pwd))
+            shield_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))
+            register_vim_server_params.append(shield_manager)
 
         return self.client.\
             post_linked_resource(self.extension.get_resource(),

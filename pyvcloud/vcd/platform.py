@@ -220,7 +220,7 @@ class Platform(object):
                        vim_server_host,
                        vim_admin_user,
                        vim_admin_pwd,
-                       nsx_server_name,
+                       nsx_server_name=None,
                        nsx_host=None,
                        nsx_admin_user=None,
                        nsx_admin_pwd=None,

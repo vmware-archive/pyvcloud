@@ -66,9 +66,9 @@ client.set_credentials(BasicLoginCredentials(cfg.vcd_admin_user,
 # Ensure the org exists.
 print("Fetching org...")
 try:
-    # This call gets a record that we can turn into an Org class. 
+    # This call gets a record that we can turn into an Org class.
     org_record = client.get_org_by_name(cfg.org)
-    org = Org(client, href = org_record.get('href'))
+    org = Org(client, href=org_record.get('href'))
     print("Org already exists: {0}".format(org.get_name()))
 except Exception:
     print("Org does not exist, creating: {0}".format(cfg.org))
@@ -76,7 +76,7 @@ except Exception:
     system = System(client, admin_resource=sys_admin_resource)
     admin_org_resource = system.create_org(cfg.org, "Test Org", True)
     org_record = client.get_org_by_name(cfg.org)
-    org = Org(client, href = org_record.get('href'))
+    org = Org(client, href=org_record.get('href'))
     print("Org now exists: {0}".format(org.get_name()))
 
 # Ensure user exists on the org.
@@ -87,12 +87,22 @@ except Exception:
     print("User does not exist, creating: {0}".format(cfg.user['name']))
     role_record = org.get_role_record(cfg.user['role'])
     user_resource = org.create_user(user_name=cfg.user['name'],
-                             password=cfg.user['password'],
-                             role_href=role_record.get('href'))
+                                    password=cfg.user['password'],
+                                    role_href=role_record.get('href'))
     print("User now exists: {0}".format(user_resource.get('name')))
 
+# Ensure the user is enabled.  We could also do so when creating the user
+# but this approach will also fix an existing user who is disabled.
+user_dict = to_dict(user_resource)
+if user_dict.get('IsEnabled') == 'true':
+    print("User is enabled: {0}".format(user_dict.get('name')))
+else:
+    print("User is not enabled, enabling...")
+    org.update_user(user_name=user_dict.get('name'), is_enabled=True)
+    print("User is now enabled: {0}".format(user_dict.get('name')))
+
 # Ensure VDC exists.  If we create it reload the org as it affects
-# org resource contents and future calls might fail otherwise. 
+# org resource contents and future calls might fail otherwise.
 try:
     vdc_resource = org.get_vdc(cfg.vdc['vdc_name'])
     vdc = VDC(client, resource=vdc_resource)
@@ -101,8 +111,8 @@ except Exception:
     print("VDC does not exist, creating: {0}".format(cfg.vdc['vdc_name']))
     vdc_kwargs = cfg.vdc
     admin_vdc_resource = org.create_org_vdc(**vdc_kwargs)
-    # The 'admin_vdc_resource' is not a task but an AdminVdc entity.  Tasks 
-    # are two levels down.  
+    # The 'admin_vdc_resource' is not a task but an AdminVdc entity.  Tasks
+    # are two levels down.
     handle_task(client, admin_vdc_resource.Tasks.Task[0])
     org.reload()
     vdc_resource = org.get_vdc(cfg.vdc['vdc_name'])
@@ -111,7 +121,7 @@ except Exception:
 
 # Ensure the catalog exists.  For now we don't do anything special with
 # permissions.  As with VDC's we reload the org if we create a catalog
-# so that it's visible in future calls. 
+# so that it's visible in future calls.
 try:
     catalog_resource = org.get_catalog_resource(cfg.catalog['name'])
     print("Catalog already exists: {0}".format(cfg.catalog['name']))
@@ -122,7 +132,7 @@ except Exception:
     org.reload()
     print("Catalog now exists: {0}".format(catalog_resource.get('name')))
 
-# Check for catalog_items containing OVF templates in the catalog and 
+# Check for catalog_items containing OVF templates in the catalog and
 # upload them if they are missing.
 for catalog_item in cfg.catalog_items:
     try:
@@ -137,8 +147,8 @@ for catalog_item in cfg.catalog_items:
                 transferred, total, transferred / total))
 
         print("Loading catalog item: catalog={0}, item={1}, file={2}".format(
-            catalog_item['catalog_name'], 
-            catalog_item['item_name'], 
+            catalog_item['catalog_name'],
+            catalog_item['item_name'],
             catalog_item['file_name']))
         catalog_item['callback'] = progress_reporter
         org.upload_ovf(**catalog_item)
@@ -182,7 +192,7 @@ while find_unresolved:
 
 print("No unresolved templates found")
 
-# Check for desired networks and create them if they don't exist.  
+# Check for desired networks and create them if they don't exist.
 # (We might add other kinds of networks later.)
 if cfg.networks.get("isolated"):
     print("Checking isolated networks...")
@@ -204,7 +214,7 @@ if cfg.networks.get("isolated"):
             network_exists = False
             while not network_exists:
                 new_network_list = vdc.list_orgvdc_network_resources(
-                    name=network['network_name'], 
+                    name=network['network_name'],
                     type=FenceMode.ISOLATED.value)
                 if len(new_network_list) > 0:
                     print("Isolated network is visible in VDC: {0}".format(

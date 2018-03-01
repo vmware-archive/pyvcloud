@@ -47,7 +47,7 @@ client.set_credentials(BasicLoginCredentials(user, org, password))
 
 print("Fetching vCD installation info...")
 results = client.get_resource(
-              client._session_endpoints[_WellKnownEndpoint.ADMIN])
+    client._session_endpoints[_WellKnownEndpoint.ADMIN])
 for k, v in results.items():
     print("Key: {0} Value: {1}".format(k, v))
 

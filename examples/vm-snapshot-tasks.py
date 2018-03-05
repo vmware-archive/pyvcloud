@@ -50,7 +50,7 @@ client = Client(host,
                 log_headers=True,
                 log_bodies=True)
 client.set_credentials(BasicLoginCredentials(user, org, password))
-task_monitor=client.get_task_monitor()
+task_monitor = client.get_task_monitor()
 
 print("Fetching Org...")
 org_resource = client.get_org()

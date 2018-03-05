@@ -223,7 +223,7 @@ class EntityType(Enum):
     RECOMPOSE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.recomposeVAppParams+xml'
     RECORDS = 'application/vnd.vmware.vcloud.query.records+xml'
-    REGISTER_VIM_SERVER_PARAMS = \
+    REGISTER_VC_SERVER_PARAMS = \
         'application/vnd.vmware.admin.registerVimServerParams+xml'
     ROLE = 'application/vnd.vmware.admin.role+xml'
     RIGHT = 'application/vnd.vmware.admin.right+xml'

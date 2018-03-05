@@ -161,14 +161,14 @@ class Platform(object):
                             vxlan_network_pool=None):
         """Create a Provider Virtual Datacenter.
 
-        :param: vim_server_name (str): vim_server_name (VC name).
-        :param: resource_pool_names (list): list of resource_pool_names.
-        :param: storage_profiles (list): list of storageProfile namespace.
-        :param: pvdc_name (str): name of PVDC to be created.
-        :param: is_enabled (boolean): enable flag.
-        :param: description (str): description of pvdc.
-        :param: highest_supp_hw_vers (str): highest supported hw vers number.
-        :param: vxlan_network_pool (str): name of vxlan_network_pool.
+        :param: vim_server_name: (str): vim_server_name (VC name).
+        :param: resource_pool_names: (list): list of resource_pool_names.
+        :param: storage_profiles: (list): list of storageProfile namespace.
+        :param: pvdc_name: (str): name of PVDC to be created.
+        :param: is_enabled: (boolean): enable flag.
+        :param: description: (str): description of pvdc.
+        :param: highest_supp_hw_vers: (str): highest supported hw vers number.
+        :param: vxlan_network_pool: (str): name of vxlan_network_pool.
         :return: A :class:lxml.objectify.StringElement object describing the
         :        new provider VDC.
         """
@@ -216,10 +216,10 @@ class Platform(object):
                                                 contents=vmw_prov_vdc_params)
 
     def attach_vcenter(self,
-                       vim_server_name,
-                       vim_server_host,
-                       vim_admin_user,
-                       vim_admin_pwd,
+                       vc_server_name,
+                       vc_server_host,
+                       vc_admin_user,
+                       vc_admin_pwd,
                        nsx_server_name=None,
                        nsx_host=None,
                        nsx_admin_user=None,
@@ -227,35 +227,35 @@ class Platform(object):
                        is_enabled=None):
         """Register (attach) a VirtualCenter server (also known as VimServer).
 
-        :param: vim_server_name (str): vim_server_name (VC name).
-        :param: vim_server_host (str): FQDN or IP address of VC host.
-        :param: vim_admin_user (str): vim_admin user.
-        :param: vim_admin_pwd (str): vim_admin password.
-        :param: nsx_server_name (str): NSX server name.
+        :param: vc_server_name: (str): vc_server_name (VC name).
+        :param: vc_server_host: (str): FQDN or IP address of VC host.
+        :param: vc_admin_user: (str): vc_admin user.
+        :param: vc_admin_pwd: (str): vc_admin password.
+        :param: nsx_server_name: (str): NSX server name.
         :param: nsx_host (str): FQDN or IP address of NSX host.
-        :param: nsx_admin_user (str): NSX admin user.
-        :param: nsx_admin_pwd (str): NSX admin password.
+        :param: nsx_admin_user: (str): NSX admin user.
+        :param: nsx_admin_pwd: (str): NSX admin password.
         :return: A :class:lxml.objectify.StringElement object describing the
         :        newly registered (attached) VimServer.
         """
-        register_vim_server_params = E_VMEXT.RegisterVimServerParams()
-        vim_server = E_VMEXT.VimServer(name=vim_server_name)
-        vim_server.append(E_VMEXT.Username(vim_admin_user))
-        vim_server.append(E_VMEXT.Password(vim_admin_pwd))
-        vim_server.append(E_VMEXT.Url('https://' + vim_server_host + ':443'))
+        register_vc_server_params = E_VMEXT.RegisterVimServerParams()
+        vc_server = E_VMEXT.VimServer(name=vc_server_name)
+        vc_server.append(E_VMEXT.Username(vc_admin_user))
+        vc_server.append(E_VMEXT.Password(vc_admin_pwd))
+        vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
         if is_enabled is not None:
-            vim_server.append(E_VMEXT.IsEnabled(is_enabled))
-        register_vim_server_params.append(vim_server)
+            vc_server.append(E_VMEXT.IsEnabled(is_enabled))
+        register_vc_server_params.append(vc_server)
         if nsx_server_name is not None:
-            shield_manager = E_VMEXT.ShieldManager(name=nsx_server_name)
-            shield_manager.append(E_VMEXT.Username(nsx_admin_user))
-            shield_manager.append(E_VMEXT.Password(nsx_admin_pwd))
-            shield_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))
-            register_vim_server_params.append(shield_manager)
+            nsx_manager = E_VMEXT.ShieldManager(name=nsx_server_name)
+            nsx_manager.append(E_VMEXT.Username(nsx_admin_user))
+            nsx_manager.append(E_VMEXT.Password(nsx_admin_pwd))
+            nsx_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))
+            register_vc_server_params.append(nsx_manager)
 
         return self.client.\
-            post_linked_resource(self.extension.get_resource(),
+            post_linked_resource(resource=self.extension.get_resource(),
                                  rel=RelationType.ADD,
                                  media_type=EntityType.
-                                 REGISTER_VIM_SERVER_PARAMS.value,
-                                 contents=register_vim_server_params)
+                                 REGISTER_VC_SERVER_PARAMS.value,
+                                 contents=register_vc_server_params)

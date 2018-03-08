@@ -1,6 +1,24 @@
 CHANGES
 =======
 
+* Updated license files
+* VCDA-518: Adding a landing page for pyvcloud github pages/doc (#213)
+* VDP-1375, VCDA-504: Attach VC (#210)
+* VCDA-519: Fixed tenant-onboarding.py example to enable user (#211)
+* Add RevertToSnapshot and RemoveAllSnapshot functionality for VMs (PR #206)
+* Fixed flake8 error (whitespace) on line 216
+* added create PVDC (#197)
+* VCDA-454: Updated copyrights for release (#204)
+* VCDA-495: Add a sample application to illustrate on-boarding (#202)
+* Implement a snapshot creating function for vms. (#199)
+
+19.1.2
+------
+
+* VCDA-474: consider name and namespace in api extension (#201)
+* VCDA-397: Refactor constructors to raise Error when both href and resource are None. (#196)
+* VCDA-473: Implement vcd user list command (#195)
+
 19.1.1
 ------
 
@@ -24,7 +42,7 @@ CHANGES
 * VCDA-394: Introduce capability to list external networks and find them by name
 * VCDA-230 & VCDA-234: Add or remove rights from organization (#174)
 * VCDA-331: catalog\_item download fails with 'No such file or directory' error. (#175)
-* Implementing SDK methods to update acl of vdc and vapp (#169)
+*  Implementing SDK methods to update acl of vdc and vapp (#169)
 * VCDA-369: Adding capability to create isolated OrgVDC networks
 * VCDA-354: CSE support multiple vCenters
 * VCDA-369: Adding capability to create isolated OrgVDC networks

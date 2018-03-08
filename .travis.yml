@@ -1,14 +1,16 @@
 language: python
 
+sudo: required
+
 python:
   - "3.6"
 
 install:
-  - pip install -r requirements.txt
-  - python setup.py install
-  - pip install tox
+  - sudo pip install -r requirements.txt
+  - sudo python setup.py install
+  - sudo pip install tox
 
 script:
-  - pip list --format=columns | grep pyvcloud
-  - python -c 'import pkg_resources; print(pkg_resources.require("pyvcloud")[0].version)'
-  - tox -e flake8
+  - sudo pip list --format=columns | grep pyvcloud
+  - sudo python -c 'import pkg_resources; print(pkg_resources.require("pyvcloud")[0].version)'
+  - sudo tox -e flake8

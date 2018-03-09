@@ -132,7 +132,7 @@ vCD installation.
 It is also possible to install `pyvcloud` in a [virtualenv](https://docs.python.org/3/library/venv.html).  Quick commands to do so:
 ``` shell
     $ python3 -m venv $HOME/my_venv
-    $ . $HOME/my_venv
+    $ . $HOME/my_venv/bin/activate
     (my_venv) $ pip3 install pyvcloud
 ```
 To terminate the virtual environment use the `deactivate` command. In

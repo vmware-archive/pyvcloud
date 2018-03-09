@@ -77,7 +77,20 @@ Install `pyvcloud`:
     $ pip3 install --user pyvcloud
 ```
 
-**Note**: Older Mac OS X Python3 versions link with an outdated OpenSSL
+**Note**: Python installations on Mac OS X sometimes have problems with
+library compatibilities.  Here are known issues and fixes.
+
+Newer Python versions including 3.6.4 may experience path issues or SSL
+cert failures when running pip3.  To get past them ensure your path
+points to the installed Python executables and not just the links in
+/usr/local/bin. Also, ensure that the pbr module is up to date.  Here is
+an example.  Your installation location may vary, so check to be sure.
+``` shell
+    $ export PATH=/Library/Frameworks/Python.framework/Versions/3.6/bin:$PATH
+    $ pip3 install --user pbr
+```
+
+Older Mac OS X Python3 versions link with an outdated OpenSSL
 library, which may lead to failures.  If you get SSL errors on login,
 try adding the following libraries, then run pip3 again.
 ``` shell

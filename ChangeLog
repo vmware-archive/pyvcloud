@@ -1,7 +1,9 @@
 CHANGES
 =======
 
-* Updated license files
+* travis fix (#215)
+* Fix travis build (#214)
+* Updated license files (#203)
 * VCDA-518: Adding a landing page for pyvcloud github pages/doc (#213)
 * VDP-1375, VCDA-504: Attach VC (#210)
 * VCDA-519: Fixed tenant-onboarding.py example to enable user (#211)

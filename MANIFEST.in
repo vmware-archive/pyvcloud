@@ -1,5 +1,0 @@
-include requirements.txt
-include README.rst
-include LICENSE.txt
-include open_source_license_pyvCloud19.2.0GA.txt
-recursive-include pyvcloud *.py

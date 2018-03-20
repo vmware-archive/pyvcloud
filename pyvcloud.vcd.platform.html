@@ -1,0 +1,286 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pyvcloud.vcd.platform module &#8212; pyvcloud  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pyvcloud.vcd.pvdc module" href="pyvcloud.vcd.pvdc.html" />
+    <link rel="prev" title="pyvcloud.vcd.org module" href="pyvcloud.vcd.org.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pyvcloud.vcd.platform">
+<span id="pyvcloud-vcd-platform-module"></span><h1>pyvcloud.vcd.platform module<a class="headerlink" href="#module-pyvcloud.vcd.platform" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pyvcloud.vcd.platform.Platform">
+<em class="property">class </em><code class="descclassname">pyvcloud.vcd.platform.</code><code class="descname">Platform</code><span class="sig-paren">(</span><em>client</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper class to interact with vSphere Platform resources.</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd><p class="first">client (str): Low level client to connect to vCD.
+extension (<code class="xref py py-obj docutils literal notranslate"><span class="pre">pyvcloud.vcd.Extension</span></code>, optional): It holds an</p>
+<blockquote class="last">
+<div>Extension object to interact with vCD admin extension.</div></blockquote>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.attach_vcenter">
+<code class="descname">attach_vcenter</code><span class="sig-paren">(</span><em>vc_server_name</em>, <em>vc_server_host</em>, <em>vc_admin_user</em>, <em>vc_admin_pwd</em>, <em>nsx_server_name=None</em>, <em>nsx_host=None</em>, <em>nsx_admin_user=None</em>, <em>nsx_admin_pwd=None</em>, <em>is_enabled=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.attach_vcenter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register (attach) a VirtualCenter server (also known as VimServer).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">vc_server_name: (str): vc_server_name (VC name).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">vc_server_host: (str): FQDN or IP address of VC host.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">vc_admin_user: (str): vc_admin user.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">vc_admin_pwd: (str): vc_admin password.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">nsx_server_name: (str): NSX server name.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">nsx_host (str): FQDN or IP address of NSX host.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">nsx_admin_user: (str): NSX admin user.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">nsx_admin_pwd: (str): NSX admin password.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A :class:lxml.objectify.StringElement object describing the</td>
+</tr>
+</tbody>
+</table>
+<p>:        newly registered (attached) VimServer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.create_provider_vdc">
+<code class="descname">create_provider_vdc</code><span class="sig-paren">(</span><em>vim_server_name</em>, <em>resource_pool_names</em>, <em>storage_profiles</em>, <em>pvdc_name</em>, <em>is_enabled=None</em>, <em>description=None</em>, <em>highest_supp_hw_vers=None</em>, <em>vxlan_network_pool=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.create_provider_vdc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Provider Virtual Datacenter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">vim_server_name: (str): vim_server_name (VC name).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">resource_pool_names: (list): list of resource_pool_names.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">storage_profiles: (list): list of storageProfile namespace.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">pvdc_name: (str): name of PVDC to be created.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">is_enabled: (boolean): enable flag.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">description: (str): description of pvdc.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">highest_supp_hw_vers: (str): highest supported hw vers number.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">vxlan_network_pool: (str): name of vxlan_network_pool.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A :class:lxml.objectify.StringElement object describing the</td>
+</tr>
+</tbody>
+</table>
+<p>:        new provider VDC.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.get_external_network">
+<code class="descname">get_external_network</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.get_external_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch an external network resource identified by it’s name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – (str): The name of the external network.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
+the reference to external network.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: If the named external network cannot be located.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.get_resource_pool_morefs">
+<code class="descname">get_resource_pool_morefs</code><span class="sig-paren">(</span><em>vc_name</em>, <em>vc_href</em>, <em>resource_pool_names</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.get_resource_pool_morefs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch list of morefs for a given list of resource_pool_names.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">vc_name (str): vim_server name.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">vc_href (href): vim_server href.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">resource_pool_names (list): list of resource_pool_names.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of morefs corresponding to resource_pool_names.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: if any resource_pool_name cannot be found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.get_vcenter">
+<code class="descname">get_vcenter</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.get_vcenter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a vCenter attached to the system by name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – (str): The name of vCenter.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(lxml.objectify.ObjectifiedElement): vCenter resource.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: If the named vCenter cannot be located.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.get_vxlan_network_pool">
+<code class="descname">get_vxlan_network_pool</code><span class="sig-paren">(</span><em>vxlan_network_pool_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.get_vxlan_network_pool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a vxlan_networ_pool by its name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">vxlan_network_pool_name (str): name of the vxlan_network_pool.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(lxml.objectify.ObjectifiedElement): vxlan_network_pool.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: If the named vxlan_network_pool cannot be found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.list_external_networks">
+<code class="descname">list_external_networks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.list_external_networks" title="Permalink to this definition">¶</a></dt>
+<dd><p>List all external networks available in the system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> objects
+representing the external network references.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.list_vcenters">
+<code class="descname">list_vcenters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.list_vcenters" title="Permalink to this definition">¶</a></dt>
+<dd><p>List vCenter servers attached to the system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(lxml.objectify.ObjectifiedElement): list of vCenter
+references.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pyvcloud</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<hr />
+<ul>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud">Visit project on Github</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/LICENSE.txt">License</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/docs/install.md">Installation</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/CONTRIBUTING.md">Contributing</a></li>
+    <li class="toctree-l1"><a href="https://blogs.vmware.com/vcat/">Blog Articles</a></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, VMware Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/pyvcloud.vcd.platform.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

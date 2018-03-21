@@ -16,13 +16,14 @@
 from pyvcloud.vcd.client import _WellKnownEndpoint
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.exceptions import SessionException
 
 
 class AmqpService(object):
     def __init__(self, client):
         self.client = client
         if _WellKnownEndpoint.EXTENSION not in client._session_endpoints:
-            raise Exception("Requires login as 'system administrator'.")
+            raise SessionException("Requires login as 'system administrator'.")
         self.href = \
             client._session_endpoints[_WellKnownEndpoint.EXTENSION] + \
             '/settings/amqp'

@@ -20,7 +20,7 @@ from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.exceptions import EntityNotFoundException
-from pyvcloud.vcd.exceptions import InvalidParameterError
+from pyvcloud.vcd.exceptions import InvalidParameterException
 
 
 class Acl(object):
@@ -275,7 +275,7 @@ class Acl(object):
                         access_setting['name']).get('href'))
                 subject_type = EntityType.ADMIN_ORG.value
             else:
-                raise InvalidParameterError("Invalid subject type")
+                raise InvalidParameterException("Invalid subject type")
 
             subject_name = access_setting['name']
             # Make 'ReadOnly' the default access_level if it is not specified.

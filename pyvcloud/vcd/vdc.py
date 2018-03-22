@@ -22,7 +22,7 @@ from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.client import InvalidParameterError
+from pyvcloud.vcd.client import InvalidParameterException
 from pyvcloud.vcd.client import EntityNotFoundException
 from pyvcloud.vcd.client import MultipleRecordsException
 from pyvcloud.vcd.org import Org
@@ -35,7 +35,7 @@ class VDC(object):
         self.client = client
         self.name = name
         if href is None and resource is None:
-            raise InvalidParameterError(
+            raise InvalidParameterException(
                 "VDC initialization failed as arguments are either invalid "
                 "or None")
         self.href = href
@@ -546,7 +546,7 @@ class VDC(object):
             other error occurs.
         """
         if name is None and disk_id is None:
-            raise InvalidParameterError(
+            raise InvalidParameterException(
                 'Unable to idendify disk without name or id.')
 
         if self.resource is None:

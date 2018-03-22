@@ -18,7 +18,7 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.client import InvalidParameterError
+from pyvcloud.vcd.client import InvalidParameterException
 from pyvcloud.vcd.client import EntityNotFoundException
 from pyvcloud.vcd.utils import get_admin_href
 
@@ -35,7 +35,7 @@ class System(object):
         """
         self.client = client
         if admin_href is None and admin_resource is None:
-            raise InvalidParameterError(
+            raise InvalidParameterException(
                 "System initialization failed as arguments are either "
                 "invalid or None")
         self.admin_href = admin_href

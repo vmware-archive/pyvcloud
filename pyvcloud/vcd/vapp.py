@@ -27,7 +27,7 @@ from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import EntityNotFoundException
-from pyvcloud.vcd.client import InvalidParameterError
+from pyvcloud.vcd.client import InvalidParameterException
 from pyvcloud.vcd.client import InvalidStateException
 from pyvcloud.vcd.vdc import VDC
 
@@ -37,7 +37,7 @@ class VApp(object):
         self.client = client
         self.name = name
         if href is None and resource is None:
-            raise InvalidParameterError(
+            raise InvalidParameterException(
                 "VApp initialization failed as arguments are either invalid "
                 "or None")
         self.href = href

@@ -88,7 +88,7 @@ class MissingRecordException(RecordException):
 
 
 class MultipleRecordsException(RecordException):
-    """Raised when multiple record is present in vcd"""
+    """Raised when multiple records are present in vcd"""
 
 
 class VcdTaskException(VcdException):
@@ -244,7 +244,7 @@ class MissingParametersError(ClientException):
     """Raised when a parameter is missing in pyvcloud"""
 
 
-class InvalidParameterError(ClientException):
+class InvalidParameterException(ClientException):
     """Raised when a parameter is invalid in pyvcloud"""
 
 

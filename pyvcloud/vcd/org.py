@@ -35,7 +35,7 @@ from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import DownloadException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
-from pyvcloud.vcd.exceptions import InvalidParameterError
+from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import UploadException
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import to_dict
@@ -55,7 +55,7 @@ class Org(object):
         """
         self.client = client
         if href is None and resource is None:
-            raise InvalidParameterError(
+            raise InvalidParameterException(
                 "Org initialization failed as arguments"
                 " are either invalid or None")
         self.href = href

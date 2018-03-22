@@ -18,7 +18,7 @@ from copy import deepcopy
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.exceptions import InvalidParameterError
+from pyvcloud.vcd.exceptions import InvalidParameterException
 
 
 class Role(object):
@@ -33,7 +33,7 @@ class Role(object):
         """
         self.client = client
         if href is None and resource is None:
-            raise InvalidParameterError(
+            raise InvalidParameterException(
                 "Role initialization failed as arguments are either invalid "
                 "or None")
         self.href = href

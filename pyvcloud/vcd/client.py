@@ -26,7 +26,7 @@ from lxml import etree
 from lxml import objectify
 import requests
 
-from pyvcloud.vcd.exceptions import *
+from pyvcloud.vcd.exceptions import *  # noqa ignore=F405
 SIZE_1MB = 1024 * 1024
 
 NSMAP = {
@@ -489,7 +489,7 @@ class Client(object):
                 r = _objectify_response(response)
             except Exception:
                 pass
-            raise VcdErrorResponseException(
+            raise VcdResponseException(
                 sc,
                 self._get_response_request_id(response),
                 r) if r is not None else \
@@ -522,7 +522,7 @@ class Client(object):
                                          new_session)
         sc = response.status_code
         if sc != 200:
-            raise VcdErrorResponseException(
+            raise VcdResponseException(
                 sc,
                 self._get_response_request_id(response),
                 _objectify_response(response)) if sc == 401 else \

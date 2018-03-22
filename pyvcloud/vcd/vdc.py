@@ -22,9 +22,9 @@ from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.client import InvalidParameterException
-from pyvcloud.vcd.client import EntityNotFoundException
-from pyvcloud.vcd.client import MultipleRecordsException
+from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.exceptions import MultipleRecordsException
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import get_admin_href
@@ -65,8 +65,9 @@ class VDC(object):
             raise EntityNotFoundException('vApp named \'%s\' not found' % name)
 
         elif len(result) > 1:
-            raise MultipleRecordException("Found multiple vApps named " +
-                            "\'%s\', use the vapp-id to identify." % name)
+            raise MultipleRecordsException("Found multiple vApps named " +
+                                           "\'%s\', use the vapp-id to "
+                                           "identify." % name)
         return result[0]
 
     def reload(self):

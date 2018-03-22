@@ -26,9 +26,9 @@ from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.client import EntityNotFoundException
-from pyvcloud.vcd.client import InvalidParameterException
-from pyvcloud.vcd.client import InvalidStateException
+from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.vdc import VDC
 
 

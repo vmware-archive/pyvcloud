@@ -21,7 +21,7 @@ from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.client import EntityNotFoundException
+from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.extension import Extension
 
 

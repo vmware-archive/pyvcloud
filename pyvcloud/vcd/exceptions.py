@@ -50,7 +50,7 @@ class VcdResponseException(VcdException):
 
 
 class LinkException(VcdException):
-    """Base class for vcd links related exception"""
+    """Base class for vcd links related Exceptions."""
 
     def __init__(self, href, rel, media_type):
         self.href = href
@@ -66,33 +66,33 @@ class LinkException(VcdException):
 
 
 class MultipleLinksException(LinkException):
-    """Raised when multiple links are present in vcd response"""
+    """Raised when multiple links are present in vcd response."""
 
     def __init__(self, href, rel, media_type):
         super(MultipleLinksException, self).__init__(href, rel, media_type)
 
 
 class MissingLinkException(LinkException):
-    """Raised when a link is missing from the vcd response"""
+    """Raised when a link is missing from the vcd response."""
 
     def __init__(self, href, rel, media_type):
         super(MissingLinkException, self).__init__(href, rel, media_type)
 
 
 class RecordException(VcdException):
-    """Base class for vcd records related exception"""
+    """Base class for vcd records related exception."""
 
 
 class MissingRecordException(RecordException):
-    """Raised when a record is missing in vcd"""
+    """Raised when a record is missing in vcd."""
 
 
 class MultipleRecordsException(RecordException):
-    """Raised when multiple records are present in vcd"""
+    """Raised when multiple records are present in vcd."""
 
 
 class VcdTaskException(VcdException):
-    """Exception related to tasks in vcd"""
+    """Exception related to tasks in vcd."""
 
     def __init__(self, error_message, vcd_error):
         self.error_message = error_message
@@ -108,35 +108,35 @@ class VcdTaskException(VcdException):
 
 
 class EntityNotFoundException(VcdException):
-    """Raised when an entity is not found in vcd"""
+    """Raised when an entity is not found in vcd."""
 
 
 class UploadException(VcdException):
-    """Raised when upload of an entity fails in vcd"""
+    """Raised when upload of an entity fails in vcd."""
 
 
 class DownloadException(VcdException):
-    """Raised when download of an entity fails in vcd"""
+    """Raised when download of an entity fails in vcd."""
 
 
 class InvalidStateException(VcdException):
-    """Raised when the state of an entity in vcd is not valid"""
+    """Raised when the state of an entity in vcd is not valid."""
 
 
 class OperationNotSupportedException(VcdException):
-    """Raised when a particular operation is not supported in vcd"""
+    """Raised when a particular operation is not supported in vcd."""
 
 
 class AuthenticationException(VcdException):
-    """Raised when authentication fails in vcd"""
+    """Raised when authentication fails in vcd."""
 
 
 class AlreadyExistsException(VcdException):
-    """Raised on an entity already exist in vcd"""
+    """Raised on an entity already exist in vcd."""
 
 
 class BadRequestException(VcdResponseException):
-    """Raised when vcd returns 400 response code"""
+    """Raised when vcd returns 400 response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
         super(BadRequestException, self).__init__(status_code, request_id,
@@ -144,7 +144,7 @@ class BadRequestException(VcdResponseException):
 
 
 class UnauthorizedException(VcdResponseException):
-    """Raised when vcd returns 401 response code"""
+    """Raised when vcd returns 401 response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
         super(BadRequestException, self).__init__(status_code, request_id,
@@ -152,7 +152,7 @@ class UnauthorizedException(VcdResponseException):
 
 
 class AccessForbiddenException(VcdResponseException):
-    """Raised when vcd returns 403 response code"""
+    """Raised when vcd returns 403 response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
         super(AccessForbiddenException, self).__init__(status_code,
@@ -161,7 +161,7 @@ class AccessForbiddenException(VcdResponseException):
 
 
 class NotFoundException(VcdResponseException):
-    """Raised when vcd returns 404 response code"""
+    """Raised when vcd returns 404 response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
         super(NotFoundException, self).__init__(status_code, request_id,
@@ -169,7 +169,7 @@ class NotFoundException(VcdResponseException):
 
 
 class MethodNotAllowedException(VcdResponseException):
-    """Raised when vcd returns 405 response code"""
+    """Raised when vcd returns 405 response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
         super(MethodNotAllowedException, self).__init__(status_code,
@@ -178,7 +178,7 @@ class MethodNotAllowedException(VcdResponseException):
 
 
 class NotAcceptableException(VcdResponseException):
-    """Raised when vcd returns 406 response code"""
+    """Raised when vcd returns 406 response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
         super(NotAcceptableException, self).__init__(status_code, request_id,
@@ -186,7 +186,7 @@ class NotAcceptableException(VcdResponseException):
 
 
 class ConflictException(VcdResponseException):
-    """Raised when vcd returns 409 response code"""
+    """Raised when vcd returns 409 response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
         super(ConflictException, self).__init__(status_code,
@@ -195,7 +195,7 @@ class ConflictException(VcdResponseException):
 
 
 class UnsupportedMediaTypeException(VcdResponseException):
-    """Raised when vcd returns 415 response code"""
+    """Raised when vcd returns 415 response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
         super(UnsupportedMediaTypeException, self).__init__(status_code,
@@ -204,7 +204,7 @@ class UnsupportedMediaTypeException(VcdResponseException):
 
 
 class InvalidContentLengthException(VcdResponseException):
-    """Raised when vcd returns 416 response code"""
+    """Raised when vcd returns 416 response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
         super(InvalidContentLengthException, self).__init__(status_code,
@@ -213,7 +213,7 @@ class InvalidContentLengthException(VcdResponseException):
 
 
 class InternalServerException(VcdResponseException):
-    """Raised when vcd returns 500 response code"""
+    """Raised when vcd returns 500 response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
         super(InternalServerException, self).__init__(status_code, request_id,
@@ -221,7 +221,7 @@ class InternalServerException(VcdResponseException):
 
 
 class UnknownApiException(VcdResponseException):
-    """Raised when vcd returns an unknown response code"""
+    """Raised when vcd returns an unknown response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
         super(UnknownApiException, self).__init__(status_code, request_id,
@@ -229,24 +229,24 @@ class UnknownApiException(VcdResponseException):
 
 
 class TaskTimeoutException(ClientException, TimeoutError):
-    """Raised when a task in vcd timeout"""
+    """Raised when a task in vcd timeout."""
 
 
 class SDKRequestException(ClientException, IOError):
-    """Raised when an exception occurred during vcd request"""
+    """Raised when an exception occurred during vcd request."""
 
 
 class ValidationError(ClientException):
-    """Raised when validation error occurs in pyvcloud"""
+    """Raised when validation error occurs in pyvcloud."""
 
 
 class MissingParametersError(ClientException):
-    """Raised when a parameter is missing in pyvcloud"""
+    """Raised when a parameter is missing in pyvcloud."""
 
 
 class InvalidParameterException(ClientException):
-    """Raised when a parameter is invalid in pyvcloud"""
+    """Raised when a parameter is invalid in pyvcloud."""
 
 
 class SessionException(ClientException):
-    """Raised for any session related exceptions in pyvcloud"""
+    """Raised for any session related exceptions in pyvcloud."""

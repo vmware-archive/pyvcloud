@@ -157,7 +157,7 @@ class Platform(object):
                             pvdc_name,
                             is_enabled=None,
                             description=None,
-                            highest_supp_hw_vers=None,
+                            highest_hw_vers=None,
                             vxlan_network_pool=None):
         """Create a Provider Virtual Datacenter.
 
@@ -167,7 +167,7 @@ class Platform(object):
         :param: pvdc_name: (str): name of PVDC to be created.
         :param: is_enabled: (boolean): enable flag.
         :param: description: (str): description of pvdc.
-        :param: highest_supp_hw_vers: (str): highest supported hw vers number.
+        :param: highest_hw_vers: (str): highest supported hw vers number.
         :param: vxlan_network_pool: (str): name of vxlan_network_pool.
         :return: A :class:lxml.objectify.StringElement object describing the
         :        new provider VDC.
@@ -195,9 +195,9 @@ class Platform(object):
             vx_href = vxlan_network_pool_record.get('href')
             vmw_prov_vdc_params.append(E_VMEXT.VxlanNetworkPool(
                 href=vx_href))
-        if highest_supp_hw_vers is not None:
+        if highest_hw_vers is not None:
             vmw_prov_vdc_params.append(
-                E_VMEXT.HighestSupportedHardwareVersion(highest_supp_hw_vers))
+                E_VMEXT.HighestSupportedHardwareVersion(highest_hw_vers))
         if is_enabled is not None:
             vmw_prov_vdc_params.append(E_VMEXT.IsEnabled(is_enabled))
         for storage_profile in storage_profiles:

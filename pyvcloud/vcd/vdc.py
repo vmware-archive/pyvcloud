@@ -374,7 +374,7 @@ class VDC(object):
         return edge_gateways
 
     def get_edge_gateway(self, name):
-        """Retrieve an edge gateway in the current vdc
+        """Retrieve an edge gateway in the current vdc.
 
         :param name: (str): Name of the edge gateway we want to retrieve.
 

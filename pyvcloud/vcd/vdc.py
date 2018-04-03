@@ -373,6 +373,49 @@ class VDC(object):
                 })
         return edge_gateways
 
+    def get_edge_gateway(self, name):
+        """Retrieve an edge gateway in the current vdc
+
+        :param name: (str): Name of the edge gateway we want to retrieve.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            an edge gateway.
+
+        :raises: Exception: If edge gateway with the given name is not found.
+        """
+        edge_gateway_records = self.list_edge_gateways()
+        for edge_gateway in edge_gateway_records:
+            if name == edge_gateway.get('name'):
+                return self.client.get_resource(edge_gateway.get('href'))
+        raise Exception(
+            'Edge Gateway not found \'%s\'' % name)
+
+    def get_nat_rules(self, edge_gateway_name):
+        """Request the nat rules of an edge gateway.
+
+        :param edge_gateway_name: (str): The name of the edge gateway.
+
+        :return: A list of :class:`lxml.objectify.StringElement' objects
+            representing the nat rules.
+
+        :raises: Exception: if there is no edge gateway with the provided name.
+        """
+        nat_rules = []
+        edge_gateway = self.get_edge_gateway(edge_gateway_name)
+        if hasattr(edge_gateway, 'Configuration') and \
+           hasattr(edge_gateway.Configuration,
+                   'EdgeGatewayServiceConfiguration') and \
+           hasattr(edge_gateway.Configuration.
+                   EdgeGatewayServiceConfiguration,
+                   'NatService') and \
+           hasattr(edge_gateway.Configuration.
+                   EdgeGatewayServiceConfiguration.NatService,
+                   'NatRule'):
+            for nat_rule in edge_gateway.Configuration.\
+                    EdgeGatewayServiceConfiguration.NatService.NatRule:
+                nat_rules.append(nat_rule)
+        return nat_rules
+
     def create_disk(self,
                     name,
                     size,

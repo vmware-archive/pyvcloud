@@ -96,7 +96,9 @@ class VDC(object):
                          cust_script=None,
                          vm_name=None,
                          hostname=None,
-                         storage_profile=None):
+                         ip_address=None,
+                         storage_profile=None,
+                         network_adapter_type=None):
         """Instantiate a vApp from a vApp template in a catalog.
 
         If customization parameters are provided, it will customize the VM and
@@ -112,7 +114,7 @@ class VDC(object):
         :param fence_mode: (str): Fence mode.
             Possible values are `bridged` and `natRouted`
         :param ip_allocation_mode: (str): IP allocation mode.
-            Possible values are `pool`, `dhcp` and `static`
+            Possible values are `pool`, `dhcp` and `manual`
         :param deploy: (bool):
         :param power_on: (bool):
         :param accept_all_eulas: (bool): True confirms acceptance of all EULAs
@@ -124,9 +126,13 @@ class VDC(object):
         :param cust_script: (str):
         :param vm_name: (str): When provided, set the name of the VM.
             It assumes one VM in the vApp.
+        :param ip_address: (str): When provided, set the ip_address of the VM.
+            It assumes one VM in the vApp
         :param hostname: (str): When provided, set the hostname of the guest
             OS. It assumes one VM in the vApp.
         :param storage_profile: (str):
+        :param network_adapter_type: (str): Network Adapter Type.
+            Please see pyvcloud.vcd.client.NetworkAdapterType.
 
         :return:  A :class:`lxml.objectify.StringElement` object describing the
             new vApp.
@@ -204,19 +210,30 @@ class VDC(object):
 
         vm_instantiation_param = E.InstantiationParams()
 
+        if ip_allocation_mode is 'static':
+            ip_allocation_mode = 'manual'
+
         # Configure network of the first vm
         if network_name is not None:
             primary_index = int(vms[
                 0].NetworkConnectionSection.PrimaryNetworkConnectionIndex.text)
+            network_connection_param = E.NetworkConnection(
+                E.NetworkConnectionIndex(primary_index),
+                network=network_name
+            )
+            if ip_address is not None:
+                network_connection_param.append(E.IpAddress(ip_address))
+            network_connection_param.append(E.IsConnected('true'))
+            network_connection_param.append(
+                E.IpAddressAllocationMode(ip_allocation_mode.upper()))
+            if network_adapter_type is not None:
+                network_connection_param.append(
+                    E.NetworkAdapterType(network_adapter_type))
             vm_instantiation_param.append(
                 E.NetworkConnectionSection(
                     E_OVF.Info(
                         'Specifies the available VM network connections'),
-                    E.NetworkConnection(
-                        E.NetworkConnectionIndex(primary_index),
-                        E.IsConnected('true'),
-                        E.IpAddressAllocationMode(ip_allocation_mode.upper()),
-                        network=network_name)))
+                    network_connection_param))
 
         # Configure cpu, memory, disk of the first vm
         cpu_params = memory_params = disk_params = None
@@ -259,7 +276,7 @@ class VDC(object):
 
         # Configure guest customization for the vm
         if password is not None or cust_script is not None or \
-           hostname is not None:
+                hostname is not None:
             guest_customization_param = E.GuestCustomizationSection(
                 E_OVF.Info('Specifies Guest OS Customization Settings'),
                 E.Enabled('true'),

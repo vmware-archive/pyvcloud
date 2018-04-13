@@ -18,7 +18,8 @@ def developerModeAware(function):
         if not Environment._config['global']['developer_mode']:
             function(self)
         else:
-            print('Skipping ' + function.__name__ + ' because deveopler mode is on.')
+            print('Skipping ' + function.__name__ +
+                  ' because deveopler mode is on.')
     return wrapper
 
 
@@ -128,7 +129,7 @@ class Environment(object):
 
         system = System(cls._sys_admin_client,
                         admin_resource=cls._sys_admin_client.get_admin())
-        
+
         pvdc_refs = system.list_provider_vdcs()
         if pvdc_name is not '*':
             for pvdc_ref in pvdc_refs:
@@ -259,7 +260,8 @@ class Environment(object):
             raise Exception('Org ' + cls._config['vcd']['default_org_name'] +
                             ' doesn\'t exist.')
 
-        catalog_author_client = Environment.get_client(CommonRoles.CATALOG_AUTHOR)
+        catalog_author_client = Environment.get_client(
+            CommonRoles.CATALOG_AUTHOR)
         org = Org(catalog_author_client, href=cls._org_href)
         catalog_name = cls._config['vcd']['default_catalog_name']
         catalog_records = org.list_catalogs()
@@ -292,7 +294,7 @@ class Environment(object):
                 org.share_catalog(name=catalog_name)
                 return
 
-        raise Except('Catalog ' + catalog_name + 'doesn\'t exists.')
+        raise Exception('Catalog ' + catalog_name + 'doesn\'t exists.')
 
     @classmethod
     def upload_template(cls):
@@ -301,7 +303,8 @@ class Environment(object):
             raise Exception('Org ' + cls._config['vcd']['default_org_name'] +
                             ' doesn\'t exist.')
 
-        catalog_author_client = Environment.get_client(CommonRoles.CATALOG_AUTHOR)
+        catalog_author_client = Environment.get_client(
+            CommonRoles.CATALOG_AUTHOR)
         org = Org(catalog_author_client, href=cls._org_href)
 
         catalog_name = cls._config['vcd']['default_catalog_name']
@@ -331,7 +334,8 @@ class Environment(object):
         if cls._ovdc_href is None:
             raise Exception('OVDC ' + cls._config['vcd']['default_ovdc_name'] +
                             ' doesn\'t exist.')
-        catalog_author_client = Environment.get_client(CommonRoles.CATALOG_AUTHOR)
+        catalog_author_client = Environment.get_client(
+            CommonRoles.CATALOG_AUTHOR)
         vdc = VDC(catalog_author_client, href=cls._ovdc_href)
         vapp_name = cls._config['vcd']['default_vapp_name']
         try:

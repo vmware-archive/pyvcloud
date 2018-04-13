@@ -29,7 +29,6 @@ class TestDisk(BaseTestCase):
     _idisk3_description = 'Third disk namesake of Second disk'
     _idisk3_id = None
 
-
     def test_0000_setup(self):
         TestDisk._client = Environment.get_client(CommonRoles.CATALOG_AUTHOR)
         vdc = Environment.get_default_vdc(TestDisk._client)
@@ -119,21 +118,19 @@ class TestDisk(BaseTestCase):
         self.assertEqual(new_owner_name, new_username)
 
     def test_0049_attach_detach_setup(self):
-        #vm needs to be powered off for detach to succeed
+        # vm needs to be powered off for detach to succeed
         org_admin_client = Environment.get_client(
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
         vapp = Environment.get_default_vapp(org_admin_client)
-        vm_name = Environment.get_default_vm_name()
 
         # TODO : update power_off to handle missing link exception
         try:
             task = vapp.power_off()
-            result = org_admin_client.get_task_monitor().wait_for_success(
+            org_admin_client.get_task_monitor().wait_for_success(
                 task=task)
             org_admin_client.logout()
         except Exception as e:
             pass
-        #self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0050_attach_disk_to_vm_in_vapp(self):
         org_admin_client = Environment.get_client(

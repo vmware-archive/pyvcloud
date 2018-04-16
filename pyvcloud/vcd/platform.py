@@ -21,6 +21,7 @@ from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.extension import Extension
 
 
@@ -64,7 +65,7 @@ class Platform(object):
         for record in self.list_vcenters():
             if record.get('name') == name:
                 return self.client.get_resource(record.get('href'))
-        raise Exception('vCenter \'%s\' not found' % name)
+        raise EntityNotFoundException('vCenter \'%s\' not found' % name)
 
     def list_external_networks(self):
         """List all external networks available in the system.
@@ -95,7 +96,8 @@ class Platform(object):
         for ext_net in ext_net_refs:
             if ext_net.get('name') == name:
                 return self.client.get_resource(ext_net.get('href'))
-        raise Exception('External network \'%s\' not found.' % name)
+        raise EntityNotFoundException(
+            'External network \'%s\' not found.' % name)
 
     def get_vxlan_network_pool(self, vxlan_network_pool_name):
         """Fetch a vxlan_networ_pool by its name.
@@ -118,8 +120,8 @@ class Platform(object):
                 break
         if vxlan_network_pool_record is not None:
             return vxlan_network_pool_record
-        raise Exception('vxlan_network_pool \'%s\' not found' %
-                        vxlan_network_pool_name)
+        raise EntityNotFoundException('vxlan_network_pool \'%s\' not found' %
+                                      vxlan_network_pool_name)
 
     def get_resource_pool_morefs(self, vc_name, vc_href, resource_pool_names):
         """Fetch list of morefs for a given list of resource_pool_names.
@@ -146,8 +148,9 @@ class Platform(object):
                             res_pool_found = True
                             break
                 if not res_pool_found:
-                    raise Exception('resource pool \'%s\' not Found' %
-                                    resource_pool_name)
+                    raise EntityNotFoundException(
+                        'resource pool \'%s\' not Found' %
+                        resource_pool_name)
         return morefs
 
     def create_provider_vdc(self,

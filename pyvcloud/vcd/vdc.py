@@ -22,6 +22,9 @@ from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.exceptions import MultipleRecordsException
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import get_admin_href
@@ -32,8 +35,9 @@ class VDC(object):
         self.client = client
         self.name = name
         if href is None and resource is None:
-            raise TypeError("VDC initialization failed as arguments"
-                            " are either invalid or None")
+            raise InvalidParameterException(
+                "VDC initialization failed as arguments are either invalid "
+                "or None")
         self.href = href
         self.resource = resource
         if resource is not None:
@@ -58,11 +62,12 @@ class VDC(object):
                     if vapp.get('name') == name:
                         result.append(vapp.get('href'))
         if len(result) == 0:
-            raise Exception('vApp named \'%s\' not found' % name)
+            raise EntityNotFoundException('vApp named \'%s\' not found' % name)
 
         elif len(result) > 1:
-            raise Exception("Found multiple vApps named " +
-                            "\'%s\', use the vapp-id to identify." % name)
+            raise MultipleRecordsException("Found multiple vApps named " +
+                                           "\'%s\', use the vapp-id to "
+                                           "identify." % name)
         return result[0]
 
     def reload(self):
@@ -173,7 +178,7 @@ class VDC(object):
                         network_name = n.get('name')
                         break
             if network_href is None:
-                raise Exception(
+                raise EntityNotFoundException(
                     'Network \'%s\' not found in the Virtual Datacenter.' %
                     network)
 
@@ -559,7 +564,8 @@ class VDC(object):
             other error occurs.
         """
         if name is None and disk_id is None:
-            raise Exception('Unable to idendify disk without name or id.')
+            raise InvalidParameterException(
+                'Unable to idendify disk without name or id.')
 
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -582,11 +588,13 @@ class VDC(object):
                     if result is None:
                         result = disk
                     else:
-                        raise Exception('Found multiple disks with name %s'
-                                        ', please identify disk via disk-id.' %
-                                        disk.get('name'))
+                        raise MultipleRecordsException(
+                            'Found multiple disks with name %s'
+                            ', please identify disk via disk-id.' %
+                            disk.get('name'))
         if result is None:
-            raise Exception('No disk found with the given name/id.')
+            raise EntityNotFoundException(
+                'No disk found with the given name/id.')
         else:
             return result
 
@@ -651,7 +659,7 @@ class VDC(object):
                 if profile.get('name') == profile_name:
                     return profile
 
-        raise Exception(
+        raise EntityNotFoundException(
             'Storage Profile named \'%s\' not found' % profile_name)
 
     def enable_vdc(self, enable=True):
@@ -776,7 +784,7 @@ class VDC(object):
                         network_name = n.get('name')
                         break
             if network_href is None:
-                raise Exception(
+                raise EntityNotFoundException(
                     'Network \'%s\' not found in the Virtual Datacenter.' %
                     network)
 
@@ -1012,7 +1020,7 @@ class VDC(object):
         result = self.list_orgvdc_network_resources(
             name=name, type=FenceMode.BRIDGED.value)
         if len(result) == 0:
-            raise Exception(
+            raise EntityNotFoundException(
                 'OrgVdc network with name \'%s\' not found.' % name)
         return result[0]
 
@@ -1029,7 +1037,7 @@ class VDC(object):
         result = self.list_orgvdc_network_resources(
             name=name, type=FenceMode.ISOLATED.value)
         if len(result) == 0:
-            raise Exception(
+            raise EntityNotFoundException(
                 'OrgVdc network with name \'%s\' not found.' % name)
         return result[0]
 

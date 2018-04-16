@@ -33,6 +33,10 @@ from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import DownloadException
+from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.exceptions import UploadException
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import to_dict
 
@@ -51,8 +55,9 @@ class Org(object):
         """
         self.client = client
         if href is None and resource is None:
-            raise TypeError("Org initialization failed as arguments"
-                            " are either invalid or None")
+            raise InvalidParameterException(
+                "Org initialization failed as arguments"
+                " are either invalid or None")
         self.href = href
         self.resource = resource
         if resource is not None:
@@ -119,7 +124,7 @@ class Org(object):
                 admin_href = link.href.replace('/api/catalog/',
                                                '/api/admin/catalog/')
                 return self.client.delete_resource(admin_href)
-        raise Exception('Catalog not found.')
+        raise EntityNotFoundException('Catalog not found.')
 
     def list_catalogs(self):
         if self.client.is_sysadmin():
@@ -152,8 +157,8 @@ class Org(object):
                 if is_admin_operation:
                     href = href.replace('/api/catalog/', '/api/admin/catalog/')
                 return self.client.get_resource(href)
-        raise Exception('Catalog not found (or)'
-                        ' Access to resource is forbidden')
+        raise EntityNotFoundException('Catalog not found (or)'
+                                      ' Access to resource is forbidden')
 
     def update_catalog(self, old_catalog_name, new_catalog_name, description):
         """Update the name and/or description of a catalog.
@@ -185,7 +190,7 @@ class Org(object):
                     admin_href,
                     admin_view_of_catalog,
                     media_type=EntityType.ADMIN_CATALOG.value)
-        raise Exception('Catalog not found.')
+        raise EntityNotFoundException('Catalog not found.')
 
     def share_catalog(self, name, share=True):
         catalog = self.get_catalog(name)
@@ -210,14 +215,14 @@ class Org(object):
         for i in catalog.CatalogItems.getchildren():
             if i.get('name') == item_name:
                 return self.client.get_resource(i.get('href'))
-        raise Exception('Catalog item not found.')
+        raise EntityNotFoundException('Catalog item not found.')
 
     def delete_catalog_item(self, name, item_name):
         catalog = self.get_catalog(name)
         for i in catalog.CatalogItems.getchildren():
             if i.get('name') == item_name:
                 return self.client.delete_resource(i.get('href'))
-        raise Exception('Item not found.')
+        raise EntityNotFoundException('Item not found.')
 
     def upload_media(self,
                      catalog_name,
@@ -302,8 +307,9 @@ class Org(object):
                         size=source_file['size'],
                         callback=callback)
                     if num_bytes != int(source_file['size']):
-                        raise Exception('download incomplete for file %s' %
-                                        source_file['href'])
+                        raise DownloadException(
+                            'download incomplete for file %s' %
+                            source_file['href'])
                     files.append(source_file)
                 with tarfile.open(file_name, 'w') as tar:
                     os.chdir(tempdir)
@@ -405,7 +411,7 @@ class Org(object):
         except Exception as e:
             print(traceback.format_exc())
             shutil.rmtree(tempdir)
-            raise e
+            raise UploadException("Ovf upload failed") from e
         return total_bytes
 
     def get_vdc(self, name):
@@ -418,7 +424,7 @@ class Org(object):
         for link in links:
             if name == link.name:
                 return self.client.get_resource(link.href)
-        raise Exception("Vdc \'%s\' not found" % name)
+        raise EntityNotFoundException("Vdc \'%s\' not found" % name)
 
     def list_vdcs(self):
         if self.resource is None:
@@ -566,7 +572,8 @@ class Org(object):
         user_record = list(self.list_users(('name', user_name)))
 
         if len(user_record) < 1:
-            raise Exception('User \'%s\' does not exist.' % user_name)
+            raise EntityNotFoundException(
+                'User \'%s\' does not exist.' % user_name)
         return self.client.get_resource(user_record[0].get('href'))
 
     def list_users(self, name_filter=None):
@@ -622,7 +629,8 @@ class Org(object):
         """
         role_record = self.list_roles(('name', role_name))
         if len(role_record) < 1:
-            raise Exception('Role \'%s\' does not exist.' % role_name)
+            raise EntityNotFoundException(
+                'Role \'%s\' does not exist.' % role_name)
         return role_record[0]
 
     def list_roles(self, name_filter=None):
@@ -721,7 +729,8 @@ class Org(object):
         right_record = self.list_rights_available_in_system(('name',
                                                              right_name))
         if len(right_record) < 1:
-            raise Exception('Right \'%s\' does not exist.' % right_name)
+            raise EntityNotFoundException(
+                'Right \'%s\' does not exist.' % right_name)
         return right_record[0]
 
     def list_rights_available_in_system(self, name_filter=None):

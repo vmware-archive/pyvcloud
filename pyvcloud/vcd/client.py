@@ -26,6 +26,7 @@ from lxml import etree
 from lxml import objectify
 import requests
 
+from pyvcloud.vcd.exceptions import *  # noqa ignore=F405
 SIZE_1MB = 1024 * 1024
 
 NSMAP = {
@@ -284,75 +285,6 @@ class NetworkAdapterType(Enum):
     VLANCE = 'PCNet32'
 
 
-class MultipleRecordsException(Exception):
-    pass
-
-
-class MissingRecordException(Exception):
-    pass
-
-
-class LinkException(Exception):
-    def __init__(self, href, rel, media_type):
-        self.href = href
-        self.rel = rel
-        self.media_type = media_type
-
-    def __str__(self):
-        return '%s; href: %s, rel: %s, mediaType: %s' % \
-            (super(LinkException, self).__str__(),
-             self.href,
-             self.rel,
-             self.media_type)
-
-
-class MultipleLinksException(LinkException):
-    def __init__(self, href, rel, media_type):
-        super(MultipleLinksException, self).__init__(href, rel, media_type)
-
-
-class MissingLinkException(LinkException):
-    def __init__(self, href, rel, media_type):
-        super(MissingLinkException, self).__init__(href, rel, media_type)
-
-
-class VcdErrorException(Exception):
-    def __init__(self, status_code):
-        self.status_code = status_code
-
-
-class VcdErrorResponseException(VcdErrorException):
-    def __init__(self, status_code, request_id, vcd_error):
-        super(VcdErrorResponseException, self).__init__(status_code)
-        self.vcd_error = vcd_error
-        self.request_id = request_id
-
-    def __str__(self):
-        return \
-            'Status code: ' + \
-            (('%d, <empty response body>' % self.status_code)
-                if self.vcd_error is None else
-                ('%d/%s, %s' %
-                 (self.status_code,
-                  self.vcd_error.get('minorErrorCode'),
-                  self.vcd_error.get('message')))) + \
-            (' (request id: %s)' % self.request_id)
-
-
-class VcdTaskException(Exception):
-    def __init__(self, error_message, vcd_error):
-        self.error_message = error_message
-        self.vcd_error = vcd_error
-
-    def __str__(self):
-        return \
-            'VcdTaskException; %s/%s: %s (%s)' % \
-            (self.vcd_error.get('majorErrorCode'),
-             self.vcd_error.get('minorErrorCode'),
-             self.error_message,
-             self.vcd_error.get('message'))
-
-
 def _get_session_endpoints(session):
     """Return a map of well known endpoings.
 
@@ -459,7 +391,7 @@ class _TaskMonitor(object):
             if start_time - datetime.now() > timedelta(seconds=timeout):
                 break
             time.sleep(poll_frequency)
-        raise Exception("Task timeout")
+        raise TaskTimeoutException("Task timeout")
 
     def _get_task_status(self, task_href):
         return self._client.get_resource(task_href)
@@ -534,7 +466,7 @@ class Client(object):
             'GET', self._uri + '/versions', new_session, accept_type='')
         sc = response.status_code
         if sc != 200:
-            raise Exception('Unable to get supported API versions.')
+            raise VcdResponseException('Unable to get supported API versions.')
         return objectify.fromstring(response.content)
 
     def set_highest_supported_version(self):
@@ -566,7 +498,7 @@ class Client(object):
                 r = _objectify_response(response)
             except Exception:
                 pass
-            raise VcdErrorResponseException(
+            raise VcdResponseException(
                 sc,
                 self._get_response_request_id(response),
                 r) if r is not None else \
@@ -599,7 +531,7 @@ class Client(object):
                                          new_session)
         sc = response.status_code
         if sc != 200:
-            raise VcdErrorResponseException(
+            raise VcdResponseException(
                 sc,
                 self._get_response_request_id(response),
                 _objectify_response(response)) if sc == 401 else \
@@ -639,7 +571,6 @@ class Client(object):
                     uri,
                     contents=None,
                     media_type=None,
-                    accept_type=None,
                     objectify_results=True):
         response = self._do_request_prim(
             method,
@@ -649,20 +580,66 @@ class Client(object):
             media_type=media_type)
         sc = response.status_code
 
+        print("inside do request %s" ,sc)
+
         if 200 <= sc <= 299:
             return _objectify_response(response, objectify_results)
 
-        if 400 <= sc <= 499:
-            raise VcdErrorResponseException(
+        if sc == 400:
+            raise BadRequestException(
+                sc, self._get_response_request_id(response),
+                _objectify_response(response, objectify_results))
+
+        if sc == 401:
+            print("inside 401")
+            raise UnauthorizedException(
+                sc, self._get_response_request_id(response),
+                _objectify_response(response, objectify_results))
+
+        if sc == 403:
+            print("this is 403")
+            raise AccessForbiddenException(
+                sc, self._get_response_request_id(response),
+                _objectify_response(response, objectify_results))
+
+        if sc == 404:
+            raise NotFoundException(
+                sc, self._get_response_request_id(response),
+                _objectify_response(response, objectify_results))
+
+        if sc == 405:
+            raise MethodNotAllowedException(
+                sc, self._get_response_request_id(response),
+                _objectify_response(response, objectify_results))
+
+        if sc == 406:
+            raise NotAcceptableException(
+                sc, self._get_response_request_id(response),
+                _objectify_response(response, objectify_results))
+
+        if sc == 409:
+            raise ConflictException(
+                sc, self._get_response_request_id(response),
+                _objectify_response(response, objectify_results))
+
+        if sc == 415:
+            raise UnsupportedMediaTypeException(
+                sc, self._get_response_request_id(response),
+                _objectify_response(response, objectify_results))
+
+        if sc == 416:
+            raise InvalidContentLengthException(
                 sc, self._get_response_request_id(response),
                 _objectify_response(response, objectify_results))
 
         if sc == 500:
-            raise VcdErrorResponseException(
+            raise InternalServerException(
                 sc, self._get_response_request_id(response),
                 _objectify_response(response, objectify_results))
 
-        raise Exception("Unsupported HTTP status code (%d) encountered" % sc)
+        raise UnknownApiException(
+            sc, self._get_response_request_id(response),
+            _objectify_response(response, objectify_results))
 
     def _do_request_prim(self,
                          method,
@@ -792,8 +769,11 @@ class Client(object):
         Puts the contents of the resource referenced by the link with the
             specified rel and mediaType in the specified resource.
         """
-        return self.put_resource(
-            find_link(resource, rel, media_type).href, contents, media_type)
+        try:
+            return self.put_resource(
+                find_link(resource, rel, media_type).href, contents, media_type)
+        except MissingLinkException as e:
+            raise OperationNotSupportedException from e
 
     def post_resource(self, uri, contents, media_type, objectify_results=True):
         """Posts to a resource link.
@@ -814,8 +794,11 @@ class Client(object):
         Posts the contents of the resource referenced by the link with the
             specified rel and mediaType in the specified resource.
         """
-        return self.post_resource(
-            find_link(resource, rel, media_type).href, contents, media_type)
+        try:
+            return self.post_resource(
+                find_link(resource, rel, media_type).href, contents, media_type)
+        except MissingLinkException as e:
+            raise OperationNotSupportedException from e
 
     def get_resource(self, uri, objectify_results=True):
         """Gets the specified contents to the specified resource.
@@ -831,7 +814,11 @@ class Client(object):
         Gets the contents of the resource referenced by the link with the
             specified rel and mediaType in the specified resource.
         """
-        return self.get_resource(find_link(resource, rel, media_type).href)
+        try:
+            return self.get_resource(find_link(resource, rel, media_type).href)
+        except MissingLinkException as e:
+            print('missing excepton')
+            raise OperationNotSupportedException from e
 
     def delete_resource(self, uri, force=False, recursive=False):
         full_uri = '%s?force=%s&recursive=%s' % (uri, force, recursive)
@@ -843,7 +830,10 @@ class Client(object):
         Deletes the resource referenced by the link with the specified rel and
             mediaType in the specified resource.
         """
-        return self.delete_resource(find_link(resource, rel, media_type).href)
+        try:
+            return self.delete_resource(find_link(resource, rel, media_type).href)
+        except MissingLinkException as e:
+            raise OperationNotSupportedException from e
 
     def get_admin(self):
         """Returns the "admin" root resource type."""
@@ -880,7 +870,7 @@ class Client(object):
             for org in orgs.Org:
                 if org.get('name').lower() == org_name.lower():
                     return org
-        raise Exception('org \'%s\' not found' % org_name)
+        raise EntityNotFoundException('org \'%s\' not found' % org_name)
 
     def get_user_in_org(self, user_name, org_href):
         """Retrieve user from a particular org.
@@ -903,9 +893,9 @@ class Client(object):
             qfilter=org_filter)
         records = list(query.execute())
         if len(records) == 0:
-            raise Exception('user \'%s\' not found' % user_name)
+            raise EntityNotFoundException('user \'%s\' not found' % user_name)
         elif len(records) > 1:
-            raise Exception('multiple users found')
+            raise MultipleRecordsException('multiple users found')
         return self.get_resource(records[0].get('href'))
 
     def _get_query_list_map(self):
@@ -945,7 +935,7 @@ class Client(object):
         if wk_type in self._session_endpoints:
             return self._session_endpoints[wk_type]
         else:
-            raise Exception(
+            raise ClientException(
                 'The current user does not have access to the resource (%s).' %
                 str(wk_type).split('.')[-1])
 

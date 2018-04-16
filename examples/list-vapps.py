@@ -17,6 +17,7 @@
 import sys
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
+from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.vdc import VDC
 import requests
@@ -54,7 +55,7 @@ print("Fetching VDC...")
 vdc_resource = org.get_vdc(vdc)
 vdc = VDC(client, resource=vdc_resource)
 print("Fetching vApps....")
-vapps = vdc.list_resources()
+vapps = vdc.list_resources(EntityType.VAPP)
 for vapp in vapps:
     print(vapp.get('name'))
 

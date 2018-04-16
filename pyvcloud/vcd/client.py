@@ -275,6 +275,15 @@ class FenceMode(Enum):
     NAT_ROUTED = 'natRouted'
 
 
+class NetworkAdapterType(Enum):
+    VMXNET = 'VMXNET'
+    VMXNET2 = 'VMXNET2'
+    VMXNET3 = 'VMXNET3'
+    E1000 = 'E1000'
+    E1000E = 'E1000E'
+    VLANCE = 'PCNet32'
+
+
 class MultipleRecordsException(Exception):
     pass
 

@@ -34,7 +34,7 @@ vcd:
 # * = choose first available pdvc
   default_pvdc_name: '*'
 
-  default_org_name: 'pyvcloud-stystem-test-org'
+  default_org_name: 'pyvcloud-system-test-org'
 
 # org_admin, catalog_author, vapp_author, vapp_user and console_user are 
 # created by default, their password will be dictated by the following

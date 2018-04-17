@@ -3,7 +3,7 @@ import os
 import unittest
 import yaml
 
-from neo_tests.environment import Environment
+from pyvcloud.system_test_framework.environment import Environment
 
 
 class BaseTestCase(unittest.TestCase):

@@ -1,14 +1,16 @@
 import unittest
 
-from neo_tests.base_test import BaseTestCase
-from neo_tests.environment import CommonRoles
-from neo_tests.environment import Environment
-from neo_tests.environment import developerModeAware
+from pyvcloud.system_test_framework.base_test import BaseTestCase
+from pyvcloud.system_test_framework.environment import CommonRoles
+from pyvcloud.system_test_framework.environment import Environment
+from pyvcloud.system_test_framework.environment import developerModeAware
 
 from pyvcloud.vcd.client import TaskStatus
 
 
 class TestDisk(BaseTestCase):
+    """Test independent disk functionalities implemented in pyvcloud.
+    """
     _client = None
 
     _idisk1_name = 'test_idisk'
@@ -30,8 +32,9 @@ class TestDisk(BaseTestCase):
     _idisk3_id = None
 
     def test_0000_setup(self):
-        TestDisk._client = Environment.get_client(CommonRoles.CATALOG_AUTHOR)
-        vdc = Environment.get_default_vdc(TestDisk._client)
+        TestDisk._client = Environment.get_client_in_default_org(
+            CommonRoles.CATALOG_AUTHOR)
+        vdc = Environment.get_test_vdc(TestDisk._client)
 
         TestDisk._idisk1_id = self._create_disk_helper(
             client=TestDisk._client,
@@ -71,7 +74,7 @@ class TestDisk(BaseTestCase):
         return disk_id
 
     def test_0010_get_all_disks(self):
-        vdc = Environment.get_default_vdc(TestDisk._client)
+        vdc = Environment.get_test_vdc(TestDisk._client)
         disks = vdc.get_disks()
 
         self.assertTrue(len(disks) > 0)
@@ -83,7 +86,7 @@ class TestDisk(BaseTestCase):
         self.assertIn(disks[2].get('name'), expected_names)
 
     def test_0020_get_disk_by_name(self):
-        vdc = Environment.get_default_vdc(TestDisk._client)
+        vdc = Environment.get_test_vdc(TestDisk._client)
 
         fetched_disk = vdc.get_disk(name=self._idisk1_name)
 
@@ -91,79 +94,97 @@ class TestDisk(BaseTestCase):
         self.assertEqual(fetched_disk.get('name'), self._idisk1_name)
 
     def test_0030_get_disk_by_id(self):
-        vdc = Environment.get_default_vdc(TestDisk._client)
+        vdc = Environment.get_test_vdc(TestDisk._client)
 
         fetched_disk = vdc.get_disk(disk_id=TestDisk._idisk2_id)
         self.assertIsNotNone(fetched_disk)
         self.assertEqual(fetched_disk.get('name'), self._idisk2_name)
 
     def test_0040_change_idisk_owner(self):
-        org_admin_client = Environment.get_client(
+        org_admin_client = Environment.get_client_in_default_org(
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
-        org = Environment.get_default_org(org_admin_client)
-        vdc = Environment.get_default_vdc(org_admin_client)
+        org = Environment.get_test_org(org_admin_client)
+        vdc = Environment.get_test_vdc(org_admin_client)
 
-        new_username = Environment.get_default_username_for_role(
-            CommonRoles.VAPP_USER)
-        user_resource = org.get_user(new_username)
+        try:
+            new_username = Environment.get_username_for_role_in_test_org(
+                CommonRoles.VAPP_USER)
+            user_resource = org.get_user(new_username)
 
-        vdc.change_disk_owner(disk_id=TestDisk._idisk3_id,
-                              user_href=user_resource.get('href'))
+            vdc.change_disk_owner(disk_id=TestDisk._idisk3_id,
+                                  user_href=user_resource.get('href'))
 
-        disk_resource = vdc.get_disk(disk_id=TestDisk._idisk3_id)
-        new_owner_name = disk_resource.Owner.User.get('name')
+            disk_resource = vdc.get_disk(disk_id=TestDisk._idisk3_id)
+            new_owner_name = disk_resource.Owner.User.get('name')
+            self.assertEqual(new_owner_name, new_username)
+        finally:
+            org_admin_client.logout()
 
-        org_admin_client.logout()
-
-        self.assertEqual(new_owner_name, new_username)
-
-    def test_0049_attach_detach_setup(self):
-        # vm needs to be powered off for detach to succeed
-        org_admin_client = Environment.get_client(
+    def test_0050_attach_disk_to_vm_in_vapp(self):
+        org_admin_client = Environment.get_client_in_default_org(
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
+        vdc = Environment.get_test_vdc(org_admin_client)
         vapp = Environment.get_default_vapp(org_admin_client)
+        vm_name = Environment.get_default_vm_name()
+        disk = vdc.get_disk(disk_id=TestDisk._idisk2_id)
 
+        try:
+            result = vapp.attach_disk_to_vm(disk_href=disk.get('href'),
+                                            vm_name=vm_name)
+            task = org_admin_client.get_task_monitor().wait_for_success(
+                task=result)
+            self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+        finally:
+            org_admin_client.logout()
+
+    def test_0060_detach_disk_from_vm_in_vapp(self):
+        org_admin_client = Environment.get_client_in_default_org(
+            CommonRoles.ORGANIZATION_ADMINISTRATOR)
+        vdc = Environment.get_test_vdc(org_admin_client)
+        vapp = Environment.get_default_vapp(org_admin_client)
+        vm_name = Environment.get_default_vm_name()
+        disk = vdc.get_disk(disk_id=TestDisk._idisk2_id)
+
+        try:
+            # vm needs to be powered off for detach to succeed.
+            self._power_off_vapp(org_admin_client, vapp)
+
+            vapp.reload()
+            result = vapp.detach_disk_from_vm(disk_href=disk.get('href'),
+                                              vm_name=vm_name)
+            task = org_admin_client.get_task_monitor().wait_for_success(
+                task=result)
+            self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+
+            vapp.reload()
+            # power on vapp after detaching disk is successful for sanity of
+            # next test run.
+            self._power_on_vapp(org_admin_client, vapp)
+        finally:
+            org_admin_client.logout()
+
+    def _power_off_vapp(self, org_admin_client, vapp):
         # TODO : update power_off to handle missing link exception
+        # see VCDA-603
         try:
             task = vapp.power_off()
             org_admin_client.get_task_monitor().wait_for_success(
                 task=task)
-            org_admin_client.logout()
         except Exception as e:
             pass
 
-    def test_0050_attach_disk_to_vm_in_vapp(self):
-        org_admin_client = Environment.get_client(
-            CommonRoles.ORGANIZATION_ADMINISTRATOR)
-        vdc = Environment.get_default_vdc(org_admin_client)
-        vapp = Environment.get_default_vapp(org_admin_client)
-        vm_name = Environment.get_default_vm_name()
-        disk = vdc.get_disk(disk_id=TestDisk._idisk2_id)
-
-        result = vapp.attach_disk_to_vm(disk_href=disk.get('href'),
-                                        vm_name=vm_name)
-        task = org_admin_client.get_task_monitor().wait_for_success(
-            task=result)
-        org_admin_client.logout()
-        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
-
-    def test_0060_detach_disk_from_vm_in_vapp(self):
-        org_admin_client = Environment.get_client(
-            CommonRoles.ORGANIZATION_ADMINISTRATOR)
-        vdc = Environment.get_default_vdc(org_admin_client)
-        vapp = Environment.get_default_vapp(org_admin_client)
-        vm_name = Environment.get_default_vm_name()
-        disk = vdc.get_disk(disk_id=TestDisk._idisk2_id)
-
-        result = vapp.detach_disk_from_vm(disk_href=disk.get('href'),
-                                          vm_name=vm_name)
-        task = org_admin_client.get_task_monitor().wait_for_success(
-            task=result)
-        org_admin_client.logout()
-        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+    def _power_on_vapp(self, org_admin_client, vapp):
+        # TODO : update power_on to handle missing link exception
+        # see VCDA-603
+        try:
+            task = vapp.power_on()
+            org_admin_client.get_task_monitor().wait_for_success(
+                task=task)
+        except Exception as e:
+            pass
 
     def test_0070_update_disk(self):
-        vdc = Environment.get_default_vdc(TestDisk._client)
+        vdc = Environment.get_test_vdc(TestDisk._client)
 
         result = vdc.update_disk(
             name=self._idisk1_name,
@@ -180,7 +201,7 @@ class TestDisk(BaseTestCase):
         self.assertEqual(disk.get('size'), str(self._idisk1_new_size))
         self.assertEqual(disk.Description, self._idisk1_new_description)
 
-        # return disk 1 to original name
+        # return disk 1 to original state
         result = vdc.update_disk(
             name=self._idisk1_new_name,
             new_name=self._idisk1_name,
@@ -198,10 +219,10 @@ class TestDisk(BaseTestCase):
         disks_to_delete = [TestDisk._idisk1_id,
                            TestDisk._idisk2_id,
                            TestDisk._idisk3_id]
-        org_admin_client = Environment.get_client(
+        org_admin_client = Environment.get_client_in_default_org(
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
         for disk_id in disks_to_delete:
-            vdc = Environment.get_default_vdc(org_admin_client)
+            vdc = Environment.get_test_vdc(org_admin_client)
 
             task = vdc.delete_disk(disk_id=disk_id)
             org_admin_client.get_task_monitor().wait_for_success(task=task)

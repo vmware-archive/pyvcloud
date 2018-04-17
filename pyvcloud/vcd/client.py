@@ -24,18 +24,19 @@ import urllib
 from flufl.enum import Enum
 from lxml import etree
 from lxml import objectify
-
-from pyvcloud.vcd.exceptions import VcdResponseException, BadRequestException,\
-    UnauthorizedException, AccessForbiddenException, NotFoundException, \
-    MethodNotAllowedException, NotAcceptableException, ConflictException, \
-    UnsupportedMediaTypeException, InvalidContentLengthException, \
-    InternalServerException, UnknownApiException, \
-    OperationNotSupportedException, EntityNotFoundException, \
-    MissingLinkException, MissingRecordException, ClientException, \
-    TaskTimeoutException, VcdTaskException, MultipleRecordsException, \
-    MultipleLinksException  # NOQA
-
 import requests
+
+from pyvcloud.vcd.exceptions import AccessForbiddenException, \
+    BadRequestException, ClientException, ConflictException, \
+    EntityNotFoundException, InternalServerException, \
+    InvalidContentLengthException, MethodNotAllowedException, \
+    MissingLinkException, MissingRecordException, MultipleLinksException, \
+    MultipleRecordsException, NotAcceptableException, NotFoundException, \
+    OperationNotSupportedException, TaskTimeoutException, \
+    UnauthorizedException, UnknownApiException, UnsupportedMediaTypeException, \
+    VcdResponseException, VcdTaskException   # NOQA
+
+
 
 SIZE_1MB = 1024 * 1024
 

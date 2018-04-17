@@ -24,9 +24,19 @@ import urllib
 from flufl.enum import Enum
 from lxml import etree
 from lxml import objectify
+
+from pyvcloud.vcd.exceptions import VcdResponseException, BadRequestException,\
+    UnauthorizedException, AccessForbiddenException, NotFoundException, \
+    MethodNotAllowedException, NotAcceptableException, ConflictException, \
+    UnsupportedMediaTypeException, InvalidContentLengthException, \
+    InternalServerException, UnknownApiException, \
+    OperationNotSupportedException, EntityNotFoundException, \
+    MissingLinkException, MissingRecordException, ClientException, \
+    TaskTimeoutException, VcdTaskException, MultipleRecordsException, \
+    MultipleLinksException  # NOQA
+
 import requests
 
-from pyvcloud.vcd.exceptions import *  # noqa ignore=F405
 SIZE_1MB = 1024 * 1024
 
 NSMAP = {
@@ -580,8 +590,6 @@ class Client(object):
             media_type=media_type)
         sc = response.status_code
 
-        print("inside do request %s" ,sc)
-
         if 200 <= sc <= 299:
             return _objectify_response(response, objectify_results)
 
@@ -591,13 +599,11 @@ class Client(object):
                 _objectify_response(response, objectify_results))
 
         if sc == 401:
-            print("inside 401")
             raise UnauthorizedException(
                 sc, self._get_response_request_id(response),
                 _objectify_response(response, objectify_results))
 
         if sc == 403:
-            print("this is 403")
             raise AccessForbiddenException(
                 sc, self._get_response_request_id(response),
                 _objectify_response(response, objectify_results))
@@ -771,7 +777,8 @@ class Client(object):
         """
         try:
             return self.put_resource(
-                find_link(resource, rel, media_type).href, contents, media_type)
+                find_link(resource, rel, media_type).href, contents,
+                media_type)
         except MissingLinkException as e:
             raise OperationNotSupportedException from e
 
@@ -796,7 +803,8 @@ class Client(object):
         """
         try:
             return self.post_resource(
-                find_link(resource, rel, media_type).href, contents, media_type)
+                find_link(resource, rel, media_type).href, contents,
+                media_type)
         except MissingLinkException as e:
             raise OperationNotSupportedException from e
 
@@ -817,7 +825,6 @@ class Client(object):
         try:
             return self.get_resource(find_link(resource, rel, media_type).href)
         except MissingLinkException as e:
-            print('missing excepton')
             raise OperationNotSupportedException from e
 
     def delete_resource(self, uri, force=False, recursive=False):
@@ -831,7 +838,8 @@ class Client(object):
             mediaType in the specified resource.
         """
         try:
-            return self.delete_resource(find_link(resource, rel, media_type).href)
+            return self.delete_resource(
+                find_link(resource, rel, media_type).href)
         except MissingLinkException as e:
             raise OperationNotSupportedException from e
 

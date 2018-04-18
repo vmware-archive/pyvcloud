@@ -220,6 +220,7 @@ class Platform(object):
                        vc_server_host,
                        vc_admin_user,
                        vc_admin_pwd,
+                       vc_root_folder=None,
                        nsx_server_name=None,
                        nsx_host=None,
                        nsx_admin_user=None,
@@ -231,6 +232,7 @@ class Platform(object):
         :param: vc_server_host: (str): FQDN or IP address of VC host.
         :param: vc_admin_user: (str): vc_admin user.
         :param: vc_admin_pwd: (str): vc_admin password.
+        :param: vc_root_folder: (str): vc root folder.
         :param: nsx_server_name: (str): NSX server name.
         :param: nsx_host (str): FQDN or IP address of NSX host.
         :param: nsx_admin_user: (str): NSX admin user.
@@ -245,6 +247,8 @@ class Platform(object):
         vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
         if is_enabled is not None:
             vc_server.append(E_VMEXT.IsEnabled(is_enabled))
+        if vc_root_folder is not None:
+            vc_server.append(E_VMEXT.rootFolder(vc_root_folder))
         register_vc_server_params.append(vc_server)
         if nsx_server_name is not None:
             nsx_manager = E_VMEXT.ShieldManager(name=nsx_server_name)

@@ -50,7 +50,7 @@ class TestDisk(BaseTestCase):
                 print('Reusing ' + TestDisk._idisk1_name)
                 TestDisk._idisk1_id = disk.get('id')[16:]
             elif TestDisk._idisk2_id is None and disk.get('name').lower() \
-              == self._idisk2_name and str(disk.Description).lower() \ # NOQA
+              == self._idisk2_name and str(disk.Description).lower() \
               == self._idisk2_description.lower(): # NOQA
                 print('Reusing ' + TestDisk._idisk2_name)
                 TestDisk._idisk2_id = disk.get('id')[16:]

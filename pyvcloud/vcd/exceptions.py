@@ -182,6 +182,14 @@ class NotAcceptableException(VcdResponseException):
                                                      vcd_error)
 
 
+class RequestTimeoutException(VcdResponseException):
+    """Raised when vcd returns 408 response code."""
+
+    def __init__(self, status_code, request_id, vcd_error):
+        super(RequestTimeoutException, self).__init__(status_code, request_id,
+                                                      vcd_error)
+
+
 class ConflictException(VcdResponseException):
     """Raised when vcd returns 409 response code."""
 

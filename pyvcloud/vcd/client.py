@@ -32,8 +32,8 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     InvalidContentLengthException, MethodNotAllowedException, \
     MissingLinkException, MissingRecordException, MultipleLinksException, \
     MultipleRecordsException, NotAcceptableException, NotFoundException, \
-    OperationNotSupportedException, TaskTimeoutException, \
-    UnauthorizedException, UnknownApiException, \
+    OperationNotSupportedException, RequestTimeoutException,\
+    TaskTimeoutException, UnauthorizedException, UnknownApiException, \
     UnsupportedMediaTypeException, VcdException, VcdResponseException, \
     VcdTaskException  # NOQA
 
@@ -620,6 +620,11 @@ class Client(object):
 
         if sc == 406:
             raise NotAcceptableException(
+                sc, self._get_response_request_id(response),
+                _objectify_response(response, objectify_results))
+
+        if sc == 408:
+            raise RequestTimeoutException(
                 sc, self._get_response_request_id(response),
                 _objectify_response(response, objectify_results))
 

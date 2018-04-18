@@ -35,7 +35,7 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     OperationNotSupportedException, TaskTimeoutException, \
     UnauthorizedException, UnknownApiException, \
     UnsupportedMediaTypeException, VcdResponseException, \
-    VcdTaskException   # NOQA
+    VcdTaskException, VcdException  # NOQA
 
 
 SIZE_1MB = 1024 * 1024
@@ -513,7 +513,7 @@ class Client(object):
                 sc,
                 self._get_response_request_id(response),
                 r) if r is not None else \
-                Exception('Login failed.')
+                VcdException('Login failed.')
 
         session = objectify.fromstring(response.content)
         self._session_endpoints = _get_session_endpoints(session)
@@ -545,8 +545,7 @@ class Client(object):
             raise VcdResponseException(
                 sc,
                 self._get_response_request_id(response),
-                _objectify_response(response)) if sc == 401 else \
-                Exception("Unknown login failure")
+                _objectify_response(response))
 
         session = objectify.fromstring(response.content)
 

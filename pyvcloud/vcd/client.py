@@ -34,7 +34,7 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     MultipleRecordsException, NotAcceptableException, NotFoundException, \
     OperationNotSupportedException, TaskTimeoutException, \
     UnauthorizedException, UnknownApiException, \
-    UnsupportedMediaTypeException, VcdException,  VcdResponseException, \
+    UnsupportedMediaTypeException, VcdException, VcdResponseException, \
     VcdTaskException  # NOQA
 
 

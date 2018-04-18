@@ -34,8 +34,8 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     MultipleRecordsException, NotAcceptableException, NotFoundException, \
     OperationNotSupportedException, TaskTimeoutException, \
     UnauthorizedException, UnknownApiException, \
-    UnsupportedMediaTypeException, VcdResponseException, \
-    VcdTaskException, VcdException  # NOQA
+    UnsupportedMediaTypeException, VcdException,  VcdResponseException, \
+    VcdTaskException  # NOQA
 
 
 SIZE_1MB = 1024 * 1024

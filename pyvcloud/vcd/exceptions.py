@@ -23,7 +23,7 @@ class VcdException(SDKException):
 
 
 class ClientException(SDKException):
-    """Base class for all client related Exceptions."""
+    """Base class for all exceptions arising in the client(pyvcloud)."""
 
 
 class VcdResponseException(VcdException):
@@ -144,8 +144,8 @@ class UnauthorizedException(VcdResponseException):
     """Raised when vcd returns 401 response code."""
 
     def __init__(self, status_code, request_id, vcd_error):
-        super(BadRequestException, self).__init__(status_code, request_id,
-                                                  vcd_error)
+        super(UnauthorizedException, self).__init__(status_code, request_id,
+                                                    vcd_error)
 
 
 class AccessForbiddenException(VcdResponseException):

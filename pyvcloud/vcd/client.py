@@ -509,11 +509,12 @@ class Client(object):
                 r = _objectify_response(response)
             except Exception:
                 pass
-            raise VcdResponseException(
-                sc,
-                self._get_response_request_id(response),
-                r) if r is not None else \
-                VcdException('Login failed.')
+            if r is not None:
+                self._response_code_to_exception(
+                    sc,
+                    self._get_response_request_id(response), r)
+            else:
+                raise VcdException('Login failed.')
 
         session = objectify.fromstring(response.content)
         self._session_endpoints = _get_session_endpoints(session)
@@ -542,10 +543,8 @@ class Client(object):
                                          new_session)
         sc = response.status_code
         if sc != 200:
-            raise VcdResponseException(
-                sc,
-                self._get_response_request_id(response),
-                _objectify_response(response))
+            self._response_code_to_exception(sc, self._get_response_request_id(
+                response), _objectify_response(response))
 
         session = objectify.fromstring(response.content)
 
@@ -593,64 +592,47 @@ class Client(object):
         if 200 <= sc <= 299:
             return _objectify_response(response, objectify_results)
 
+        self._response_code_to_exception(sc, self._get_response_request_id(
+            response), _objectify_response(response, objectify_results))
+
+    @staticmethod
+    def _response_code_to_exception(sc, request_id, objectify_response):
         if sc == 400:
-            raise BadRequestException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise BadRequestException(sc, request_id, objectify_response)
 
         if sc == 401:
-            raise UnauthorizedException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise UnauthorizedException(sc, request_id, objectify_response)
 
         if sc == 403:
-            raise AccessForbiddenException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise AccessForbiddenException(sc, request_id, objectify_response)
 
         if sc == 404:
-            raise NotFoundException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise NotFoundException(sc, request_id, objectify_response)
 
         if sc == 405:
-            raise MethodNotAllowedException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise MethodNotAllowedException(sc, request_id, objectify_response)
 
         if sc == 406:
-            raise NotAcceptableException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise NotAcceptableException(sc, request_id, objectify_response)
 
         if sc == 408:
-            raise RequestTimeoutException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise RequestTimeoutException(sc, request_id, objectify_response)
 
         if sc == 409:
-            raise ConflictException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise ConflictException(sc, request_id, objectify_response)
 
         if sc == 415:
-            raise UnsupportedMediaTypeException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise UnsupportedMediaTypeException(sc, request_id,
+                                                objectify_response)
 
         if sc == 416:
-            raise InvalidContentLengthException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise InvalidContentLengthException(sc, request_id,
+                                                objectify_response)
 
         if sc == 500:
-            raise InternalServerException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise InternalServerException(sc, request_id, objectify_response)
 
-        raise UnknownApiException(
-            sc, self._get_response_request_id(response),
-            _objectify_response(response, objectify_results))
+        raise UnknownApiException(sc, request_id, objectify_response)
 
     def _do_request_prim(self,
                          method,

@@ -811,7 +811,8 @@ class Client(object):
                 find_link(resource, rel, media_type).href, contents,
                 media_type)
         except MissingLinkException as e:
-            raise OperationNotSupportedException from e
+            raise OperationNotSupportedException(
+                "Operation is not supported").with_traceback(e.__traceback__)
 
     def get_resource(self, uri, objectify_results=True):
         """Gets the specified contents to the specified resource.
@@ -830,7 +831,8 @@ class Client(object):
         try:
             return self.get_resource(find_link(resource, rel, media_type).href)
         except MissingLinkException as e:
-            raise OperationNotSupportedException from e
+            raise OperationNotSupportedException(
+                "Operation is not supported").with_traceback(e.__traceback__)
 
     def delete_resource(self, uri, force=False, recursive=False):
         full_uri = '%s?force=%s&recursive=%s' % (uri, force, recursive)
@@ -846,7 +848,8 @@ class Client(object):
             return self.delete_resource(
                 find_link(resource, rel, media_type).href)
         except MissingLinkException as e:
-            raise OperationNotSupportedException from e
+            raise OperationNotSupportedException(
+                "Operation is not supported").with_traceback(e.__traceback__)
 
     def get_admin(self):
         """Returns the "admin" root resource type."""

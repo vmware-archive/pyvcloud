@@ -411,7 +411,8 @@ class Org(object):
         except Exception as e:
             print(traceback.format_exc())
             shutil.rmtree(tempdir)
-            raise UploadException("Ovf upload failed") from e
+            raise UploadException("Ovf upload failed").with_traceback(
+                e.__traceback__)
         return total_bytes
 
     def get_vdc(self, name):

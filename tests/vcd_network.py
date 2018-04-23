@@ -54,6 +54,23 @@ class TestNetwork(TestCase):
             task=result.Tasks.Task[0])
         assert task.get('status') == TaskStatus.SUCCESS.value
 
+    def test_025_create_natrouted_orgvdc_network(self):
+        org_record = self.client.get_org_by_name(
+            self.config['vcd']['org_name'])
+        org = Org(self.client, href=org_record.get('href'))
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+
+        result = vdc.create_natrouted_vdc_network(
+            network_name=self.config['vcd']['vdc_natrouted_network_name'],
+            gateway_name=self.config['vcd']['natrouted_network_gateway_name'],
+            gateway_ip=self.config['vcd']['natrouted_network_gateway_ip'],
+            netmask=self.config['vcd']['natrouted_network_gateway_netmask'],
+            description='Dummy description')
+        task = self.client.get_task_monitor().wait_for_success(
+            task=result.Tasks.Task[0])
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
     def test_030_list_external_networks(self):
         platform = Platform(self.client)
         ext_net_refs = platform.list_external_networks()
@@ -79,6 +96,15 @@ class TestNetwork(TestCase):
         result = vdc.list_orgvdc_isolated_networks()
         assert len(result) > 0
 
+    def test_060_list_natrouted_orgvdc_networks(self):
+        org_record = self.client.get_org_by_name(
+            self.config['vcd']['org_name'])
+        org = Org(self.client, href=org_record.get('href'))
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+
+        result = vdc.list_orgvdc_natrouted_networks()
+
     def test_190_delete_direct_orgvdc_networks(self):
         org_record = self.client.get_org_by_name(
             self.config['vcd']['org_name'])
@@ -101,6 +127,19 @@ class TestNetwork(TestCase):
 
         result = vdc.delete_isolated_orgvdc_network(
             name=self.config['vcd']['vdc_isolated_network_name'], force=True)
+        task = self.client.get_task_monitor().wait_for_success(
+            task=result)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
+    def test_210_delete_natrouted_orgvdc_networks(self):
+        org_record = self.client.get_org_by_name(
+            self.config['vcd']['org_name'])
+        org = Org(self.client, href=org_record.get('href'))
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+
+        result = vdc.delete_natrouted_orgvdc_network(
+            name=self.config['vcd']['vdc_natrouted_network_name'], force=True)
         task = self.client.get_task_monitor().wait_for_success(
             task=result)
         assert task.get('status') == TaskStatus.SUCCESS.value

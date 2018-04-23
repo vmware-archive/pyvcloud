@@ -241,7 +241,7 @@ class TestVApp(TestCase):
         assert found_disk
 
         # cleanup
-        self.test_100_delete_vapp()
+        self.test_1000_delete_vapp()
 
     def test_1000_delete_vapp(self):
         logged_in_org = self.client.get_org()

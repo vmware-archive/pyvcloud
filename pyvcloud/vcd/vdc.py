@@ -855,6 +855,108 @@ class VDC(object):
             self.resource, RelationType.ADD, EntityType.ORG_VDC_NETWORK.value,
             request_payload)
 
+    def create_natrouted_vdc_network(self,
+                                     network_name,
+                                     gateway_name,
+                                     gateway_ip,
+                                     netmask,
+                                     description=None,
+                                     primary_dns_ip=None,
+                                     secondary_dns_ip=None,
+                                     dns_suffix=None,
+                                     ip_range_start=None,
+                                     ip_range_end=None,
+                                     is_dhcp_enabled=None,
+                                     default_lease_time=None,
+                                     max_lease_time=None,
+                                     dhcp_ip_range_start=None,
+                                     dhcp_ip_range_end=None,
+                                     is_shared=None):
+        """Create a new natRouted OrgVdc network in this vdc.
+
+        :param network_name: (str): Name of the new network.
+        :param gateway_name: (str): The name of an existing edge Gateway appliance that will manage the virtual network.
+        :param gateway_ip: (str): IP address of the gateway of the new network.
+        :param netmask: (str): Network mask.
+        :param description: (str): Description of the new network.
+        :param primary_dns_ip: (str): IP address of primary DNS server.
+        :param secondary_dns_ip: (str): IP address of secondary DNS Server.
+        :param dns_suffix: (str): DNS suffix.
+        :param ip_range_start: (str): Start address of the IP ranges used for
+            static pool allocation in the network.
+        :param ip_range_end: (str): End address of the IP ranges used for
+            static pool allocation in the network.
+        :param is_dhcp_enabled: (bool): Is DHCP service enabled on the new
+            network.
+        :param default_lease_time: (int): Default lease in seconds for DHCP
+            addresses.
+        :param max_lease_time: (int): Max lease in seconds for DHCP addresses.
+        :param dhcp_ip_range_start: (str): Start address of the IP range
+            used for DHCP addresses.
+        :param dhcp_ip_range_end: (str): End address of the IP range used for
+            DHCP addresses.
+        :param is_shared: (bool): True, if the network is shared with other
+            vdc(s) in the organization, else False.
+
+        :return: A :class:`lxml.objectify.StringElement` object representing
+            a sparsely populated OrgVdcNetwork element.
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        request_payload = E.OrgVdcNetwork(name=network_name)
+        if description is not None:
+            request_payload.append(E.Description(description))
+
+        vdc_network_configuration = E.Configuration()
+        ip_scope = E.IpScope()
+        ip_scope.append(E.IsInherited('false'))
+        ip_scope.append(E.Gateway(gateway_ip))
+        ip_scope.append(E.Netmask(netmask))
+        if primary_dns_ip is not None:
+            ip_scope.append(E.Dns1(primary_dns_ip))
+        if secondary_dns_ip is not None:
+            ip_scope.append(E.Dns2(secondary_dns_ip))
+        if dns_suffix is not None:
+            ip_scope.append(E.DnsSuffix(dns_suffix))
+        if ip_range_start is not None and ip_range_end is not None:
+            ip_range = E.IpRange()
+            ip_range.append(E.StartAddress(ip_range_start))
+            ip_range.append(E.EndAddress(ip_range_end))
+            ip_scope.append(E.IpRanges(ip_range))
+        vdc_network_configuration.append(E.IpScopes(ip_scope))
+        vdc_network_configuration.append(E.FenceMode(FenceMode.NAT_ROUTED.value))
+        request_payload.append(vdc_network_configuration)
+
+        # list_edge_gateways
+        gws = self.list_edge_gateways()
+        gateway_href = None
+        for gw in gws:
+            if gw['name'] == gateway_name:
+                gateway_href = gw['href']
+        request_payload.append(E.EdgeGateway(name=gateway_name, href=gateway_href))
+
+        dhcp_service = E.DhcpService()
+        if is_dhcp_enabled is not None:
+            dhcp_service.append(E.IsEnabled(is_dhcp_enabled))
+        if default_lease_time is not None:
+            dhcp_service.append(E.DefaultLeaseTime(str(default_lease_time)))
+        if max_lease_time is not None:
+            dhcp_service.append(E.MaxLeaseTime(str(max_lease_time)))
+        if dhcp_ip_range_start is not None and dhcp_ip_range_end is not None:
+            dhcp_ip_range = E.IpRange()
+            dhcp_ip_range.append(E.StartAddress(dhcp_ip_range_start))
+            dhcp_ip_range.append(E.EndAddress(dhcp_ip_range_end))
+            dhcp_service.append(dhcp_ip_range)
+        request_payload.append(E.ServiceConfig(dhcp_service))
+
+        if is_shared is not None:
+            request_payload.append(E.IsShared(is_shared))
+
+        return self.client.post_linked_resource(
+            self.resource, RelationType.ADD, EntityType.ORG_VDC_NETWORK.value,
+            request_payload)
+
     def create_isolated_vdc_network(self,
                                     network_name,
                                     gateway_ip,
@@ -1012,6 +1114,15 @@ class VDC(object):
         return self.list_orgvdc_network_resources(
             type=FenceMode.ISOLATED.value)
 
+    def list_orgvdc_natrouted_networks(self):
+        """Fetch all isolated orgvdc networks in the current vdc.
+
+        :return:  A list of :class:`lxml.objectify.StringElement` objects
+            representing all isolated orgvdc network resources.
+        """
+        return self.list_orgvdc_network_resources(
+            type=FenceMode.NAT_ROUTED.value)
+
     def get_direct_orgvdc_network(self, name):
         """Retrieve a directly connected orgvdc network in the current vdc.
 
@@ -1046,6 +1157,23 @@ class VDC(object):
                 'OrgVdc network with name \'%s\' not found.' % name)
         return result[0]
 
+    def get_natrouted_orgvdc_network(self, name):
+        """Retrieve a natRouted orgvdc network in the current vdc.
+
+        :param name: (str): Name of the orgvdc network we want to retrieve.
+
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            a natRouted orgvdc network resource.
+
+        :raises: Exception: If orgvdc network with the given name is not found.
+        """
+        result = self.list_orgvdc_network_resources(
+            name=name, type=FenceMode.NAT_ROUTED.value)
+        if len(result) == 0:
+            raise Exception(
+                'OrgVdc network with name \'%s\' not found.' % name)
+        return result[0]
+
     def delete_direct_orgvdc_network(self, name, force=False):
         """Delete a directly connected orgvdc network in the current vdc.
 
@@ -1077,5 +1205,22 @@ class VDC(object):
         :raises: Exception: If orgvdc network with the given name is not found.
         """
         net_resource = self.get_isolated_orgvdc_network(name)
+        return self.client.delete_resource(
+            net_resource.get('href'), force=force)
+
+    def delete_natrouted_orgvdc_network(self, name, force=False):
+        """Delete an isolated orgvdc network in the current vdc.
+
+        :param name: (str): Name of the orgvdc network to be deleted.
+        :param force: (bool): If True, will instruct vcd to force delete
+            the network, ignoring whether it's connected to a vm or vapp
+            network or not.
+
+        :return:  A :class:`lxml.objectify.StringElement` object describing
+            the asynchronous task that's deleting the network.
+
+        :raises: Exception: If orgvdc network with the given name is not found.
+        """
+        net_resource = self.get_natrouted_orgvdc_network(name)
         return self.client.delete_resource(
             net_resource.get('href'), force=force)

@@ -35,6 +35,29 @@ from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import to_dict
 from pyvcloud.vcd.vdc import VDC
 
+# Helper functions for creating VDCs.
+def _fill_in_pvdc_default(client, vdc_kwargs):
+    """Convert '*' value to a default pvcd name"""
+    pvdc_name = vdc_kwargs['provider_vdc_name']
+    if pvdc_name == '*':
+        system = System(client, admin_resource=client.get_admin())
+        pvdc_refs = system.list_provider_vdcs()
+        for pvdc_ref in pvdc_refs:
+            pvdc_name = pvdc_ref.get('name')
+            print("Defaulting to first pvdc: {0}".format(pvdc_name))
+            vdc_kwargs['provider_vdc_name'] = pvdc_name
+
+def _fill_in_netpool_default(client, vdc_kwargs):
+    """Convert '*' value to a default netpool name"""
+    netpool_name = vdc_kwargs['network_pool_name']
+    if netpool_name == '*':
+        system = System(client, admin_resource=client.get_admin())
+        netpools = system.list_network_pools()
+        for netpool in netpools:
+            netpool_name = netpool.get('name')
+            print("Defaulting to first netpool: {0}".format(netpool_name))
+            vdc_kwargs['network_pool_name'] = netpool_name
+
 # Collect arguments.
 if len(sys.argv) != 2:
     print("Usage: python3 {0} config_file".format(sys.argv[0]))
@@ -110,6 +133,11 @@ try:
 except Exception:
     print("VDC does not exist, creating: {0}".format(cfg.vdc['vdc_name']))
     vdc_kwargs = cfg.vdc
+    # Vet the netpool and pvcd arguments as either can be '*' in which 
+    # case we need to find default values. 
+    _fill_in_pvdc_default(client, vdc_kwargs)
+    _fill_in_netpool_default(client, vdc_kwargs)
+    # Now create the VDC.  
     admin_vdc_resource = org.create_org_vdc(**vdc_kwargs)
     # The 'admin_vdc_resource' is not a task but an AdminVdc entity.  Tasks
     # are two levels down.
@@ -243,3 +271,4 @@ for vapp_cfg in cfg.vapps:
 # Log out.
 print("All done!")
 client.logout()
+

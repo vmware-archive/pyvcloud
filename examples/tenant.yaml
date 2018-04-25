@@ -2,11 +2,11 @@
 # CONNECTION INFORMATION #
 ##########################
 
-# Fill in the vCloud Dirctor host and sysadmin information here.  This 
-# account will be used to issue tenant setup commands. 
-vcd_host: "192.168.120.5"
-vcd_admin_user: "administrator"
-vcd_admin_password: "********"
+# Fill in the vCloud Director host and sysadmin information here.  This 
+# account will be used to issue tenant setup commands.  
+vcd_host: "${VCD_HOST}"
+vcd_admin_user: "${VCD_USER}"
+vcd_admin_password: "${VCD_PASSWORD}"
 
 #####################
 # TENANT DEFINITION #
@@ -22,16 +22,17 @@ org: "Test1"
 # A user that we will create. 
 user: 
   name: "user1"
-  password: "********"
+  password: "secret"
   role: "Organization Administrator"
 
 # A VDC that we will create.  The provider_vdc_name, network_pool_name, 
-# and storage profile should match your installation. 
+# and storage profile should match your installation. The foregoing entity 
+# names can be set to '*', in which case we pick the first available value. 
 vdc: 
   vdc_name: "VDC-A"
   description: "Test VDC A"
-  provider_vdc_name: "pvdc-2018-02-08-03-10-22.938"
-  network_pool_name: "pvdc-2018-02-08-03-10-22.938-VXLAN-NP"
+  provider_vdc_name: "*"
+  network_pool_name: "*"
   storage_profiles:
     - name: "*"
       enabled: True
@@ -48,14 +49,10 @@ catalog:
 # One or more items that will be loaded in the catalog. Specify the full
 # path of files. 
 catalog_items: 
-  - item_name: "Photon-1"
-    description: "Photon 1 VM"
+  - item_name: "Test-Vapp"
+    description: "Test vApp"
     catalog_name: "Test-Catalog"
-    file_name: "/home/admin/ovf/photon-custom-hw11-1.0-62c543d.ova"
-  - item_name: "Tiny-Linux"
-    description: "Tiny Linux VM"
-    catalog_name: "Test-Catalog"
-    file_name: "/home/admin/ovf/Tiny-Linux-VM.ova"
+    file_name: "../system_tests/test_vapp_template.ova"
 
 # One or more networks that we would like to create.  In this example only 
 # isolated networks are included. 
@@ -72,19 +69,12 @@ networks:
 # network must match names previously defined in this file or that already
 # exist in vCD. 
 vapps: 
-  - name: "vApp-Photon-1"
+  - name: "Test-Vapp-1"
     catalog: "Test-Catalog"
-    template: "Photon-1"
+    template: "Test-Vapp"
     network: "isolated-network-1"
     ip_allocation_mode: "pool"
     accept_all_eulas: "True"
-    password: "secret"
+    password: "vmware"
     vm_name: "Demo-VM"
     hostname: "Demo-Host"
-  - name: "vApp-Tiny-Linux"
-    catalog: "Test-Catalog"
-    template: "Tiny-Linux"
-    network: "isolated-network-1"
-    accept_all_eulas: "True"
-    vm_name: "Tiny-VM"
-    hostname: "Tiny-Host"

@@ -97,53 +97,24 @@ class Platform(object):
                 return self.client.get_resource(ext_net.get('href'))
         raise Exception('External network \'%s\' not found.' % name)
 
-    def get_vxlan_network_pool(self, vxlan_network_pool_name):
-        """Fetch a vxlan_network_pool by its name.
+    def get_obj_by_name(self, obj_type, obj_name):
+        """Fetch an object by its name.
 
-        :param: vxlan_network_pool_name (str): name of the vxlan_network_pool.
-        :return: (lxml.objectify.ObjectifiedElement): vxlan_network_pool.
-        :raises: Exception: If the named vxlan_network_pool cannot be found.
+        :param: obj_type (str): type of the object.
+        :param: obj_name (str): name of the object.
+        :return: (lxml.objectify.ObjectifiedElement): object record.
+        :raises: Exception: if the named object cannot be found.
         """
-        query_filter = 'name==%s' % urllib.parse.quote_plus(
-            vxlan_network_pool_name)
-        query = self.client.get_typed_query(
-            'networkPool',
-            query_result_format=QueryResultFormat.RECORDS,
-            qfilter=query_filter)
-        records = list(query.execute())
-        vxlan_network_pool_record = None
-        for record in records:
-            if vxlan_network_pool_name == record.get('name'):
-                vxlan_network_pool_record = record
-                break
-        if vxlan_network_pool_record is not None:
-            return vxlan_network_pool_record
-        raise Exception('vxlan_network_pool \'%s\' not found' %
-                        vxlan_network_pool_name)
-
-    def get_nsxt_manager(self, nsxt_manager_name):
-        """Fetch an nsxt_manager_record by its name.
-
-        :param: nsxt_manager_record (str): name of nsx-t manager.
-        :return: (lxml.objectify.ObjectifiedElement): nsxt_manager_record.
-        :raises: Exception: if the named nsxt_manager_name cannot be found.
-        """
-        query_filter = 'name==%s' % urllib.parse.quote_plus(
-            nsxt_manager_name)
-        query = self.client.get_typed_query(
-            'nsxTManager',
-            query_result_format=QueryResultFormat.RECORDS,
-            qfilter=query_filter)
-        records = list(query.execute())
-        nsxt_manager_record = None
-        for record in records:
-            if nsxt_manager_name == record.get('name'):
-                nsxt_manager_record = record
-                break
-        if nsxt_manager_record is not None:
-            return nsxt_manager_record
-        raise Exception('nsxt_manager_name \'%s\' not found' %
-                        nsxt_manager_name)
+        query_filter = 'name==%s' % urllib.parse.quote_plus(obj_name)
+        record = self.client.get_typed_query(
+            obj_type,
+            query_result_format=QueryResultFormat.REFERENCES,
+            qfilter=query_filter).find_unique()
+        if obj_name == record.get('name'):
+            return record
+        else:
+            raise Exception('obj_type: \'%s\' obj_name: \'%s\' not found' %
+                            obj_type, obj_name)
 
     def get_resource_pool_morefs(self, vc_name, vc_href, resource_pool_names):
         """Fetch list of morefs for a given list of resource_pool_names.
@@ -216,13 +187,14 @@ class Platform(object):
         vmw_prov_vdc_params.append(resource_pool_refs)
         vmw_prov_vdc_params.append(E_VMEXT.VimServer(href=vc_href))
         if vxlan_network_pool is not None:
-            vxlan_network_pool_record = self.get_vxlan_network_pool(
-                vxlan_network_pool)
-            vx_href = vxlan_network_pool_record.get('href')
+            network_pool_record = self.get_obj_by_name('networkPool',
+                                                       vxlan_network_pool)
+            vx_href = network_pool_record.get('href')
             vmw_prov_vdc_params.append(E_VMEXT.VxlanNetworkPool(
                 href=vx_href))
         if nsxt_manager_name is not None:
-            nsxt_manager_record = self.get_nsxt_manager(nsxt_manager_name)
+            nsxt_manager_record = self.get_obj_by_name('nsxTManager',
+                                                       nsxt_manager_name)
             nsxt_href = nsxt_manager_record.get('href')
             vmw_prov_vdc_params.append(E_VMEXT.NsxTManagerReference(
                 href=nsxt_href))

@@ -98,7 +98,7 @@ class Platform(object):
         raise Exception('External network \'%s\' not found.' % name)
 
     def get_vxlan_network_pool(self, vxlan_network_pool_name):
-        """Fetch a vxlan_networ_pool by its name.
+        """Fetch a vxlan_network_pool by its name.
 
         :param: vxlan_network_pool_name (str): name of the vxlan_network_pool.
         :return: (lxml.objectify.ObjectifiedElement): vxlan_network_pool.
@@ -228,10 +228,10 @@ class Platform(object):
                        is_enabled=None):
         """Register (attach) a VirtualCenter server (also known as VimServer).
 
-        :param: vc_server_name: (str): vc_server_name (VC name).
-        :param: vc_server_host: (str): FQDN or IP address of VC host.
-        :param: vc_admin_user: (str): vc_admin user.
-        :param: vc_admin_pwd: (str): vc_admin password.
+        :param: vc_server_name: (str): vc server name (virtual center name).
+        :param: vc_server_host: (str): FQDN or IP address of vc host.
+        :param: vc_admin_user: (str): vc admin user.
+        :param: vc_admin_pwd: (str): vc admin password.
         :param: vc_root_folder: (str): vc root folder.
         :param: nsx_server_name: (str): NSX server name.
         :param: nsx_host (str): FQDN or IP address of NSX host.

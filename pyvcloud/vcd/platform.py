@@ -98,7 +98,7 @@ class Platform(object):
         raise Exception('External network \'%s\' not found.' % name)
 
     def get_vxlan_network_pool(self, vxlan_network_pool_name):
-        """Fetch a vxlan_networ_pool by its name.
+        """Fetch a vxlan_network_pool by its name.
 
         :param: vxlan_network_pool_name (str): name of the vxlan_network_pool.
         :return: (lxml.objectify.ObjectifiedElement): vxlan_network_pool.
@@ -120,6 +120,30 @@ class Platform(object):
             return vxlan_network_pool_record
         raise Exception('vxlan_network_pool \'%s\' not found' %
                         vxlan_network_pool_name)
+
+    def get_nsxt_manager(self, nsxt_manager_name):
+        """Fetch an nsxt_manager_record by its name.
+
+        :param: nsxt_manager_record (str): name of nsx-t manager.
+        :return: (lxml.objectify.ObjectifiedElement): nsxt_manager_record.
+        :raises: Exception: if the named nsxt_manager_name cannot be found.
+        """
+        query_filter = 'name==%s' % urllib.parse.quote_plus(
+            nsxt_manager_name)
+        query = self.client.get_typed_query(
+            'nsxTManager',
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=query_filter)
+        records = list(query.execute())
+        nsxt_manager_record = None
+        for record in records:
+            if nsxt_manager_name == record.get('name'):
+                nsxt_manager_record = record
+                break
+        if nsxt_manager_record is not None:
+            return nsxt_manager_record
+        raise Exception('nsxt_manager_name \'%s\' not found' %
+                        nsxt_manager_name)
 
     def get_resource_pool_morefs(self, vc_name, vc_href, resource_pool_names):
         """Fetch list of morefs for a given list of resource_pool_names.
@@ -158,7 +182,8 @@ class Platform(object):
                             is_enabled=None,
                             description=None,
                             highest_hw_vers=None,
-                            vxlan_network_pool=None):
+                            vxlan_network_pool=None,
+                            nsxt_manager_name=None):
         """Create a Provider Virtual Datacenter.
 
         :param: vim_server_name: (str): vim_server_name (VC name).
@@ -169,6 +194,7 @@ class Platform(object):
         :param: description: (str): description of pvdc.
         :param: highest_hw_vers: (str): highest supported hw vers number.
         :param: vxlan_network_pool: (str): name of vxlan_network_pool.
+        :param: nsxt_manager_name: (str): name of nsx-t manager.
         :return: A :class:lxml.objectify.StringElement object describing the
         :        new provider VDC.
         """
@@ -195,6 +221,11 @@ class Platform(object):
             vx_href = vxlan_network_pool_record.get('href')
             vmw_prov_vdc_params.append(E_VMEXT.VxlanNetworkPool(
                 href=vx_href))
+        if nsxt_manager_name is not None:
+            nsxt_manager_record = self.get_nsxt_manager(nsxt_manager_name)
+            nsxt_href = nsxt_manager_record.get('href')
+            vmw_prov_vdc_params.append(E_VMEXT.NsxTManagerReference(
+                href=nsxt_href))
         if highest_hw_vers is not None:
             vmw_prov_vdc_params.append(
                 E_VMEXT.HighestSupportedHardwareVersion(highest_hw_vers))

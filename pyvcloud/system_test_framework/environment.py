@@ -6,6 +6,7 @@ from flufl.enum import Enum
 
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
+from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.vapp import VApp
@@ -274,7 +275,7 @@ class Environment(object):
 
     @classmethod
     def create_ovdc(cls):
-        """Creates an orgvdc by the name specified in the config file, skips
+        """Creates an orgvdc with the name specified in the config file, skips
             creating one, if such an orgvdc already exists. Also stores the
             href of the orgvdc as class variable for future use.
 
@@ -317,6 +318,7 @@ class Environment(object):
             ovdc_name,
             cls._pvdc_name,
             network_pool_name=netpool_to_use,
+            network_quota=cls._config['vcd']['default_network_quota'],
             storage_profiles=storage_profiles,
             uses_fast_provisioning=True,
             is_thin_provision=True)
@@ -356,6 +358,38 @@ class Environment(object):
             netpool_to_use = netpools[0].get('name')
 
         return netpool_to_use
+
+    @classmethod
+    def create_ovdc_network(cls):
+        """Creates an isolated orgvdc network with the name specified in the
+            config file, skips creating one, if such a network already exists.
+
+        :return: Nothing
+
+        :raises: Exception: If the class variable _ovdc_href is not populated.
+        """
+        cls._basic_check()
+        if cls._ovdc_href is None:
+            raise Exception('OrgVDC ' + cls._config['vcd']['default_ovdc_name']
+                            + ' doesn\'t exist.')
+
+        vdc = VDC(cls._sys_admin_client, href=cls._ovdc_href)
+        net_name = cls._config['vcd']['default_ovdc_network_name']
+        records = vdc.list_orgvdc_network_records()
+
+        for record in records:
+            if record.get('name').lower() == net_name.lower():
+                print('Reusing existing org-vdc network ' + net_name)
+                return
+
+        print('Creating org-vdc network ' + net_name)
+        result = vdc.create_isolated_vdc_network(
+            network_name=net_name,
+            gateway_ip=cls._config['vcd']['default_ovdc_network_gateway_ip'],
+            netmask=cls._config['vcd']['default_ovdc_network_gateway_netmask'])
+
+        cls._sys_admin_client.get_task_monitor()\
+                    .wait_for_success(task=result.Tasks.Task[0])
 
     @classmethod
     def create_catalog(cls):
@@ -409,10 +443,9 @@ class Environment(object):
         catalog_records = org.list_catalogs()
         for catalog_record in catalog_records:
             if catalog_record.get('name').lower() == catalog_name.lower():
-                print('Sharing catalog ' + catalog_name)
-                # TODO : This method is buggy, share_catalog shares with only
-                # org-admins of other orgs - see VCDA-603
-                org.share_catalog(name=catalog_name)
+                print('Sharing catalog ' + catalog_name +
+                      ' to all members of org ' + org.get_name())
+                org.share_catalog_with_org_members(catalog_name=catalog_name)
                 return
 
         raise Exception('Catalog ' + catalog_name + 'doesn\'t exists.')
@@ -541,6 +574,31 @@ class Environment(object):
         :return (str): The username of the concerned user
         """
         return cls._user_name_for_roles[role_name]
+
+    @classmethod
+    def get_default_catalog_name(cls):
+        """Get the name of the default catalog that will be used for testing.
+
+        :return (str): The name of the test catalog.
+        """
+        return cls._config['vcd']['default_catalog_name']
+
+    @classmethod
+    def get_default_template_name(cls):
+        """Get the name of the default template that will be used for testing.
+
+        :return (str): The name of the test template.
+        """
+        return cls._config['vcd']['default_template_file_name']
+
+    @classmethod
+    def get_default_orgvdc_network_name(cls):
+        """Get the name of the default orgvdc network that will be used
+            for testing.
+
+        :return (str): The name of the ogvdc network.
+        """
+        return cls._config['vcd']['default_ovdc_network_name']
 
     @classmethod
     def get_default_vapp(cls, client):

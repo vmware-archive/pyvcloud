@@ -45,6 +45,11 @@ vcd:
   default_storage_profile_name: '*'
 # * = choose first available netpool
   default_netpool_name: '*'
+  default_network_quota: '5'
+
+  default_ovdc_network_name: 'test-isolated-vdc-network'
+  default_ovdc_network_gateway_ip: '10.1.1.1'
+  default_ovdc_network_gateway_netmask: '255.255.255.0'
 
   default_catalog_name: 'test-cat'
   default_template_file_name: 'test_vapp_template.ova'

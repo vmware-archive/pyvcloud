@@ -98,8 +98,8 @@ class Platform(object):
         raise Exception('External network \'%s\' not found.' % name)
 
     def get_vxlan_network_pool(self, vxlan_network_pool_name):
-        """Fetch a vxlan_network_pool by its name. (deprecated function)
-        
+        """[Deprecated] Fetch a vxlan_network_pool by its name.
+
         :param: vxlan_network_pool_name (str): name of the vxlan_network_pool.
         :return: (lxml.objectify.ObjectifiedElement): vxlan_network_pool.
         :raises: Exception: If the named vxlan_network_pool cannot be found.
@@ -120,10 +120,10 @@ class Platform(object):
             return vxlan_network_pool_record
         raise Exception('vxlan_network_pool \'%s\' not found' %
                         vxlan_network_pool_name)
-                        
+
     def get_obj_by_name(self, obj_type, obj_name):
         """Fetch an object by its name.
-        
+
         :param: obj_type (str): type of the object.
         :param: obj_name (str): name of the object.
         :return: (lxml.objectify.ObjectifiedElement): object record.

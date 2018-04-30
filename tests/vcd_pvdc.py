@@ -31,7 +31,6 @@ class TestPVDC(TestCase):
             description=self.config['vcd']['description'],
             highest_hw_vers=self.config['vcd']['highestSuppHWVers'],
             nsxt_manager_name=self.config['vcd']['nsxtManager'])
-            #vxlan_network_pool=self.config['vcd']['vxlanNetworkPool'])
         assert self.config['vcd']['pvdcName'] == pvdc.get('name')
 
 

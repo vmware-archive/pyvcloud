@@ -34,8 +34,7 @@ class TestVApp(TestCase):
             self.config['vcd']['vapp'],
             self.config['vcd']['catalog'],
             self.config['vcd']['template'],
-            network='net2',
-            fence_mode='natRouted',
+            network=self.config['vcd']['vapp_network'],
             deploy=False,
             power_on=False)
         task = self.client.get_task_monitor().wait_for_status(
@@ -60,7 +59,7 @@ class TestVApp(TestCase):
         vapp = vdc.get_vapp(self.config['vcd']['vapp'])
         assert self.config['vcd']['vapp'] == vapp.get('name')
         result = vdc.reconfigure_vapp_network(self.config['vcd']['vapp'],
-                                              'net2',
+                                              self.config['vcd']['vapp_network'],
                                               self.config['vcd']['fence_mode'])
         task = self.client.get_task_monitor().wait_for_status(
             task=result,

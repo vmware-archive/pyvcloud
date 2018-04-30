@@ -99,16 +99,16 @@ class TestVApp(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         logger.debug('Creating empty vApp.')
-        vapp_sparse_resouce = vdc.create_vapp(
+        vapp_sparse_resource = vdc.create_vapp(
             name=TestVApp._empty_vapp_name,
             description=TestVApp._empty_vapp_description,
             accept_all_eulas=True)
 
         task = client.get_task_monitor().wait_for_success(
-            vapp_sparse_resouce.Tasks.Task[0])
+            vapp_sparse_resource.Tasks.Task[0])
         self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
 
-        return vapp_sparse_resouce.get('href')
+        return vapp_sparse_resource.get('href')
 
     def _create_customized_vapp_from_template(self, client, vdc):
         """Helper method to create a customized vApp from template.
@@ -122,7 +122,7 @@ class TestVApp(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         logger.debug('Creating customized vApp.')
-        vapp_sparse_resouce = vdc.instantiate_vapp(
+        vapp_sparse_resource = vdc.instantiate_vapp(
             name=TestVApp._customized_vapp_name,
             catalog=Environment.get_default_catalog_name(),
             template=Environment.get_default_template_name(),
@@ -138,10 +138,10 @@ class TestVApp(BaseTestCase):
             _customized_vapp_vm_network_adapter_type)
 
         task = client.get_task_monitor().wait_for_success(
-            vapp_sparse_resouce.Tasks.Task[0])
+            vapp_sparse_resource.Tasks.Task[0])
         self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
 
-        return vapp_sparse_resouce.get('href')
+        return vapp_sparse_resource.get('href')
 
     def test_0010_get_vapp(self):
         """Test the method vdc.get_vapp().
@@ -340,11 +340,11 @@ class TestVApp(BaseTestCase):
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         # end state of vApp is deployed and partially powered on.
 
-    def test_0050_vapp_network_connection(self):
-        """Test vapp.connect/disconnect_org_vdc_network().
+    def test_0050_vapp_network_connect(self):
+        """Test vapp.connect_org_vdc_network().
 
-        This test passes if the connect and disconnect to orgvdc network
-           operations are successful.
+        This test passes if the connect to orgvdc network
+           operation is successful.
         """
         try:
             logger = Environment.get_default_logger()
@@ -365,6 +365,52 @@ class TestVApp(BaseTestCase):
 
             logger.debug('Disconnecting vApp ' + vapp_name +
                          ' to orgvdc network ' + network_name)
+        finally:
+            client.logout()
+
+    def test_0055_attach_network_to_vm(self):
+        try:
+            client = Environment.get_client_in_default_org(CommonRoles.ORGANIZATION_ADMINISTRATOR)
+
+            vdc = Environment.get_test_vdc(TestVApp._client)
+            vapp_resource = vdc.get_vapp(TestVApp._customized_vapp_name)
+            vms = vapp_resource.xpath(
+                '//vcloud:VApp/vcloud:Children/vcloud:Vm', namespaces=NSMAP)
+            self.assertTrue(len(vms) >= 1)
+            first_vm = vms[0]
+
+            vm_name = first_vm.get('name')
+            self.assertEqual(vm_name, TestVApp._customized_vapp_vm_name)
+            vapp = Environment.get_vapp_in_test_vdc(client=TestVApp._client,
+                                                    vapp_name=TestVApp._customized_vapp_name)
+
+            network_name = Environment.get_default_orgvdc_network_name()
+
+            task = vapp.attach_network_to_vm(vm_name, network_name, 0)
+            result = client.get_task_monitor().wait_for_success(task)
+            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        finally:
+            client.logout()
+
+    def test_0057_vapp_network_disconnect(self):
+        """Test vapp.disconnect_org_vdc_network().
+
+        This test passes if the connect and disconnect to orgvdc network
+           operations are successful.
+        """
+        try:
+            logger = Environment.get_default_logger()
+            client = Environment.get_client_in_default_org(
+                CommonRoles.ORGANIZATION_ADMINISTRATOR)
+
+            network_name = Environment.get_default_orgvdc_network_name()
+
+            vapp_name = TestVApp._customized_vapp_name
+            vapp = Environment.get_vapp_in_test_vdc(client=client,
+                                                    vapp_name=vapp_name)
+
+            logger.debug('Disconnecting vApp ' + vapp_name + ' to orgvdc network ' +
+                  network_name)
             vapp.reload()
             task = vapp.disconnect_org_vdc_network(network_name)
             result = client.get_task_monitor().wait_for_success(task)

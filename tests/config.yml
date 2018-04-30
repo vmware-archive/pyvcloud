@@ -27,3 +27,4 @@ vcd:
   ip_allocation_mode: dhcp
   extension_name: cse
   vcenter: vc1
+  vapp_network: net2

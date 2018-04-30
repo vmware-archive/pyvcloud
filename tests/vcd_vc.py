@@ -51,6 +51,7 @@ class TestVC(TestCase):
             vc_server_host=self.config['vcd']['vcServerHost'],
             vc_admin_user=self.config['vcd']['vcAdminUser'],
             vc_admin_pwd=self.config['vcd']['vcAdminPwd'],
+            vc_root_folder=self.config['vcd']['vcRootFolder'],
             nsx_server_name=self.config['vcd']['NSXServerName'],
             nsx_host=self.config['vcd']['NSXHost'],
             nsx_admin_user=self.config['vcd']['NSXAdminUser'],

@@ -97,9 +97,33 @@ class Platform(object):
                 return self.client.get_resource(ext_net.get('href'))
         raise Exception('External network \'%s\' not found.' % name)
 
+    def get_vxlan_network_pool(self, vxlan_network_pool_name):
+        """Fetch a vxlan_network_pool by its name. (deprecated function)
+        
+        :param: vxlan_network_pool_name (str): name of the vxlan_network_pool.
+        :return: (lxml.objectify.ObjectifiedElement): vxlan_network_pool.
+        :raises: Exception: If the named vxlan_network_pool cannot be found.
+        """
+        query_filter = 'name==%s' % urllib.parse.quote_plus(
+            vxlan_network_pool_name)
+        query = self.client.get_typed_query(
+            'networkPool',
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=query_filter)
+        records = list(query.execute())
+        vxlan_network_pool_record = None
+        for record in records:
+            if vxlan_network_pool_name == record.get('name'):
+                vxlan_network_pool_record = record
+                break
+        if vxlan_network_pool_record is not None:
+            return vxlan_network_pool_record
+        raise Exception('vxlan_network_pool \'%s\' not found' %
+                        vxlan_network_pool_name)
+                        
     def get_obj_by_name(self, obj_type, obj_name):
         """Fetch an object by its name.
-
+        
         :param: obj_type (str): type of the object.
         :param: obj_name (str): name of the object.
         :return: (lxml.objectify.ObjectifiedElement): object record.
@@ -223,6 +247,7 @@ class Platform(object):
                        vc_server_host,
                        vc_admin_user,
                        vc_admin_pwd,
+                       vc_root_folder=None,
                        nsx_server_name=None,
                        nsx_host=None,
                        nsx_admin_user=None,
@@ -230,10 +255,11 @@ class Platform(object):
                        is_enabled=None):
         """Register (attach) a VirtualCenter server (also known as VimServer).
 
-        :param: vc_server_name: (str): vc_server_name (VC name).
-        :param: vc_server_host: (str): FQDN or IP address of VC host.
-        :param: vc_admin_user: (str): vc_admin user.
-        :param: vc_admin_pwd: (str): vc_admin password.
+        :param: vc_server_name: (str): vc server name (virtual center name).
+        :param: vc_server_host: (str): FQDN or IP address of vc host.
+        :param: vc_admin_user: (str): vc admin user.
+        :param: vc_admin_pwd: (str): vc admin password.
+        :param: vc_root_folder: (str): vc root folder.
         :param: nsx_server_name: (str): NSX server name.
         :param: nsx_host (str): FQDN or IP address of NSX host.
         :param: nsx_admin_user: (str): NSX admin user.
@@ -248,6 +274,8 @@ class Platform(object):
         vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
         if is_enabled is not None:
             vc_server.append(E_VMEXT.IsEnabled(is_enabled))
+        if vc_root_folder is not None:
+            vc_server.append(E_VMEXT.rootFolder(vc_root_folder))
         register_vc_server_params.append(vc_server)
         if nsx_server_name is not None:
             nsx_manager = E_VMEXT.ShieldManager(name=nsx_server_name)

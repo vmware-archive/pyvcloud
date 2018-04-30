@@ -34,8 +34,7 @@ class TestVApp(TestCase):
             self.config['vcd']['vapp'],
             self.config['vcd']['catalog'],
             self.config['vcd']['template'],
-            network='net2',
-            fence_mode='natRouted',
+            network=self.config['vcd']['vapp_network'],
             deploy=False,
             power_on=False)
         task = self.client.get_task_monitor().wait_for_status(
@@ -60,7 +59,7 @@ class TestVApp(TestCase):
         vapp = vdc.get_vapp(self.config['vcd']['vapp'])
         assert self.config['vcd']['vapp'] == vapp.get('name')
         result = vdc.reconfigure_vapp_network(self.config['vcd']['vapp'],
-                                              'net2',
+                                              self.config['vcd']['vapp_network'],
                                               self.config['vcd']['fence_mode'])
         task = self.client.get_task_monitor().wait_for_status(
             task=result,
@@ -86,6 +85,30 @@ class TestVApp(TestCase):
         vapp = VApp(self.client, resource=vapp_resource)
         disk_size = 1024  # 1GB
         result = vapp.add_disk_to_vm(vm_name, disk_size)
+        task = self.client.get_task_monitor().wait_for_status(
+            task=result,
+            timeout=60,
+            poll_frequency=2,
+            fail_on_statuses=None,
+            expected_target_statuses=[
+                TaskStatus.SUCCESS, TaskStatus.ABORTED, TaskStatus.ERROR,
+                TaskStatus.CANCELED
+            ],
+            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
+    def test_013_attach_network_to_vm(self):
+        logged_in_org = self.client.get_org()
+        org = Org(self.client, resource=logged_in_org)
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=v.get('href'))
+        assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
+        vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
+        assert self.config['vcd']['vapp'] == vapp_resource.get('name')
+        vm_name = self.config['vcd']['vm']
+        vapp = VApp(self.client, resource=vapp_resource)
+
+        result = vapp.attach_network_to_vm(vm_name, self.config['vcd']['vapp_network'], 0)
         task = self.client.get_task_monitor().wait_for_status(
             task=result,
             timeout=60,

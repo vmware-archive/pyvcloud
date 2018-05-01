@@ -308,7 +308,7 @@ class TestVApp(BaseTestCase):
         task = vapp.shutdown()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
-        # end state of vApp is deployed and powered off.
+        # end state of vApp is deployed and partially powered on.
 
     def test_0050_vapp_network_connection(self):
         """Test the methods vapp.connect_org_vdc_network() and
@@ -456,7 +456,7 @@ class TestVApp(BaseTestCase):
             vapp.change_owner(original_owner_href)
             vapp.reload()
             self.assertEqual(vapp.get_resource().Owner.User.get('name'),
-                             original_owner_href)
+                             TestVApp._empty_vapp_owner_name)
         finally:
             org_admin_client.logout()
 

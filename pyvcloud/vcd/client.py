@@ -34,8 +34,7 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     MultipleRecordsException, NotAcceptableException, NotFoundException, \
     OperationNotSupportedException, RequestTimeoutException,\
     TaskTimeoutException, UnauthorizedException, UnknownApiException, \
-    UnsupportedMediaTypeException, VcdException, VcdResponseException, \
-    VcdTaskException  # NOQA
+    UnsupportedMediaTypeException, VcdException, VcdTaskException  # NOQA
 
 
 SIZE_1MB = 1024 * 1024
@@ -477,7 +476,7 @@ class Client(object):
             'GET', self._uri + '/versions', new_session, accept_type='')
         sc = response.status_code
         if sc != 200:
-            raise VcdResponseException('Unable to get supported API versions.')
+            raise VcdException('Unable to get supported API versions.')
         return objectify.fromstring(response.content)
 
     def set_highest_supported_version(self):

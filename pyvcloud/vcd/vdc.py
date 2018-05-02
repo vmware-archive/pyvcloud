@@ -88,6 +88,7 @@ class VDC(object):
                          name,
                          catalog,
                          template,
+                         description=None,
                          network=None,
                          fence_mode=FenceMode.BRIDGED.value,
                          ip_allocation_mode='dhcp',
@@ -113,6 +114,7 @@ class VDC(object):
         :param name: (str): The name of the new vApp.
         :param catalog: (str): The name of the catalog.
         :param template: (str): The name of the vApp template.
+        :param description: (str): Description of the new vApp.
         :param network: (str): The name of a vdc network.
             When provided, connects the VM to the network.
             It assumes one VM in the vApp and one NIC in the VM.
@@ -344,6 +346,9 @@ class VDC(object):
         vapp_template_params = E.InstantiateVAppTemplateParams(
             name=name, deploy=deploy_param, powerOn=power_on_param)
 
+        if description is not None:
+            vapp_template_params.append(E.Description(description))
+
         if vapp_instantiation_param is not None:
             vapp_template_params.append(vapp_instantiation_param)
 
@@ -354,11 +359,11 @@ class VDC(object):
 
         vapp_template_params.append(E.AllEULAsAccepted(all_eulas_accepted))
 
-        # TODO(use post_linked_resource?)
-        return self.client.post_resource(
-            self.href + '/action/instantiateVAppTemplate',
-            vapp_template_params,
-            EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value)
+        return self.client.post_linked_resource(
+            self.resource,
+            RelationType.ADD,
+            EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value,
+            vapp_template_params)
 
     def list_resources(self, entity_type=None):
         if self.resource is None:

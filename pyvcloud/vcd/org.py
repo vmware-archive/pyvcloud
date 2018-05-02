@@ -498,7 +498,8 @@ class Org(object):
         """Create User in the current Org.
 
         :param user_name: The username of the user
-        :param password: The password of the user
+        :param password: The password of the user (must be at least 6
+                characters long)
         :param role_href: The href of the user role
         :param full_name: The full name of the user
         :param description: The description for the User

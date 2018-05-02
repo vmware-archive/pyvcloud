@@ -26,6 +26,9 @@ from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.vdc import VDC
 
 
@@ -34,8 +37,9 @@ class VApp(object):
         self.client = client
         self.name = name
         if href is None and resource is None:
-            raise TypeError("VApp initialization failed as arguments"
-                            " are either invalid or None")
+            raise InvalidParameterException(
+                "VApp initialization failed as arguments are either invalid "
+                "or None")
         self.href = href
         self.resource = resource
         if resource is not None:
@@ -80,7 +84,7 @@ class VApp(object):
                     if hasattr(vm, 'GuestCustomizationSection') and \
                        hasattr(vm.GuestCustomizationSection, 'AdminPassword'):
                         return vm.GuestCustomizationSection.AdminPassword.text
-        raise Exception('can\'t find admin password')
+        raise EntityNotFoundException('Can\'t find admin password')
 
     def get_metadata(self):
         if self.resource is None:
@@ -332,7 +336,7 @@ class VApp(object):
         for vm in self.get_all_vms():
             if vm.get('name') == vm_name:
                 return vm
-        raise Exception('Can\'t find VM \'%s\'' % vm_name)
+        raise EntityNotFoundException('Can\'t find VM \'%s\'' % vm_name)
 
     def add_disk_to_vm(self, vm_name, disk_size):
         """Add a virtual disk to a virtual machine in the vApp.
@@ -464,7 +468,8 @@ class VApp(object):
         """
         networks = self.get_all_networks()
         if networks is None or len(networks) < index + 1:
-            raise Exception('Can\'t find the specified vApp network')
+            raise EntityNotFoundException(
+                'Can\'t find the specified vApp network')
         return networks[index].get('{' + NSMAP['ovf'] + '}name')
 
     def to_sourced_item(self, spec):
@@ -645,9 +650,10 @@ class VApp(object):
         orgvdc_networks = \
             vdc.list_orgvdc_network_resources(orgvdc_network_name)
         if len(orgvdc_networks) == 0:
-            raise Exception("Orgvdc network \'%s\' does not exist in vdc "
-                            "\'%s\'" % (orgvdc_network_name,
-                                        vdc.get_resource().get('name')))
+            raise EntityNotFoundException(
+                "Orgvdc network \'%s\' does not exist in vdc "
+                "\'%s\'" % (orgvdc_network_name,
+                            vdc.get_resource().get('name')))
         orgvdc_network_href = orgvdc_networks[0].get('href')
 
         network_configuration_section = \
@@ -657,8 +663,9 @@ class VApp(object):
             self._search_for_network_config_by_name(
                 orgvdc_network_name, network_configuration_section)
         if matched_orgvdc_network_config is not None:
-            raise Exception("Orgvdc network \'%s\' is already connected to "
-                            "vapp." % orgvdc_network_name)
+            raise InvalidStateException(
+                "Orgvdc network \'%s\' is already connected to "
+                "vapp." % orgvdc_network_name)
 
         configuration = E.Configuration(
             E.ParentNetwork(href=orgvdc_network_href), E.FenceMode(fence_mode))
@@ -693,8 +700,9 @@ class VApp(object):
             self._search_for_network_config_by_name(
                 orgvdc_network_name, network_configuration_section)
         if matched_orgvdc_network_config is None:
-            raise Exception("Orgvdc network \'%s\' is not attached to the vapp"
-                            % orgvdc_network_name)
+            raise InvalidStateException(
+                "Orgvdc network \'%s\' is not attached to the vapp"
+                % orgvdc_network_name)
         else:
             network_configuration_section.remove(matched_orgvdc_network_config)
 

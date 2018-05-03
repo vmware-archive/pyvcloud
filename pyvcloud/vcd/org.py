@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
 import os
 import shutil
 import tarfile
@@ -24,7 +25,6 @@ from lxml import etree
 from lxml import objectify
 
 from pyvcloud.vcd.acl import Acl
-from pyvcloud.vcd.client import _TaskMonitor
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
@@ -224,28 +224,28 @@ class Org(object):
                 return self.client.delete_resource(i.get('href'))
         raise EntityNotFoundException('Item not found.')
 
-    def upload_media(self,
-                     catalog_name,
-                     file_name,
-                     item_name=None,
-                     description='',
-                     chunk_size=DEFAULT_CHUNK_SIZE,
-                     callback=None):
-        stat_info = os.stat(file_name)
-        catalog = self.get_catalog(catalog_name)
-        if item_name is None:
-            item_name = os.path.basename(file_name)
-        image_type = os.path.splitext(item_name)[1][1:]
-        media = E.Media(
-            name=item_name, size=str(stat_info.st_size), imageType=image_type)
-        media.append(E.Description(description))
-        catalog_item = self.client.post_resource(
-            catalog.get('href') + '/action/upload', media,
-            EntityType.MEDIA.value)
-        entity = self.client.get_resource(catalog_item.Entity.get('href'))
-        file_href = entity.Files.File.Link.get('href')
-        return self.upload_file(
-            file_name, file_href, chunk_size=chunk_size, callback=callback)
+    def _enable_download_required(self, entity_resource, item_type):
+        enable_download_required = True
+        if item_type == EntityType.MEDIA.value:
+            if hasattr(entity_resource, 'Files'):
+                enable_download_required = False
+        elif item_type == EntityType.VAPP_TEMPLATE.value:
+            ovf_download_link = find_link(entity_resource,
+                                          RelationType.DOWNLOAD_DEFAULT,
+                                          EntityType.TEXT_XML.value,
+                                          False)
+            if ovf_download_link is not None:
+                enable_download_required = False
+
+        return enable_download_required
+
+    def _enable_download(self, entity_resource, task_callback):
+        task = self.client.post_linked_resource(entity_resource,
+                                                RelationType.ENABLE,
+                                                None,
+                                                None)
+        self.client.get_task_monitor().wait_for_success(
+            task, 60, 1, callback=task_callback)
 
     def download_catalog_item(self,
                               catalog_name,
@@ -254,17 +254,20 @@ class Org(object):
                               chunk_size=DEFAULT_CHUNK_SIZE,
                               callback=None,
                               task_callback=None):
-        item = self.get_catalog_item(catalog_name, item_name)
-        item_type = item.Entity.get('type')
-        enable_href = item.Entity.get('href') + '/action/enableDownload'
-        task = self.client.post_resource(enable_href, None, None)
-        tm = _TaskMonitor(self.client)
-        tm.wait_for_success(task, 60, 1, callback=task_callback)
-        item = self.client.get_resource(item.Entity.get('href'))
+        item_resource = self.get_catalog_item(catalog_name, item_name)
+        item_type = item_resource.Entity.get('type')
+        entity_resource = self.client.get_resource(
+            item_resource.Entity.get('href'))
+
+        if self._enable_download_required(entity_resource, item_type):
+            self._enable_download(entity_resource, task_callback)
+            entity_resource = self.client.get_resource(
+                entity_resource.get('href'))
+
         bytes_written = 0
         if item_type == EntityType.MEDIA.value:
-            size = item.Files.File.get('size')
-            download_href = item.Files.File.Link.get('href')
+            size = entity_resource.Files.File.get('size')
+            download_href = entity_resource.Files.File.Link.get('href')
             bytes_written = self.client.download_from_uri(
                 download_href,
                 file_name,
@@ -272,77 +275,122 @@ class Org(object):
                 size=size,
                 callback=callback)
         elif item_type == EntityType.VAPP_TEMPLATE.value:
-            ovf_descriptor = self.client.get_linked_resource(
-                item, RelationType.DOWNLOAD_DEFAULT, EntityType.TEXT_XML.value)
-            transfer_uri = find_link(item, RelationType.DOWNLOAD_DEFAULT,
-                                     EntityType.TEXT_XML.value).href
-            transfer_uri = transfer_uri.replace('/descriptor.ovf', '/')
-            tempdir = None
-            cwd = os.getcwd()
-            try:
-                tempdir = tempfile.mkdtemp(dir='.')
-                ovf_file = os.path.join(tempdir, 'descriptor.ovf')
-                with open(ovf_file, 'wb') as f:
-                    payload = etree.tostring(
-                        ovf_descriptor,
-                        pretty_print=True,
-                        xml_declaration=True,
-                        encoding='utf-8')
-                    f.write(payload)
-
-                ns = '{' + NSMAP['ovf'] + '}'
-                files = []
-                for f in ovf_descriptor.References.File:
-                    source_file = {
-                        'href': f.get(ns + 'href'),
-                        'name': f.get(ns + 'id'),
-                        'size': f.get(ns + 'size')
-                    }
-                    target_file = os.path.join(tempdir, source_file['href'])
-                    uri = transfer_uri + source_file['href']
-                    num_bytes = self.client.download_from_uri(
-                        uri,
-                        target_file,
-                        chunk_size=chunk_size,
-                        size=source_file['size'],
-                        callback=callback)
-                    if num_bytes != int(source_file['size']):
-                        raise DownloadException(
-                            'download incomplete for file %s' %
-                            source_file['href'])
-                    files.append(source_file)
-                with tarfile.open(file_name, 'w') as tar:
-                    os.chdir(tempdir)
-                    tar.add('descriptor.ovf')
-                    for f in files:
-                        tar.add(f['href'])
-            finally:
-                if tempdir is not None:
-                    os.chdir(cwd)
-                    stat_info = os.stat(file_name)
-                    bytes_written = stat_info.st_size
+            bytes_written = self._download_ovf(entity_resource,
+                                               file_name,
+                                               chunk_size,
+                                               callback)
         return bytes_written
 
-    def upload_file(self,
-                    file_name,
-                    href,
-                    chunk_size=DEFAULT_CHUNK_SIZE,
-                    callback=None):
-        transferred = 0
+    def _download_ovf(self, entity_resource, file_name, chunk_size, callback):
+        ovf_descriptor = self.client.get_linked_resource(
+            entity_resource,
+            RelationType.DOWNLOAD_DEFAULT,
+            EntityType.TEXT_XML.value)
+
+        ovf_descriptor_uri = find_link(entity_resource,
+                                       RelationType.DOWNLOAD_DEFAULT,
+                                       EntityType.TEXT_XML.value).href
+        transfer_uri_base = ovf_descriptor_uri.rsplit('/', 1)[0] + '/'
+
+        tempdir = None
+        cwd = os.getcwd()
+        try:
+            tempdir = tempfile.mkdtemp(dir='.')
+            ovf_file = os.path.join(tempdir, 'descriptor.ovf')
+            with open(ovf_file, 'wb') as f:
+                payload = etree.tostring(
+                    ovf_descriptor,
+                    pretty_print=True,
+                    xml_declaration=True,
+                    encoding='utf-8')
+                f.write(payload)
+
+            ns = '{' + NSMAP['ovf'] + '}'
+            files_to_tar = []
+            for f in ovf_descriptor.References.File:
+                source_file_name = f.get(ns + 'href')
+                source_file_size = int(f.get(ns + 'size'))
+
+                # TODO - Add support for ns + 'chunkSize' - will need support
+                # for downloading part of a file at an offset from an uri.
+
+                target_file = os.path.join(tempdir, source_file_name)
+                uri = transfer_uri_base + source_file_name
+                num_bytes = self.client.download_from_uri(
+                    uri,
+                    target_file,
+                    chunk_size=chunk_size,
+                    size=str(source_file_size),
+                    callback=callback)
+                if num_bytes != source_file_size:
+                    raise DownloadException('Download incomplete for file %s'
+                                            % source_file_name)
+                files_to_tar.append(source_file_name)
+
+            with tarfile.open(file_name, 'w') as tar:
+                os.chdir(tempdir)
+                tar.add('descriptor.ovf')
+                for f in files_to_tar:
+                    tar.add(f)
+        finally:
+            if tempdir is not None:
+                os.chdir(cwd)
+                bytes_written = 0
+                if os.path.exists(file_name):
+                    stat_info = os.stat(file_name)
+                    bytes_written = stat_info.st_size
+                shutil.rmtree(tempdir)
+
+        return bytes_written
+
+    def upload_media(self,
+                     catalog_name,
+                     file_name,
+                     item_name=None,
+                     description='',
+                     chunk_size=DEFAULT_CHUNK_SIZE,
+                     callback=None):
         stat_info = os.stat(file_name)
+        catalog_resource = self.get_catalog(catalog_name)
+        if item_name is None:
+            item_name = os.path.basename(file_name)
+        image_type = os.path.splitext(item_name)[1][1:]
+        media = E.Media(
+            name=item_name, size=str(stat_info.st_size), imageType=image_type)
+        media.append(E.Description(description))
+        catalog_item_resource = self.client.post_linked_resource(
+            catalog_resource,
+            RelationType.ADD,
+            EntityType.MEDIA.value,
+            media)
+        entity_resource = self.client.get_resource(
+            catalog_item_resource.Entity.get('href'))
+        file_href = entity_resource.Files.File.Link.get('href')
+        return self._upload_file(
+            file_name, file_href, chunk_size=chunk_size, callback=callback)
+
+    def _upload_file(self,
+                     file_name,
+                     href,
+                     chunk_size=DEFAULT_CHUNK_SIZE,
+                     callback=None):
+        stat_info = os.stat(file_name)
+        total_bytes_to_upload = stat_info.st_size
+        transferred_bytes = 0
+
         with open(file_name, 'rb') as f:
-            while transferred < stat_info.st_size:
+            while transferred_bytes < total_bytes_to_upload:
                 my_bytes = f.read(chunk_size)
                 if len(my_bytes) <= chunk_size:
                     range_str = 'bytes %s-%s/%s' % \
-                                (transferred,
+                                (transferred_bytes,
                                  len(my_bytes) - 1,
-                                 stat_info.st_size)
+                                 total_bytes_to_upload)
                     self.client.upload_fragment(href, my_bytes, range_str)
-                    transferred += len(my_bytes)
+                    transferred_bytes += len(my_bytes)
                     if callback is not None:
-                        callback(transferred, stat_info.st_size)
-        return transferred
+                        callback(transferred_bytes, total_bytes_to_upload)
+        return transferred_bytes
 
     def upload_ovf(self,
                    catalog_name,
@@ -351,69 +399,136 @@ class Org(object):
                    description='',
                    chunk_size=DEFAULT_CHUNK_SIZE,
                    callback=None):
-        catalog = self.get_catalog(catalog_name)
+        catalog_resource = self.get_catalog(catalog_name)
         if item_name is None:
             item_name = os.path.basename(file_name)
-        tempdir = tempfile.mkdtemp(dir='.')
-        total_bytes = 0
+        total_bytes_uploaded = 0
+
         try:
+            tempdir = tempfile.mkdtemp(dir='.')
             ova = tarfile.open(file_name)
             ova.extractall(path=tempdir)
             ova.close()
             ovf_file = None
-            files = os.listdir(tempdir)
-            for f in files:
+            extracted_files = os.listdir(tempdir)
+            for f in extracted_files:
                 fn, ex = os.path.splitext(f)
                 if ex == '.ovf':
                     ovf_file = os.path.join(tempdir, f)
                     break
-            if ovf_file is not None:
-                stat_info = os.stat(ovf_file)
-                total_bytes += stat_info.st_size
-                ovf = objectify.parse(ovf_file)
-                files = []
-                ns = '{' + NSMAP['ovf'] + '}'
-                for f in ovf.getroot().References.File:
-                    source_file = {
-                        'href': f.get(ns + 'href'),
-                        'name': f.get(ns + 'id'),
-                        'size': f.get(ns + 'size')
-                    }
-                    files.append(source_file)
-                if item_name is None:
-                    item_name = os.path.basename(file_name)
-                params = E.UploadVAppTemplateParams(name=item_name)
-                params.append(E.Description(description))
-                catalog_item = self.client.post_resource(
-                    catalog.get('href') + '/action/upload', params,
-                    EntityType.UPLOAD_VAPP_TEMPLATE_PARAMS.value)
-                entity = self.client.get_resource(
+            if ovf_file is None:
+                raise UploadException('OVF descriptor file not found.')
+
+            stat_info = os.stat(ovf_file)
+            total_bytes_uploaded += stat_info.st_size
+            ovf = objectify.parse(ovf_file)
+            files_to_upload = []
+            ns = '{' + NSMAP['ovf'] + '}'
+            for f in ovf.getroot().References.File:
+                source_file = {
+                    'href': f.get(ns + 'href'),
+                    'name': f.get(ns + 'id'),
+                    'size': f.get(ns + 'size')
+                }
+                if hasattr(f, ns + 'chunkSize'):
+                    source_file['chunkSize'] = f.get(ns + 'chunkSize')
+                files_to_upload.append(source_file)
+
+            params = E.UploadVAppTemplateParams(name=item_name)
+            params.append(E.Description(description))
+            catalog_item = self.client.post_linked_resource(
+                catalog_resource,
+                RelationType.ADD,
+                EntityType.UPLOAD_VAPP_TEMPLATE_PARAMS.value,
+                params)
+
+            entity_resource = self.client.get_resource(
+                catalog_item.Entity.get('href'))
+            file_href = entity_resource.Files.File.Link.get('href')
+            self.client.put_resource(file_href, ovf, EntityType.TEXT_XML.value)
+
+            while True:
+                time.sleep(5)
+                entity_resource = self.client.get_resource(
                     catalog_item.Entity.get('href'))
-                file_href = entity.Files.File.Link.get('href')
-                self.client.put_resource(file_href, ovf, 'text/xml')
-                while True:
-                    time.sleep(5)
-                    entity = self.client.get_resource(
-                        catalog_item.Entity.get('href'))
-                    if len(entity.Files.File) > 1:
-                        break
-                for source_file in files:
-                    for target_file in entity.Files.File:
-                        if source_file.get('href') == target_file.get('name'):
-                            file_path = os.path.join(tempdir,
-                                                     source_file.get('href'))
-                            total_bytes += self.upload_file(
+                if len(entity_resource.Files.File) > 1:
+                    break
+
+            for source_file in files_to_upload:
+                for target_file in entity_resource.Files.File:
+                    source_file_name = source_file.get('href')
+                    if source_file_name == target_file.get('name'):
+                        source_file_size = source_file.get('size')
+                        if 'chunkSize' in source_file:
+                            file_paths = self._get_part_file_paths(
+                                tempdir,
+                                source_file_name,
+                                int(source_file_size),
+                                int(source_file['chunkSize']))
+                            total_bytes_uploaded += self._upload_part_files(
+                                file_paths,
+                                target_file.Link.get('href'),
+                                chunk_size=chunk_size,
+                                callback=callback)
+                        else:
+                            file_path = os.path.join(tempdir, source_file_name)
+                            total_bytes_uploaded += self._upload_file(
                                 file_path,
                                 target_file.Link.get('href'),
                                 chunk_size=chunk_size,
                                 callback=callback)
-            shutil.rmtree(tempdir)
         except Exception as e:
             print(traceback.format_exc())
-            shutil.rmtree(tempdir)
             raise UploadException("Ovf upload failed").with_traceback(
                 e.__traceback__)
-        return total_bytes
+        finally:
+            shutil.rmtree(tempdir)
+
+        return total_bytes_uploaded
+
+    def _get_part_file_paths(self,
+                             base_dir,
+                             base_file_name,
+                             total_size,
+                             chunk_size):
+        file_paths = []
+        num_parts = math.ceil(total_size / chunk_size)
+        for i in range(num_parts):
+            postfix = ('000000000' + str(i))[-9:]
+            file_path = base_dir + base_file_name + '.' + postfix
+            file_paths.append(file_path)
+
+        return file_paths
+
+    def _upload_part_files(self,
+                           part_file_paths,
+                           href,
+                           chunk_size=DEFAULT_CHUNK_SIZE,
+                           callback=None):
+        total_bytes_to_upload = 0
+        for part_file in part_file_paths:
+            stat_info = os.stat(part_file)
+            total_bytes_to_upload += stat_info.st_size
+
+        transferred_bytes = 0
+        for part_file_name in part_file_paths:
+            transferred_bytes_for_current_file = 0
+            stat_info = os.stat(part_file)
+            file_size = stat_info.st_size
+            with open(part_file_name, 'rb') as f:
+                while transferred_bytes_for_current_file < file_size:
+                    data = f.read(chunk_size)
+                    if len(data) <= chunk_size:
+                        range_str = 'bytes %s-%s/%s' % \
+                                    (transferred_bytes,
+                                     transferred_bytes + len(data) - 1,
+                                     total_bytes_to_upload)
+                        self.client.upload_fragment(href, data, range_str)
+                        transferred_bytes += len(data)
+                        transferred_bytes_for_current_file += len(data)
+                        if callback is not None:
+                            callback(transferred_bytes, total_bytes_to_upload)
+        return transferred_bytes
 
     def get_vdc(self, name):
         if self.resource is None:

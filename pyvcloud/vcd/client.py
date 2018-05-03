@@ -162,6 +162,8 @@ class RelationType(Enum):
 
 
 class ResourceType(Enum):
+    """Contains resource type names."""
+
     ACL_RULE = 'aclRule'
     ADMIN_API_DEFINITION = 'adminApiDefinition'
     ADMIN_ALLOCATED_EXTERNAL_ADDRESS = 'adminAllocatedExternalAddress'
@@ -984,6 +986,24 @@ class Client(object):
                         sort_asc=None,
                         sort_desc=None,
                         fields=None):
+        """Issue a query using vCD query API.
+
+        :param query_type_name str: Name of the entity, which should be a
+            string listed in ResourceType enum
+        :param query_result_format (str, str): Tuple value from
+            QueryResultFormat enum
+        :param page_size int: Number of entries per page
+        :param include_links: (Not used)
+        :param qfilter str: Query filter expression, e.g., numberOfCpus=gt=4
+        :param equality_filter: A field name and a value to filter
+            output; appends to qfilter if present
+        :param sort_asc str: If name present sort ascending by that field
+        :param sort_desc str: If name present sort descending by that field
+        :param fields str: Comma separated list of fields to return
+
+        :return: A query object that runs the query when execute()
+            method is called
+        """
         return _TypedQuery(
             query_type_name,
             self,
@@ -1069,6 +1089,8 @@ class Link(object):
 
 
 class _AbstractQuery(object):
+    """Implements internal query object representation."""
+
     def __init__(self,
                  query_result_format,
                  client,
@@ -1104,8 +1126,15 @@ class _AbstractQuery(object):
         self.fields = fields
 
     def execute(self):
+        """Executes query and returns results.
+
+        :returns: A generator to returns results
+        """
+        query_href = self._find_query_uri(self._query_result_format)
+        if query_href is None:
+            return []
         query_uri = self._build_query_uri(
-            self._find_query_uri(self._query_result_format),
+            query_href,
             self._page,
             self._page_size,
             self._filter,
@@ -1222,5 +1251,6 @@ class _TypedQuery(_AbstractQuery):
         query_href = \
             self. \
             _client. \
-            _get_query_list_map()[(query_media_type, self._query_type_name)]
+            _get_query_list_map().get(
+                (query_media_type, self._query_type_name))
         return query_href

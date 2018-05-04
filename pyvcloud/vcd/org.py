@@ -225,7 +225,7 @@ class Org(object):
         raise EntityNotFoundException('Item not found.')
 
     def _is_enable_download_required(self, entity_resource, item_type):
-        """Helper method to determines need for download enablement.
+        """Helper method to determine need for download enablement.
 
         :param entity_resource: A :class:`lxml.objectify.StringElement` object
             describing the entity corresponding to the catalog item which
@@ -277,7 +277,7 @@ class Org(object):
                               chunk_size=DEFAULT_CHUNK_SIZE,
                               callback=None,
                               task_callback=None):
-        """Downloads an item from a catlog into a local file.
+        """Downloads an item from a catalog into a local file.
 
         :param catalog_name: (str): The name of the catalog whose item needs
             to be downloaded.
@@ -416,7 +416,7 @@ class Org(object):
             file will be uploaded.
         :param file_name: (str): The name of the media file on local disk
             which will be uploaded.
-        :param item_name: (str): This param let's us rename the media file
+        :param item_name: (str): This param lets us rename the media file
             once uploaded to the catalog.If this param is not specified,
             the catalog item will share the same name as the media file
             being uploaded.
@@ -611,7 +611,7 @@ class Org(object):
             function(bytes_written, total_size) to let the caller monitor
             progress of the upload operation.
 
-        :return: Number of bytes uploade to the uri.
+        :return: Number of bytes uploaded to the uri.
         """
         return self._upload_part_file(
             file_name, target_uri, chunk_size=chunk_size, callback=callback)
@@ -634,7 +634,7 @@ class Org(object):
             function(bytes_written, total_size) to let the caller monitor
             progress of the upload operation.
 
-        :return: Number of bytes uploade to the uri.
+        :return: Number of bytes uploaded to the uri.
         """
         total_bytes_to_upload = 0
         for part_file in part_file_paths:
@@ -671,7 +671,7 @@ class Org(object):
             function(bytes_written, total_size) to let the caller monitor
             progress of the upload operation.
 
-        :return: Number of bytes uploade to the uri.
+        :return: Number of bytes uploaded to the uri.
         """
         stat_info = os.stat(part_file_path)
         part_file_size = stat_info.st_size

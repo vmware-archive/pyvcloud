@@ -224,7 +224,19 @@ class Org(object):
                 return self.client.delete_resource(i.get('href'))
         raise EntityNotFoundException('Item not found.')
 
-    def _enable_download_required(self, entity_resource, item_type):
+    def _is_enable_download_required(self, entity_resource, item_type):
+        """Helper method to determines need for download enablement.
+
+        :param entity_resource: A :class:`lxml.objectify.StringElement` object
+            describing the entity corresponding to the catalog item which
+            needs to be downloaded.
+        :param item_type: (str): Type of entity we are trying to enable for
+            download. Valid values are EntityType.VAPP_TEMPLATE and
+            EntityType.MEDIA.
+
+        return: (bool): True if the entity needs to be enabled for download
+            else False
+        """
         enable_download_required = True
         if item_type == EntityType.MEDIA.value:
             if hasattr(entity_resource, 'Files'):
@@ -232,18 +244,29 @@ class Org(object):
         elif item_type == EntityType.VAPP_TEMPLATE.value:
             ovf_download_link = find_link(entity_resource,
                                           RelationType.DOWNLOAD_DEFAULT,
-                                          EntityType.TEXT_XML.value,
-                                          False)
+                                          EntityType.TEXT_XML.value, False)
             if ovf_download_link is not None:
                 enable_download_required = False
 
         return enable_download_required
 
     def _enable_download(self, entity_resource, task_callback):
-        task = self.client.post_linked_resource(entity_resource,
-                                                RelationType.ENABLE,
-                                                None,
-                                                None)
+        """Helper method to enable an entity for download.
+
+        Behind the scene it involves vCD copying the template/media file
+            from ESX hosts to spool area (transfer folder).
+
+        :param entity_resource: A :class:`lxml.objectify.StringElement` object
+            describing the entity corresponding to the catalog item which
+            needs to be downloaded.
+        :param task_callback: (function): A function with signature
+            function(task) to let the caller monitor the progress of enable
+            download task.
+
+        return: Nothing
+        """
+        task = self.client.post_linked_resource(
+            entity_resource, RelationType.ENABLE, None, None)
         self.client.get_task_monitor().wait_for_success(
             task, 60, 1, callback=task_callback)
 
@@ -254,12 +277,34 @@ class Org(object):
                               chunk_size=DEFAULT_CHUNK_SIZE,
                               callback=None,
                               task_callback=None):
+        """Downloads an item from a catlog into a local file.
+
+        :param catalog_name: (str): The name of the catalog whose item needs
+            to be downloaded.
+        :param item_name: (str): The name of the item which needs to be
+            downloaded.
+        :param file_name: (str): The name of the target file on local disk
+            where the contents of the catalog item will be downloaded to.
+        :param chunk_size: (int): The size of chunks in which the catalog item
+            will be downloaded and written to the disk.
+        :param callback: (function): A function with signature
+            function(bytes_written, total_size) to let the caller monitor
+            progress of the download operation.
+        :param task_callback: (function): A function with signature
+            function(task) to let the caller monitor the progress of enable
+            download task.
+
+        :return: (int): Number of bytes written to file.
+
+        :raises: EntityNotFoundException: If the catalog/named item is not
+            found.
+        """
         item_resource = self.get_catalog_item(catalog_name, item_name)
         item_type = item_resource.Entity.get('type')
         entity_resource = self.client.get_resource(
             item_resource.Entity.get('href'))
 
-        if self._enable_download_required(entity_resource, item_type):
+        if self._is_enable_download_required(entity_resource, item_type):
             self._enable_download(entity_resource, task_callback)
             entity_resource = self.client.get_resource(
                 entity_resource.get('href'))
@@ -275,16 +320,28 @@ class Org(object):
                 size=size,
                 callback=callback)
         elif item_type == EntityType.VAPP_TEMPLATE.value:
-            bytes_written = self._download_ovf(entity_resource,
-                                               file_name,
-                                               chunk_size,
-                                               callback)
+            bytes_written = self._download_ovf(entity_resource, file_name,
+                                               chunk_size, callback)
         return bytes_written
 
     def _download_ovf(self, entity_resource, file_name, chunk_size, callback):
+        """Helper method to download an ova file from vCD catalog.
+
+        :param entity_resource: A :class:`lxml.objectify.StringElement` object
+            describing the entity corresponding to the catalog item which
+            needs to be downloaded.
+        :param file_name: (str): The name of the target file on local disk
+            where the contents of the catalog item will be downloaded to.
+        :param chunk_size: (int): The size of chunks in which the catalog item
+            will be downloaded and written to the disk.
+        :param callback: (function): A function with signature
+            function(bytes_written, total_size) to let the caller monitor
+            progress of the download operation.
+
+        :return: (int): Number of bytes written to file.
+        """
         ovf_descriptor = self.client.get_linked_resource(
-            entity_resource,
-            RelationType.DOWNLOAD_DEFAULT,
+            entity_resource, RelationType.DOWNLOAD_DEFAULT,
             EntityType.TEXT_XML.value)
 
         ovf_descriptor_uri = find_link(entity_resource,
@@ -311,7 +368,7 @@ class Org(object):
                 source_file_name = f.get(ns + 'href')
                 source_file_size = int(f.get(ns + 'size'))
 
-                # TODO - Add support for ns + 'chunkSize' - will need support
+                # TODO() Add support for ns + 'chunkSize' - will need support
                 # for downloading part of a file at an offset from an uri.
 
                 target_file = os.path.join(tempdir, source_file_name)
@@ -323,8 +380,8 @@ class Org(object):
                     size=str(source_file_size),
                     callback=callback)
                 if num_bytes != source_file_size:
-                    raise DownloadException('Download incomplete for file %s'
-                                            % source_file_name)
+                    raise DownloadException(
+                        'Download incomplete for file %s' % source_file_name)
                 files_to_tar.append(source_file_name)
 
             with tarfile.open(file_name, 'w') as tar:
@@ -350,6 +407,29 @@ class Org(object):
                      description='',
                      chunk_size=DEFAULT_CHUNK_SIZE,
                      callback=None):
+        """Uploads a media file to a catalog.
+
+        This method only uploads bits to vCD spool area, doesn't block while
+        vCD imports the uploaded bit into catalog.
+
+        :param catalog_name: (str): The name of the catalog where the media
+            file will be uploaded.
+        :param file_name: (str): The name of the media file on local disk
+            which will be uploaded.
+        :param item_name: (str): This param let's us rename the media file
+            once uploaded to the catalog.If this param is not specified,
+            the catalog item will share the same name as the media file
+            being uploaded.
+        :param chunk_size: (int): The size of chunks in which the file will
+            be uploaded to the catalog.
+        :param callback: (function): A function with signature
+            function(bytes_written, total_size) to let the caller monitor
+            progress of the upload operation.
+
+        :return: (int): Number of bytes uploaded to the catalog.
+
+        :raises: EntityNotFoundException: If the catalog is not found.
+        """
         stat_info = os.stat(file_name)
         catalog_resource = self.get_catalog(catalog_name)
         if item_name is None:
@@ -359,38 +439,12 @@ class Org(object):
             name=item_name, size=str(stat_info.st_size), imageType=image_type)
         media.append(E.Description(description))
         catalog_item_resource = self.client.post_linked_resource(
-            catalog_resource,
-            RelationType.ADD,
-            EntityType.MEDIA.value,
-            media)
+            catalog_resource, RelationType.ADD, EntityType.MEDIA.value, media)
         entity_resource = self.client.get_resource(
             catalog_item_resource.Entity.get('href'))
         file_href = entity_resource.Files.File.Link.get('href')
         return self._upload_file(
             file_name, file_href, chunk_size=chunk_size, callback=callback)
-
-    def _upload_file(self,
-                     file_name,
-                     href,
-                     chunk_size=DEFAULT_CHUNK_SIZE,
-                     callback=None):
-        stat_info = os.stat(file_name)
-        total_bytes_to_upload = stat_info.st_size
-        transferred_bytes = 0
-
-        with open(file_name, 'rb') as f:
-            while transferred_bytes < total_bytes_to_upload:
-                my_bytes = f.read(chunk_size)
-                if len(my_bytes) <= chunk_size:
-                    range_str = 'bytes %s-%s/%s' % \
-                                (transferred_bytes,
-                                 len(my_bytes) - 1,
-                                 total_bytes_to_upload)
-                    self.client.upload_fragment(href, my_bytes, range_str)
-                    transferred_bytes += len(my_bytes)
-                    if callback is not None:
-                        callback(transferred_bytes, total_bytes_to_upload)
-        return transferred_bytes
 
     def upload_ovf(self,
                    catalog_name,
@@ -399,6 +453,29 @@ class Org(object):
                    description='',
                    chunk_size=DEFAULT_CHUNK_SIZE,
                    callback=None):
+        """Uploads an ova file to a catalog.
+
+        This method only uploads bits to vCD spool area, doesn't block while
+        vCD imports the uploaded bit into catalog.
+
+        :param catalog_name: (str): The name of the catalog where the ova
+            file will be uploaded.
+        :param file_name: (str): The name of the ova file on local disk
+            which will be uploaded.
+        :param item_name: (str): This param let's us rename the ova file
+            once uploaded to the catalog. If this param is not specified,
+            the catalog item will share the same name as the ova file
+            being uploaded.
+        :param chunk_size: (int): The size of chunks in which the file will
+            be uploaded to the catalog.
+        :param callback: (function): A function with signature
+            function(bytes_written, total_size) to let the caller monitor
+            progress of the upload operation.
+
+        :return: (int): Number of bytes uploaded to the catalog.
+
+        :raises: EntityNotFoundException: If the catalog is not found.
+        """
         catalog_resource = self.get_catalog(catalog_name)
         if item_name is None:
             item_name = os.path.basename(file_name)
@@ -421,10 +498,10 @@ class Org(object):
 
             stat_info = os.stat(ovf_file)
             total_bytes_uploaded += stat_info.st_size
-            ovf = objectify.parse(ovf_file)
+            ovf_resource = objectify.parse(ovf_file)
             files_to_upload = []
             ns = '{' + NSMAP['ovf'] + '}'
-            for f in ovf.getroot().References.File:
+            for f in ovf_resource.getroot().References.File:
                 source_file = {
                     'href': f.get(ns + 'href'),
                     'name': f.get(ns + 'id'),
@@ -436,63 +513,80 @@ class Org(object):
 
             params = E.UploadVAppTemplateParams(name=item_name)
             params.append(E.Description(description))
-            catalog_item = self.client.post_linked_resource(
-                catalog_resource,
-                RelationType.ADD,
-                EntityType.UPLOAD_VAPP_TEMPLATE_PARAMS.value,
-                params)
+            catalog_item_resource = self.client.post_linked_resource(
+                catalog_resource, RelationType.ADD,
+                EntityType.UPLOAD_VAPP_TEMPLATE_PARAMS.value, params)
 
-            entity_resource = self.client.get_resource(
-                catalog_item.Entity.get('href'))
-            file_href = entity_resource.Files.File.Link.get('href')
-            self.client.put_resource(file_href, ovf, EntityType.TEXT_XML.value)
+            entity_href = catalog_item_resource.Entity.get('href')
+            entity_resource = self.client.get_resource(entity_href)
+            ovf_upload_href = entity_resource.Files.File.Link.get('href')
+            self.client.put_resource(ovf_upload_href, ovf_resource,
+                                     EntityType.TEXT_XML.value)
 
             while True:
                 time.sleep(5)
-                entity_resource = self.client.get_resource(
-                    catalog_item.Entity.get('href'))
+                entity_resource = self.client.get_resource(entity_href)
                 if len(entity_resource.Files.File) > 1:
                     break
 
             for source_file in files_to_upload:
+                source_file_name = source_file.get('href')
+                source_file_size = source_file.get('size')
+                target_uri = None
                 for target_file in entity_resource.Files.File:
-                    source_file_name = source_file.get('href')
                     if source_file_name == target_file.get('name'):
-                        source_file_size = source_file.get('size')
-                        if 'chunkSize' in source_file:
-                            file_paths = self._get_part_file_paths(
-                                tempdir,
-                                source_file_name,
-                                int(source_file_size),
-                                int(source_file['chunkSize']))
-                            total_bytes_uploaded += self._upload_part_files(
-                                file_paths,
-                                target_file.Link.get('href'),
-                                chunk_size=chunk_size,
-                                callback=callback)
-                        else:
-                            file_path = os.path.join(tempdir, source_file_name)
-                            total_bytes_uploaded += self._upload_file(
-                                file_path,
-                                target_file.Link.get('href'),
-                                chunk_size=chunk_size,
-                                callback=callback)
+                        target_uri = target_file.Link.get('href')
+                        break
+                if target_uri is None:
+                    raise UploadException('Couldn\'t find uri to upload'
+                                          ' file %s' % source_file_name)
+
+                if 'chunkSize' in source_file:
+                    file_paths = self._get_multi_part_file_paths(
+                        tempdir, source_file_name, int(source_file_size),
+                        int(source_file['chunkSize']))
+                    total_bytes_uploaded += self._upload_multi_part_file(
+                        file_paths, target_uri, chunk_size, callback)
+                else:
+                    file_path = os.path.join(tempdir, source_file_name)
+                    total_bytes_uploaded += self._upload_file(
+                        file_path,
+                        target_uri,
+                        chunk_size=chunk_size,
+                        callback=callback)
         except Exception as e:
             print(traceback.format_exc())
-            raise UploadException("Ovf upload failed").with_traceback(
+            raise UploadException('Ovf upload failed').with_traceback(
                 e.__traceback__)
         finally:
             shutil.rmtree(tempdir)
 
         return total_bytes_uploaded
 
-    def _get_part_file_paths(self,
-                             base_dir,
-                             base_file_name,
-                             total_size,
-                             chunk_size):
+    def _get_multi_part_file_paths(self, base_dir, base_file_name,
+                                   total_file_size, part_size):
+        """Helper method to get multi-part file names along with their path.
+
+        For example a file called test.vmdk with total_file_size = 100 bytes
+            and part_size of 40 bytes implies the file is made of *3* part
+            files.
+            test.vmdk.000000000 = 40 bytes
+            test.vmdk.000000001 = 40 bytes
+            test.vmdk.000000002 = 20 bytes
+
+        :param base_dir: (str): Base directory where the file parts are
+            located.
+        :param base_file_name: (str): The common portion of the filename
+            among all the part-files.
+        :param total_file_size: (int): Size of the entire file (sum of all
+            parts).
+        :param part_size: (int): Size of each part of the file.
+
+        :return: (list of string): Returns a list of filepaths, where each
+            item corresponds to one part of the multi-part file.
+        """
         file_paths = []
-        num_parts = math.ceil(total_size / chunk_size)
+        num_parts = math.ceil(total_file_size / part_size)
         for i in range(num_parts):
             postfix = ('000000000' + str(i))[-9:]
             file_path = base_dir + base_file_name + '.' + postfix
@@ -500,35 +594,105 @@ class Org(object):
 
         return file_paths
 
-    def _upload_part_files(self,
-                           part_file_paths,
-                           href,
-                           chunk_size=DEFAULT_CHUNK_SIZE,
-                           callback=None):
+    def _upload_file(self,
+                     file_name,
+                     target_uri,
+                     chunk_size=DEFAULT_CHUNK_SIZE,
+                     callback=None):
+        """Helper function to upload contents of a local file.
+
+        :param file_name: (str): The name of the file on local disk whose
+            content will be uploaded to the uri.
+        :param target_uri: (str): The uri where the contents of the local
+            file will be uploaded to.
+        :param chunk_size: (int): The size of chunks in which the local file
+            will be uploaded.
+        :param callback: (function): A function with signature
+            function(bytes_written, total_size) to let the caller monitor
+            progress of the upload operation.
+
+        :return: Number of bytes uploade to the uri.
+        """
+        return self._upload_part_file(
+            file_name, target_uri, chunk_size=chunk_size, callback=callback)
+
+    def _upload_multi_part_file(self,
+                                part_file_paths,
+                                target_uri,
+                                chunk_size=DEFAULT_CHUNK_SIZE,
+                                callback=None):
+        """Helper function to upload contents of a multi-part local file.
+
+        :param part_file_paths: (list of str): The path (with name) of the
+            parts of the file on local disk whose content will be uploaded to
+            the uri.
+        :param target_uri: (str): The uri where the contents of the local
+            file will be uploaded to.
+        :param chunk_size: (int): The size of chunks in which the local file
+            will be uploaded.
+        :param callback: (function): A function with signature
+            function(bytes_written, total_size) to let the caller monitor
+            progress of the upload operation.
+
+        :return: Number of bytes uploade to the uri.
+        """
         total_bytes_to_upload = 0
         for part_file in part_file_paths:
             stat_info = os.stat(part_file)
             total_bytes_to_upload += stat_info.st_size
 
-        transferred_bytes = 0
+        uploaded_bytes = 0
         for part_file_name in part_file_paths:
-            transferred_bytes_for_current_file = 0
-            stat_info = os.stat(part_file)
-            file_size = stat_info.st_size
-            with open(part_file_name, 'rb') as f:
-                while transferred_bytes_for_current_file < file_size:
-                    data = f.read(chunk_size)
-                    if len(data) <= chunk_size:
-                        range_str = 'bytes %s-%s/%s' % \
-                                    (transferred_bytes,
-                                     transferred_bytes + len(data) - 1,
-                                     total_bytes_to_upload)
-                        self.client.upload_fragment(href, data, range_str)
-                        transferred_bytes += len(data)
-                        transferred_bytes_for_current_file += len(data)
-                        if callback is not None:
-                            callback(transferred_bytes, total_bytes_to_upload)
-        return transferred_bytes
+            uploaded_bytes += self._upload_part_file(
+                part_file_name, target_uri, uploaded_bytes,
+                total_bytes_to_upload, chunk_size, callback)
+        return uploaded_bytes
+
+    def _upload_part_file(self,
+                          part_file_path,
+                          target_uri,
+                          offset=0,
+                          total_file_size=None,
+                          chunk_size=DEFAULT_CHUNK_SIZE,
+                          callback=None):
+        """Helper function to upload contents of a single part file.
+
+        :param part_file_path: (list of str): The path (with name) of the
+            part-file on local disk whose content will be uploaded to the uri.
+        :param target_uri: (str): The uri where the contents of the local
+            part-file will be uploaded to.
+        :param offset: (int): Number of bytes to skip on the target uri while
+            uploading contents of the part-file.
+        :param total_file_size: (int): Sum total of all parts of the file that
+            is being uploaded.
+        :param chunk_size: (int): The size of chunks in which the local file
+            will be uploaded.
+        :param callback: (function): A function with signature
+            function(bytes_written, total_size) to let the caller monitor
+            progress of the upload operation.
+
+        :return: Number of bytes uploade to the uri.
+        """
+        stat_info = os.stat(part_file_path)
+        part_file_size = stat_info.st_size
+        if total_file_size is None:
+            total_file_size = part_file_size
+        uploaded_bytes = 0
+
+        with open(part_file_path, 'rb') as f:
+            while uploaded_bytes < part_file_size:
+                data = f.read(chunk_size)
+                data_size = len(data)
+                if data_size <= chunk_size:
+                    range_str = 'bytes %s-%s/%s' % \
+                                (offset + uploaded_bytes,
+                                 data_size - 1,
+                                 total_file_size)
+                    self.client.upload_fragment(target_uri, data, range_str)
+                    uploaded_bytes += data_size
+                    if callback is not None:
+                        callback(offset + uploaded_bytes, total_file_size)
+        return uploaded_bytes
 
     def get_vdc(self, name):
         if self.resource is None:
@@ -540,7 +704,7 @@ class Org(object):
         for link in links:
             if name == link.name:
                 return self.client.get_resource(link.href)
-        raise EntityNotFoundException("Vdc \'%s\' not found" % name)
+        raise EntityNotFoundException('Vdc \'%s\' not found' % name)
 
     def list_vdcs(self):
         if self.resource is None:

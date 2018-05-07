@@ -232,6 +232,8 @@ def to_human(seconds):
 def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
     result = {}
     result['name'] = vapp.get('name')
+    if hasattr(vapp, 'Description'):
+        result['description'] = str('%s' % vapp.Description)
     result['id'] = extract_id(vapp.get('id'))
     if 'ownerName' in vapp:
         result['owner'] = [vapp.get('ownerName')]

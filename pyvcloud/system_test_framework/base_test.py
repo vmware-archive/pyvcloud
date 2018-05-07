@@ -23,9 +23,9 @@ class BaseTestCase(unittest.TestCase):
         Environment.create_org()
         Environment.create_users()
         Environment.create_ovdc()
-        # Environment.create_ovdc_network()
+        Environment.create_ovdc_network()
         Environment.create_catalog()
-        # Environment.share_catalog()
+        Environment.share_catalog()
         Environment.upload_template()
         Environment.instantiate_vapp()
 

@@ -556,7 +556,9 @@ class Client(object):
 
     def logout(self):
         uri = self._uri + '/session'
-        return self._do_request('DELETE', uri)
+        result = self._do_request('DELETE', uri)
+        self._session.close()
+        return result
 
     def _is_sys_admin(self, logged_in_org):
         if logged_in_org.lower() == 'system':

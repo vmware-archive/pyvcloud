@@ -104,14 +104,14 @@ RESOURCE_TYPES = [
     'catalog', 'catalogItem', 'cell', 'condition', 'datastore',
     'datastoreProviderVdcRelation', 'disk', 'dvSwitch', 'edgeGateway', 'event',
     'externalLocalization', 'externalNetwork', 'fileDescriptor',
-    'fromCloudTunnel', 'group', 'host', 'media', 'networkPool', 'organization',
-    'orgNetwork', 'orgVdc', 'orgVdcNetwork', 'orgVdcResourcePoolRelation',
-    'orgVdcStorageProfile', 'portGroup', 'providerVdc',
-    'providerVdcResourcePoolRelation', 'providerVdcStorageProfile',
-    'resourcePool', 'resourcePoolVmList', 'right', 'resourceClass',
-    'resourceClassAction', 'role', 'service', 'serviceLink', 'serviceResource',
-    'strandedItem', 'strandedUser', 'task', 'toCloudTunnel', 'user', 'vApp',
-    'vAppNetwork', 'vAppOrgVdcNetworkRelation', 'vAppTemplate',
+    'fromCloudTunnel', 'group', 'host', 'media', 'networkPool', 'nsxTManager',
+    'organization', 'orgNetwork', 'orgVdc', 'orgVdcNetwork',
+    'orgVdcResourcePoolRelation', 'orgVdcStorageProfile', 'portGroup',
+    'providerVdc', 'providerVdcResourcePoolRelation',
+    'providerVdcStorageProfile', 'resourcePool', 'resourcePoolVmList', 'right',
+    'resourceClass', 'resourceClassAction', 'role', 'service', 'serviceLink',
+    'serviceResource', 'strandedItem', 'strandedUser', 'task', 'toCloudTunnel',
+    'user', 'vApp', 'vAppNetwork', 'vAppOrgVdcNetworkRelation', 'vAppTemplate',
     'virtualCenter', 'vm', 'vmDiskRelation', 'vmGroups', 'vmGroupVms'
 ]
 

@@ -21,6 +21,7 @@ from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.extension import Extension
 
@@ -100,7 +101,7 @@ class Platform(object):
             'External network \'%s\' not found.' % name)
 
     def get_vxlan_network_pool(self, vxlan_network_pool_name):
-        """Fetch a vxlan_network_pool by its name.
+        """[Deprecated] Fetch a vxlan_network_pool by its name.
 
         :param: vxlan_network_pool_name (str): name of the vxlan_network_pool.
         :return: (lxml.objectify.ObjectifiedElement): vxlan_network_pool.
@@ -122,6 +123,25 @@ class Platform(object):
             return vxlan_network_pool_record
         raise EntityNotFoundException('vxlan_network_pool \'%s\' not found' %
                                       vxlan_network_pool_name)
+
+    def get_res_by_name(self, resource_type, resource_name):
+        """Fetch a resource by its name.
+
+        :param: resource_type (ResourceType): type of the resource.
+        :param: resource_name (str): name of the resource.
+        :return: (lxml.objectify.ObjectifiedElement): resource record.
+        :raises: Exception: if the named resource cannot be found.
+        """
+        query_filter = 'name==%s' % urllib.parse.quote_plus(resource_name)
+        record = self.client.get_typed_query(
+            resource_type.value,
+            query_result_format=QueryResultFormat.REFERENCES,
+            qfilter=query_filter).find_unique()
+        if resource_name == record.get('name'):
+            return record
+        else:
+            raise Exception('resource: \'%s\' name: \'%s\' not found' %
+                            resource_type.value, resource_name)
 
     def get_resource_pool_morefs(self, vc_name, vc_href, resource_pool_names):
         """Fetch list of morefs for a given list of resource_pool_names.
@@ -161,7 +181,8 @@ class Platform(object):
                             is_enabled=None,
                             description=None,
                             highest_hw_vers=None,
-                            vxlan_network_pool=None):
+                            vxlan_network_pool=None,
+                            nsxt_manager_name=None):
         """Create a Provider Virtual Datacenter.
 
         :param: vim_server_name: (str): vim_server_name (VC name).
@@ -172,6 +193,7 @@ class Platform(object):
         :param: description: (str): description of pvdc.
         :param: highest_hw_vers: (str): highest supported hw vers number.
         :param: vxlan_network_pool: (str): name of vxlan_network_pool.
+        :param: nsxt_manager_name: (str): name of nsx-t manager.
         :return: A :class:lxml.objectify.StringElement object describing the
         :        new provider VDC.
         """
@@ -193,11 +215,17 @@ class Platform(object):
         vmw_prov_vdc_params.append(resource_pool_refs)
         vmw_prov_vdc_params.append(E_VMEXT.VimServer(href=vc_href))
         if vxlan_network_pool is not None:
-            vxlan_network_pool_record = self.get_vxlan_network_pool(
-                vxlan_network_pool)
-            vx_href = vxlan_network_pool_record.get('href')
+            network_pool_rec = self.get_res_by_name(ResourceType.NETWORK_POOL,
+                                                    vxlan_network_pool)
+            vx_href = network_pool_rec.get('href')
             vmw_prov_vdc_params.append(E_VMEXT.VxlanNetworkPool(
                 href=vx_href))
+        if nsxt_manager_name is not None:
+            nsxt_manager_rec = self.get_res_by_name(ResourceType.NSXT_MANAGER,
+                                                    nsxt_manager_name)
+            nsxt_href = nsxt_manager_rec.get('href')
+            vmw_prov_vdc_params.append(E_VMEXT.NsxTManagerReference(
+                href=nsxt_href))
         if highest_hw_vers is not None:
             vmw_prov_vdc_params.append(
                 E_VMEXT.HighestSupportedHardwareVersion(highest_hw_vers))

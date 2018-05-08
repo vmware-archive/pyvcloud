@@ -93,31 +93,10 @@ E_RASD = objectify.ElementMaker(
         'vcloud': NSMAP['vcloud']
     })
 
-RESOURCE_TYPES = [
-    'aclRule', 'adminApiDefinition', 'adminAllocatedExternalAddress',
-    'adminCatalog', 'adminCatalogItem', 'adminDisk', 'adminEvent',
-    'adminFileDescriptor', 'adminGroup', 'adminMedia', 'adminOrgNetwork',
-    'adminOrgVdc', 'adminOrgVdcStorageProfile', 'adminRole', 'adminService',
-    'adminShadowVM', 'adminTask', 'adminUser', 'adminVApp', 'adminVAppNetwork',
-    'adminVAppTemplate', 'adminVM', 'adminVMDiskRelation',
-    'allocatedExternalAddress', 'apiDefinition', 'apiFilter', 'blockingTask',
-    'catalog', 'catalogItem', 'cell', 'condition', 'datastore',
-    'datastoreProviderVdcRelation', 'disk', 'dvSwitch', 'edgeGateway', 'event',
-    'externalLocalization', 'externalNetwork', 'fileDescriptor',
-    'fromCloudTunnel', 'group', 'host', 'media', 'networkPool', 'organization',
-    'orgNetwork', 'orgVdc', 'orgVdcNetwork', 'orgVdcResourcePoolRelation',
-    'orgVdcStorageProfile', 'portGroup', 'providerVdc',
-    'providerVdcResourcePoolRelation', 'providerVdcStorageProfile',
-    'resourcePool', 'resourcePoolVmList', 'right', 'resourceClass',
-    'resourceClassAction', 'role', 'service', 'serviceLink', 'serviceResource',
-    'strandedItem', 'strandedUser', 'task', 'toCloudTunnel', 'user', 'vApp',
-    'vAppNetwork', 'vAppOrgVdcNetworkRelation', 'vAppTemplate',
-    'virtualCenter', 'vm', 'vmDiskRelation', 'vmGroups', 'vmGroupVms'
-]
 
 API_CURRENT_VERSIONS = [
     '5.5', '5.6', '6.0', '13.0', '17.0', '20.0', '21.0', '22.0', '23.0',
-    '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0'
+    '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0', '31.0'
 ]
 
 VCLOUD_STATUS_MAP = {
@@ -180,6 +159,91 @@ class RelationType(Enum):
     UNDEPLOY = 'undeploy'
     UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'
     UP = 'up'
+
+
+class ResourceType(Enum):
+    ACL_RULE = 'aclRule'
+    ADMIN_API_DEFINITION = 'adminApiDefinition'
+    ADMIN_ALLOCATED_EXTERNAL_ADDRESS = 'adminAllocatedExternalAddress'
+    ADMIN_CATALOG = 'adminCatalog'
+    ADMIN_CATALOG_ITEM = 'adminCatalogItem'
+    ADMIN_DISK = 'adminDisk'
+    ADMIN_EVENT = 'adminEvent'
+    ADMIN_FILE_DESCRIPTOR = 'adminFileDescriptor'
+    ADMIN_GROUP = 'adminGroup'
+    ADMIN_MEDIA = 'adminMedia'
+    ADMIN_ORG_NETWORK = 'adminOrgNetwork'
+    ADMIN_ORG_VDC = 'adminOrgVdc'
+    ADMIN_ORG_VDC_STORAGE_PROFILE = 'adminOrgVdcStorageProfile'
+    ADMIN_ROLE = 'adminRole'
+    ADMIN_SERVICE = 'adminService'
+    ADMIN_SHADOW_VM = 'adminShadowVM'
+    ADMIN_TASK = 'adminTask'
+    ADMIN_USER = 'adminUser'
+    ADMIN_VAPP = 'adminVApp'
+    ADMIN_VAPP_NETWORK = 'adminVAppNetwork'
+    ADMIN_VAPP_TEMPLATE = 'adminVAppTemplate'
+    ADMIN_VM = 'adminVM'
+    ADMIN_VM_DISK_RELATION = 'adminVMDiskRelation'
+    ALLOCATED_EXTERNAL_ADDRESS = 'allocatedExternalAddress'
+    API_DEFINITION = 'apiDefinition'
+    API_FILTER = 'apiFilter'
+    BLOCKING_TASK = 'blockingTask'
+    CATALOG = 'catalog'
+    CATALOG_ITEM = 'catalogItem'
+    CELL = 'cell'
+    CONDITION = 'condition'
+    DATASTORE = 'datastore'
+    DATASTORE_PROVIDER_VDC_RELATION = 'datastoreProviderVdcRelation'
+    DISK = 'disk'
+    DV_SWITCH = 'dvSwitch'
+    EDGE_GATEWAY = 'edgeGateway'
+    EVENT = 'event'
+    EXTERNAL_LOCALIZATION = 'externalLocalization'
+    EXTERNAL_NETWORK = 'externalNetwork'
+    FILE_DESCRIPTOR = 'fileDescriptor'
+    FROM_CLOUD_TUNNEL = 'fromCloudTunnel'
+    GROUP = 'group'
+    HOST = 'host'
+    MEDIA = 'media'
+    NETWORK_POOL = 'networkPool'
+    NSXT_MANAGER = 'nsxTManager'
+    ORGANIZATION = 'organization'
+    ORG_NETWORK = 'orgNetwork'
+    ORG_VDC = 'orgVdc'
+    ORG_VDC_NETWORK = 'orgVdcNetwork'
+    ORG_VDC_RESOURCE_POOL_RELATION = 'orgVdcResourcePoolRelation'
+    ORG_VDC_STORAGE_PROFILE = 'orgVdcStorageProfile'
+    PORT_GROUP = 'portGroup'
+    PROVIDER_VDC = 'providerVdc'
+    PROVIDER_VDC_RESOURCE_POOL_RELATION = 'providerVdcResourcePoolRelation'
+    PROVIDER_VDC_STORAGE_PROFILE = 'providerVdcStorageProfile'
+    RESOURCE_POOL = 'resourcePool'
+    RESOURCE_POOL_VM_LIST = 'resourcePoolVmList'
+    RIGHT = 'right'
+    RESOURCE_CLASS = 'resourceClass'
+    RESOURCE_CLASS_ACTION = 'resourceClassAction'
+    ROLE = 'role'
+    SERVICE = 'service'
+    SERVICE_LINK = 'serviceLink'
+    SERVICE_RESOURCE = 'serviceResource'
+    STRANDED_ITEM = 'strandedItem'
+    STRANDED_USER = 'strandedUser'
+    TASK = 'task'
+    TO_CLOUD_TUNNEL = 'toCloudTunnel'
+    USER = 'user'
+    VAPP = 'vApp'
+    VAPP_NETWORK = 'vAppNetwork'
+    VAPP_ORG_VDC_NETWORK_RELATION = 'vAppOrgVdcNetworkRelation'
+    VAPP_TEMPLATE = 'vAppTemplate'
+    VIRTUAL_CENTER = 'virtualCenter'
+    VM = 'vm'
+    VM_DISK_RELATION = 'vmDiskRelation'
+    VM_GROUPS = 'vmGroups'
+    VM_GROUP_VMS = 'vmGroupVms'
+
+
+RESOURCE_TYPES = [r.value for r in ResourceType]
 
 
 class EntityType(Enum):

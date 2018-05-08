@@ -93,27 +93,6 @@ E_RASD = objectify.ElementMaker(
         'vcloud': NSMAP['vcloud']
     })
 
-RESOURCE_TYPES = [
-    'aclRule', 'adminApiDefinition', 'adminAllocatedExternalAddress',
-    'adminCatalog', 'adminCatalogItem', 'adminDisk', 'adminEvent',
-    'adminFileDescriptor', 'adminGroup', 'adminMedia', 'adminOrgNetwork',
-    'adminOrgVdc', 'adminOrgVdcStorageProfile', 'adminRole', 'adminService',
-    'adminShadowVM', 'adminTask', 'adminUser', 'adminVApp', 'adminVAppNetwork',
-    'adminVAppTemplate', 'adminVM', 'adminVMDiskRelation',
-    'allocatedExternalAddress', 'apiDefinition', 'apiFilter', 'blockingTask',
-    'catalog', 'catalogItem', 'cell', 'condition', 'datastore',
-    'datastoreProviderVdcRelation', 'disk', 'dvSwitch', 'edgeGateway', 'event',
-    'externalLocalization', 'externalNetwork', 'fileDescriptor',
-    'fromCloudTunnel', 'group', 'host', 'media', 'networkPool', 'nsxTManager',
-    'organization', 'orgNetwork', 'orgVdc', 'orgVdcNetwork',
-    'orgVdcResourcePoolRelation', 'orgVdcStorageProfile', 'portGroup',
-    'providerVdc', 'providerVdcResourcePoolRelation',
-    'providerVdcStorageProfile', 'resourcePool', 'resourcePoolVmList', 'right',
-    'resourceClass', 'resourceClassAction', 'role', 'service', 'serviceLink',
-    'serviceResource', 'strandedItem', 'strandedUser', 'task', 'toCloudTunnel',
-    'user', 'vApp', 'vAppNetwork', 'vAppOrgVdcNetworkRelation', 'vAppTemplate',
-    'virtualCenter', 'vm', 'vmDiskRelation', 'vmGroups', 'vmGroupVms'
-]
 
 API_CURRENT_VERSIONS = [
     '5.5', '5.6', '6.0', '13.0', '17.0', '20.0', '21.0', '22.0', '23.0',
@@ -262,6 +241,9 @@ class ResourceType(Enum):
     VM_DISK_RELATION = 'vmDiskRelation'
     VM_GROUPS = 'vmGroups'
     VM_GROUP_VMS = 'vmGroupVms'
+
+
+RESOURCE_TYPES = [r.value for r in ResourceType]
 
 
 class EntityType(Enum):

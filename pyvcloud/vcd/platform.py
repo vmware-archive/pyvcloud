@@ -21,6 +21,7 @@ from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.extension import Extension
 
@@ -123,24 +124,24 @@ class Platform(object):
         raise EntityNotFoundException('vxlan_network_pool \'%s\' not found' %
                                       vxlan_network_pool_name)
 
-    def get_obj_by_name(self, obj_type, obj_name):
-        """Fetch an object by its name.
+    def get_resource_by_name(self, resource_type, resource_name):
+        """Fetch a resource by its name.
 
-        :param: obj_type (str): type of the object.
-        :param: obj_name (str): name of the object.
-        :return: (lxml.objectify.ObjectifiedElement): object record.
-        :raises: Exception: if the named object cannot be found.
+        :param: resource_type (str): type of the resource.
+        :param: resource_name (str): name of the resource.
+        :return: (lxml.objectify.ObjectifiedElement): resource record.
+        :raises: Exception: if the named resource cannot be found.
         """
-        query_filter = 'name==%s' % urllib.parse.quote_plus(obj_name)
+        query_filter = 'name==%s' % urllib.parse.quote_plus(resource_name)
         record = self.client.get_typed_query(
-            obj_type,
+            resource_type,
             query_result_format=QueryResultFormat.REFERENCES,
             qfilter=query_filter).find_unique()
-        if obj_name == record.get('name'):
+        if resource_name == record.get('name'):
             return record
         else:
-            raise Exception('obj_type: \'%s\' obj_name: \'%s\' not found' %
-                            obj_type, obj_name)
+            raise Exception('resource: \'%s\' name: \'%s\' not found' %
+                            resource_type, resource_name)
 
     def get_resource_pool_morefs(self, vc_name, vc_href, resource_pool_names):
         """Fetch list of morefs for a given list of resource_pool_names.
@@ -214,15 +215,17 @@ class Platform(object):
         vmw_prov_vdc_params.append(resource_pool_refs)
         vmw_prov_vdc_params.append(E_VMEXT.VimServer(href=vc_href))
         if vxlan_network_pool is not None:
-            network_pool_record = self.get_obj_by_name('networkPool',
-                                                       vxlan_network_pool)
-            vx_href = network_pool_record.get('href')
+            resource_type = ResourceType.NETWORK_POOL.value
+            network_pool_rec = self.get_resource_by_name(resource_type,
+                                                         vxlan_network_pool)
+            vx_href = network_pool_rec.get('href')
             vmw_prov_vdc_params.append(E_VMEXT.VxlanNetworkPool(
                 href=vx_href))
         if nsxt_manager_name is not None:
-            nsxt_manager_record = self.get_obj_by_name('nsxTManager',
-                                                       nsxt_manager_name)
-            nsxt_href = nsxt_manager_record.get('href')
+            resource_type = ResourceType.NSXT_MANAGER.value
+            nsxt_manager_rec = self.get_resource_by_name(resource_type,
+                                                         nsxt_manager_name)
+            nsxt_href = nsxt_manager_rec.get('href')
             vmw_prov_vdc_params.append(E_VMEXT.NsxTManagerReference(
                 href=nsxt_href))
         if highest_hw_vers is not None:

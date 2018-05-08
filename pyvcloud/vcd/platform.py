@@ -141,7 +141,7 @@ class Platform(object):
             return record
         else:
             raise Exception('resource: \'%s\' name: \'%s\' not found' %
-                            resource_type, resource_name)
+                            resource_type.value, resource_name)
 
     def get_resource_pool_morefs(self, vc_name, vc_href, resource_pool_names):
         """Fetch list of morefs for a given list of resource_pool_names.

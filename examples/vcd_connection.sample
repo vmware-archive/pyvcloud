@@ -1,0 +1,6 @@
+# Test vCD instance parameters. 
+VCD_HOST=<host name or ip>
+VCD_API_VERSION=30.0
+VCD_ORG=System
+VCD_USER=<sysadmin user>
+VCD_PASSWORD=<password>

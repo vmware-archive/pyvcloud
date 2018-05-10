@@ -1,5 +1,5 @@
 Exception handling
 ==================
 
-Exception class hierarchy![Exception Class Hierarchy.jpg](../docs/Exception Class Hierarchy.jpg)
+Exception class hierarchy![Exception Class Hierarchy.jpg](Exception%20Class%20Hierarchy.jpg)
 

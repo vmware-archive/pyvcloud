@@ -294,3 +294,33 @@ class Platform(object):
                                  media_type=EntityType.
                                  REGISTER_VC_SERVER_PARAMS.value,
                                  contents=register_vc_server_params)
+
+    def register_nsxt_manager(self,
+                              nsxt_manager_name,
+                              nsxt_manager_url,
+                              nsxt_manager_username,
+                              nsxt_manager_password=None,
+                              nsxt_manager_description=None):
+        """Register an NSX-T Manager.
+
+        :param: nsxt_manager_name: (str): name of NSX-T Manager.
+        :param: nsxt_manager_url: (str): URL of NSX-T Manager server.
+        :param: nsxt_manager_username: (str): username of NSX-T Manager admin.
+        :param: nsxt_manager_password: (str): password of NSX-T Manager admin.
+        :param: nsxt_manager_description: (str): description of NSX-T Manager.
+        :return: A :class:lxml.objectify.StringElement object describing the
+        :        newly registered NSX-T Manager.
+        """
+        nsxt_manager = E_VMEXT.NsxTManager(name=nsxt_manager_name)
+        if (nsxt_manager_description is not None):
+            nsxt_manager.append(E.Description(nsxt_manager_description))
+        nsxt_manager.append(E_VMEXT.Username(nsxt_manager_username))
+        if (nsxt_manager_password is not None):
+            nsxt_manager.append(E_VMEXT.Password(nsxt_manager_password))
+        nsxt_manager.append(E_VMEXT.Url(nsxt_manager_url))
+
+        return self.client.\
+            post_linked_resource(resource=self.extension.get_resource(),
+                                 rel=RelationType.ADD,
+                                 media_type=EntityType.NSXT_MANAGER.value,
+                                 contents=nsxt_manager)

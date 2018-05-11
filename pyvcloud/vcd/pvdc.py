@@ -16,6 +16,7 @@ from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.utils import get_admin_href
 
 
@@ -30,8 +31,9 @@ class PVDC(object):
         """
         self.client = client
         if href is None and resource is None:
-            raise TypeError("PVDC initialization failed as arguments"
-                            " are either invalid or None")
+            raise InvalidParameterException(
+                "PVDC initialization failed as arguments are either invalid "
+                "or None")
         self.href = href
         self.resource = resource
         if resource is not None:

@@ -18,6 +18,8 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.utils import get_admin_href
 
 
@@ -33,8 +35,9 @@ class System(object):
         """
         self.client = client
         if admin_href is None and admin_resource is None:
-            raise TypeError("System initialization failed as arguments"
-                            " are either invalid or None")
+            raise InvalidParameterException(
+                "System initialization failed as arguments are either "
+                "invalid or None")
         self.admin_href = admin_href
         self.admin_resource = admin_resource
         if admin_resource is not None:
@@ -97,8 +100,8 @@ class System(object):
         for pvdc in self.list_provider_vdcs():
             if pvdc.get('name') == name:
                 return pvdc
-        raise Exception('Provider VDC \'%s\' not found or '
-                        'access to resource is forbidden' % name)
+        raise EntityNotFoundException('Provider VDC \'%s\' not found or '
+                                      'access to resource is forbidden' % name)
 
     def list_provider_vdc_storage_profiles(self, name=None):
         """List provider VDC storage profiles in the system organization.
@@ -124,8 +127,9 @@ class System(object):
         for profile in self.list_provider_vdc_storage_profiles(name):
             if profile.get('name') == name:
                 return profile
-        raise Exception('Storage profile \'%s\' not found or '
-                        'access to resource is forbidden.' % name)
+        raise EntityNotFoundException('Storage profile \'%s\' not found or '
+                                      'access to resource is forbidden.' %
+                                      name)
 
     def list_network_pools(self):
         """List network pools in the system organization.
@@ -149,5 +153,5 @@ class System(object):
         for item in self.list_network_pools():
             if item.get('name') == name:
                 return item
-        raise Exception('Network pool \'%s\' not found or '
-                        'access to resource is forbidden' % name)
+        raise EntityNotFoundException('Network pool \'%s\' not found or '
+                                      'access to resource is forbidden' % name)

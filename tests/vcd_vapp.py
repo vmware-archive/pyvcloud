@@ -49,6 +49,7 @@ class TestVApp(TestCase):
             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
 
+    @unittest.skip("reconfigure_vapp_network is not a valid method")
     def test_011_update_vapp_network(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)

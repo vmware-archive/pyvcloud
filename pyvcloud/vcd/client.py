@@ -26,6 +26,17 @@ from lxml import etree
 from lxml import objectify
 import requests
 
+from pyvcloud.vcd.exceptions import AccessForbiddenException, \
+    BadRequestException, ClientException, ConflictException, \
+    EntityNotFoundException, InternalServerException, \
+    InvalidContentLengthException, MethodNotAllowedException, \
+    MissingLinkException, MissingRecordException, MultipleLinksException, \
+    MultipleRecordsException, NotAcceptableException, NotFoundException, \
+    OperationNotSupportedException, RequestTimeoutException,\
+    TaskTimeoutException, UnauthorizedException, UnknownApiException, \
+    UnsupportedMediaTypeException, VcdException, VcdTaskException  # NOQA
+
+
 SIZE_1MB = 1024 * 1024
 
 NSMAP = {
@@ -82,31 +93,10 @@ E_RASD = objectify.ElementMaker(
         'vcloud': NSMAP['vcloud']
     })
 
-RESOURCE_TYPES = [
-    'aclRule', 'adminApiDefinition', 'adminAllocatedExternalAddress',
-    'adminCatalog', 'adminCatalogItem', 'adminDisk', 'adminEvent',
-    'adminFileDescriptor', 'adminGroup', 'adminMedia', 'adminOrgNetwork',
-    'adminOrgVdc', 'adminOrgVdcStorageProfile', 'adminRole', 'adminService',
-    'adminShadowVM', 'adminTask', 'adminUser', 'adminVApp', 'adminVAppNetwork',
-    'adminVAppTemplate', 'adminVM', 'adminVMDiskRelation',
-    'allocatedExternalAddress', 'apiDefinition', 'apiFilter', 'blockingTask',
-    'catalog', 'catalogItem', 'cell', 'condition', 'datastore',
-    'datastoreProviderVdcRelation', 'disk', 'dvSwitch', 'edgeGateway', 'event',
-    'externalLocalization', 'externalNetwork', 'fileDescriptor',
-    'fromCloudTunnel', 'group', 'host', 'media', 'networkPool', 'organization',
-    'orgNetwork', 'orgVdc', 'orgVdcNetwork', 'orgVdcResourcePoolRelation',
-    'orgVdcStorageProfile', 'portGroup', 'providerVdc',
-    'providerVdcResourcePoolRelation', 'providerVdcStorageProfile',
-    'resourcePool', 'resourcePoolVmList', 'right', 'resourceClass',
-    'resourceClassAction', 'role', 'service', 'serviceLink', 'serviceResource',
-    'strandedItem', 'strandedUser', 'task', 'toCloudTunnel', 'user', 'vApp',
-    'vAppNetwork', 'vAppOrgVdcNetworkRelation', 'vAppTemplate',
-    'virtualCenter', 'vm', 'vmDiskRelation', 'vmGroups', 'vmGroupVms'
-]
 
 API_CURRENT_VERSIONS = [
     '5.5', '5.6', '6.0', '13.0', '17.0', '20.0', '21.0', '22.0', '23.0',
-    '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0'
+    '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0', '31.0'
 ]
 
 VCLOUD_STATUS_MAP = {
@@ -169,6 +159,91 @@ class RelationType(Enum):
     UNDEPLOY = 'undeploy'
     UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'
     UP = 'up'
+
+
+class ResourceType(Enum):
+    ACL_RULE = 'aclRule'
+    ADMIN_API_DEFINITION = 'adminApiDefinition'
+    ADMIN_ALLOCATED_EXTERNAL_ADDRESS = 'adminAllocatedExternalAddress'
+    ADMIN_CATALOG = 'adminCatalog'
+    ADMIN_CATALOG_ITEM = 'adminCatalogItem'
+    ADMIN_DISK = 'adminDisk'
+    ADMIN_EVENT = 'adminEvent'
+    ADMIN_FILE_DESCRIPTOR = 'adminFileDescriptor'
+    ADMIN_GROUP = 'adminGroup'
+    ADMIN_MEDIA = 'adminMedia'
+    ADMIN_ORG_NETWORK = 'adminOrgNetwork'
+    ADMIN_ORG_VDC = 'adminOrgVdc'
+    ADMIN_ORG_VDC_STORAGE_PROFILE = 'adminOrgVdcStorageProfile'
+    ADMIN_ROLE = 'adminRole'
+    ADMIN_SERVICE = 'adminService'
+    ADMIN_SHADOW_VM = 'adminShadowVM'
+    ADMIN_TASK = 'adminTask'
+    ADMIN_USER = 'adminUser'
+    ADMIN_VAPP = 'adminVApp'
+    ADMIN_VAPP_NETWORK = 'adminVAppNetwork'
+    ADMIN_VAPP_TEMPLATE = 'adminVAppTemplate'
+    ADMIN_VM = 'adminVM'
+    ADMIN_VM_DISK_RELATION = 'adminVMDiskRelation'
+    ALLOCATED_EXTERNAL_ADDRESS = 'allocatedExternalAddress'
+    API_DEFINITION = 'apiDefinition'
+    API_FILTER = 'apiFilter'
+    BLOCKING_TASK = 'blockingTask'
+    CATALOG = 'catalog'
+    CATALOG_ITEM = 'catalogItem'
+    CELL = 'cell'
+    CONDITION = 'condition'
+    DATASTORE = 'datastore'
+    DATASTORE_PROVIDER_VDC_RELATION = 'datastoreProviderVdcRelation'
+    DISK = 'disk'
+    DV_SWITCH = 'dvSwitch'
+    EDGE_GATEWAY = 'edgeGateway'
+    EVENT = 'event'
+    EXTERNAL_LOCALIZATION = 'externalLocalization'
+    EXTERNAL_NETWORK = 'externalNetwork'
+    FILE_DESCRIPTOR = 'fileDescriptor'
+    FROM_CLOUD_TUNNEL = 'fromCloudTunnel'
+    GROUP = 'group'
+    HOST = 'host'
+    MEDIA = 'media'
+    NETWORK_POOL = 'networkPool'
+    NSXT_MANAGER = 'nsxTManager'
+    ORGANIZATION = 'organization'
+    ORG_NETWORK = 'orgNetwork'
+    ORG_VDC = 'orgVdc'
+    ORG_VDC_NETWORK = 'orgVdcNetwork'
+    ORG_VDC_RESOURCE_POOL_RELATION = 'orgVdcResourcePoolRelation'
+    ORG_VDC_STORAGE_PROFILE = 'orgVdcStorageProfile'
+    PORT_GROUP = 'portGroup'
+    PROVIDER_VDC = 'providerVdc'
+    PROVIDER_VDC_RESOURCE_POOL_RELATION = 'providerVdcResourcePoolRelation'
+    PROVIDER_VDC_STORAGE_PROFILE = 'providerVdcStorageProfile'
+    RESOURCE_POOL = 'resourcePool'
+    RESOURCE_POOL_VM_LIST = 'resourcePoolVmList'
+    RIGHT = 'right'
+    RESOURCE_CLASS = 'resourceClass'
+    RESOURCE_CLASS_ACTION = 'resourceClassAction'
+    ROLE = 'role'
+    SERVICE = 'service'
+    SERVICE_LINK = 'serviceLink'
+    SERVICE_RESOURCE = 'serviceResource'
+    STRANDED_ITEM = 'strandedItem'
+    STRANDED_USER = 'strandedUser'
+    TASK = 'task'
+    TO_CLOUD_TUNNEL = 'toCloudTunnel'
+    USER = 'user'
+    VAPP = 'vApp'
+    VAPP_NETWORK = 'vAppNetwork'
+    VAPP_ORG_VDC_NETWORK_RELATION = 'vAppOrgVdcNetworkRelation'
+    VAPP_TEMPLATE = 'vAppTemplate'
+    VIRTUAL_CENTER = 'virtualCenter'
+    VM = 'vm'
+    VM_DISK_RELATION = 'vmDiskRelation'
+    VM_GROUPS = 'vmGroups'
+    VM_GROUP_VMS = 'vmGroupVms'
+
+
+RESOURCE_TYPES = [r.value for r in ResourceType]
 
 
 class EntityType(Enum):
@@ -284,75 +359,6 @@ class NetworkAdapterType(Enum):
     VLANCE = 'PCNet32'
 
 
-class MultipleRecordsException(Exception):
-    pass
-
-
-class MissingRecordException(Exception):
-    pass
-
-
-class LinkException(Exception):
-    def __init__(self, href, rel, media_type):
-        self.href = href
-        self.rel = rel
-        self.media_type = media_type
-
-    def __str__(self):
-        return '%s; href: %s, rel: %s, mediaType: %s' % \
-            (super(LinkException, self).__str__(),
-             self.href,
-             self.rel,
-             self.media_type)
-
-
-class MultipleLinksException(LinkException):
-    def __init__(self, href, rel, media_type):
-        super(MultipleLinksException, self).__init__(href, rel, media_type)
-
-
-class MissingLinkException(LinkException):
-    def __init__(self, href, rel, media_type):
-        super(MissingLinkException, self).__init__(href, rel, media_type)
-
-
-class VcdErrorException(Exception):
-    def __init__(self, status_code):
-        self.status_code = status_code
-
-
-class VcdErrorResponseException(VcdErrorException):
-    def __init__(self, status_code, request_id, vcd_error):
-        super(VcdErrorResponseException, self).__init__(status_code)
-        self.vcd_error = vcd_error
-        self.request_id = request_id
-
-    def __str__(self):
-        return \
-            'Status code: ' + \
-            (('%d, <empty response body>' % self.status_code)
-                if self.vcd_error is None else
-                ('%d/%s, %s' %
-                 (self.status_code,
-                  self.vcd_error.get('minorErrorCode'),
-                  self.vcd_error.get('message')))) + \
-            (' (request id: %s)' % self.request_id)
-
-
-class VcdTaskException(Exception):
-    def __init__(self, error_message, vcd_error):
-        self.error_message = error_message
-        self.vcd_error = vcd_error
-
-    def __str__(self):
-        return \
-            'VcdTaskException; %s/%s: %s (%s)' % \
-            (self.vcd_error.get('majorErrorCode'),
-             self.vcd_error.get('minorErrorCode'),
-             self.error_message,
-             self.vcd_error.get('message'))
-
-
 def _get_session_endpoints(session):
     """Return a map of well known endpoings.
 
@@ -459,7 +465,7 @@ class _TaskMonitor(object):
             if start_time - datetime.now() > timedelta(seconds=timeout):
                 break
             time.sleep(poll_frequency)
-        raise Exception("Task timeout")
+        raise TaskTimeoutException("Task timeout")
 
     def _get_task_status(self, task_href):
         return self._client.get_resource(task_href)
@@ -534,7 +540,7 @@ class Client(object):
             'GET', self._uri + '/versions', new_session, accept_type='')
         sc = response.status_code
         if sc != 200:
-            raise Exception('Unable to get supported API versions.')
+            raise VcdException('Unable to get supported API versions.')
         return objectify.fromstring(response.content)
 
     def set_highest_supported_version(self):
@@ -566,11 +572,12 @@ class Client(object):
                 r = _objectify_response(response)
             except Exception:
                 pass
-            raise VcdErrorResponseException(
-                sc,
-                self._get_response_request_id(response),
-                r) if r is not None else \
-                Exception('Login failed.')
+            if r is not None:
+                self._response_code_to_exception(
+                    sc,
+                    self._get_response_request_id(response), r)
+            else:
+                raise VcdException('Login failed.')
 
         session = objectify.fromstring(response.content)
         self._session_endpoints = _get_session_endpoints(session)
@@ -599,11 +606,8 @@ class Client(object):
                                          new_session)
         sc = response.status_code
         if sc != 200:
-            raise VcdErrorResponseException(
-                sc,
-                self._get_response_request_id(response),
-                _objectify_response(response)) if sc == 401 else \
-                Exception("Unknown login failure")
+            self._response_code_to_exception(sc, self._get_response_request_id(
+                response), _objectify_response(response))
 
         session = objectify.fromstring(response.content)
 
@@ -616,7 +620,9 @@ class Client(object):
 
     def logout(self):
         uri = self._uri + '/session'
-        return self._do_request('DELETE', uri)
+        result = self._do_request('DELETE', uri)
+        self._session.close()
+        return result
 
     def _is_sys_admin(self, logged_in_org):
         if logged_in_org.lower() == 'system':
@@ -639,7 +645,6 @@ class Client(object):
                     uri,
                     contents=None,
                     media_type=None,
-                    accept_type=None,
                     objectify_results=True):
         response = self._do_request_prim(
             method,
@@ -652,17 +657,47 @@ class Client(object):
         if 200 <= sc <= 299:
             return _objectify_response(response, objectify_results)
 
-        if 400 <= sc <= 499:
-            raise VcdErrorResponseException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+        self._response_code_to_exception(sc, self._get_response_request_id(
+            response), _objectify_response(response, objectify_results))
+
+    @staticmethod
+    def _response_code_to_exception(sc, request_id, objectify_response):
+        if sc == 400:
+            raise BadRequestException(sc, request_id, objectify_response)
+
+        if sc == 401:
+            raise UnauthorizedException(sc, request_id, objectify_response)
+
+        if sc == 403:
+            raise AccessForbiddenException(sc, request_id, objectify_response)
+
+        if sc == 404:
+            raise NotFoundException(sc, request_id, objectify_response)
+
+        if sc == 405:
+            raise MethodNotAllowedException(sc, request_id, objectify_response)
+
+        if sc == 406:
+            raise NotAcceptableException(sc, request_id, objectify_response)
+
+        if sc == 408:
+            raise RequestTimeoutException(sc, request_id, objectify_response)
+
+        if sc == 409:
+            raise ConflictException(sc, request_id, objectify_response)
+
+        if sc == 415:
+            raise UnsupportedMediaTypeException(sc, request_id,
+                                                objectify_response)
+
+        if sc == 416:
+            raise InvalidContentLengthException(sc, request_id,
+                                                objectify_response)
 
         if sc == 500:
-            raise VcdErrorResponseException(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response, objectify_results))
+            raise InternalServerException(sc, request_id, objectify_response)
 
-        raise Exception("Unsupported HTTP status code (%d) encountered" % sc)
+        raise UnknownApiException(sc, request_id, objectify_response)
 
     def _do_request_prim(self,
                          method,
@@ -792,8 +827,12 @@ class Client(object):
         Puts the contents of the resource referenced by the link with the
             specified rel and mediaType in the specified resource.
         """
-        return self.put_resource(
-            find_link(resource, rel, media_type).href, contents, media_type)
+        try:
+            return self.put_resource(
+                find_link(resource, rel, media_type).href, contents,
+                media_type)
+        except MissingLinkException as e:
+            raise OperationNotSupportedException from e
 
     def post_resource(self, uri, contents, media_type, objectify_results=True):
         """Posts to a resource link.
@@ -814,8 +853,13 @@ class Client(object):
         Posts the contents of the resource referenced by the link with the
             specified rel and mediaType in the specified resource.
         """
-        return self.post_resource(
-            find_link(resource, rel, media_type).href, contents, media_type)
+        try:
+            return self.post_resource(
+                find_link(resource, rel, media_type).href, contents,
+                media_type)
+        except MissingLinkException as e:
+            raise OperationNotSupportedException(
+                "Operation is not supported").with_traceback(e.__traceback__)
 
     def get_resource(self, uri, objectify_results=True):
         """Gets the specified contents to the specified resource.
@@ -831,7 +875,11 @@ class Client(object):
         Gets the contents of the resource referenced by the link with the
             specified rel and mediaType in the specified resource.
         """
-        return self.get_resource(find_link(resource, rel, media_type).href)
+        try:
+            return self.get_resource(find_link(resource, rel, media_type).href)
+        except MissingLinkException as e:
+            raise OperationNotSupportedException(
+                "Operation is not supported").with_traceback(e.__traceback__)
 
     def delete_resource(self, uri, force=False, recursive=False):
         full_uri = '%s?force=%s&recursive=%s' % (uri, force, recursive)
@@ -843,7 +891,12 @@ class Client(object):
         Deletes the resource referenced by the link with the specified rel and
             mediaType in the specified resource.
         """
-        return self.delete_resource(find_link(resource, rel, media_type).href)
+        try:
+            return self.delete_resource(
+                find_link(resource, rel, media_type).href)
+        except MissingLinkException as e:
+            raise OperationNotSupportedException(
+                "Operation is not supported").with_traceback(e.__traceback__)
 
     def get_admin(self):
         """Returns the "admin" root resource type."""
@@ -880,7 +933,7 @@ class Client(object):
             for org in orgs.Org:
                 if org.get('name').lower() == org_name.lower():
                     return org
-        raise Exception('org \'%s\' not found' % org_name)
+        raise EntityNotFoundException('org \'%s\' not found' % org_name)
 
     def get_user_in_org(self, user_name, org_href):
         """Retrieve user from a particular org.
@@ -903,9 +956,9 @@ class Client(object):
             qfilter=org_filter)
         records = list(query.execute())
         if len(records) == 0:
-            raise Exception('user \'%s\' not found' % user_name)
+            raise EntityNotFoundException('user \'%s\' not found' % user_name)
         elif len(records) > 1:
-            raise Exception('multiple users found')
+            raise MultipleRecordsException('multiple users found')
         return self.get_resource(records[0].get('href'))
 
     def _get_query_list_map(self):
@@ -945,7 +998,7 @@ class Client(object):
         if wk_type in self._session_endpoints:
             return self._session_endpoints[wk_type]
         else:
-            raise Exception(
+            raise ClientException(
                 'The current user does not have access to the resource (%s).' %
                 str(wk_type).split('.')[-1])
 

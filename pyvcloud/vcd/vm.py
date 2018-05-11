@@ -17,6 +17,7 @@ from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import InvalidParameterException
 
 
 class VM(object):
@@ -32,8 +33,9 @@ class VM(object):
         """
         self.client = client
         if href is None and resource is None:
-            raise TypeError("VM initialization failed as arguments "
-                            "are either invalid or None")
+            raise InvalidParameterException(
+                "VM initialization failed as arguments "
+                "are either invalid or None")
         self.href = href
         self.resource = resource
         if resource is not None:

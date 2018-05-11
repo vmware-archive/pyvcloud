@@ -267,27 +267,39 @@ class VApp(object):
                 self.resource.Children.Vm[0].NetworkConnectionSection)
 
     def attach_network_to_vm(self, vm_name, network_name, connection_index,
-                             connections_primary_index=None, ip_allocation_mode='DHCP',
-                             mac_address=None, ip_address=None):
+                             connections_primary_index=None,
+                             ip_allocation_mode='DHCP', mac_address=None,
+                             ip_address=None):
         """Attach a single vm to a virtual network.
 
-        :param vm_name: (str): The name of the vm that the network will be attached to.
+        :param vm_name: (str): The name of the vm that the network will be
+                               attached to.
         :param network_name: (str): The network name to connect the VM to.
-        :param connection_index: (str): Virtual slot number associated with this NIC. First slot number is 0.
-        :param connections_primary_index: (str): Virtual slot number associated with the NIC that should be considered this
-                  virtual machine's primary network connection. Defaults to slot 0.
-        :param ip_allocation_mode: (str, optional): IP address allocation mode for this connection.
+        :param connection_index: (str): Virtual slot number associated with
+                                        this NIC. First slot number is 0.
+        :param connections_primary_index: (str): Virtual slot number associated
+                                                 with the NIC that should be
+                                                 considered this virtual
+                                                 machine's primary network
+                                                 connection. Defaults to slot 0.
+        :param ip_allocation_mode: (str, optional): IP address allocation
+                                                    mode for this connection.
 
             * One of:
-             - POOL (A static IP address is allocated automatically from a pool of addresses.)
+             - POOL (A static IP address is allocated automatically from a
+                     pool of addresses.)
              - DHCP (The IP address is obtained from a DHCP service.)
-             - MANUAL (The IP address is assigned manually in the IpAddress element.)
+             - MANUAL (The IP address is assigned manually in the IpAddress
+                       element.)
              - NONE (No IP addressing mode specified.)
 
         :param mac_address: (str):    the MAC address associated with the NIC.
         :param ip_address: (str):     the IP address assigned to this NIC.
-        :return: (TaskType) a :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType` object that can be used to monitor the request.
-        :raises: Exception: If the named VM cannot be located or another error occured.
+        :return: (TaskType) a
+         :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`
+                            object that can be used to monitor the request.
+        :raises: Exception: If the named VM cannot be located or another error
+                            occured.
 
         """
         if self.resource is None:
@@ -302,7 +314,8 @@ class VApp(object):
         if ip_address and ip_allocation_mode == 'MANUAL':
             new_connection.append(E.IpAddress(ip_address))
         new_connection.append(E.IsConnected('true'))
-        new_connection.append(E.IpAddressAllocationMode(ip_allocation_mode.upper()))
+        new_connection.append(E.IpAddressAllocationMode(
+            ip_allocation_mode.upper()))
 
         if mac_address:
             new_connection.append(E.MACAddress(mac_address))
@@ -573,7 +586,8 @@ class VApp(object):
             if spec['ip_address'] and ip_allocation_mode == 'MANUAL':
                 new_connection.append(E.IpAddress(spec['ip_address']))
             new_connection.append(E.IsConnected(True))
-            new_connection.append(E.IpAddressAllocationMode(ip_allocation_mode.upper()))
+            new_connection.append(E.IpAddressAllocationMode(
+                ip_allocation_mode.upper()))
 
             vm_instantiation_param.append(
                 E.NetworkConnectionSection(

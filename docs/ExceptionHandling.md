@@ -77,22 +77,22 @@ All exceptions thrown from pyvcloud is of type SDKExceptions or a subclass of it
 #### ClientException: ####
    Base class for all exceptions arising in the client(pyvcloud). Retrying on a ClientException will not work.
    
-### TaskTimeoutException: ###
+#### TaskTimeoutException: ####
    Raised when a task in vcd timeout.
 
-### SDKRequestException:  ###
+#### SDKRequestException:  ####
    Raised when an exception occurred during vcd request.
 
-### ValidationError:    ###
+#### ValidationError:    ####
    Raised when validation error occurs in pyvcloud.
 
-### MissingParametersError:  ###
+#### MissingParametersError:  ####
    Raised when a parameter is missing in pyvcloud.
 
-### InvalidParameterException:  ###
+#### InvalidParameterException:  ####
    Raised when a parameter is invalid in pyvcloud.
 
-### SessionException:  ###
+#### SessionException:  ####
    Raised for any session related exceptions in pyvcloud.
 
 

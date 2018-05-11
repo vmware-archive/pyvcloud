@@ -281,7 +281,7 @@ class VApp(object):
                                                  with the NIC that should be
                                                  considered this virtual
                                                  machine's primary network
-                                                 connection. Defaults to slot 0.
+                                                 connection. Default slot 0.
         :param ip_allocation_mode: (str, optional): IP address allocation
                                                     mode for this connection.
 

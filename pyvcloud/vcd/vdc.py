@@ -875,7 +875,9 @@ class VDC(object):
         """Create a new natRouted OrgVdc network in this vdc.
 
         :param network_name: (str): Name of the new network.
-        :param gateway_name: (str): The name of an existing edge Gateway appliance that will manage the virtual network.
+        :param gateway_name: (str): The name of an existing edge Gateway
+                                    appliance that will manage the virtual
+                                    network.
         :param gateway_ip: (str): IP address of the gateway of the new network.
         :param netmask: (str): Network mask.
         :param description: (str): Description of the new network.
@@ -925,7 +927,8 @@ class VDC(object):
             ip_range.append(E.EndAddress(ip_range_end))
             ip_scope.append(E.IpRanges(ip_range))
         vdc_network_configuration.append(E.IpScopes(ip_scope))
-        vdc_network_configuration.append(E.FenceMode(FenceMode.NAT_ROUTED.value))
+        vdc_network_configuration.append(
+            E.FenceMode(FenceMode.NAT_ROUTED.value))
         request_payload.append(vdc_network_configuration)
 
         # list_edge_gateways
@@ -934,7 +937,8 @@ class VDC(object):
         for gw in gws:
             if gw['name'] == gateway_name:
                 gateway_href = gw['href']
-        request_payload.append(E.EdgeGateway(name=gateway_name, href=gateway_href))
+        request_payload.append(E.EdgeGateway(name=gateway_name,
+                                             href=gateway_href))
 
         dhcp_service = E.DhcpService()
         if is_dhcp_enabled is not None:

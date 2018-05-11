@@ -29,17 +29,71 @@ All exceptions thrown from pyvcloud is of type SDKExceptions or a subclass of it
 | 416           | InvalidContentLengthException           |
 | 500           | InternalServerException           |
 | unknown       | UnknownApiException           |
-         
-        
-         
-         
-             
+ 
+ 
+#### LinkException: ####
+   Base class for vcd links related Exceptions.
 
-#### : ####
+#### MultipleLinksException: ####
+   Raised when multiple link of same type is present in vcd response.
+
+#### MissingLinkException: ####
+   Raised when a link is missing from the vcd response.
+
+#### RecordException: ####
+   Base class for vcd records related exceptions.
+
+#### MissingRecordException: ####
+   Raised when a record is missing in vcd.
+
+#### MultipleRecordsException: ####
+   Raised when multiple records are present in vcd.
+
+#### VcdTaskException: ####
+   Exception related to tasks in vcd.
+
+#### EntityNotFoundException: ####
+   Raised when an entity is not found in vcd.
+
+#### UploadException: ####
+   Raised when upload of an entity fails in vcd.
+
+#### DownloadException: ####
+   Raised when download of an entity fails in vcd.
+
+#### InvalidStateException: ####
+   Raised when the state of an entity in vcd is not valid.
+
+#### OperationNotSupportedException: ####
+   Raised when a particular operation is not supported in vcd.
+
+#### AuthenticationException: ####
+   Raised when authentication fails in vcd.  
+
+#### AlreadyExistsException: ####
+   Raised on an entity already exist in vcd.
+
 
 #### ClientException: ####
    Base class for all exceptions arising in the client(pyvcloud). Retrying on a ClientException will not work.
+   
+### TaskTimeoutException: ###
+   Raised when a task in vcd timeout.
 
+### SDKRequestException:  ###
+   Raised when an exception occurred during vcd request.
+
+### ValidationError:    ###
+   Raised when validation error occurs in pyvcloud.
+
+### MissingParametersError:  ###
+   Raised when a parameter is missing in pyvcloud.
+
+### InvalidParameterException:  ###
+   Raised when a parameter is invalid in pyvcloud.
+
+### SessionException:  ###
+   Raised for any session related exceptions in pyvcloud.
 
 
    

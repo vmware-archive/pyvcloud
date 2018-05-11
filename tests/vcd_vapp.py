@@ -120,6 +120,7 @@ class TestVApp(TestCase):
             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
 
+    @unittest.skip("param identical is invalid")
     def test_100_instantiate_vapp_identical(self):
         logged_in_org = self.client.get_org()
         org = Org(self.client, resource=logged_in_org)

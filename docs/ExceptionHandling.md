@@ -73,7 +73,7 @@ All exceptions thrown from pyvcloud are of type SDKExceptions or a subclass of i
    Raised when authentication fails in vcd.  
 
 #### AlreadyExistsException: ####
-   Raised when an entity already exist in vcd.
+   Raised when an entity already exists in vcd.
    
    ---
 

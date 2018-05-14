@@ -792,6 +792,11 @@ class Client(object):
                           callback=None):
         response = self._session.request(
             'GET', uri, stream=True, verify=self._verify_ssl_certs)
+        sc = response.status_code
+
+        if sc is not 200:
+            self._response_code_to_exception(sc, None, response)
+
         bytes_written = 0
         with open(file_name, 'wb') as f:
             for chunk in response.iter_content(chunk_size=chunk_size):

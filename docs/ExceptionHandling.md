@@ -3,7 +3,7 @@ Exception handling
 
 ## Exception class hierarchy![Exception Class Hierarchy.jpg](Exception%20Class%20Hierarchy.jpg)
 
-All exceptions thrown from pyvcloud is of type SDKExceptions or a subclass of it. 
+All exceptions thrown from pyvcloud are of type SDKExceptions or a subclass of it. 
 
 ### SDKException: ###
    Base class for all exceptions thrown from pyvcloud. The exceptions can either originate from the client (ClientException) or from the VCD server(VcdException). 
@@ -73,7 +73,7 @@ All exceptions thrown from pyvcloud is of type SDKExceptions or a subclass of it
    Raised when authentication fails in vcd.  
 
 #### AlreadyExistsException: ####
-   Raised on an entity already exist in vcd.
+   Raised when an entity already exist in vcd.
    
    ---
 
@@ -82,10 +82,10 @@ All exceptions thrown from pyvcloud is of type SDKExceptions or a subclass of it
    Base class for all exceptions arising in the client(pyvcloud). Retrying on a ClientException will not work.
    
 #### TaskTimeoutException: ####
-   Raised when a task in vcd timeout.
+   Raised when a task in vcd times out.
 
 #### SDKRequestException:  ####
-   Raised when an exception occurred during vcd request.
+   Raised when an exception occurs during vcd request.
 
 #### ValidationError:    ####
    Raised when validation error occurs in pyvcloud.

@@ -324,3 +324,14 @@ class Platform(object):
                                  rel=RelationType.ADD,
                                  media_type=EntityType.NSXT_MANAGER.value,
                                  contents=nsxt_manager)
+
+    def unregister_nsxt_manager(self,
+                                nsxt_manager_name):
+        """Un-register an NSX-T Manager.
+
+        :param: nsxt_manager_name: (str): name of the NSX-T Manager.
+        """
+        nsxt_manager = self.get_res_by_name(ResourceType.NSXT_MANAGER,
+                                            nsxt_manager_name).get('href')
+        return self.client.delete_resource(nsxt_manager,
+                                           RelationType.REMOVE, None)

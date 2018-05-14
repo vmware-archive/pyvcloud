@@ -32,6 +32,12 @@ class TestNSXT(TestCase):
             nsxt_manager_description=self.config['vcd']['nsxTDescription'])
         assert self.config['vcd']['nsxTManagerName'] == nsxt.get('name')
 
+    def unregister_nsxt(self):
+        platform = Platform(self.client)
+
+        platform.unregister_nsxt_manager(
+            nsxt_manager_name=self.config['vcd']['nsxTManagerName'])
+
 
 if __name__ == '__main__':
     unittest.main()

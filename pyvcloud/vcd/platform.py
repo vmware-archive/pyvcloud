@@ -124,12 +124,12 @@ class Platform(object):
         raise EntityNotFoundException('vxlan_network_pool \'%s\' not found' %
                                       vxlan_network_pool_name)
 
-    def get_res_by_name(self, resource_type, resource_name):
-        """Fetch a resource by its name.
+    def get_ID_by_name(self, resource_type, resource_name):
+        """Fetch an object ID by its name.
 
         :param: resource_type (ResourceType): type of the resource.
         :param: resource_name (str): name of the resource.
-        :return: (lxml.objectify.ObjectifiedElement): resource record.
+        :return: (lxml.objectify.ObjectifiedElement): object ID record.
         :raises: Exception: if the named resource cannot be found.
         """
         query_filter = 'name==%s' % urllib.parse.quote_plus(resource_name)
@@ -215,14 +215,14 @@ class Platform(object):
         vmw_prov_vdc_params.append(resource_pool_refs)
         vmw_prov_vdc_params.append(E_VMEXT.VimServer(href=vc_href))
         if vxlan_network_pool is not None:
-            network_pool_rec = self.get_res_by_name(ResourceType.NETWORK_POOL,
-                                                    vxlan_network_pool)
+            network_pool_rec = self.get_ID_by_name(ResourceType.NETWORK_POOL,
+                                                   vxlan_network_pool)
             vx_href = network_pool_rec.get('href')
             vmw_prov_vdc_params.append(E_VMEXT.VxlanNetworkPool(
                 href=vx_href))
         if nsxt_manager_name is not None:
-            nsxt_manager_rec = self.get_res_by_name(ResourceType.NSXT_MANAGER,
-                                                    nsxt_manager_name)
+            nsxt_manager_rec = self.get_ID_by_name(ResourceType.NSXT_MANAGER,
+                                                   nsxt_manager_name)
             nsxt_href = nsxt_manager_rec.get('href')
             vmw_prov_vdc_params.append(E_VMEXT.NsxTManagerReference(
                 href=nsxt_href))
@@ -331,7 +331,10 @@ class Platform(object):
 
         :param: nsxt_manager_name: (str): name of the NSX-T Manager.
         """
-        nsxt_manager = self.get_res_by_name(ResourceType.NSXT_MANAGER,
-                                            nsxt_manager_name).get('href')
-        return self.client.delete_resource(nsxt_manager,
-                                           RelationType.REMOVE, None)
+        nsxt_manager = self.get_ID_by_name(ResourceType.NSXT_MANAGER,
+                                           nsxt_manager_name).get('href')
+        nsxt_manager_resource = self.client.get_resource(nsxt_manager)
+        return \
+            self.client.delete_linked_resource(nsxt_manager_resource,
+                                               RelationType.REMOVE,
+                                               EntityType.NSXT_MANAGER.value)

@@ -17,6 +17,7 @@ import unittest
 
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.test import TestCase
+from pyvcloud.vcd.utils import to_dict
 
 
 class TestNSXT(TestCase):
@@ -37,6 +38,18 @@ class TestNSXT(TestCase):
 
         platform.unregister_nsxt_manager(
             nsxt_manager_name=self.config['vcd']['nsxTManagerName'])
+
+    def list_nsxt_managers(self):
+        platform = Platform(self.client)
+
+        query = platform.list_nsxt_managers()
+        result = []
+        for record in list(query):
+            result.append(
+                to_dict(
+                    record,
+                    exclude=['href']))
+        print(result)
 
 
 if __name__ == '__main__':

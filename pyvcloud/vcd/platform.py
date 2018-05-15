@@ -338,3 +338,14 @@ class Platform(object):
             self.client.delete_linked_resource(nsxt_manager_resource,
                                                RelationType.REMOVE,
                                                EntityType.NSXT_MANAGER.value)
+
+    def list_nsxt_managers(self):
+        """Return list of all registered NSX-T Managers.
+
+        :return (list): (NsxTManagerRecord) List of NsxTManagerRecords.
+        """
+        query = self.client.get_typed_query(
+            ResourceType.NSXT_MANAGER.value,
+            query_result_format=QueryResultFormat.RECORDS)
+
+        return query.execute()

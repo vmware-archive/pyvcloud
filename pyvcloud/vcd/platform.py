@@ -125,7 +125,7 @@ class Platform(object):
                                       vxlan_network_pool_name)
 
     def get_res_by_name(self, resource_type, resource_name):
-        """Fetch an resource by its name.
+        """Fetch a resource by its name.
 
         :param: resource_type (ResourceType): type of the resource.
         :param: resource_name (str): name of the resource.

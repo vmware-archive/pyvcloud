@@ -342,7 +342,7 @@ class Platform(object):
     def list_nsxt_managers(self):
         """Return list of all registered NSX-T Managers.
 
-        :return (list): (NsxTManagerRecord) List of NsxTManagerRecords.
+        :return (generator object): NsxTManagerRecords.
         """
         query = self.client.get_typed_query(
             ResourceType.NSXT_MANAGER.value,

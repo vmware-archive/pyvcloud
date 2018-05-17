@@ -39,7 +39,6 @@ from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import UploadException
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import to_dict
-from pyvcloud.vcd.utils import stdout_xml
 
 DEFAULT_CHUNK_SIZE = 1024 * 1024
 

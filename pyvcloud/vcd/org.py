@@ -39,6 +39,7 @@ from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import UploadException
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import to_dict
+from pyvcloud.vcd.utils import stdout_xml
 
 DEFAULT_CHUNK_SIZE = 1024 * 1024
 
@@ -505,10 +506,9 @@ class Org(object):
                 source_file = {
                     'href': f.get(ns + 'href'),
                     'name': f.get(ns + 'id'),
-                    'size': f.get(ns + 'size')
+                    'size': f.get(ns + 'size'),
+                    'chunkSize': f.get(ns + 'chunkSize')
                 }
-                if hasattr(f, ns + 'chunkSize'):
-                    source_file['chunkSize'] = f.get(ns + 'chunkSize')
                 files_to_upload.append(source_file)
 
             params = E.UploadVAppTemplateParams(name=item_name)
@@ -541,7 +541,7 @@ class Org(object):
                     raise UploadException('Couldn\'t find uri to upload'
                                           ' file %s' % source_file_name)
 
-                if 'chunkSize' in source_file:
+                if source_file['chunkSize'] is not None:
                     file_paths = self._get_multi_part_file_paths(
                         tempdir, source_file_name, int(source_file_size),
                         int(source_file['chunkSize']))
@@ -589,7 +589,7 @@ class Org(object):
         num_parts = math.ceil(total_file_size / part_size)
         for i in range(num_parts):
             postfix = ('000000000' + str(i))[-9:]
-            file_path = base_dir + base_file_name + '.' + postfix
+            file_path = os.path.join(base_dir , base_file_name + '.' + postfix)
             file_paths.append(file_path)
 
         return file_paths

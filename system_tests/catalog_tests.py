@@ -1,5 +1,7 @@
 import os
+import random
 import shutil
+import string
 import tempfile
 import unittest
 
@@ -17,7 +19,8 @@ class TestCatalog(BaseTestCase):
     _test_runner_role = CommonRoles.CATALOG_AUTHOR
     _client = None
 
-    _test_catalog_name = 'test_cat'
+    _test_catalog_name = 'test_cat' + ''.join(random.choices(
+        string.ascii_letters, k=8))
     _test_catalog_description = 'sample description'
     _test_catalog_href = None
     _test_template_name = 'test-template'
@@ -28,12 +31,11 @@ class TestCatalog(BaseTestCase):
     _test_folder = None
 
     def test_0000_setup(self):
-        """Setup the catalog and templates for the tests in this module.
+        """Setup a catalog for the tests in this module.
 
-        Create a catalog and upload two templates to the catalog.
+        Create a catalog.
 
-        This test passes if the catalog is created successfully and the
-        templates are uploaded successfully to the catalog / reused.
+        This test passes if the catalog is created successfully.
         """
         TestCatalog._client = Environment.get_client_in_default_org(
             TestCatalog._test_runner_role)
@@ -46,33 +48,10 @@ class TestCatalog(BaseTestCase):
             catalog_resource = org.create_catalog(
                 TestCatalog._test_catalog_name,
                 TestCatalog._test_catalog_description)
+            TestCatalog._client.get_task_monitor().wait_for_success(
+                task=catalog_resource.Tasks.Task[0])
         TestCatalog._test_catalog_href = catalog_resource.get('href')
         self.assertIsNotNone(TestCatalog._test_catalog_href)
-
-        reused = not self._template_upload_helper(
-            org=org,
-            catalog_name=TestCatalog._test_catalog_name,
-            template_name=TestCatalog._test_template_name,
-            template_file_name=TestCatalog._test_template_file_name)
-        if reused is False:
-            self._template_import_monitor(
-                client=TestCatalog._client,
-                org=org,
-                catalog_name=TestCatalog._test_catalog_name,
-                template_name=TestCatalog._test_template_name)
-
-        reused = not self._template_upload_helper(
-            org=org,
-            catalog_name=TestCatalog._test_catalog_name,
-            template_name=TestCatalog._test_template_with_chunk_size_name,
-            template_file_name=TestCatalog.
-            _test_template_with_chunk_size_file_name)
-        if reused is False:
-            self._template_import_monitor(
-                client=TestCatalog._client,
-                org=org,
-                catalog_name=TestCatalog._test_catalog_name,
-                template_name=TestCatalog._test_template_with_chunk_size_name)
 
     def _template_upload_helper(self, org, catalog_name, template_name,
                                 template_file_name):
@@ -92,22 +71,18 @@ class TestCatalog(BaseTestCase):
         :param template_file_name: (str): Name of the local template file which
             will be uploaded.
 
-        :return: (bool): True, if the template is uploaded, False if we reuse
-            an existing template with the same name.
+        :return: Nothing
+
+        :raises: EntityNotFoundException: If the catalog is not found.
+        :raises: InternalServerException: If template already exists in vCD.
         """
-        try:
-            org.get_catalog_item(catalog_name, template_name)
-            print('Reusing existing template : ' + template_name)
-            return False
-        except EntityNotFoundException as e:
-            bytes_uploaded = -1
-            print('Uploading template : ' + template_name)
-            bytes_uploaded = org.upload_ovf(
-                catalog_name=catalog_name,
-                file_name=template_file_name,
-                item_name=template_name)
-            self.assertNotEqual(bytes_uploaded, -1)
-        return True
+        bytes_uploaded = -1
+        print('Uploading template : ' + template_name)
+        bytes_uploaded = org.upload_ovf(
+            catalog_name=catalog_name,
+            file_name=template_file_name,
+            item_name=template_name)
+        self.assertNotEqual(bytes_uploaded, -1)
 
     def _template_import_monitor(self, client, org, catalog_name,
                                  template_name):
@@ -124,6 +99,8 @@ class TestCatalog(BaseTestCase):
             the uploaded template.
 
         :return: Nothing
+
+        :raises: EntityNotFoundException: If the catalog/item is not found.
         """
         print('Importing template : ' + template_name + ' in vCD')
         # wait for the catalog item import to finish in vCD
@@ -134,10 +111,55 @@ class TestCatalog(BaseTestCase):
         client.get_task_monitor().wait_for_success(
             task=template_resource.Tasks.Task[0])
 
-    def test_0010_download(self):
+    def test_0010_upload_template(self):
+        """Test the method org.upload_ovf().
+
+        Upload an ova template to catalog. The template doesn't have
+        ovf:chunkSize param in it's descriptor(ovf file).
+
+        This test passes if the upload succeeds and no exceptions are
+        raised.
+        """
+        org = Environment.get_test_org(TestCatalog._client)
+
+        self._template_upload_helper(
+            org=org,
+            catalog_name=TestCatalog._test_catalog_name,
+            template_name=TestCatalog._test_template_name,
+            template_file_name=TestCatalog._test_template_file_name)
+        self._template_import_monitor(
+            client=TestCatalog._client,
+            org=org,
+            catalog_name=TestCatalog._test_catalog_name,
+            template_name=TestCatalog._test_template_name)
+
+    def test_0020_upload_template_with_ovf_chunkSize(self):
+        """Test the method org.upload_ovf().
+
+        Upload an ova template to catalog. The template *has* ovf:chunkSize
+        param in it's descriptor(ovf file).
+
+        This test passes if the upload succeeds and no exceptions are
+        raised.
+        """
+        org = Environment.get_test_org(TestCatalog._client)
+
+        self._template_upload_helper(
+            org=org,
+            catalog_name=TestCatalog._test_catalog_name,
+            template_name=TestCatalog._test_template_with_chunk_size_name,
+            template_file_name=TestCatalog.
+            _test_template_with_chunk_size_file_name)
+        self._template_import_monitor(
+            client=TestCatalog._client,
+            org=org,
+            catalog_name=TestCatalog._test_catalog_name,
+            template_name=TestCatalog._test_template_with_chunk_size_name)
+
+    def test_0030_download(self):
         """Test the method org.download_catalog_item().
 
-        Download the two templates that were uploaded as part of setup.
+        Download the two templates that were uploaded earlier.
 
         This test passes if the two download task writes non zero bytes to the
         disk without raising any exceptions.
@@ -174,11 +196,15 @@ class TestCatalog(BaseTestCase):
         exceptions.
         """
         org = Environment.get_test_org(TestCatalog._client)
+        print('Deleting catalog item : ' + TestCatalog._test_template_name)
         org.delete_catalog_item(TestCatalog._test_catalog_name,
                                 TestCatalog._test_template_name)
+        print('Deleting catalog item : ' +
+              TestCatalog._test_template_with_chunk_size_name)
         org.delete_catalog_item(
             TestCatalog._test_catalog_name,
             TestCatalog._test_template_with_chunk_size_name)
+        print('Deleting catalog' + TestCatalog._test_catalog_name)
         org.delete_catalog(TestCatalog._test_catalog_name)
 
     def test_9999_cleanup(self):

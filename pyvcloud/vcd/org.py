@@ -429,6 +429,7 @@ class Org(object):
         :return: (int): Number of bytes uploaded to the catalog.
 
         :raises: EntityNotFoundException: If the catalog is not found.
+        :raises: InternalServerException: If item already exists in catalog.
         """
         stat_info = os.stat(file_name)
         catalog_resource = self.get_catalog(catalog_name)
@@ -475,6 +476,7 @@ class Org(object):
         :return: (int): Number of bytes uploaded to the catalog.
 
         :raises: EntityNotFoundException: If the catalog is not found.
+        :raises: InternalServerException: If item already exists in catalog.
         """
         catalog_resource = self.get_catalog(catalog_name)
         if item_name is None:
@@ -588,7 +590,7 @@ class Org(object):
         num_parts = math.ceil(total_file_size / part_size)
         for i in range(num_parts):
             postfix = ('000000000' + str(i))[-9:]
-            file_path = os.path.join(base_dir , base_file_name + '.' + postfix)
+            file_path = os.path.join(base_dir, base_file_name + '.' + postfix)
             file_paths.append(file_path)
 
         return file_paths

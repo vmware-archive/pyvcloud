@@ -19,7 +19,7 @@ class TestCatalog(BaseTestCase):
     _test_runner_role = CommonRoles.CATALOG_AUTHOR
     _client = None
 
-    _test_catalog_name = 'test_cat' + ''.join(random.choices(
+    _test_catalog_name = 'test_cat_' + ''.join(random.choices(
         string.ascii_letters, k=8))
     _test_catalog_description = 'sample description'
     _test_catalog_href = None
@@ -204,7 +204,7 @@ class TestCatalog(BaseTestCase):
         org.delete_catalog_item(
             TestCatalog._test_catalog_name,
             TestCatalog._test_template_with_chunk_size_name)
-        print('Deleting catalog' + TestCatalog._test_catalog_name)
+        print('Deleting catalog : ' + TestCatalog._test_catalog_name)
         org.delete_catalog(TestCatalog._test_catalog_name)
 
     def test_9999_cleanup(self):

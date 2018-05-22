@@ -41,8 +41,8 @@ class TestVApp(BaseTestCase):
     _customized_vapp_owner_name = None
     _customized_vapp_href = None
 
-    _non_existent_vapp_name = 'non_existent_vapp_'\
-                              .join(random.choices(string.ascii_letters, k=8))
+    _non_existent_vapp_name = 'non_existent_vapp_' + ''.join(random.choices(
+        string.ascii_letters, k=8))
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.

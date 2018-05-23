@@ -14,6 +14,7 @@ connection:
 
 logging:
   default_log_filename: 'pyvcloud-system-test.log'
+  default_client_log_filename: 'pyvcloud-system-test-client.log'
   log_requests: True
   log_headers: True
   log_bodies: True

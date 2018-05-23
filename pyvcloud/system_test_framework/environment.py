@@ -28,7 +28,7 @@ def developerModeAware(function):
         if not Environment._config['global']['developer_mode']:
             function(self)
         else:
-            Environment.get_logger(self.__class__.__name__).debug(
+            Environment.get_default_logger().debug(
                 'Skipping ' + function.__name__ +
                 ' because developer mode is on.')
     return wrapper
@@ -44,6 +44,8 @@ class CommonRoles(Enum):
 
 class Environment(object):
     _config = None
+    _logger = None
+
     _sys_admin_client = None
     _pvdc_href = None
     _pvdc_name = None
@@ -74,29 +76,32 @@ class Environment(object):
         if not cls._config['connection']['verify'] and \
            cls._config['connection']['disable_ssl_warnings']:
             requests.packages.urllib3.disable_warnings()
-
-        cls._logger = cls.get_logger(cls.__name__)
-
-    @classmethod
-    def get_default_log_filename(cls):
-        return cls._config['logging']['default_log_filename']
+        cls._logger = cls.get_default_logger()
 
     @classmethod
-    def get_logger(cls, caller_class_name):
-        logger = logging.getLogger(caller_class_name)
-        logger.setLevel(logging.DEBUG)
-        log_file = cls._config['logging']['default_log_filename']
-        handler = logging.FileHandler(log_file) if log_file is not None else \
-            logging.NullHandler()
-        formatter = logging.Formatter('%(asctime)-23.23s | '
-                                      '%(levelname)-5.5s | '
-                                      '%(name)-15.15s | '
-                                      '%(module)-15.15s | '
-                                      '%(funcName)-30.30s | '
-                                      '%(message)s')
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        return logger
+    def get_default_logger(cls):
+        """Get a handle to the logger for system_tests.
+
+        :return: A :class: 'logging.Logger' object
+        """
+        if cls._logger is None:
+            cls._logger = logging.getLogger('pyvcloud.system_tests')
+            cls._logger.setLevel(logging.DEBUG)
+            if not cls._logger.handlers:
+                log_file = cls._config['logging']['default_log_filename']
+                if log_file is not None:
+                    handler = logging.FileHandler(log_file)
+                else:
+                    handler = logging.NullHandler()
+                formatter = logging.Formatter('%(asctime)-23.23s | '
+                                              '%(levelname)-5.5s | '
+                                              '%(name)-15.15s | '
+                                              '%(module)-15.15s | '
+                                              '%(funcName)-30.30s | '
+                                              '%(message)s')
+                handler.setFormatter(formatter)
+                cls._logger.addHandler(handler)
+        return cls._logger
 
     @classmethod
     def _basic_check(cls):

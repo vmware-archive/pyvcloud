@@ -53,7 +53,7 @@ class TestVApp(BaseTestCase):
 
         This test passes if the two vApp hrefs are not None.
         """
-        TestVApp._logger = Environment.get_logger(self.__class__.__name__)
+        TestVApp._logger = Environment.get_default_logger()
         TestVApp._client = Environment.get_client_in_default_org(
             TestVApp._test_runner_role)
         vdc = Environment.get_test_vdc(TestVApp._client)

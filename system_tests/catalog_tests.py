@@ -38,7 +38,7 @@ class TestCatalog(BaseTestCase):
 
         This test passes if the catalog is created successfully.
         """
-        TestCatalog._logger = Environment.get_logger(self.__class__.__name__)
+        TestCatalog._logger = Environment.get_default_logger()
         TestCatalog._client = Environment.get_client_in_default_org(
             TestCatalog._test_runner_role)
         org = Environment.get_test_org(TestCatalog._client)

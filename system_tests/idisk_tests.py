@@ -40,7 +40,7 @@ class TestDisk(BaseTestCase):
 
         This test passes if all the three disk ids are not None.
         """
-        TestDisk._logger = Environment.get_logger(self.__class__.__name__)
+        TestDisk._logger = Environment.get_default_logger()
         TestDisk._client = Environment.get_client_in_default_org(
             CommonRoles.CATALOG_AUTHOR)
         vdc = Environment.get_test_vdc(TestDisk._client)

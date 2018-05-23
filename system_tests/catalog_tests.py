@@ -18,9 +18,10 @@ class TestCatalog(BaseTestCase):
 
     _test_runner_role = CommonRoles.CATALOG_AUTHOR
     _client = None
+    _logger = None
 
-    _test_catalog_name = 'test_cat_' + ''.join(random.choices(
-        string.ascii_letters, k=8))
+    _test_catalog_name = 'test_cat_' + ''.join(
+        random.choices(string.ascii_letters, k=8))
     _test_catalog_description = 'sample description'
     _test_catalog_href = None
     _test_template_name = 'test-template'
@@ -37,13 +38,14 @@ class TestCatalog(BaseTestCase):
 
         This test passes if the catalog is created successfully.
         """
+        TestCatalog._logger = Environment.get_logger(self.__class__.__name__)
         TestCatalog._client = Environment.get_client_in_default_org(
             TestCatalog._test_runner_role)
         org = Environment.get_test_org(TestCatalog._client)
 
         try:
             catalog_resource = org.get_catalog(TestCatalog._test_catalog_name)
-            print('Reusing test catalog.')
+            TestCatalog._logger.debug('Reusing test catalog.')
         except EntityNotFoundException as e:
             catalog_resource = org.create_catalog(
                 TestCatalog._test_catalog_name,
@@ -77,7 +79,7 @@ class TestCatalog(BaseTestCase):
         :raises: InternalServerException: If template already exists in vCD.
         """
         bytes_uploaded = -1
-        print('Uploading template : ' + template_name)
+        TestCatalog._logger.debug('Uploading template : ' + template_name)
         bytes_uploaded = org.upload_ovf(
             catalog_name=catalog_name,
             file_name=template_file_name,
@@ -102,7 +104,8 @@ class TestCatalog(BaseTestCase):
 
         :raises: EntityNotFoundException: If the catalog/item is not found.
         """
-        print('Importing template : ' + template_name + ' in vCD')
+        TestCatalog._logger.debug('Importing template : ' + template_name +
+                                  ' in vCD')
         # wait for the catalog item import to finish in vCD
         catalog_item_resource = org.get_catalog_item(catalog_name,
                                                      template_name)
@@ -196,15 +199,18 @@ class TestCatalog(BaseTestCase):
         exceptions.
         """
         org = Environment.get_test_org(TestCatalog._client)
-        print('Deleting catalog item : ' + TestCatalog._test_template_name)
+        TestCatalog._logger.debug('Deleting catalog item : ' +
+                                  TestCatalog._test_template_name)
         org.delete_catalog_item(TestCatalog._test_catalog_name,
                                 TestCatalog._test_template_name)
-        print('Deleting catalog item : ' +
-              TestCatalog._test_template_with_chunk_size_name)
+        TestCatalog._logger.debug(
+            'Deleting catalog item : ' +
+            TestCatalog._test_template_with_chunk_size_name)
         org.delete_catalog_item(
             TestCatalog._test_catalog_name,
             TestCatalog._test_template_with_chunk_size_name)
-        print('Deleting catalog : ' + TestCatalog._test_catalog_name)
+        TestCatalog._logger.debug('Deleting catalog : ' +
+                                  TestCatalog._test_catalog_name)
         org.delete_catalog(TestCatalog._test_catalog_name)
 
     def test_9999_cleanup(self):

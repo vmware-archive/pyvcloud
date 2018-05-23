@@ -28,7 +28,7 @@ def developerModeAware(function):
         if not Environment._config['global']['developer_mode']:
             function(self)
         else:
-            Environment.get_logger(self.__name__).debug(
+            Environment.get_logger(self.__class__.__name__).debug(
                 'Skipping ' + function.__name__ +
                 ' because developer mode is on.')
     return wrapper

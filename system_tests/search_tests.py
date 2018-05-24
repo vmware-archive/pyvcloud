@@ -21,23 +21,29 @@ from pyvcloud.system_test_framework.environment import Environment
 
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import ResourceType
-from pyvcloud.vcd.client import RESOURCE_TYPES
-from pyvcloud.vcd.utils import to_dict
 
 
 class TestSearch(BaseTestCase):
     """Test pyvcloud search functions"""
 
     def setUp(self):
-        """Store list of result formats."""
+        """Store list of result formats and init client variable."""
         self._result_formats = [r for r in QueryResultFormat]
+        self._client = None
+
+    def tearDown(self):
+        """Log out client connection if allocated."""
+        if self._client is not None:
+            self._client.logout()
 
     def test_0010_find_existing_with_admin(self):
         """Find entities with admin account with optional filter parameters"""
+        # Get admin client.  This will not be logged out to avoid messing
+        # up Environment class.
+        admin_client = Environment.get_sys_admin_client()
         resource_type_cc = 'organization'
-        client = Environment.get_sys_admin_client()
         # Fetch all orgs.
-        q1 = client.get_typed_query(
+        q1 = admin_client.get_typed_query(
             resource_type_cc,
             query_result_format=QueryResultFormat.ID_RECORDS,
             qfilter=None)
@@ -45,14 +51,11 @@ class TestSearch(BaseTestCase):
         self.assertTrue(
             len(q1_records) > 0,
             msg="Find at least one organization")
-        for r in q1_records:
-            r_dict = to_dict(r, resource_type=resource_type_cc)
-            name0 = r_dict['name']
-            break
+        name0 = q1_records[0].get('name')
 
         # Find the org again using an equality filter.
         eq_filter = ('name', name0)
-        q2 = client.get_typed_query(
+        q2 = admin_client.get_typed_query(
             resource_type_cc,
             query_result_format=QueryResultFormat.ID_RECORDS,
             equality_filter=eq_filter)
@@ -62,18 +65,18 @@ class TestSearch(BaseTestCase):
             msg="Find org with equality filter")
 
         # Find the org again using a query filter string
-        q3 = client.get_typed_query(
+        q3 = admin_client.get_typed_query(
             resource_type_cc,
             query_result_format=QueryResultFormat.ID_RECORDS,
             qfilter="name=={0}".format(name0))
         q3_records = list(q3.execute())
         self.assertEqual(1, len(q3_records), msg="Find org with query filter")
 
-    def test_0020_find_existing_with_org_user(self):
+    def test_0020_find_existing_entities_with_org_user(self):
         """Find entities with low-privilege org user"""
-        client = Environment.get_client_in_default_org(
+        self._client = Environment.get_client_in_default_org(
             CommonRoles.CATALOG_AUTHOR)
-        q1 = client.get_typed_query(
+        q1 = self._client.get_typed_query(
             ResourceType.CATALOG.value,
             query_result_format=QueryResultFormat.ID_RECORDS)
         q1_records = list(q1.execute())
@@ -81,12 +84,12 @@ class TestSearch(BaseTestCase):
                         msg="Find at least one catalog item")
 
     def test_0030_find_non_existing(self):
-        """Verify that we return nothing if no entities exist"""
-        client = Environment.get_client_in_default_org(CommonRoles.VAPP_USER)
+        """Verify we return nothing if no entities exist"""
+        self._client = Environment.get_client_in_default_org(
+            CommonRoles.VAPP_USER)
         for format in self._result_formats:
-            print("FORMAT: {0}".format(format))
             # Use the generator directly.
-            q1 = client.get_typed_query(
+            q1 = self._client.get_typed_query(
                 ResourceType.ORGANIZATION.value,
                 query_result_format=QueryResultFormat.ID_RECORDS)
             count = 0
@@ -100,24 +103,27 @@ class TestSearch(BaseTestCase):
                 "Should not find any orgs via list")
 
     def test_0040_check_all_resource_types(self):
-        """Loop through all resource types to prove we can search on them"""
-        client = Environment.get_client_in_default_org(
+        """Verify that we can search on any resource type without error"""
+        self._client = Environment.get_client_in_default_org(
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
-        for resource_type in RESOURCE_TYPES:
-            q1 = client.get_typed_query(
+        resource_types = [r.value for r in ResourceType]
+        # Some types of course won't exist but the search should not fail.
+        for resource_type in resource_types:
+            q1 = self._client.get_typed_query(
                 resource_type,
                 query_result_format=QueryResultFormat.ID_RECORDS)
             q1_records = list(q1.execute())
-            self.assertTrue(len(q1_records) >= 0, "Should get a list")
+            self.assertTrue(
+                len(q1_records) >= 0,
+                "Should get a list, even if tempty")
 
     def test_0050_check_result_formats(self):
         """Verify we get expected results for all result formats"""
-        client = Environment.get_client_in_default_org(
+        self._client = Environment.get_client_in_default_org(
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
         for format in self._result_formats:
             # Ensure format works with generator.
-            print("FORMAT: {0}".format(format))
-            q1 = client.get_typed_query(
+            q1 = self._client.get_typed_query(
                 ResourceType.USER.value,
                 query_result_format=format)
             count = 0
@@ -128,7 +134,7 @@ class TestSearch(BaseTestCase):
                 "Expect at least 4 users from generator: {0}".format(format))
 
             # Ensure format works with list built over generator.
-            q2 = client.get_typed_query(
+            q2 = self._client.get_typed_query(
                 ResourceType.USER.value,
                 query_result_format=format)
             q2_result = list(q2.execute())

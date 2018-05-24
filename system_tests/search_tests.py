@@ -21,8 +21,6 @@ from pyvcloud.system_test_framework.environment import Environment
 
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import ResourceType
-from pyvcloud.vcd.client import RESOURCE_TYPES
-from pyvcloud.vcd.utils import to_dict
 
 
 class TestSearch(BaseTestCase):
@@ -45,10 +43,7 @@ class TestSearch(BaseTestCase):
         self.assertTrue(
             len(q1_records) > 0,
             msg="Find at least one organization")
-        for r in q1_records:
-            r_dict = to_dict(r, resource_type=resource_type_cc)
-            name0 = r_dict['name']
-            break
+        name0 = q1_records[0].name
 
         # Find the org again using an equality filter.
         eq_filter = ('name', name0)
@@ -69,7 +64,7 @@ class TestSearch(BaseTestCase):
         q3_records = list(q3.execute())
         self.assertEqual(1, len(q3_records), msg="Find org with query filter")
 
-    def test_0020_find_existing_with_org_user(self):
+    def test_0020_find_existing_entities_with_org_user(self):
         """Find entities with low-privilege org user"""
         client = Environment.get_client_in_default_org(
             CommonRoles.CATALOG_AUTHOR)
@@ -81,7 +76,7 @@ class TestSearch(BaseTestCase):
                         msg="Find at least one catalog item")
 
     def test_0030_find_non_existing(self):
-        """Verify that we return nothing if no entities exist"""
+        """Verify we return nothing if no entities exist"""
         client = Environment.get_client_in_default_org(CommonRoles.VAPP_USER)
         for format in self._result_formats:
             print("FORMAT: {0}".format(format))
@@ -100,15 +95,19 @@ class TestSearch(BaseTestCase):
                 "Should not find any orgs via list")
 
     def test_0040_check_all_resource_types(self):
-        """Loop through all resource types to prove we can search on them"""
+        """Verify that we can search on any resource type without error"""
         client = Environment.get_client_in_default_org(
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
-        for resource_type in RESOURCE_TYPES:
+        resource_types = [r.value for r in ResourceType]
+        # Some types of course won't exist but the search should not fail.
+        for resource_type in resource_types:
             q1 = client.get_typed_query(
                 resource_type,
                 query_result_format=QueryResultFormat.ID_RECORDS)
             q1_records = list(q1.execute())
-            self.assertTrue(len(q1_records) >= 0, "Should get a list")
+            self.assertTrue(
+                len(q1_records) >= 0,
+                "Should get a list, even if tempty")
 
     def test_0050_check_result_formats(self):
         """Verify we get expected results for all result formats"""

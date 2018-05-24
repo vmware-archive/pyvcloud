@@ -335,7 +335,7 @@ class TestDisk(BaseTestCase):
             org_admin_client.logout()
 
     def test_9999_cleanup(self):
-        """Release all resources help by this object for testing purposes."""
+        """Release all resources held by this object for testing purposes."""
         TestDisk._client.logout()
 
 

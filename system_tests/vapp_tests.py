@@ -528,7 +528,7 @@ class TestVApp(BaseTestCase):
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_9999_cleanup(self):
-        """Release all resources help by this object for testing purposes."""
+        """Release all resources held by this object for testing purposes."""
         TestVApp._client.logout()
 
 

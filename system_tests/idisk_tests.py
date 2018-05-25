@@ -12,7 +12,6 @@ class TestDisk(BaseTestCase):
     """Test independent disk functionalities implemented in pyvcloud."""
 
     _client = None
-    _logger = None
 
     _idisk1_name = 'test_idisk'
     _idisk1_size = '10'
@@ -40,7 +39,7 @@ class TestDisk(BaseTestCase):
 
         This test passes if all the three disk ids are not None.
         """
-        TestDisk._logger = Environment.get_default_logger()
+        logger = Environment.get_default_logger()
         TestDisk._client = Environment.get_client_in_default_org(
             CommonRoles.CATALOG_AUTHOR)
         vdc = Environment.get_test_vdc(TestDisk._client)
@@ -49,16 +48,16 @@ class TestDisk(BaseTestCase):
         for disk in disks:
             if TestDisk._idisk1_id is None and disk.get('name').lower() \
                == self._idisk1_name:
-                TestDisk._logger.debug('Reusing ' + TestDisk._idisk1_name)
+                logger.debug('Reusing ' + TestDisk._idisk1_name)
                 TestDisk._idisk1_id = disk.get('id')[16:]
             elif TestDisk._idisk2_id is None and disk.get('name').lower() \
               == self._idisk2_name and str(disk.Description).lower() \
               == self._idisk2_description.lower(): # NOQA
-                TestDisk._logger.debug('Reusing ' + TestDisk._idisk2_name)
+                logger.debug('Reusing ' + TestDisk._idisk2_name)
                 TestDisk._idisk2_id = disk.get('id')[16:]
             elif TestDisk._idisk3_id is None and disk.get('name').lower() \
               == self._idisk3_name: # NOQA
-                TestDisk._logger.debug('Reusing ' + TestDisk._idisk3_name)
+                logger.debug('Reusing ' + TestDisk._idisk3_name)
                 TestDisk._idisk3_id = disk.get('id')[16:]
 
         if TestDisk._idisk1_id is None:
@@ -91,7 +90,8 @@ class TestDisk(BaseTestCase):
 
     def _create_disk_helper(self, client, vdc, disk_name, disk_size,
                             disk_description):
-        TestDisk._logger.debug('Creating disk : ' + disk_name)
+        logger = Environment.get_default_logger()
+        logger.debug('Creating disk : ' + disk_name)
         disk_sparse = vdc.create_disk(
             name=disk_name, size=disk_size, description=disk_description)
 
@@ -100,7 +100,7 @@ class TestDisk(BaseTestCase):
 
         self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
         disk_id = disk_sparse.get('id')[16:]
-        TestDisk._logger.debug('Created disk with id:' + disk_id)
+        logger.debug('Created disk with id:' + disk_id)
         return disk_id
 
     def test_0010_get_all_disks(self):

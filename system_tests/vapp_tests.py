@@ -20,7 +20,6 @@ class TestVApp(BaseTestCase):
     # be changed to vApp Author
     _test_runner_role = CommonRoles.CATALOG_AUTHOR
     _client = None
-    _logger = None
 
     _empty_vapp_name = 'empty_vApp'
     _empty_vapp_description = 'empty vApp description'
@@ -53,14 +52,14 @@ class TestVApp(BaseTestCase):
 
         This test passes if the two vApp hrefs are not None.
         """
-        TestVApp._logger = Environment.get_default_logger()
+        logger = Environment.get_default_logger()
         TestVApp._client = Environment.get_client_in_default_org(
             TestVApp._test_runner_role)
         vdc = Environment.get_test_vdc(TestVApp._client)
 
         try:
             vapp_resource = vdc.get_vapp(TestVApp._empty_vapp_name)
-            TestVApp._logger.debug('Reusing empty vApp')
+            logger.debug('Reusing empty vApp')
             TestVApp._empty_vapp_href = vapp_resource.get('href')
             TestVApp._empty_vapp_owner_name = \
                 vapp_resource.Owner.User.get('name')
@@ -72,7 +71,7 @@ class TestVApp(BaseTestCase):
 
         try:
             vapp_resource = vdc.get_vapp(TestVApp._customized_vapp_name)
-            TestVApp._logger.debug('Reusing customized vApp')
+            logger.debug('Reusing customized vApp')
             TestVApp._customized_vapp_href = vapp_resource.get('href')
             TestVApp._customized_vapp_owner_name = \
                 vapp_resource.Owner.User.get('name')
@@ -98,7 +97,8 @@ class TestVApp(BaseTestCase):
 
         :return: (str): href of the created vApp
         """
-        TestVApp._logger.debug('Creating empty vApp.')
+        logger = Environment.get_default_logger()
+        logger.debug('Creating empty vApp.')
         vapp_sparse_resouce = vdc.create_vapp(
             name=TestVApp._empty_vapp_name,
             description=TestVApp._empty_vapp_description,
@@ -120,7 +120,8 @@ class TestVApp(BaseTestCase):
 
         :return: (str): href of the created vApp
         """
-        TestVApp._logger.debug('Creating customized vApp.')
+        logger = Environment.get_default_logger()
+        logger.debug('Creating customized vApp.')
         vapp_sparse_resouce = vdc.instantiate_vapp(
             name=TestVApp._customized_vapp_name,
             catalog=Environment.get_default_catalog_name(),
@@ -174,6 +175,7 @@ class TestVApp(BaseTestCase):
         This test passes if the supplied vm is sucessfully added to the vApp
            and then successfully removed from the vApp.
         """
+        logger = Environment.get_default_logger()
         vapp_name = TestVApp._empty_vapp_name
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=vapp_name)
@@ -188,8 +190,7 @@ class TestVApp(BaseTestCase):
             'target_vm_name': target_vm_name
         }
 
-        TestVApp._logger.debug('Adding vm ' + target_vm_name + ' to vApp ' +
-                               vapp_name)
+        logger.debug('Adding vm ' + target_vm_name + ' to vApp ' + vapp_name)
         # deploy and power_on are false to make sure that the subsequent
         # deletion of vm doesn't require additional power operations
         task = vapp.add_vms(
@@ -197,8 +198,8 @@ class TestVApp(BaseTestCase):
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        TestVApp._logger.debug('Removing vm ' + target_vm_name +
-                               ' from vApp ' + vapp_name)
+        logger.debug(
+            'Removing vm ' + target_vm_name + ' from vApp ' + vapp_name)
         vapp.reload()
         task = vapp.delete_vms([target_vm_name])
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
@@ -269,9 +270,9 @@ class TestVApp(BaseTestCase):
         """
         # TODO(VCDA-603) : update power_on to handle missing link exception
         try:
-            TestVApp._logger.debug('Making sure vApp ' +
-                                   vapp.get_resource().get('name') +
-                                   ' is powered on.')
+            logger = Environment.get_default_logger()
+            logger.debug('Making sure vApp ' +
+                         vapp.get_resource().get('name') + ' is powered on.')
             task = vapp.power_on()
             client.get_task_monitor().wait_for_success(task=task)
         except Exception as e:
@@ -282,6 +283,7 @@ class TestVApp(BaseTestCase):
 
         This test passes if all the power operations are successful.
         """
+        logger = Environment.get_default_logger()
         vapp_name = TestVApp._customized_vapp_name
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=vapp_name)
@@ -289,49 +291,49 @@ class TestVApp(BaseTestCase):
         # make sure the vApp is powered on before running tests
         self._power_on_vapp_if_possible(TestVApp._client, vapp)
 
-        TestVApp._logger.debug('Un-deploying vApp ' + vapp_name)
+        logger.debug('Un-deploying vApp ' + vapp_name)
         vapp.reload()
         task = vapp.undeploy()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        TestVApp._logger.debug('Deploying vApp ' + vapp_name)
+        logger.debug('Deploying vApp ' + vapp_name)
         vapp.reload()
         task = vapp.deploy(power_on=False)
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        TestVApp._logger.debug('Powering on vApp ' + vapp_name)
+        logger.debug('Powering on vApp ' + vapp_name)
         vapp.reload()
         task = vapp.power_on()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        TestVApp._logger.debug('Reseting (power) vApp ' + vapp_name)
+        logger.debug('Reseting (power) vApp ' + vapp_name)
         vapp.reload()
         task = vapp.power_reset()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        TestVApp._logger.debug('Powering off vApp ' + vapp_name)
+        logger.debug('Powering off vApp ' + vapp_name)
         vapp.reload()
         task = vapp.power_off()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        TestVApp._logger.debug('Powering back on vApp ' + vapp_name)
+        logger.debug('Powering back on vApp ' + vapp_name)
         vapp.reload()
         task = vapp.power_on()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        TestVApp._logger.debug('Rebooting (power) vApp ' + vapp_name)
+        logger.debug('Rebooting (power) vApp ' + vapp_name)
         vapp.reload()
         task = vapp.reboot()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        TestVApp._logger.debug('Shutting down vApp ' + vapp_name)
+        logger.debug('Shutting down vApp ' + vapp_name)
         vapp.reload()
         task = vapp.shutdown()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
@@ -345,6 +347,7 @@ class TestVApp(BaseTestCase):
            operations are successful.
         """
         try:
+            logger = Environment.get_default_logger()
             client = Environment.get_client_in_default_org(
                 CommonRoles.ORGANIZATION_ADMINISTRATOR)
 
@@ -354,14 +357,14 @@ class TestVApp(BaseTestCase):
             vapp = Environment.get_vapp_in_test_vdc(
                 client=client, vapp_name=vapp_name)
 
-            TestVApp._logger.debug('Connecting vApp ' + vapp_name +
-                                   ' to orgvdc network ' + network_name)
+            logger.debug('Connecting vApp ' + vapp_name +
+                         ' to orgvdc network ' + network_name)
             task = vapp.connect_org_vdc_network(network_name)
             result = client.get_task_monitor().wait_for_success(task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-            TestVApp._logger.debug('Dis-connecting vApp ' + vapp_name +
-                                   ' to orgvdc network ' + network_name)
+            logger.debug('Disconnecting vApp ' + vapp_name +
+                         ' to orgvdc network ' + network_name)
             vapp.reload()
             task = vapp.disconnect_org_vdc_network(network_name)
             result = client.get_task_monitor().wait_for_success(task)
@@ -374,6 +377,7 @@ class TestVApp(BaseTestCase):
 
         This test passes if all the acl operations are successful.
         """
+        logger = Environment.get_default_logger()
         vapp_name = TestVApp._customized_vapp_name
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=vapp_name)
@@ -384,14 +388,12 @@ class TestVApp(BaseTestCase):
             CommonRoles.CONSOLE_ACCESS_ONLY)
 
         # remove all
-        TestVApp._logger.debug('Removing all access control from vApp ' +
-                               vapp_name)
+        logger.debug('Removing all access control from vApp ' + vapp_name)
         control_access = vapp.remove_access_settings(remove_all=True)
         self.assertFalse(hasattr(control_access, 'AccessSettings'))
 
         # add
-        TestVApp._logger.debug('Adding 2 access control rule to vApp ' +
-                               vapp_name)
+        logger.debug('Adding 2 access control rule to vApp ' + vapp_name)
         vapp.reload()
         control_access = vapp.add_access_settings(
             access_settings_list=[{
@@ -405,15 +407,13 @@ class TestVApp(BaseTestCase):
         self.assertEqual(len(control_access.AccessSettings.AccessSetting), 2)
 
         # get
-        TestVApp._logger.debug('Fetching access control rules for vApp ' +
-                               vapp_name)
+        logger.debug('Fetching access control rules for vApp ' + vapp_name)
         vapp.reload()
         control_access = vapp.get_access_settings()
         self.assertEqual(len(control_access.AccessSettings.AccessSetting), 2)
 
         # remove
-        TestVApp._logger.debug('Fetching access control rules for vApp ' +
-                               vapp_name)
+        logger.debug('Fetching access control rules for vApp ' + vapp_name)
         vapp.reload()
         control_access = vapp.remove_access_settings(
             access_settings_list=[{
@@ -423,8 +423,7 @@ class TestVApp(BaseTestCase):
         self.assertEqual(len(control_access.AccessSettings.AccessSetting), 1)
 
         # share
-        TestVApp._logger.debug('Sharing vApp ' + vapp_name +
-                               ' with everyone in the org')
+        logger.debug('Sharing vApp ' + vapp_name + ' with everyone in the org')
         vapp.reload()
         control_access = vapp.share_with_org_members(
             everyone_access_level='ReadOnly')
@@ -432,15 +431,14 @@ class TestVApp(BaseTestCase):
         self.assertEqual(control_access.EveryoneAccessLevel.text, 'ReadOnly')
 
         # unshare
-        TestVApp._logger.debug('Un-sharing vApp ' + vapp_name +
-                               ' from everyone in the org')
+        logger.debug(
+            'Un-sharing vApp ' + vapp_name + ' from everyone in the org')
         vapp.reload()
         control_access = vapp.unshare_from_org_members()
         self.assertEqual(control_access.IsSharedToEveryone.text, 'false')
 
         # remove all access control rules again
-        TestVApp._logger.debug('Removing all access control from vApp ' +
-                               vapp_name)
+        logger.debug('Removing all access control from vApp ' + vapp_name)
         control_access = vapp.remove_access_settings(remove_all=True)
         self.assertFalse(hasattr(control_access, 'AccessSettings'))
 
@@ -468,6 +466,7 @@ class TestVApp(BaseTestCase):
            to the desired user.
         """
         try:
+            logger = Environment.get_default_logger()
             org_admin_client = Environment.get_client_in_default_org(
                 CommonRoles.ORGANIZATION_ADMINISTRATOR)
 
@@ -480,16 +479,15 @@ class TestVApp(BaseTestCase):
             vapp_user_href = Environment.get_user_href_in_test_org(
                 vapp_user_name)
 
-            TestVApp._logger.debug('Changing owner of vApp ' + vapp_name +
-                                   ' to ' + vapp_user_name)
+            logger.debug('Changing owner of vApp ' + vapp_name + ' to ' +
+                         vapp_user_name)
             vapp.change_owner(vapp_user_href)
             vapp.reload()
             self.assertEqual(vapp.get_resource().Owner.User.get('name'),
                              vapp_user_name)
 
-            TestVApp._logger.debug('Changing owner of vApp ' + vapp_name +
-                                   ' back to ' +
-                                   TestVApp._empty_vapp_owner_name)
+            logger.debug('Changing owner of vApp ' + vapp_name + ' back to ' +
+                         TestVApp._empty_vapp_owner_name)
             original_owner_href = Environment.get_user_href_in_test_org(
                 TestVApp._empty_vapp_owner_name)
             vapp.change_owner(original_owner_href)

@@ -295,9 +295,8 @@ class VApp(object):
 
         :param mac_address: (str):    the MAC address associated with the NIC.
         :param ip_address: (str):     the IP address assigned to this NIC.
-        :return: (TaskType) a
-         :class:`pyvcloud.schema.vcd.v1_5.schemas.admin.vCloudEntities.TaskType`
-                            object that can be used to monitor the request.
+        :return:  A :class:`lxml.objectify.StringElement` object representing
+            the asynchronous task that is connecting the vm to the network.
         :raises: Exception: If the named VM cannot be located or another error
                             occured.
 
@@ -672,8 +671,6 @@ class VApp(object):
             params.append(self.to_sourced_item(spec))
         if all_eulas_accepted is not None:
             params.append(E.AllEULAsAccepted(all_eulas_accepted))
-
-        self.resource = self.client.get_resource(self.href)
 
         return self.client.post_linked_resource(
             self.resource, RelationType.RECOMPOSE,

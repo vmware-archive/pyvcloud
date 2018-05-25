@@ -508,20 +508,21 @@ class Client(object):
 
         self._logger = logging.getLogger(__name__)
         self._logger.setLevel(logging.DEBUG)
-        handler = logging.FileHandler(log_file) if log_file is not None else \
-            logging.NullHandler()
-        formatter = logging.Formatter('%(asctime)-23.23s | '
-                                      '%(levelname)-5.5s | '
-                                      '%(name)-15.15s | '
-                                      '%(module)-15.15s | '
-                                      '%(funcName)-12.12s | '
-                                      '%(message)s')
-        handler.setFormatter(formatter)
-        self._logger.addHandler(handler)
-
-        requests_logger = logging.getLogger("requests.packages.urllib3")
-        requests_logger.addHandler(handler)
-        requests_logger.setLevel(logging.DEBUG)
+        # This makes sure that we don't append a new handler to the logger
+        # everytime we create a new client.
+        if not self._logger.handlers:
+            if log_file is not None:
+                handler = logging.FileHandler(log_file)
+            else:
+                handler = logging.NullHandler()
+            formatter = logging.Formatter('%(asctime)-23.23s | '
+                                          '%(levelname)-5.5s | '
+                                          '%(name)-15.15s | '
+                                          '%(module)-15.15s | '
+                                          '%(funcName)-12.12s | '
+                                          '%(message)s')
+            handler.setFormatter(formatter)
+            self._logger.addHandler(handler)
 
         self._log_requests = log_requests
         self._log_headers = log_headers

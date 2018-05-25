@@ -320,10 +320,15 @@ class VApp(object):
         if mac_address:
             new_connection.append(E.MACAddress(mac_address))
 
+        new_connection_section = E.NetworkConnectionSection(
+            E_OVF.Info(),
+            E.PrimaryNetworkConnectionIndex(connection_index),
+            new_connection)
+
         return self.client.put_linked_resource(
             vm.NetworkConnectionSection,
             RelationType.EDIT, EntityType.NETWORK_CONNECTION_SECTION.value,
-            new_connection)
+            new_connection_section)
 
     def attach_disk_to_vm(self, disk_href, vm_name):
         """Attach the independent disk to the VM with the given name.

@@ -55,9 +55,9 @@ class Org(object):
         """
         self.client = client
         if href is None and resource is None:
-            raise InvalidParameterException(
-                'Org initialization failed as arguments are either invalid or None'
-            )
+            raise InvalidParameterException('Org initialization failed as '
+                                            'arguments are either invalid '
+                                            'or None')
         self.href = href
         self.resource = resource
         if resource is not None:
@@ -143,8 +143,8 @@ class Org(object):
         :param is_admin_operation (bool): If true, will return the admin view
             of the catalog.
 
-        :return: A :class:`lxml.objectify.ObjectifiedElement` object representing
-            the catalog.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            representing the catalog.
 
         :raises: EntityNotFoundException: If the named catalog can not be
             found.
@@ -172,8 +172,8 @@ class Org(object):
         :param new_catalog_name: (str): The new name of the catalog.
         :param description: (str): The new description of the catalog.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object describing
-            the updated catalog.
+        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
+            describing the updated catalog.
 
         :raises: EntityNotFoundException: If the named catalog can not be
             found.
@@ -197,8 +197,8 @@ class Org(object):
 
         :param name: (str): The name of the catalog to be shared.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object describing
-            the updated catalog.
+        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
+            describing the updated catalog.
 
         :raises: EntityNotFoundException: If the named catalog can not be
             found.
@@ -264,8 +264,8 @@ class Org(object):
         :param item_name: (str): The name of the item which needs to be
             retrieved.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object describing
-            the entity corresponding to the catalog item.
+        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
+            describing the entity corresponding to the catalog item.
 
         :raises: EntityNotFoundException: If the catalog/named item can not be
             found.
@@ -298,9 +298,9 @@ class Org(object):
     def _is_enable_download_required(self, entity_resource, item_type):
         """Helper method to determine need for download enablement.
 
-        :param entity_resource: A :class:`lxml.objectify.ObjectifiedElement` object
-            describing the entity corresponding to the catalog item which
-            needs to be downloaded.
+        :param entity_resource: A :class:`lxml.objectify.ObjectifiedElement`
+            object describing the entity corresponding to the catalog item
+            which needs to be downloaded.
         :param item_type: (str): Type of entity we are trying to enable for
             download. Valid values are EntityType.VAPP_TEMPLATE and
             EntityType.MEDIA.
@@ -327,9 +327,9 @@ class Org(object):
         Behind the scene it involves vCD copying the template/media file
             from ESX hosts to spool area (transfer folder).
 
-        :param entity_resource: A :class:`lxml.objectify.ObjectifiedElement` object
-            describing the entity corresponding to the catalog item which
-            needs to be downloaded.
+        :param entity_resource: A :class:`lxml.objectify.ObjectifiedElement`
+            object describing the entity corresponding to the catalog item
+            which needs to be downloaded.
         :param task_callback: (function): A function with signature
             function(task) to let the caller monitor the progress of enable
             download task.
@@ -398,9 +398,9 @@ class Org(object):
     def _download_ovf(self, entity_resource, file_name, chunk_size, callback):
         """Helper method to download an ova file from vCD catalog.
 
-        :param entity_resource: A :class:`lxml.objectify.ObjectifiedElement` object
-            describing the entity corresponding to the catalog item which
-            needs to be downloaded.
+        :param entity_resource: A :class:`lxml.objectify.ObjectifiedElement`
+            object describing the entity corresponding to the catalog item
+            which needs to be downloaded.
         :param file_name: (str): The name of the target file on local disk
             where the contents of the catalog item will be downloaded to.
         :param chunk_size: (int): The size of chunks in which the catalog item
@@ -786,8 +786,8 @@ class Org(object):
             has to be overwritten if it already exists. If it doesn't exists,
             this flag is not used.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object describing
-            the updated catalog item.
+        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
+            describing the updated catalog item.
         """
         contents = E.CaptureVAppParams(
             E.Description(description),
@@ -988,8 +988,8 @@ class Org(object):
 
         :param role_name: (str):name of the role
 
-        :return A :class:`lxml.objectify.ObjectifiedElement` object representing
-            the role.
+        :return A :class:`lxml.objectify.ObjectifiedElement` object
+            representing the role.
         """
         role_record = self.get_role_record(role_name)
         return self.client.get_resource(role_record.get('href'))
@@ -1046,8 +1046,8 @@ class Org(object):
 
         :param rights: (tuple): tuple of right names
 
-        :return A :class:`lxml.objectify.ObjectifiedElement` object representing
-            the updated Org rights
+        :return A :class:`lxml.objectify.ObjectifiedElement` object
+            representing the updated Org rights
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         org_rights = E.OrgRights()
@@ -1067,8 +1067,8 @@ class Org(object):
 
         :param rights: (tuple): tuple of right names
 
-        :return A :class:`lxml.objectify.ObjectifiedElement` object representing
-            the updated Org rights
+        :return A :class:`lxml.objectify.ObjectifiedElement` object
+            representing the updated Org rights
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         org_rights_resource = None
@@ -1092,8 +1092,8 @@ class Org(object):
 
         :param right_name: (str): name of the right
 
-        :return A :class:`lxml.objectify.ObjectifiedElement` object representing
-            the right.
+        :return A :class:`lxml.objectify.ObjectifiedElement` object
+            representing the right.
         """
         right_record = self.get_right_record(right_name)
         return self.client.get_resource(right_record.get('href'))
@@ -1155,8 +1155,8 @@ class Org(object):
 
         :param catalog_name: (str): The name of the catalog.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object representing
-            the access settings of the catalog.
+        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
+            representing the access settings of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -1176,8 +1176,8 @@ class Org(object):
             access_level: (str): access_level of the particular subject. One of
             'ReadOnly', 'Change', 'FullControl'
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object representing
-            the updated access control setting of the catalog.
+        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
+            representing the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -1198,8 +1198,8 @@ class Org(object):
         :param remove_all: (bool) : True if all access settings of the catalog
             should be removed
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object representing
-            the updated access control setting of the catalog.
+        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
+            representing the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -1216,8 +1216,8 @@ class Org(object):
             catalog with everyone. One of 'ReadOnly', 'Change', 'FullControl'
             'ReadOnly' by default.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object representing
-            the updated access control setting of the catalog.
+        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
+            representing the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -1229,8 +1229,8 @@ class Org(object):
         :param catalog_name: (str): catalog name whose access should be
             unshared from everyone.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object representing
-            the updated access control setting of the catalog.
+        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
+            representing the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -1336,8 +1336,8 @@ class Org(object):
         :param is_enabled (bool): True if this vDC is enabled for use by the
             organization users.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object describing
-            the new VDC.
+        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
+            describing the new VDC.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

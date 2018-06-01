@@ -33,6 +33,7 @@ from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import DownloadException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
@@ -77,7 +78,7 @@ class Org(object):
         :return: (str): Name of the organization.
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
         return self.resource.get('name')
 
     def create_catalog(self, name, description):
@@ -91,11 +92,11 @@ class Org(object):
             representing a sparsely populated catalog element.
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        catalog = E.AdminCatalog(E.Description(description), name=name)
+            self.reload()
+        payload = E.AdminCatalog(E.Description(description), name=name)
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD, EntityType.ADMIN_CATALOG.value,
-            catalog)
+            payload)
 
     def delete_catalog(self, name):
         """Delete a catalog in the organization.
@@ -120,20 +121,19 @@ class Org(object):
             about a catalog in the organization.
         """
         if self.client.is_sysadmin():
-            resource_type = 'adminCatalog'
+            resource_type = ResourceType.ADMIN_CATALOG.value
         else:
-            resource_type = 'catalog'
+            resource_type = ResourceType.CATALOG.value
         result = []
         q = self.client.get_typed_query(
             resource_type, query_result_format=QueryResultFormat.ID_RECORDS)
         records = list(q.execute())
-        if len(records) > 0:
-            for r in records:
-                result.append(
-                    to_dict(
-                        r,
-                        resource_type=resource_type,
-                        exclude=['owner', 'org']))
+        for r in records:
+            result.append(
+                to_dict(
+                    r,
+                    resource_type=resource_type,
+                    exclude=['owner', 'org']))
         return result
 
     def get_catalog(self, name, is_admin_operation=False):
@@ -150,7 +150,7 @@ class Org(object):
             found.
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
         links = get_links(
             self.resource,
             rel=RelationType.DOWN,
@@ -193,7 +193,7 @@ class Org(object):
     def share_catalog(self, name, share=True):
         """Share a catalog with all org-admins of all organizations.
 
-        This operation is only for System Administrators.
+        This operation can be performed by only System Administrators.
 
         :param name: (str): The name of the catalog to be shared.
 
@@ -220,7 +220,7 @@ class Org(object):
             to be changed
         :param user_name: (str): Name of the new owner of the catalog
 
-        :return: None
+        :return: Nothing
         """
         catalog_admin_resource = self.get_catalog(
             catalog_name, is_admin_operation=True)
@@ -231,12 +231,11 @@ class Org(object):
         owner_resource.User.set('href', new_user_resource.get('href'))
         objectify.deannotate(owner_resource)
 
-        catalog_owner_link = find_link(
-            catalog_admin_resource,
+        return self.client.put_linked_resource(
+            resource=catalog_admin_resource,
             rel=RelationType.DOWN,
-            media_type=EntityType.OWNER.value)
-        return self.client.put_resource(catalog_owner_link.href,
-                                        owner_resource, EntityType.OWNER.value)
+            media_type=EntityType.OWNER.value,
+            contents=owner_resource)
 
     def list_catalog_items(self, name):
         """Retrieve all items in a catalog.
@@ -245,7 +244,7 @@ class Org(object):
             retrieved.
 
         :return: (list of dict): A list of dict objects. Each dict object
-            conatins information about an item in the catalog.
+            conatins 'name' and 'id' of an item in the catalog.
 
         :raises: EntityNotFoundException: If the named catalog can not be
             found.
@@ -921,7 +920,7 @@ class Org(object):
         :return: (list): (UserRecord) List of users.
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
         resource_type = 'user'
         org_filter = None
         if self.client.is_sysadmin():
@@ -979,7 +978,7 @@ class Org(object):
         :return: None
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
         role_record = self.get_role_record(name)
         self.client.delete_resource(role_record.get('href'))
 
@@ -1019,7 +1018,7 @@ class Org(object):
         :return: (list): (RoleRecord) List of roles
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
 
         org_filter = None
         resource_type = 'role'
@@ -1121,7 +1120,7 @@ class Org(object):
         :return: (list): (RightRecord) List of rights
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
 
         resource_type = 'right'
         query = self.client.get_typed_query(
@@ -1151,7 +1150,7 @@ class Org(object):
         return rights
 
     def get_catalog_access_settings(self, catalog_name):
-        """Get the access settings of a catalog.
+        """Retrieve the access settings of a catalog.
 
         :param catalog_name: (str): The name of the catalog.
 
@@ -1340,7 +1339,7 @@ class Org(object):
             describing the new VDC.
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
         sys_admin_resource = self.client.get_admin()
         system = System(self.client, admin_resource=sys_admin_resource)
         pvdc = system.get_provider_vdc(provider_vdc_name)
@@ -1409,7 +1408,7 @@ class Org(object):
         :raises: EntityNotFoundException: If the named vdc can not be found.
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
         links = get_links(
             self.resource,
             rel=RelationType.DOWN,
@@ -1422,11 +1421,11 @@ class Org(object):
     def list_vdcs(self):
         """List all vdc that are backing the current organization.
 
-        :return: (list): A list of dict, where each item contains information
-            about a vdc in the organization.
+        :return: (list): A list of dict, where each item contains 'name' and
+            'href' of a vdc in the organization.
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
         result = []
         for v in get_links(self.resource, media_type=EntityType.VDC.value):
             result.append({'name': v.name, 'href': v.href})

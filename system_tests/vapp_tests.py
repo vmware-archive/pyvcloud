@@ -33,16 +33,16 @@ class TestVApp(BaseTestCase):
     _customized_vapp_name = 'customized_vApp'
     _customized_vapp_description = 'customized vApp description'
     _customized_vapp_num_cpu = 2
-    _customized_vapp_memory_size = 64   # MB
-    _customized_vapp_disk_size = 100   # MB
+    _customized_vapp_memory_size = 64  # MB
+    _customized_vapp_disk_size = 100  # MB
     _customized_vapp_vm_name = 'custom-vm'
     _customized_vapp_vm_hostname = 'custom-host'
     _customized_vapp_vm_network_adapter_type = NetworkAdapterType.VMXNET3
     _customized_vapp_owner_name = None
     _customized_vapp_href = None
 
-    _non_existent_vapp_name = 'non_existent_vapp_' + ''.join(random.choices(
-        string.ascii_letters, k=8))
+    _non_existent_vapp_name = 'non_existent_vapp_' + ''.join(
+        random.choices(string.ascii_letters, k=8))
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -52,13 +52,14 @@ class TestVApp(BaseTestCase):
 
         This test passes if the two vApp hrefs are not None.
         """
+        logger = Environment.get_default_logger()
         TestVApp._client = Environment.get_client_in_default_org(
             TestVApp._test_runner_role)
         vdc = Environment.get_test_vdc(TestVApp._client)
 
         try:
             vapp_resource = vdc.get_vapp(TestVApp._empty_vapp_name)
-            print('Reusing empty vApp')
+            logger.debug('Reusing empty vApp')
             TestVApp._empty_vapp_href = vapp_resource.get('href')
             TestVApp._empty_vapp_owner_name = \
                 vapp_resource.Owner.User.get('name')
@@ -70,7 +71,7 @@ class TestVApp(BaseTestCase):
 
         try:
             vapp_resource = vdc.get_vapp(TestVApp._customized_vapp_name)
-            print('Reusing cusomized vApp')
+            logger.debug('Reusing customized vApp')
             TestVApp._customized_vapp_href = vapp_resource.get('href')
             TestVApp._customized_vapp_owner_name = \
                 vapp_resource.Owner.User.get('name')
@@ -96,7 +97,8 @@ class TestVApp(BaseTestCase):
 
         :return: (str): href of the created vApp
         """
-        print('Creating empty vApp.')
+        logger = Environment.get_default_logger()
+        logger.debug('Creating empty vApp.')
         vapp_sparse_resouce = vdc.create_vapp(
             name=TestVApp._empty_vapp_name,
             description=TestVApp._empty_vapp_description,
@@ -118,7 +120,8 @@ class TestVApp(BaseTestCase):
 
         :return: (str): href of the created vApp
         """
-        print('Creating customized vApp.')
+        logger = Environment.get_default_logger()
+        logger.debug('Creating customized vApp.')
         vapp_sparse_resouce = vdc.instantiate_vapp(
             name=TestVApp._customized_vapp_name,
             catalog=Environment.get_default_catalog_name(),
@@ -131,8 +134,8 @@ class TestVApp(BaseTestCase):
             disk_size=TestVApp._customized_vapp_disk_size,
             vm_name=TestVApp._customized_vapp_vm_name,
             hostname=TestVApp._customized_vapp_vm_hostname,
-            network_adapter_type=TestVApp
-                                 ._customized_vapp_vm_network_adapter_type)
+            network_adapter_type=TestVApp.
+            _customized_vapp_vm_network_adapter_type)
 
         task = client.get_task_monitor().wait_for_success(
             vapp_sparse_resouce.Tasks.Task[0])
@@ -172,9 +175,10 @@ class TestVApp(BaseTestCase):
         This test passes if the supplied vm is sucessfully added to the vApp
            and then successfully removed from the vApp.
         """
+        logger = Environment.get_default_logger()
         vapp_name = TestVApp._empty_vapp_name
-        vapp = Environment.get_vapp_in_test_vdc(client=TestVApp._client,
-                                                vapp_name=vapp_name)
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=vapp_name)
 
         source_vapp_resource = Environment.get_default_vapp(TestVApp._client).\
             get_resource()
@@ -183,17 +187,19 @@ class TestVApp(BaseTestCase):
         spec = {
             'vapp': source_vapp_resource,
             'source_vm_name': source_vm_name,
-            'target_vm_name': target_vm_name}
+            'target_vm_name': target_vm_name
+        }
 
-        print('Adding vm ' + target_vm_name + ' to vApp ' + vapp_name)
+        logger.debug('Adding vm ' + target_vm_name + ' to vApp ' + vapp_name)
         # deploy and power_on are false to make sure that the subsequent
         # deletion of vm doesn't require additional power operations
-        task = vapp.add_vms([spec], deploy=False, power_on=False,
-                            all_eulas_accepted=True)
+        task = vapp.add_vms(
+            [spec], deploy=False, power_on=False, all_eulas_accepted=True)
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        print('Removing vm ' + target_vm_name + ' from vApp ' + vapp_name)
+        logger.debug(
+            'Removing vm ' + target_vm_name + ' from vApp ' + vapp_name)
         vapp.reload()
         task = vapp.delete_vms([target_vm_name])
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
@@ -207,8 +213,8 @@ class TestVApp(BaseTestCase):
            config in this file.
         """
         vapp_name = TestVApp._customized_vapp_name
-        vapp = Environment.get_vapp_in_test_vdc(client=TestVApp._client,
-                                                vapp_name=vapp_name)
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=vapp_name)
         vapp_resource = vapp.get_resource()
 
         # TODO(https://github.com/vmware/vcd-cli/issues/220) : Bug in
@@ -222,14 +228,15 @@ class TestVApp(BaseTestCase):
         self.assertTrue(len(vms) >= 1)
         first_vm = vms[0]
 
-        self.assertEqual(first_vm.get('name'),
-                         TestVApp._customized_vapp_vm_name)
+        self.assertEqual(
+            first_vm.get('name'), TestVApp._customized_vapp_vm_name)
 
         self.assertEqual(first_vm.GuestCustomizationSection.ComputerName.text,
                          TestVApp._customized_vapp_vm_hostname)
 
-        items = first_vm.xpath('//ovf:VirtualHardwareSection/ovf:Item',
-                               namespaces={'ovf': NSMAP['ovf']})
+        items = first_vm.xpath(
+            '//ovf:VirtualHardwareSection/ovf:Item',
+            namespaces={'ovf': NSMAP['ovf']})
         self.assertTrue(len(items) > 0)
 
         cpu_size = None
@@ -263,8 +270,9 @@ class TestVApp(BaseTestCase):
         """
         # TODO(VCDA-603) : update power_on to handle missing link exception
         try:
-            print('Making sure vApp ' + vapp.get_resource().get('name') +
-                  ' is powered on.')
+            logger = Environment.get_default_logger()
+            logger.debug('Making sure vApp ' +
+                         vapp.get_resource().get('name') + ' is powered on.')
             task = vapp.power_on()
             client.get_task_monitor().wait_for_success(task=task)
         except Exception as e:
@@ -275,56 +283,57 @@ class TestVApp(BaseTestCase):
 
         This test passes if all the power operations are successful.
         """
+        logger = Environment.get_default_logger()
         vapp_name = TestVApp._customized_vapp_name
-        vapp = Environment.get_vapp_in_test_vdc(client=TestVApp._client,
-                                                vapp_name=vapp_name)
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=vapp_name)
 
         # make sure the vApp is powered on before running tests
         self._power_on_vapp_if_possible(TestVApp._client, vapp)
 
-        print('Undeploying vApp ' + vapp_name)
+        logger.debug('Un-deploying vApp ' + vapp_name)
         vapp.reload()
         task = vapp.undeploy()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        print('Deploying vApp ' + vapp_name)
+        logger.debug('Deploying vApp ' + vapp_name)
         vapp.reload()
         task = vapp.deploy(power_on=False)
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        print('Powering on vApp ' + vapp_name)
+        logger.debug('Powering on vApp ' + vapp_name)
         vapp.reload()
         task = vapp.power_on()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        print('Reseting (power) vApp ' + vapp_name)
+        logger.debug('Reseting (power) vApp ' + vapp_name)
         vapp.reload()
         task = vapp.power_reset()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        print('Powering off vApp ' + vapp_name)
+        logger.debug('Powering off vApp ' + vapp_name)
         vapp.reload()
         task = vapp.power_off()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        print('Powering back on vApp ' + vapp_name)
+        logger.debug('Powering back on vApp ' + vapp_name)
         vapp.reload()
         task = vapp.power_on()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        print('Rebooting (power) vApp ' + vapp_name)
+        logger.debug('Rebooting (power) vApp ' + vapp_name)
         vapp.reload()
         task = vapp.reboot()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        print('Shutting down vApp ' + vapp_name)
+        logger.debug('Shutting down vApp ' + vapp_name)
         vapp.reload()
         task = vapp.shutdown()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
@@ -338,23 +347,24 @@ class TestVApp(BaseTestCase):
            operations are successful.
         """
         try:
+            logger = Environment.get_default_logger()
             client = Environment.get_client_in_default_org(
                 CommonRoles.ORGANIZATION_ADMINISTRATOR)
 
             network_name = Environment.get_default_orgvdc_network_name()
 
             vapp_name = TestVApp._customized_vapp_name
-            vapp = Environment.get_vapp_in_test_vdc(client=client,
-                                                    vapp_name=vapp_name)
+            vapp = Environment.get_vapp_in_test_vdc(
+                client=client, vapp_name=vapp_name)
 
-            print('Connecting vApp ' + vapp_name + ' to orgvdc network ' +
-                  network_name)
+            logger.debug('Connecting vApp ' + vapp_name +
+                         ' to orgvdc network ' + network_name)
             task = vapp.connect_org_vdc_network(network_name)
             result = client.get_task_monitor().wait_for_success(task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-            print('Dis-connecting vApp ' + vapp_name + ' to orgvdc network ' +
-                  network_name)
+            logger.debug('Disconnecting vApp ' + vapp_name +
+                         ' to orgvdc network ' + network_name)
             vapp.reload()
             task = vapp.disconnect_org_vdc_network(network_name)
             result = client.get_task_monitor().wait_for_success(task)
@@ -367,9 +377,10 @@ class TestVApp(BaseTestCase):
 
         This test passes if all the acl operations are successful.
         """
+        logger = Environment.get_default_logger()
         vapp_name = TestVApp._customized_vapp_name
-        vapp = Environment.get_vapp_in_test_vdc(client=TestVApp._client,
-                                                vapp_name=vapp_name)
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=vapp_name)
 
         vapp_user_name = Environment.get_username_for_role_in_test_org(
             CommonRoles.VAPP_USER)
@@ -377,38 +388,42 @@ class TestVApp(BaseTestCase):
             CommonRoles.CONSOLE_ACCESS_ONLY)
 
         # remove all
-        print('Removing all access control from vApp ' + vapp_name)
+        logger.debug('Removing all access control from vApp ' + vapp_name)
         control_access = vapp.remove_access_settings(remove_all=True)
         self.assertFalse(hasattr(control_access, 'AccessSettings'))
 
         # add
-        print('Adding 2 access control rule to vApp ' + vapp_name)
+        logger.debug('Adding 2 access control rule to vApp ' + vapp_name)
         vapp.reload()
         control_access = vapp.add_access_settings(
-            access_settings_list=[
-                {'name': console_user_name, 'type': 'user'},
-                {'name': vapp_user_name, 'type': 'user',
-                 'access_level': 'Change'}
-            ])
+            access_settings_list=[{
+                'name': console_user_name,
+                'type': 'user'
+            }, {
+                'name': vapp_user_name,
+                'type': 'user',
+                'access_level': 'Change'
+            }])
         self.assertEqual(len(control_access.AccessSettings.AccessSetting), 2)
 
         # get
-        print('Fetching access control rules for vApp ' + vapp_name)
+        logger.debug('Fetching access control rules for vApp ' + vapp_name)
         vapp.reload()
         control_access = vapp.get_access_settings()
         self.assertEqual(len(control_access.AccessSettings.AccessSetting), 2)
 
         # remove
-        print('Fetching access control rules for vApp ' + vapp_name)
+        logger.debug('Fetching access control rules for vApp ' + vapp_name)
         vapp.reload()
         control_access = vapp.remove_access_settings(
-            access_settings_list=[
-                {'name': vapp_user_name, 'type': 'user'}
-            ])
+            access_settings_list=[{
+                'name': vapp_user_name,
+                'type': 'user'
+            }])
         self.assertEqual(len(control_access.AccessSettings.AccessSetting), 1)
 
         # share
-        print('Sharing vApp ' + vapp_name + ' with everyone in the org')
+        logger.debug('Sharing vApp ' + vapp_name + ' with everyone in the org')
         vapp.reload()
         control_access = vapp.share_with_org_members(
             everyone_access_level='ReadOnly')
@@ -416,13 +431,14 @@ class TestVApp(BaseTestCase):
         self.assertEqual(control_access.EveryoneAccessLevel.text, 'ReadOnly')
 
         # unshare
-        print('Un-sharing vApp ' + vapp_name + ' from everyone in the org')
+        logger.debug(
+            'Un-sharing vApp ' + vapp_name + ' from everyone in the org')
         vapp.reload()
         control_access = vapp.unshare_from_org_members()
         self.assertEqual(control_access.IsSharedToEveryone.text, 'false')
 
         # remove all access control rules again
-        print('Removing all access control from vApp ' + vapp_name)
+        logger.debug('Removing all access control from vApp ' + vapp_name)
         control_access = vapp.remove_access_settings(remove_all=True)
         self.assertFalse(hasattr(control_access, 'AccessSettings'))
 
@@ -433,8 +449,8 @@ class TestVApp(BaseTestCase):
            successfully.
         """
         vapp_name = TestVApp._empty_vapp_name
-        vapp = Environment.get_vapp_in_test_vdc(client=TestVApp._client,
-                                                vapp_name=vapp_name)
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=vapp_name)
 
         task = vapp.set_lease(
             deployment_lease=TestVApp._empty_vapp_runtime_lease,
@@ -450,27 +466,28 @@ class TestVApp(BaseTestCase):
            to the desired user.
         """
         try:
+            logger = Environment.get_default_logger()
             org_admin_client = Environment.get_client_in_default_org(
                 CommonRoles.ORGANIZATION_ADMINISTRATOR)
 
             vapp_name = TestVApp._empty_vapp_name
-            vapp = Environment.get_vapp_in_test_vdc(client=org_admin_client,
-                                                    vapp_name=vapp_name)
+            vapp = Environment.get_vapp_in_test_vdc(
+                client=org_admin_client, vapp_name=vapp_name)
 
             vapp_user_name = Environment.get_username_for_role_in_test_org(
                 CommonRoles.VAPP_USER)
             vapp_user_href = Environment.get_user_href_in_test_org(
                 vapp_user_name)
 
-            print('Changing owner of vApp ' + vapp_name + ' to ' +
-                  vapp_user_name)
+            logger.debug('Changing owner of vApp ' + vapp_name + ' to ' +
+                         vapp_user_name)
             vapp.change_owner(vapp_user_href)
             vapp.reload()
             self.assertEqual(vapp.get_resource().Owner.User.get('name'),
                              vapp_user_name)
 
-            print('Changing owner of vApp ' + vapp_name + ' back to ' +
-                  TestVApp._empty_vapp_owner_name)
+            logger.debug('Changing owner of vApp ' + vapp_name + ' back to ' +
+                         TestVApp._empty_vapp_owner_name)
             original_owner_href = Environment.get_user_href_in_test_org(
                 TestVApp._empty_vapp_owner_name)
             vapp.change_owner(original_owner_href)
@@ -505,12 +522,11 @@ class TestVApp(BaseTestCase):
 
         for vapp_name in vapps_to_delete:
             task = vdc.delete_vapp(name=vapp_name, force=True)
-            result = TestVApp._client.get_task_monitor().wait_for_success(
-                task)
+            result = TestVApp._client.get_task_monitor().wait_for_success(task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_9999_cleanup(self):
-        """Release all resources help by this object for testing purposes."""
+        """Release all resources held by this object for testing purposes."""
         TestVApp._client.logout()
 
 

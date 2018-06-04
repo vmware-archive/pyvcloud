@@ -23,10 +23,10 @@ logging:
 vcd:
 # Fill in the vCloud Dirctor host, sysadmin credentials and other related 
 # information here. These will be required for the tests to run.
-  host: '<vcd id>'
+  host: '<vcd ip>'
   api_version: '30.0'
   sys_admin_username: 'administrator'
-  sys_admin_pass: '<vcd admin password>'
+  sys_admin_pass: '<root-password>'
   sys_org_name: 'System'
 
 # The following params defines the org, pvdc, ovdc, etc. that the tests will 

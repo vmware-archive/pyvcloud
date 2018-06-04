@@ -22,7 +22,7 @@ from pyvcloud.vcd.utils import to_dict
 
 class TestNSXT(TestCase):
 
-    def register_nsxt(self):
+    def test_010_register_nsxt(self):
         platform = Platform(self.client)
 
         nsxt = platform.register_nsxt_manager(
@@ -33,13 +33,13 @@ class TestNSXT(TestCase):
             nsxt_manager_description=self.config['vcd']['nsxTDescription'])
         assert self.config['vcd']['nsxTManagerName'] == nsxt.get('name')
 
-    def unregister_nsxt(self):
+    def test_030_unregister_nsxt(self):
         platform = Platform(self.client)
 
         platform.unregister_nsxt_manager(
             nsxt_manager_name=self.config['vcd']['nsxTManagerName'])
 
-    def list_nsxt_managers(self):
+    def test_020_list_nsxt_managers(self):
         platform = Platform(self.client)
 
         query = platform.list_nsxt_managers()

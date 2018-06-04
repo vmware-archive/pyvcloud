@@ -216,6 +216,8 @@ class Org(object):
     def change_catalog_owner(self, catalog_name, user_name):
         """Change the ownership of catalog to a given user.
 
+        This operation can be performed by only users with admin privileges.
+
         :param catalog_name: (str): Name of the catalog whose ownership needs
             to be changed
         :param user_name: (str): Name of the new owner of the catalog
@@ -292,6 +294,7 @@ class Org(object):
         for item in catalog_resource.CatalogItems.getchildren():
             if item.get('name') == item_name:
                 self.client.delete_resource(item.get('href'))
+                return
         raise EntityNotFoundException('Catalog item not found.')
 
     def _is_enable_download_required(self, entity_resource, item_type):

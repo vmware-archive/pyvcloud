@@ -16,9 +16,8 @@
 import unittest
 
 from pyvcloud.system_test_framework.base_test import BaseTestCase
-from pyvcloud.system_test_framework.environment import CommonRoles
-from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
+
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import to_dict
 
@@ -36,7 +35,7 @@ class TestNSXT(BaseTestCase):
             nsxt_manager_url=Environment._config['nsxt']['manager_host_url'],
             nsxt_manager_username=Environment._config['nsxt']['admin_user'],
             nsxt_manager_password=Environment._config['nsxt']['admin_pwd'],
-            nsxt_manager_description=Environment._config['nsxt']['description'])
+            nsxt_manager_description=Environment._config['nsxt']['descrip'])
         assert Environment._config['nsxt']['manager_name'] == nsxt.get('name')
 
     def test_030_unregister_nsxt(self):

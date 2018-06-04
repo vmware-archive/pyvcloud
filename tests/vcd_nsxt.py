@@ -21,7 +21,6 @@ from pyvcloud.vcd.utils import to_dict
 
 
 class TestNSXT(TestCase):
-
     def test_010_register_nsxt(self):
         platform = Platform(self.client)
 
@@ -45,10 +44,7 @@ class TestNSXT(TestCase):
         query = platform.list_nsxt_managers()
         result = []
         for record in list(query):
-            result.append(
-                to_dict(
-                    record,
-                    exclude=['href']))
+            result.append(to_dict(record, exclude=['href']))
         print(result)
 
 

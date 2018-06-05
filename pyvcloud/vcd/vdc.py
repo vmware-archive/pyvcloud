@@ -401,9 +401,9 @@ class VDC(object):
         return edge_gateways
 
     def create_edge_gateway(self,
-            name,
-            gatewayBackingConfig='full',
-            gatewayInterfaces=[]):
+                            name,
+                            gatewayBackingConfig='full',
+                            gatewayInterfaces=[]):
         """Request the creation of an Edge Gateway.
 
         :param name: (str): The name of the new edge gateway.
@@ -415,32 +415,16 @@ class VDC(object):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 
-        if iops is not None:
-            disk_params.Disk.set('iops', iops)
-
-        if description is not None:
-            disk_params.Disk.append(E.Description(description))
-
-        if bus_type is not None and bus_sub_type is not None:
-            disk_params.Disk.set('busType', bus_type)
-            disk_params.Disk.set('busSubType', bus_sub_type)
-
-        if storage_profile_name is not None:
-            storage_profile = self.get_storage_profile(storage_profile_name)
-            disk_params.Disk.append(
-                E.StorageProfile(
-                    name=storage_profile_name,
-                    href=storage_profile.get('href'),
-                    type=storage_profile.get('type')))
         gw_interfaces = []
         for interface in gatewayInterfaces:
             gw_interfaces.append(E.GatewayInterface(name=interface))
 
         edge_gateway = E.EdgeGateway(
-                name=name,
-                E.GatewayConfigurationType(
-                    E.GatewayBackingConfig(gatewayBackingConfig),
-                    E.GatewayInterfaces(gw_interfaces)))
+            E.GatewayConfigurationType(
+                E.GatewayBackingConfig(gatewayBackingConfig),
+                E.GatewayInterfaces(gw_interfaces)),
+            name=name
+        )
 
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD,

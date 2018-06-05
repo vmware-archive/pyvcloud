@@ -14,10 +14,13 @@
 # limitations under the License.
 
 import unittest
+import urllib.parse
 
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import Environment
 
+from pyvcloud.vcd.client import QueryResultFormat
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import to_dict
 
@@ -28,6 +31,7 @@ class TestNSXT(BaseTestCase):
         TestNSXT._client = Environment.get_sys_admin_client()
 
     def test_010_register_nsxt(self):
+        """Client can register a new NSX-T mgr if none exists w/ same name."""
         platform = Platform(TestNSXT._client)
 
         nsxt = platform.register_nsxt_manager(
@@ -38,13 +42,8 @@ class TestNSXT(BaseTestCase):
             nsxt_manager_description=Environment._config['nsxt']['descrip'])
         assert Environment._config['nsxt']['manager_name'] == nsxt.get('name')
 
-    def test_030_unregister_nsxt(self):
-        platform = Platform(TestNSXT._client)
-
-        platform.unregister_nsxt_manager(
-            nsxt_manager_name=Environment._config['nsxt']['manager_name'])
-
     def test_020_list_nsxt_managers(self):
+        """Client can list NSX-T mgrs that have been registered."""
         platform = Platform(TestNSXT._client)
 
         query = platform.list_nsxt_managers()
@@ -55,6 +54,21 @@ class TestNSXT(BaseTestCase):
                     record,
                     exclude=['href']))
         print(result)
+
+    def test_030_unregister_nsxt(self):
+        """Client can unregister an NSX-T mgr."""
+        platform = Platform(TestNSXT._client)
+
+        manager_name = Environment._config['nsxt']['manager_name']
+        platform.unregister_nsxt_manager(nsxt_manager_name=manager_name)
+
+        query_filter = 'name==%s' % urllib.parse.quote_plus(manager_name)
+        query = TestNSXT._client.get_typed_query(
+            ResourceType.NSXT_MANAGER.value,
+            query_result_format=QueryResultFormat.REFERENCES,
+            qfilter=query_filter)
+        records = list(query.execute())
+        self.assertTrue(len(records) == 0)
 
 
 if __name__ == '__main__':

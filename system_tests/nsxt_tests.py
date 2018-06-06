@@ -22,7 +22,6 @@ from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.platform import Platform
-from pyvcloud.vcd.utils import to_dict
 
 
 class TestNSXT(BaseTestCase):
@@ -46,14 +45,13 @@ class TestNSXT(BaseTestCase):
         """Client can list NSX-T mgrs that have been registered."""
         platform = Platform(TestNSXT._client)
 
+        manager_name = Environment._config['nsxt']['manager_name']
         query = platform.list_nsxt_managers()
         result = []
         for record in list(query):
-            result.append(
-                to_dict(
-                    record,
-                    exclude=['href']))
-        print(result)
+            result.append(record.get('name'))
+
+        self.assertIn(manager_name, result)
 
     def test_030_unregister_nsxt(self):
         """Client can unregister an NSX-T mgr."""

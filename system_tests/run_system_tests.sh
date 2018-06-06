@@ -24,8 +24,11 @@
 set -e
 SCRIPT_DIR=`dirname $0`
 
-# If there are tests to run use those. Otherwise use default tests. 
-STABLE_TESTS="idisk_tests.py"
+# If there are tests to run use those. Otherwise use stable tests. 
+STABLE_TESTS="client_tests.py \
+idisk_tests.py \
+search_tests.py" 
+
 if [ $# == 0 ]; then
   echo "No tests provided, will run stable list: ${STABLE_TESTS}"
   TESTS=$STABLE_TESTS
@@ -60,4 +63,4 @@ echo "Generated parameter file: ${auto_base_config}"
 # Run the tests with the new file. From here on out all commands are logged. 
 set -x
 export VCD_TEST_BASE_CONFIG_FILE=${auto_base_config}
-python3 -m unittest $TESTS
+python3 -m unittest $TESTS -v

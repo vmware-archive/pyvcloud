@@ -95,9 +95,10 @@ E_RASD = objectify.ElementMaker(
 
 
 API_CURRENT_VERSIONS = [
-    '5.5', '5.6', '6.0', '13.0', '17.0', '20.0', '21.0', '22.0', '23.0',
-    '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0', '31.0'
+    '27.0', '28.0', '29.0', '30.0'
 ]
+
+API_DEFAULT_VERSION = '30.0'
 
 VCLOUD_STATUS_MAP = {
     -1: "Could not be created",
@@ -383,6 +384,7 @@ def _response_has_content(response):
 
 
 def _objectify_response(response, as_object=True):
+    """Convert response content to Python type."""
     if _response_has_content(response):
         if as_object:
             return objectify.fromstring(response.content)
@@ -479,13 +481,32 @@ class _TaskMonitor(object):
 
 
 class Client(object):
-    """A low-level interface to the vCloud Director REST API."""
+    """A low-level interface to the vCloud Director REST API.
+
+    Clients default to the production vCD API version as of the pyvcloud
+    module release and will try to negotiate down to a lower API version
+    that pyvcloud certifies if the vCD server is older. You can also set
+    the version explicitly using the api_version parameter or by calling
+    the set_highest_supported_version() method.
+
+    The log_file is set by the first client instantiated and will be
+    ignored in later clients.
+
+    :param str uri: A vCD server host name or connection URI
+    :param str api_version: The vCD API version to use
+    :param boolean verify_ssl_certs: If True validate server certificate;
+        False allows self-signed certificates
+    :param str log_file: Log file name or None, which suppresses logging
+    :param boolean log_request: If True log HTTP requests
+    :param boolean log_headers: If True log HTTP headers
+    :param boolean log_bodies: If True log HTTP bodies
+    """
 
     _REQUEST_ID_HDR_NAME = 'X-VMWARE-VCLOUD-REQUEST-ID'
 
     def __init__(self,
                  uri,
-                 api_version='6.0',
+                 api_version=None,
                  verify_ssl_certs=True,
                  log_file=None,
                  log_requests=False,
@@ -503,7 +524,15 @@ class Client(object):
             else:
                 self._uri = 'https://' + self._uri
 
-        self._api_version = api_version
+        # If user provides API version we accept it, otherwise use default
+        # and set negotiation flag.
+        if api_version is None:
+            self._api_version = API_DEFAULT_VERSION
+            self._negotiate_api_version = True
+        else:
+            self._api_version = api_version
+            self._negotiate_api_version = False
+
         self._session_endpoints = None
         self._session = None
         self._query_list_map = None
@@ -513,7 +542,7 @@ class Client(object):
         self._logger = logging.getLogger(__name__)
         self._logger.setLevel(logging.DEBUG)
         # This makes sure that we don't append a new handler to the logger
-        # everytime we create a new client.
+        # every time we create a new client.
         if not self._logger.handlers:
             if log_file is not None:
                 handler = logging.FileHandler(log_file)
@@ -539,58 +568,122 @@ class Client(object):
     def _get_response_request_id(self, response):
         return response.headers[self._REQUEST_ID_HDR_NAME]
 
-    def get_supported_versions(self):
-        new_session = requests.Session()
-        response = self._do_request_prim(
-            'GET', self._uri + '/versions', new_session, accept_type='')
-        sc = response.status_code
-        if sc != 200:
-            raise VcdException('Unable to get supported API versions.')
-        return objectify.fromstring(response.content)
+    def get_api_version(self):
+        """Return vCD API version pyvcloud is using."""
+        return self._api_version
 
-    def set_highest_supported_version(self):
+    def get_supported_versions_list(self):
+        """Return non-deprecated server API versions as iterable list.
+
+        :return: List of str sorted in numerical order
+        """
         versions = self.get_supported_versions()
         active_versions = []
         for version in versions.VersionInfo:
             if not hasattr(version, 'deprecated') or \
                version.get('deprecated') == 'false':
-                active_versions.append(float(version.Version))
-        active_versions.sort()
+                active_versions.append(str(version.Version))
+        active_versions.sort(key=lambda x: float(x))
+        return active_versions
+
+    def get_supported_versions(self):
+        """Return non-deprecated API versions on vCD server.
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+             representing vCD supported versions
+        """
+        with requests.Session() as new_session:
+            # Use with block to avoid leaking socket connections.
+            response = self._do_request_prim(
+                'GET', self._uri + '/versions', new_session, accept_type='')
+            sc = response.status_code
+            if sc != 200:
+                raise VcdException('Unable to get supported API versions.')
+            return objectify.fromstring(response.content)
+
+    def set_highest_supported_version(self):
+        """Set the client API version to the highest server API version.
+
+        This call is intended to make it easy to work with new vCD
+        features before they are officially supported in pyvcloud.
+        Production applications should either use the default pyvcloud API
+        version or set the API version explicitly to freeze compatibility.
+        """
+        active_versions = self.get_supported_versions_list()
         self._api_version = active_versions[-1]
+        self._negotiate_api_version = False
         self._logger.debug('API versions supported: %s' % active_versions)
         self._logger.debug(
-            'API version set to highest supported: %s' % self._api_version)
+            'API version set to: %s' % self._api_version)
         return self._api_version
 
     def set_credentials(self, creds):
-        """Sets the credentials used for authentication."""
+        """Set credentials and authenticate to create a new session.
+
+        This call will automatically negotiate the server API version if
+        it was not set previously. Note that the method may generate
+        exceptions from the underlying socket connection, which we pass
+        up unchanged to the client.
+
+        :param BasicLoginCredentials creds: Credentials containing org, user,
+            and password
+        """
+        # If we need to negotiate the server API level find the highest
+        # server version that pyvcloud supports.
+        if self._negotiate_api_version:
+            self._logger.debug("Negotiating API version")
+            active_versions = self.get_supported_versions_list()
+            self._logger.debug('API versions supported: %s' % active_versions)
+            for version in reversed(active_versions):
+                if version in API_CURRENT_VERSIONS:
+                    self._api_version = version
+                    self._negotiate_api_version = False
+                    self._logger.debug(
+                        'API version negotiated to: %s' % self._api_version)
+                    break
+
+            # Still need to negotiate?  That means we didn't find a
+            # suitable version.
+            if self._negotiate_api_version:
+                raise VcdException(
+                    "Unable to find a supported API version in " +
+                    " available server versions: {0}".format(active_versions))
+
+        # We can now proceed to login. Ensure we close session if
+        # any exception is thrown to avoid leaking a socket connection.
+        self._logger.debug('API version in use: %s' % self._api_version)
         new_session = requests.Session()
-        response = self._do_request_prim(
-            'POST',
-            self._uri + '/sessions',
-            new_session,
-            auth=('%s@%s' % (creds.user, creds.org), creds.password))
-        sc = response.status_code
-        if sc != 200:
-            r = None
-            try:
-                r = _objectify_response(response)
-            except Exception:
-                pass
-            if r is not None:
-                self._response_code_to_exception(
-                    sc,
-                    self._get_response_request_id(response), r)
-            else:
-                raise VcdException('Login failed.')
+        try:
+            response = self._do_request_prim(
+                'POST',
+                self._uri + '/sessions',
+                new_session,
+                auth=('%s@%s' % (creds.user, creds.org), creds.password))
 
-        session = objectify.fromstring(response.content)
-        self._session_endpoints = _get_session_endpoints(session)
+            sc = response.status_code
+            if sc != 200:
+                r = None
+                try:
+                    r = _objectify_response(response)
+                except Exception:
+                    pass
+                if r is not None:
+                    self._response_code_to_exception(
+                        sc,
+                        self._get_response_request_id(response), r)
+                else:
+                    raise VcdException('Login failed.')
 
-        self._session = new_session
-        self._session.headers['x-vcloud-authorization'] = \
-            response.headers['x-vcloud-authorization']
-        self._is_sysadmin = self._is_sys_admin(session.get('org'))
+            session = objectify.fromstring(response.content)
+            self._session_endpoints = _get_session_endpoints(session)
+
+            self._session = new_session
+            self._session.headers['x-vcloud-authorization'] = \
+                response.headers['x-vcloud-authorization']
+            self._is_sysadmin = self._is_sys_admin(session.get('org'))
+        except Exception:
+            new_session.close()
+            raise
 
     def rehydrate(self, state):
         self._session = requests.Session()
@@ -624,10 +717,22 @@ class Client(object):
         return session
 
     def logout(self):
-        uri = self._uri + '/session'
-        result = self._do_request('DELETE', uri)
-        self._session.close()
-        return result
+        """Destroy the server session and deallocate local resources.
+
+        This method is idempotent. Reusing a client after logout will
+        result in undefined behavior.
+
+        :return: Response from successful /DELETE operation or None
+             if session does not exist"
+        """
+        if self._session is None:
+            return None
+        else:
+            uri = self._uri + '/session'
+            result = self._do_request('DELETE', uri)
+            self._session.close()
+            self._session = None
+            return result
 
     def _is_sys_admin(self, logged_in_org):
         if logged_in_org.lower() == 'system':

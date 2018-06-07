@@ -66,7 +66,11 @@ class Org(object):
         self.href_admin = get_admin_href(self.href)
 
     def reload(self):
-        """Reloads the resource represenation of the organization.
+        """Reloads the resource representation of the organization.
+
+        This method should be called in between two method invocations on the
+            Org object, if the former call changes the represenation of the
+            organization in vCD.
 
         :return: Nothing
         """
@@ -89,7 +93,8 @@ class Org(object):
             created.
 
         :return: A :class:`lxml.objectify.ObjectifiedElement` object
-            representing a sparsely populated catalog element.
+            containing EntityType.ADMIN_CATALOG XML data representing a
+            sparsely populated catalog element.
         """
         if self.resource is None:
             self.reload()
@@ -144,6 +149,7 @@ class Org(object):
             of the catalog.
 
         :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CATALOG or EntityType.ADMIN_CATALOG XML data
             representing the catalog.
 
         :raises: EntityNotFoundException: If the named catalog can not be
@@ -172,8 +178,9 @@ class Org(object):
         :param new_catalog_name: (str): The new name of the catalog.
         :param description: (str): The new description of the catalog.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
-            describing the updated catalog.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.ADMIN_CATALOG XML data describing the
+            updated catalog.
 
         :raises: EntityNotFoundException: If the named catalog can not be
             found.
@@ -197,8 +204,7 @@ class Org(object):
 
         :param name: (str): The name of the catalog to be shared.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
-            describing the updated catalog.
+        :return: Nothing
 
         :raises: EntityNotFoundException: If the named catalog can not be
             found.
@@ -265,7 +271,8 @@ class Org(object):
         :param item_name: (str): The name of the item which needs to be
             retrieved.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.MEDIA or EntityTYPE.VAPP_TEMPLATE XML data
             describing the entity corresponding to the catalog item.
 
         :raises: EntityNotFoundException: If the catalog/named item can not be
@@ -285,7 +292,7 @@ class Org(object):
         :param item_name: (str): The name of the item which needs to be
             deleted.
 
-        :return:  Nothing
+        :return: Nothing
 
         :raises: EntityNotFoundException: If the catalog/named item can not be
             found.
@@ -775,7 +782,7 @@ class Org(object):
                      description,
                      customize_on_instantiate=False,
                      overwrite=False):
-        """Capture vApp as a catalog item template.
+        """Capture vApp as a template into a catalog.
 
         :param catalog_resource: (`lxml.objectify.ObjectifiedElement`): The
             catalog.
@@ -788,8 +795,9 @@ class Org(object):
             has to be overwritten if it already exists. If it doesn't exists,
             this flag is not used.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
-            describing the updated catalog item.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.VAPP_TEMPLATE XML data describing the
+            captured template.
         """
         contents = E.CaptureVAppParams(
             E.Description(description),
@@ -860,7 +868,9 @@ class Org(object):
         :param is_alert_enabled: The alert email address
         :param is_enabled: Enable user
 
-        :return: (UserType) Created user object
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.USER XML data describing the user that
+            just got created.
         """
         resource_admin = self.client.get_resource(self.href_admin)
         user = E.User(
@@ -890,7 +900,9 @@ class Org(object):
         :param user_name: (str): username of the user
         :param is_enabled: (bool): enable/disable the user
 
-        :return: (UserType) Updated user object
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.USER XML data describing the user that
+            just got updated.
         """
         user = self.get_user(user_name)
         if is_enabled is not None:
@@ -905,7 +917,8 @@ class Org(object):
 
         :param: (str): user_name: user name of the record to be retrieved
 
-        :return:  (UserRecord): User record.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.USER XML data describing the named user.
         """
         user_record = list(self.list_users(('name', user_name)))
 
@@ -920,7 +933,9 @@ class Org(object):
         :param name_filter: (tuple): (name ,'username') Filter roles by
             'user name'
 
-        :return: (list): (UserRecord) List of users.
+        :return: A generator object capable of generating
+            :class:`lxml.objectify.ObjectifiedElement` objects, which contains
+            QueryResultUserRecordType XML data representaing a user.
         """
         if self.resource is None:
             self.reload()
@@ -941,9 +956,9 @@ class Org(object):
         """Delete user record from current organization.
 
         :param user_name: (str) name of the user that (org/sys)admins wants to
-            delete
+            delete.
 
-        :return: result of calling DELETE on the user resource
+        :return: Nothing
         """
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
@@ -956,7 +971,9 @@ class Org(object):
         :param rights: (tuple of (str)) names of zero or more rights to be
             associated with the role
 
-        :return: RoleType just created
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.ROLE XML data describing the role just
+            created.
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         role = E.Role(
@@ -978,7 +995,7 @@ class Org(object):
 
         :param name: (str): name of the role
 
-        :return: None
+        :return: Nothing
         """
         if self.resource is None:
             self.reload()
@@ -991,7 +1008,7 @@ class Org(object):
         :param role_name: (str):name of the role
 
         :return A :class:`lxml.objectify.ObjectifiedElement` object
-            representing the role.
+            containing EntityType.ROLE XML data representing the role.
         """
         role_record = self.get_role_record(role_name)
         return self.client.get_resource(role_record.get('href'))
@@ -1018,7 +1035,8 @@ class Org(object):
         :param name_filter: (tuple): (name ,'role name') Filter roles by
             'role name'
 
-        :return: (list): (RoleRecord) List of roles
+        :return: (list): A list of dict objects, each representing a role
+            record.
         """
         if self.resource is None:
             self.reload()
@@ -1049,7 +1067,8 @@ class Org(object):
         :param rights: (tuple): tuple of right names
 
         :return A :class:`lxml.objectify.ObjectifiedElement` object
-            representing the updated Org rights
+            containing EntityType.ORG_RIGHTS XML data representing the updated
+            Org rights.
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         org_rights = E.OrgRights()
@@ -1070,7 +1089,8 @@ class Org(object):
         :param rights: (tuple): tuple of right names
 
         :return A :class:`lxml.objectify.ObjectifiedElement` object
-            representing the updated Org rights
+            containing EntityType.ORG_RIGHTS XML data representing the updated
+            Org rights.
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         org_rights_resource = None
@@ -1095,7 +1115,7 @@ class Org(object):
         :param right_name: (str): name of the right
 
         :return A :class:`lxml.objectify.ObjectifiedElement` object
-            representing the right.
+            containing EntityType.RIGHT XMl data representing the right.
         """
         right_record = self.get_right_record(right_name)
         return self.client.get_resource(right_record.get('href'))
@@ -1120,7 +1140,8 @@ class Org(object):
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
             'right name'
 
-        :return: (list): (RightRecord) List of rights
+        :return: (list): List of dictionaries, where each entry repesents a
+            right.
         """
         if self.resource is None:
             self.reload()
@@ -1141,7 +1162,8 @@ class Org(object):
     def list_rights_of_org(self):
         """Retrieves the list of rights associated with the Organization.
 
-        :return: (list): (RightReference) List of rights
+        :return: (list): List of dictionaries, where each entry represents a
+            right.
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         rights = []
@@ -1157,8 +1179,9 @@ class Org(object):
 
         :param catalog_name: (str): The name of the catalog.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
-            representing the access settings of the catalog.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CONTROL_ACCESS_PARAMS XML data representing
+            the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -1178,8 +1201,9 @@ class Org(object):
             access_level: (str): access_level of the particular subject. One of
             'ReadOnly', 'Change', 'FullControl'
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
-            representing the updated access control setting of the catalog.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CONTROL_ACCESS_PARAMS XML data representing
+            the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -1200,8 +1224,9 @@ class Org(object):
         :param remove_all: (bool) : True if all access settings of the catalog
             should be removed
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
-            representing the updated access control setting of the catalog.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CONTROL_ACCESS_PARAMS XML data representing
+            the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -1218,8 +1243,9 @@ class Org(object):
             catalog with everyone. One of 'ReadOnly', 'Change', 'FullControl'
             'ReadOnly' by default.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
-            representing the updated access control setting of the catalog.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CONTROL_ACCESS_PARAMS XML data representing
+            the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -1231,8 +1257,9 @@ class Org(object):
         :param catalog_name: (str): catalog name whose access should be
             unshared from everyone.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
-            representing the updated access control setting of the catalog.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CONTROL_ACCESS_PARAMS XML data representing
+            the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -1241,9 +1268,13 @@ class Org(object):
     def update_org(self, is_enabled=None):
         """Update an organization.
 
+        This operation can only be performed by an user with admin privileges.
+
         :param is_enabled: (bool): enable/disable the organization
 
-        :return: (AdminOrgType) updated org object.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.ADMIN_ORG XML data representing the updated
+            org object.
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         if is_enabled is not None:
@@ -1338,8 +1369,8 @@ class Org(object):
         :param is_enabled (bool): True if this vDC is enabled for use by the
             organization users.
 
-        :return:  A :class:`lxml.objectify.ObjectifiedElement` object
-            describing the new VDC.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.VDC XMl data describing the new VDC.
         """
         if self.resource is None:
             self.reload()
@@ -1406,7 +1437,7 @@ class Org(object):
         :param name (str): The name of the org vdc to be retrieved.
 
         :return: A :class:`lxml.objectify.ObjectifiedElement` object
-            representing the vdc.
+            containing EtityType.VDC XML data representing the vdc.
 
         :raises: EntityNotFoundException: If the named vdc can not be found.
         """

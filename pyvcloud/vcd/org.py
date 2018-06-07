@@ -935,7 +935,7 @@ class Org(object):
 
         :return: A generator object capable of generating
             :class:`lxml.objectify.ObjectifiedElement` objects, which contains
-            QueryResultUserRecordType XML data representaing a user.
+            QueryResultUserRecordType XML data representing a user.
         """
         if self.resource is None:
             self.reload()

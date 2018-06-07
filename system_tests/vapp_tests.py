@@ -1,6 +1,5 @@
-import random
-import string
 import unittest
+from uuid import uuid1
 
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
@@ -41,8 +40,7 @@ class TestVApp(BaseTestCase):
     _customized_vapp_owner_name = None
     _customized_vapp_href = None
 
-    _non_existent_vapp_name = 'non_existent_vapp_' + ''.join(
-        random.choices(string.ascii_letters, k=8))
+    _non_existent_vapp_name = 'non_existent_vapp_' + str(uuid1())
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.

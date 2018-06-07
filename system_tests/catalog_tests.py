@@ -1,9 +1,8 @@
 import os
-import random
 import shutil
-import string
 import tempfile
 import unittest
+from uuid import uuid1
 
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
@@ -19,11 +18,9 @@ class TestCatalog(BaseTestCase):
     _test_runner_role = CommonRoles.CATALOG_AUTHOR
     _client = None
 
-    _non_existent_catalog_name = 'dummy' + ''.join(
-        random.choices(string.ascii_letters, k=8))
+    _non_existent_catalog_name = 'dummy' + str(uuid1())
 
-    _test_catalog_name = 'test_cat_' + ''.join(
-        random.choices(string.ascii_letters, k=8))
+    _test_catalog_name = 'test_cat_' + str(uuid1())
     _test_catalog_updated_name = _test_catalog_name + '_updated'
 
     _test_catalog_description = 'sample description'

@@ -33,8 +33,18 @@ class TestNSXT(BaseTestCase):
         """Client can register a new NSX-T mgr if none exists w/ same name."""
         platform = Platform(TestNSXT._client)
 
+        manager_name = Environment._config['nsxt']['manager_name']
+        query_filter = 'name==%s' % urllib.parse.quote_plus(manager_name)
+        query = TestNSXT._client.get_typed_query(
+            ResourceType.NSXT_MANAGER.value,
+            query_result_format=QueryResultFormat.REFERENCES,
+            qfilter=query_filter)
+        records = list(query.execute())
+        if len(records) > 0:
+            platform.unregister_nsxt_manager(nsxt_manager_name=manager_name)
+
         nsxt = platform.register_nsxt_manager(
-            nsxt_manager_name=Environment._config['nsxt']['manager_name'],
+            nsxt_manager_name=manager_name,
             nsxt_manager_url=Environment._config['nsxt']['manager_host_url'],
             nsxt_manager_username=Environment._config['nsxt']['admin_user'],
             nsxt_manager_password=Environment._config['nsxt']['admin_pwd'],
@@ -46,6 +56,7 @@ class TestNSXT(BaseTestCase):
         platform = Platform(TestNSXT._client)
 
         manager_name = Environment._config['nsxt']['manager_name']
+
         query = platform.list_nsxt_managers()
         result = []
         for record in list(query):

@@ -33,11 +33,13 @@ from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import DownloadException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import UploadException
 from pyvcloud.vcd.system import System
+from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import to_dict
 
 DEFAULT_CHUNK_SIZE = 1024 * 1024
@@ -51,111 +53,120 @@ class Org(object):
         :param href: (str): URI of the entity.
         :param resource: (lxml.objectify.ObjectifiedElement): XML
             representation of the entity.
-
         """
         self.client = client
         if href is None and resource is None:
-            raise InvalidParameterException(
-                "Org initialization failed as arguments"
-                " are either invalid or None")
+            raise InvalidParameterException('Org initialization failed as '
+                                            'arguments are either invalid '
+                                            'or None')
         self.href = href
         self.resource = resource
         if resource is not None:
             self.href = resource.get('href')
-        self.href_admin = self.href.replace('/api/org/', '/api/admin/org/')
+        self.href_admin = get_admin_href(self.href)
 
     def reload(self):
+        """Reloads the resource representation of the organization.
+
+        This method should be called in between two method invocations on the
+            Org object, if the former call changes the represenation of the
+            organization in vCD.
+
+        :return: Nothing
+        """
         self.resource = self.client.get_resource(self.href)
 
     def get_name(self):
+        """Retrieves the name of the organization.
+
+        :return: (str): Name of the organization.
+        """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
         return self.resource.get('name')
 
     def create_catalog(self, name, description):
+        """Create a catalog in the organization.
+
+        :param name: (str): The name of the catalog to be created.
+        :param description: (str): The description of the catalog to be
+            created.
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.ADMIN_CATALOG XML data representing a
+            sparsely populated catalog element.
+        """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        catalog = E.AdminCatalog(E.Description(description), name=name)
+            self.reload()
+        payload = E.AdminCatalog(E.Description(description), name=name)
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD, EntityType.ADMIN_CATALOG.value,
-            catalog)
-
-    def create_role(self, role_name, description, rights):
-        """Creates a role in the organization.
-
-        :param role_name: (str): name of the role to be created
-        :param description: (str): description of the role
-        :param rights: (tuple of (str)) names of zero or more rights to be
-            associated with the role
-        :return: RoleType just created
-        """
-        org_admin_resource = self.client.get_resource(self.href_admin)
-        role = E.Role(
-            E.Description(description), E.RightReferences(), name=role_name)
-        if rights is None:
-            rights = ()
-        for right in tuple(rights):
-            right_record = self.get_right_record(right)
-            role.RightReferences.append(
-                E.RightReference(
-                    name=right_record.get('name'),
-                    href=right_record.get('href'),
-                    type=EntityType.RIGHT.value))
-        return self.client.post_linked_resource(
-            org_admin_resource, RelationType.ADD, EntityType.ROLE.value, role)
-
-    def delete_role(self, name):
-        """Deletes specified role from the organization.
-
-        :param name: (str): name of the role
-        :return: None
-        """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        role_record = self.get_role_record(name)
-        self.client.delete_resource(role_record.get('href'))
+            payload)
 
     def delete_catalog(self, name):
-        org = self.client.get_resource(self.href)
-        links = get_links(
-            org, rel=RelationType.DOWN, media_type=EntityType.CATALOG.value)
-        for link in links:
-            if name == link.name:
-                admin_href = link.href.replace('/api/catalog/',
-                                               '/api/admin/catalog/')
-                return self.client.delete_resource(admin_href)
-        raise EntityNotFoundException('Catalog not found.')
+        """Delete a catalog in the organization.
+
+        :param name: (str): The name of the catalog to be deleted.
+
+        :return: Nothing
+
+        :raises: EntityNotFoundException: If the named catalog can not be
+            found.
+        :raises : sub-class of VcdResponseException: If the rest call is not
+            successful.
+        """
+        catalog_resource = self.get_catalog(name)
+        self.client.delete_linked_resource(
+            catalog_resource, RelationType.REMOVE, media_type=None)
 
     def list_catalogs(self):
+        """List all catalogs in the organization.
+
+        :return: (list): A list of dict, where each item contains information
+            about a catalog in the organization.
+        """
         if self.client.is_sysadmin():
-            resource_type = 'adminCatalog'
+            resource_type = ResourceType.ADMIN_CATALOG.value
         else:
-            resource_type = 'catalog'
+            resource_type = ResourceType.CATALOG.value
         result = []
         q = self.client.get_typed_query(
             resource_type, query_result_format=QueryResultFormat.ID_RECORDS)
         records = list(q.execute())
-        if len(records) > 0:
-            for r in records:
-                result.append(
-                    to_dict(
-                        r,
-                        resource_type=resource_type,
-                        exclude=['owner', 'org']))
+        for r in records:
+            result.append(
+                to_dict(
+                    r,
+                    resource_type=resource_type,
+                    exclude=['owner', 'org']))
         return result
 
-    def get_catalog(self, name):
-        return self.get_catalog_resource(name, False)
+    def get_catalog(self, name, is_admin_operation=False):
+        """Retrieves a catalog by name.
 
-    def get_catalog_resource(self, name, is_admin_operation=False):
-        org = self.client.get_resource(self.href)
+        :param name: (str): The name of the catalog to be retrieved.
+        :param is_admin_operation (bool): If true, will return the admin view
+            of the catalog.
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CATALOG or EntityType.ADMIN_CATALOG XML data
+            representing the catalog.
+
+        :raises: EntityNotFoundException: If the named catalog can not be
+            found.
+        """
+        if self.resource is None:
+            self.reload()
         links = get_links(
-            org, rel=RelationType.DOWN, media_type=EntityType.CATALOG.value)
+            self.resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.CATALOG.value)
         for link in links:
             if name == link.name:
-                href = link.href
                 if is_admin_operation:
-                    href = href.replace('/api/catalog/', '/api/admin/catalog/')
+                    href = get_admin_href(link.href)
+                else:
+                    href = link.href
                 return self.client.get_resource(href)
         raise EntityNotFoundException('Catalog not found (or)'
                                       ' Access to resource is forbidden')
@@ -166,70 +177,139 @@ class Org(object):
         :param old_catalog_name: (str): The current name of the catalog.
         :param new_catalog_name: (str): The new name of the catalog.
         :param description: (str): The new description of the catalog.
-        :return:  A :class:`lxml.objectify.StringElement` object describing
-            the updated catalog.
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.ADMIN_CATALOG XML data describing the
+            updated catalog.
+
+        :raises: EntityNotFoundException: If the named catalog can not be
+            found.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        org = self.resource
-        links = get_links(
-            org, rel=RelationType.DOWN, media_type=EntityType.CATALOG.value)
-        for link in links:
-            if old_catalog_name == link.name:
-                catalog = self.client.get_resource(link.href)
-                href = catalog.get('href')
-                admin_href = href.replace('/api/catalog/',
-                                          '/api/admin/catalog/')
-                admin_view_of_catalog = self.client.get_resource(admin_href)
-                if new_catalog_name is not None:
-                    admin_view_of_catalog.set('name', new_catalog_name)
-                if description is not None:
-                    admin_view_of_catalog['Description'] = E.Description(
-                        description)
-                return self.client.put_resource(
-                    admin_href,
-                    admin_view_of_catalog,
-                    media_type=EntityType.ADMIN_CATALOG.value)
-        raise EntityNotFoundException('Catalog not found.')
+        admin_catalog_resource = self.get_catalog(
+            old_catalog_name, is_admin_operation=True)
+        if new_catalog_name is not None:
+            admin_catalog_resource.set('name', new_catalog_name)
+        if description is not None:
+            admin_catalog_resource['Description'] = E.Description(description)
+        return self.client.put_linked_resource(
+            admin_catalog_resource,
+            rel=RelationType.EDIT,
+            media_type=EntityType.ADMIN_CATALOG.value,
+            contents=admin_catalog_resource)
 
     def share_catalog(self, name, share=True):
-        catalog = self.get_catalog(name)
+        """Share a catalog with all org-admins of all organizations.
+
+        This operation can be performed by only System Administrators.
+
+        :param name: (str): The name of the catalog to be shared.
+
+        :return: Nothing
+
+        :raises: EntityNotFoundException: If the named catalog can not be
+            found.
+        """
+        catalog_resource = self.get_catalog(name)
         is_published = 'true' if share else 'false'
         params = E.PublishCatalogParams(E.IsPublished(is_published))
-        href = catalog.get('href') + '/action/publish'
-        admin_href = href.replace('/api/catalog/', '/api/admin/catalog/')
-        return self.client.post_resource(
-            admin_href,
-            params,
-            media_type=EntityType.PUBLISH_CATALOG_PARAMS.value)
+
+        return self.client.post_linked_resource(
+            resource=catalog_resource,
+            rel=RelationType.PUBLISH,
+            media_type=EntityType.PUBLISH_CATALOG_PARAMS.value,
+            contents=params)
+
+    def change_catalog_owner(self, catalog_name, user_name):
+        """Change the ownership of catalog to a given user.
+
+        This operation can be performed by only users with admin privileges.
+
+        :param catalog_name: (str): Name of the catalog whose ownership needs
+            to be changed
+        :param user_name: (str): Name of the new owner of the catalog
+
+        :return: Nothing
+        """
+        catalog_admin_resource = self.get_catalog(
+            catalog_name, is_admin_operation=True)
+
+        new_user_resource = self.get_user(user_name)
+
+        owner_resource = catalog_admin_resource.Owner
+        owner_resource.User.set('href', new_user_resource.get('href'))
+        objectify.deannotate(owner_resource)
+
+        return self.client.put_linked_resource(
+            resource=catalog_admin_resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.OWNER.value,
+            contents=owner_resource)
 
     def list_catalog_items(self, name):
-        catalog = self.get_catalog(name)
+        """Retrieve all items in a catalog.
+
+        :param name: (str): The name of the catalog whose items need to be
+            retrieved.
+
+        :return: (list of dict): A list of dict objects. Each dict object
+            conatins 'name' and 'id' of an item in the catalog.
+
+        :raises: EntityNotFoundException: If the named catalog can not be
+            found.
+        """
+        catalog_resource = self.get_catalog(name)
         items = []
-        for i in catalog.CatalogItems.getchildren():
-            items.append({'name': i.get('name'), 'id': i.get('id')})
+        for item in catalog_resource.CatalogItems.getchildren():
+            items.append({'name': item.get('name'), 'id': item.get('id')})
         return items
 
     def get_catalog_item(self, name, item_name):
-        catalog = self.get_catalog(name)
-        for i in catalog.CatalogItems.getchildren():
-            if i.get('name') == item_name:
-                return self.client.get_resource(i.get('href'))
+        """Retrieve an item in a catlog.
+
+        :param name: (str): The name of the catalog whose item needs to be
+            retrieved.
+        :param item_name: (str): The name of the item which needs to be
+            retrieved.
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.MEDIA or EntityTYPE.VAPP_TEMPLATE XML data
+            describing the entity corresponding to the catalog item.
+
+        :raises: EntityNotFoundException: If the catalog/named item can not be
+            found.
+        """
+        catalog_resource = self.get_catalog(name)
+        for item in catalog_resource.CatalogItems.getchildren():
+            if item.get('name') == item_name:
+                return self.client.get_resource(item.get('href'))
         raise EntityNotFoundException('Catalog item not found.')
 
     def delete_catalog_item(self, name, item_name):
-        catalog = self.get_catalog(name)
-        for i in catalog.CatalogItems.getchildren():
-            if i.get('name') == item_name:
-                return self.client.delete_resource(i.get('href'))
-        raise EntityNotFoundException('Item not found.')
+        """Delete an item from a catlog.
+
+        :param name: (str): The name of the catalog whose item needs to be
+            deleted.
+        :param item_name: (str): The name of the item which needs to be
+            deleted.
+
+        :return: Nothing
+
+        :raises: EntityNotFoundException: If the catalog/named item can not be
+            found.
+        """
+        catalog_resource = self.get_catalog(name)
+        for item in catalog_resource.CatalogItems.getchildren():
+            if item.get('name') == item_name:
+                self.client.delete_resource(item.get('href'))
+                return
+        raise EntityNotFoundException('Catalog item not found.')
 
     def _is_enable_download_required(self, entity_resource, item_type):
         """Helper method to determine need for download enablement.
 
-        :param entity_resource: A :class:`lxml.objectify.StringElement` object
-            describing the entity corresponding to the catalog item which
-            needs to be downloaded.
+        :param entity_resource: A :class:`lxml.objectify.ObjectifiedElement`
+            object describing the entity corresponding to the catalog item
+            which needs to be downloaded.
         :param item_type: (str): Type of entity we are trying to enable for
             download. Valid values are EntityType.VAPP_TEMPLATE and
             EntityType.MEDIA.
@@ -256,9 +336,9 @@ class Org(object):
         Behind the scene it involves vCD copying the template/media file
             from ESX hosts to spool area (transfer folder).
 
-        :param entity_resource: A :class:`lxml.objectify.StringElement` object
-            describing the entity corresponding to the catalog item which
-            needs to be downloaded.
+        :param entity_resource: A :class:`lxml.objectify.ObjectifiedElement`
+            object describing the entity corresponding to the catalog item
+            which needs to be downloaded.
         :param task_callback: (function): A function with signature
             function(task) to let the caller monitor the progress of enable
             download task.
@@ -327,9 +407,9 @@ class Org(object):
     def _download_ovf(self, entity_resource, file_name, chunk_size, callback):
         """Helper method to download an ova file from vCD catalog.
 
-        :param entity_resource: A :class:`lxml.objectify.StringElement` object
-            describing the entity corresponding to the catalog item which
-            needs to be downloaded.
+        :param entity_resource: A :class:`lxml.objectify.ObjectifiedElement`
+            object describing the entity corresponding to the catalog item
+            which needs to be downloaded.
         :param file_name: (str): The name of the target file on local disk
             where the contents of the catalog item will be downloaded to.
         :param chunk_size: (int): The size of chunks in which the catalog item
@@ -695,26 +775,6 @@ class Org(object):
                         callback(offset + uploaded_bytes, total_file_size)
         return uploaded_bytes
 
-    def get_vdc(self, name):
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        links = get_links(
-            self.resource,
-            rel=RelationType.DOWN,
-            media_type=EntityType.VDC.value)
-        for link in links:
-            if name == link.name:
-                return self.client.get_resource(link.href)
-        raise EntityNotFoundException('Vdc \'%s\' not found' % name)
-
-    def list_vdcs(self):
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        result = []
-        for v in get_links(self.resource, media_type=EntityType.VDC.value):
-            result.append({'name': v.name, 'href': v.href})
-        return result
-
     def capture_vapp(self,
                      catalog_resource,
                      vapp_href,
@@ -722,9 +782,9 @@ class Org(object):
                      description,
                      customize_on_instantiate=False,
                      overwrite=False):
-        """Capture vApp as a catalog item template.
+        """Capture vApp as a template into a catalog.
 
-        :param catalog_resource: (`lxml.objectify.StringElement`): The
+        :param catalog_resource: (`lxml.objectify.ObjectifiedElement`): The
             catalog.
         :param vapp_href: (str): The href of the vApp to capture.
         :param catalog_item_name: (str): The name of the target catalog item.
@@ -734,8 +794,10 @@ class Org(object):
         :param overwrite: (bool): A flag indicating if the item in the catalog
             has to be overwritten if it already exists. If it doesn't exists,
             this flag is not used.
-        :return:  A :class:`lxml.objectify.StringElement` object describing
-            the updated catalog item.
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.VAPP_TEMPLATE XML data describing the
+            captured template.
         """
         contents = E.CaptureVAppParams(
             E.Description(description),
@@ -805,7 +867,10 @@ class Org(object):
                 source
         :param is_alert_enabled: The alert email address
         :param is_enabled: Enable user
-        :return: (UserType) Created user object
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.USER XML data describing the user that
+            just got created.
         """
         resource_admin = self.client.get_resource(self.href_admin)
         user = E.User(
@@ -834,7 +899,10 @@ class Org(object):
 
         :param user_name: (str): username of the user
         :param is_enabled: (bool): enable/disable the user
-        :return: (UserType) Updated user object
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.USER XML data describing the user that
+            just got updated.
         """
         user = self.get_user(user_name)
         if is_enabled is not None:
@@ -849,7 +917,8 @@ class Org(object):
 
         :param: (str): user_name: user name of the record to be retrieved
 
-        :return:  (UserRecord): User record.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.USER XML data describing the named user.
         """
         user_record = list(self.list_users(('name', user_name)))
 
@@ -864,10 +933,12 @@ class Org(object):
         :param name_filter: (tuple): (name ,'username') Filter roles by
             'user name'
 
-        :return: (list): (UserRecord) List of users.
+        :return: A generator object capable of generating
+            :class:`lxml.objectify.ObjectifiedElement` objects, which contains
+            QueryResultUserRecordType XML data representing a user.
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
         resource_type = 'user'
         org_filter = None
         if self.client.is_sysadmin():
@@ -885,19 +956,59 @@ class Org(object):
         """Delete user record from current organization.
 
         :param user_name: (str) name of the user that (org/sys)admins wants to
-            delete
-        :return: result of calling DELETE on the user resource
+            delete.
+
+        :return: Nothing
         """
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
+
+    def create_role(self, role_name, description, rights):
+        """Creates a role in the organization.
+
+        :param role_name: (str): name of the role to be created
+        :param description: (str): description of the role
+        :param rights: (tuple of (str)) names of zero or more rights to be
+            associated with the role
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.ROLE XML data describing the role just
+            created.
+        """
+        org_admin_resource = self.client.get_resource(self.href_admin)
+        role = E.Role(
+            E.Description(description), E.RightReferences(), name=role_name)
+        if rights is None:
+            rights = ()
+        for right in tuple(rights):
+            right_record = self.get_right_record(right)
+            role.RightReferences.append(
+                E.RightReference(
+                    name=right_record.get('name'),
+                    href=right_record.get('href'),
+                    type=EntityType.RIGHT.value))
+        return self.client.post_linked_resource(
+            org_admin_resource, RelationType.ADD, EntityType.ROLE.value, role)
+
+    def delete_role(self, name):
+        """Deletes specified role from the organization.
+
+        :param name: (str): name of the role
+
+        :return: Nothing
+        """
+        if self.resource is None:
+            self.reload()
+        role_record = self.get_role_record(name)
+        self.client.delete_resource(role_record.get('href'))
 
     def get_role_resource(self, role_name):
         """Retrieves resource of a given role.
 
         :param role_name: (str):name of the role
 
-        :return A :class:`lxml.objectify.StringElement` object representing
-            the role.
+        :return A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.ROLE XML data representing the role.
         """
         role_record = self.get_role_record(role_name)
         return self.client.get_resource(role_record.get('href'))
@@ -908,6 +1019,9 @@ class Org(object):
         :param role_name: (str): The name of the role object to be retrieved
 
         :return: (dict): Role record in dict format
+
+        :raises: EntityNotFoundException: If role with the given name is not
+            found.
         """
         role_record = self.list_roles(('name', role_name))
         if len(role_record) < 1:
@@ -919,11 +1033,13 @@ class Org(object):
         """Retrieve the list of roles in the current Org.
 
         :param name_filter: (tuple): (name ,'role name') Filter roles by
-                             'role name'
-        :return: (list): (RoleRecord) List of roles
+            'role name'
+
+        :return: (list): A list of dict objects, each representing a role
+            record.
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
 
         org_filter = None
         resource_type = 'role'
@@ -950,8 +1066,9 @@ class Org(object):
 
         :param rights: (tuple): tuple of right names
 
-        :return A :class:`lxml.objectify.StringElement` object representing
-        the updated Org rights
+        :return A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.ORG_RIGHTS XML data representing the updated
+            Org rights.
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         org_rights = E.OrgRights()
@@ -971,8 +1088,9 @@ class Org(object):
 
         :param rights: (tuple): tuple of right names
 
-        :return A :class:`lxml.objectify.StringElement` object representing
-        the updated Org rights
+        :return A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.ORG_RIGHTS XML data representing the updated
+            Org rights.
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         org_rights_resource = None
@@ -996,8 +1114,8 @@ class Org(object):
 
         :param right_name: (str): name of the right
 
-        :return A :class:`lxml.objectify.StringElement` object representing
-        the right.
+        :return A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.RIGHT XMl data representing the right.
         """
         right_record = self.get_right_record(right_name)
         return self.client.get_resource(right_record.get('href'))
@@ -1006,6 +1124,7 @@ class Org(object):
         """Retrieves corresponding record of the specified right.
 
         :param right_name: (str): The name of the right record to be retrieved
+
         :return: (dict): Right record in dict format
         """
         right_record = self.list_rights_available_in_system(('name',
@@ -1019,11 +1138,13 @@ class Org(object):
         """Retrieves the list of all rights available in the System.
 
         :param name_filter: (tuple): (name ,'right name') Filter the rights by
-                             'right name'
-        :return: (list): (RightRecord) List of rights
+            'right name'
+
+        :return: (list): List of dictionaries, where each entry repesents a
+            right.
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
 
         resource_type = 'right'
         query = self.client.get_typed_query(
@@ -1041,7 +1162,8 @@ class Org(object):
     def list_rights_of_org(self):
         """Retrieves the list of rights associated with the Organization.
 
-        :return: (list): (RightReference) List of rights
+        :return: (list): List of dictionaries, where each entry represents a
+            right.
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         rights = []
@@ -1053,11 +1175,13 @@ class Org(object):
         return rights
 
     def get_catalog_access_settings(self, catalog_name):
-        """Get the access settings of a catalog.
+        """Retrieve the access settings of a catalog.
 
         :param catalog_name: (str): The name of the catalog.
-        :return:  A :class:`lxml.objectify.StringElement` object representing
-            the access settings of the catalog.
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CONTROL_ACCESS_PARAMS XML data representing
+            the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
@@ -1077,7 +1201,8 @@ class Org(object):
             access_level: (str): access_level of the particular subject. One of
             'ReadOnly', 'Change', 'FullControl'
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CONTROL_ACCESS_PARAMS XML data representing
             the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
@@ -1099,7 +1224,8 @@ class Org(object):
         :param remove_all: (bool) : True if all access settings of the catalog
             should be removed
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CONTROL_ACCESS_PARAMS XML data representing
             the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
@@ -1117,7 +1243,8 @@ class Org(object):
             catalog with everyone. One of 'ReadOnly', 'Change', 'FullControl'
             'ReadOnly' by default.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CONTROL_ACCESS_PARAMS XML data representing
             the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
@@ -1130,44 +1257,24 @@ class Org(object):
         :param catalog_name: (str): catalog name whose access should be
             unshared from everyone.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.CONTROL_ACCESS_PARAMS XML data representing
             the updated access control setting of the catalog.
         """
         catalog_resource = self.get_catalog(name=catalog_name)
         acl = Acl(self.client, catalog_resource)
         return acl.unshare_from_org_members()
 
-    def change_catalog_owner(self, catalog_name, user_name):
-        """Change the ownership of Catalog to a given user.
-
-        :param catalog_name: Catalog whose ownership needs to be changed
-        :param user_name: New Owner of the Catalog
-        :return: None
-        """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        catalog_resource = self.get_catalog_resource(
-            catalog_name, is_admin_operation=True)
-        owner_link = find_link(
-            catalog_resource,
-            rel=RelationType.DOWN,
-            media_type=EntityType.OWNER.value,
-            fail_if_absent=True)
-        catalog_href = owner_link.href
-
-        user_resource = self.get_user(user_name)
-        new_owner = catalog_resource.Owner
-        new_owner.User.set('href', user_resource.get('href'))
-        objectify.deannotate(new_owner)
-
-        return self.client.put_resource(catalog_href, new_owner,
-                                        EntityType.OWNER.value)
-
     def update_org(self, is_enabled=None):
         """Update an organization.
 
+        This operation can only be performed by an user with admin privileges.
+
         :param is_enabled: (bool): enable/disable the organization
-        :return: (AdminOrgType) updated org object.
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.ADMIN_ORG XML data representing the updated
+            org object.
         """
         org_admin_resource = self.client.get_resource(self.href_admin)
         if is_enabled is not None:
@@ -1261,11 +1368,12 @@ class Org(object):
             is enabled for resource pools backing this vDC.
         :param is_enabled (bool): True if this vDC is enabled for use by the
             organization users.
-        :return:  A :class:`lxml.objectify.StringElement` object describing
-            the new VDC.
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EntityType.VDC XMl data describing the new VDC.
         """
         if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+            self.reload()
         sys_admin_resource = self.client.get_admin()
         system = System(self.client, admin_resource=sys_admin_resource)
         pvdc = system.get_provider_vdc(provider_vdc_name)
@@ -1322,3 +1430,37 @@ class Org(object):
         return self.client.post_linked_resource(
             resource_admin, RelationType.ADD, EntityType.VDCS_PARAMS.value,
             params)
+
+    def get_vdc(self, name):
+        """Retrieves resource of an org vdc identified by it's name.
+
+        :param name (str): The name of the org vdc to be retrieved.
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            containing EtityType.VDC XML data representing the vdc.
+
+        :raises: EntityNotFoundException: If the named vdc can not be found.
+        """
+        if self.resource is None:
+            self.reload()
+        links = get_links(
+            self.resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.VDC.value)
+        for link in links:
+            if name == link.name:
+                return self.client.get_resource(link.href)
+        raise EntityNotFoundException('Vdc \'%s\' not found' % name)
+
+    def list_vdcs(self):
+        """List all vdc that are backing the current organization.
+
+        :return: (list): A list of dict, where each item contains 'name' and
+            'href' of a vdc in the organization.
+        """
+        if self.resource is None:
+            self.reload()
+        result = []
+        for v in get_links(self.resource, media_type=EntityType.VDC.value):
+            result.append({'name': v.name, 'href': v.href})
+        return result

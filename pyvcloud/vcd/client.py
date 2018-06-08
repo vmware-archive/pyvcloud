@@ -150,6 +150,7 @@ class RelationType(Enum):
     POWER_RESET = 'power:reset'
     POWER_SHUTDOWN = 'power:shutdown'
     POWER_SUSPEND = 'power:suspend'
+    PUBLISH = 'publish'
     RECOMPOSE = 'recompose'
     REMOVE = 'remove'
     SNAPSHOT_CREATE = 'snapshot:create'

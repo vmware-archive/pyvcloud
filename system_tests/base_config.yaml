@@ -70,7 +70,7 @@ nsx:
   nsx_host_ip: '<nsx ip>'
   nsx_admin_username: 'admin'
   nsx_admin_password: '<nsx root password>'
-  
+
 nsxt:
   manager_name: 'nsxTManager1'
   manager_host_url: '<nsx-t manager ip>'

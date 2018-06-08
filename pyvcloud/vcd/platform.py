@@ -48,7 +48,7 @@ class Platform(object):
         """List vCenter servers attached to the system.
 
         :return: :class:`lxml.objectify.ObjectifiedElement` : list of vCenter
-        :   references.
+            references.
         """
         return self.client.get_linked_resource(
             self.extension.get_resource(), RelationType.DOWN,
@@ -89,7 +89,7 @@ class Platform(object):
         :param name: (str): The name of the external network.
 
         :return: A :class:`lxml.objectify.ObjectifiedElement` object
-        :   representing the reference to external network.
+            representing the reference to external network.
 
         :raises: Exception: If the named external network cannot be located.
         """
@@ -195,7 +195,7 @@ class Platform(object):
         :param: vxlan_network_pool: (str): name of vxlan_network_pool.
         :param: nsxt_manager_name: (str): name of nsx-t manager.
         :return: A :class:`lxml.objectify.ObjectifiedElement` object describing
-        :        the new provider VDC.
+                 the new provider VDC.
         """
         vc_record = self.get_vcenter(vim_server_name)
         vc_href = vc_record.get('href')
@@ -269,7 +269,7 @@ class Platform(object):
         :param: nsx_admin_user: (str): NSX admin user.
         :param: nsx_admin_pwd: (str): NSX admin password.
         :return: A :class:`lxml.objectify.ObjectifiedElement` object describing
-        :        the newly registered (attached) VimServer.
+                 the newly registered (attached) VimServer.
         """
         register_vc_server_params = E_VMEXT.RegisterVimServerParams()
         vc_server = E_VMEXT.VimServer(name=vc_server_name)

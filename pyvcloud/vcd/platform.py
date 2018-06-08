@@ -47,7 +47,7 @@ class Platform(object):
     def list_vcenters(self):
         """List vCenter servers attached to the system.
 
-        :return: (lxml.objectify.ObjectifiedElement): list of vCenter
+        :return: :class:`lxml.objectify.ObjectifiedElement` : list of vCenter
             references.
         """
         return self.client.get_linked_resource(
@@ -59,7 +59,7 @@ class Platform(object):
 
         :param name: (str): The name of vCenter.
 
-        :return: (lxml.objectify.ObjectifiedElement): vCenter resource.
+        :return: :class:`lxml.objectify.ObjectifiedElement`: vCenter resource.
 
         :raises: Exception: If the named vCenter cannot be located.
         """
@@ -71,7 +71,7 @@ class Platform(object):
     def list_external_networks(self):
         """List all external networks available in the system.
 
-        :return:  A list of :class:`lxml.objectify.StringElement` objects
+        :return:  A list of :class:`lxml.objectify.ObjectifiedElement` objects
             representing the external network references.
         """
         ext_net_refs = self.client.get_linked_resource(
@@ -88,8 +88,8 @@ class Platform(object):
 
         :param name: (str): The name of the external network.
 
-        :return: A :class:`lxml.objectify.StringElement` object representing
-            the reference to external network.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object
+            representing the reference to external network.
 
         :raises: Exception: If the named external network cannot be located.
         """
@@ -104,7 +104,7 @@ class Platform(object):
         """[Deprecated] Fetch a vxlan_network_pool by its name.
 
         :param: vxlan_network_pool_name (str): name of the vxlan_network_pool.
-        :return: (lxml.objectify.ObjectifiedElement): vxlan_network_pool.
+        :return: :class:`lxml.objectify.ObjectifiedElement`: vxlan_network_pool
         :raises: Exception: If the named vxlan_network_pool cannot be found.
         """
         query_filter = 'name==%s' % urllib.parse.quote_plus(
@@ -129,7 +129,7 @@ class Platform(object):
 
         :param: resource_type (ResourceType): type of the resource.
         :param: resource_name (str): name of the resource.
-        :return: (lxml.objectify.ObjectifiedElement): resource record.
+        :return: :class:`lxml.objectify.ObjectifiedElement`: resource record.
         :raises: Exception: if the named resource cannot be found.
         """
         query_filter = 'name==%s' % urllib.parse.quote_plus(resource_name)
@@ -194,8 +194,8 @@ class Platform(object):
         :param: highest_hw_vers: (str): highest supported hw vers number.
         :param: vxlan_network_pool: (str): name of vxlan_network_pool.
         :param: nsxt_manager_name: (str): name of nsx-t manager.
-        :return: A :class:lxml.objectify.StringElement object describing the
-        :        new provider VDC.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object describing
+                 the new provider VDC.
         """
         vc_record = self.get_vcenter(vim_server_name)
         vc_href = vc_record.get('href')
@@ -268,8 +268,8 @@ class Platform(object):
         :param: nsx_host (str): FQDN or IP address of NSX host.
         :param: nsx_admin_user: (str): NSX admin user.
         :param: nsx_admin_pwd: (str): NSX admin password.
-        :return: A :class:lxml.objectify.StringElement object describing the
-        :        newly registered (attached) VimServer.
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object describing
+                 the newly registered (attached) VimServer.
         """
         register_vc_server_params = E_VMEXT.RegisterVimServerParams()
         vc_server = E_VMEXT.VimServer(name=vc_server_name)
@@ -294,3 +294,60 @@ class Platform(object):
                                  media_type=EntityType.
                                  REGISTER_VC_SERVER_PARAMS.value,
                                  contents=register_vc_server_params)
+
+    def register_nsxt_manager(self,
+                              nsxt_manager_name,
+                              nsxt_manager_url,
+                              nsxt_manager_username,
+                              nsxt_manager_password,
+                              nsxt_manager_description=None):
+        """Register an NSX-T manager.
+
+        :param: nsxt_manager_name: (str): name of NSX-T manager.
+        :param: nsxt_manager_url: (str): URL of NSX-T manager server.
+        :param: nsxt_manager_username: (str): username of NSX-T manager admin.
+        :param: nsxt_manager_password: (str): password of NSX-T manager admin.
+        :param: nsxt_manager_description: (str): description of NSX-T manager.
+
+        :return: A :class:`lxml.objectify.ObjectifiedElement` object describing
+        :        the newly registered NSX-T manager.
+        """
+        nsxt_manager = E_VMEXT.NsxTManager(name=nsxt_manager_name)
+        if (nsxt_manager_description is not None):
+            nsxt_manager.append(E.Description(nsxt_manager_description))
+        nsxt_manager.append(E_VMEXT.Username(nsxt_manager_username))
+        nsxt_manager.append(E_VMEXT.Password(nsxt_manager_password))
+        nsxt_manager.append(E_VMEXT.Url(nsxt_manager_url))
+
+        return self.client.\
+            post_linked_resource(resource=self.extension.get_resource(),
+                                 rel=RelationType.ADD,
+                                 media_type=EntityType.NSXT_MANAGER.value,
+                                 contents=nsxt_manager)
+
+    def unregister_nsxt_manager(self,
+                                nsxt_manager_name):
+        """Un-register an NSX-T Manager.
+
+        :param: nsxt_manager_name: (str): name of the NSX-T manager.
+
+        :return: (class:NoneType) None.
+        """
+        nsxt_manager = self.get_res_by_name(ResourceType.NSXT_MANAGER,
+                                            nsxt_manager_name).get('href')
+        nsxt_manager_resource = self.client.get_resource(nsxt_manager)
+        return \
+            self.client.delete_linked_resource(nsxt_manager_resource,
+                                               RelationType.REMOVE,
+                                               EntityType.NSXT_MANAGER.value)
+
+    def list_nsxt_managers(self):
+        """Return list of all registered NSX-T managers.
+
+        :return (generator object): NsxTManagerRecords.
+        """
+        query = self.client.get_typed_query(
+            ResourceType.NSXT_MANAGER.value,
+            query_result_format=QueryResultFormat.RECORDS)
+
+        return query.execute()

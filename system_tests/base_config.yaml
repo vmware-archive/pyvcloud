@@ -71,3 +71,10 @@ nsx:
   nsx_admin_username: 'admin'
   nsx_admin_password: '<nsx root password>'
 
+nsxt:
+  manager_name: 'nsxTManager1'
+  manager_host_url: '<nsx-t manager ip>'
+  admin_user: 'admin'
+  admin_pwd: '<nsx-t admin password>'
+  descrip: 'This is a description.'
+

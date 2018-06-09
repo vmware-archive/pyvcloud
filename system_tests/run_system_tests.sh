@@ -27,7 +27,8 @@ SCRIPT_DIR=`dirname $0`
 # If there are tests to run use those. Otherwise use stable tests. 
 STABLE_TESTS="client_tests.py \
 idisk_tests.py \
-search_tests.py" 
+search_tests.py \
+vapp_tests.py"
 
 if [ $# == 0 ]; then
   echo "No tests provided, will run stable list: ${STABLE_TESTS}"

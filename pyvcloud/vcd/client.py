@@ -94,11 +94,10 @@ E_RASD = objectify.ElementMaker(
     })
 
 
+# Important! Values must be listed in ascending order.
 API_CURRENT_VERSIONS = [
     '27.0', '28.0', '29.0', '30.0'
 ]
-
-API_DEFAULT_VERSION = '30.0'
 
 VCLOUD_STATUS_MAP = {
     -1: "Could not be created",
@@ -385,7 +384,15 @@ def _response_has_content(response):
 
 
 def _objectify_response(response, as_object=True):
-    """Convert response content to Python type."""
+    """Convert XML response content to an lxml object.
+
+    :param response: (str): An XML response as a string
+    :param response: (boolean): If true convert to an
+        lxml.objectify.ObjectifiedElement where XML properties look like
+        Python object attributes.
+    :return: lxml.objectify.ObjectifiedElement or root of parsed XML
+        element
+    """
     if _response_has_content(response):
         if as_object:
             return objectify.fromstring(response.content)
@@ -493,14 +500,14 @@ class Client(object):
     The log_file is set by the first client instantiated and will be
     ignored in later clients.
 
-    :param str uri: A vCD server host name or connection URI
-    :param str api_version: The vCD API version to use
-    :param boolean verify_ssl_certs: If True validate server certificate;
+    :param uri: (str): A vCD server host name or connection URI
+    :param api_version: (str): The vCD API version to use
+    :param verify_ssl_certs: (boolean): If True validate server certificate;
         False allows self-signed certificates
-    :param str log_file: Log file name or None, which suppresses logging
-    :param boolean log_request: If True log HTTP requests
-    :param boolean log_headers: If True log HTTP headers
-    :param boolean log_bodies: If True log HTTP bodies
+    :param log_file: (str): Log file name or None, which suppresses logging
+    :param log_request: (boolean): If True log HTTP requests
+    :param log_headers: (boolean: If True log HTTP headers
+    :param log_bodies: (boolean: If True log HTTP bodies
     """
 
     _REQUEST_ID_HDR_NAME = 'X-VMWARE-VCLOUD-REQUEST-ID'
@@ -528,7 +535,7 @@ class Client(object):
         # If user provides API version we accept it, otherwise use default
         # and set negotiation flag.
         if api_version is None:
-            self._api_version = API_DEFAULT_VERSION
+            self._api_version = API_CURRENT_VERSIONS[-1]
             self._negotiate_api_version = True
         else:
             self._api_version = api_version
@@ -626,8 +633,8 @@ class Client(object):
         exceptions from the underlying socket connection, which we pass
         up unchanged to the client.
 
-        :param BasicLoginCredentials creds: Credentials containing org, user,
-            and password
+        :param creds: (BasicLoginCredentials): Credentials containing org,
+            user, and password
         """
         # If we need to negotiate the server API level find the highest
         # server version that pyvcloud supports.
@@ -635,6 +642,8 @@ class Client(object):
             self._logger.debug("Negotiating API version")
             active_versions = self.get_supported_versions_list()
             self._logger.debug('API versions supported: %s' % active_versions)
+            # Versions are strings sorted in ascending order, so we can work
+            # backwards to find a match
             for version in reversed(active_versions):
                 if version in API_CURRENT_VERSIONS:
                     self._api_version = version
@@ -720,15 +729,10 @@ class Client(object):
     def logout(self):
         """Destroy the server session and deallocate local resources.
 
-        This method is idempotent. Reusing a client after logout will
-        result in undefined behavior.
-
-        :return: Response from successful /DELETE operation or None
-             if session does not exist"
+        Logout is idempotent. Reusing a client after logout will result
+        in undefined behavior.
         """
-        if self._session is None:
-            return None
-        else:
+        if self._session is not None:
             uri = self._uri + '/session'
             result = self._do_request('DELETE', uri)
             self._session.close()
@@ -1097,18 +1101,18 @@ class Client(object):
                         fields=None):
         """Issue a query using vCD query API.
 
-        :param query_type_name str: Name of the entity, which should be a
+        :param query_type_name: (str): Name of the entity, which should be a
             string listed in ResourceType enum
-        :param query_result_format (str, str): Tuple value from
+        :param query_result_format: (str, str): Tuple value from
             QueryResultFormat enum
-        :param page_size int: Number of entries per page
+        :param page_size: (int): Number of entries per page
         :param include_links: (Not used)
-        :param qfilter str: Query filter expression, e.g., numberOfCpus=gt=4
-        :param equality_filter: A field name and a value to filter
+        :param qfilter: (str): Query filter expression, e.g., numberOfCpus=gt=4
+        :param equality_filter: (str) A field name and a value to filter
             output; appends to qfilter if present
-        :param sort_asc str: If name present sort ascending by that field
-        :param sort_desc str: If name present sort descending by that field
-        :param fields str: Comma separated list of fields to return
+        :param sort_asc: (str): If name present sort ascending by that field
+        :param sort_desc: (str): If name present sort descending by that field
+        :param fields: (str): Comma separated list of fields to return
 
         :return: A query object that runs the query when execute()
             method is called

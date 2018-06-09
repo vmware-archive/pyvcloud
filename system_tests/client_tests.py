@@ -43,7 +43,7 @@ class TestClient(BaseTestCase):
     _client = None
 
     def setUp(self):
-        self._config = Environment._config
+        self._config = Environment.get_config()
         self._host = self._config['vcd']['host']
         self._org = self._config['vcd']['sys_org_name']
         self._user = self._config['vcd']['sys_admin_username']
@@ -74,7 +74,7 @@ class TestClient(BaseTestCase):
             client_version in server_versions,
             msg="Client version must be in server versions")
 
-        if client.API_DEFAULT_VERSION != self._client.get_api_version():
+        if client.API_CURRENT_VERSIONS[-1] != self._client.get_api_version():
             # Server must be a lower version.
             self.assertEqual(client_version, server_versions[-1])
 
@@ -109,7 +109,7 @@ class TestClient(BaseTestCase):
         """Client returns an exception if user sets invalid server API."""
         try:
             self._client = self._create_client_with_credentials('99.99')
-            raise Exception("Login succeeded with bad API version")
+            self.fail("Login succeeded with bad API version")
         except VcdException:
             self._logger.debug("Received expected exception", exc_info=True)
 
@@ -142,6 +142,8 @@ class TestClient(BaseTestCase):
         exception = None
         try:
             self._client.get_org_list()
+            # Can't use self.fail() as we have a general exception trap
+            # around this block.
             exception = Exception("Org list succeeded after session logout!")
         except Exception:
             # We don't care about exception; reuse behavior is undefined.
@@ -185,12 +187,19 @@ class TestClient(BaseTestCase):
             raise exception
 
     def _create_client(self, api_version):
-        """Create client with/without explicit API version."""
+        """Create client with/without API version.
+
+        :param api_version: If set create a client with the version set;
+            otherwise create a client with unset version that will
+            auto-negotiate.
+        """
         if api_version is None:
+            # This client auto-negotiates.
             return client.Client(
                 self._host,
                 verify_ssl_certs=False)
         else:
+            # This client sets the version explicitly.
             return client.Client(
                 self._host,
                 api_version=api_version,

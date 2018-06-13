@@ -15,6 +15,7 @@
 
 from datetime import datetime
 from datetime import timedelta
+from distutils.version import StrictVersion
 import json
 import logging
 import sys
@@ -94,9 +95,9 @@ E_RASD = objectify.ElementMaker(
     })
 
 
+# Important! Values must be listed in ascending order.
 API_CURRENT_VERSIONS = [
-    '5.5', '5.6', '6.0', '13.0', '17.0', '20.0', '21.0', '22.0', '23.0',
-    '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0', '31.0'
+    '27.0', '28.0', '29.0', '30.0'
 ]
 
 VCLOUD_STATUS_MAP = {
@@ -384,6 +385,15 @@ def _response_has_content(response):
 
 
 def _objectify_response(response, as_object=True):
+    """Convert XML response content to an lxml object.
+
+    :param str response: An XML response as a string
+    :param boolean as_object: If true convert to an
+        lxml.objectify.ObjectifiedElement where XML properties look like
+        Python object attributes.
+    :return: lxml.objectify.ObjectifiedElement or root of parsed XML
+        element
+    """
     if _response_has_content(response):
         if as_object:
             return objectify.fromstring(response.content)
@@ -433,20 +443,21 @@ class _TaskMonitor(object):
                         callback=None):
         """Waits for task to reach expected status.
 
-        :param task: (Task): task returned by post or put calls.
-        :param timeout: (float): time (in seconds, floating point, fractional)
+        :param Task task: Task returned by post or put calls.
+        :param float timeout: Time (in seconds, floating point, fractional)
             to wait for task to finish.
-        :param poll_frequency: (float): time (in seconds, as above) with which
+        :param float poll_frequency: time (in seconds, as above) with which
             task will be polled.
-        :param fail_on_statuses: (list): method will raise an exception if any
-            of the (TaskStatus) in this list is reached. If this parameter is
+        :param list fail_on_statuses: method will raise an exception if any
+            of the TaskStatus in this list is reached. If this parameter is
             None then either task will achieve expected target status or throw
-            (TimeOutException).
-        :param expected_target_statuses: (list): list of expected target
+            TimeOutException.
+        :param list expected_target_statuses: list of expected target
             status.
-        :return (Task): from list of expected target status.
-        :throws TimeoutException: (Exception): exception thrown when task is
-            not finished within given time.
+        :return: Task we were waiting for
+        :rtype Task:
+        :raises TimeoutException: If task is not finished within given time.
+        :raises VcdException: If task enters a status in fail_on_statuses list
         """
         if fail_on_statuses is None:
             _fail_on_statuses = []
@@ -480,13 +491,32 @@ class _TaskMonitor(object):
 
 
 class Client(object):
-    """A low-level interface to the vCloud Director REST API."""
+    """A low-level interface to the vCloud Director REST API.
+
+    Clients default to the production vCD API version as of the pyvcloud
+    module release and will try to negotiate down to a lower API version
+    that pyvcloud certifies if the vCD server is older. You can also set
+    the version explicitly using the api_version parameter or by calling
+    the set_highest_supported_version() method.
+
+    The log_file is set by the first client instantiated and will be
+    ignored in later clients.
+
+    :param str uri: vCD server host name or connection URI
+    :param str api_version: The vCD API version to use
+    :param boolean verify_ssl_certs: If True validate server certificate;
+        False allows self-signed certificates
+    :param str log_file: Log file name or None, which suppresses logging
+    :param boolean log_request: If True log HTTP requests
+    :param boolean log_headers: If True log HTTP headers
+    :param boolean log_bodies: If True log HTTP bodies
+    """
 
     _REQUEST_ID_HDR_NAME = 'X-VMWARE-VCLOUD-REQUEST-ID'
 
     def __init__(self,
                  uri,
-                 api_version='6.0',
+                 api_version=None,
                  verify_ssl_certs=True,
                  log_file=None,
                  log_requests=False,
@@ -504,7 +534,15 @@ class Client(object):
             else:
                 self._uri = 'https://' + self._uri
 
-        self._api_version = api_version
+        # If user provides API version we accept it, otherwise use default
+        # and set negotiation flag.
+        if api_version is None:
+            self._api_version = API_CURRENT_VERSIONS[-1]
+            self._negotiate_api_version = True
+        else:
+            self._api_version = api_version
+            self._negotiate_api_version = False
+
         self._session_endpoints = None
         self._session = None
         self._query_list_map = None
@@ -514,7 +552,7 @@ class Client(object):
         self._logger = logging.getLogger(__name__)
         self._logger.setLevel(logging.DEBUG)
         # This makes sure that we don't append a new handler to the logger
-        # everytime we create a new client.
+        # every time we create a new client.
         if not self._logger.handlers:
             if log_file is not None:
                 handler = logging.FileHandler(log_file)
@@ -540,58 +578,128 @@ class Client(object):
     def _get_response_request_id(self, response):
         return response.headers[self._REQUEST_ID_HDR_NAME]
 
-    def get_supported_versions(self):
-        new_session = requests.Session()
-        response = self._do_request_prim(
-            'GET', self._uri + '/versions', new_session, accept_type='')
-        sc = response.status_code
-        if sc != 200:
-            raise VcdException('Unable to get supported API versions.')
-        return objectify.fromstring(response.content)
+    def get_api_version(self):
+        """Return vCD API version pyvcloud is using."""
+        return self._api_version
 
-    def set_highest_supported_version(self):
+    def get_supported_versions_list(self):
+        """Return non-deprecated server API versions as iterable list.
+
+        :return: List of versions sorted in numerical order
+        :rtype: list of str
+        """
         versions = self.get_supported_versions()
         active_versions = []
         for version in versions.VersionInfo:
             if not hasattr(version, 'deprecated') or \
                version.get('deprecated') == 'false':
-                active_versions.append(float(version.Version))
-        active_versions.sort()
+                active_versions.append(str(version.Version))
+        active_versions.sort(key=StrictVersion)
+        return active_versions
+
+    def get_supported_versions(self):
+        """Return non-deprecated API versions on vCD server.
+
+        :return: An objectified XML element representing vCD supported
+            versions
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        with requests.Session() as new_session:
+            # Use with block to avoid leaking socket connections.
+            response = self._do_request_prim(
+                'GET', self._uri + '/versions', new_session, accept_type='')
+            sc = response.status_code
+            if sc != 200:
+                raise VcdException('Unable to get supported API versions.')
+            return objectify.fromstring(response.content)
+
+    def set_highest_supported_version(self):
+        """Set the client API version to the highest server API version.
+
+        This call is intended to make it easy to work with new vCD
+        features before they are officially supported in pyvcloud.
+        Production applications should either use the default pyvcloud API
+        version or set the API version explicitly to freeze compatibility.
+        """
+        active_versions = self.get_supported_versions_list()
         self._api_version = active_versions[-1]
+        self._negotiate_api_version = False
         self._logger.debug('API versions supported: %s' % active_versions)
         self._logger.debug(
-            'API version set to highest supported: %s' % self._api_version)
+            'API version set to: %s' % self._api_version)
         return self._api_version
 
     def set_credentials(self, creds):
-        """Sets the credentials used for authentication."""
+        """Set credentials and authenticate to create a new session.
+
+        This call will automatically negotiate the server API version if
+        it was not set previously. Note that the method may generate
+        exceptions from the underlying socket connection, which we pass
+        up unchanged to the client.
+
+        :param BasicLoginCredentials creds: Credentials containing org,
+            user, and password
+        :raises VcdException: if automatic API negotiation fails to arrive
+            at a supported client version
+        """
+        # If we need to negotiate the server API level find the highest
+        # server version that pyvcloud supports.
+        if self._negotiate_api_version:
+            self._logger.debug("Negotiating API version")
+            active_versions = self.get_supported_versions_list()
+            self._logger.debug('API versions supported: %s' % active_versions)
+            # Versions are strings sorted in ascending order, so we can work
+            # backwards to find a match.
+            for version in reversed(active_versions):
+                if version in API_CURRENT_VERSIONS:
+                    self._api_version = version
+                    self._negotiate_api_version = False
+                    self._logger.debug(
+                        'API version negotiated to: %s' % self._api_version)
+                    break
+
+            # Still need to negotiate?  That means we didn't find a
+            # suitable version.
+            if self._negotiate_api_version:
+                raise VcdException(
+                    "Unable to find a supported API version in " +
+                    " available server versions: {0}".format(active_versions))
+
+        # We can now proceed to login. Ensure we close session if
+        # any exception is thrown to avoid leaking a socket connection.
+        self._logger.debug('API version in use: %s' % self._api_version)
         new_session = requests.Session()
-        response = self._do_request_prim(
-            'POST',
-            self._uri + '/sessions',
-            new_session,
-            auth=('%s@%s' % (creds.user, creds.org), creds.password))
-        sc = response.status_code
-        if sc != 200:
-            r = None
-            try:
-                r = _objectify_response(response)
-            except Exception:
-                pass
-            if r is not None:
-                self._response_code_to_exception(
-                    sc,
-                    self._get_response_request_id(response), r)
-            else:
-                raise VcdException('Login failed.')
+        try:
+            response = self._do_request_prim(
+                'POST',
+                self._uri + '/sessions',
+                new_session,
+                auth=('%s@%s' % (creds.user, creds.org), creds.password))
 
-        session = objectify.fromstring(response.content)
-        self._session_endpoints = _get_session_endpoints(session)
+            sc = response.status_code
+            if sc != 200:
+                r = None
+                try:
+                    r = _objectify_response(response)
+                except Exception:
+                    pass
+                if r is not None:
+                    self._response_code_to_exception(
+                        sc,
+                        self._get_response_request_id(response), r)
+                else:
+                    raise VcdException('Login failed.')
 
-        self._session = new_session
-        self._session.headers['x-vcloud-authorization'] = \
-            response.headers['x-vcloud-authorization']
-        self._is_sysadmin = self._is_sys_admin(session.get('org'))
+            session = objectify.fromstring(response.content)
+            self._session_endpoints = _get_session_endpoints(session)
+
+            self._session = new_session
+            self._session.headers['x-vcloud-authorization'] = \
+                response.headers['x-vcloud-authorization']
+            self._is_sysadmin = self._is_sys_admin(session.get('org'))
+        except Exception:
+            new_session.close()
+            raise
 
     def rehydrate(self, state):
         self._session = requests.Session()
@@ -625,10 +733,17 @@ class Client(object):
         return session
 
     def logout(self):
-        uri = self._uri + '/session'
-        result = self._do_request('DELETE', uri)
-        self._session.close()
-        return result
+        """Destroy the server session and deallocate local resources.
+
+        Logout is idempotent. Reusing a client after logout will result
+        in undefined behavior.
+        """
+        if self._session is not None:
+            uri = self._uri + '/session'
+            result = self._do_request('DELETE', uri)
+            self._session.close()
+            self._session = None
+            return result
 
     def _is_sys_admin(self, logged_in_org):
         if logged_in_org.lower() == 'system':
@@ -930,13 +1045,13 @@ class Client(object):
         return self._get_wk_resource(_WellKnownEndpoint.EXTENSION)
 
     def get_org_list(self):
-        """Returns the list of organizationsself."""
+        """Returns the list of organizations."""
         return self._get_wk_resource(_WellKnownEndpoint.ORG_LIST)
 
     def get_org_by_name(self, org_name):
         """Retrieve an organization.
 
-        :param org_name: name of the org to be retrieved.
+        :param string org_name: name of the org to be retrieved.
         :return: Org record.
         """
         orgs = self.get_org_list()
@@ -949,8 +1064,8 @@ class Client(object):
     def get_user_in_org(self, user_name, org_href):
         """Retrieve user from a particular org.
 
-        :param user_name: user name to be retrieved.
-        :param org_href: org where the user belongs.
+        :param str user_name: user name to be retrieved.
+        :param str org_href: org where the user belongs.
 
         :return:  A :class:`lxml.objectify.StringElement` object
             representing the user
@@ -992,18 +1107,18 @@ class Client(object):
                         fields=None):
         """Issue a query using vCD query API.
 
-        :param query_type_name str: Name of the entity, which should be a
+        :param str query_type_name: Name of the entity, which should be a
             string listed in ResourceType enum
-        :param query_result_format (str, str): Tuple value from
+        :param tuple query_result_format: Tuple value from
             QueryResultFormat enum
-        :param page_size int: Number of entries per page
+        :param int page_size: Number of entries per page
         :param include_links: (Not used)
-        :param qfilter str: Query filter expression, e.g., numberOfCpus=gt=4
-        :param equality_filter: A field name and a value to filter
+        :param str qfilter: Query filter expression, e.g., numberOfCpus=gt=4
+        :param str equality_filter: A field name and a value to filter
             output; appends to qfilter if present
-        :param sort_asc str: If name present sort ascending by that field
-        :param sort_desc str: If name present sort descending by that field
-        :param fields str: Comma separated list of fields to return
+        :param str sort_asc: If name present sort ascending by that field
+        :param str sort_desc: If name present sort descending by that field
+        :param str fields: Comma separated list of fields to return
 
         :return: A query object that runs the query when execute()
             method is called
@@ -1035,16 +1150,16 @@ class Client(object):
 def find_link(resource, rel, media_type, fail_if_absent=True):
     """Returns the link of the specified rel and type in the resource.
 
-    * @param resource the resource with the link
-    * @param rel the rel of the desired link
-    * @param mediaType media type of content
-    * @param failIfAbsent controls whether an exception is thrown if there's
+    :param resource: the resource with the link
+    :param rel: the rel of the desired link
+    :param media_type: media type of content
+    :param param fail_if_absent: Throw an exception if there's
         not exactly one link of the specified rel and media type
-    * @return the link, or null if no such link is present and failIfAbsent
+    :return: A link or null if no such link is present and fail_if_absent
         is false
-    * @throws MissingLinkException if no link of the specified rel and media
+    :raises MissingLinkException: if no link of the specified rel and media
         type is found
-    * @throws MultipleLinksException if multiple links of the specified rel
+    :raises MultipleLinksException: if multiple links of the specified rel
         and media type are found
     """
     links = get_links(resource, rel, media_type)
@@ -1063,10 +1178,10 @@ def find_link(resource, rel, media_type, fail_if_absent=True):
 def get_links(resource, rel=RelationType.DOWN, media_type=None):
     """Returns all the links of the specified rel and type in the resource.
 
-    * @param resource the resource with the link
-    * @param rel the rel of the desired link
-    * @param mediaType media type of content
-    * @return the links (could be an empty list)
+    :param resource: the resource with the link
+    :param rel: the rel of the desired link
+    :param media_type: media type of content
+    :return: list of links (could be an empty list)
     """
     links = []
     for link in resource.findall('{http://www.vmware.com/vcloud/v1.5}Link'):
@@ -1132,7 +1247,7 @@ class _AbstractQuery(object):
     def execute(self):
         """Executes query and returns results.
 
-        :returns: A generator to returns results
+        :return: A generator to returns results
         """
         query_href = self._find_query_uri(self._query_result_format)
         if query_href is None:

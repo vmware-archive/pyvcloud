@@ -283,6 +283,7 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.networkConfigSection+xml'
     NETWORK_CONNECTION_SECTION = \
         'application/vnd.vmware.vcloud.networkConnectionSection+xml'
+    NETWORK_MANAGERS = 'application/vnd.vmware.admin.networkManagers+xml'
     NETWORK_POOL_REFERENCES = \
         'application/vnd.vmware.admin.vmwNetworkPoolReferences+xml'
     NSXT_MANAGER = 'application/vnd.vmware.admin.nsxTmanager+xml'

@@ -16,10 +16,16 @@
 
 class Extension(object):
     def __init__(self, client):
+        """Constructor for Extension object.
+
+        :param pyvcloud.vcd.client client: the client that will be used
+            to make ReST calls to vCD.
+        """
         self.client = client
         self.resource = None
 
     def get_resource(self):
+        """Fetches the XML representation of /api/admin/extension endpoint."""
         if self.resource is None:
             self.resource = self.client.get_extension()
         return self.resource

@@ -27,11 +27,11 @@ class System(object):
     def __init__(self, client, admin_href=None, admin_resource=None):
         """Constructor for System objects.
 
-        :param client:  (pyvcloud.vcd.client): The client.
-        :param admin_href: URI representing _WellKnownEndpoint.ADMIN.
-        :param admin_resource: (lxml.objectify.ObjectifiedElement): XML
-        representation of admin_href.
-
+        :param pyvcloud.vcd.client client: the client that will be used
+            to make ReST calls to vCD.
+        :param str admin_href: URI representing _WellKnownEndpoint.ADMIN.
+        :param lxml.objectify.ObjectifiedElement admin_resource: an object
+            containing EntityType.ADMIN XML data.
         """
         self.client = client
         if admin_href is None and admin_resource is None:
@@ -46,10 +46,14 @@ class System(object):
     def create_org(self, org_name, full_org_name, is_enabled=False):
         """Create new organization.
 
-        :param org_name: (str): The name of the organization.
-        :param full_org_name: (str): The fullname of the organization.
-        :param is_enabled: (bool): Enable organization if True
-        :return: (AdminOrgType) Created org object.
+        :param str org_name: name of the organization.
+        :param str full_org_name: full name of the organization.
+        :param bool is_enabled: enable organization if True
+
+        :return: an object containing EntityType.ADMIN_ORG XMl data which
+            represents the newly created organization.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.admin_resource is None:
             self.admin_resource = self.client.get_resource(self.admin_href)
@@ -65,22 +69,26 @@ class System(object):
     def delete_org(self, org_name, force=None, recursive=None):
         """Delete an organization.
 
-        :param org_name: (str): name of the org to be deleted.
-        :param force: (bool): pass force=True  along with recursive=True to
-            remove an organization and any objects it contains, regardless of
-            their state.
-        :param recursive: (bool): pass recursive=True  to remove an
-            organization and any objects it contains that are in a state that
-            normally allows removal.
+        :param str org_name: name of the org to be deleted.
+        :param bool force: pass force=True  along with recursive=True to remove
+            an organization and any objects it contains, regardless of their
+            state.
+        :param bool recursive: pass recursive=True to remove an organization
+            and any objects it contains that are in a state that normally
+            allows removal.
+
+        :return: Nothing
         """
         org = self.client.get_org_by_name(org_name)
         org_href = get_admin_href(org.get('href'))
         return self.client.delete_resource(org_href, force, recursive)
 
     def list_provider_vdcs(self):
-        """List provider VDCs in the system organization.
+        """List provider vdcs in the system organization.
 
-        :return: a list of ProviderVdcReference items
+        :return: a list of object containing ProviderVdcReference XML data.
+
+        :rtype: list
         """
         if self.admin_resource is None:
             self.admin_resource = self.client.get_resource(self.admin_href)
@@ -93,9 +101,15 @@ class System(object):
             return []
 
     def get_provider_vdc(self, name):
-        """Return a provider VDC by name in the system organization.
+        """Fetch a provider VDC by name in the system organization.
 
-        :return: ProviderVdcReference item if found, raise Exception otherwise.
+        :return: an object containing ProviderVdcReference XML element which
+            refers to the provider vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if the named provider vdc can not be
+            found.
         """
         for pvdc in self.list_provider_vdcs():
             if pvdc.get('name') == name:
@@ -107,6 +121,8 @@ class System(object):
         """List provider VDC storage profiles in the system organization.
 
         :return: a list of ProviderVdcStorageProfile items
+
+        :rtype: list
         """
         if name is not None:
             query_filter = 'name==%s' % name
@@ -121,8 +137,10 @@ class System(object):
     def get_provider_vdc_storage_profile(self, name):
         """Return a provider VDC storage profile by name in the system org.
 
-        :return: ProviderVdcStorageProfile item if found, raise Exception
-            otherwise.
+        :return: ProviderVdcStorageProfile item.
+
+        :raises: EntityNotFoundException: if the named provider vdc can not be
+            found.
         """
         for profile in self.list_provider_vdc_storage_profiles(name):
             if profile.get('name') == name:
@@ -134,7 +152,10 @@ class System(object):
     def list_network_pools(self):
         """List network pools in the system organization.
 
-        :return: a list of NetworkPoolReference items
+        :return: a list of lxml.objectify.ObjectifiedElement containing
+            NetworkPoolReference XML elements.
+
+        :rtype: list
         """
         resource = self.client.get_extension()
         result = self.client.get_linked_resource(
@@ -148,7 +169,12 @@ class System(object):
     def get_network_pool_reference(self, name):
         """Return a network pool by name in the system organization.
 
-        :return: NetworkPoolReference item if found, raise Exception otherwise.
+        :return: an object containing NetworkPoolReference XML element.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if the named network pool can not be
+            found.
         """
         for item in self.list_network_pools():
             if item.get('name') == name:

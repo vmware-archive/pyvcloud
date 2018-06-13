@@ -273,7 +273,7 @@ class VApp(object):
         :param vm_name: (str): The name of the VM to which the disk
             will be attached.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing
+        :return: A :class:`lxml.objectify.StringElement` object describing
             the asynchronous Task of attaching the disk.
 
         :raises: Exception: If the named VM cannot be located or another error
@@ -295,7 +295,7 @@ class VApp(object):
         :param vm_name: (str): The name of the VM to which the disk
             will be detached.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing
+        :return: A :class:`lxml.objectify.StringElement` object describing
             the asynchronous Task of detaching the disk.
 
         :raises: Exception: If the named VM cannot be located or another error
@@ -347,7 +347,7 @@ class VApp(object):
 
         :param vm_name: (str): The name of the vm to be customized.
         :param disk_size: (int): The size of the disk to be added, in MBs.
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
+        :return: A :class:`lxml.objectify.StringElement` object describing the
             asynchronous Task creating the disk.
 
         :raises: Exception: If the named VM cannot be located or another error
@@ -381,7 +381,7 @@ class VApp(object):
     def get_access_settings(self):
         """Get the access settings of the vapp.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             the access settings of the vapp.
         """
         acl = Acl(self.client, self.get_resource())
@@ -392,13 +392,13 @@ class VApp(object):
 
         :param access_settings_list: (list of dict): list of access_setting
             in the dict format. Each dict contains:
-            - type: (str): type of the subject. Only 'user' allowed for vapp.
-            - name: (str): name of the user.
-            - access_level: (str): access_level of the particular subject. One
-                of 'ReadOnly', 'Change', 'FullControl'
+            type: (str): type of the subject. Only 'user' allowed for vapp.
+            name: (str): name of the user.
+            access_level: (str): access_level of the particular subject. One
+            of 'ReadOnly', 'Change', 'FullControl'
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
-        the updated access control setting of the vapp.
+        :return: A :class:`lxml.objectify.StringElement` object representing
+            the updated access control setting of the vapp.
         """
         acl = Acl(self.client, self.get_resource())
         return acl.add_access_settings(access_settings_list)
@@ -415,7 +415,7 @@ class VApp(object):
         :param remove_all: (bool) : True if all access settings of the vapp
             should be removed
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the vapp.
         """
         acl = Acl(self.client, self.get_resource())
@@ -428,7 +428,7 @@ class VApp(object):
             vapp with everyone. One of 'ReadOnly', 'Change', 'FullControl'.
             'ReadOnly' by default.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the vapp.
         """
         acl = Acl(self.client, self.get_resource())
@@ -437,7 +437,7 @@ class VApp(object):
     def unshare_from_org_members(self):
         """Unshare the vapp from all members of current organization.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the vapp.
         """
         acl = Acl(self.client, self.get_resource())
@@ -446,7 +446,7 @@ class VApp(object):
     def get_all_networks(self):
         """Helper method that returns the list of networks defined in the vApp.
 
-        :return:  A :class:`lxml.objectify.StringElement` object with the list
+        :return: A :class:`lxml.objectify.StringElement` object with the list
             of vApp networks.
         """
         if self.resource is None:
@@ -463,7 +463,7 @@ class VApp(object):
         :param index: (int): The index of the vApp network to retrieve.
             0 if omitted.
 
-        :return:  A :class:`string` with the name of the requested network if
+        :return: A :class:`string` with the name of the requested network if
             exists.
         """
         networks = self.get_all_networks()
@@ -481,20 +481,19 @@ class VApp(object):
             target_vm_name: (str): (optional) target VM name
             hostname: (str): (optional) target guest hostname
             password: (str): (optional) set the administrator password of this
-                machine to this value
+            machine to this value
             password_auto: (bool): (optional) autogenerate administrator
-                password
+            password
             password_reset: (bool): (optional) True if the administrator
-                password for this virtual machine must be reset after first use
+            password for this virtual machine must be reset after first use
             cust_script: (str): (optional) script to run on guest customization
-            network: (str): (optional) Name of the vApp network to connect.
-                If omitted, the VM won't be connected to any network
+            network: (str): (optional) Name of the vApp network to connect. If
+            omitted, the VM won't be connected to any network
             storage_profile: (str): (optional) the name of the storage profile
-                to be used for this VM
+            to be used for this VM
 
-        :return: SourcedItem: (:class:`lxml.objectify.StringElement`): object
-            representing the 'SourcedItem' xml object created from the
-            specification.
+        :return: A :class:`lxml.objectify.StringElement` object representing
+            the 'SourcedItem' xml object created from the specification.
         """
         source_vapp = VApp(self.client, resource=spec['vapp'])
         source_vm_resource = source_vapp.get_vm(spec['source_vm_name'])
@@ -589,7 +588,7 @@ class VApp(object):
         :param all_eulas_accepted: (bool): True confirms acceptance of all
             EULAs in the vApp.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing a
+        :return: A :class:`lxml.objectify.StringElement` object representing a
             sparsely populated vApp element.
 
         """
@@ -610,7 +609,7 @@ class VApp(object):
         :param names: A list or tuple of names (str) of the VMs to delete
             from the vApp.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing a
+        :return: A :class:`lxml.objectify.StringElement` object representing a
             sparsely populated vApp element.
         """
         params = E.RecomposeVAppParams()
@@ -637,11 +636,11 @@ class VApp(object):
         :param fence_mode: (str): Controls connectivity to the parent
             network. One of bridged, isolated or natRouted. bridged by default.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             the asynchronous task that is connecting the network.
 
         :raises: Exception: If orgvdc network does not exist in the vdc or if
-        it is already connected to the vapp.
+            it is already connected to the vapp.
         """
         vdc = VDC(
             self.client,
@@ -688,7 +687,7 @@ class VApp(object):
         :param orgvdc_network_name: (str): name of the orgvdc
             network to be disconnected.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             the asynchronous task that is disconnecting the network.
 
         :raises: Exception: If orgvdc network is not connected to the vapp.

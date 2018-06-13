@@ -391,8 +391,9 @@ def disk_to_dict(disk):
 def access_settings_to_dict(control_access_params):
     """Convert access settings to dict.
 
-    :param control_access_params: (ControlAccessParamsType): xml object
-    representing access settings.
+    :param control_access_params: (ControlAccessParamsType): XML object
+        representing access settings.
+
     :return: (dict): dict representation of access control settings.
     """
     result = {}

@@ -141,7 +141,7 @@ class VDC(object):
         :param network_adapter_type: (str): Network Adapter Type.
             Please see pyvcloud.vcd.client.NetworkAdapterType.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
+        :return: A :class:`lxml.objectify.StringElement` object describing the
             new vApp.
         """
         if self.resource is None:
@@ -383,8 +383,8 @@ class VDC(object):
     def list_edge_gateways(self):
         """Request a list of edge gateways defined in a vdc.
 
-        :return: A list of :class:`lxml.objectify.StringElement' objects
-            representing existing edge gateway records.
+        :return: (list): A list of :class:`lxml.objectify.StringElement`
+            objects representing existing edge gateway records.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -419,7 +419,7 @@ class VDC(object):
             storage profile to be used by the new disk.
         :param iops: (int): Iops requirement of the new disk.
 
-        :return:  A :class:`lxml.objectify.StringElement` object containing
+        :return: A :class:`lxml.objectify.StringElement` object containing
             the sparse representation of the new disk and the asynchronus task
             that is creating the disk.
         """
@@ -468,7 +468,7 @@ class VDC(object):
             the disk will be moved to.
         :param new_iops: (int): The new iops requirement of the disk.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing
+        :return: A :class:`lxml.objectify.StringElement` object describing
             the asynchronous task updating the disk.
 
         :raises: Exception: If the named disk cannot be located or some
@@ -516,7 +516,7 @@ class VDC(object):
         :param name: (str): The name of the Disk to delete.
         :param disk_id: (str): The id of the disk to delete.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing
+        :return: A :class:`lxml.objectify.StringElement` object describing
             the asynchronous task deleting the disk.
 
         :raises: Exception: If the named disk cannot be located or some
@@ -536,8 +536,8 @@ class VDC(object):
     def get_disks(self):
         """Request a list of independent disks defined in a vdc.
 
-        :return: A list of :class:`lxml.objectify.StringElement' objects
-            describing the existing disks.
+        :return: (list): A list of :class:`lxml.objectify.StringElement`
+            objects describing the existing disks.
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -633,7 +633,7 @@ class VDC(object):
     def get_storage_profiles(self):
         """Request a list of the Storage Profiles defined in a vdc.
 
-        :return: A list of :class:`lxml.objectify.StringElement' objects
+        :return: A list of :class:`lxml.objectify.StringElement` objects
             representing the existing storage profiles.
         """
         profile_list = []
@@ -693,7 +693,7 @@ class VDC(object):
     def get_access_settings(self):
         """Get the access settings of the vdc.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             the access settings of the vdc.
         """
         acl = Acl(self.client, self.get_resource())
@@ -709,7 +709,7 @@ class VDC(object):
             access_level: (str): access_level of the particular subject.
             Only 'ReadOnly' is allowed for vdc.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the vdc.
         """
         acl = Acl(self.client, self.get_resource())
@@ -727,7 +727,7 @@ class VDC(object):
         :param remove_all: (bool) : True if all access settings of the vdc
             should be removed
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the vdc.
         """
         acl = Acl(self.client, self.get_resource())
@@ -739,7 +739,7 @@ class VDC(object):
         :param everyone_access_level: (str) : access level when sharing the
             vdc with everyone. Only 'ReadOnly' is allowed for vdc.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the vdc.
         """
         acl = Acl(self.client, self.get_resource())
@@ -751,7 +751,7 @@ class VDC(object):
         Should give individual access to at least one user before unsharing
         access to the whole org.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             the updated access control setting of the vdc.
         """
         acl = Acl(self.client, self.get_resource())
@@ -773,7 +773,7 @@ class VDC(object):
             Possible values are `bridged` and `natRouted`
         :param accept_all_eulas: (bool): True confirms acceptance of all EULAs
             in a vApp template.
-        :return:  A :class:`lxml.objectify.StringElement` object representing a
+        :return: A :class:`lxml.objectify.StringElement` object representing a
             sparsely populated vApp element in the target vdc.
         """
         if self.resource is None:
@@ -950,7 +950,7 @@ class VDC(object):
     def list_orgvdc_network_records(self):
         """Fetch all the orgvdc networks in the current vdc.
 
-        :return:  A list of :class:`lxml.objectify.StringElement` objects
+        :return: A list of :class:`lxml.objectify.StringElement` objects
             representing all orgvdc network records.
         """
         if self.resource is None:
@@ -972,7 +972,7 @@ class VDC(object):
         :param type: (str): Type of networks we want to retrieve, valid values
             are 'bridged' and 'isolated'.
 
-        :return:  A list of :class:`lxml.objectify.StringElement` objects
+        :return: A list of :class:`lxml.objectify.StringElement` objects
             representing orgvdc network resources.
         """
         records = self.list_orgvdc_network_records()
@@ -998,7 +998,7 @@ class VDC(object):
     def list_orgvdc_direct_networks(self):
         """Fetch all directly connected orgvdc networks in the current vdc.
 
-        :return:  A list of :class:`lxml.objectify.StringElement` objects
+        :return: A list of :class:`lxml.objectify.StringElement` objects
             representing all directly connected orgvdc network resources.
         """
         return self.list_orgvdc_network_resources(type=FenceMode.BRIDGED.value)
@@ -1006,7 +1006,7 @@ class VDC(object):
     def list_orgvdc_isolated_networks(self):
         """Fetch all isolated orgvdc networks in the current vdc.
 
-        :return:  A list of :class:`lxml.objectify.StringElement` objects
+        :return: A list of :class:`lxml.objectify.StringElement` objects
             representing all isolated orgvdc network resources.
         """
         return self.list_orgvdc_network_resources(
@@ -1017,7 +1017,7 @@ class VDC(object):
 
         :param name: (str): Name of the orgvdc network we want to retrieve.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             a directly connected orgvdc network resource.
 
         :raises: Exception: If orgvdc network with the given name is not found.
@@ -1034,7 +1034,7 @@ class VDC(object):
 
         :param name: (str): Name of the orgvdc network we want to retrieve.
 
-        :return:  A :class:`lxml.objectify.StringElement` object representing
+        :return: A :class:`lxml.objectify.StringElement` object representing
             an isolated orgvdc network resource.
 
         :raises: Exception: If orgvdc network with the given name is not found.
@@ -1054,7 +1054,7 @@ class VDC(object):
             the network, ignoring whether it's connected to a vm or vapp
             network or not.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing
+        :return: A :class:`lxml.objectify.StringElement` object describing
             the asynchronous task that's deleting the network.
 
         :raises: Exception: If orgvdc network with the given name is not found.
@@ -1071,7 +1071,7 @@ class VDC(object):
             the network, ignoring whether it's connected to a vm or vapp
             network or not.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing
+        :return: A :class:`lxml.objectify.StringElement` object describing
             the asynchronous task that's deleting the network.
 
         :raises: Exception: If orgvdc network with the given name is not found.

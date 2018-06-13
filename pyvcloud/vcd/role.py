@@ -25,11 +25,11 @@ class Role(object):
     def __init__(self, client, href=None, resource=None):
         """Constructor for Role object.
 
-        :param client: (pyvcloud.vcd.client): The client.
-        :param href: URI of the Role entity
-        :param resource: (lxml.objectify.ObjectifiedElement): XML
-            representation of the entity.
-
+        :param pyvcloud.vcd.client client: the client that will be used
+            to make ReST calls to vCD.
+        :param str href: URI of the Role entity
+        :param lxml.objectify.ObjectifiedElement resource: object containing
+            EntityType.ROLE XML data representing the role.
         """
         self.client = client
         if href is None and resource is None:
@@ -45,7 +45,9 @@ class Role(object):
     def list_rights(self):
         """List rights associated with the role.
 
-        :return: list of names of rights for a given role.
+        :return: names of rights for a given role.
+
+        :rtype: list
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -59,7 +61,7 @@ class Role(object):
     def unlink(self):
         """Unlinks the role from its template.
 
-        :return: None
+        :return: Nothing
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -70,7 +72,7 @@ class Role(object):
     def link(self):
         """Links the role to its template.
 
-        :return: None
+        :return: Nothing
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -81,12 +83,14 @@ class Role(object):
     def add_rights(self, rights, org):
         """Adds list of rights to a given role.
 
-        :param rights: (list): List of right names
-        :param org: (pyvcloud.vcd.org.Org): The Organization to which
-        the role belongs
+        :param list rights: right names as a list of strings.
+        :param pyvcloud.vcd.org.Org org: organization to which the role
+            belongs.
 
-        :return A :class:`lxml.objectify.StringElement` object representing
-        the updated role resource.
+        :return: an object containing EntityType.ROLE XML data which represents
+            the updated role.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -104,10 +108,12 @@ class Role(object):
     def remove_rights(self, rights):
         """Removes list of rights from a given role.
 
-        :param: rights: (list): List of right names
+        :param list rights: right names as a list of strings.
 
-        :return: A :class:`lxml.objectify.StringElement` object representing
-                the updated role resource.
+        :return: an object containing EntityType.ROLE XML data which represents
+            the updated role.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

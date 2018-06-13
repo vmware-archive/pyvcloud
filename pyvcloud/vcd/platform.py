@@ -312,18 +312,23 @@ class Platform(object):
         :return: A :class:`lxml.objectify.ObjectifiedElement` object describing
         :        the newly registered NSX-T manager.
         """
-        nsxt_manager = E_VMEXT.NsxTManager(name=nsxt_manager_name)
+        payload = E_VMEXT.NsxTManager(name=nsxt_manager_name)
         if (nsxt_manager_description is not None):
-            nsxt_manager.append(E.Description(nsxt_manager_description))
-        nsxt_manager.append(E_VMEXT.Username(nsxt_manager_username))
-        nsxt_manager.append(E_VMEXT.Password(nsxt_manager_password))
-        nsxt_manager.append(E_VMEXT.Url(nsxt_manager_url))
+            payload.append(E.Description(nsxt_manager_description))
+        payload.append(E_VMEXT.Username(nsxt_manager_username))
+        payload.append(E_VMEXT.Password(nsxt_manager_password))
+        payload.append(E_VMEXT.Url(nsxt_manager_url))
+
+        nsxt_manager_resource = self.client.get_linked_resource(
+            resource=self.extension.get_resource(),
+            rel=RelationType.DOWN,
+            media_type=EntityType.NSXT_MANAGERS.value)
 
         return self.client.\
-            post_linked_resource(resource=self.extension.get_resource(),
+            post_linked_resource(resource=nsxt_manager_resource,
                                  rel=RelationType.ADD,
                                  media_type=EntityType.NSXT_MANAGER.value,
-                                 contents=nsxt_manager)
+                                 contents=payload)
 
     def unregister_nsxt_manager(self,
                                 nsxt_manager_name):

@@ -357,7 +357,7 @@ class Platform(object):
         nsxt_manager_resource = self.client.get_linked_resource(
             resource=self.extension.get_resource(),
             rel=RelationType.DOWN,
-            media_type=EntityType.NSXT_MANAGERS.value)
+            media_type=EntityType.NETWORK_MANAGERS.value)
 
         return self.client.\
             post_linked_resource(resource=nsxt_manager_resource,

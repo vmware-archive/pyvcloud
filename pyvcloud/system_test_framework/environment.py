@@ -616,7 +616,7 @@ class Environment(object):
         """
         if cls._sys_admin_client is not None:
             with warnings.catch_warnings():
-                warnings.simplefilter("ignore", ResourceWarning) # NOQA
+                warnings.simplefilter("ignore", ResourceWarning)  # NOQA
                 cls._sys_admin_client.logout()
                 cls._sys_admin_client = None
                 cls._pvdc_href = None

@@ -94,7 +94,7 @@ class TestClient(BaseTestCase):
 
     def test_0030_server_highest_version(self):
         """User can set connection to highest supported server version."""
-        self._client = self._create_client(None)
+        self._client = client.Client(self._host, verify_ssl_certs=False)
         self._client.set_highest_supported_version()
         creds = client.BasicLoginCredentials(self._user, self._org, self._pass)
         self._client.set_credentials(creds)
@@ -157,7 +157,7 @@ class TestClient(BaseTestCase):
     def test_0070_flag_invalid_credentials(self):
         """Invalid credentials result in a VcdException."""
         self._logger.debug("TEST: test_0070_flag_invalid_credentials")
-        self._client = self._create_client(None)
+        self._client = client.Client(self._host, verify_ssl_certs=False)
         creds = client.BasicLoginCredentials(self._user, self._org, '!!!')
         try:
             self._client.set_credentials(creds)
@@ -185,28 +185,12 @@ class TestClient(BaseTestCase):
         if unreachable_code:
             raise Exception("Login succeeded with bad host")
 
-    def _create_client(self, api_version):
-        """Create client with/without API version.
-
-        :param api_version: If set create a client with the version set;
-            otherwise create a client with unset version that will
-            auto-negotiate.
-        """
-        if api_version is None:
-            # This client auto-negotiates.
-            return client.Client(
-                self._host,
-                verify_ssl_certs=False)
-        else:
-            # This client sets the version explicitly.
-            return client.Client(
-                self._host,
-                api_version=api_version,
-                verify_ssl_certs=False)
-
     def _create_client_with_credentials(self, api_version):
         """Create client with[out] explicit API version and login."""
-        new_client = self._create_client(api_version)
+        new_client = client.Client(
+            self._host,
+            api_version=api_version,
+            verify_ssl_certs=False)
         creds = client.BasicLoginCredentials(
             self._user, self._org, self._pass)
         new_client.set_credentials(creds)

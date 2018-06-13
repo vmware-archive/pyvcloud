@@ -59,5 +59,5 @@ class TestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore", ResourceWarning) # NOQA
+            warnings.simplefilter("ignore", ResourceWarning)  # NOQA
             cls.client.logout()

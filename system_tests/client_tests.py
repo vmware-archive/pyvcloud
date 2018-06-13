@@ -139,20 +139,20 @@ class TestClient(BaseTestCase):
         self._client.logout()
 
         # Should not be possible to reuse after logout.
-        exception = None
+        unreachable_code = False
         try:
             self._client.get_org_list()
             # Can't use self.fail() as we have a general exception trap
             # around this block.
-            exception = Exception("Org list succeeded after session logout!")
+            unreachable_code = True
         except Exception:
             # We don't care about exception; reuse behavior is undefined.
             self._logger.debug(
                 "Received exception after reusing logged out session",
                 exc_info=True)
 
-        if exception is not None:
-            raise exception
+        if unreachable_code:
+            self.fail("Org list succeeded after session logout!")
 
     def test_0070_flag_invalid_credentials(self):
         """Invalid credentials result in a VcdException."""
@@ -161,13 +161,13 @@ class TestClient(BaseTestCase):
         creds = client.BasicLoginCredentials(self._user, self._org, '!!!')
         try:
             self._client.set_credentials(creds)
-            raise Exception("Login succeeded with bad password")
+            self.fail("Login succeeded with bad password")
         except VcdException:
             self._logger.debug("Received expected exception", exc_info=True)
 
     def test_0080_flag_invalid_host(self):
         """Invalid host results in an exception."""
-        exception = None
+        unreachable_code = False
         try:
             self._client = client.Client(
                 "invalid.host.com",
@@ -177,14 +177,13 @@ class TestClient(BaseTestCase):
                 self._org,
                 self._pass)
             self._client.set_credentials(creds)
-            exception = Exception("Login succeeded with bad host")
         except Exception:
             # We don't care about the exact exception as request/urllib
             # handling is implementation-dependent and may change.
             self._logger.debug("Received expected exception", exc_info=True)
 
-        if exception is not None:
-            raise exception
+        if unreachable_code:
+            raise Exception("Login succeeded with bad host")
 
     def _create_client(self, api_version):
         """Create client with/without API version.

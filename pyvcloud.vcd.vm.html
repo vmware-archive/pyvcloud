@@ -9,7 +9,7 @@
     <title>pyvcloud.vcd.vm module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -40,16 +40,18 @@
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.deploy">
 <code class="descname">deploy</code><span class="sig-paren">(</span><em>power_on=True</em>, <em>force_customization=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.deploy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Deploys the VM.</p>
-<p>Deploying the VM will allocate all resources assigned
-to the VM. If an already deployed VM is attempted to deploy,
-an exception is raised.</p>
+<dd><p>Deploys the vm.</p>
+<p>Deploying the vm will allocate all resources assigned to the vm. If an
+attempt is made to deploy an already deployed vm, an exception will be
+raised.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing the
-asynchronous task that operates on the VM.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is deploying the vm.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -58,14 +60,15 @@ asynchronous task that operates on the VM.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.get_cpus">
 <code class="descname">get_cpus</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.get_cpus" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the number of CPUs.</p>
+<dd><p>Returns the number of CPUs in the vm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dictionary with:
-num_cpus: (int): number of cpus
-num_cores_per_socket: (int): number of cores per socket</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of cpus (int) and number of cores per socket (int) of
+the vm.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
 </tbody>
 </table>
@@ -79,7 +82,9 @@ num_cores_per_socket: (int): number of cores per socket</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(int): Amount of memory in MB</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">amount of memory in MB.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
 </tr>
 </tbody>
 </table>
@@ -88,12 +93,14 @@ num_cores_per_socket: (int): number of cores per socket</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.get_vc">
 <code class="descname">get_vc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.get_vc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the vCenter where this VM is located.</p>
+<dd><p>Returns the vCenter where this vm is located.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(str): Name of the vCenter</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">name of the vCenter server.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
 </tr>
 </tbody>
 </table>
@@ -102,20 +109,23 @@ num_cores_per_socket: (int): number of cores per socket</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.modify_cpu">
 <code class="descname">modify_cpu</code><span class="sig-paren">(</span><em>virtual_quantity</em>, <em>cores_per_socket=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.modify_cpu" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates the number of CPUs of a VM.</p>
+<dd><p>Updates the number of CPUs of a vm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>virtual_quantity</strong> – (int): The number of virtual CPUs to configure
-on the VM.</li>
-<li><strong>cores_per_socket</strong> – (int): The number of cores per socket.</li>
+<li><strong>virtual_quantity</strong> (<em>int</em>) – number of virtual CPUs to configure on the
+vm.</li>
+<li><strong>cores_per_socket</strong> (<em>int</em>) – number of cores per socket.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing the
-asynchronous task that updates the VM.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
+the asynchronous task that updates the vm.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -125,16 +135,18 @@ asynchronous task that updates the VM.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.modify_memory">
 <code class="descname">modify_memory</code><span class="sig-paren">(</span><em>virtual_quantity</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.modify_memory" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates the memory of a VM.</p>
+<dd><p>Updates the memory of a vm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>virtual_quantity</strong> – (int): The number of MB of memory to configure
-on the VM.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>virtual_quantity</strong> (<em>int</em>) – number of MB of memory to configure on the
+vm.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing the
-asynchronous task that updates the VM.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task that updates the vm.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -143,13 +155,15 @@ asynchronous task that updates the VM.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.power_off">
 <code class="descname">power_off</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.power_off" title="Permalink to this definition">¶</a></dt>
-<dd><p>Powers off the VM.</p>
+<dd><p>Powers off the vm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing the
-asynchronous task that operates on the VM.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is powering off the vm.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -158,13 +172,15 @@ asynchronous task that operates on the VM.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.power_on">
 <code class="descname">power_on</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.power_on" title="Permalink to this definition">¶</a></dt>
-<dd><p>Powers on the VM.</p>
+<dd><p>Powers on the vm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing the
-asynchronous task that operates on the VM.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is powering on the vm.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -173,13 +189,15 @@ asynchronous task that operates on the VM.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.power_reset">
 <code class="descname">power_reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.power_reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Powers reset the VM.</p>
+<dd><p>Powers reset the vm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing the
-asynchronous task that operates on the VM.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is power resetting the vm.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -188,13 +206,15 @@ asynchronous task that operates on the VM.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.reboot">
 <code class="descname">reboot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.reboot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reboots the VM.</p>
+<dd><p>Reboots the vm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the asynchronous Task rebooting the VM.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task rebooting the vm.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -203,19 +223,24 @@ the asynchronous Task rebooting the VM.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.reload">
 <code class="descname">reload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.reload" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates the xml representation of the VM from vCD.</p>
+<dd><p>Reloads the resource representation of the vm.</p>
+<p>This method should be called in between two method invocations on the
+VM object, if the former call changes the representation of the
+vm in vCD.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.shutdown">
 <code class="descname">shutdown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.shutdown" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shutdown the VM.</p>
+<dd><p>Shutdown the vm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the asynchronous Task shutting down the VM.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task shutting down the vm.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -224,25 +249,26 @@ the asynchronous Task shutting down the VM.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.snapshot_create">
 <code class="descname">snapshot_create</code><span class="sig-paren">(</span><em>memory=None</em>, <em>quiesce=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.snapshot_create" title="Permalink to this definition">¶</a></dt>
-<dd><p>Snapshot the VM.</p>
+<dd><p>Create a snapshot of the vm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>memory</strong> – (bool): True if the snapshot should include the
-virtual machine’s memory.</li>
-<li><strong>quiesce</strong> – (bool): True if the file system of the virtual machine
-should be quiesced before the snapshot is created.
-(Requires VMware tools installed)</li>
-<li><strong>name</strong> – (bool): Typically used to name or identify the subject
-of the request. For example, the name of the object being created
-or modified.</li>
+<li><strong>memory</strong> (<em>bool</em>) – True, if the snapshot should include the virtual
+machine’s memory.</li>
+<li><strong>quiesce</strong> (<em>bool</em>) – True, if the file system of the virtual machine
+should be quiesced before the snapshot is created. Requires VMware
+tools to be installed on the vm.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the snapshot.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing the
-asynchronous task that operates on the VM.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is creating the snapshot.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -252,13 +278,15 @@ asynchronous task that operates on the VM.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.snapshot_remove_all">
 <code class="descname">snapshot_remove_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.snapshot_remove_all" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes all user created snapshots for a virtual machine.</p>
+<dd><p>Removes all user created snapshots of a virtual machine.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the asynchronous Task shutting down the VM.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task removing the snapshots.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -272,8 +300,10 @@ the asynchronous Task shutting down the VM.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the asynchronous Task shutting down the VM.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is reverting the snapshot.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -282,13 +312,15 @@ the asynchronous Task shutting down the VM.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.undeploy">
 <code class="descname">undeploy</code><span class="sig-paren">(</span><em>action='default'</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.undeploy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Undeploy the VM.</p>
+<dd><p>Undeploy the vm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing the
-asynchronous task that operates on the VM.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is undeploying the vm.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -315,9 +347,9 @@ asynchronous task that operates on the VM.</td>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -350,7 +382,7 @@ asynchronous task that operates on the VM.</td>
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

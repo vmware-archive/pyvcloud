@@ -9,7 +9,7 @@
     <title>pyvcloud.vcd.vdc module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -40,20 +40,29 @@
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.add_access_settings">
 <code class="descname">add_access_settings</code><span class="sig-paren">(</span><em>access_settings_list=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.add_access_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add access settings to a particular vdc.</p>
+<dd><p>Add access settings to the vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>access_settings_list</strong> – (list of dict): list of access_setting
-in the dict format. Each dict contains:
-type: (str): type of the subject. ‘Only ‘user’ allowed for vdc.
-name: (str): name of the user.
-access_level: (str): access_level of the particular subject.
-Only ‘ReadOnly’ is allowed for vdc.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>access_settings_list</strong> (<em>list</em>) – <p>list of dictionaries, where each
+dictionary represents a single access setting. The dictionary
+structure is as follows,</p>
+<ul class="simple">
+<li>type: (str): type of the subject. One of ‘org’ or ‘user’.</li>
+<li>name: (str): name of the user or org.</li>
+<li><dl class="first docutils">
+<dt>access_level: (str): access_level of the particular subject.</dt>
+<dd>Allowed values are ‘ReadOnly’, ‘Change’ or ‘FullControl’.</dd>
+</dl>
+</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the vdc.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated Access Control List of the vdc.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -68,18 +77,14 @@ the updated access control setting of the vdc.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_href</strong> – Href of the new owner (user).</li>
-<li><strong>name</strong> – Name of the independent disk.</li>
-<li><strong>disk_id</strong> – The id of the disk (required if there are multiple
+<li><strong>user_href</strong> (<em>str</em>) – href of the new owner.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the independent disk.</li>
+<li><strong>disk_id</strong> (<em>str</em>) – id of the disk (required if there are multiple
 disks with same name).</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">None</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">Exception: If the named disk cannot be located or some
-other error occurs.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the named disk cannot be located.</p>
 </td>
 </tr>
 </tbody>
@@ -89,23 +94,26 @@ other error occurs.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.create_directly_connected_vdc_network">
 <code class="descname">create_directly_connected_vdc_network</code><span class="sig-paren">(</span><em>network_name</em>, <em>parent_network_name</em>, <em>description=None</em>, <em>is_shared=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.create_directly_connected_vdc_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a new directly connected OrgVdc network in this vdc.</p>
+<dd><p>Create a new directly connected org vdc network in this vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>network_name</strong> – (str): Name of the new network.</li>
-<li><strong>parent_network_name</strong> – (str): Name of the external network
-that the new network will be directly connected to.</li>
-<li><strong>description</strong> – (str): Description of the new network.</li>
-<li><strong>is_shared</strong> – (bool): True, if the network is shared with
-other vdc(s) in the organization, else False.</li>
+<li><strong>network_name</strong> (<em>str</em>) – name of the new network.</li>
+<li><strong>parent_network_name</strong> (<em>str</em>) – name of the external network that the
+new network will be directly connected to.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the new network.</li>
+<li><strong>is_shared</strong> (<em>bool</em>) – True, if the network is shared with other org
+vdc(s) in the organization, else False.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-a sparsely populated OrgVdcNetwork element.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.ORG_VDC_NETWORK XML data which
+represents an org vdc network.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -115,26 +123,29 @@ a sparsely populated OrgVdcNetwork element.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.create_disk">
 <code class="descname">create_disk</code><span class="sig-paren">(</span><em>name</em>, <em>size</em>, <em>bus_type=None</em>, <em>bus_sub_type=None</em>, <em>description=None</em>, <em>storage_profile_name=None</em>, <em>iops=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.create_disk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Request the creation of an indendent disk.</p>
+<dd><p>Request the creation of an independent disk.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): The name of the new disk.</li>
-<li><strong>size</strong> – (int): The size of the new disk in bytes.</li>
-<li><strong>bus_type</strong> – (str): The bus type of the new disk.</li>
-<li><strong>bus_sub_type</strong> – (str): The bus subtype  of the new disk.</li>
-<li><strong>description</strong> – (str): A description of the new disk.</li>
-<li><strong>storage_profile_name</strong> – (str): The name of an existing
-storage profile to be used by the new disk.</li>
-<li><strong>iops</strong> – (int): Iops requirement of the new disk.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the new disk.</li>
+<li><strong>size</strong> (<em>int</em>) – size of the new disk in bytes.</li>
+<li><strong>bus_type</strong> (<em>str</em>) – bus type of the new disk.</li>
+<li><strong>bus_sub_type</strong> (<em>str</em>) – bus subtype of the new disk.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the new disk.</li>
+<li><strong>storage_profile_name</strong> (<em>str</em>) – name of an existing storage profile to
+be used by the new disk.</li>
+<li><strong>iops</strong> (<em>int</em>) – iops requirement of the new disk.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object containing
-the sparse representation of the new disk and the asynchronus task
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.DISK XML data which represents
+the new disk being created along with the the asynchronous task
 that is creating the disk.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -150,33 +161,36 @@ that is creating the disk.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>network_name</strong> – (str): Name of the new network.</li>
-<li><strong>gateway_ip</strong> – (str): IP address of the gateway of the new network.</li>
-<li><strong>netmask</strong> – (str): Network mask.</li>
-<li><strong>description</strong> – (str): Description of the new network.</li>
-<li><strong>primary_dns_ip</strong> – (str): IP address of primary DNS server.</li>
-<li><strong>secondary_dns_ip</strong> – (str): IP address of secondary DNS Server.</li>
-<li><strong>dns_suffix</strong> – (str): DNS suffix.</li>
-<li><strong>ip_range_start</strong> – (str): Start address of the IP ranges used for
+<li><strong>network_name</strong> (<em>str</em>) – name of the new network.</li>
+<li><strong>gateway_ip</strong> (<em>str</em>) – IP address of the gateway of the new network.</li>
+<li><strong>netmask</strong> (<em>str</em>) – network mask.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the new network.</li>
+<li><strong>primary_dns_ip</strong> (<em>str</em>) – IP address of primary DNS server.</li>
+<li><strong>secondary_dns_ip</strong> (<em>str</em>) – IP address of secondary DNS Server.</li>
+<li><strong>dns_suffix</strong> (<em>str</em>) – DNS suffix.</li>
+<li><strong>ip_range_start</strong> (<em>str</em>) – start address of the IP ranges used for
 static pool allocation in the network.</li>
-<li><strong>ip_range_end</strong> – (str): End address of the IP ranges used for
-static pool allocation in the network.</li>
-<li><strong>is_dhcp_enabled</strong> – (bool): Is DHCP service enabled on the new
-network.</li>
-<li><strong>default_lease_time</strong> – (int): Default lease in seconds for DHCP
+<li><strong>ip_range_end</strong> (<em>str</em>) – end address of the IP ranges used for static
+pool allocation in the network.</li>
+<li><strong>is_dhcp_enabled</strong> (<em>bool</em>) – True, if DHCP service is enabled on the
+new network.</li>
+<li><strong>default_lease_time</strong> (<em>int</em>) – default lease in seconds for DHCP
 addresses.</li>
-<li><strong>max_lease_time</strong> – (int): Max lease in seconds for DHCP addresses.</li>
-<li><strong>dhcp_ip_range_start</strong> – (str): Start address of the IP range
-used for DHCP addresses.</li>
-<li><strong>dhcp_ip_range_end</strong> – (str): End address of the IP range used for
+<li><strong>max_lease_time</strong> (<em>int</em>) – max lease in seconds for DHCP addresses.</li>
+<li><strong>dhcp_ip_range_start</strong> (<em>str</em>) – start address of the IP range used for
 DHCP addresses.</li>
-<li><strong>is_shared</strong> – (bool): True, if the network is shared with other
-vdc(s) in the organization, else False.</li>
+<li><strong>dhcp_ip_range_end</strong> (<em>str</em>) – end address of the IP range used for DHCP
+addresses.</li>
+<li><strong>is_shared</strong> (<em>bool</em>) – True, if the network is shared with other vdc(s)
+in the organization, else False.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-a sparsely populated OrgVdcNetwork element.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.ORG_VDC_NETWORK XML data which
+represents an org vdc network.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -192,19 +206,23 @@ a sparsely populated OrgVdcNetwork element.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str) Name of the new vApp.</li>
-<li><strong>description</strong> – (str) Description of the new vApp.</li>
-<li><strong>network</strong> – (str) Name of the OrgVDC network the vApp will
+<li><strong>name</strong> (<em>str</em>) – name of the new vApp.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the new vApp.</li>
+<li><strong>network</strong> (<em>str</em>) – name of the org vdc network that the vApp will
 connect to.</li>
-<li><strong>fence_mode</strong> – (str): Network fence mode.
-Possible values are <cite>bridged</cite> and <cite>natRouted</cite></li>
-<li><strong>accept_all_eulas</strong> – (bool): True confirms acceptance of all EULAs
-in a vApp template.</li>
+<li><strong>fence_mode</strong> (<em>str</em>) – network fence mode. Acceptable values are
+pyvcloud.vcd.client.FenceMode.BRIDGED.value and
+pyvcloud.vcd.client.FenceMode.NAT_ROUTED.value.</li>
+<li><strong>accept_all_eulas</strong> (<em>bool</em>) – True confirms acceptance of all EULAs
+for the vApp template.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing a
-sparsely populated vApp element in the target vdc.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.VAPP XML data which represents
+the new created vApp in the org vdc.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -220,18 +238,22 @@ sparsely populated vApp element in the target vdc.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): Name of the orgvdc network to be deleted.</li>
-<li><strong>force</strong> – (bool): If True, will instruct vcd to force delete
-the network, ignoring whether it’s connected to a vm or vapp
-network or not.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the orgvdc network we want to delete.</li>
+<li><strong>force</strong> (<em>bool</em>) – if True, will instruct vcd to force delete the
+network, ignoring whether it is connected to a vm or vapp network
+or not.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
 the asynchronous task that’s deleting the network.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">Exception: If orgvdc network with the given name is not found.</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if orgvdc network with the given name
+is not found.</p>
 </td>
 </tr>
 </tbody>
@@ -247,17 +269,19 @@ the asynchronous task that’s deleting the network.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): The name of the Disk to delete.</li>
-<li><strong>disk_id</strong> – (str): The id of the disk to delete.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the disk to delete.</li>
+<li><strong>disk_id</strong> (<em>str</em>) – id of the disk to delete.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
 the asynchronous task deleting the disk.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">Exception: If the named disk cannot be located or some
-other error occurs.</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the named disk cannot be located.</p>
 </td>
 </tr>
 </tbody>
@@ -273,18 +297,22 @@ other error occurs.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): Name of the orgvdc network to be deleted.</li>
-<li><strong>force</strong> – (bool): If True, will instruct vcd to force delete
-the network, ignoring whether it’s connected to a vm or vapp
-network or not.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the orgvdc network we want to delete.</li>
+<li><strong>force</strong> (<em>bool</em>) – if True, will instruct vcd to force delete the
+network, ignoring whether it is connected to a vm or vapp network
+or not.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
 the asynchronous task that’s deleting the network.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">Exception: If orgvdc network with the given name is not found.</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if orgvdc network with the given name
+is not found.</p>
 </td>
 </tr>
 </tbody>
@@ -294,19 +322,31 @@ the asynchronous task that’s deleting the network.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.delete_vapp">
 <code class="descname">delete_vapp</code><span class="sig-paren">(</span><em>name</em>, <em>force=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.delete_vapp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.vdc.VDC.delete_vdc">
-<code class="descname">delete_vdc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.delete_vdc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Delete the current Organization vDC.</p>
+<dd><p>Delete a vApp in the current org vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vdc_name</strong> – The name of the org vdc to delete</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the vApp to be deleted.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named vApp can not be found.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">MultipleRecordsException: if more than one vApp with the
+provided name are found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vdc.VDC.delete_vdc">
+<code class="descname">delete_vdc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.delete_vdc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete the current org vdc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vdc_name</strong> (<em>str</em>) – name of the org vdc to delete.</td>
 </tr>
 </tbody>
 </table>
@@ -320,9 +360,12 @@ the asynchronous task that’s deleting the network.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>enable</strong> – (bool): enable/disable the vdc.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>enable</strong> (<em>bool</em>) – True, to enable the vdc. False, to disable the vdc.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(OrgVdcType) updated vdc object.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.VDC XML data representing the
+updated org vdc.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -336,8 +379,10 @@ the asynchronous task that’s deleting the network.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the access settings of the vdc.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS which
+represents the access control list of the vdc.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -351,12 +396,15 @@ the access settings of the vdc.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – (str): Name of the orgvdc network we want to retrieve.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the orgvdc network we want to retrieve.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-a directly connected orgvdc network resource.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.ORG_VDC_NETWORK XML data which
+represents an org vdc network.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: If orgvdc network with the given name is not found.</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if orgvdc network with the given name
+is not found.</td>
 </tr>
 </tbody>
 </table>
@@ -371,17 +419,23 @@ a directly connected orgvdc network resource.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): The name of the disk.</li>
-<li><strong>disk_id</strong> – (str): The id of the disk.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the disk.</li>
+<li><strong>disk_id</strong> (<em>str</em>) – id of the disk.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the existing disk.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.DISK XML data which represents
+the disk.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">Exception: If the named disk cannot be located or some
-other error occurs.</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">InvalidParameterException: if neither name nor the disk_id
+param is specified.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the named disk cannot be located.</p>
 </td>
 </tr>
 </tbody>
@@ -391,13 +445,18 @@ other error occurs.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.get_disks">
 <code class="descname">get_disks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.get_disks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Request a list of independent disks defined in a vdc.</p>
+<dd><p>Request a list of independent disks defined in the vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>lxml.objectify.StringElement’ objects
-describing the existing disks.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of objects, where each object is an
+lxml.objectify.ObjectifiedElement containing EntityType.DISK XML
+element representing an independent disk. The object also contain
+information of all the vms to which the independent disk is
+attached to.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -411,12 +470,15 @@ describing the existing disks.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – (str): Name of the orgvdc network we want to retrieve.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the orgvdc network we want to retrieve.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-an isolated orgvdc network resource.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.ORG_VDC_NETWORK XML data which
+represents an org vdc network.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: If orgvdc network with the given name is not found.</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if orgvdc network with the given name
+is not found.</td>
 </tr>
 </tbody>
 </table>
@@ -425,26 +487,68 @@ an isolated orgvdc network resource.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.get_resource">
 <code class="descname">get_resource</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.get_resource" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.vdc.VDC.get_resource_href">
-<code class="descname">get_resource_href</code><span class="sig-paren">(</span><em>name</em>, <em>entity_type=&lt;EnumValue: EntityType.VAPP [value=application/vnd.vmware.vcloud.vApp+xml]&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.get_resource_href" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.vdc.VDC.get_storage_profile">
-<code class="descname">get_storage_profile</code><span class="sig-paren">(</span><em>profile_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.get_storage_profile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Request a specific Storage Profile within a Virtual Data Center.</p>
+<dd><p>Fetches the XML representation of the org vdc from vCD.</p>
+<p>Will serve cached response if possible.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>profile_name</strong> – (str): The name of the requested storage profile.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">object containing EntityType.VDC XML data representing the
+org vdc.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(VdcStorageProfileType)
-A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing the
-requested storage profile.</td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vdc.VDC.get_resource_href">
+<code class="descname">get_resource_href</code><span class="sig-paren">(</span><em>name</em>, <em>entity_type=&lt;EnumValue: EntityType.VAPP [value=application/vnd.vmware.vcloud.vApp+xml]&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.get_resource_href" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches href of a vApp in the org vdc from vCD.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<em>str</em>) – name of the vApp.</li>
+<li><strong>entity_type</strong> (<a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType" title="pyvcloud.vcd.client.EntityType"><em>pyvcloud.vcd.client.EntityType</em></a>) – type of entity we
+want to retrieve. <em>Please note that this function is incapable of
+returning anything other than vApps at this point.</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">href of the vApp identified by its name.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">str</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">EntityNotFoundException: if the named vApp can not be found.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">MultipleRecordsException: if more than one vApp with the
+provided name are found.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vdc.VDC.get_storage_profile">
+<code class="descname">get_storage_profile</code><span class="sig-paren">(</span><em>profile_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.get_storage_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a specific Storage Profile within an org vdc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>profile_name</strong> (<em>str</em>) – name of the requested storage profile.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing VdcStorageProfile XML element that
+represents the requested storage profile.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -453,13 +557,16 @@ requested storage profile.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.get_storage_profiles">
 <code class="descname">get_storage_profiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.get_storage_profiles" title="Permalink to this definition">¶</a></dt>
-<dd><p>Request a list of the Storage Profiles defined in a vdc.</p>
+<dd><p>Fetch a list of the Storage Profiles defined in a vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of :class:<a href="#id3"><span class="problematic" id="id4">`</span></a>lxml.objectify.StringElement’ objects
-representing the existing storage profiles.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of lxml.objectify.ObjectifiedElement objects, where
+each object contains VdcStorageProfile XML element representing an
+existing storage profile.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -468,49 +575,74 @@ representing the existing storage profiles.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.get_vapp">
 <code class="descname">get_vapp</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.get_vapp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Fetches XML representation of a vApp in the org vdc from vCD.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the vApp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">object containing EntityType.VAPP XML data representing the
+vApp.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named vApp can not be found.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">MultipleRecordsException: if more than one vApp with the
+provided name are found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.instantiate_vapp">
-<code class="descname">instantiate_vapp</code><span class="sig-paren">(</span><em>name</em>, <em>catalog</em>, <em>template</em>, <em>network=None</em>, <em>fence_mode='bridged'</em>, <em>ip_allocation_mode='dhcp'</em>, <em>deploy=True</em>, <em>power_on=True</em>, <em>accept_all_eulas=False</em>, <em>memory=None</em>, <em>cpu=None</em>, <em>disk_size=None</em>, <em>password=None</em>, <em>cust_script=None</em>, <em>vm_name=None</em>, <em>hostname=None</em>, <em>storage_profile=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.instantiate_vapp" title="Permalink to this definition">¶</a></dt>
+<code class="descname">instantiate_vapp</code><span class="sig-paren">(</span><em>name</em>, <em>catalog</em>, <em>template</em>, <em>description=None</em>, <em>network=None</em>, <em>fence_mode='bridged'</em>, <em>ip_allocation_mode='dhcp'</em>, <em>deploy=True</em>, <em>power_on=True</em>, <em>accept_all_eulas=False</em>, <em>memory=None</em>, <em>cpu=None</em>, <em>disk_size=None</em>, <em>password=None</em>, <em>cust_script=None</em>, <em>vm_name=None</em>, <em>hostname=None</em>, <em>ip_address=None</em>, <em>storage_profile=None</em>, <em>network_adapter_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.instantiate_vapp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Instantiate a vApp from a vApp template in a catalog.</p>
-<p>If customization parameters are provided, it will customize the VM and
-guest OS, taking some assumptions.
-See each parameter for details.</p>
+<p>If customization parameters are provided, it will customize the vm and
+guest OS, taking some assumptions.</p>
+<p>A general assumption is made by this method that there is only one vm
+in the vApp. And the vm has only one NIC.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): The name of the new vApp.</li>
-<li><strong>catalog</strong> – (str): The name of the catalog.</li>
-<li><strong>template</strong> – (str): The name of the vApp template.</li>
-<li><strong>network</strong> – (str): The name of a vdc network.
-When provided, connects the VM to the network.
-It assumes one VM in the vApp and one NIC in the VM.</li>
-<li><strong>fence_mode</strong> – (str): Fence mode.
-Possible values are <cite>bridged</cite> and <cite>natRouted</cite></li>
-<li><strong>ip_allocation_mode</strong> – (str): IP allocation mode.
-Possible values are <cite>pool</cite>, <cite>dhcp</cite> and <cite>static</cite></li>
-<li><strong>deploy</strong> – (bool):</li>
-<li><strong>power_on</strong> – (bool):</li>
-<li><strong>accept_all_eulas</strong> – (bool): True confirms acceptance of all EULAs
-in a vApp template.</li>
-<li><strong>memory</strong> – (int):</li>
-<li><strong>cpu</strong> – (int):</li>
-<li><strong>disk_size</strong> – (int):</li>
-<li><strong>password</strong> – (str):</li>
-<li><strong>cust_script</strong> – (str):</li>
-<li><strong>vm_name</strong> – (str): When provided, set the name of the VM.
-It assumes one VM in the vApp.</li>
-<li><strong>hostname</strong> – (str): When provided, set the hostname of the guest
-OS. It assumes one VM in the vApp.</li>
-<li><strong>storage_profile</strong> – (str):</li>
+<li><strong>name</strong> (<em>str</em>) – name of the new vApp.</li>
+<li><strong>catalog</strong> (<em>str</em>) – name of the catalog.</li>
+<li><strong>template</strong> (<em>str</em>) – name of the vApp template.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the new vApp.</li>
+<li><strong>network</strong> (<em>str</em>) – name of a vdc network. When provided, connects the
+vm to the network.</li>
+<li><strong>fence_mode</strong> (<em>str</em>) – fence mode. Possible values are
+pyvcloud.vcd.client.FenceMode.BRIDGED.value and
+pyvcloud.vcd.client.FenceMode.NAT_ROUTED.value.</li>
+<li><strong>ip_allocation_mode</strong> (<em>str</em>) – ip allocation mode. Acceptable values
+are <cite>pool</cite>, <cite>dhcp</cite> and <cite>manual</cite>.</li>
+<li><strong>deploy</strong> (<em>bool</em>) – if True deploy the vApp after instantiation.</li>
+<li><strong>power_on</strong> (<em>bool</em>) – if True, power on the vApp after instantiation.</li>
+<li><strong>accept_all_eulas</strong> (<em>bool</em>) – True, confirms acceptance of all EULAs in
+a vApp template.</li>
+<li><strong>memory</strong> (<em>int</em>) – </li>
+<li><strong>cpu</strong> (<em>int</em>) – </li>
+<li><strong>disk_size</strong> (<em>int</em>) – </li>
+<li><strong>password</strong> (<em>str</em>) – </li>
+<li><strong>cust_script</strong> (<em>str</em>) – </li>
+<li><strong>vm_name</strong> (<em>str</em>) – (str): when provided, sets the name of the vm.</li>
+<li><strong>ip_address</strong> (<em>str</em>) – when provided, sets the ip_address of the vm.</li>
+<li><strong>hostname</strong> (<em>str</em>) – when provided, sets the hostname of the guest OS.</li>
+<li><strong>storage_profile</strong> (<em>str</em>) – </li>
+<li><strong>network_adapter_type</strong> (<em>str</em>) – One of the values in
+pyvcloud.vcd.client.NetworkAdapterType.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing the
-new vApp.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.VAPP XML data which
+represents the new vApp.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -520,13 +652,15 @@ new vApp.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.list_edge_gateways">
 <code class="descname">list_edge_gateways</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.list_edge_gateways" title="Permalink to this definition">¶</a></dt>
-<dd><p>Request a list of edge gateways defined in a vdc.</p>
+<dd><p>Fetch a list of edge gateways defined in a vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of :class:<a href="#id5"><span class="problematic" id="id6">`</span></a>lxml.objectify.StringElement’ objects
-representing existing edge gateway records.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of dictionaries, where each dictionary contains the
+name and href of an edge gateway.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -540,8 +674,11 @@ representing existing edge gateway records.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> objects
-representing all directly connected orgvdc network resources.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of lxml.objectify.ObjectifiedElement objects, where
+each object contains EntityType.ORG_VDC_NETWORK XML data which
+represents an org vdc network.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -555,8 +692,11 @@ representing all directly connected orgvdc network resources.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> objects
-representing all isolated orgvdc network resources.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of lxml.objectify.ObjectifiedElement objects, where
+each object contains EntityType.ORG_VDC_NETWORK XML data which
+represents an org vdc network.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -570,8 +710,11 @@ representing all isolated orgvdc network resources.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> objects
-representing all orgvdc network records.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of lxml.objectify.ObjectifiedElement objects, where
+each object contains OrgVdcNetworkRecord XML element which
+represents an org vdc network record.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -586,14 +729,18 @@ representing all orgvdc network records.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): Name of the networks we want to retrieve.</li>
-<li><strong>type</strong> – (str): Type of networks we want to retrieve, valid values
+<li><strong>name</strong> (<em>str</em>) – name of the networks we want to retrieve.</li>
+<li><strong>type</strong> (<em>str</em>) – type of networks we want to retrieve, valid values
 are ‘bridged’ and ‘isolated’.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> objects
-representing orgvdc network resources.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a list of lxml.objectify.ObjectifiedElement objects, where
+each object contains EntityType.ORG_VDC_NETWORK XML data which
+represents an org vdc network.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
 </td>
 </tr>
 </tbody>
@@ -603,33 +750,61 @@ representing orgvdc network resources.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.list_resources">
 <code class="descname">list_resources</code><span class="sig-paren">(</span><em>entity_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.list_resources" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Fetch information about all resources in the current org vdc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entity_type</strong> (<em>str</em>) – filter to restrict type of resource we want to
+fetch. EntityType.VAPP.value and EntityType.VAPP_TEMPLATE.value
+both are acceptable values.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a list of dictionaries, where each dictionary represents a
+resource e.g. vApp templates, vApps. And each dictionary has ‘name’
+and ‘type’ of the resource.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.reload">
 <code class="descname">reload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.reload" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Reloads the resource representation of the org vdc.</p>
+<p>This method should be called in between two method invocations on the
+VDC object, if the former call changes the representation of the
+org vdc in vCD.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.remove_access_settings">
 <code class="descname">remove_access_settings</code><span class="sig-paren">(</span><em>access_settings_list=None</em>, <em>remove_all=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.remove_access_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove access settings from a particular vdc.</p>
+<dd><p>Remove access settings from the vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>access_settings_list</strong> – (list of dict): list of access_setting
-in the dict format. Each dict contains:
-type: (str): type of the subject. Only ‘user’ allowed for vdc.
-name: (str): name of the user.</li>
-<li><strong>remove_all</strong> – (bool) : True if all access settings of the vdc
-should be removed</li>
+<li><strong>access_settings_list</strong> (<em>list</em>) – <p>list of dictionaries, where each
+dictionary represents a single access setting. The dictionary
+structure is as follows,</p>
+<ul>
+<li>type: (str): type of the subject. One of ‘org’ or ‘user’.</li>
+<li>name: (str): name of the user or org.</li>
+</ul>
+</li>
+<li><strong>remove_all</strong> (<em>bool</em>) – True, if the entire Access Control List of the
+vdc should be removed, else False.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the vdc.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated access control setting of the vdc.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement`</p>
 </td>
 </tr>
 </tbody>
@@ -644,11 +819,14 @@ the updated access control setting of the vdc.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>everyone_access_level</strong> – (str) : access level when sharing the
-vdc with everyone. Only ‘ReadOnly’ is allowed for vdc.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>everyone_access_level</strong> (<em>str</em>) – level of access granted while
+sharing the vdc with everyone. ‘ReadOnly’ is the only allowed
+value.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the vdc.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated access control setting of the vdc.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -664,8 +842,10 @@ access to the whole org.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the vdc.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated access control setting of the vdc.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -680,23 +860,25 @@ the updated access control setting of the vdc.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): The name of the existing disk.</li>
-<li><strong>disk_id</strong> – (str): The id of the existing disk.</li>
-<li><strong>new_name</strong> – (str): The new name of the disk.</li>
-<li><strong>new_size</strong> – (int): The new size of the disk in bytes.</li>
-<li><strong>new_description</strong> – (str): The new description of the disk.</li>
-<li><strong>new_storage_profile_name</strong> – (str): The new storage profile that
-the disk will be moved to.</li>
-<li><strong>new_iops</strong> – (int): The new iops requirement of the disk.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the existing disk.</li>
+<li><strong>disk_id</strong> (<em>str</em>) – id of the existing disk.</li>
+<li><strong>new_name</strong> (<em>str</em>) – new name of the disk.</li>
+<li><strong>new_size</strong> (<em>str</em>) – new size of the disk in bytes.</li>
+<li><strong>new_description</strong> (<em>str</em>) – new description of the disk.</li>
+<li><strong>new_storage_profile_name</strong> (<em>str</em>) – new storage profile that the disk
+will be moved to.</li>
+<li><strong>new_iops</strong> (<em>int</em>) – new iops requirement of the disk.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
 the asynchronous task updating the disk.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">Exception: If the named disk cannot be located or some
-other error occurs.</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the named disk cannot be located.</p>
 </td>
 </tr>
 </tbody>
@@ -724,9 +906,9 @@ other error occurs.</p>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -759,7 +941,7 @@ other error occurs.</p>
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

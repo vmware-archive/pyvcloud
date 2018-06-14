@@ -1,0 +1,654 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pyvcloud.system_test_framework.environment module &#8212; pyvcloud  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pyvcloud.vcd package" href="pyvcloud.vcd.html" />
+    <link rel="prev" title="pyvcloud.system_test_framework.base_test module" href="pyvcloud.system_test_framework.base_test.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pyvcloud.system_test_framework.environment">
+<span id="pyvcloud-system-test-framework-environment-module"></span><h1>pyvcloud.system_test_framework.environment module<a class="headerlink" href="#module-pyvcloud.system_test_framework.environment" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pyvcloud.system_test_framework.environment.CommonRoles">
+<em class="property">class </em><code class="descclassname">pyvcloud.system_test_framework.environment.</code><code class="descname">CommonRoles</code><a class="headerlink" href="#pyvcloud.system_test_framework.environment.CommonRoles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">flufl.enum._enum.Enum</span></code></p>
+<dl class="attribute">
+<dt id="pyvcloud.system_test_framework.environment.CommonRoles.CATALOG_AUTHOR">
+<code class="descname">CATALOG_AUTHOR</code><em class="property"> = &lt;EnumValue: CommonRoles.CATALOG_AUTHOR [value=Catalog Author]&gt;</em><a class="headerlink" href="#pyvcloud.system_test_framework.environment.CommonRoles.CATALOG_AUTHOR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.system_test_framework.environment.CommonRoles.CONSOLE_ACCESS_ONLY">
+<code class="descname">CONSOLE_ACCESS_ONLY</code><em class="property"> = &lt;EnumValue: CommonRoles.CONSOLE_ACCESS_ONLY [value=Console Access Only]&gt;</em><a class="headerlink" href="#pyvcloud.system_test_framework.environment.CommonRoles.CONSOLE_ACCESS_ONLY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.system_test_framework.environment.CommonRoles.ORGANIZATION_ADMINISTRATOR">
+<code class="descname">ORGANIZATION_ADMINISTRATOR</code><em class="property"> = &lt;EnumValue: CommonRoles.ORGANIZATION_ADMINISTRATOR [value=Organization Administrator]&gt;</em><a class="headerlink" href="#pyvcloud.system_test_framework.environment.CommonRoles.ORGANIZATION_ADMINISTRATOR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.system_test_framework.environment.CommonRoles.VAPP_AUTHOR">
+<code class="descname">VAPP_AUTHOR</code><em class="property"> = &lt;EnumValue: CommonRoles.VAPP_AUTHOR [value=vApp Author]&gt;</em><a class="headerlink" href="#pyvcloud.system_test_framework.environment.CommonRoles.VAPP_AUTHOR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.system_test_framework.environment.CommonRoles.VAPP_USER">
+<code class="descname">VAPP_USER</code><em class="property"> = &lt;EnumValue: CommonRoles.VAPP_USER [value=vApp User]&gt;</em><a class="headerlink" href="#pyvcloud.system_test_framework.environment.CommonRoles.VAPP_USER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyvcloud.system_test_framework.environment.Environment">
+<em class="property">class </em><code class="descclassname">pyvcloud.system_test_framework.environment.</code><code class="descname">Environment</code><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.attach_vc">
+<em class="property">classmethod </em><code class="descname">attach_vc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.attach_vc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attaches VC and NSX to vCD as per configuration file.</p>
+<p>If VC is already attached no further action is taken.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.cleanup">
+<em class="property">classmethod </em><code class="descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleans up the various class variables.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.create_catalog">
+<em class="property">classmethod </em><code class="descname">create_catalog</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.create_catalog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a catalog by the name specified in the configuration  file.</p>
+<p>Skips creating one, if such a catalog already exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.create_org">
+<em class="property">classmethod </em><code class="descname">create_org</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.create_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an org by the name specified in the config file.</p>
+<p>Skips creating one, if such an org already exists. Also stores the
+href of the org as class variable for future use.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.create_ovdc">
+<em class="property">classmethod </em><code class="descname">create_ovdc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.create_ovdc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an org vdc with the name specified in the config file.</p>
+<dl class="docutils">
+<dt>Skips creating one, if such an org vdc already exists. Also stores the</dt>
+<dd>href of the org vdc as class variable for future use.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href or _pvdc_name
+is not populated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.create_ovdc_network">
+<em class="property">classmethod </em><code class="descname">create_ovdc_network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.create_ovdc_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an isolated org vdc network.</p>
+<p>The name of the created org vdc network is specified in the
+configuration file, skips creating one, if such a network already
+exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _ovdc_href is not populated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.create_pvdc">
+<em class="property">classmethod </em><code class="descname">create_pvdc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.create_pvdc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a pvdc by the name specified in the config file.</p>
+<p>Skips creating one, if such a pvdc already exists. Also stores the
+href and name of the provider vdc as class variables for future use.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.create_users">
+<em class="property">classmethod </em><code class="descname">create_users</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.create_users" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates users for each of the roles in CommonRoles.</p>
+<p>Skips creating users which are already present in the organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_client">
+<em class="property">classmethod </em><code class="descname">get_client</code><span class="sig-paren">(</span><em>org</em>, <em>username</em>, <em>password</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a client for a particular user.</p>
+<p>The user is identified by the specified username-password combo in a
+given organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>org</strong> (<em>str</em>) – name of the organization, which the user belongs to.</li>
+<li><strong>username</strong> (<em>str</em>) – username of the user.</li>
+<li><strong>password</strong> (<em>str</em>) – password of the user.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A :class:  object.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client">pyvcloud.vcd.client.Client</a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">Exception: if the basic configuration is missing.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_client_in_default_org">
+<em class="property">classmethod </em><code class="descname">get_client_in_default_org</code><span class="sig-paren">(</span><em>role</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_client_in_default_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a client.</p>
+<p>The client is for a user in the default test organization who has the
+specified role.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>role</strong> (<a class="reference internal" href="#pyvcloud.system_test_framework.environment.CommonRoles" title="pyvcloud.system_test_framework.environment.CommonRoles"><em>CommonRoles</em></a>) – role of the user.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a client configured with a user of the specified role logged
+in.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client">pyvcloud.vcd.client.Client</a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the basic configuration is missing.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_config">
+<em class="property">classmethod </em><code class="descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get test configuration parameter dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dict containing configuration information.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_default_catalog_name">
+<em class="property">classmethod </em><code class="descname">get_default_catalog_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_default_catalog_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of the default catalog that will be used for testing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">name of the test catalog.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_default_logger">
+<em class="property">classmethod </em><code class="descname">get_default_logger</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_default_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a handle to the logger for system_tests.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">default logger instance.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">logging.Logger</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_default_orgvdc_network_name">
+<em class="property">classmethod </em><code class="descname">get_default_orgvdc_network_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_default_orgvdc_network_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of the default org vdc network for testing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">name of the org vdc network.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_default_template_name">
+<em class="property">classmethod </em><code class="descname">get_default_template_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_default_template_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of the default template that will be used for testing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">name of the test template.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_default_vapp">
+<em class="property">classmethod </em><code class="descname">get_default_vapp</code><span class="sig-paren">(</span><em>client</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_default_vapp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the default vApp that will be used for testing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>client</strong> (<a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client"><em>pyvcloud.vcd.client.Client</em></a>) – client which will be used to
+create the VApp object.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the vApp that will be used in tests.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp" title="pyvcloud.vcd.vapp.VApp">pyvcloud.vcd.vapp.VApp</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_default_vm_name">
+<em class="property">classmethod </em><code class="descname">get_default_vm_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_default_vm_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of the default vm that will be used for testing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return (str):</th><td class="field-body">The name of the test vm.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_sys_admin_client">
+<em class="property">classmethod </em><code class="descname">get_sys_admin_client</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_sys_admin_client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the sys admin client, creates one if required.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the sys admin client.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client">pyvcloud.vcd.client.Client</a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the basic configuration is missing.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_test_org">
+<em class="property">classmethod </em><code class="descname">get_test_org</code><span class="sig-paren">(</span><em>client</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_test_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the organization used for testing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>client</strong> (<a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client"><em>pyvcloud.vcd.client.Client</em></a>) – client which will be used to
+create the Org object.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the organization in which all tests will run.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org" title="pyvcloud.vcd.org.Org">pyvcloud.vcd.org.Org</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_test_vdc">
+<em class="property">classmethod </em><code class="descname">get_test_vdc</code><span class="sig-paren">(</span><em>client</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_test_vdc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the vdc for testing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>client</strong> (<a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client"><em>pyvcloud.vcd.client.Client</em></a>) – client which will be used to
+create the VDC object.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the vdc that is backing the organization in which all tests
+will run.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC" title="pyvcloud.vcd.vdc.VDC">pyvcloud.vcd.vdc.VDC</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_user_href_in_test_org">
+<em class="property">classmethod </em><code class="descname">get_user_href_in_test_org</code><span class="sig-paren">(</span><em>user_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_user_href_in_test_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets href of an user in the test organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user_name</strong> (<em>str</em>) – name of the user whose href needs to be
+retrieved.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">href of the user.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_username_for_role_in_test_org">
+<em class="property">classmethod </em><code class="descname">get_username_for_role_in_test_org</code><span class="sig-paren">(</span><em>role_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_username_for_role_in_test_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the username of the user in the test org with particular role.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>role_name</strong> (<em>str</em>) – name of the role which the concerned user has.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">username of the concerned user.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_vapp_in_test_vdc">
+<em class="property">classmethod </em><code class="descname">get_vapp_in_test_vdc</code><span class="sig-paren">(</span><em>client</em>, <em>vapp_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_vapp_in_test_vdc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the vApp identified by it’s name in the current org vdc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>client</strong> (<a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client"><em>pyvcloud.vcd.client.Client</em></a>) – client which will be used to
+create the VApp object.</li>
+<li><strong>vapp_name</strong> (<em>str</em>) – name of the vApp which needs to be retrieved.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the requested vApp.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp" title="pyvcloud.vcd.vapp.VApp">pyvcloud.vcd.vapp.VApp</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.init">
+<em class="property">classmethod </em><code class="descname">init</code><span class="sig-paren">(</span><em>config_data</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer for Environment class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config_data</strong> (<em>object</em>) – a PyYAML object that contains the yaml
+representation of configuration data read from the configuration
+file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.instantiate_vapp">
+<em class="property">classmethod </em><code class="descname">instantiate_vapp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.instantiate_vapp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates the test template in the test catalog.</p>
+<p>This template will be used to create the test vApp. if the vApp already
+exists then skips creating it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _ovdc_href is not populated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.share_catalog">
+<em class="property">classmethod </em><code class="descname">share_catalog</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.share_catalog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shares the test catalog with all members in the test organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the catalog in question is
+missing.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.upload_template">
+<em class="property">classmethod </em><code class="descname">upload_template</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.upload_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uploads the test template to the test catalog.</p>
+<p>If template already exists in the catalog then skips uploading it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvcloud.system_test_framework.environment.developerModeAware">
+<code class="descclassname">pyvcloud.system_test_framework.environment.</code><code class="descname">developerModeAware</code><span class="sig-paren">(</span><em>function</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.developerModeAware" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator function to skip execution of decorated function.</p>
+<p>To be used on test teardown methods.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>function</strong> (<em>function</em>) – decorated function.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a function that either executes the decorated function or skips
+it, based on the value of a particular param in the environment
+configuration.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">function</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pyvcloud</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<hr />
+<ul>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud">Visit project on Github</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/LICENSE.txt">License</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/docs/install.md">Installation</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/CONTRIBUTING.md">Contributing</a></li>
+    <li class="toctree-l1"><a href="https://blogs.vmware.com/vcat/">Blog Articles</a></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, VMware Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/pyvcloud.system_test_framework.environment.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

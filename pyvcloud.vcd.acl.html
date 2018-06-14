@@ -9,7 +9,7 @@
     <title>pyvcloud.vcd.acl module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -41,21 +41,30 @@
 <dt id="pyvcloud.vcd.acl.Acl.add_access_settings">
 <code class="descname">add_access_settings</code><span class="sig-paren">(</span><em>access_settings_list=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.acl.Acl.add_access_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add access settings.</p>
-<p>Append a new access control list to the existing ACL of the parent
-resource</p>
+<p>Append new / Overwrite old access setting(s) to the existing Access
+Control List of the parent resource.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>access_settings_list</strong> – (list of dict): list of access_setting
-in the dict format. Each dict contains:
-type: (str): type of the subject. One of ‘org’ or ‘user’.
-name: (str): name of the user or org.
-access_level: (str): access_level of the particular subject. One of
-‘ReadOnly’, ‘Change’, ‘FullControl’</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>access_settings_list</strong> (<em>list</em>) – <p>list of dictionaries, where each
+dictionary represents a single access setting. The dictionary
+structure is as follows,</p>
+<ul class="simple">
+<li>type: (str): type of the subject. One of ‘org’ or ‘user’.</li>
+<li>name: (str): name of the user or org.</li>
+<li><dl class="first docutils">
+<dt>access_level: (str): access_level of the particular subject.</dt>
+<dd>Allowed values are ‘ReadOnly’, ‘Change’ or ‘FullControl’.</dd>
+</dl>
+</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the resource.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated Access Control List of the resource.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -64,35 +73,49 @@ the updated access control setting of the resource.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.acl.Acl.convert_access_settings_list_to_params">
 <code class="descname">convert_access_settings_list_to_params</code><span class="sig-paren">(</span><em>access_settings_list</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.acl.Acl.convert_access_settings_list_to_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert access_settings_list to object of type AccessSettingsType.</p>
+<dd><p>Convert access settings from one format to other.</p>
+<p>Convert dictionary representation of access settings to AccessSettings
+XML element. Please refer to schema definition of
+EntityType.CONTROL_ACCESS_PARAMS for more details.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>access_settings_list</strong> – (list of dict): list of access_setting
-in the dict format. Each dict contains:
-type: (str): type of the subject. One of ‘org’ or ‘user’
-name: (str): subject name
-access_level: (str): access_level of each subject. One of
-‘ReadOnly’, ‘Change’, ‘FullControl’.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>access_settings_list</strong> (<em>list</em>) – <p>list of dictionaries, where each
+dictionary represents a single access setting. The dictionary
+structure is as follows,</p>
+<ul class="simple">
+<li>type: (str): type of the subject. One of ‘org’ or ‘user’.</li>
+<li>name: (str): name of the user or org.</li>
+<li><dl class="first docutils">
+<dt>access_level: (str): access_level of the particular subject.</dt>
+<dd>Allowed values are ‘ReadOnly’, ‘Change’ or ‘FullControl’.</dd>
+</dl>
+</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing AccessSettings XML data.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
-<p>representing xml of type AccessSettingsType</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.acl.Acl.get_access_settings">
 <code class="descname">get_access_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.acl.Acl.get_access_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the access settings of the parent resource.</p>
+<dd><p>Get the Access Control List of the parent resource.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the access settings of the parent resource.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data that represents the Access Control List of the parent
+resource.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -106,7 +129,9 @@ the access settings of the parent resource.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(str): org href of the parent resource.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">href of the org to which the parent resource belongs.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
 </tr>
 </tbody>
 </table>
@@ -115,30 +140,51 @@ the access settings of the parent resource.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.acl.Acl.get_resource">
 <code class="descname">get_resource</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.acl.Acl.get_resource" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Fetches the XML representation of the Access Control List from vCD.</p>
+<p>Will serve cached response if possible.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">object containing EntityType.CONTROL_ACCESS_PARAMS XML data
+representing the concerned Access Control List.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.acl.Acl.remove_access_settings">
 <code class="descname">remove_access_settings</code><span class="sig-paren">(</span><em>access_settings_list=None</em>, <em>remove_all=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.acl.Acl.remove_access_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove access settings.</p>
-<p>Remove a list of access settings from the existing ACL of the parent
-resource</p>
+<p>Remove a list of access settings from the existing Access Control List
+of the parent resource.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>access_settings_list</strong> – (list of dict): list of access_setting
-in the dict format. Each dict contains:
-type: (str): type of the subject. One of ‘org’ or ‘user’.
-name: (str): name of the user or org.</li>
-<li><strong>remove_all</strong> – (bool) : True if all the acl of the resource
-should be removed.</li>
+<li><strong>access_settings_list</strong> (<em>list</em>) – <p>list of dictionaries, where each
+dictionary represents a single access setting. The dictionary
+structure is as follows,</p>
+<ul>
+<li>type: (str): type of the subject. One of ‘org’ or ‘user’.</li>
+<li>name: (str): name of the user or org.</li>
+</ul>
+</li>
+<li><strong>remove_all</strong> (<em>bool</em>) – True, if the entire Access Control List of the
+parent resource should be removed, else False.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the resource.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated access control setting of the
+resource.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement`</p>
 </td>
 </tr>
 </tbody>
@@ -147,22 +193,27 @@ the updated access control setting of the resource.</p>
 
 <dl class="staticmethod">
 <dt id="pyvcloud.vcd.acl.Acl.search_for_access_setting_by_subject">
-<em class="property">static </em><code class="descname">search_for_access_setting_by_subject</code><span class="sig-paren">(</span><em>subject_type</em>, <em>access_settings_params</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.acl.Acl.search_for_access_setting_by_subject" title="Permalink to this definition">¶</a></dt>
-<dd><p>Search AccessSetting object based on the subject name and type.</p>
+<em class="property">static </em><code class="descname">search_for_access_setting_by_subject</code><span class="sig-paren">(</span><em>subject_name</em>, <em>subject_type</em>, <em>access_settings_params</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.acl.Acl.search_for_access_setting_by_subject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search an AccessSettings object for a particular AccessSetting.</p>
+<p>The search is based on the subject name and type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>subject_name</strong> – (str): name of the subject</li>
-<li><strong>subject_type</strong> – (str): type of the subject. One of ‘org’, ‘user’</li>
-<li><strong>access_settings_params</strong> – (lxml.objectify.StringElement):
-AccessSettings xml object which needs to searched by subject.</li>
+<li><strong>subject_name</strong> (<em>str</em>) – name of the subject.</li>
+<li><strong>subject_type</strong> (<em>str</em>) – type of the subject. Value must be either
+‘org’ or ‘user’.</li>
+<li><strong>access_settings_params</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object containing AccessSettings XML data.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object
-representing a access setting matching the given subject.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing AccessSetting XML data representing the
+matched access setting. Please refer to schema definition of
+EntityType.CONTROL_ACCESS_PARAMS for more details.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -177,12 +228,15 @@ representing a access setting matching the given subject.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>everyone_access_level</strong> – (str) : access level when sharing the
-resource with everyone. One of ‘ReadOnly’, ‘Change’, ‘FullControl’.
-‘ReadOnly’ by default.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>everyone_access_level</strong> (<em>str</em>) – level of access granted while
+sharing the resource with everyone. Allowed values are ‘ReadOnly’,
+‘Change’, or ‘FullControl’. Default value is ‘ReadOnly’.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the resource.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated access control setting of the
+resource.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -196,8 +250,11 @@ the updated access control setting of the resource.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the resource.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated access control setting of the
+resource.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -206,19 +263,23 @@ the updated access control setting of the resource.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.acl.Acl.update_resource">
 <code class="descname">update_resource</code><span class="sig-paren">(</span><em>control_access_params</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.acl.Acl.update_resource" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the access settings of the parent resource.</p>
+<dd><p>Update the access control settings of the parent resource.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>control_access_params</strong> – (lxml.objectify.StringElement) :</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>control_access_params</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – object
+containing EntityType.CONTROL_ACCESS_PARAMS XML data representing
+the updated Access Control List.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data that represents the updated Access Control List of the parent
+resource.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
-<p>access settings to be updated.
-:return:  A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing</p>
-<blockquote>
-<div>the updated access settings of the parent resource.</div></blockquote>
 </dd></dl>
 
 </dd></dl>
@@ -242,9 +303,9 @@ the updated access control setting of the resource.</td>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -277,7 +338,7 @@ the updated access control setting of the resource.</td>
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

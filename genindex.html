@@ -10,7 +10,7 @@
     <title>Index &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -41,6 +41,7 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
@@ -62,7 +63,11 @@
 </li>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.access_settings_to_dict">access_settings_to_dict() (in module pyvcloud.vcd.utils)</a>
 </li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.AccessForbiddenException">AccessForbiddenException</a>
+</li>
       <li><a href="pyvcloud.vcd.acl.html#pyvcloud.vcd.acl.Acl">Acl (class in pyvcloud.vcd.acl)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ACL_RULE">ACL_RULE (pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.ADD">ADD (pyvcloud.vcd.client.RelationType attribute)</a>
 </li>
@@ -86,17 +91,69 @@
         <li><a href="pyvcloud.vcd.role.html#pyvcloud.vcd.role.Role.add_rights">(pyvcloud.vcd.role.Role method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.add_vms">add_vms() (pyvcloud.vcd.vapp.VApp method)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.ADMIN">ADMIN (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_ALLOCATED_EXTERNAL_ADDRESS">ADMIN_ALLOCATED_EXTERNAL_ADDRESS (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_API_DEFINITION">ADMIN_API_DEFINITION (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.ADMIN_CATALOG">ADMIN_CATALOG (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_CATALOG">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_CATALOG_ITEM">ADMIN_CATALOG_ITEM (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_DISK">ADMIN_DISK (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_EVENT">ADMIN_EVENT (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_FILE_DESCRIPTOR">ADMIN_FILE_DESCRIPTOR (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_GROUP">ADMIN_GROUP (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_MEDIA">ADMIN_MEDIA (pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.ADMIN_ORG">ADMIN_ORG (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_ORG_NETWORK">ADMIN_ORG_NETWORK (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_ORG_VDC">ADMIN_ORG_VDC (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_ORG_VDC_STORAGE_PROFILE">ADMIN_ORG_VDC_STORAGE_PROFILE (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_ROLE">ADMIN_ROLE (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.ADMIN_SERVICE">ADMIN_SERVICE (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_SERVICE">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_SHADOW_VM">ADMIN_SHADOW_VM (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_TASK">ADMIN_TASK (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_USER">ADMIN_USER (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_VAPP">ADMIN_VAPP (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_VAPP_NETWORK">ADMIN_VAPP_NETWORK (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_VAPP_TEMPLATE">ADMIN_VAPP_TEMPLATE (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_VM">ADMIN_VM (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ADMIN_VM_DISK_RELATION">ADMIN_VM_DISK_RELATION (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ALLOCATED_EXTERNAL_ADDRESS">ALLOCATED_EXTERNAL_ADDRESS (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.AlreadyExistsException">AlreadyExistsException</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.ALTERNATE">ALTERNATE (pyvcloud.vcd.client.RelationType attribute)</a>
 </li>
@@ -104,15 +161,23 @@
 </li>
       <li><a href="pyvcloud.vcd.amqp.html#pyvcloud.vcd.amqp.AmqpService">AmqpService (class in pyvcloud.vcd.amqp)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.API_DEFINITION">API_DEFINITION (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.API_EXTENSIBILITY">API_EXTENSIBILITY (pyvcloud.vcd.client.EntityType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.API_FILTER">API_FILTER (pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.api_extension.html#pyvcloud.vcd.api_extension.APIExtension">APIExtension (class in pyvcloud.vcd.api_extension)</a>
 </li>
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.attach_disk_to_vm">attach_disk_to_vm() (pyvcloud.vcd.vapp.VApp method)</a>
 </li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.attach_vc">attach_vc() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
       <li><a href="pyvcloud.vcd.platform.html#pyvcloud.vcd.platform.Platform.attach_vcenter">attach_vcenter() (pyvcloud.vcd.platform.Platform method)</a>
 </li>
       <li><a href="pyvcloud.vcd.api_extension.html#pyvcloud.vcd.api_extension.APIExtension.ATTRIBUTES">ATTRIBUTES (pyvcloud.vcd.api_extension.APIExtension attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.AuthenticationException">AuthenticationException</a>
 </li>
   </ul></td>
 </tr></table>
@@ -120,10 +185,16 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.BasicLoginCredentials">BasicLoginCredentials (class in pyvcloud.vcd.client)</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.BadRequestException">BadRequestException</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.base_test.html#pyvcloud.system_test_framework.base_test.BaseTestCase">BaseTestCase (class in pyvcloud.system_test_framework.base_test)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.BasicLoginCredentials">BasicLoginCredentials (class in pyvcloud.vcd.client)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.BLOCKING_TASK">BLOCKING_TASK (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.FenceMode.BRIDGED">BRIDGED (pyvcloud.vcd.client.FenceMode attribute)</a>
 </li>
   </ul></td>
@@ -139,6 +210,16 @@
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.CAPTURE_VAPP_PARAMS">CAPTURE_VAPP_PARAMS (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.CATALOG">CATALOG (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.CATALOG">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.CommonRoles.CATALOG_AUTHOR">CATALOG_AUTHOR (pyvcloud.system_test_framework.environment.CommonRoles attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.CATALOG_ITEM">CATALOG_ITEM (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.CELL">CELL (pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.change_catalog_owner">change_catalog_owner() (pyvcloud.vcd.org.Org method)</a>
 </li>
@@ -146,39 +227,67 @@
 </li>
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.change_owner">change_owner() (pyvcloud.vcd.vapp.VApp method)</a>
 </li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.cleanup">cleanup() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client">Client (class in pyvcloud.vcd.client)</a>
 </li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.ClientException">ClientException</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.CommonRoles">CommonRoles (class in pyvcloud.system_test_framework.environment)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.COMPOSE_VAPP_PARAMS">COMPOSE_VAPP_PARAMS (pyvcloud.vcd.client.EntityType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.CONDITION">CONDITION (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.ConflictException">ConflictException</a>
 </li>
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.connect_org_vdc_network">connect_org_vdc_network() (pyvcloud.vcd.vapp.VApp method)</a>
 </li>
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.connect_vm">connect_vm() (pyvcloud.vcd.vapp.VApp method)</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.CONTROL_ACCESS">CONTROL_ACCESS (pyvcloud.vcd.client.RelationType attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.CommonRoles.CONSOLE_ACCESS_ONLY">CONSOLE_ACCESS_ONLY (pyvcloud.system_test_framework.environment.CommonRoles attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.CONTROL_ACCESS">CONTROL_ACCESS (pyvcloud.vcd.client.RelationType attribute)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.CONTROL_ACCESS_PARAMS">CONTROL_ACCESS_PARAMS (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.acl.html#pyvcloud.vcd.acl.Acl.convert_access_settings_list_to_params">convert_access_settings_list_to_params() (pyvcloud.vcd.acl.Acl method)</a>
 </li>
-      <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.create_catalog">create_catalog() (pyvcloud.vcd.org.Org method)</a>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.create_catalog">create_catalog() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.create_catalog">(pyvcloud.vcd.org.Org method)</a>
 </li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.create_directly_connected_vdc_network">create_directly_connected_vdc_network() (pyvcloud.vcd.vdc.VDC method)</a>
 </li>
       <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.create_disk">create_disk() (pyvcloud.vcd.vdc.VDC method)</a>
 </li>
       <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.create_isolated_vdc_network">create_isolated_vdc_network() (pyvcloud.vcd.vdc.VDC method)</a>
 </li>
-      <li><a href="pyvcloud.vcd.system.html#pyvcloud.vcd.system.System.create_org">create_org() (pyvcloud.vcd.system.System method)</a>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.create_org">create_org() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.system.html#pyvcloud.vcd.system.System.create_org">(pyvcloud.vcd.system.System method)</a>
 </li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.create_org_vdc">create_org_vdc() (pyvcloud.vcd.org.Org method)</a>
 </li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.create_ovdc">create_ovdc() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.create_ovdc_network">create_ovdc_network() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
       <li><a href="pyvcloud.vcd.platform.html#pyvcloud.vcd.platform.Platform.create_provider_vdc">create_provider_vdc() (pyvcloud.vcd.platform.Platform method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.create_pvdc">create_pvdc() (pyvcloud.system_test_framework.environment.Environment class method)</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.create_role">create_role() (pyvcloud.vcd.org.Org method)</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.create_user">create_user() (pyvcloud.vcd.org.Org method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.create_users">create_users() (pyvcloud.system_test_framework.environment.Environment class method)</a>
 </li>
       <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.create_vapp">create_vapp() (pyvcloud.vcd.vdc.VDC method)</a>
 </li>
@@ -188,6 +297,10 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.DATASTORE">DATASTORE (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.DATASTORE_PROVIDER_VDC_RELATION">DATASTORE_PROVIDER_VDC_RELATION (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.delete_catalog">delete_catalog() (pyvcloud.vcd.org.Org method)</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.delete_catalog_item">delete_catalog_item() (pyvcloud.vcd.org.Org method)</a>
@@ -222,15 +335,17 @@
         <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.DEPLOY">(pyvcloud.vcd.client.RelationType attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.deploy">deploy() (pyvcloud.vcd.vapp.VApp method)</a>
 
       <ul>
         <li><a href="pyvcloud.vcd.vm.html#pyvcloud.vcd.vm.VM.deploy">(pyvcloud.vcd.vm.VM method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.detach_disk_from_vm">detach_disk_from_vm() (pyvcloud.vcd.vapp.VApp method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.developerModeAware">developerModeAware() (in module pyvcloud.system_test_framework.environment)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.FenceMode.DIRECT">DIRECT (pyvcloud.vcd.client.FenceMode attribute)</a>
 </li>
@@ -239,7 +354,11 @@
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.disconnect_org_vdc_network">disconnect_org_vdc_network() (pyvcloud.vcd.vapp.VApp method)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.DISK">DISK (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.DISK">(pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.DISK_ATTACH">DISK_ATTACH (pyvcloud.vcd.client.RelationType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.DISK_ATTACH_DETACH_PARAMS">DISK_ATTACH_DETACH_PARAMS (pyvcloud.vcd.client.EntityType attribute)</a>
@@ -260,14 +379,26 @@
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.download_from_uri">download_from_uri() (pyvcloud.vcd.client.Client method)</a>
 </li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.DownloadException">DownloadException</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.DV_SWITCH">DV_SWITCH (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.EDGE_GATEWAY">EDGE_GATEWAY (pyvcloud.vcd.client.EntityType attribute)</a>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.NetworkAdapterType.E1000">E1000 (pyvcloud.vcd.client.NetworkAdapterType attribute)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.NetworkAdapterType.E1000E">E1000E (pyvcloud.vcd.client.NetworkAdapterType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.EDGE_GATEWAY">EDGE_GATEWAY (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.EDGE_GATEWAY">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.EDGE_GATEWAY_SERVICE_CONFIGURATION">EDGE_GATEWAY_SERVICE_CONFIGURATION (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.EDGE_GATEWAYS">EDGE_GATEWAYS (pyvcloud.vcd.client.RelationType attribute)</a>
@@ -280,11 +411,17 @@
 </li>
       <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.enable_vdc">enable_vdc() (pyvcloud.vcd.vdc.VDC method)</a>
 </li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.EntityNotFoundException">EntityNotFoundException</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType">EntityType (class in pyvcloud.vcd.client)</a>
 </li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment">Environment (class in pyvcloud.system_test_framework.environment)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.TaskStatus.ERROR">ERROR (pyvcloud.vcd.client.TaskStatus attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.EVENT">EVENT (pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.extension.html#pyvcloud.vcd.extension.Extension">Extension (class in pyvcloud.vcd.extension)</a>
 </li>
@@ -292,6 +429,14 @@
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.EXTENSION_SERVICES">EXTENSION_SERVICES (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.EXTERNAL_LOCALIZATION">EXTERNAL_LOCALIZATION (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.EXTERNAL_NETWORK">EXTERNAL_NETWORK (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.EXTERNAL_NETWORK">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.EXTERNAL_NETWORK_REFS">EXTERNAL_NETWORK_REFS (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.extract_id">extract_id() (in module pyvcloud.vcd.utils)</a>
@@ -304,11 +449,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.FenceMode">FenceMode (class in pyvcloud.vcd.client)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.FILE_DESCRIPTOR">FILE_DESCRIPTOR (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.filter_attributes">filter_attributes() (in module pyvcloud.vcd.utils)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.find_link">find_link() (in module pyvcloud.vcd.client)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.FROM_CLOUD_TUNNEL">FROM_CLOUD_TUNNEL (pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -340,15 +489,33 @@
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.get_api_uri">get_api_uri() (pyvcloud.vcd.client.Client method)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.get_api_version">get_api_version() (pyvcloud.vcd.client.Client method)</a>
+</li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.get_catalog">get_catalog() (pyvcloud.vcd.org.Org method)</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.get_catalog_access_settings">get_catalog_access_settings() (pyvcloud.vcd.org.Org method)</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.get_catalog_item">get_catalog_item() (pyvcloud.vcd.org.Org method)</a>
 </li>
-      <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.get_catalog_resource">get_catalog_resource() (pyvcloud.vcd.org.Org method)</a>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_client">get_client() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_client_in_default_org">get_client_in_default_org() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_config">get_config() (pyvcloud.system_test_framework.environment.Environment class method)</a>
 </li>
       <li><a href="pyvcloud.vcd.vm.html#pyvcloud.vcd.vm.VM.get_cpus">get_cpus() (pyvcloud.vcd.vm.VM method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_default_catalog_name">get_default_catalog_name() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_default_logger">get_default_logger() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_default_orgvdc_network_name">get_default_orgvdc_network_name() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_default_template_name">get_default_template_name() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_default_vapp">get_default_vapp() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_default_vm_name">get_default_vm_name() (pyvcloud.system_test_framework.environment.Environment class method)</a>
 </li>
       <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.get_direct_orgvdc_network">get_direct_orgvdc_network() (pyvcloud.vcd.vdc.VDC method)</a>
 </li>
@@ -404,6 +571,8 @@
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.get_query_list">get_query_list() (pyvcloud.vcd.client.Client method)</a>
 </li>
+      <li><a href="pyvcloud.vcd.platform.html#pyvcloud.vcd.platform.Platform.get_res_by_name">get_res_by_name() (pyvcloud.vcd.platform.Platform method)</a>
+</li>
       <li><a href="pyvcloud.vcd.acl.html#pyvcloud.vcd.acl.Acl.get_resource">get_resource() (pyvcloud.vcd.acl.Acl method)</a>
 
       <ul>
@@ -438,15 +607,29 @@
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.get_supported_versions">get_supported_versions() (pyvcloud.vcd.client.Client method)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.get_supported_versions_list">get_supported_versions_list() (pyvcloud.vcd.client.Client method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_sys_admin_client">get_sys_admin_client() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.get_task_monitor">get_task_monitor() (pyvcloud.vcd.client.Client method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_test_org">get_test_org() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_test_vdc">get_test_vdc() (pyvcloud.system_test_framework.environment.Environment class method)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.get_typed_query">get_typed_query() (pyvcloud.vcd.client.Client method)</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.get_user">get_user() (pyvcloud.vcd.org.Org method)</a>
 </li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_user_href_in_test_org">get_user_href_in_test_org() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.get_user_in_org">get_user_in_org() (pyvcloud.vcd.client.Client method)</a>
 </li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_username_for_role_in_test_org">get_username_for_role_in_test_org() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
       <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.get_vapp">get_vapp() (pyvcloud.vcd.vdc.VDC method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.get_vapp_in_test_vdc">get_vapp_in_test_vdc() (pyvcloud.system_test_framework.environment.Environment class method)</a>
 </li>
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.get_vapp_network_name">get_vapp_network_name() (pyvcloud.vcd.vapp.VApp method)</a>
 </li>
@@ -464,6 +647,16 @@
 </li>
       <li><a href="pyvcloud.vcd.platform.html#pyvcloud.vcd.platform.Platform.get_vxlan_network_pool">get_vxlan_network_pool() (pyvcloud.vcd.platform.Platform method)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.GROUP">GROUP (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.HOST">HOST (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -472,11 +665,25 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.QueryResultFormat.ID_RECORDS">ID_RECORDS (pyvcloud.vcd.client.QueryResultFormat attribute)</a>
 </li>
-      <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.instantiate_vapp">instantiate_vapp() (pyvcloud.vcd.vdc.VDC method)</a>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.init">init() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.instantiate_vapp">instantiate_vapp() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.instantiate_vapp">(pyvcloud.vcd.vdc.VDC method)</a>
+</li>
+      </ul></li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS">INSTANTIATE_VAPP_TEMPLATE_PARAMS (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS">INSTANTIATE_VAPP_TEMPLATE_PARAMS (pyvcloud.vcd.client.EntityType attribute)</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.InternalServerException">InternalServerException</a>
+</li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.InvalidContentLengthException">InvalidContentLengthException</a>
+</li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.InvalidParameterException">InvalidParameterException</a>
+</li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.InvalidStateException">InvalidStateException</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.is_sysadmin">is_sysadmin() (pyvcloud.vcd.client.Client method)</a>
 </li>
@@ -496,7 +703,7 @@
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.LINK_TO_TEMPLATE">LINK_TO_TEMPLATE (pyvcloud.vcd.client.RelationType attribute)</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.LinkException">LinkException</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.LinkException">LinkException</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.list_catalog_items">list_catalog_items() (pyvcloud.vcd.org.Org method)</a>
 </li>
@@ -509,6 +716,8 @@
       <li><a href="pyvcloud.vcd.platform.html#pyvcloud.vcd.platform.Platform.list_external_networks">list_external_networks() (pyvcloud.vcd.platform.Platform method)</a>
 </li>
       <li><a href="pyvcloud.vcd.system.html#pyvcloud.vcd.system.System.list_network_pools">list_network_pools() (pyvcloud.vcd.system.System method)</a>
+</li>
+      <li><a href="pyvcloud.vcd.platform.html#pyvcloud.vcd.platform.Platform.list_nsxt_managers">list_nsxt_managers() (pyvcloud.vcd.platform.Platform method)</a>
 </li>
       <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.list_orgvdc_direct_networks">list_orgvdc_direct_networks() (pyvcloud.vcd.vdc.VDC method)</a>
 </li>
@@ -551,22 +760,30 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.MEDIA">MEDIA (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.MEDIA">(pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.METADATA">METADATA (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.MissingLinkException">MissingLinkException</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.MethodNotAllowedException">MethodNotAllowedException</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.MissingRecordException">MissingRecordException</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.MissingLinkException">MissingLinkException</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.MissingParametersError">MissingParametersError</a>
+</li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.MissingRecordException">MissingRecordException</a>
+</li>
       <li><a href="pyvcloud.vcd.vm.html#pyvcloud.vcd.vm.VM.modify_cpu">modify_cpu() (pyvcloud.vcd.vm.VM method)</a>
 </li>
       <li><a href="pyvcloud.vcd.vm.html#pyvcloud.vcd.vm.VM.modify_memory">modify_memory() (pyvcloud.vcd.vm.VM method)</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.MultipleLinksException">MultipleLinksException</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.MultipleLinksException">MultipleLinksException</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.MultipleRecordsException">MultipleRecordsException</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.MultipleRecordsException">MultipleRecordsException</a>
 </li>
   </ul></td>
 </tr></table>
@@ -578,20 +795,38 @@
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.NETWORK_CONFIG_SECTION">NETWORK_CONFIG_SECTION (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.NETWORK_CONNECTION_SECTION">NETWORK_CONNECTION_SECTION (pyvcloud.vcd.client.EntityType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.NETWORK_MANAGERS">NETWORK_MANAGERS (pyvcloud.vcd.client.EntityType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.NETWORK_POOL">NETWORK_POOL (pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.NETWORK_POOL_REFERENCES">NETWORK_POOL_REFERENCES (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.NetworkAdapterType">NetworkAdapterType (class in pyvcloud.vcd.client)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.NEXT_PAGE">NEXT_PAGE (pyvcloud.vcd.client.RelationType attribute)</a>
 </li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.NotAcceptableException">NotAcceptableException</a>
+</li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.NotFoundException">NotFoundException</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.NSXT_MANAGER">NSXT_MANAGER (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.NSXT_MANAGER">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.OperationNotSupportedException">OperationNotSupportedException</a>
+</li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org">Org (class in pyvcloud.vcd.org)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.ORG">ORG (pyvcloud.vcd.client.EntityType attribute)</a>
@@ -599,16 +834,34 @@
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.ORG_LIST">ORG_LIST (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.ORG_NETWORK">ORG_NETWORK (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ORG_NETWORK">(pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      </ul></li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.ORG_RIGHTS">ORG_RIGHTS (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.org_to_dict">org_to_dict() (in module pyvcloud.vcd.utils)</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.ORG_VDC_NETWORK">ORG_VDC_NETWORK (pyvcloud.vcd.client.EntityType attribute)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ORG_VDC">ORG_VDC (pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.ORG_VDC_NETWORK">ORG_VDC_NETWORK (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ORG_VDC_NETWORK">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.ORG_VDC_NETWORKS">ORG_VDC_NETWORKS (pyvcloud.vcd.client.RelationType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ORG_VDC_RESOURCE_POOL_RELATION">ORG_VDC_RESOURCE_POOL_RELATION (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ORG_VDC_STORAGE_PROFILE">ORG_VDC_STORAGE_PROFILE (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ORGANIZATION">ORGANIZATION (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.CommonRoles.ORGANIZATION_ADMINISTRATOR">ORGANIZATION_ADMINISTRATOR (pyvcloud.system_test_framework.environment.CommonRoles attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.OWNER">OWNER (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
@@ -619,6 +872,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.platform.html#pyvcloud.vcd.platform.Platform">Platform (class in pyvcloud.vcd.platform)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.PORT_GROUP">PORT_GROUP (pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.post_linked_resource">post_linked_resource() (pyvcloud.vcd.client.Client method)</a>
 </li>
@@ -656,21 +911,39 @@
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.TaskStatus.PRE_RUNNING">PRE_RUNNING (pyvcloud.vcd.client.TaskStatus attribute)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.PROVIDER_VDC">PROVIDER_VDC (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.PROVIDER_VDC">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.PROVIDER_VDC_PARAMS">PROVIDER_VDC_PARAMS (pyvcloud.vcd.client.EntityType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.PROVIDER_VDC_RESOURCE_POOL_RELATION">PROVIDER_VDC_RESOURCE_POOL_RELATION (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.PROVIDER_VDC_STORAGE_PROFILE">PROVIDER_VDC_STORAGE_PROFILE (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.PUBLISH">PUBLISH (pyvcloud.vcd.client.RelationType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.PUBLISH_CATALOG_PARAMS">PUBLISH_CATALOG_PARAMS (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.put_linked_resource">put_linked_resource() (pyvcloud.vcd.client.Client method)</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.put_resource">put_resource() (pyvcloud.vcd.client.Client method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.put_resource">put_resource() (pyvcloud.vcd.client.Client method)</a>
+</li>
       <li><a href="pyvcloud.vcd.pvdc.html#pyvcloud.vcd.pvdc.PVDC">PVDC (class in pyvcloud.vcd.pvdc)</a>
 </li>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.pvdc_to_dict">pvdc_to_dict() (in module pyvcloud.vcd.utils)</a>
 </li>
       <li><a href="pyvcloud.html#module-pyvcloud">pyvcloud (module)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.html#module-pyvcloud.system_test_framework">pyvcloud.system_test_framework (module)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.base_test.html#module-pyvcloud.system_test_framework.base_test">pyvcloud.system_test_framework.base_test (module)</a>
+</li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#module-pyvcloud.system_test_framework.environment">pyvcloud.system_test_framework.environment (module)</a>
 </li>
       <li><a href="pyvcloud.vcd.html#module-pyvcloud.vcd">pyvcloud.vcd (module)</a>
 </li>
@@ -681,6 +954,8 @@
       <li><a href="pyvcloud.vcd.api_extension.html#module-pyvcloud.vcd.api_extension">pyvcloud.vcd.api_extension (module)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#module-pyvcloud.vcd.client">pyvcloud.vcd.client (module)</a>
+</li>
+      <li><a href="pyvcloud.vcd.exceptions.html#module-pyvcloud.vcd.exceptions">pyvcloud.vcd.exceptions (module)</a>
 </li>
       <li><a href="pyvcloud.vcd.extension.html#module-pyvcloud.vcd.extension">pyvcloud.vcd.extension (module)</a>
 </li>
@@ -740,6 +1015,8 @@
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.RECOMPOSE_VAPP_PARAMS">RECOMPOSE_VAPP_PARAMS (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.RecordException">RecordException</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.RECORDS">RECORDS (pyvcloud.vcd.client.EntityType attribute)</a>
 
       <ul>
@@ -747,6 +1024,8 @@
 </li>
       </ul></li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.QueryResultFormat.REFERENCES">REFERENCES (pyvcloud.vcd.client.QueryResultFormat attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.platform.html#pyvcloud.vcd.platform.Platform.register_nsxt_manager">register_nsxt_manager() (pyvcloud.vcd.platform.Platform method)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.REGISTER_VC_SERVER_PARAMS">REGISTER_VC_SERVER_PARAMS (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
@@ -788,12 +1067,32 @@
         <li><a href="pyvcloud.vcd.role.html#pyvcloud.vcd.role.Role.remove_rights">(pyvcloud.vcd.role.Role method)</a>
 </li>
       </ul></li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.RIGHT">RIGHT (pyvcloud.vcd.client.EntityType attribute)</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.RequestTimeoutException">RequestTimeoutException</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.RESOURCE_CLASS">RESOURCE_CLASS (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.RESOURCE_CLASS_ACTION">RESOURCE_CLASS_ACTION (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.RESOURCE_POOL">RESOURCE_POOL (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.RESOURCE_POOL_VM_LIST">RESOURCE_POOL_VM_LIST (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType">ResourceType (class in pyvcloud.vcd.client)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.RIGHT">RIGHT (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.RIGHT">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.role.html#pyvcloud.vcd.role.Role">Role (class in pyvcloud.vcd.role)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.ROLE">ROLE (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.ROLE">(pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.TaskStatus.RUNNING">RUNNING (pyvcloud.vcd.client.TaskStatus attribute)</a>
 </li>
   </ul></td>
@@ -802,7 +1101,19 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.SDKException">SDKException</a>
+</li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.SDKRequestException">SDKRequestException</a>
+</li>
       <li><a href="pyvcloud.vcd.acl.html#pyvcloud.vcd.acl.Acl.search_for_access_setting_by_subject">search_for_access_setting_by_subject() (pyvcloud.vcd.acl.Acl static method)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.SERVICE">SERVICE (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.SERVICE_LINK">SERVICE_LINK (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.SERVICE_RESOURCE">SERVICE_RESOURCE (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.SessionException">SessionException</a>
 </li>
       <li><a href="pyvcloud.vcd.amqp.html#pyvcloud.vcd.amqp.AmqpService.set_config">set_config() (pyvcloud.vcd.amqp.AmqpService method)</a>
 </li>
@@ -818,12 +1129,22 @@
         <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.set_metadata">(pyvcloud.vcd.vapp.VApp method)</a>
 </li>
       </ul></li>
-      <li><a href="pyvcloud.vcd.test.html#pyvcloud.vcd.test.TestCase.setUpClass">setUpClass() (pyvcloud.vcd.test.TestCase class method)</a>
+      <li><a href="pyvcloud.system_test_framework.base_test.html#pyvcloud.system_test_framework.base_test.BaseTestCase.setUpClass">setUpClass() (pyvcloud.system_test_framework.base_test.BaseTestCase class method)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.test.html#pyvcloud.vcd.test.TestCase.setUpClass">(pyvcloud.vcd.test.TestCase class method)</a>
 </li>
-      <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.share_catalog">share_catalog() (pyvcloud.vcd.org.Org method)</a>
+      </ul></li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.share_catalog">share_catalog() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.share_catalog">(pyvcloud.vcd.org.Org method)</a>
 </li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.share_catalog_with_org_members">share_catalog_with_org_members() (pyvcloud.vcd.org.Org method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.acl.html#pyvcloud.vcd.acl.Acl.share_with_org_members">share_with_org_members() (pyvcloud.vcd.acl.Acl method)</a>
 
       <ul>
@@ -832,8 +1153,6 @@
         <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.share_with_org_members">(pyvcloud.vcd.vdc.VDC method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.shutdown">shutdown() (pyvcloud.vcd.vapp.VApp method)</a>
 
       <ul>
@@ -858,6 +1177,10 @@
 </li>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.stdout_xml">stdout_xml() (in module pyvcloud.vcd.utils)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.STRANDED_ITEM">STRANDED_ITEM (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.STRANDED_USER">STRANDED_USER (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.TaskStatus.SUCCESS">SUCCESS (pyvcloud.vcd.client.TaskStatus attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.system.html#pyvcloud.vcd.system.System">System (class in pyvcloud.vcd.system)</a>
@@ -873,7 +1196,11 @@
       <li><a href="pyvcloud.vcd.task.html#pyvcloud.vcd.task.Task">Task (class in pyvcloud.vcd.task)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.TASK">TASK (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.TASK">(pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.TASK_CANCEL">TASK_CANCEL (pyvcloud.vcd.client.RelationType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.task_to_dict">task_to_dict() (in module pyvcloud.vcd.utils)</a>
@@ -882,8 +1209,14 @@
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.TaskStatus">TaskStatus (class in pyvcloud.vcd.client)</a>
 </li>
-      <li><a href="pyvcloud.vcd.test.html#pyvcloud.vcd.test.TestCase.tearDownClass">tearDownClass() (pyvcloud.vcd.test.TestCase class method)</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.TaskTimeoutException">TaskTimeoutException</a>
 </li>
+      <li><a href="pyvcloud.system_test_framework.base_test.html#pyvcloud.system_test_framework.base_test.BaseTestCase.tearDownClass">tearDownClass() (pyvcloud.system_test_framework.base_test.BaseTestCase class method)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.test.html#pyvcloud.vcd.test.TestCase.tearDownClass">(pyvcloud.vcd.test.TestCase class method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.amqp.html#pyvcloud.vcd.amqp.AmqpService.test_config">test_config() (pyvcloud.vcd.amqp.AmqpService method)</a>
@@ -894,13 +1227,13 @@
 </li>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.to_camel_case">to_camel_case() (in module pyvcloud.vcd.utils)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.TO_CLOUD_TUNNEL">TO_CLOUD_TUNNEL (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.to_dict">to_dict() (in module pyvcloud.vcd.utils)</a>
 </li>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.to_human">to_human() (in module pyvcloud.vcd.utils)</a>
 </li>
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp.to_sourced_item">to_sourced_item() (pyvcloud.vcd.vapp.VApp method)</a>
-</li>
-      <li><a href="pyvcloud.vcd.api_extension.html#pyvcloud.vcd.api_extension.APIExtension.TYPE_NAME">TYPE_NAME (pyvcloud.vcd.api_extension.APIExtension attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -908,6 +1241,8 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.UnauthorizedException">UnauthorizedException</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.UNDEPLOY">UNDEPLOY (pyvcloud.vcd.client.EntityType attribute)</a>
 
       <ul>
@@ -920,9 +1255,13 @@
         <li><a href="pyvcloud.vcd.vm.html#pyvcloud.vcd.vm.VM.undeploy">(pyvcloud.vcd.vm.VM method)</a>
 </li>
       </ul></li>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.UnknownApiException">UnknownApiException</a>
+</li>
       <li><a href="pyvcloud.vcd.role.html#pyvcloud.vcd.role.Role.unlink">unlink() (pyvcloud.vcd.role.Role method)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.UNLINK_FROM_TEMPLATE">UNLINK_FROM_TEMPLATE (pyvcloud.vcd.client.RelationType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.platform.html#pyvcloud.vcd.platform.Platform.unregister_nsxt_manager">unregister_nsxt_manager() (pyvcloud.vcd.platform.Platform method)</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.unshare_catalog_with_org_members">unshare_catalog_with_org_members() (pyvcloud.vcd.org.Org method)</a>
 </li>
@@ -934,10 +1273,12 @@
         <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC.unshare_from_org_members">(pyvcloud.vcd.vdc.VDC method)</a>
 </li>
       </ul></li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.UP">UP (pyvcloud.vcd.client.RelationType attribute)</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.UnsupportedMediaTypeException">UnsupportedMediaTypeException</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.RelationType.UP">UP (pyvcloud.vcd.client.RelationType attribute)</a>
+</li>
       <li><a href="pyvcloud.vcd.task.html#pyvcloud.vcd.task.Task.update">update() (pyvcloud.vcd.task.Task method)</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.update_catalog">update_catalog() (pyvcloud.vcd.org.Org method)</a>
@@ -950,46 +1291,70 @@
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.update_user">update_user() (pyvcloud.vcd.org.Org method)</a>
 </li>
-      <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.upload_file">upload_file() (pyvcloud.vcd.org.Org method)</a>
-</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client.upload_fragment">upload_fragment() (pyvcloud.vcd.client.Client method)</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.upload_media">upload_media() (pyvcloud.vcd.org.Org method)</a>
 </li>
       <li><a href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org.upload_ovf">upload_ovf() (pyvcloud.vcd.org.Org method)</a>
 </li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.Environment.upload_template">upload_template() (pyvcloud.system_test_framework.environment.Environment class method)</a>
+</li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.UPLOAD_VAPP_TEMPLATE_PARAMS">UPLOAD_VAPP_TEMPLATE_PARAMS (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.USER">USER (pyvcloud.vcd.client.EntityType attribute)</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.UploadException">UploadException</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.USER">USER (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.USER">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.ValidationError">ValidationError</a>
+</li>
       <li><a href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp">VApp (class in pyvcloud.vcd.vapp)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.VAPP">VAPP (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.VAPP">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.CommonRoles.VAPP_AUTHOR">VAPP_AUTHOR (pyvcloud.system_test_framework.environment.CommonRoles attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.VAPP_NETWORK">VAPP_NETWORK (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.VAPP_ORG_VDC_NETWORK_RELATION">VAPP_ORG_VDC_NETWORK_RELATION (pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.VAPP_TEMPLATE">VAPP_TEMPLATE (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.VAPP_TEMPLATE">(pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
+      </ul></li>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.vapp_to_dict">vapp_to_dict() (in module pyvcloud.vcd.utils)</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.VcdErrorException">VcdErrorException</a>
+      <li><a href="pyvcloud.system_test_framework.environment.html#pyvcloud.system_test_framework.environment.CommonRoles.VAPP_USER">VAPP_USER (pyvcloud.system_test_framework.environment.CommonRoles attribute)</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.VcdErrorResponseException">VcdErrorResponseException</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.VcdException">VcdException</a>
 </li>
-      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.VcdTaskException">VcdTaskException</a>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.VcdResponseException">VcdResponseException</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.VcdTaskException">VcdTaskException</a>
+</li>
       <li><a href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC">VDC (class in pyvcloud.vcd.vdc)</a>
 
       <ul>
         <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.VDC">(pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.VDC_REFERENCES">VDC_REFERENCES (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.utils.html#pyvcloud.vcd.utils.vdc_to_dict">vdc_to_dict() (in module pyvcloud.vcd.utils)</a>
@@ -998,9 +1363,35 @@
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.VIM_SERVER_REFS">VIM_SERVER_REFS (pyvcloud.vcd.client.EntityType attribute)</a>
 </li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.VIRTUAL_CENTER">VIRTUAL_CENTER (pyvcloud.vcd.client.EntityType attribute)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.VIRTUAL_CENTER">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.NetworkAdapterType.VLANCE">VLANCE (pyvcloud.vcd.client.NetworkAdapterType attribute)</a>
+</li>
       <li><a href="pyvcloud.vcd.vm.html#pyvcloud.vcd.vm.VM">VM (class in pyvcloud.vcd.vm)</a>
+
+      <ul>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.VM">(pyvcloud.vcd.client.EntityType attribute)</a>
+</li>
+        <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.VM">(pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.VM_DISK_RELATION">VM_DISK_RELATION (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.VM_GROUP_VMS">VM_GROUP_VMS (pyvcloud.vcd.client.ResourceType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType.VM_GROUPS">VM_GROUPS (pyvcloud.vcd.client.ResourceType attribute)</a>
 </li>
       <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.EntityType.VMS">VMS (pyvcloud.vcd.client.EntityType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.NetworkAdapterType.VMXNET">VMXNET (pyvcloud.vcd.client.NetworkAdapterType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.NetworkAdapterType.VMXNET2">VMXNET2 (pyvcloud.vcd.client.NetworkAdapterType attribute)</a>
+</li>
+      <li><a href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.NetworkAdapterType.VMXNET3">VMXNET3 (pyvcloud.vcd.client.NetworkAdapterType attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1023,7 +1414,7 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyvcloud.html">Python Documentation</a></li>
 </ul>
 
 <hr />
@@ -1054,7 +1445,7 @@
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

@@ -9,7 +9,7 @@
     <title>pyvcloud.vcd.platform module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -40,88 +40,128 @@
 <p>Helper class to interact with vSphere Platform resources.</p>
 <dl class="docutils">
 <dt>Attributes:</dt>
-<dd><p class="first">client (str): Low level client to connect to vCD.
-extension (<code class="xref py py-obj docutils literal notranslate"><span class="pre">pyvcloud.vcd.Extension</span></code>, optional): It holds an</p>
-<blockquote class="last">
-<div>Extension object to interact with vCD admin extension.</div></blockquote>
+<dd><ul class="first last simple">
+<li>client (pyvcloud.vcd.client): Low level client to connect to vCD.</li>
+<li><dl class="first docutils">
+<dt>extension (<code class="xref py py-obj docutils literal notranslate"><span class="pre">pyvcloud.vcd.Extension</span></code>, optional): It holds an</dt>
+<dd>Extension object to interact with vCD admin extension.</dd>
+</dl>
+</li>
+</ul>
 </dd>
 </dl>
 <dl class="method">
 <dt id="pyvcloud.vcd.platform.Platform.attach_vcenter">
-<code class="descname">attach_vcenter</code><span class="sig-paren">(</span><em>vc_server_name</em>, <em>vc_server_host</em>, <em>vc_admin_user</em>, <em>vc_admin_pwd</em>, <em>nsx_server_name=None</em>, <em>nsx_host=None</em>, <em>nsx_admin_user=None</em>, <em>nsx_admin_pwd=None</em>, <em>is_enabled=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.attach_vcenter" title="Permalink to this definition">¶</a></dt>
+<code class="descname">attach_vcenter</code><span class="sig-paren">(</span><em>vc_server_name</em>, <em>vc_server_host</em>, <em>vc_admin_user</em>, <em>vc_admin_pwd</em>, <em>vc_root_folder=None</em>, <em>nsx_server_name=None</em>, <em>nsx_host=None</em>, <em>nsx_admin_user=None</em>, <em>nsx_admin_pwd=None</em>, <em>is_enabled=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.attach_vcenter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register (attach) a VirtualCenter server (also known as VimServer).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">vc_server_name: (str): vc_server_name (VC name).</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vc_server_name</strong> (<em>str</em>) – vc server name (virtual center name).</li>
+<li><strong>vc_server_host</strong> (<em>str</em>) – FQDN or IP address of vc host.</li>
+<li><strong>vc_admin_user</strong> (<em>str</em>) – vc admin user.</li>
+<li><strong>vc_admin_pwd</strong> (<em>str</em>) – vc admin password.</li>
+<li><strong>vc_root_folder</strong> (<em>str</em>) – vc root folder.</li>
+<li><strong>nsx_server_name</strong> (<em>str</em>) – NSX server name.</li>
+<li><strong>nsx_host</strong> (<em>str</em>) – FQDN or IP address of NSX host.</li>
+<li><strong>nsx_admin_user</strong> (<em>str</em>) – NSX admin user.</li>
+<li><strong>nsx_admin_pwd</strong> (<em>str</em>) – NSX admin password.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">vc_server_host: (str): FQDN or IP address of VC host.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing REGISTER_VC_SERVER_PARAMS XML data that
+represents the newly registered (attached) VimServer.</p>
+</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">vc_admin_user: (str): vc_admin user.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">vc_admin_pwd: (str): vc_admin password.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">nsx_server_name: (str): NSX server name.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">nsx_host (str): FQDN or IP address of NSX host.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">nsx_admin_user: (str): NSX admin user.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">nsx_admin_pwd: (str): NSX admin password.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A :class:lxml.objectify.StringElement object describing the</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
+</td>
 </tr>
 </tbody>
 </table>
-<p>:        newly registered (attached) VimServer.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.platform.Platform.create_provider_vdc">
-<code class="descname">create_provider_vdc</code><span class="sig-paren">(</span><em>vim_server_name</em>, <em>resource_pool_names</em>, <em>storage_profiles</em>, <em>pvdc_name</em>, <em>is_enabled=None</em>, <em>description=None</em>, <em>highest_supp_hw_vers=None</em>, <em>vxlan_network_pool=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.create_provider_vdc" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create_provider_vdc</code><span class="sig-paren">(</span><em>vim_server_name</em>, <em>resource_pool_names</em>, <em>storage_profiles</em>, <em>pvdc_name</em>, <em>is_enabled=None</em>, <em>description=None</em>, <em>highest_hw_vers=None</em>, <em>vxlan_network_pool=None</em>, <em>nsxt_manager_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.create_provider_vdc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Provider Virtual Datacenter.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">vim_server_name: (str): vim_server_name (VC name).</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vim_server_name</strong> (<em>str</em>) – vim_server_name (VC name).</li>
+<li><strong>resource_pool_names</strong> (<em>list</em>) – list of resource_pool_names.</li>
+<li><strong>storage_profiles</strong> (<em>list</em>) – (list): list of storageProfile namespace.</li>
+<li><strong>pvdc_name</strong> (<em>str</em>) – name of PVDC to be created.</li>
+<li><strong>is_enabled</strong> (<em>bool</em>) – flag, True to enable and False to disable.</li>
+<li><strong>description</strong> (<em>str</em>) – description of pvdc.</li>
+<li><strong>highest_hw_vers</strong> (<em>str</em>) – highest supported hw version number.</li>
+<li><strong>vxlan_network_pool</strong> (<em>str</em>) – name of vxlan_network_pool.</li>
+<li><strong>nsxt_manager_name</strong> (<em>str</em>) – name of nsx-t manager.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">resource_pool_names: (list): list of resource_pool_names.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing vmext:VMWProviderVdc XML element that
+represents the new provider VDC.</p>
+</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">storage_profiles: (list): list of storageProfile namespace.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">pvdc_name: (str): name of PVDC to be created.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">is_enabled: (boolean): enable flag.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">description: (str): description of pvdc.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">highest_supp_hw_vers: (str): highest supported hw vers number.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">vxlan_network_pool: (str): name of vxlan_network_pool.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A :class:lxml.objectify.StringElement object describing the</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
+</td>
 </tr>
 </tbody>
 </table>
-<p>:        new provider VDC.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.platform.Platform.get_external_network">
 <code class="descname">get_external_network</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.get_external_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fetch an external network resource identified by it’s name.</p>
+<dd><p>Fetch an external network resource identified by its name.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – (str): The name of the external network.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the external network to be retrieved.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the reference to external network.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.EXTERNAL_NETWORK XML data
+which represents an external network.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: If the named external network cannot be located.</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: If the named external network cannot
+be located.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.get_res_by_name">
+<code class="descname">get_res_by_name</code><span class="sig-paren">(</span><em>resource_type</em>, <em>resource_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.get_res_by_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a reference to a resource by its name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>resource_type</strong> (<a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.ResourceType" title="pyvcloud.vcd.client.ResourceType"><em>pyvcloud.vcd.client.ResourceType</em></a>) – type of the
+resource.</li>
+<li><strong>resource_name</strong> (<em>str</em>) – name of the resource.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing sub-type of
+QueryResultFormat.REFERENCES XML data representing a reference to
+the resource.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the named resource cannot be
+found.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -135,15 +175,23 @@ the reference to external network.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">vc_name (str): vim_server name.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vc_name</strong> (<em>str</em>) – vim_server name.</li>
+<li><strong>vc_href</strong> (<em>str</em>) – vim_server href.</li>
+<li><strong>resource_pool_names</strong> (<em>list</em>) – resource pool names as a list of
+strings.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body">vc_href (href): vim_server href.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">morefs of resource pools.</p>
+</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">resource_pool_names (list): list of resource_pool_names.</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">list</p>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of morefs corresponding to resource_pool_names.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: if any resource_pool_name cannot be found.</td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if any resource_pool_name cannot be
+found.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -152,16 +200,20 @@ the reference to external network.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.platform.Platform.get_vcenter">
 <code class="descname">get_vcenter</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.get_vcenter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a vCenter attached to the system by name.</p>
+<dd><p>Fetch a vCenter attached to the system by name.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – (str): The name of vCenter.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of vCenter.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(lxml.objectify.ObjectifiedElement): vCenter resource.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.VIRTUAL_CENTER XML data which
+represents a vCenter server.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: If the named vCenter cannot be located.</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named vCenter cannot be
+located.</td>
 </tr>
 </tbody>
 </table>
@@ -170,16 +222,20 @@ the reference to external network.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.platform.Platform.get_vxlan_network_pool">
 <code class="descname">get_vxlan_network_pool</code><span class="sig-paren">(</span><em>vxlan_network_pool_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.get_vxlan_network_pool" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fetch a vxlan_networ_pool by its name.</p>
+<dd><p>[Deprecated] Fetch a vxlan_network_pool by its name.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">vxlan_network_pool_name (str): name of the vxlan_network_pool.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vxlan_network_pool_name</strong> (<em>str</em>) – name of the vxlan_network_pool.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(lxml.objectify.ObjectifiedElement): vxlan_network_pool.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing NetworkPoolRecord XML element which
+represents a vxlan_network_pool.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: If the named vxlan_network_pool cannot be found.</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: If the named vxlan_network_pool
+cannot be found.</td>
 </tr>
 </tbody>
 </table>
@@ -193,8 +249,27 @@ the reference to external network.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> objects
-representing the external network references.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of lxml.objectify.ObjectifiedElement objects which
+contains vmext:ExternalNetworkReference XML element representing
+the external network references.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.list_nsxt_managers">
+<code class="descname">list_nsxt_managers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.list_nsxt_managers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of all registered NSX-T managers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">NsxTManagerRecords.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">generator object</td>
 </tr>
 </tbody>
 </table>
@@ -208,8 +283,52 @@ representing the external network references.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(lxml.objectify.ObjectifiedElement): list of vCenter
-references.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of object containing vmext:VimServerReference XML element
+that represent vCenter references.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.register_nsxt_manager">
+<code class="descname">register_nsxt_manager</code><span class="sig-paren">(</span><em>nsxt_manager_name</em>, <em>nsxt_manager_url</em>, <em>nsxt_manager_username</em>, <em>nsxt_manager_password</em>, <em>nsxt_manager_description=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.register_nsxt_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a NSX-T manager.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nsxt_manager_name</strong> (<em>str</em>) – name of NSX-T manager.</li>
+<li><strong>nsxt_manager_url</strong> (<em>str</em>) – URL of NSX-T manager server.</li>
+<li><strong>nsxt_manager_username</strong> (<em>str</em>) – username of NSX-T manager admin.</li>
+<li><strong>nsxt_manager_password</strong> (<em>str</em>) – password of NSX-T manager admin.</li>
+<li><strong>nsxt_manager_description</strong> (<em>str</em>) – description of NSX-T manager.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing XML data the newly registered NSX-T
+manager.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.platform.Platform.unregister_nsxt_manager">
+<code class="descname">unregister_nsxt_manager</code><span class="sig-paren">(</span><em>nsxt_manager_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.platform.Platform.unregister_nsxt_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Un-register an NSX-T Manager.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nsxt_manager_name</strong> (<em>str</em>) – name of the NSX-T manager.</td>
 </tr>
 </tbody>
 </table>
@@ -236,9 +355,9 @@ references.</td>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -271,7 +390,7 @@ references.</td>
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

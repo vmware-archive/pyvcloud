@@ -32,7 +32,7 @@ def extract_id(urn):
     'urn:vcloud:catalog:39867ab4-04e0-4b13-b468-08abcc1de810' will produce
     '39867ab4-04e0-4b13-b468-08abcc1de810'
 
-    :param str urn: a vcloud resoure urn.
+    :param str urn: a vcloud resource urn.
 
     :return: the extracted id
 
@@ -537,12 +537,13 @@ def to_dict(obj, attributes=None, resource_type=None, exclude=['href',
     :param lxml.objectify.ObjectifiedElement obj:
     :param list attributes: list of attributes we want to extract from the XML
         object.
-    :param resource_type: type of resource in the param obj. Acecptable values
+    :param resource_type: type of resource in the param obj. Acceptable values
         are listed in the enum pyvcloud.vcd.client.ResourceType.
     :param list exclude: list of attributes that should be excluded from the
         dictionary.
 
-    :return: the dictionary represntating the object.
+    :return: the dictionary representing the object.
+
     :rtype: dict
     """
     if obj is None:

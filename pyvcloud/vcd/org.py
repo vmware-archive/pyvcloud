@@ -1227,9 +1227,9 @@ class Org(object):
         rights = []
         if hasattr(org_admin_resource, 'RightReferences') and \
                 hasattr(org_admin_resource.RightReferences, 'RightReference'):
-            for rightReference in \
+            for right_reference in \
                     org_admin_resource.RightReferences.RightReference:
-                rights.append(to_dict(rightReference, exclude=['type']))
+                rights.append(to_dict(right_reference, exclude=['type']))
         return rights
 
     def get_catalog_access_settings(self, catalog_name):

@@ -107,7 +107,7 @@ class Task(object):
                        TaskStatus.RUNNING.value
                    ],
                    newer_first=True):
-        """Return a list of tasks accesible by the user, filtered by status.
+        """Return a list of tasks accessible by the user, filtered by status.
 
         :param list filter_status_list: a list of strings representing task
             statuses that should be used to filter the query result.

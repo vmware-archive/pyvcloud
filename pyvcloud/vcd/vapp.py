@@ -493,7 +493,7 @@ class VApp(object):
         :rtype: lxml.objectify.ObjectifiedElement
 
         :raises: EntityNotFoundException: if the named vm cannot be located.
-            occured.
+            occurred.
         """
         vm = self.get_vm(vm_name)
         disk_list = self.client.get_resource(

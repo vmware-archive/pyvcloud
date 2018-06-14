@@ -45,9 +45,9 @@ class AmqpService(object):
     def _to_settings(self, config, password):
         """Converts dictionary representation of configuration to XML element.
 
-        :param dict config: dictionary represenation of AMQP serivce
+        :param dict config: dictionary representation of AMQP service
             configuration.
-        :param str password: password of the user for the amqp service.
+        :param str password: password of the user for the AMQP service.
 
         :return: an object containing EntityType.AMQP_SETTINGS XML data
             representing the configuration of the AMQP service.
@@ -69,9 +69,9 @@ class AmqpService(object):
     def test_config(self, config, password):
         """Tests the validity of configuration on the AMQP service.
 
-        :param dict config: dictionary represenation of AMQP serivce
+        :param dict config: dictionary representation of AMQP service
             configuration.
-        :param str password: password of the user for the amqp service.
+        :param str password: password of the user for the AMQP service.
 
         :return: an object containing vmext:AmqpSettingsTest XML element
             representing the result of the test performed on the AMQP service.
@@ -85,7 +85,7 @@ class AmqpService(object):
     def set_config(self, config, password):
         """Updates the configuration of the AMQP service.
 
-        :param dict config: dictionary represenation of AMQP serivce
+        :param dict config: dictionary representation of AMQP service
             configuration.
         :param str password: password of the user for the amqp service.
 

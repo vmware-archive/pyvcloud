@@ -1,6 +1,14 @@
 pyvcloud package
 ================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    pyvcloud.system_test_framework
+    pyvcloud.vcd
+
 Module contents
 ---------------
 

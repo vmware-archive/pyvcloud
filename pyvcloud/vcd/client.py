@@ -273,6 +273,7 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
+    EXTERNAL_NETWORK = 'application/vnd.vmware.admin.vmwexternalnet+xml'
     EXTERNAL_NETWORK_REFS = \
         'application/vnd.vmware.admin.vmwExternalNetworkReferences+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
@@ -294,6 +295,7 @@ class EntityType(Enum):
     ORG_RIGHTS = 'application/vnd.vmware.admin.org.rights+xml'
     ORG_VDC_NETWORK = 'application/vnd.vmware.vcloud.orgVdcNetwork+xml'
     OWNER = 'application/vnd.vmware.vcloud.owner+xml'
+    PROVIDER_VDC = 'application/vnd.vmware.admin.providervdc+xml'
     PROVIDER_VDC_PARAMS = \
         'application/vnd.vmware.admin.createProviderVdcParams+xml'
     PUBLISH_CATALOG_PARAMS = \
@@ -323,6 +325,8 @@ class EntityType(Enum):
     VDC_REFERENCES = 'application/vnd.vmware.admin.vdcReferences+xml'
     VDCS_PARAMS = 'application/vnd.vmware.admin.createVdcParams+xml'
     VIM_SERVER_REFS = 'application/vnd.vmware.admin.vmwVimServerReferences+xml'
+    VIRTUAL_CENTER = 'application/vnd.vmware.admin.vmwvirtualcenter+xml'
+    VM = 'application/vnd.vmware.vcloud.vm+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'
 
 

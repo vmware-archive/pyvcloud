@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import urllib.parse
+from urllib import parse
 import uuid
 
 from pyvcloud.vcd.client import E
@@ -30,16 +30,17 @@ class Platform(object):
     """Helper class to interact with vSphere Platform resources.
 
     Attributes:
-        client (str): Low level client to connect to vCD.
-        extension (:obj:`pyvcloud.vcd.Extension`, optional): It holds an
+        - client (pyvcloud.vcd.client): Low level client to connect to vCD.
+        - extension (:obj:`pyvcloud.vcd.Extension`, optional): It holds an
             Extension object to interact with vCD admin extension.
 
     """
 
     def __init__(self, client):
-        """Constructor for vSphere Platform Resources.
+        """Constructor for Platform object.
 
-        :param client:  (pyvcloud.vcd.client): The client.
+        :param pyvcloud.vcd.client client: the client that will be used to
+            make ReST calls to vCD.
         """
         self.client = client
         self.extension = Extension(client)
@@ -47,21 +48,27 @@ class Platform(object):
     def list_vcenters(self):
         """List vCenter servers attached to the system.
 
-        :return: :class:`lxml.objectify.ObjectifiedElement` : list of vCenter
-            references.
+        :return: list of object containing vmext:VimServerReference XML element
+            that represent vCenter references.
+
+        :rtype: list
         """
         return self.client.get_linked_resource(
             self.extension.get_resource(), RelationType.DOWN,
             EntityType.VIM_SERVER_REFS.value).VimServerReference
 
     def get_vcenter(self, name):
-        """Get a vCenter attached to the system by name.
+        """Fetch a vCenter attached to the system by name.
 
-        :param name: (str): The name of vCenter.
+        :param str name: name of vCenter.
 
-        :return: :class:`lxml.objectify.ObjectifiedElement`: vCenter resource.
+        :return: an object containing EntityType.VIRTUAL_CENTER XML data which
+            represents a vCenter server.
 
-        :raises: Exception: If the named vCenter cannot be located.
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if the named vCenter cannot be
+            located.
         """
         for record in self.list_vcenters():
             if record.get('name') == name:
@@ -71,8 +78,11 @@ class Platform(object):
     def list_external_networks(self):
         """List all external networks available in the system.
 
-        :return:  A list of :class:`lxml.objectify.ObjectifiedElement` objects
-            representing the external network references.
+        :return: list of lxml.objectify.ObjectifiedElement objects which
+            contains vmext:ExternalNetworkReference XML element representing
+            the external network references.
+
+        :rtype: list
         """
         ext_net_refs = self.client.get_linked_resource(
             self.extension.get_resource(), RelationType.DOWN,
@@ -86,12 +96,15 @@ class Platform(object):
     def get_external_network(self, name):
         """Fetch an external network resource identified by it's name.
 
-        :param name: (str): The name of the external network.
+        :param str name: name of the external network to be retrieved.
 
-        :return: A :class:`lxml.objectify.ObjectifiedElement` object
-            representing the reference to external network.
+        :return: an object containing EntityType.EXTERNAL_NETWORK XML data
+            which represents an external network.
 
-        :raises: Exception: If the named external network cannot be located.
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: If the named external network cannot
+            be located.
         """
         ext_net_refs = self.list_external_networks()
         for ext_net in ext_net_refs:
@@ -103,14 +116,19 @@ class Platform(object):
     def get_vxlan_network_pool(self, vxlan_network_pool_name):
         """[Deprecated] Fetch a vxlan_network_pool by its name.
 
-        :param: vxlan_network_pool_name (str): name of the vxlan_network_pool.
-        :return: :class:`lxml.objectify.ObjectifiedElement`: vxlan_network_pool
-        :raises: Exception: If the named vxlan_network_pool cannot be found.
+        :param str vxlan_network_pool_name: name of the vxlan_network_pool.
+
+        :return: an object containing NetworkPoolRecord XML element which
+            represents a vxlan_network_pool.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: If the named vxlan_network_pool
+            cannot be found.
         """
-        query_filter = 'name==%s' % urllib.parse.quote_plus(
-            vxlan_network_pool_name)
+        query_filter = 'name==%s' % parse.quote_plus(vxlan_network_pool_name)
         query = self.client.get_typed_query(
-            'networkPool',
+            ResourceType.NETWORK_POOL,
             query_result_format=QueryResultFormat.RECORDS,
             qfilter=query_filter)
         records = list(query.execute())
@@ -121,18 +139,26 @@ class Platform(object):
                 break
         if vxlan_network_pool_record is not None:
             return vxlan_network_pool_record
-        raise EntityNotFoundException('vxlan_network_pool \'%s\' not found' %
-                                      vxlan_network_pool_name)
+        raise EntityNotFoundException(
+            'vxlan_network_pool \'%s\' not found' % vxlan_network_pool_name)
 
     def get_res_by_name(self, resource_type, resource_name):
-        """Fetch a resource by its name.
+        """Fetch a reference to a resource by its name.
 
-        :param: resource_type (ResourceType): type of the resource.
-        :param: resource_name (str): name of the resource.
-        :return: :class:`lxml.objectify.ObjectifiedElement`: resource record.
-        :raises: Exception: if the named resource cannot be found.
+        :param pyvcloud.vcd.client.ResourceType resource_type: type of the
+            resource.
+        :param str resource_name: name of the resource.
+
+        :return: an object containing sub-type of
+            QueryResultFormat.REFERENCES XML data representing a reference to
+            the resource.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if the named resource cannot be
+            found.
         """
-        query_filter = 'name==%s' % urllib.parse.quote_plus(resource_name)
+        query_filter = 'name==%s' % parse.quote_plus(resource_name)
         record = self.client.get_typed_query(
             resource_type.value,
             query_result_format=QueryResultFormat.REFERENCES,
@@ -140,17 +166,24 @@ class Platform(object):
         if resource_name == record.get('name'):
             return record
         else:
-            raise Exception('resource: \'%s\' name: \'%s\' not found' %
-                            resource_type.value, resource_name)
+            raise EntityNotFoundException(
+                'resource: \'%s\' name: \'%s\' not found' %
+                resource_type.value, resource_name)
 
     def get_resource_pool_morefs(self, vc_name, vc_href, resource_pool_names):
         """Fetch list of morefs for a given list of resource_pool_names.
 
-        :param: vc_name (str): vim_server name.
-        :param: vc_href (href): vim_server href.
-        :param: resource_pool_names (list): list of resource_pool_names.
-        :return: list of morefs corresponding to resource_pool_names.
-        :raises: Exception: if any resource_pool_name cannot be found.
+        :param str vc_name: vim_server name.
+        :param str vc_href: vim_server href.
+        :param list resource_pool_names: resource pool names as a list of
+            strings.
+
+        :return: morefs of resource pools.
+
+        :rtype: list
+
+        :raises: EntityNotFoundException: if any resource_pool_name cannot be
+            found.
         """
         morefs = []
         resource_pool_list = self.client.get_resource(vc_href +
@@ -169,8 +202,7 @@ class Platform(object):
                             break
                 if not res_pool_found:
                     raise EntityNotFoundException(
-                        'resource pool \'%s\' not Found' %
-                        resource_pool_name)
+                        'resource pool \'%s\' not Found' % resource_pool_name)
         return morefs
 
     def create_provider_vdc(self,
@@ -185,22 +217,24 @@ class Platform(object):
                             nsxt_manager_name=None):
         """Create a Provider Virtual Datacenter.
 
-        :param: vim_server_name: (str): vim_server_name (VC name).
-        :param: resource_pool_names: (list): list of resource_pool_names.
-        :param: storage_profiles: (list): list of storageProfile namespace.
-        :param: pvdc_name: (str): name of PVDC to be created.
-        :param: is_enabled: (boolean): enable flag.
-        :param: description: (str): description of pvdc.
-        :param: highest_hw_vers: (str): highest supported hw vers number.
-        :param: vxlan_network_pool: (str): name of vxlan_network_pool.
-        :param: nsxt_manager_name: (str): name of nsx-t manager.
-        :return: A :class:`lxml.objectify.ObjectifiedElement` object describing
-                 the new provider VDC.
+        :param str vim_server_name: vim_server_name (VC name).
+        :param list resource_pool_names: list of resource_pool_names.
+        :param list storage_profiles: (list): list of storageProfile namespace.
+        :param str pvdc_name: name of PVDC to be created.
+        :param bool is_enabled: flag, True to enable and False to disable.
+        :param str description: description of pvdc.
+        :param str highest_hw_vers: highest supported hw version number.
+        :param str vxlan_network_pool: name of vxlan_network_pool.
+        :param str nsxt_manager_name: name of nsx-t manager.
+
+        :return: an object containing vmext:VMWProviderVdc XML element that
+            represents the new provider VDC.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         vc_record = self.get_vcenter(vim_server_name)
         vc_href = vc_record.get('href')
-        rp_morefs = self.get_resource_pool_morefs(vim_server_name,
-                                                  vc_href,
+        rp_morefs = self.get_resource_pool_morefs(vim_server_name, vc_href,
                                                   resource_pool_names)
         vmw_prov_vdc_params = E_VMEXT.VMWProviderVdcParams(name=pvdc_name)
         if description is not None:
@@ -218,33 +252,31 @@ class Platform(object):
             network_pool_rec = self.get_res_by_name(ResourceType.NETWORK_POOL,
                                                     vxlan_network_pool)
             vx_href = network_pool_rec.get('href')
-            vmw_prov_vdc_params.append(E_VMEXT.VxlanNetworkPool(
-                href=vx_href))
+            vmw_prov_vdc_params.append(E_VMEXT.VxlanNetworkPool(href=vx_href))
         if nsxt_manager_name is not None:
             nsxt_manager_rec = self.get_res_by_name(ResourceType.NSXT_MANAGER,
                                                     nsxt_manager_name)
             nsxt_href = nsxt_manager_rec.get('href')
-            vmw_prov_vdc_params.append(E_VMEXT.NsxTManagerReference(
-                href=nsxt_href))
+            vmw_prov_vdc_params.append(
+                E_VMEXT.NsxTManagerReference(href=nsxt_href))
         if highest_hw_vers is not None:
             vmw_prov_vdc_params.append(
                 E_VMEXT.HighestSupportedHardwareVersion(highest_hw_vers))
         if is_enabled is not None:
             vmw_prov_vdc_params.append(E_VMEXT.IsEnabled(is_enabled))
         for storage_profile in storage_profiles:
-            vmw_prov_vdc_params.append(E_VMEXT.StorageProfile(
-                storage_profile))
+            vmw_prov_vdc_params.append(E_VMEXT.StorageProfile(storage_profile))
         random_username_suffix = uuid.uuid4().hex
         default_user = 'USR' + random_username_suffix[:8]
         default_pwd = 'PWD' + random_username_suffix[:8]
         vmw_prov_vdc_params.append(E_VMEXT.DefaultPassword(default_pwd))
         vmw_prov_vdc_params.append(E_VMEXT.DefaultUsername(default_user))
 
-        return self.client.post_linked_resource(self.extension.get_resource(),
-                                                rel=RelationType.ADD,
-                                                media_type=EntityType.
-                                                PROVIDER_VDC_PARAMS.value,
-                                                contents=vmw_prov_vdc_params)
+        return self.client.post_linked_resource(
+            self.extension.get_resource(),
+            rel=RelationType.ADD,
+            media_type=EntityType.PROVIDER_VDC_PARAMS.value,
+            contents=vmw_prov_vdc_params)
 
     def attach_vcenter(self,
                        vc_server_name,
@@ -259,17 +291,20 @@ class Platform(object):
                        is_enabled=None):
         """Register (attach) a VirtualCenter server (also known as VimServer).
 
-        :param: vc_server_name: (str): vc server name (virtual center name).
-        :param: vc_server_host: (str): FQDN or IP address of vc host.
-        :param: vc_admin_user: (str): vc admin user.
-        :param: vc_admin_pwd: (str): vc admin password.
-        :param: vc_root_folder: (str): vc root folder.
-        :param: nsx_server_name: (str): NSX server name.
-        :param: nsx_host (str): FQDN or IP address of NSX host.
-        :param: nsx_admin_user: (str): NSX admin user.
-        :param: nsx_admin_pwd: (str): NSX admin password.
-        :return: A :class:`lxml.objectify.ObjectifiedElement` object describing
-                 the newly registered (attached) VimServer.
+        :param str vc_server_name: vc server name (virtual center name).
+        :param str vc_server_host: FQDN or IP address of vc host.
+        :param str vc_admin_user: vc admin user.
+        :param str vc_admin_pwd: vc admin password.
+        :param str vc_root_folder: vc root folder.
+        :param str nsx_server_name: NSX server name.
+        :param str nsx_host: FQDN or IP address of NSX host.
+        :param str nsx_admin_user: NSX admin user.
+        :param str nsx_admin_pwd: NSX admin password.
+
+        :return: an object containing REGISTER_VC_SERVER_PARAMS XML data that
+            represents the newly registered (attached) VimServer.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         register_vc_server_params = E_VMEXT.RegisterVimServerParams()
         vc_server = E_VMEXT.VimServer(name=vc_server_name)
@@ -301,16 +336,18 @@ class Platform(object):
                               nsxt_manager_username,
                               nsxt_manager_password,
                               nsxt_manager_description=None):
-        """Register an NSX-T manager.
+        """Register a NSX-T manager.
 
-        :param: nsxt_manager_name: (str): name of NSX-T manager.
-        :param: nsxt_manager_url: (str): URL of NSX-T manager server.
-        :param: nsxt_manager_username: (str): username of NSX-T manager admin.
-        :param: nsxt_manager_password: (str): password of NSX-T manager admin.
-        :param: nsxt_manager_description: (str): description of NSX-T manager.
+        :param str nsxt_manager_name: name of NSX-T manager.
+        :param str nsxt_manager_url: URL of NSX-T manager server.
+        :param str nsxt_manager_username: username of NSX-T manager admin.
+        :param str nsxt_manager_password: password of NSX-T manager admin.
+        :param str nsxt_manager_description: description of NSX-T manager.
 
-        :return: A :class:`lxml.objectify.ObjectifiedElement` object describing
-        :        the newly registered NSX-T manager.
+        :return: an object containing XML data the newly registered NSX-T
+            manager.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         payload = E_VMEXT.NsxTManager(name=nsxt_manager_name)
         if (nsxt_manager_description is not None):
@@ -330,13 +367,12 @@ class Platform(object):
                                  media_type=EntityType.NSXT_MANAGER.value,
                                  contents=payload)
 
-    def unregister_nsxt_manager(self,
-                                nsxt_manager_name):
+    def unregister_nsxt_manager(self, nsxt_manager_name):
         """Un-register an NSX-T Manager.
 
-        :param: nsxt_manager_name: (str): name of the NSX-T manager.
+        :param str nsxt_manager_name: name of the NSX-T manager.
 
-        :return: (class:NoneType) None.
+        :return: Nothing
         """
         nsxt_manager = self.get_res_by_name(ResourceType.NSXT_MANAGER,
                                             nsxt_manager_name).get('href')
@@ -349,7 +385,9 @@ class Platform(object):
     def list_nsxt_managers(self):
         """Return list of all registered NSX-T managers.
 
-        :return (generator object): NsxTManagerRecords.
+        :return: NsxTManagerRecords.
+
+        :rtype: generator object
         """
         query = self.client.get_typed_query(
             ResourceType.NSXT_MANAGER.value,

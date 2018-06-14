@@ -9,7 +9,7 @@
     <title>pyvcloud.vcd.api_extension module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -42,11 +42,6 @@
 <code class="descname">ATTRIBUTES</code><em class="property"> = ['name', 'namespace', 'enabled', 'exchange', 'routingKey', 'priority', 'isAuthorizationEnabled', 'href', 'id']</em><a class="headerlink" href="#pyvcloud.vcd.api_extension.APIExtension.ATTRIBUTES" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="pyvcloud.vcd.api_extension.APIExtension.TYPE_NAME">
-<code class="descname">TYPE_NAME</code><em class="property"> = 'adminService'</em><a class="headerlink" href="#pyvcloud.vcd.api_extension.APIExtension.TYPE_NAME" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
 <dt id="pyvcloud.vcd.api_extension.APIExtension.add_extension">
 <code class="descname">add_extension</code><span class="sig-paren">(</span><em>name</em>, <em>namespace</em>, <em>routing_key</em>, <em>exchange</em>, <em>patterns</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.api_extension.APIExtension.add_extension" title="Permalink to this definition">¶</a></dt>
@@ -56,17 +51,19 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): The name of the new API extension service.</li>
-<li><strong>namespace</strong> – (str): The namespace of the new API extension
-service.</li>
-<li><strong>routing_key</strong> – (str): AMQP routing key to use with the extension.</li>
-<li><strong>exchange</strong> – (str): AMQP exchange to use with the extension.</li>
-<li><strong>patterns</strong> – (str): URI API filters to register with the extension.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the new API extension service.</li>
+<li><strong>namespace</strong> (<em>str</em>) – namespace of the new API extension service.</li>
+<li><strong>routing_key</strong> (<em>str</em>) – AMQP routing key to use with the extension.</li>
+<li><strong>exchange</strong> (<em>str</em>) – AMQP exchange to use with the extension.</li>
+<li><strong>patterns</strong> (<em>str</em>) – URI API filters to register with the extension.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(lxml.objectify.ObjectifiedElement): object containing
-the sparse representation of the API extension.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">object containing EntityType.ADMIN_SERVICE XML data i.e. the
+sparse representation of the API extension.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -76,20 +73,18 @@ the sparse representation of the API extension.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.api_extension.APIExtension.delete_extension">
 <code class="descname">delete_extension</code><span class="sig-paren">(</span><em>name</em>, <em>namespace</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.api_extension.APIExtension.delete_extension" title="Permalink to this definition">¶</a></dt>
-<dd><p>Delete the API extension service.</p>
+<dd><p>Delete an API extension service.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): The name of the extension service.</li>
-<li><strong>namespace</strong> – (str): The namespace of the extension service. If
-None, it will use the value defined by the <cite>name</cite> parameter.</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>str</em>) – the name of the extension service whose we want to
+delete.</li>
+<li><strong>namespace</strong> (<em>str</em>) – the namespace of the extension service. If not
+specified (i.e. = None), we will use the value passed in the
+<cite>name</cite> parameter.</li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(lxml.objectify.ObjectifiedElement): object containing
-the representation of the API extension.</p>
 </td>
 </tr>
 </tbody>
@@ -99,21 +94,26 @@ the representation of the API extension.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.api_extension.APIExtension.enable_extension">
 <code class="descname">enable_extension</code><span class="sig-paren">(</span><em>name</em>, <em>enabled=True</em>, <em>namespace=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.api_extension.APIExtension.enable_extension" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enable or disable the API extension service.</p>
+<dd><p>Enable or disable an API extension service.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): The name of the extension service.</li>
-<li><strong>namespace</strong> – (str): The namespace of the extension service. If
-None, it will use the value defined by the <cite>name</cite> parameter.</li>
-<li><strong>enabled</strong> – (bool): Flag to enable or disable the extension.</li>
+<li><strong>name</strong> (<em>str</em>) – the name of the extension service whose we want to
+enable/disable.</li>
+<li><strong>namespace</strong> (<em>str</em>) – the namespace of the extension service. If not
+specified (i.e. = None), we will use the value passed in the
+<cite>name</cite> parameter.</li>
+<li><strong>enabled</strong> (<em>bool</em>) – flag to enable or disable the extension.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(lxml.objectify.ObjectifiedElement): object containing
-the representation of the API extension.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">object containing EntityType.ADMIN_SERVICE XML data
+representing the updated API extension.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -123,15 +123,16 @@ the representation of the API extension.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.api_extension.APIExtension.get_api_filters">
 <code class="descname">get_api_filters</code><span class="sig-paren">(</span><em>service_id</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.api_extension.APIExtension.get_api_filters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the API filters defined for the service.</p>
+<dd><p>Fetch the API filters defined for the service.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>service_id</strong> – (str): The id of the extension service.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>service_id</strong> (<em>str</em>) – the id of the extension service.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(lxml.objectify.ObjectifiedElement): list with the API filters
-registered for the API extension.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">API filters registered for the API extension.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">generator object</td>
 </tr>
 </tbody>
 </table>
@@ -140,19 +141,24 @@ registered for the API extension.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.api_extension.APIExtension.get_extension">
 <code class="descname">get_extension</code><span class="sig-paren">(</span><em>name</em>, <em>namespace=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.api_extension.APIExtension.get_extension" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the info about an API extension.</p>
+<dd><p>Fetch info about a particular API extension.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): The name of the extension service.</li>
-<li><strong>namespace</strong> – (str): The namespace of the extension service. If
-None, it will use the value defined by the <cite>name</cite> parameter.</li>
+<li><strong>name</strong> (<em>str</em>) – the name of the extension service whose info we want
+to retrieve.</li>
+<li><strong>namespace</strong> (<em>str</em>) – the namespace of the extension service. If not
+specified (i.e. = None), we will use the value passed in the
+<cite>name</cite> parameter.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(dict): dictionary with the information about the extension.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">information about the extension.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
 </td>
 </tr>
 </tbody>
@@ -162,19 +168,24 @@ None, it will use the value defined by the <cite>name</cite> parameter.</li>
 <dl class="method">
 <dt id="pyvcloud.vcd.api_extension.APIExtension.get_extension_info">
 <code class="descname">get_extension_info</code><span class="sig-paren">(</span><em>name</em>, <em>namespace=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.api_extension.APIExtension.get_extension_info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the info about an API extension, including filters.</p>
+<dd><p>Return info about an API extension, including filters.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> – (str): The name of the extension service.</li>
-<li><strong>namespace</strong> – (str): The namespace of the extension service. If
-None, it will use the value defined by the <cite>name</cite> parameter.</li>
+<li><strong>name</strong> (<em>str</em>) – the name of the extension service whose info we want
+to retrieve.</li>
+<li><strong>namespace</strong> (<em>str</em>) – the namespace of the extension service. If not
+specified (i.e. = None), we will use the value passed in the
+<cite>name</cite> parameter.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(dict): dictionary with the information about the extension.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">information about the extension.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
 </td>
 </tr>
 </tbody>
@@ -184,13 +195,14 @@ None, it will use the value defined by the <cite>name</cite> parameter.</li>
 <dl class="method">
 <dt id="pyvcloud.vcd.api_extension.APIExtension.list_extensions">
 <code class="descname">list_extensions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.api_extension.APIExtension.list_extensions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the API extensions defined in the system.</p>
+<dd><p>Fetch the API extensions defined in the system.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(dict): list with the API
-extensions defined in the system.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">all the API extensions defined in the system.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
 </tbody>
 </table>
@@ -217,9 +229,9 @@ extensions defined in the system.</td>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -252,7 +264,7 @@ extensions defined in the system.</td>
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

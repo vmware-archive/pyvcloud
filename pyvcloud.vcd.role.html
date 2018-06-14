@@ -9,7 +9,7 @@
     <title>pyvcloud.vcd.role module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -45,31 +45,28 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>rights</strong> – (list): List of right names</li>
-<li><strong>org</strong> – (pyvcloud.vcd.org.Org): The Organization to which</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rights</strong> (<em>list</em>) – right names as a list of strings.</li>
+<li><strong>org</strong> (<a class="reference internal" href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org" title="pyvcloud.vcd.org.Org"><em>pyvcloud.vcd.org.Org</em></a>) – organization to which the role
+belongs.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.ROLE XML data which represents
+the updated role.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p>the role belongs</p>
-<p>:return A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated role resource.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.role.Role.link">
 <code class="descname">link</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.role.Role.link" title="Permalink to this definition">¶</a></dt>
 <dd><p>Links the role to its template.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="method">
@@ -80,7 +77,9 @@ the updated role resource.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of names of rights for a given role.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">names of rights for a given role.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -94,10 +93,12 @@ the updated role resource.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">rights: (list): List of right names</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rights</strong> (<em>list</em>) – right names as a list of strings.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated role resource.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.ROLE XML data which represents
+the updated role.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -107,14 +108,6 @@ the updated role resource.</td>
 <dt id="pyvcloud.vcd.role.Role.unlink">
 <code class="descname">unlink</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.role.Role.unlink" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unlinks the role from its template.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 </dd></dl>
@@ -138,9 +131,9 @@ the updated role resource.</td>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -173,7 +166,7 @@ the updated role resource.</td>
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

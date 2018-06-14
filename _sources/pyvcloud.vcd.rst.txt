@@ -10,6 +10,7 @@ Submodules
    pyvcloud.vcd.amqp
    pyvcloud.vcd.api_extension
    pyvcloud.vcd.client
+   pyvcloud.vcd.exceptions
    pyvcloud.vcd.extension
    pyvcloud.vcd.org
    pyvcloud.vcd.platform

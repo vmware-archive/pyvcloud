@@ -9,7 +9,7 @@
     <title>pyvcloud.vcd.utils module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -36,48 +36,136 @@
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.access_settings_to_dict">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">access_settings_to_dict</code><span class="sig-paren">(</span><em>control_access_params</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.access_settings_to_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert access settings to dict.</p>
+<dd><p>Convert a lxml.objectify.ObjectifiedElement access settings to dict.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>control_access_params</strong> – (ControlAccessParamsType): xml object</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>control_access_params</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object
+containing EntityType.CONTROL_ACCESS_PARAMS XML data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict representation of access control settings.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
 </tbody>
 </table>
-<p>representing access settings.
-:return: (dict): dict representation of access control settings.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.disk_to_dict">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">disk_to_dict</code><span class="sig-paren">(</span><em>disk</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.disk_to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts a lxml.objectify.ObjectifiedElement disk object to a dict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>disk</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object containing
+EntityType.DISK XML data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary representation of disk object.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.extract_id">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">extract_id</code><span class="sig-paren">(</span><em>urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.extract_id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Extract id from an urn.</p>
+<p>‘<a class="reference external" href="urn:vcloud:catalog:39867ab4-04e0-4b13-b468-08abcc1de810">urn:vcloud:catalog:39867ab4-04e0-4b13-b468-08abcc1de810</a>’ will produce
+‘39867ab4-04e0-4b13-b468-08abcc1de810’</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>urn</strong> (<em>str</em>) – a vcloud resource urn.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the extracted id</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.filter_attributes">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">filter_attributes</code><span class="sig-paren">(</span><em>resource_type</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.filter_attributes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns a list of attributes for a given resource type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>resource_type</strong> (<em>str</em>) – type of resource whose list of attributes we want
+to extract. Valid values are ‘adminTask’, ‘task’, ‘adminVApp’, ‘vApp’
+and ‘adminCatalogItem’, ‘catalogItem’.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the list of attributes that are relevant for the given resource
+type.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.get_admin_extension_href">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">get_admin_extension_href</code><span class="sig-paren">(</span><em>href</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.get_admin_extension_href" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns sys admin version of a given vCD url.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>href</strong> (<em>str</em>) – the href whose sys admin version we need.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sys admin version of the href.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.get_admin_href">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">get_admin_href</code><span class="sig-paren">(</span><em>href</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.get_admin_href" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns admin version of a given vCD url.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>href</strong> (<em>str</em>) – the href whose admin version we need.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">admin version of the href.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.org_to_dict">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">org_to_dict</code><span class="sig-paren">(</span><em>org</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.org_to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Convert a lxml.objectify.ObjectifiedElement org object to a dict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>org</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object containing
+EntityType.ORG or EntityType.ADMIN_ORG XML data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary representation of the org.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.pvdc_to_dict">
@@ -88,15 +176,19 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>pvdc</strong> – (ProviderVdcType): xml object</li>
-<li><strong>refs</strong> – (VdcReferences): xml object retrieved from
-the ProviderVdcType.</li>
-<li><strong>metadata</strong> – (Metadata): xml object metadata retrieved from
-the ProviderVdcType.</li>
+<li><strong>pvdc</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object containing
+EntityType.PROVIDER_VDC XML data.</li>
+<li><strong>refs</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object containing
+EntityType.VDC_REFERENCES XML data.</li>
+<li><strong>metadata</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object containing
+EntityType.METADATA XML data.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(dict): dict representation of pvdc object.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary representation of pvdc object.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
 </td>
 </tr>
 </tbody>
@@ -106,12 +198,41 @@ the ProviderVdcType.</li>
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.stdout_xml">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">stdout_xml</code><span class="sig-paren">(</span><em>the_xml</em>, <em>is_colorized=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.stdout_xml" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Prints an lxml.objectify.ObjectifiedElement to console.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>the_xml</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – the object we want to
+print.</li>
+<li><strong>is_colorized</strong> (<em>bool</em>) – if True, will print highlight xml tags and
+attributes else will print b&amp;w output to the console.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.task_to_dict">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">task_to_dict</code><span class="sig-paren">(</span><em>task</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.task_to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts a lxml.objectify.ObjectifiedElement task object to a dict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>task</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object containing
+EntityType.TASK XML data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary representation of task object.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.to_camel_case">
@@ -121,22 +242,101 @@ the ProviderVdcType.</li>
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.to_dict">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">to_dict</code><span class="sig-paren">(</span><em>obj, attributes=None, resource_type=None, exclude=['href', 'type']</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts generic lxml.objectify.ObjectifiedElement to a dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>obj</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – </li>
+<li><strong>attributes</strong> (<em>list</em>) – list of attributes we want to extract from the XML
+object.</li>
+<li><strong>resource_type</strong> – type of resource in the param obj. Acceptable values
+are listed in the enum pyvcloud.vcd.client.ResourceType.</li>
+<li><strong>exclude</strong> (<em>list</em>) – list of attributes that should be excluded from the
+dictionary.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the dictionary representing the object.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.to_human">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">to_human</code><span class="sig-paren">(</span><em>seconds</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.to_human" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts seconds to human readable (weeks, days, hours) form.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>seconds</strong> (<em>int</em>) – number of seconds.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(weeks, days, hours) equivalent to the seconds.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.vapp_to_dict">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">vapp_to_dict</code><span class="sig-paren">(</span><em>vapp</em>, <em>metadata=None</em>, <em>access_control_settings=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.vapp_to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts a lxml.objectify.ObjectifiedElement vApp object to a dict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vapp</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object containing
+EntityType.VAPP XML data.</li>
+<li><strong>access_control_settings</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object
+containing EntityType.CONTROL_ACCESS_PARAMS XML data.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary representation of vApp object.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.utils.vdc_to_dict">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">vdc_to_dict</code><span class="sig-paren">(</span><em>vdc</em>, <em>access_control_settings=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.vdc_to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Convert a lxml.objectify.ObjectifiedElement org vdc object to a dict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vdc</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object containing
+EntityType.VDC XML data.</li>
+<li><strong>access_control_settings</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object
+containing EntityType.CONTROL_ACCESS_PARAMS XML data.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary representation of the org vdc.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 
@@ -157,9 +357,9 @@ the ProviderVdcType.</li>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -192,7 +392,7 @@ the ProviderVdcType.</li>
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

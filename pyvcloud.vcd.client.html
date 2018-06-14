@@ -9,13 +9,13 @@
     <title>pyvcloud.vcd.client module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="pyvcloud.vcd.extension module" href="pyvcloud.vcd.extension.html" />
+    <link rel="next" title="pyvcloud.vcd.exceptions module" href="pyvcloud.vcd.exceptions.html" />
     <link rel="prev" title="pyvcloud.vcd.api_extension module" href="pyvcloud.vcd.api_extension.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -41,17 +41,49 @@
 
 <dl class="class">
 <dt id="pyvcloud.vcd.client.Client">
-<em class="property">class </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">Client</code><span class="sig-paren">(</span><em>uri</em>, <em>api_version='6.0'</em>, <em>verify_ssl_certs=True</em>, <em>log_file=None</em>, <em>log_requests=False</em>, <em>log_headers=False</em>, <em>log_bodies=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">Client</code><span class="sig-paren">(</span><em>uri</em>, <em>api_version=None</em>, <em>verify_ssl_certs=True</em>, <em>log_file=None</em>, <em>log_requests=False</em>, <em>log_headers=False</em>, <em>log_bodies=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A low-level interface to the vCloud Director REST API.</p>
+<p>Clients default to the production vCD API version as of the pyvcloud
+module release and will try to negotiate down to a lower API version
+that pyvcloud certifies if the vCD server is older. You can also set
+the version explicitly using the api_version parameter or by calling
+the set_highest_supported_version() method.</p>
+<p>The log_file is set by the first client instantiated and will be
+ignored in later clients.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>uri</strong> (<em>str</em>) – vCD server host name or connection URI.</li>
+<li><strong>api_version</strong> (<em>str</em>) – vCD API version to use.</li>
+<li><strong>verify_ssl_certs</strong> (<em>boolean</em>) – If True validate server certificate;
+False allows self-signed certificates.</li>
+<li><strong>log_file</strong> (<em>str</em>) – log file name or None, which suppresses logging.</li>
+<li><strong>log_request</strong> (<em>boolean</em>) – if True log HTTP requests.</li>
+<li><strong>log_headers</strong> (<em>boolean</em>) – if True log HTTP headers.</li>
+<li><strong>log_bodies</strong> (<em>boolean</em>) – if True log HTTP bodies.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.delete_linked_resource">
 <code class="descname">delete_linked_resource</code><span class="sig-paren">(</span><em>resource</em>, <em>rel</em>, <em>media_type</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.delete_linked_resource" title="Permalink to this definition">¶</a></dt>
 <dd><p>Deletes the resource referenced by the link.</p>
-<dl class="docutils">
-<dt>Deletes the resource referenced by the link with the specified rel and</dt>
-<dd>mediaType in the specified resource.</dd>
-</dl>
+<p>Deletes the resource referenced by the link with the specified rel and
+mediaType in the specified resource.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">OperationNotSupportedException: if the operation fails due to
+the link being not visible to the logged in user of the client.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -76,6 +108,22 @@
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="pyvcloud.vcd.client.Client.get_api_version">
+<code class="descname">get_api_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_api_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return vCD API version client is using.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">api version of the client.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="pyvcloud.vcd.client.Client.get_extensibility">
 <code class="descname">get_extensibility</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_extensibility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the ‘extensibility’ resource type.</p>
@@ -91,10 +139,22 @@
 <dt id="pyvcloud.vcd.client.Client.get_linked_resource">
 <code class="descname">get_linked_resource</code><span class="sig-paren">(</span><em>resource</em>, <em>rel</em>, <em>media_type</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_linked_resource" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets the content of the resource link.</p>
-<dl class="docutils">
-<dt>Gets the contents of the resource referenced by the link with the</dt>
-<dd>specified rel and mediaType in the specified resource.</dd>
-</dl>
+<p>Gets the contents of the resource referenced by the link with the
+specified rel and mediaType in the specified resource.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing XML representation of the resource the
+link points to.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">OperationNotSupportedException: if the operation fails due to
+the link being not visible to the logged in user of the client.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -111,9 +171,11 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>org_name</strong> – name of the org to be retrieved.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>org_name</strong> (<em>str</em>) – name of the organization to be retrieved.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Org record.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing OrgRecord XML element.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -122,7 +184,7 @@
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.get_org_list">
 <code class="descname">get_org_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_org_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the list of organizationsself.</p>
+<dd><p>Returns the list of organizations.</p>
 </dd></dl>
 
 <dl class="method">
@@ -141,7 +203,35 @@
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.get_supported_versions">
 <code class="descname">get_supported_versions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_supported_versions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return non-deprecated API versions on vCD server.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing SupportedVersions XML element which
+represents versions supported by vCD.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.client.Client.get_supported_versions_list">
+<code class="descname">get_supported_versions_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_supported_versions_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return non-deprecated server API versions as iterable list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">versions (str) sorted in numerical order.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.get_task_monitor">
@@ -151,24 +241,60 @@
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.get_typed_query">
 <code class="descname">get_typed_query</code><span class="sig-paren">(</span><em>query_type_name</em>, <em>query_result_format=&lt;EnumValue: QueryResultFormat.REFERENCES [value=('application/vnd.vmware.vcloud.query.references+xml'</em>, <em>'references')]&gt;</em>, <em>page_size=None</em>, <em>include_links=False</em>, <em>qfilter=None</em>, <em>equality_filter=None</em>, <em>sort_asc=None</em>, <em>sort_desc=None</em>, <em>fields=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_typed_query" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.client.Client.get_user_in_org">
-<code class="descname">get_user_in_org</code><span class="sig-paren">(</span><em>user_name</em>, <em>org_href</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_user_in_org" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve user from a particular org.</p>
+<dd><p>Issue a query using vCD query API.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_name</strong> – user name to be retrieved.</li>
-<li><strong>org_href</strong> – org where the user belongs.</li>
+<li><strong>query_type_name</strong> (<em>str</em>) – name of the entity, which should be a
+string listed in ResourceType enum.</li>
+<li><strong>query_result_format</strong> (<em>tuple</em>) – tuple value from QueryResultFormat
+enum.</li>
+<li><strong>page_size</strong> (<em>int</em>) – number of entries per page.</li>
+<li><strong>include_links</strong> – (not used).</li>
+<li><strong>qfilter</strong> (<em>str</em>) – query filter expression, e.g., ‘numberOfCpus=gt=4’.</li>
+<li><strong>equality_filter</strong> (<em>str</em>) – a field name and a value to filter
+output; appends to qfilter if present.</li>
+<li><strong>sort_asc</strong> (<em>str</em>) – if ‘name’ field is present in the result sort
+ascending by that field.</li>
+<li><strong>sort_desc</strong> (<em>str</em>) – if ‘name’ field is present in the result sort
+descending by that field.</li>
+<li><strong>fields</strong> (<em>str</em>) – comma separated list of fields to return.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object
-representing the user</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A query object that runs the query when execute()
+method is called.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pyvcloud.vcd.client._TypedQuery</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.client.Client.get_user_in_org">
+<code class="descname">get_user_in_org</code><span class="sig-paren">(</span><em>user_name</em>, <em>org_href</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_user_in_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve user from a particular organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>user_name</strong> (<em>str</em>) – name of the user to be retrieved.</li>
+<li><strong>org_href</strong> (<em>str</em>) – href of the organization to which the user
+belongs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.USER XML data which respresnts
+an user in vCD.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -183,36 +309,55 @@ representing the user</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.logout">
 <code class="descname">logout</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.logout" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Destroy the server session and deallocate local resources.</p>
+<p>Logout is idempotent. Reusing a client after logout will result
+in undefined behavior.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.post_linked_resource">
 <code class="descname">post_linked_resource</code><span class="sig-paren">(</span><em>resource</em>, <em>rel</em>, <em>media_type</em>, <em>contents</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.post_linked_resource" title="Permalink to this definition">¶</a></dt>
 <dd><p>Posts to a resource link.</p>
-<dl class="docutils">
-<dt>Posts the contents of the resource referenced by the link with the</dt>
-<dd>specified rel and mediaType in the specified resource.</dd>
-</dl>
+<p>Posts the contents of the resource referenced by the link with the
+specified rel and mediaType in the specified resource.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the result of the POST operation.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">OperationNotSupportedException: if the operation fails due to
+the link being not visible to the logged in user of the client.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.post_resource">
 <code class="descname">post_resource</code><span class="sig-paren">(</span><em>uri</em>, <em>contents</em>, <em>media_type</em>, <em>objectify_results=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.post_resource" title="Permalink to this definition">¶</a></dt>
 <dd><p>Posts to a resource link.</p>
-<dl class="docutils">
-<dt>Posts the specified contents to the specified resource.</dt>
-<dd>(Does an HTTP POST.)</dd>
-</dl>
+<p>Posts the specified contents to the specified resource. (Does an HTTP
+POST.)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.put_linked_resource">
 <code class="descname">put_linked_resource</code><span class="sig-paren">(</span><em>resource</em>, <em>rel</em>, <em>media_type</em>, <em>contents</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.put_linked_resource" title="Permalink to this definition">¶</a></dt>
 <dd><p>Puts to a resource link.</p>
-<dl class="docutils">
-<dt>Puts the contents of the resource referenced by the link with the</dt>
-<dd>specified rel and mediaType in the specified resource.</dd>
-</dl>
+<p>Puts the contents of the resource referenced by the link with the
+specified rel and mediaType in the specified resource.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the result of the PUT operation.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">OperationNotSupportedException: if the operation fails due to
+the link being not visible to the logged in user of the client.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -235,13 +380,44 @@ representing the user</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.set_credentials">
 <code class="descname">set_credentials</code><span class="sig-paren">(</span><em>creds</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.set_credentials" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the credentials used for authentication.</p>
+<dd><p>Set credentials and authenticate to create a new session.</p>
+<p>This call will automatically negotiate the server API version if
+it was not set previously. Note that the method may generate
+exceptions from the underlying socket connection, which we pass
+up unchanged to the client.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>creds</strong> (<a class="reference internal" href="#pyvcloud.vcd.client.BasicLoginCredentials" title="pyvcloud.vcd.client.BasicLoginCredentials"><em>BasicLoginCredentials</em></a>) – Credentials containing org,
+user, and password.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">VcdException: if automatic API negotiation fails to arrive
+at a supported client version</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.set_highest_supported_version">
 <code class="descname">set_highest_supported_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.set_highest_supported_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Set the client API version to the highest server API version.</p>
+<p>This call is intended to make it easy to work with new vCD
+features before they are officially supported in pyvcloud.
+Production applications should either use the default pyvcloud API
+version or set the API version explicitly to freeze compatibility.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">selected api version.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.upload_fragment">
@@ -345,6 +521,11 @@ representing the user</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pyvcloud.vcd.client.EntityType.EXTERNAL_NETWORK">
+<code class="descname">EXTERNAL_NETWORK</code><em class="property"> = &lt;EnumValue: EntityType.EXTERNAL_NETWORK [value=application/vnd.vmware.admin.vmwexternalnet+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.EXTERNAL_NETWORK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pyvcloud.vcd.client.EntityType.EXTERNAL_NETWORK_REFS">
 <code class="descname">EXTERNAL_NETWORK_REFS</code><em class="property"> = &lt;EnumValue: EntityType.EXTERNAL_NETWORK_REFS [value=application/vnd.vmware.admin.vmwExternalNetworkReferences+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.EXTERNAL_NETWORK_REFS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -380,8 +561,18 @@ representing the user</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pyvcloud.vcd.client.EntityType.NETWORK_MANAGERS">
+<code class="descname">NETWORK_MANAGERS</code><em class="property"> = &lt;EnumValue: EntityType.NETWORK_MANAGERS [value=application/vnd.vmware.admin.networkManagers+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.NETWORK_MANAGERS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pyvcloud.vcd.client.EntityType.NETWORK_POOL_REFERENCES">
 <code class="descname">NETWORK_POOL_REFERENCES</code><em class="property"> = &lt;EnumValue: EntityType.NETWORK_POOL_REFERENCES [value=application/vnd.vmware.admin.vmwNetworkPoolReferences+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.NETWORK_POOL_REFERENCES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.EntityType.NSXT_MANAGER">
+<code class="descname">NSXT_MANAGER</code><em class="property"> = &lt;EnumValue: EntityType.NSXT_MANAGER [value=application/vnd.vmware.admin.nsxTmanager+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.NSXT_MANAGER" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -412,6 +603,11 @@ representing the user</p>
 <dl class="attribute">
 <dt id="pyvcloud.vcd.client.EntityType.OWNER">
 <code class="descname">OWNER</code><em class="property"> = &lt;EnumValue: EntityType.OWNER [value=application/vnd.vmware.vcloud.owner+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.OWNER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.EntityType.PROVIDER_VDC">
+<code class="descname">PROVIDER_VDC</code><em class="property"> = &lt;EnumValue: EntityType.PROVIDER_VDC [value=application/vnd.vmware.admin.providervdc+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.PROVIDER_VDC" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -535,6 +731,16 @@ representing the user</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pyvcloud.vcd.client.EntityType.VIRTUAL_CENTER">
+<code class="descname">VIRTUAL_CENTER</code><em class="property"> = &lt;EnumValue: EntityType.VIRTUAL_CENTER [value=application/vnd.vmware.admin.vmwvirtualcenter+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.VIRTUAL_CENTER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.EntityType.VM">
+<code class="descname">VM</code><em class="property"> = &lt;EnumValue: EntityType.VM [value=application/vnd.vmware.vcloud.vm+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.VM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pyvcloud.vcd.client.EntityType.VMS">
 <code class="descname">VMS</code><em class="property"> = &lt;EnumValue: EntityType.VMS [value=application/vnd.vmware.vcloud.vms+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.VMS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -574,34 +780,40 @@ representing the user</p>
 <p>Abstraction over &lt;Link&gt; elements.</p>
 </dd></dl>
 
-<dl class="exception">
-<dt id="pyvcloud.vcd.client.LinkException">
-<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">LinkException</code><span class="sig-paren">(</span><em>href</em>, <em>rel</em>, <em>media_type</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.LinkException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
-</dd></dl>
+<dl class="class">
+<dt id="pyvcloud.vcd.client.NetworkAdapterType">
+<em class="property">class </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">NetworkAdapterType</code><a class="headerlink" href="#pyvcloud.vcd.client.NetworkAdapterType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">flufl.enum._enum.Enum</span></code></p>
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.NetworkAdapterType.E1000">
+<code class="descname">E1000</code><em class="property"> = &lt;EnumValue: NetworkAdapterType.E1000 [value=E1000]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.NetworkAdapterType.E1000" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-<dl class="exception">
-<dt id="pyvcloud.vcd.client.MissingLinkException">
-<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">MissingLinkException</code><span class="sig-paren">(</span><em>href</em>, <em>rel</em>, <em>media_type</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.MissingLinkException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.client.LinkException" title="pyvcloud.vcd.client.LinkException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.client.LinkException</span></code></a></p>
-</dd></dl>
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.NetworkAdapterType.E1000E">
+<code class="descname">E1000E</code><em class="property"> = &lt;EnumValue: NetworkAdapterType.E1000E [value=E1000E]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.NetworkAdapterType.E1000E" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-<dl class="exception">
-<dt id="pyvcloud.vcd.client.MissingRecordException">
-<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">MissingRecordException</code><a class="headerlink" href="#pyvcloud.vcd.client.MissingRecordException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
-</dd></dl>
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.NetworkAdapterType.VLANCE">
+<code class="descname">VLANCE</code><em class="property"> = &lt;EnumValue: NetworkAdapterType.VLANCE [value=PCNet32]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.NetworkAdapterType.VLANCE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-<dl class="exception">
-<dt id="pyvcloud.vcd.client.MultipleLinksException">
-<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">MultipleLinksException</code><span class="sig-paren">(</span><em>href</em>, <em>rel</em>, <em>media_type</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.MultipleLinksException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.client.LinkException" title="pyvcloud.vcd.client.LinkException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.client.LinkException</span></code></a></p>
-</dd></dl>
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.NetworkAdapterType.VMXNET">
+<code class="descname">VMXNET</code><em class="property"> = &lt;EnumValue: NetworkAdapterType.VMXNET [value=VMXNET]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.NetworkAdapterType.VMXNET" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-<dl class="exception">
-<dt id="pyvcloud.vcd.client.MultipleRecordsException">
-<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">MultipleRecordsException</code><a class="headerlink" href="#pyvcloud.vcd.client.MultipleRecordsException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.NetworkAdapterType.VMXNET2">
+<code class="descname">VMXNET2</code><em class="property"> = &lt;EnumValue: NetworkAdapterType.VMXNET2 [value=VMXNET2]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.NetworkAdapterType.VMXNET2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.NetworkAdapterType.VMXNET3">
+<code class="descname">VMXNET3</code><em class="property"> = &lt;EnumValue: NetworkAdapterType.VMXNET3 [value=VMXNET3]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.NetworkAdapterType.VMXNET3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -740,6 +952,11 @@ representing the user</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pyvcloud.vcd.client.RelationType.PUBLISH">
+<code class="descname">PUBLISH</code><em class="property"> = &lt;EnumValue: RelationType.PUBLISH [value=publish]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.RelationType.PUBLISH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pyvcloud.vcd.client.RelationType.RECOMPOSE">
 <code class="descname">RECOMPOSE</code><em class="property"> = &lt;EnumValue: RelationType.RECOMPOSE [value=recompose]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.RelationType.RECOMPOSE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -787,6 +1004,408 @@ representing the user</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pyvcloud.vcd.client.ResourceType">
+<em class="property">class </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">ResourceType</code><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">flufl.enum._enum.Enum</span></code></p>
+<p>Contains resource type names.</p>
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ACL_RULE">
+<code class="descname">ACL_RULE</code><em class="property"> = &lt;EnumValue: ResourceType.ACL_RULE [value=aclRule]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ACL_RULE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_ALLOCATED_EXTERNAL_ADDRESS">
+<code class="descname">ADMIN_ALLOCATED_EXTERNAL_ADDRESS</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_ALLOCATED_EXTERNAL_ADDRESS [value=adminAllocatedExternalAddress]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_ALLOCATED_EXTERNAL_ADDRESS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_API_DEFINITION">
+<code class="descname">ADMIN_API_DEFINITION</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_API_DEFINITION [value=adminApiDefinition]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_API_DEFINITION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_CATALOG">
+<code class="descname">ADMIN_CATALOG</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_CATALOG [value=adminCatalog]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_CATALOG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_CATALOG_ITEM">
+<code class="descname">ADMIN_CATALOG_ITEM</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_CATALOG_ITEM [value=adminCatalogItem]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_CATALOG_ITEM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_DISK">
+<code class="descname">ADMIN_DISK</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_DISK [value=adminDisk]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_DISK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_EVENT">
+<code class="descname">ADMIN_EVENT</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_EVENT [value=adminEvent]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_EVENT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_FILE_DESCRIPTOR">
+<code class="descname">ADMIN_FILE_DESCRIPTOR</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_FILE_DESCRIPTOR [value=adminFileDescriptor]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_FILE_DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_GROUP">
+<code class="descname">ADMIN_GROUP</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_GROUP [value=adminGroup]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_GROUP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_MEDIA">
+<code class="descname">ADMIN_MEDIA</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_MEDIA [value=adminMedia]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_MEDIA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_ORG_NETWORK">
+<code class="descname">ADMIN_ORG_NETWORK</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_ORG_NETWORK [value=adminOrgNetwork]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_ORG_NETWORK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_ORG_VDC">
+<code class="descname">ADMIN_ORG_VDC</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_ORG_VDC [value=adminOrgVdc]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_ORG_VDC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_ORG_VDC_STORAGE_PROFILE">
+<code class="descname">ADMIN_ORG_VDC_STORAGE_PROFILE</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_ORG_VDC_STORAGE_PROFILE [value=adminOrgVdcStorageProfile]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_ORG_VDC_STORAGE_PROFILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_ROLE">
+<code class="descname">ADMIN_ROLE</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_ROLE [value=adminRole]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_ROLE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_SERVICE">
+<code class="descname">ADMIN_SERVICE</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_SERVICE [value=adminService]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_SERVICE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_SHADOW_VM">
+<code class="descname">ADMIN_SHADOW_VM</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_SHADOW_VM [value=adminShadowVM]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_SHADOW_VM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_TASK">
+<code class="descname">ADMIN_TASK</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_TASK [value=adminTask]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_TASK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_USER">
+<code class="descname">ADMIN_USER</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_USER [value=adminUser]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_USER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_VAPP">
+<code class="descname">ADMIN_VAPP</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_VAPP [value=adminVApp]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_VAPP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_VAPP_NETWORK">
+<code class="descname">ADMIN_VAPP_NETWORK</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_VAPP_NETWORK [value=adminVAppNetwork]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_VAPP_NETWORK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_VAPP_TEMPLATE">
+<code class="descname">ADMIN_VAPP_TEMPLATE</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_VAPP_TEMPLATE [value=adminVAppTemplate]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_VAPP_TEMPLATE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_VM">
+<code class="descname">ADMIN_VM</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_VM [value=adminVM]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_VM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ADMIN_VM_DISK_RELATION">
+<code class="descname">ADMIN_VM_DISK_RELATION</code><em class="property"> = &lt;EnumValue: ResourceType.ADMIN_VM_DISK_RELATION [value=adminVMDiskRelation]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ADMIN_VM_DISK_RELATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ALLOCATED_EXTERNAL_ADDRESS">
+<code class="descname">ALLOCATED_EXTERNAL_ADDRESS</code><em class="property"> = &lt;EnumValue: ResourceType.ALLOCATED_EXTERNAL_ADDRESS [value=allocatedExternalAddress]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ALLOCATED_EXTERNAL_ADDRESS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.API_DEFINITION">
+<code class="descname">API_DEFINITION</code><em class="property"> = &lt;EnumValue: ResourceType.API_DEFINITION [value=apiDefinition]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.API_DEFINITION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.API_FILTER">
+<code class="descname">API_FILTER</code><em class="property"> = &lt;EnumValue: ResourceType.API_FILTER [value=apiFilter]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.API_FILTER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.BLOCKING_TASK">
+<code class="descname">BLOCKING_TASK</code><em class="property"> = &lt;EnumValue: ResourceType.BLOCKING_TASK [value=blockingTask]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.BLOCKING_TASK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.CATALOG">
+<code class="descname">CATALOG</code><em class="property"> = &lt;EnumValue: ResourceType.CATALOG [value=catalog]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.CATALOG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.CATALOG_ITEM">
+<code class="descname">CATALOG_ITEM</code><em class="property"> = &lt;EnumValue: ResourceType.CATALOG_ITEM [value=catalogItem]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.CATALOG_ITEM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.CELL">
+<code class="descname">CELL</code><em class="property"> = &lt;EnumValue: ResourceType.CELL [value=cell]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.CELL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.CONDITION">
+<code class="descname">CONDITION</code><em class="property"> = &lt;EnumValue: ResourceType.CONDITION [value=condition]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.CONDITION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.DATASTORE">
+<code class="descname">DATASTORE</code><em class="property"> = &lt;EnumValue: ResourceType.DATASTORE [value=datastore]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.DATASTORE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.DATASTORE_PROVIDER_VDC_RELATION">
+<code class="descname">DATASTORE_PROVIDER_VDC_RELATION</code><em class="property"> = &lt;EnumValue: ResourceType.DATASTORE_PROVIDER_VDC_RELATION [value=datastoreProviderVdcRelation]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.DATASTORE_PROVIDER_VDC_RELATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.DISK">
+<code class="descname">DISK</code><em class="property"> = &lt;EnumValue: ResourceType.DISK [value=disk]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.DISK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.DV_SWITCH">
+<code class="descname">DV_SWITCH</code><em class="property"> = &lt;EnumValue: ResourceType.DV_SWITCH [value=dvSwitch]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.DV_SWITCH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.EDGE_GATEWAY">
+<code class="descname">EDGE_GATEWAY</code><em class="property"> = &lt;EnumValue: ResourceType.EDGE_GATEWAY [value=edgeGateway]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.EDGE_GATEWAY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.EVENT">
+<code class="descname">EVENT</code><em class="property"> = &lt;EnumValue: ResourceType.EVENT [value=event]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.EVENT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.EXTERNAL_LOCALIZATION">
+<code class="descname">EXTERNAL_LOCALIZATION</code><em class="property"> = &lt;EnumValue: ResourceType.EXTERNAL_LOCALIZATION [value=externalLocalization]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.EXTERNAL_LOCALIZATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.EXTERNAL_NETWORK">
+<code class="descname">EXTERNAL_NETWORK</code><em class="property"> = &lt;EnumValue: ResourceType.EXTERNAL_NETWORK [value=externalNetwork]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.EXTERNAL_NETWORK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.FILE_DESCRIPTOR">
+<code class="descname">FILE_DESCRIPTOR</code><em class="property"> = &lt;EnumValue: ResourceType.FILE_DESCRIPTOR [value=fileDescriptor]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.FILE_DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.FROM_CLOUD_TUNNEL">
+<code class="descname">FROM_CLOUD_TUNNEL</code><em class="property"> = &lt;EnumValue: ResourceType.FROM_CLOUD_TUNNEL [value=fromCloudTunnel]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.FROM_CLOUD_TUNNEL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.GROUP">
+<code class="descname">GROUP</code><em class="property"> = &lt;EnumValue: ResourceType.GROUP [value=group]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.GROUP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.HOST">
+<code class="descname">HOST</code><em class="property"> = &lt;EnumValue: ResourceType.HOST [value=host]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.HOST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.MEDIA">
+<code class="descname">MEDIA</code><em class="property"> = &lt;EnumValue: ResourceType.MEDIA [value=media]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.MEDIA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.NETWORK_POOL">
+<code class="descname">NETWORK_POOL</code><em class="property"> = &lt;EnumValue: ResourceType.NETWORK_POOL [value=networkPool]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.NETWORK_POOL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.NSXT_MANAGER">
+<code class="descname">NSXT_MANAGER</code><em class="property"> = &lt;EnumValue: ResourceType.NSXT_MANAGER [value=nsxTManager]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.NSXT_MANAGER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ORGANIZATION">
+<code class="descname">ORGANIZATION</code><em class="property"> = &lt;EnumValue: ResourceType.ORGANIZATION [value=organization]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ORGANIZATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ORG_NETWORK">
+<code class="descname">ORG_NETWORK</code><em class="property"> = &lt;EnumValue: ResourceType.ORG_NETWORK [value=orgNetwork]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ORG_NETWORK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ORG_VDC">
+<code class="descname">ORG_VDC</code><em class="property"> = &lt;EnumValue: ResourceType.ORG_VDC [value=orgVdc]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ORG_VDC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ORG_VDC_NETWORK">
+<code class="descname">ORG_VDC_NETWORK</code><em class="property"> = &lt;EnumValue: ResourceType.ORG_VDC_NETWORK [value=orgVdcNetwork]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ORG_VDC_NETWORK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ORG_VDC_RESOURCE_POOL_RELATION">
+<code class="descname">ORG_VDC_RESOURCE_POOL_RELATION</code><em class="property"> = &lt;EnumValue: ResourceType.ORG_VDC_RESOURCE_POOL_RELATION [value=orgVdcResourcePoolRelation]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ORG_VDC_RESOURCE_POOL_RELATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ORG_VDC_STORAGE_PROFILE">
+<code class="descname">ORG_VDC_STORAGE_PROFILE</code><em class="property"> = &lt;EnumValue: ResourceType.ORG_VDC_STORAGE_PROFILE [value=orgVdcStorageProfile]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ORG_VDC_STORAGE_PROFILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.PORT_GROUP">
+<code class="descname">PORT_GROUP</code><em class="property"> = &lt;EnumValue: ResourceType.PORT_GROUP [value=portGroup]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.PORT_GROUP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.PROVIDER_VDC">
+<code class="descname">PROVIDER_VDC</code><em class="property"> = &lt;EnumValue: ResourceType.PROVIDER_VDC [value=providerVdc]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.PROVIDER_VDC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.PROVIDER_VDC_RESOURCE_POOL_RELATION">
+<code class="descname">PROVIDER_VDC_RESOURCE_POOL_RELATION</code><em class="property"> = &lt;EnumValue: ResourceType.PROVIDER_VDC_RESOURCE_POOL_RELATION [value=providerVdcResourcePoolRelation]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.PROVIDER_VDC_RESOURCE_POOL_RELATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.PROVIDER_VDC_STORAGE_PROFILE">
+<code class="descname">PROVIDER_VDC_STORAGE_PROFILE</code><em class="property"> = &lt;EnumValue: ResourceType.PROVIDER_VDC_STORAGE_PROFILE [value=providerVdcStorageProfile]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.PROVIDER_VDC_STORAGE_PROFILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.RESOURCE_CLASS">
+<code class="descname">RESOURCE_CLASS</code><em class="property"> = &lt;EnumValue: ResourceType.RESOURCE_CLASS [value=resourceClass]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.RESOURCE_CLASS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.RESOURCE_CLASS_ACTION">
+<code class="descname">RESOURCE_CLASS_ACTION</code><em class="property"> = &lt;EnumValue: ResourceType.RESOURCE_CLASS_ACTION [value=resourceClassAction]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.RESOURCE_CLASS_ACTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.RESOURCE_POOL">
+<code class="descname">RESOURCE_POOL</code><em class="property"> = &lt;EnumValue: ResourceType.RESOURCE_POOL [value=resourcePool]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.RESOURCE_POOL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.RESOURCE_POOL_VM_LIST">
+<code class="descname">RESOURCE_POOL_VM_LIST</code><em class="property"> = &lt;EnumValue: ResourceType.RESOURCE_POOL_VM_LIST [value=resourcePoolVmList]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.RESOURCE_POOL_VM_LIST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.RIGHT">
+<code class="descname">RIGHT</code><em class="property"> = &lt;EnumValue: ResourceType.RIGHT [value=right]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.RIGHT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.ROLE">
+<code class="descname">ROLE</code><em class="property"> = &lt;EnumValue: ResourceType.ROLE [value=role]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.ROLE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.SERVICE">
+<code class="descname">SERVICE</code><em class="property"> = &lt;EnumValue: ResourceType.SERVICE [value=service]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.SERVICE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.SERVICE_LINK">
+<code class="descname">SERVICE_LINK</code><em class="property"> = &lt;EnumValue: ResourceType.SERVICE_LINK [value=serviceLink]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.SERVICE_LINK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.SERVICE_RESOURCE">
+<code class="descname">SERVICE_RESOURCE</code><em class="property"> = &lt;EnumValue: ResourceType.SERVICE_RESOURCE [value=serviceResource]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.SERVICE_RESOURCE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.STRANDED_ITEM">
+<code class="descname">STRANDED_ITEM</code><em class="property"> = &lt;EnumValue: ResourceType.STRANDED_ITEM [value=strandedItem]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.STRANDED_ITEM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.STRANDED_USER">
+<code class="descname">STRANDED_USER</code><em class="property"> = &lt;EnumValue: ResourceType.STRANDED_USER [value=strandedUser]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.STRANDED_USER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.TASK">
+<code class="descname">TASK</code><em class="property"> = &lt;EnumValue: ResourceType.TASK [value=task]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.TASK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.TO_CLOUD_TUNNEL">
+<code class="descname">TO_CLOUD_TUNNEL</code><em class="property"> = &lt;EnumValue: ResourceType.TO_CLOUD_TUNNEL [value=toCloudTunnel]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.TO_CLOUD_TUNNEL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.USER">
+<code class="descname">USER</code><em class="property"> = &lt;EnumValue: ResourceType.USER [value=user]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.USER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.VAPP">
+<code class="descname">VAPP</code><em class="property"> = &lt;EnumValue: ResourceType.VAPP [value=vApp]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.VAPP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.VAPP_NETWORK">
+<code class="descname">VAPP_NETWORK</code><em class="property"> = &lt;EnumValue: ResourceType.VAPP_NETWORK [value=vAppNetwork]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.VAPP_NETWORK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.VAPP_ORG_VDC_NETWORK_RELATION">
+<code class="descname">VAPP_ORG_VDC_NETWORK_RELATION</code><em class="property"> = &lt;EnumValue: ResourceType.VAPP_ORG_VDC_NETWORK_RELATION [value=vAppOrgVdcNetworkRelation]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.VAPP_ORG_VDC_NETWORK_RELATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.VAPP_TEMPLATE">
+<code class="descname">VAPP_TEMPLATE</code><em class="property"> = &lt;EnumValue: ResourceType.VAPP_TEMPLATE [value=vAppTemplate]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.VAPP_TEMPLATE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.VIRTUAL_CENTER">
+<code class="descname">VIRTUAL_CENTER</code><em class="property"> = &lt;EnumValue: ResourceType.VIRTUAL_CENTER [value=virtualCenter]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.VIRTUAL_CENTER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.VM">
+<code class="descname">VM</code><em class="property"> = &lt;EnumValue: ResourceType.VM [value=vm]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.VM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.VM_DISK_RELATION">
+<code class="descname">VM_DISK_RELATION</code><em class="property"> = &lt;EnumValue: ResourceType.VM_DISK_RELATION [value=vmDiskRelation]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.VM_DISK_RELATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.VM_GROUPS">
+<code class="descname">VM_GROUPS</code><em class="property"> = &lt;EnumValue: ResourceType.VM_GROUPS [value=vmGroups]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.VM_GROUPS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.ResourceType.VM_GROUP_VMS">
+<code class="descname">VM_GROUP_VMS</code><em class="property"> = &lt;EnumValue: ResourceType.VM_GROUP_VMS [value=vmGroupVms]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.VM_GROUP_VMS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pyvcloud.vcd.client.TaskStatus">
 <em class="property">class </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">TaskStatus</code><a class="headerlink" href="#pyvcloud.vcd.client.TaskStatus" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">flufl.enum._enum.Enum</span></code></p>
@@ -827,65 +1446,68 @@ representing the user</p>
 
 </dd></dl>
 
-<dl class="exception">
-<dt id="pyvcloud.vcd.client.VcdErrorException">
-<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">VcdErrorException</code><span class="sig-paren">(</span><em>status_code</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.VcdErrorException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
-</dd></dl>
-
-<dl class="exception">
-<dt id="pyvcloud.vcd.client.VcdErrorResponseException">
-<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">VcdErrorResponseException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.VcdErrorResponseException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.client.VcdErrorException" title="pyvcloud.vcd.client.VcdErrorException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.client.VcdErrorException</span></code></a></p>
-</dd></dl>
-
-<dl class="exception">
-<dt id="pyvcloud.vcd.client.VcdTaskException">
-<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">VcdTaskException</code><span class="sig-paren">(</span><em>error_message</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.VcdTaskException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
-</dd></dl>
-
 <dl class="function">
 <dt id="pyvcloud.vcd.client.find_link">
 <code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">find_link</code><span class="sig-paren">(</span><em>resource</em>, <em>rel</em>, <em>media_type</em>, <em>fail_if_absent=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.find_link" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the link of the specified rel and type in the resource.</p>
-<ul class="simple">
-<li>&#64;param resource the resource with the link</li>
-<li>&#64;param rel the rel of the desired link</li>
-<li>&#64;param mediaType media type of content</li>
-<li><dl class="first docutils">
-<dt>&#64;param failIfAbsent controls whether an exception is thrown if there’s</dt>
-<dd>not exactly one link of the specified rel and media type</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>&#64;return the link, or null if no such link is present and failIfAbsent</dt>
-<dd>is false</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>&#64;throws MissingLinkException if no link of the specified rel and media</dt>
-<dd>type is found</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>&#64;throws MultipleLinksException if multiple links of the specified rel</dt>
-<dd>and media type are found</dd>
-</dl>
-</li>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – the resource with the
+link.</li>
+<li><strong>rel</strong> (<a class="reference internal" href="#pyvcloud.vcd.client.ResourceType" title="pyvcloud.vcd.client.ResourceType"><em>ResourceType</em></a>) – the rel of the desired link.</li>
+<li><strong>media_type</strong> (<em>str</em>) – media type of content.</li>
+<li><strong>fail_if_absent</strong> (<em>bool</em>) – if True raise an exception if there’s
+not exactly one link of the specified rel and media type.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing Link XML element representing the desired
+link or None if no such link is present and fail_if_absent is False.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.MissingLinkException" title="pyvcloud.vcd.exceptions.MissingLinkException"><strong>MissingLinkException</strong></a> – if no link of the specified rel and media
+type is found</li>
+<li><a class="reference internal" href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.MultipleLinksException" title="pyvcloud.vcd.exceptions.MultipleLinksException"><strong>MultipleLinksException</strong></a> – if multiple links of the specified rel
+and media type are found</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyvcloud.vcd.client.get_links">
 <code class="descclassname">pyvcloud.vcd.client.</code><code class="descname">get_links</code><span class="sig-paren">(</span><em>resource</em>, <em>rel=&lt;EnumValue: RelationType.DOWN [value=down]&gt;</em>, <em>media_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.get_links" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns all the links of the specified rel and type in the resource.</p>
-<ul class="simple">
-<li>&#64;param resource the resource with the link</li>
-<li>&#64;param rel the rel of the desired link</li>
-<li>&#64;param mediaType media type of content</li>
-<li>&#64;return the links (could be an empty list)</li>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – the resource with the
+links.</li>
+<li><strong>rel</strong> (<a class="reference internal" href="#pyvcloud.vcd.client.RelationType" title="pyvcloud.vcd.client.RelationType"><em>RelationType</em></a>) – the rel of the desired link.</li>
+<li><strong>media_type</strong> (<em>str</em>) – media type of content.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of lxml.objectify.ObjectifiedElement objects, where each
+object contains a Link XML element. Result could include an empty list.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -907,9 +1529,9 @@ representing the user</p>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -942,7 +1564,7 @@ representing the user</p>
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

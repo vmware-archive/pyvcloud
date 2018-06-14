@@ -9,7 +9,7 @@
     <title>pyvcloud.vcd.amqp module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -40,17 +40,70 @@
 <dl class="method">
 <dt id="pyvcloud.vcd.amqp.AmqpService.get_settings">
 <code class="descname">get_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.amqp.AmqpService.get_settings" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Fetches the XML representation of the AMQP service setting.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.AMQP_SETTINGS XML data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.amqp.AmqpService.set_config">
 <code class="descname">set_config</code><span class="sig-paren">(</span><em>config</em>, <em>password</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.amqp.AmqpService.set_config" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Updates the configuration of the AMQP service.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>config</strong> (<em>dict</em>) – dictionary representation of AMQP service
+configuration.</li>
+<li><strong>password</strong> (<em>str</em>) – password of the user for the amqp service.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.AMQP_SETTINGS XML data
+representing the configuration of the AMQP service.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.amqp.AmqpService.test_config">
 <code class="descname">test_config</code><span class="sig-paren">(</span><em>config</em>, <em>password</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.amqp.AmqpService.test_config" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Tests the validity of configuration on the AMQP service.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>config</strong> (<em>dict</em>) – dictionary representation of AMQP service
+configuration.</li>
+<li><strong>password</strong> (<em>str</em>) – password of the user for the AMQP service.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing vmext:AmqpSettingsTest XML element
+representing the result of the test performed on the AMQP service.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -73,9 +126,9 @@
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -108,7 +161,7 @@
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

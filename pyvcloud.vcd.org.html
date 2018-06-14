@@ -9,7 +9,7 @@
     <title>pyvcloud.vcd.org module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -46,19 +46,32 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>catalog_name</strong> – (str): name of the catalog for which acl needs
-to be added.</li>
-<li><strong>access_settings_list</strong> – (list of dict): list of access_setting
-in the dict format. Each dict contains:
-type: (str): type of the subject. One of ‘org’ or ‘user’.
-name: (str): name of the user or org.
-access_level: (str): access_level of the particular subject. One of
-‘ReadOnly’, ‘Change’, ‘FullControl’</li>
+<li><strong>catalog_name</strong> (<em>str</em>) – name of the catalog to which access settings
+needs to be added.</li>
+<li><strong>access_settings_list</strong> (<em>list</em>) – <p>list of access_setting in the dict
+format. Each dict contains:</p>
+<ul>
+<li><dl class="first docutils">
+<dt>type: (str): type of the subject. Value must be either ‘org’</dt>
+<dd>or ‘user’.</dd>
+</dl>
+</li>
+<li>name: (str): name of the user or organization.</li>
+<li><dl class="first docutils">
+<dt>access_level: (str): access_level of the particular subject.</dt>
+<dd>Acceptable values are ‘ReadOnly’, ‘Change’ or ‘FullControl’</dd>
+</dl>
+</li>
+</ul>
+</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the catalog.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.CONTROL_ACCESS_PARAMS XML data
+representing the updated Access Control List of the catalog.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -73,38 +86,45 @@ the updated access control setting of the catalog.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rights</strong> – (tuple): tuple of right names</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rights</strong> (<em>tuple</em>) – names of rights as strings.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.ORG_RIGHTS XML data
+representing the updated rights in the organization.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
-<p>:return A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated Org rights</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.capture_vapp">
 <code class="descname">capture_vapp</code><span class="sig-paren">(</span><em>catalog_resource</em>, <em>vapp_href</em>, <em>catalog_item_name</em>, <em>description</em>, <em>customize_on_instantiate=False</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.capture_vapp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Capture vApp as a catalog item template.</p>
+<dd><p>Capture vApp as a template into a catalog.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>catalog_resource</strong> – (<cite>lxml.objectify.StringElement</cite>): The
-catalog.</li>
-<li><strong>vapp_href</strong> – (str): The href of the vApp to capture.</li>
-<li><strong>catalog_item_name</strong> – (str): The name of the target catalog item.</li>
-<li><strong>description</strong> – (str): The description of the catalog item.</li>
-<li><strong>customize_on_instantiate</strong> – (bool): A flag indicating if the
-vApp to be instantiated from this vApp template can be customized.</li>
-<li><strong>overwrite</strong> – (bool): A flag indicating if the item in the catalog
-has to be overwritten if it already exists. If it doesn’t exists,
-this flag is not used.</li>
+<li><strong>catalog_resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – an object
+containing EntityType.CATALOG XML data representing the catalog to
+which we will add the new template.</li>
+<li><strong>vapp_href</strong> (<em>str</em>) – href of the vApp to capture.</li>
+<li><strong>catalog_item_name</strong> (<em>str</em>) – name of the target catalog item.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the catalog item.</li>
+<li><strong>customize_on_instantiate</strong> (<em>bool</em>) – flag indicating if the vApp to
+be instantiated from this vApp template can be customized.</li>
+<li><strong>overwrite</strong> (<em>bool</em>) – flag indicating if the item in the catalog has
+to be overwritten if it already exists. If it doesn’t exist, this
+flag is not used.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the updated catalog item.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.VAPP_TEMPLATE XML data
+describing the captured template.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -114,18 +134,17 @@ the updated catalog item.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.change_catalog_owner">
 <code class="descname">change_catalog_owner</code><span class="sig-paren">(</span><em>catalog_name</em>, <em>user_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.change_catalog_owner" title="Permalink to this definition">¶</a></dt>
-<dd><p>Change the ownership of Catalog to a given user.</p>
+<dd><p>Change the ownership of catalog to a given user.</p>
+<p>This operation can be performed by only users with admin privileges.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>catalog_name</strong> – Catalog whose ownership needs to be changed</li>
-<li><strong>user_name</strong> – New Owner of the Catalog</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>catalog_name</strong> (<em>str</em>) – name of the catalog whose ownership needs
+to be changed</li>
+<li><strong>user_name</strong> (<em>str</em>) – name of the new owner of the catalog</li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
 </td>
 </tr>
 </tbody>
@@ -135,85 +154,113 @@ the updated catalog item.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.create_catalog">
 <code class="descname">create_catalog</code><span class="sig-paren">(</span><em>name</em>, <em>description</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.create_catalog" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.org.Org.create_org_vdc">
-<code class="descname">create_org_vdc</code><span class="sig-paren">(</span><em>vdc_name</em>, <em>provider_vdc_name</em>, <em>description=''</em>, <em>allocation_model='AllocationVApp'</em>, <em>cpu_units='MHz'</em>, <em>cpu_allocated=0</em>, <em>cpu_limit=0</em>, <em>mem_units='MB'</em>, <em>mem_allocated=0</em>, <em>mem_limit=0</em>, <em>nic_quota=0</em>, <em>network_quota=0</em>, <em>vm_quota=0</em>, <em>storage_profiles=[]</em>, <em>resource_guaranteed_memory=None</em>, <em>resource_guaranteed_cpu=None</em>, <em>vcpu_in_mhz=None</em>, <em>is_thin_provision=None</em>, <em>network_pool_name=None</em>, <em>uses_fast_provisioning=None</em>, <em>over_commit_allowed=None</em>, <em>vm_discovery_enabled=None</em>, <em>is_enabled=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.create_org_vdc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create Organization VDC in the current Org.</p>
+<dd><p>Create a catalog in the organization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>(</strong><strong>str</strong><strong>)</strong> (<em>network_pool_name</em>) – The name of the new org vdc.</li>
-<li><strong>(</strong><strong>str</strong><strong>)</strong> – The name of an existing provider vdc.</li>
-<li><strong>(</strong><strong>str</strong><strong>)</strong> – The description of the new org vdc.</li>
-<li><strong>(</strong><strong>str</strong><strong>)</strong> – The allocation model used by this vDC.
-One of AllocationVApp, AllocationPool or ReservationPool.</li>
-<li><strong>(</strong><strong>str</strong><strong>)</strong> – The cpu units compute capacity allocated to
-this vDC. One of MHz or GHz</li>
-<li><strong>(</strong><strong>int</strong><strong>)</strong> (<em>vcpu_in_mhz</em>) – Capacity that is committed to be available.</li>
-<li><strong>(</strong><strong>int</strong><strong>)</strong> – Capacity limit relative to the value specified
-for Allocation.</li>
-<li><strong>(</strong><strong>str</strong><strong>)</strong> – The memory units compute capacity allocated to
-this vDC. One of MB or GB.</li>
-<li><strong>(</strong><strong>int</strong><strong>)</strong> – Memory capacity that is committed to be
+<li><strong>name</strong> (<em>str</em>) – name of the catalog to be created.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the catalog to be created.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.ADMIN_CATALOG XML data
+representing a sparsely populated catalog element.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.org.Org.create_org_vdc">
+<code class="descname">create_org_vdc</code><span class="sig-paren">(</span><em>vdc_name</em>, <em>provider_vdc_name</em>, <em>description=''</em>, <em>allocation_model='AllocationVApp'</em>, <em>cpu_units='MHz'</em>, <em>cpu_allocated=0</em>, <em>cpu_limit=0</em>, <em>mem_units='MB'</em>, <em>mem_allocated=0</em>, <em>mem_limit=0</em>, <em>nic_quota=0</em>, <em>network_quota=0</em>, <em>vm_quota=0</em>, <em>storage_profiles=[]</em>, <em>resource_guaranteed_memory=None</em>, <em>resource_guaranteed_cpu=None</em>, <em>vcpu_in_mhz=None</em>, <em>is_thin_provision=None</em>, <em>network_pool_name=None</em>, <em>uses_fast_provisioning=None</em>, <em>over_commit_allowed=None</em>, <em>vm_discovery_enabled=None</em>, <em>is_enabled=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.create_org_vdc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an Organization VDC in the current organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vdc_name</strong> (<em>str</em>) – name of the new org vdc.</li>
+<li><strong>provider_vdc_name</strong> (<em>str</em>) – (str): The name of an existing provider
+vdc.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the new org vdc.</li>
+<li><strong>allocation_model</strong> (<em>str</em>) – allocation model used by this vdc.
+Accepted values are ‘AllocationVApp’, ‘AllocationPool’ or
+‘ReservationPool’.</li>
+<li><strong>cpu_units</strong> (<em>str</em>) – unit for compute capacity allocated to this vdc.
+Accepted values are ‘MHz’ or ‘GHz’.</li>
+<li><strong>cpu_allocated</strong> (<em>int</em>) – capacity that is committed to be available.</li>
+<li><strong>cpu_limit</strong> (<em>int</em>) – capacity limit relative to the value specified
+for allocation.</li>
+<li><strong>mem_units</strong> (<em>str</em>) – unit for memory capacity allocated to this vdc.
+Acceptable values are ‘MB’ or ‘GB’.</li>
+<li><strong>mem_allocated</strong> (<em>int</em>) – memory capacity that is committed to be
 available.</li>
-<li><strong>(</strong><strong>int</strong><strong>)</strong> – Memory capacity limit relative to the value
-specified for Allocation.</li>
-<li><strong>(</strong><strong>int</strong><strong>)</strong> – Maximum number of virtual NICs allowed in this
-vDC. Defaults to 0, which specifies an unlimited number.</li>
-<li><strong>(</strong><strong>int</strong><strong>)</strong> – Maximum number of network objects that can
-be deployed in this vDC. Defaults to 0, which means no networks can
-be deployed.</li>
-<li><strong>(</strong><strong>int</strong><strong>)</strong> – The maximum number of VMs that can be created in
-this vDC. Defaults to 0, which specifies an unlimited number.</li>
-<li><strong>storage_profiles</strong> – <p>List of provider vDC storage profiles to add
-to this vDC.
-Each item is a dictionary that should include the following</p>
-<blockquote>
-<div>elements:
-name: (string) name of the PVDC storage profile.
-enabled: (bool) True if the storage profile is enabled for this<blockquote>
-<div>vDC.</div></blockquote>
-<p>units: (string) Units used to define limit. One of MB or GB.
-limit: (int) Max number of units allocated for this storage</p>
-<blockquote>
-<div>profile.</div></blockquote>
-<dl class="docutils">
-<dt>default: (bool) True if this is default storage profile for</dt>
-<dd>this vDC.</dd>
+<li><strong>mem_limit</strong> (<em>int</em>) – memory capacity limit relative to the value
+specified for allocation.</li>
+<li><strong>nic_quota</strong> (<em>int</em>) – maximum number of virtual NICs allowed in this
+vdc. Defaults to 0, which specifies an unlimited number.</li>
+<li><strong>network_quota</strong> (<em>int</em>) – maximum number of network objects that can be
+deployed in this vdc. Defaults to 0, which means no networks can be
+deployed.</li>
+<li><strong>vm_quota</strong> (<em>int</em>) – maximum number of VMs that can be created in this
+vdc. Defaults to 0, which specifies an unlimited number.</li>
+<li><strong>storage_profiles</strong> (<em>list</em>) – <p>list of provider vdc storage profiles to
+add to this vdc. Each item is a dictionary that should include the
+following elements:</p>
+<ul>
+<li>name: (str): name of the PVDC storage profile.</li>
+<li><dl class="first docutils">
+<dt>enabled: (bool): True if the storage profile is enabled for</dt>
+<dd>this vdc.</dd>
 </dl>
-</div></blockquote>
 </li>
-<li><strong>(</strong><strong>float</strong><strong>)</strong> (<em>resource_guaranteed_cpu</em>) – Percentage of allocated CPU
-resources guaranteed to vApps deployed in this vDC.
-Value defaults to 1.0 if the element is empty.</li>
-<li><strong>(</strong><strong>float</strong><strong>)</strong> – Percentage of allocated memory
-resources guaranteed to vApps deployed in this vDC.
-Value defaults to 1.0 if the element is empty.</li>
-<li><strong>(</strong><strong>int</strong><strong>)</strong> – Specifies the clock frequency, in Megahertz,
+<li>units: (string): Units used to define limit. One of MB or GB.</li>
+<li><dl class="first docutils">
+<dt>limit: (int): Max number of units allocated for this storage</dt>
+<dd>profile.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>default: (bool): True if this is default storage profile for</dt>
+<dd>this vdc.</dd>
+</dl>
+</li>
+</ul>
+</li>
+<li><strong>resource_guaranteed_memory</strong> (<em>float</em>) – percentage of allocated CPU
+resources guaranteed to vApps deployed in this vdc. Value defaults
+to 1.0 if the element is empty.</li>
+<li><strong>resource_guaranteed_cpu</strong> (<em>float</em>) – percentage of allocated memory
+resources guaranteed to vApps deployed in this vdc. Value defaults
+to 1.0 if the element is empty.</li>
+<li><strong>vcpu_in_mhz</strong> (<em>int</em>) – specifies the clock frequency, in MegaHertz,
 for any virtual CPU that is allocated to a VM.</li>
-<li><strong>(</strong><strong>bool</strong><strong>)</strong> (<em>is_enabled</em>) – Boolean to request thin provisioning.</li>
-<li><strong>(</strong><strong>str</strong><strong>)</strong> – Reference to a network pool in the
-Provider vDC.</li>
-<li><strong>(</strong><strong>bool</strong><strong>)</strong> – Boolean to request fast
-provisioning.</li>
-<li><strong>(</strong><strong>bool</strong><strong>)</strong> – Set to false to disallow creation of
-the VDC if the AllocationModel is AllocationPool or ReservationPool
-and the ComputeCapacity you specified is greater than what the
-backing Provider VDC can supply. Defaults to true if empty or
-missing.</li>
-<li><strong>(</strong><strong>bool</strong><strong>)</strong> – True if discovery of vCenter VMs
-is enabled for resource pools backing this vDC.</li>
-<li><strong>(</strong><strong>bool</strong><strong>)</strong> – True if this vDC is enabled for use by the
+<li><strong>is_thin_provision</strong> (<em>bool</em>) – True to request thin provisioning.</li>
+<li><strong>network_pool_name</strong> (<em>str</em>) – name to a network pool in the provider
+vdc that this org vdc should use.</li>
+<li><strong>uses_fast_provisioning</strong> (<em>bool</em>) – True to request fast provisioning.</li>
+<li><strong>over_commit_allowed</strong> (<em>bool</em>) – False to disallow creation of the VDC
+if the AllocationModel is AllocationPool or ReservationPool and the
+ComputeCapacity specified is greater than what the backing provider
+VDC can supply. Defaults to True, if empty or missing.</li>
+<li><strong>vm_discovery_enabled</strong> (<em>bool</em>) – True, if discovery of vCenter VMs
+is enabled for resource pools backing this vdc.</li>
+<li><strong>is_enabled</strong> (<em>bool</em>) – True, if this vdc is enabled for use by the
 organization users.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the new VDC.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.VDC XML data describing the
+new VDC.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -229,14 +276,18 @@ the new VDC.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>role_name</strong> – (str): name of the role to be created</li>
-<li><strong>description</strong> – (str): description of the role</li>
-<li><strong>rights</strong> – (tuple of (str)) names of zero or more rights to be
-associated with the role</li>
+<li><strong>role_name</strong> (<em>str</em>) – name of the role to be created.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the role.</li>
+<li><strong>rights</strong> (<em>tuple</em>) – names (as str) of zero or more rights to be
+associated with the role.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">RoleType just created</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.ROLE XML data describing the
+role just created.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -246,36 +297,43 @@ associated with the role</li>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.create_user">
 <code class="descname">create_user</code><span class="sig-paren">(</span><em>user_name</em>, <em>password</em>, <em>role_href</em>, <em>full_name=''</em>, <em>description=''</em>, <em>email=''</em>, <em>telephone=''</em>, <em>im=''</em>, <em>alert_email=''</em>, <em>alert_email_prefix=''</em>, <em>stored_vm_quota=0</em>, <em>deployed_vm_quota=0</em>, <em>is_group_role=False</em>, <em>is_default_cached=False</em>, <em>is_external=False</em>, <em>is_alert_enabled=False</em>, <em>is_enabled=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.create_user" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create User in the current Org.</p>
+<dd><p>Create a new user in the current organization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_name</strong> – The username of the user</li>
-<li><strong>password</strong> – The password of the user</li>
-<li><strong>role_href</strong> – The href of the user role</li>
-<li><strong>full_name</strong> – The full name of the user</li>
-<li><strong>description</strong> – The description for the User</li>
-<li><strong>email</strong> – The email of the user</li>
-<li><strong>telephone</strong> – The telephone of the user</li>
-<li><strong>im</strong> – The im address of the user</li>
-<li><strong>alert_email</strong> – The alert email address</li>
-<li><strong>alert_email_prefix</strong> – The string to prepend to the alert message
-subject line</li>
-<li><strong>stored_vm_quota</strong> – The quota of vApps that this user can store</li>
-<li><strong>deployed_vm_quota</strong> – The quota of vApps that this user can deploy
-concurrently</li>
-<li><strong>is_group_role</strong> – Indicates if the user has a group role</li>
-<li><strong>is_default_cached</strong> – Indicates if user should be cached</li>
-<li><strong>is_external</strong> – Indicates if user is imported from an external
-source</li>
-<li><strong>is_alert_enabled</strong> – The alert email address</li>
-<li><strong>is_enabled</strong> – Enable user</li>
+<li><strong>user_name</strong> (<em>str</em>) – username of the new user.</li>
+<li><strong>password</strong> (<em>str</em>) – password of the new user (must be at least 6
+characters long).</li>
+<li><strong>role_href</strong> (<em>str</em>) – href of the role for the new user.</li>
+<li><strong>full_name</strong> (<em>str</em>) – full name of the user.</li>
+<li><strong>description</strong> (<em>str</em>) – description for the user.</li>
+<li><strong>email</strong> (<em>str</em>) – email address of the user.</li>
+<li><strong>telephone</strong> (<em>str</em>) – The telephone of the user.</li>
+<li><strong>im</strong> (<em>str</em>) – instant message address of the user.</li>
+<li><strong>alert_email</strong> (<em>str</em>) – email address where alerts should be sent.</li>
+<li><strong>alert_email_prefix</strong> (<em>str</em>) – string to prepend to alert message
+subject line.</li>
+<li><strong>stored_vm_quota</strong> (<em>str</em>) – quota of vApps that this user can store.</li>
+<li><strong>deployed_vm_quota</strong> (<em>str</em>) – quota of vApps that this user can deploy
+concurrently.</li>
+<li><strong>is_group_role</strong> (<em>bool</em>) – indicates if the user has a group role.</li>
+<li><strong>is_default_cached</strong> (<em>bool</em>) – indicates if user should be cached.</li>
+<li><strong>is_external</strong> (<em>bool</em>) – indicates if user is imported from an external
+source.</li>
+<li><strong>is_alert_enabled</strong> (<em>bool</em>) – if, True will enable email alert for the
+user.</li>
+<li><strong>is_enabled</strong> (<em>bool</em>) – if True, will enable the user after creation
+else will let the user remain disabled after creation.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(UserType) Created user object</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.USER XML data describing the
+user that just got created.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -285,12 +343,44 @@ source</li>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.delete_catalog">
 <code class="descname">delete_catalog</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.delete_catalog" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Delete a catalog in the organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the catalog to be deleted.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named catalog can not be
+found.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">sub-class of VcdResponseException: if the REST call is not
+successful.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.delete_catalog_item">
 <code class="descname">delete_catalog_item</code><span class="sig-paren">(</span><em>name</em>, <em>item_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.delete_catalog_item" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Delete an item from a catalog.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<em>str</em>) – name of the catalog whose item needs to be deleted.</li>
+<li><strong>item_name</strong> (<em>str</em>) – name of the item which needs to be deleted.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the catalog/named item can not be
+found.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.delete_role">
@@ -300,9 +390,7 @@ source</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – (str): name of the role</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the role to be deleted.</td>
 </tr>
 </tbody>
 </table>
@@ -311,15 +399,13 @@ source</li>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.delete_user">
 <code class="descname">delete_user</code><span class="sig-paren">(</span><em>user_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.delete_user" title="Permalink to this definition">¶</a></dt>
-<dd><p>Delete user record from current organization.</p>
+<dd><p>Deletes an user from the current organization.</p>
+<p>This operation needs admin privileges.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user_name</strong> – (str) name of the user that (org/sys)admins wants to
-delete</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">result of calling DELETE on the user resource</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user_name</strong> (<em>str</em>) – name of the user to be deleted.</td>
 </tr>
 </tbody>
 </table>
@@ -328,25 +414,86 @@ delete</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.download_catalog_item">
 <code class="descname">download_catalog_item</code><span class="sig-paren">(</span><em>catalog_name</em>, <em>item_name</em>, <em>file_name</em>, <em>chunk_size=1048576</em>, <em>callback=None</em>, <em>task_callback=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.download_catalog_item" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.org.Org.get_catalog">
-<code class="descname">get_catalog</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.get_catalog" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.org.Org.get_catalog_access_settings">
-<code class="descname">get_catalog_access_settings</code><span class="sig-paren">(</span><em>catalog_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.get_catalog_access_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the access settings of a catalog.</p>
+<dd><p>Downloads an item from a catalog into a local file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>catalog_name</strong> – (str): The name of the catalog.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>catalog_name</strong> (<em>str</em>) – name of the catalog whose item needs to be
+downloaded.</li>
+<li><strong>item_name</strong> (<em>str</em>) – name of the item which needs to be downloaded.</li>
+<li><strong>file_name</strong> (<em>str</em>) – name of the target file on local disk where the
+contents of the catalog item will be downloaded to.</li>
+<li><strong>chunk_size</strong> (<em>int</em>) – size of chunks in which the catalog item will
+be downloaded and written to the disk.</li>
+<li><strong>callback</strong> (<em>function</em>) – a function with signature
+function(bytes_written, total_size) to let the caller monitor
+progress of the download operation.</li>
+<li><strong>task_callback</strong> (<em>function</em>) – a function with signature
+function(task) to let the caller monitor the progress of enable
+download task.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the access settings of the catalog.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">number of bytes written to file.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">int</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the catalog/named item is not
+found.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.org.Org.get_catalog">
+<code class="descname">get_catalog</code><span class="sig-paren">(</span><em>name</em>, <em>is_admin_operation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.get_catalog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves a catalog by name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<em>str</em>) – name of the catalog to be retrieved.</li>
+<li><strong>is_admin_operation</strong> (<em>bool</em>) – if set True, will return the admin
+view of the catalog.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.CATALOG or
+EntityType.ADMIN_CATALOG XML data representing the catalog.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the named catalog can not be
+found.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.org.Org.get_catalog_access_settings">
+<code class="descname">get_catalog_access_settings</code><span class="sig-paren">(</span><em>catalog_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.get_catalog_access_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the access settings of a catalog.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>catalog_name</strong> (<em>str</em>) – name of the catalog.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML data
+representing the Access Control List of the catalog.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -355,17 +502,48 @@ the access settings of the catalog.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.get_catalog_item">
 <code class="descname">get_catalog_item</code><span class="sig-paren">(</span><em>name</em>, <em>item_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.get_catalog_item" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.org.Org.get_catalog_resource">
-<code class="descname">get_catalog_resource</code><span class="sig-paren">(</span><em>name</em>, <em>is_admin_operation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.get_catalog_resource" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Retrieve an item in a catalog.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<em>str</em>) – name of the catalog whose item needs to be retrieved.</li>
+<li><strong>item_name</strong> (<em>str</em>) – name of the item which needs to be retrieved.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.MEDIA or
+EntityTYPE.VAPP_TEMPLATE XML data describing the entity
+corresponding to the catalog item.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the catalog/named item can not be
+found.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.get_name">
 <code class="descname">get_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.get_name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Retrieves the name of the organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">name of the organization.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.get_right_record">
@@ -375,9 +553,11 @@ the access settings of the catalog.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>right_name</strong> – (str): The name of the right record to be retrieved</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>right_name</strong> (<em>str</em>) – name of the right record to be retrieved.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(dict): Right record in dict format</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">right record</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
 </tbody>
 </table>
@@ -391,25 +571,33 @@ the access settings of the catalog.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>right_name</strong> – (str): name of the right</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>right_name</strong> (<em>str</em>) – name of the right.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.RIGHT XML data representing
+the right.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
-<p>:return A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the right.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.get_role_record">
 <code class="descname">get_role_record</code><span class="sig-paren">(</span><em>role_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.get_role_record" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve role record with a particular name in the current Org.</p>
+<dd><p>Retrieve role record with a particular name in the current org.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>role_name</strong> – (str): The name of the role object to be retrieved</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>role_name</strong> (<em>str</em>) – name of the role object to be retrieved.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(dict): Role record in dict format</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">role record.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if role with the given name is not
+found.</td>
 </tr>
 </tbody>
 </table>
@@ -418,32 +606,36 @@ the right.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.get_role_resource">
 <code class="descname">get_role_resource</code><span class="sig-paren">(</span><em>role_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.get_role_resource" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves resource of a given role.</p>
+<dd><p>Retrieves XML resource of a given role.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>role_name</strong> – (str):name of the role</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>role_name</strong> (<em>str</em>) – name of the role to be retrieved.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.ROLE XML data representing the
+role.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>:return A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing</dt>
-<dd>the role.</dd>
-</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.get_user">
 <code class="descname">get_user</code><span class="sig-paren">(</span><em>user_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.get_user" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve user record from current Organization.</p>
+<dd><p>Retrieve info of an user in current organization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">(str): user_name: user name of the record to be retrieved</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user_name</strong> (<em>str</em>) – name of the user whose info we want to retrieve.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(UserRecord): User record.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.USER XML data describing the
+named user.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -452,30 +644,79 @@ the right.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.get_vdc">
 <code class="descname">get_vdc</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.get_vdc" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.org.Org.list_catalog_items">
-<code class="descname">list_catalog_items</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.list_catalog_items" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.org.Org.list_catalogs">
-<code class="descname">list_catalogs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.list_catalogs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.org.Org.list_rights_available_in_system">
-<code class="descname">list_rights_available_in_system</code><span class="sig-paren">(</span><em>name_filter=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.list_rights_available_in_system" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the list of all rights available in the System.</p>
+<dd><p>Retrieves resource of an org vdc identified by its name.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name_filter</strong> – (tuple): (name ,’right name’) Filter the rights by
-‘right name’</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the org vdc to be retrieved.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(list): (RightRecord) List of rights</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EtityType.VDC XML data representing the
+vdc.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named vdc can not be found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.org.Org.list_catalog_items">
+<code class="descname">list_catalog_items</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.list_catalog_items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve all items in a catalog.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the catalog whose items need to be retrieved.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a list of dictionaries. Each dict object contains ‘name’ and
+‘id’ of an item in the catalog.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named catalog can not be
+found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.org.Org.list_catalogs">
+<code class="descname">list_catalogs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.list_catalogs" title="Permalink to this definition">¶</a></dt>
+<dd><p>List all catalogs in the organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of dictionaries, where each item contains information
+about a catalog in the organization.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.org.Org.list_rights_available_in_system">
+<code class="descname">list_rights_available_in_system</code><span class="sig-paren">(</span><em>name_filter=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.list_rights_available_in_system" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all rights available in the System organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name_filter</strong> (<em>tuple</em>) – (tuple): filter rights by name. The first
+item in the tuple must be the string ‘name’ and the second item
+should be value of the filter as a str.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">rights as a list of dictionaries, where each dictionary
+contains information about a single right.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -484,12 +725,15 @@ the right.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.list_rights_of_org">
 <code class="descname">list_rights_of_org</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.list_rights_of_org" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the list of rights associated with the Organization.</p>
+<dd><p>Retrieves the list of rights associated with the current org.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(list): (RightReference) List of rights</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">rights as a list of dictionaries, where each dictionary
+contains information about a single right.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -498,15 +742,19 @@ the right.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.list_roles">
 <code class="descname">list_roles</code><span class="sig-paren">(</span><em>name_filter=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.list_roles" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve the list of roles in the current Org.</p>
+<dd><p>Retrieve the list of roles in the current organization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name_filter</strong> – (tuple): (name ,’role name’) Filter roles by
-‘role name’</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name_filter</strong> (<em>tuple</em>) – (tuple): filter roles by name. The first item
+in the tuple must be the string ‘name’ and the second item should
+be value of the filter as a str.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(list): (RoleRecord) List of roles</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict objects, each object representing a single role.
+record.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -515,15 +763,19 @@ the right.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.list_users">
 <code class="descname">list_users</code><span class="sig-paren">(</span><em>name_filter=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.list_users" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve the list of users in the current Org.</p>
+<dd><p>Retrieve the list of users in the current organization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name_filter</strong> – (tuple): (name ,’username’) Filter roles by
-‘user name’</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name_filter</strong> (<em>2-tuple</em>) – filters retrieved users by name. First item
+in the tuple needs to be the string ‘name’ and the second item
+should be the value of the filter.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(list): (UserRecord) List of users.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">user data in form of lxml.objectify.ObjectifiedElement
+objects, which contains QueryResultUserRecordType XML data.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">generator object</td>
 </tr>
 </tbody>
 </table>
@@ -532,12 +784,28 @@ the right.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.list_vdcs">
 <code class="descname">list_vdcs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.list_vdcs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>List all vdc that are backing the current organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of dictionaries, where each dictionary contains ‘name’
+and ‘href’ of a vdc in the organization.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.reload">
 <code class="descname">reload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.reload" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Reloads the resource representation of the organization.</p>
+<p>This method should be called in between two method invocations on the
+Org object, if the former call changes the representation of the
+organization in vCD.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.remove_catalog_access_settings">
@@ -548,19 +816,29 @@ the right.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>catalog_name</strong> – (name): catalog name from which access_settings
+<li><strong>catalog_name</strong> (<em>str</em>) – name of the catalog from which access_settings
+need to be removed.</li>
+<li><strong>access_settings_list</strong> (<em>list</em>) – <p>list of access_setting in the dict
+format. Each dict contains,</p>
+<ul>
+<li><dl class="first docutils">
+<dt>type: (str): type of the subject. Value must be either ‘org’</dt>
+<dd>or ‘user’.</dd>
+</dl>
+</li>
+<li>name: (str): name of the user or organization.</li>
+</ul>
+</li>
+<li><strong>remove_all</strong> (<em>bool</em>) – True, if all access settings of the catalog
 should be removed.</li>
-<li><strong>access_settings_list</strong> – (list of dict): list of access_setting
-in the dict format. Each dict contains:
-type: (str): type of the subject. One of ‘org’ or ‘user’.
-name: (str): name of the user or org.</li>
-<li><strong>remove_all</strong> – (bool) : True if all access settings of the catalog
-should be removed</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the catalog.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.CONTROL_ACCESS_PARAMS XML data
+representing the updated Access Control List of the catalog.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -575,38 +853,56 @@ the updated access control setting of the catalog.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rights</strong> – (tuple): tuple of right names</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rights</strong> (<em>tuple</em>) – names of rights as strings.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.ORG_RIGHTS XML data
+representing the updated rights in the organization.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
-<p>:return A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated Org rights</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.share_catalog">
 <code class="descname">share_catalog</code><span class="sig-paren">(</span><em>name</em>, <em>share=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.share_catalog" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Share a catalog with all org-admins of all organizations.</p>
+<p>This operation can be performed by only System Administrators.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the catalog to be shared.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named catalog can not be
+found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.share_catalog_with_org_members">
 <code class="descname">share_catalog_with_org_members</code><span class="sig-paren">(</span><em>catalog_name</em>, <em>everyone_access_level='ReadOnly'</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.share_catalog_with_org_members" title="Permalink to this definition">¶</a></dt>
-<dd><p>Share the catalog to all members of the organization.</p>
+<dd><p>Share a catalog with all members of an organization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>catalog_name</strong> – (str): catalog name whose access should be
-shared to everyone.</li>
-<li><strong>everyone_access_level</strong> – (str) : access level when sharing the
-catalog with everyone. One of ‘ReadOnly’, ‘Change’, ‘FullControl’
-‘ReadOnly’ by default.</li>
+<li><strong>catalog_name</strong> (<em>str</em>) – name of the catalog which needs to be shared.</li>
+<li><strong>everyone_access_level</strong> (<em>str</em>) – access level when sharing the catalog
+with everyone. Acceptable values are ‘ReadOnly’, ‘Change’, or
+‘FullControl’. Default value is ‘ReadOnly’.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the catalog.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.CONTROL_ACCESS_PARAMS XML data
+representing the updated Access Control List of the catalog.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -616,16 +912,18 @@ the updated access control setting of the catalog.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.unshare_catalog_with_org_members">
 <code class="descname">unshare_catalog_with_org_members</code><span class="sig-paren">(</span><em>catalog_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.unshare_catalog_with_org_members" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unshare the catalog from all members of current organization.</p>
+<dd><p>Unshare a catalog from all members of the current organization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>catalog_name</strong> – (str): catalog name whose access should be
-unshared from everyone.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>catalog_name</strong> (<em>str</em>) – name of the catalog which needs to be unshared
+from everyone.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the catalog.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML data
+representing the updated Access Control List of the catalog.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -640,14 +938,21 @@ the updated access control setting of the catalog.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>old_catalog_name</strong> – (str): The current name of the catalog.</li>
-<li><strong>new_catalog_name</strong> – (str): The new name of the catalog.</li>
-<li><strong>description</strong> – (str): The new description of the catalog.</li>
+<li><strong>old_catalog_name</strong> (<em>str</em>) – current name of the catalog.</li>
+<li><strong>new_catalog_name</strong> (<em>str</em>) – new name of the catalog.</li>
+<li><strong>description</strong> (<em>str</em>) – new description of the catalog.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the updated catalog.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.ADMIN_CATALOG XML data
+describing the updated catalog.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the named catalog can not be
+found.</p>
 </td>
 </tr>
 </tbody>
@@ -657,14 +962,18 @@ the updated catalog.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.update_org">
 <code class="descname">update_org</code><span class="sig-paren">(</span><em>is_enabled=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.update_org" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update an organization.</p>
+<dd><p>Update an organization to enable/disable it.</p>
+<p>This operation can only be performed by an user with admin privileges.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>is_enabled</strong> – (bool): enable/disable the organization</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>is_enabled</strong> (<em>bool</em>) – flag to enable/disable the organization.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(AdminOrgType) updated org object.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.ADMIN_ORG XML data
+representing the updated organization.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -673,18 +982,23 @@ the updated catalog.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.update_user">
 <code class="descname">update_user</code><span class="sig-paren">(</span><em>user_name</em>, <em>is_enabled=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.update_user" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update an User.</p>
+<dd><p>Update an user.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_name</strong> – (str): username of the user</li>
-<li><strong>is_enabled</strong> – (bool): enable/disable the user</li>
+<li><strong>user_name</strong> (<em>str</em>) – username of the user.</li>
+<li><strong>is_enabled</strong> (<em>bool</em>) – True, to enable the user, False to disable the
+user.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(UserType) Updated user object</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.USER XML data describing the
+user that just got updated.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -692,19 +1006,90 @@ the updated catalog.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="pyvcloud.vcd.org.Org.upload_file">
-<code class="descname">upload_file</code><span class="sig-paren">(</span><em>file_name</em>, <em>href</em>, <em>chunk_size=1048576</em>, <em>callback=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.upload_file" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="pyvcloud.vcd.org.Org.upload_media">
 <code class="descname">upload_media</code><span class="sig-paren">(</span><em>catalog_name</em>, <em>file_name</em>, <em>item_name=None</em>, <em>description=''</em>, <em>chunk_size=1048576</em>, <em>callback=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.upload_media" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Uploads a media file to a catalog.</p>
+<p>This method only uploads bits to vCD spool area, doesn’t block while
+vCD imports the uploaded bit into catalog.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>catalog_name</strong> (<em>str</em>) – name of the catalog where the media file will
+be uploaded.</li>
+<li><strong>file_name</strong> (<em>str</em>) – name of the media file on local disk which will
+be uploaded.</li>
+<li><strong>item_name</strong> (<em>str</em>) – this param lets us rename the media file once
+uploaded to the catalog.If this param is not specified, the
+catalog item will share the same name as the media file being
+uploaded.</li>
+<li><strong>chunk_size</strong> (<em>int</em>) – size of chunks in which the file will be
+uploaded to the catalog.</li>
+<li><strong>callback</strong> (<em>function</em>) – a function with signature
+function(bytes_written, total_size) to let the caller monitor
+progress of the upload operation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">number of bytes uploaded to the catalog.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">int</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">EntityNotFoundException: if the catalog is not found.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">InternalServerException: if item already exists in catalog.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.org.Org.upload_ovf">
 <code class="descname">upload_ovf</code><span class="sig-paren">(</span><em>catalog_name</em>, <em>file_name</em>, <em>item_name=None</em>, <em>description=''</em>, <em>chunk_size=1048576</em>, <em>callback=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.org.Org.upload_ovf" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Uploads an ova file to a catalog.</p>
+<p>This method only uploads bits to vCD spool area, doesn’t block while
+vCD imports the uploaded bit into catalog.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>catalog_name</strong> (<em>str</em>) – name of the catalog where the ova file will
+be uploaded.</li>
+<li><strong>file_name</strong> (<em>str</em>) – name of the ova file on local disk which will be
+uploaded.</li>
+<li><strong>item_name</strong> (<em>str</em>) – this param let’s us rename the ova file once
+uploaded to the catalog. If this param is not specified, the
+catalog item will share the same name as the ova file being
+uploaded.</li>
+<li><strong>chunk_size</strong> (<em>int</em>) – size of chunks in which the file will be
+uploaded to the catalog.</li>
+<li><strong>callback</strong> (<em>function</em>) – a function with signature
+function(bytes_written, total_size) to let the caller monitor
+progress of the upload operation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">number of bytes uploaded to the catalog.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">int</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">EntityNotFoundException: if the catalog is not found.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">InternalServerException: if item already exists in catalog.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -727,9 +1112,9 @@ the updated catalog.</p>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -762,7 +1147,7 @@ the updated catalog.</p>
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

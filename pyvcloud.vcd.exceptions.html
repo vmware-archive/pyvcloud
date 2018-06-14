@@ -1,0 +1,354 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pyvcloud.vcd.exceptions module &#8212; pyvcloud  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pyvcloud.vcd.extension module" href="pyvcloud.vcd.extension.html" />
+    <link rel="prev" title="pyvcloud.vcd.client module" href="pyvcloud.vcd.client.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pyvcloud.vcd.exceptions">
+<span id="pyvcloud-vcd-exceptions-module"></span><h1>pyvcloud.vcd.exceptions module<a class="headerlink" href="#module-pyvcloud.vcd.exceptions" title="Permalink to this headline">¶</a></h1>
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.AccessForbiddenException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">AccessForbiddenException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.AccessForbiddenException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns 403 response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.AlreadyExistsException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">AlreadyExistsException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.AlreadyExistsException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdException" title="pyvcloud.vcd.exceptions.VcdException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdException</span></code></a></p>
+<p>Raised if we try to create an already existing entity in vcd.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.AuthenticationException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">AuthenticationException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.AuthenticationException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdException" title="pyvcloud.vcd.exceptions.VcdException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdException</span></code></a></p>
+<p>Raised when authentication fails in vcd.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.BadRequestException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">BadRequestException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.BadRequestException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns 400 response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.ClientException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">ClientException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.ClientException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.SDKException" title="pyvcloud.vcd.exceptions.SDKException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.SDKException</span></code></a></p>
+<p>Base class for all exceptions arising in the client(pyvcloud).</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.ConflictException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">ConflictException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.ConflictException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns 409 response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.DownloadException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">DownloadException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.DownloadException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdException" title="pyvcloud.vcd.exceptions.VcdException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdException</span></code></a></p>
+<p>Raised when download of an entity fails in vcd.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.EntityNotFoundException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">EntityNotFoundException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.EntityNotFoundException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdException" title="pyvcloud.vcd.exceptions.VcdException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdException</span></code></a></p>
+<p>Raised when an entity is not found in vcd.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.InternalServerException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">InternalServerException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.InternalServerException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns 500 response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.InvalidContentLengthException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">InvalidContentLengthException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.InvalidContentLengthException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns 416 response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.InvalidParameterException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">InvalidParameterException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.InvalidParameterException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.ClientException" title="pyvcloud.vcd.exceptions.ClientException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.ClientException</span></code></a></p>
+<p>Raised when a parameter is invalid in pyvcloud.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.InvalidStateException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">InvalidStateException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.InvalidStateException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdException" title="pyvcloud.vcd.exceptions.VcdException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdException</span></code></a></p>
+<p>Raised when the state of an entity in vcd is not valid.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.LinkException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">LinkException</code><span class="sig-paren">(</span><em>href</em>, <em>rel</em>, <em>media_type</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.LinkException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdException" title="pyvcloud.vcd.exceptions.VcdException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdException</span></code></a></p>
+<p>Base class for vcd links related Exceptions.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.MethodNotAllowedException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">MethodNotAllowedException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.MethodNotAllowedException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns 405 response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.MissingLinkException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">MissingLinkException</code><span class="sig-paren">(</span><em>href</em>, <em>rel</em>, <em>media_type</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.MissingLinkException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.LinkException" title="pyvcloud.vcd.exceptions.LinkException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.LinkException</span></code></a></p>
+<p>Raised when a link is missing from the vcd response.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.MissingParametersError">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">MissingParametersError</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.MissingParametersError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.ClientException" title="pyvcloud.vcd.exceptions.ClientException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.ClientException</span></code></a></p>
+<p>Raised when a parameter is missing in pyvcloud.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.MissingRecordException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">MissingRecordException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.MissingRecordException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.RecordException" title="pyvcloud.vcd.exceptions.RecordException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.RecordException</span></code></a></p>
+<p>Raised when a record is missing in vcd.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.MultipleLinksException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">MultipleLinksException</code><span class="sig-paren">(</span><em>href</em>, <em>rel</em>, <em>media_type</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.MultipleLinksException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.LinkException" title="pyvcloud.vcd.exceptions.LinkException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.LinkException</span></code></a></p>
+<p>Raised when multiple links are present in vcd response.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.MultipleRecordsException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">MultipleRecordsException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.MultipleRecordsException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.RecordException" title="pyvcloud.vcd.exceptions.RecordException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.RecordException</span></code></a></p>
+<p>Raised when multiple records are present in vcd.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.NotAcceptableException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">NotAcceptableException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.NotAcceptableException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns 406 response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.NotFoundException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">NotFoundException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.NotFoundException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns 404 response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.OperationNotSupportedException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">OperationNotSupportedException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.OperationNotSupportedException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdException" title="pyvcloud.vcd.exceptions.VcdException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdException</span></code></a></p>
+<p>Raised when a particular operation is not supported in vcd.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.RecordException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">RecordException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.RecordException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdException" title="pyvcloud.vcd.exceptions.VcdException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdException</span></code></a></p>
+<p>Base class for vcd records related exception.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.RequestTimeoutException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">RequestTimeoutException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.RequestTimeoutException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns 408 response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.SDKException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">SDKException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.SDKException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Base class for all pyvcloud Exceptions.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.SDKRequestException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">SDKRequestException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.SDKRequestException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.ClientException" title="pyvcloud.vcd.exceptions.ClientException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.ClientException</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">OSError</span></code></p>
+<p>Raised when an exception occurred during vcd request.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.SessionException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">SessionException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.SessionException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.ClientException" title="pyvcloud.vcd.exceptions.ClientException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.ClientException</span></code></a></p>
+<p>Raised for any session related exceptions in pyvcloud.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.TaskTimeoutException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">TaskTimeoutException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.TaskTimeoutException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.ClientException" title="pyvcloud.vcd.exceptions.ClientException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.ClientException</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeoutError</span></code></p>
+<p>Raised when a task in vcd timeout.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.UnauthorizedException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">UnauthorizedException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.UnauthorizedException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns 401 response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.UnknownApiException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">UnknownApiException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.UnknownApiException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns an unknown response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.UnsupportedMediaTypeException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">UnsupportedMediaTypeException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.UnsupportedMediaTypeException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="pyvcloud.vcd.exceptions.VcdResponseException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdResponseException</span></code></a></p>
+<p>Raised when vcd returns 415 response code.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.UploadException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">UploadException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.UploadException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdException" title="pyvcloud.vcd.exceptions.VcdException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdException</span></code></a></p>
+<p>Raised when upload of an entity fails in vcd.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.ValidationError">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">ValidationError</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.ValidationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.ClientException" title="pyvcloud.vcd.exceptions.ClientException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.ClientException</span></code></a></p>
+<p>Raised when validation error occurs in pyvcloud.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.VcdException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">VcdException</code><a class="headerlink" href="#pyvcloud.vcd.exceptions.VcdException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.SDKException" title="pyvcloud.vcd.exceptions.SDKException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.SDKException</span></code></a></p>
+<p>Base class for all vcd related Exceptions.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.VcdResponseException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">VcdResponseException</code><span class="sig-paren">(</span><em>status_code</em>, <em>request_id</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.VcdResponseException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdException" title="pyvcloud.vcd.exceptions.VcdException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdException</span></code></a></p>
+<p>Base class for all vcd response related Exceptions.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyvcloud.vcd.exceptions.VcdTaskException">
+<em class="property">exception </em><code class="descclassname">pyvcloud.vcd.exceptions.</code><code class="descname">VcdTaskException</code><span class="sig-paren">(</span><em>error_message</em>, <em>vcd_error</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.exceptions.VcdTaskException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvcloud.vcd.exceptions.VcdException" title="pyvcloud.vcd.exceptions.VcdException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvcloud.vcd.exceptions.VcdException</span></code></a></p>
+<p>Exception related to tasks in vcd.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pyvcloud</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<hr />
+<ul>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud">Visit project on Github</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/LICENSE.txt">License</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/docs/install.md">Installation</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/CONTRIBUTING.md">Contributing</a></li>
+    <li class="toctree-l1"><a href="https://blogs.vmware.com/vcat/">Blog Articles</a></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, VMware Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/pyvcloud.vcd.exceptions.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

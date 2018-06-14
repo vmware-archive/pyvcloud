@@ -12,7 +12,7 @@ maintained by `VMware, Inc. <https://www.vmware.com>`_
 .. toctree::
    :maxdepth: 2
 
-   Python Documentation <pyvcloud.vcd>
+   Python Documentation <pyvcloud>
 
 Code and Module Indexes
 =======================

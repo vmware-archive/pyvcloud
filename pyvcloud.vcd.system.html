@@ -9,7 +9,7 @@
     <title>pyvcloud.vcd.system module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -46,13 +46,17 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>org_name</strong> – (str): The name of the organization.</li>
-<li><strong>full_org_name</strong> – (str): The fullname of the organization.</li>
-<li><strong>is_enabled</strong> – (bool): Enable organization if True</li>
+<li><strong>org_name</strong> (<em>str</em>) – name of the organization.</li>
+<li><strong>full_org_name</strong> (<em>str</em>) – full name of the organization.</li>
+<li><strong>is_enabled</strong> (<em>bool</em>) – enable organization if True</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(AdminOrgType) Created org object.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.ADMIN_ORG XML data which
+represents the newly created organization.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -68,13 +72,13 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>org_name</strong> – (str): name of the org to be deleted.</li>
-<li><strong>force</strong> – (bool): pass force=True  along with recursive=True to
-remove an organization and any objects it contains, regardless of
-their state.</li>
-<li><strong>recursive</strong> – (bool): pass recursive=True  to remove an
-organization and any objects it contains that are in a state that
-normally allows removal.</li>
+<li><strong>org_name</strong> (<em>str</em>) – name of the org to be deleted.</li>
+<li><strong>force</strong> (<em>bool</em>) – pass force=True along with recursive=True to remove
+an organization and any objects it contains, regardless of their
+state.</li>
+<li><strong>recursive</strong> (<em>bool</em>) – pass recursive=True to remove an organization
+and any objects it contains that are in a state that normally
+allows removal.</li>
 </ul>
 </td>
 </tr>
@@ -90,7 +94,12 @@ normally allows removal.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">NetworkPoolReference item if found, raise Exception otherwise.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing NetworkPoolReference XML element.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named network pool can not be
+found.</td>
 </tr>
 </tbody>
 </table>
@@ -99,12 +108,18 @@ normally allows removal.</li>
 <dl class="method">
 <dt id="pyvcloud.vcd.system.System.get_provider_vdc">
 <code class="descname">get_provider_vdc</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.system.System.get_provider_vdc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a provider VDC by name in the system organization.</p>
+<dd><p>Fetch a provider VDC by name in the system organization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">ProviderVdcReference item if found, raise Exception otherwise.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing ProviderVdcReference XML element which
+refers to the provider vdc.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named provider vdc can not be
+found.</td>
 </tr>
 </tbody>
 </table>
@@ -118,8 +133,10 @@ normally allows removal.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">ProviderVdcStorageProfile item if found, raise Exception
-otherwise.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">ProviderVdcStorageProfile item.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named provider vdc can not be
+found.</td>
 </tr>
 </tbody>
 </table>
@@ -133,7 +150,10 @@ otherwise.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of NetworkPoolReference items</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of lxml.objectify.ObjectifiedElement containing
+NetworkPoolReference XML elements.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -149,6 +169,8 @@ otherwise.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of ProviderVdcStorageProfile items</td>
 </tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
 </tbody>
 </table>
 </dd></dl>
@@ -156,12 +178,14 @@ otherwise.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.system.System.list_provider_vdcs">
 <code class="descname">list_provider_vdcs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.system.System.list_provider_vdcs" title="Permalink to this definition">¶</a></dt>
-<dd><p>List provider VDCs in the system organization.</p>
+<dd><p>List provider vdcs in the system organization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of ProviderVdcReference items</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of object containing ProviderVdcReference XML data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -188,9 +212,9 @@ otherwise.</td>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -223,7 +247,7 @@ otherwise.</td>
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

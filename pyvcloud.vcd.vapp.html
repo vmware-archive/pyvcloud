@@ -9,7 +9,7 @@
     <title>pyvcloud.vcd.vapp module &#8212; pyvcloud  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -40,52 +40,59 @@
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.add_access_settings">
 <code class="descname">add_access_settings</code><span class="sig-paren">(</span><em>access_settings_list=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.add_access_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add access settings to a particular vapp.</p>
+<dd><p>Add access settings to the vApp.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>access_settings_list</strong> – <p>(list of dict): list of access_setting
-in the dict format. Each dict contains:
-- type: (str): type of the subject. Only ‘user’ allowed for vapp.
-- name: (str): name of the user.
-- access_level: (str): access_level of the particular subject. One</p>
-<blockquote>
-<div>of ‘ReadOnly’, ‘Change’, ‘FullControl’</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>access_settings_list</strong> (<em>list</em>) – <p>list of dictionaries, where each
+dictionary represents a single access setting. The dictionary
+structure is as follows,</p>
+<ul class="simple">
+<li>type: (str): type of the subject. One of ‘org’ or ‘user’.</li>
+<li>name: (str): name of the user or org.</li>
+<li><dl class="first docutils">
+<dt>access_level: (str): access_level of the particular subject.</dt>
+<dd>Allowed values are ‘ReadOnly’, ‘Change’ or ‘FullControl’.</dd>
+</dl>
+</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated Access Control List of the vApp.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
-<p>the updated access control setting of the vapp.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.add_disk_to_vm">
 <code class="descname">add_disk_to_vm</code><span class="sig-paren">(</span><em>vm_name</em>, <em>disk_size</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.add_disk_to_vm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a virtual disk to a virtual machine in the vApp.</p>
-<dl class="docutils">
-<dt>It assumes that the VM has already at least one virtual hard disk</dt>
-<dd>and will attempt to create another one with similar
-characteristics.</dd>
-</dl>
+<p>It assumes that the vm has already at least one virtual hard disk
+and will attempt to create another one with similar characteristics.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>vm_name</strong> – (str): The name of the vm to be customized.</li>
-<li><strong>disk_size</strong> – (int): The size of the disk to be added, in MBs.</li>
+<li><strong>vm_name</strong> (<em>str</em>) – name of the vm to be customized.</li>
+<li><strong>disk_size</strong> (<em>int</em>) – size of the disk to be added, in MBs.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing the
-asynchronous Task creating the disk.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is creating the disk.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">Exception: If the named VM cannot be located or another error
-occured.</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the named vm cannot be located.
+occurred.</p>
 </td>
 </tr>
 </tbody>
@@ -95,25 +102,28 @@ occured.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.add_vms">
 <code class="descname">add_vms</code><span class="sig-paren">(</span><em>specs</em>, <em>deploy=True</em>, <em>power_on=True</em>, <em>all_eulas_accepted=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.add_vms" title="Permalink to this definition">¶</a></dt>
-<dd><p>Recompose the vApp and add VMs.</p>
+<dd><p>Recompose the vApp and add vms.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>specs</strong> – An array of VM specifications, see <cite>to_sourced_item()</cite>
-method for specification details.</li>
-<li><strong>deploy</strong> – (bool): True if the vApp should be deployed at
-instantiation</li>
+<li><strong>specs</strong> (<em>dict</em>) – vm specifications, see <cite>to_sourced_item()</cite> method
+for specification details.</li>
+<li><strong>deploy</strong> (<em>bool</em>) – True, if the vApp should be deployed at
+instantiation.</li>
 <li><strong>power_on</strong> – (bool): True if the vApp should be powered-on at
 instantiation</li>
-<li><strong>all_eulas_accepted</strong> – (bool): True confirms acceptance of all
+<li><strong>all_eulas_accepted</strong> (<em>bool</em>) – True confirms acceptance of all
 EULAs in the vApp.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing a
-sparsely populated vApp element.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.VAPP XML data representing the
+updated vApp.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
 </tbody>
@@ -123,24 +133,26 @@ sparsely populated vApp element.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.attach_disk_to_vm">
 <code class="descname">attach_disk_to_vm</code><span class="sig-paren">(</span><em>disk_href</em>, <em>vm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.attach_disk_to_vm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attach the independent disk to the VM with the given name.</p>
+<dd><p>Attach an independent disk to the vm with the given name.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>disk_href</strong> – (str): The href of the disk to be attached.</li>
-<li><strong>vm_name</strong> – (str): The name of the VM to which the disk
-will be attached.</li>
+<li><strong>disk_href</strong> (<em>str</em>) – href of the disk to be attached.</li>
+<li><strong>vm_name</strong> (<em>str</em>) – name of the vm to which the disk will be attached.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the asynchronous Task of attaching the disk.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
+the asynchronous task of attaching the disk.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">Exception: If the named VM cannot be located or another error
-occurs.</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the named vm or disk cannot be
+located.</p>
 </td>
 </tr>
 </tbody>
@@ -155,9 +167,7 @@ occurs.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>href</strong> – Href of the new owner or user.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>href</strong> (<em>str</em>) – href of the new owner.</td>
 </tr>
 </tbody>
 </table>
@@ -166,33 +176,41 @@ occurs.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.connect_org_vdc_network">
 <code class="descname">connect_org_vdc_network</code><span class="sig-paren">(</span><em>orgvdc_network_name</em>, <em>retain_ip=None</em>, <em>is_deployed=None</em>, <em>fence_mode='bridged'</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.connect_org_vdc_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>Connect the vapp to an orgvdc network.</p>
+<dd><p>Connect the vApp to an org vdc network.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>orgvdc_network_name</strong> – (str): name of the orgvdc network to be
-connected</li>
-<li><strong>retain_ip</strong> – (bool): True if  the network resources such as
-IP/MAC of router will be retained across deployments.</li>
-<li><strong>is_deployed</strong> – (bool): True if this orgvdc network has been
+<li><strong>orgvdc_network_name</strong> (<em>str</em>) – name of the org vdc network to be
+connected to.</li>
+<li><strong>retain_ip</strong> (<em>bool</em>) – True, if  the network resources such as IP/MAC
+of router will be retained across deployments.</li>
+<li><strong>is_deployed</strong> (<em>bool</em>) – True, if this org vdc network has been
 deployed.</li>
-<li><strong>fence_mode</strong> – (str): Controls connectivity to the parent
-network. One of bridged, isolated or natRouted. bridged by default.</li>
+<li><strong>fence_mode</strong> (<em>str</em>) – mode of connectivity to the parent network.
+Acceptable values are ‘bridged’, ‘isolated’ or ‘natRouted’. Default
+value is ‘bridged’.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the asynchronous task that is connecting the network.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
+the asynchronous task  that is connecting the vApp to the network.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">Exception: If orgvdc network does not exist in the vdc or if</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">EntityNotFoundException: if named org vdc network does not
+exist.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">InvalidStateException: if the vApp is already connected to the
+org vdc network.</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p>it is already connected to the vapp.</p>
 </dd></dl>
 
 <dl class="method">
@@ -203,16 +221,17 @@ the asynchronous task that is connecting the network.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.delete_vms">
 <code class="descname">delete_vms</code><span class="sig-paren">(</span><em>names</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.delete_vms" title="Permalink to this definition">¶</a></dt>
-<dd><p>Recompose the vApp and delete VMs.</p>
+<dd><p>Recompose the vApp and delete vms.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>names</strong> – A list or tuple of names (str) of the VMs to delete
-from the vApp.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>names</strong> (<em>list</em>) – names (str) of vms to delete from the vApp.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing a
-sparsely populated vApp element.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.VAPP XML data representing the
+updated vApp.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -224,18 +243,26 @@ sparsely populated vApp element.</td>
 <dd><p>Deploys the vApp.</p>
 <p>Deploying the vApp will allocate all resources assigned to the vApp.
 TODO: Add lease_deployment_seconds param after PR 2036925 is fixed.
-<a class="reference external" href="https://jira.eng.vmware.com/browse/VCDA-465">https://jira.eng.vmware.com/browse/VCDA-465</a>
-:param power_on: (bool): Specifies whether to power on/off vapp/VM</p>
-<p>on deployment. True by default, unless otherwise specified.
-:param lease_deployment_seconds: (str): Deployment lease in seconds.
-:param force_customization: (bool): Used to specify whether to force</p>
-<p>customization on deployment, if not set default value is false.</p>
+<a class="reference external" href="https://jira.eng.vmware.com/browse/VCDA-465">https://jira.eng.vmware.com/browse/VCDA-465</a></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the asynchronous Task deploying the vApp.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>power_on</strong> (<em>bool</em>) – specifies whether to power on/off vApp/vm
+on deployment. True by default, unless otherwise specified.</li>
+<li><strong>lease_deployment_seconds</strong> (<em>str</em>) – deployment lease in seconds.</li>
+<li><strong>force_customization</strong> (<em>bool</em>) – True, instructs vCD to force
+customization on deployment. False, no action is performed.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is deploying the vApp.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -244,24 +271,26 @@ the asynchronous Task deploying the vApp.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.detach_disk_from_vm">
 <code class="descname">detach_disk_from_vm</code><span class="sig-paren">(</span><em>disk_href</em>, <em>vm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.detach_disk_from_vm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Detach the independent disk from the VM with the given name.</p>
+<dd><p>Detach the independent disk from the vm with the given name.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>disk_href</strong> – (str): The href of the disk to be detached.</li>
-<li><strong>vm_name</strong> – (str): The name of the VM to which the disk
-will be detached.</li>
+<li><strong>disk_href</strong> (<em>str</em>) – href of the disk to be detached.</li>
+<li><strong>vm_name</strong> (<em>str</em>) – name of the vm to which the disk will be detached.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the asynchronous Task of detaching the disk.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
+the asynchronous task of dettaching the disk.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">Exception: If the named VM cannot be located or another error
-occurs.</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if the named vm or disk cannot be
+located.</p>
 </td>
 </tr>
 </tbody>
@@ -271,18 +300,22 @@ occurs.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.disconnect_org_vdc_network">
 <code class="descname">disconnect_org_vdc_network</code><span class="sig-paren">(</span><em>orgvdc_network_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.disconnect_org_vdc_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>Disconnect the vapp from an orgvdc network.</p>
+<dd><p>Disconnect the vApp from an org vdc network.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>orgvdc_network_name</strong> – (str): name of the orgvdc
-network to be disconnected.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>orgvdc_network_name</strong> (<em>str</em>) – (str): name of the orgvdc network to be
+disconnected.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the asynchronous task that is disconnecting the network.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task  that is disconnecting the vApp from the
+network.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: If orgvdc network is not connected to the vapp.</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">InvalidStateException: if the named org vdc network is not
+connected to the vApp.</td>
 </tr>
 </tbody>
 </table>
@@ -291,13 +324,15 @@ the asynchronous task that is disconnecting the network.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.get_access_settings">
 <code class="descname">get_access_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.get_access_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the access settings of the vapp.</p>
+<dd><p>Get the access settings of the vApp.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the access settings of the vapp.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS which
+represents the access control list of the vApp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -306,7 +341,23 @@ the access settings of the vapp.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.get_admin_password">
 <code class="descname">get_admin_password</code><span class="sig-paren">(</span><em>vm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.get_admin_password" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Fetch the admin password of a named vm in the vApp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vm_name</strong> (<em>str</em>) – name of the vm whose admin password we want to
+retrieve.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">admin password of the named vm.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named vm can’t be found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.get_all_networks">
@@ -316,8 +367,10 @@ the access settings of the vapp.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object with the list
-of vApp networks.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a smart xpath string that represents the list of vApp
+networks.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">xpath string</td>
 </tr>
 </tbody>
 </table>
@@ -326,13 +379,15 @@ of vApp networks.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.get_all_vms">
 <code class="descname">get_all_vms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.get_all_vms" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve all the VMs in this vApp.</p>
+<dd><p>Retrieve all the vms in the vApp.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">([vmType])  A array of <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code>
-object describing the requested VMs.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of lxml.objectify.ObjectifiedElement objects, where
+each object contains EntityType.VM XML data and represents one vm.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -341,17 +396,59 @@ object describing the requested VMs.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.get_metadata">
 <code class="descname">get_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.get_metadata" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Fetch metadata of the vApp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.METADATA XML data which
+represents the metadata associated with the vApp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.get_primary_ip">
 <code class="descname">get_primary_ip</code><span class="sig-paren">(</span><em>vm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.get_primary_ip" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Fetch the primary ip of a vm (in the vApp) identified by its name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vm_name</strong> (<em>str</em>) – name of the vm whose primary ip we want to
+retrieve.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">ip address of the named vm.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the named vm or its NIC information can’t be
+found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.get_resource">
 <code class="descname">get_resource</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.get_resource" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Fetches the XML representation of the vApp from vCD.</p>
+<p>Will serve cached response if possible.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">object containing EntityType.VAPP XML data representing the
+vApp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.get_vapp_network_name">
@@ -361,11 +458,14 @@ object describing the requested VMs.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index</strong> – (int): The index of the vApp network to retrieve.
-0 if omitted.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index</strong> (<em>int</em>) – index of the vApp network to retrieve. 0 if omitted.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">string</span></code> with the name of the requested network if
-exists.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">name of the requested network.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named network could not be
+found.</td>
 </tr>
 </tbody>
 </table>
@@ -374,15 +474,19 @@ exists.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.get_vm">
 <code class="descname">get_vm</code><span class="sig-paren">(</span><em>vm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.get_vm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve the VM with the given name in this vApp.</p>
+<dd><p>Retrieve the vm with the given name in this vApp.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vm_name</strong> – (str): The name of the VM.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vm_name</strong> (<em>str</em>) – name of the vm to be retrieved.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(vmType)  A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object
-describing the requested VM.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object contains EntityType.VM XML data that represents the
+vm.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named vm could not be found.</td>
 </tr>
 </tbody>
 </table>
@@ -391,17 +495,56 @@ describing the requested VM.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.get_vm_moid">
 <code class="descname">get_vm_moid</code><span class="sig-paren">(</span><em>vm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.get_vm_moid" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Fetch the moref of a named vm in the vApp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vm_name</strong> (<em>str</em>) – name of the vm whose moref  we want to retrieve.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">moref of the named vm.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named vm can’t be found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.power_off">
 <code class="descname">power_off</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.power_off" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Power off the vApp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is powering off the vApp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.power_on">
 <code class="descname">power_on</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.power_on" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Power on the vApp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is powering on the vApp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.power_reset">
@@ -411,8 +554,10 @@ describing the requested VM.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the asynchronous Task resetting the vApp.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task resetting the vApp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -426,8 +571,10 @@ the asynchronous Task resetting the vApp.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the asynchronous Task rebooting the vApp.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task rebooting the vApp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -436,28 +583,39 @@ the asynchronous Task rebooting the vApp.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.reload">
 <code class="descname">reload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.reload" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Reloads the resource representation of the vApp.</p>
+<p>This method should be called in between two method invocations on the
+VApp object, if the former call changes the representation of the
+vApp in vCD.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.remove_access_settings">
 <code class="descname">remove_access_settings</code><span class="sig-paren">(</span><em>access_settings_list=None</em>, <em>remove_all=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.remove_access_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove access settings from a particular vapp.</p>
+<dd><p>Remove access settings from the vApp.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>access_settings_list</strong> – (list of dict): list of access_setting
-in the dict format. Each dict contains:
-- type: (str): type of the subject. Only ‘user’ allowed for vapp.
-- name: (str): name of the user.</li>
-<li><strong>remove_all</strong> – (bool) : True if all access settings of the vapp
-should be removed</li>
+<li><strong>access_settings_list</strong> (<em>list</em>) – <p>list of dictionaries, where each
+dictionary represents a single access setting. The dictionary
+structure is as follows,</p>
+<ul>
+<li>type: (str): type of the subject. One of ‘org’ or ‘user’.</li>
+<li>name: (str): name of the user or org.</li>
+</ul>
+</li>
+<li><strong>remove_all</strong> (<em>bool</em>) – True, if the entire Access Control List of the
+vApp should be removed, else False.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the vapp.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated access control setting of the vdc.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement`</p>
 </td>
 </tr>
 </tbody>
@@ -467,27 +625,72 @@ the updated access control setting of the vapp.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.set_lease">
 <code class="descname">set_lease</code><span class="sig-paren">(</span><em>deployment_lease=0</em>, <em>storage_lease=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.set_lease" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Update lease settings of the vApp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>deployment_lease</strong> (<em>int</em>) – length of deployment lease in seconds.</li>
+<li><strong>storage_lease</strong> (<em>int</em>) – length of storage lease in seconds.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.LEASE_SETTINGS XML data which
+represents the updated lease settings of the vApp.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.set_metadata">
 <code class="descname">set_metadata</code><span class="sig-paren">(</span><em>domain</em>, <em>visibility</em>, <em>key</em>, <em>value</em>, <em>metadata_type='MetadataStringValue'</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.set_metadata" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Set metadata of the vApp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>domain</strong> (<em>str</em>) – </li>
+<li><strong>visibility</strong> (<em>str</em>) – </li>
+<li><strong>key</strong> (<em>str</em>) – </li>
+<li><strong>value</strong> (<em>str</em>) – </li>
+<li><strong>metadata_type</strong> (<em>str</em>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.METADATA XML data which
+represents the updated metadata associated with the vApp.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.share_with_org_members">
 <code class="descname">share_with_org_members</code><span class="sig-paren">(</span><em>everyone_access_level='ReadOnly'</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.share_with_org_members" title="Permalink to this definition">¶</a></dt>
-<dd><p>Share the vapp to all members of the organization.</p>
+<dd><p>Share the vApp to all members of the organization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>everyone_access_level</strong> – (str) : access level when sharing the
-vapp with everyone. One of ‘ReadOnly’, ‘Change’, ‘FullControl’.
-‘ReadOnly’ by default.</td>
+vApp with everyone. Allowed values are ‘ReadOnly’, ‘Change’, or
+‘FullControl’. Default value is ‘ReadOnly’.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the vapp.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated access control setting of the vdc.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -501,8 +704,10 @@ the updated access control setting of the vapp.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object describing
-the asynchronous Task shutting down the vApp.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task shutting down the vApp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -511,38 +716,53 @@ the asynchronous Task shutting down the vApp.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.to_sourced_item">
 <code class="descname">to_sourced_item</code><span class="sig-paren">(</span><em>spec</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.to_sourced_item" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a VM SourcedItem from a VM specification.</p>
+<dd><p>Creates a vm SourcedItem from a vm specification.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>spec</strong> – <p>(dict) containing:
-vapp: (resource): (required) source vApp or vAppTemplate resource
-source_vm_name: (str): (required) source VM name
-target_vm_name: (str): (optional) target VM name
-hostname: (str): (optional) target guest hostname
-password: (str): (optional) set the administrator password of this</p>
-<blockquote>
-<div>machine to this value</div></blockquote>
-<dl class="docutils">
-<dt>password_auto: (bool): (optional) autogenerate administrator</dt>
-<dd>password</dd>
-<dt>password_reset: (bool): (optional) True if the administrator</dt>
-<dd>password for this virtual machine must be reset after first use</dd>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>spec</strong> (<em>dict</em>) – <p>a dictionary containing</p>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>vapp: (resource): (required) source vApp or vAppTemplate</dt>
+<dd>resource.</dd>
 </dl>
-<p>cust_script: (str): (optional) script to run on guest customization
-network: (str): (optional) Name of the vApp network to connect.</p>
-<blockquote>
-<div>If omitted, the VM won’t be connected to any network</div></blockquote>
-<dl class="docutils">
-<dt>storage_profile: (str): (optional) the name of the storage profile</dt>
-<dd>to be used for this VM</dd>
+</li>
+<li>source_vm_name: (str): (required) source vm name.</li>
+<li>target_vm_name: (str): (optional) target vm name.</li>
+<li>hostname: (str): (optional) target guest hostname.</li>
+<li>password: (str): (optional) the administrator password of the vm.</li>
+<li><dl class="first docutils">
+<dt>password_auto: (bool): (optional) auto generate administrator</dt>
+<dd>password.</dd>
 </dl>
+</li>
+<li><dl class="first docutils">
+<dt>password_reset: (bool): (optional) True, if the administrator</dt>
+<dd>password for this vm must be reset after first use.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>cust_script: (str): (optional) script to run on guest</dt>
+<dd>customization.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>network: (str): (optional) name of the vApp network to connect.</dt>
+<dd>If omitted, the vm won’t be connected to any network.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>storage_profile: (str): (optional) the name of the storage</dt>
+<dd>profile to be used for this vm.</dd>
+</dl>
+</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">SourcedItem: (<code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code>): object
-representing the ‘SourcedItem’ xml object created from the
-specification.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing SourcedItem XML element.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -551,18 +771,55 @@ specification.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.undeploy">
 <code class="descname">undeploy</code><span class="sig-paren">(</span><em>action='default'</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.undeploy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyvcloud.vcd.vapp.VApp.unshare_from_org_members">
-<code class="descname">unshare_from_org_members</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.unshare_from_org_members" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unshare the vapp from all members of current organization.</p>
+<dd><p>Undeploys the vApp.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="xref py py-class docutils literal notranslate"><span class="pre">lxml.objectify.StringElement</span></code> object representing
-the updated access control setting of the vapp.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>action</strong> (<em>str</em>) – <p>specifies the action to be applied to all vms in the
+vApp. Accepted values are</p>
+<blockquote>
+<div><ul class="simple">
+<li>powerOff: power off the virtual machines.</li>
+<li>suspend: suspend the virtual machines.</li>
+<li>shutdown: shut down the virtual machines.</li>
+<li><dl class="first docutils">
+<dt>force: attempt to power off the virtual machines. Failures in</dt>
+<dd>undeploying the virtual machine or associated networks are
+ignored. All references to the vApp and its vms are removed
+from the database.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>default: use the actions, order, and delay specified in the</dt>
+<dd>StartupSection.</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is undeploying the vApp.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vapp.VApp.unshare_from_org_members">
+<code class="descname">unshare_from_org_members</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.unshare_from_org_members" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unshare the vApp from all members of current organization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.CONTROL_ACCESS_PARAMS XML
+data representing the updated access control setting of the vdc.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -589,9 +846,9 @@ the updated access control setting of the vapp.</td>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.vcd.html">Python Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.vcd.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pyvcloud.vcd.html#module-pyvcloud.vcd">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -624,7 +881,7 @@ the updated access control setting of the vapp.</td>
       &copy;2018, VMware Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

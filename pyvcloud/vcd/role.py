@@ -26,7 +26,7 @@ class Role(object):
         """Constructor for Role object.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         :param str href: URI of the Role entity
         :param lxml.objectify.ObjectifiedElement resource: object containing
             EntityType.ROLE XML data representing the role.
@@ -59,10 +59,7 @@ class Role(object):
         return rights
 
     def unlink(self):
-        """Unlinks the role from its template.
-
-        :return: Nothing
-        """
+        """Unlinks the role from its template."""
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         self.client.post_linked_resource(self.resource,
@@ -70,10 +67,7 @@ class Role(object):
                                          EntityType.ROLE.value, None)
 
     def link(self):
-        """Links the role to its template.
-
-        :return: Nothing
-        """
+        """Links the role to its template."""
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         self.client.post_linked_resource(self.resource,

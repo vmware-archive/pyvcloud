@@ -27,7 +27,7 @@ class VM(object):
         """Constructor for VM object.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         :param str href: href of the vm.
         :param lxml.objectify.ObjectifiedElement resource: object containing
             EntityType.VM XML data representing the vm.
@@ -48,8 +48,6 @@ class VM(object):
         This method should be called in between two method invocations on the
         VM object, if the former call changes the representation of the
         vm in vCD.
-
-        :return: Nothing
         """
         self.resource = self.client.get_resource(self.href)
         if self.resource is not None:

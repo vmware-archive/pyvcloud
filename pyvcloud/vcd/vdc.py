@@ -35,7 +35,7 @@ class VDC(object):
         """Constructor for VDC objects.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         :param str name: name of the entity.
         :param str href: URI of the entity.
         :param lxml.objectify.ObjectifiedElement resource: object containing
@@ -76,7 +76,7 @@ class VDC(object):
             want to retrieve. *Please note that this function is incapable of
             returning anything other than vApps at this point.*
 
-        :return: href of the vApp identified by it's name.
+        :return: href of the vApp identified by its name.
 
         :rtype: str
 
@@ -109,8 +109,6 @@ class VDC(object):
         This method should be called in between two method invocations on the
         VDC object, if the former call changes the representation of the
         org vdc in vCD.
-
-        :return: Nothing
         """
         self.resource = self.client.get_resource(self.href)
         if self.resource is not None:
@@ -137,8 +135,6 @@ class VDC(object):
         """Delete a vApp in the current org vdc.
 
         :param str name: name of the vApp to be deleted.
-
-        :return: Nothing
 
         :raises: EntityNotFoundException: if the named vApp can not be found.
         :raises: MultipleRecordsException: if more than one vApp with the
@@ -675,7 +671,7 @@ class VDC(object):
             for disk in disks:
                 if disk.get('id') == disk_id:
                     result = disk
-                    # disk-id's are unique so it's ok to break the loop
+                    # disk-id's are unique so its ok to break the loop
                     # and stop looking further.
                     break
         elif name is not None:
@@ -701,8 +697,6 @@ class VDC(object):
         :param str name: name of the independent disk.
         :param str disk_id: id of the disk (required if there are multiple
             disks with same name).
-
-        :return: Nothing
 
         :raises: EntityNotFoundException: if the named disk cannot be located.
         """
@@ -781,8 +775,6 @@ class VDC(object):
         """Delete the current org vdc.
 
         :param str vdc_name: name of the org vdc to delete.
-
-        :return: Nothing
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -1192,7 +1184,7 @@ class VDC(object):
 
         :param str name: name of the orgvdc network we want to delete.
         :param bool force: if True, will instruct vcd to force delete the
-            network, ignoring whether it's connected to a vm or vapp network or
+            network, ignoring whether its connected to a vm or vapp network or
             not.
 
         :return: an object containing EntityType.TASK XML data which represents
@@ -1212,7 +1204,7 @@ class VDC(object):
 
         :param str name: name of the orgvdc network we want to delete.
         :param bool force: if True, will instruct vcd to force delete the
-            network, ignoring whether it's connected to a vm or vapp network or
+            network, ignoring whether its connected to a vm or vapp network or
             not.
 
         :return: an object containing EntityType.TASK XML data which represents

@@ -28,7 +28,7 @@ class System(object):
         """Constructor for System objects.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         :param str admin_href: URI representing _WellKnownEndpoint.ADMIN.
         :param lxml.objectify.ObjectifiedElement admin_resource: an object
             containing EntityType.ADMIN XML data.
@@ -70,14 +70,12 @@ class System(object):
         """Delete an organization.
 
         :param str org_name: name of the org to be deleted.
-        :param bool force: pass force=True  along with recursive=True to remove
+        :param bool force: pass force=True along with recursive=True to remove
             an organization and any objects it contains, regardless of their
             state.
         :param bool recursive: pass recursive=True to remove an organization
             and any objects it contains that are in a state that normally
             allows removal.
-
-        :return: Nothing
         """
         org = self.client.get_org_by_name(org_name)
         org_href = get_admin_href(org.get('href'))

@@ -31,7 +31,7 @@ class APIExtension(object):
         """Constructor for APIExtension object.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         """
         self.client = client
 
@@ -169,8 +169,6 @@ class APIExtension(object):
         :param str namespace: the namespace of the extension service. If not
             specified (i.e. = None), we will use the value passed in the
             `name` parameter.
-
-        :return: Nothing
         """
         href = self.enable_extension(name, enabled=False, namespace=namespace)
         return self.client.delete_resource(href)

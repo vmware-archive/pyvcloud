@@ -502,9 +502,9 @@ def access_settings_to_dict(control_access_params):
 
 
 def filter_attributes(resource_type):
-    """Returns a list of arrtibutes for a given resource type.
+    """Returns a list of attributes for a given resource type.
 
-    :param str resrouce_type: type of resource whose list of attributes we want
+    :param str resource_type: type of resource whose list of attributes we want
         to extract. Valid values are 'adminTask', 'task', 'adminVApp', 'vApp'
         and 'adminCatalogItem', 'catalogItem'.
 
@@ -593,8 +593,6 @@ def stdout_xml(the_xml, is_colorized=True):
         print.
     :param bool is_colorized: if True, will print highlight xml tags and
         attributes else will print b&w output to the console.
-
-    :return: Nothing.
     """
     message = str(etree.tostring(the_xml, pretty_print=True), 'utf-8')
     if is_colorized:

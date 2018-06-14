@@ -25,7 +25,7 @@ class PVDC(object):
         """Constructor for a PVDC object.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         :param str href: URI of the entity.
         :param lxml.objectify.ObjectifiedElement resource: object containing
             EntityType.PROVIDER_VDC XML data representing the provider vdc.
@@ -62,8 +62,6 @@ class PVDC(object):
         This method should be called in between two method invocations on the
         PVDC object, if the former call changes the representation of the
         provider vdc in vCD.
-
-        :return: Nothing
         """
         self.resource = self.client.get_resource(self.href)
         if self.resource is not None:

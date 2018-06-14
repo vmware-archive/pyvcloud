@@ -37,7 +37,7 @@ class VApp(object):
         """Constructor for VApp objects.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         :param str name: name of the entity.
         :param str href: URI of the entity.
         :param lxml.objectify.ObjectifiedElement resource: object containing
@@ -75,8 +75,6 @@ class VApp(object):
         This method should be called in between two method invocations on the
         VApp object, if the former call changes the representation of the
         vApp in vCD.
-
-        :return: Nothing
         """
         self.resource = self.client.get_resource(self.href)
         if self.resource is not None:
@@ -84,7 +82,7 @@ class VApp(object):
             self.href = self.resource.get('href')
 
     def get_primary_ip(self, vm_name):
-        """Fetch the primary ip of a vm identified by it's name in the vApp.
+        """Fetch the primary ip of a vm identified by its name in the vApp.
 
         :param str vm_name: name of the vm whose primary ip we want to
             retrieve.
@@ -93,7 +91,7 @@ class VApp(object):
 
         :rtype: str
 
-        :raises: Exception: if the named vm or it's NIC information can't be
+        :raises: Exception: if the named vm or its NIC information can't be
             found.
         """
         if self.resource is None:
@@ -233,8 +231,6 @@ class VApp(object):
         """Change the ownership of vApp to a given user.
 
         :param str href: href of the new owner.
-
-        :return: Nothing
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

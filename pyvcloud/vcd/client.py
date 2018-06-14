@@ -671,8 +671,6 @@ class Client(object):
         :param BasicLoginCredentials creds: Credentials containing org,
             user, and password.
 
-        :return: Nothing
-
         :raises: VcdException: if automatic API negotiation fails to arrive
             at a supported client version
         """
@@ -771,8 +769,6 @@ class Client(object):
 
         Logout is idempotent. Reusing a client after logout will result
         in undefined behavior.
-
-        :return: Nothing
         """
         if self._session is not None:
             uri = self._uri + '/session'
@@ -1070,8 +1066,6 @@ class Client(object):
 
         Deletes the resource referenced by the link with the specified rel and
         mediaType in the specified resource.
-
-        :return: Nothing
 
         :raises: OperationNotSupportedException: if the operation fails due to
             the link being not visible to the logged in user of the client.

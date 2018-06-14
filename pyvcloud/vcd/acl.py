@@ -28,7 +28,7 @@ class Acl(object):
         """Constructor for Acl object.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         :param lxml.objectify.ObjectifiedElement parent_resource: object
             containing XML representation of the parent entity whose Access
             Control List this object operates on.

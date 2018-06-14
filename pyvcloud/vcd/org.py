@@ -50,7 +50,7 @@ class Org(object):
         """Constructor for Org objects.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         :param str href: URI of the entity.
         :param lxml.objectify.ObjectifiedElement resource: object
             containing EntityType.ORG XML data representing the organization.
@@ -72,8 +72,6 @@ class Org(object):
         This method should be called in between two method invocations on the
         Org object, if the former call changes the representation of the
         organization in vCD.
-
-        :return: Nothing
         """
         self.resource = self.client.get_resource(self.href)
 
@@ -111,11 +109,9 @@ class Org(object):
 
         :param str name: name of the catalog to be deleted.
 
-        :return: Nothing
-
         :raises: EntityNotFoundException: if the named catalog can not be
             found.
-        :raises: sub-class of VcdResponseException: if the rest call is not
+        :raises: sub-class of VcdResponseException: if the REST call is not
             successful.
         """
         catalog_resource = self.get_catalog(name)
@@ -211,8 +207,6 @@ class Org(object):
 
         :param str name: name of the catalog to be shared.
 
-        :return: Nothing
-
         :raises: EntityNotFoundException: if the named catalog can not be
             found.
         """
@@ -234,8 +228,6 @@ class Org(object):
         :param str catalog_name: name of the catalog whose ownership needs
             to be changed
         :param str user_name: name of the new owner of the catalog
-
-        :return: Nothing
         """
         catalog_admin_resource = self.get_catalog(
             catalog_name, is_admin_operation=True)
@@ -297,8 +289,6 @@ class Org(object):
 
         :param str name: name of the catalog whose item needs to be deleted.
         :param str item_name: name of the item which needs to be deleted.
-
-        :return: Nothing
 
         :raises: EntityNotFoundException: if the catalog/named item can not be
             found.
@@ -996,8 +986,6 @@ class Org(object):
         This operation needs admin privileges.
 
         :param str user_name: name of the user to be deleted.
-
-        :return: Nothing
         """
         user = self.get_user(user_name)
         return self.client.delete_resource(user.get('href'))
@@ -1034,8 +1022,6 @@ class Org(object):
         """Deletes specified role from the organization.
 
         :param str name: name of the role to be deleted.
-
-        :return: Nothing
         """
         if self.resource is None:
             self.reload()

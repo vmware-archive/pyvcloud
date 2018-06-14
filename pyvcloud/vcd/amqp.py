@@ -24,7 +24,7 @@ class AmqpService(object):
         """Constructor for AmqpService object.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         """
         self.client = client
         if _WellKnownEndpoint.EXTENSION not in client._session_endpoints:

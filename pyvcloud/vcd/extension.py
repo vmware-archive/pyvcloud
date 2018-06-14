@@ -19,7 +19,7 @@ class Extension(object):
         """Constructor for Extension object.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         """
         self.client = client
         self.resource = None

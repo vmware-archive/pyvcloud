@@ -40,7 +40,7 @@ class Platform(object):
         """Constructor for Platform object.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make ReST calls to vCD.
+            to make REST calls to vCD.
         """
         self.client = client
         self.extension = Extension(client)
@@ -371,8 +371,6 @@ class Platform(object):
         """Un-register an NSX-T Manager.
 
         :param str nsxt_manager_name: name of the NSX-T manager.
-
-        :return: Nothing
         """
         nsxt_manager = self.get_res_by_name(ResourceType.NSXT_MANAGER,
                                             nsxt_manager_name).get('href')

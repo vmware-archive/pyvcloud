@@ -40,6 +40,37 @@ class Task(object):
                org_href=None,
                task_href=None,
                error_message=None):
+        """Update a task in vCD.
+
+        :param str status: new status of the task.
+        :param str namespace: identifier of the service that created the task.
+            It must not start with com.vmware.vcloud and the length must be
+            between 1 and 128 symbols.
+        :param str operation: new message describing the operation that is
+            being tracked by this task.
+        :param str operation_name: new short name of the operation that is
+            being tracked by the task.
+        :param details: new detailed message about the task.
+        :param str progress: read-only indicator of task progress as an
+            approximate percentage between 0 and 100. Not available for all
+            tasks.
+        :param str owner_href: href of the owner of the task. This is typically
+            the object that the task is creating or updating.
+        :param str owner_name: name of the owner of the task.
+        :param str owner_type: XML type of the owner object
+        :param str user_href: href of the user who started the task.
+        :param str user_name: name of the user who started the task.
+        :param str org_href: href of the organization, which the user mentioned
+            above belongs to.
+        :param str task_href: href of the task.
+        :param str error_message: represents error information from a failed
+            task.
+
+        :return: an object containing EntityType.TASK XML data representing the
+            updated task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         t = E.Task(
             status=status,
             serviceNamespace=namespace,
@@ -76,12 +107,16 @@ class Task(object):
                        TaskStatus.RUNNING.value
                    ],
                    newer_first=True):
-        """Return a list of tasks accesible by the user, filtered by status.
+        """Return a list of tasks accessible by the user, filtered by status.
 
-        :param filter_status_list: ([str]): The status of tasks to query.
+        :param list filter_status_list: a list of strings representing task
+            statuses that should be used to filter the query result.
 
-        :return:  A list of :class:`lxml.objectify.StringElement` objects
-            with the tasks that match the status filter
+        :return: tasks in form of lxml.objectify.ObjectifiedElement containing
+            EntityType.TASK XML data representing the tasks that matched the
+            status filter.
+
+        :rtype: generator object
         """
         query_filter = ''
         for f in filter_status_list:

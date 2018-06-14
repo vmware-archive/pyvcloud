@@ -129,7 +129,7 @@ class AuthenticationException(VcdException):
 
 
 class AlreadyExistsException(VcdException):
-    """Raised on an entity already exist in vcd."""
+    """Raised if we try to create an already existing entity in vcd."""
 
 
 class BadRequestException(VcdResponseException):

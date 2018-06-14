@@ -273,6 +273,7 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
+    EXTERNAL_NETWORK = 'application/vnd.vmware.admin.vmwexternalnet+xml'
     EXTERNAL_NETWORK_REFS = \
         'application/vnd.vmware.admin.vmwExternalNetworkReferences+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
@@ -294,6 +295,7 @@ class EntityType(Enum):
     ORG_RIGHTS = 'application/vnd.vmware.admin.org.rights+xml'
     ORG_VDC_NETWORK = 'application/vnd.vmware.vcloud.orgVdcNetwork+xml'
     OWNER = 'application/vnd.vmware.vcloud.owner+xml'
+    PROVIDER_VDC = 'application/vnd.vmware.admin.providervdc+xml'
     PROVIDER_VDC_PARAMS = \
         'application/vnd.vmware.admin.createProviderVdcParams+xml'
     PUBLISH_CATALOG_PARAMS = \
@@ -323,6 +325,8 @@ class EntityType(Enum):
     VDC_REFERENCES = 'application/vnd.vmware.admin.vdcReferences+xml'
     VDCS_PARAMS = 'application/vnd.vmware.admin.createVdcParams+xml'
     VIM_SERVER_REFS = 'application/vnd.vmware.admin.vmwVimServerReferences+xml'
+    VIRTUAL_CENTER = 'application/vnd.vmware.admin.vmwvirtualcenter+xml'
+    VM = 'application/vnd.vmware.vcloud.vm+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'
 
 
@@ -366,10 +370,16 @@ class NetworkAdapterType(Enum):
 
 
 def _get_session_endpoints(session):
-    """Return a map of well known endpoings.
+    """Return a map of well known endpoints.
 
     Build and return a map keyed by well-known endpoints, yielding hrefs,
-        from a <Session>
+    from a <Session> XML element.
+
+    :param lxml.objectify.ObjectifiedElement session: session object.
+
+    :return: session endpoint hrefs.
+
+    :rtype: dict
     """
     smap = {}
     for endpoint in _WellKnownEndpoint:
@@ -387,12 +397,14 @@ def _response_has_content(response):
 def _objectify_response(response, as_object=True):
     """Convert XML response content to an lxml object.
 
-    :param str response: An XML response as a string
-    :param boolean as_object: If true convert to an
+    :param str response: an XML response as a string.
+    :param boolean as_object: If True convert to an
         lxml.objectify.ObjectifiedElement where XML properties look like
-        Python object attributes.
-    :return: lxml.objectify.ObjectifiedElement or root of parsed XML
-        element
+        python object attributes.
+
+    :return: lxml.objectify.ObjectifiedElement or xml.etree.ElementTree object.
+
+    :rtype: lxml.objectify.ObjectifiedElement
     """
     if _response_has_content(response):
         if as_object:
@@ -502,14 +514,14 @@ class Client(object):
     The log_file is set by the first client instantiated and will be
     ignored in later clients.
 
-    :param str uri: vCD server host name or connection URI
-    :param str api_version: The vCD API version to use
+    :param str uri: vCD server host name or connection URI.
+    :param str api_version: vCD API version to use.
     :param boolean verify_ssl_certs: If True validate server certificate;
-        False allows self-signed certificates
-    :param str log_file: Log file name or None, which suppresses logging
-    :param boolean log_request: If True log HTTP requests
-    :param boolean log_headers: If True log HTTP headers
-    :param boolean log_bodies: If True log HTTP bodies
+        False allows self-signed certificates.
+    :param str log_file: log file name or None, which suppresses logging.
+    :param boolean log_request: if True log HTTP requests.
+    :param boolean log_headers: if True log HTTP headers.
+    :param boolean log_bodies: if True log HTTP bodies.
     """
 
     _REQUEST_ID_HDR_NAME = 'X-VMWARE-VCLOUD-REQUEST-ID'
@@ -576,17 +588,31 @@ class Client(object):
         self._is_sysadmin = False
 
     def _get_response_request_id(self, response):
+        """Extract request id of a request to vCD from the response.
+
+        :param requests.Response response: response from vCD.
+
+        :return: the request id.
+
+        :rtype: str
+        """
         return response.headers[self._REQUEST_ID_HDR_NAME]
 
     def get_api_version(self):
-        """Return vCD API version pyvcloud is using."""
+        """Return vCD API version client is using.
+
+        :return: api version of the client.
+
+        :rtype: str
+        """
         return self._api_version
 
     def get_supported_versions_list(self):
         """Return non-deprecated server API versions as iterable list.
 
-        :return: List of versions sorted in numerical order
-        :rtype: list of str
+        :return: versions (str) sorted in numerical order.
+
+        :rtype: list
         """
         versions = self.get_supported_versions()
         active_versions = []
@@ -600,8 +626,9 @@ class Client(object):
     def get_supported_versions(self):
         """Return non-deprecated API versions on vCD server.
 
-        :return: An objectified XML element representing vCD supported
-            versions
+        :return: an object containing SupportedVersions XML element which
+            represents versions supported by vCD.
+
         :rtype: lxml.objectify.ObjectifiedElement
         """
         with requests.Session() as new_session:
@@ -620,6 +647,10 @@ class Client(object):
         features before they are officially supported in pyvcloud.
         Production applications should either use the default pyvcloud API
         version or set the API version explicitly to freeze compatibility.
+
+        :return: selected api version.
+
+        :rtype: str
         """
         active_versions = self.get_supported_versions_list()
         self._api_version = active_versions[-1]
@@ -638,8 +669,9 @@ class Client(object):
         up unchanged to the client.
 
         :param BasicLoginCredentials creds: Credentials containing org,
-            user, and password
-        :raises VcdException: if automatic API negotiation fails to arrive
+            user, and password.
+
+        :raises: VcdException: if automatic API negotiation fails to arrive
             at a supported client version
         """
         # If we need to negotiate the server API level find the highest
@@ -951,7 +983,12 @@ class Client(object):
         """Puts to a resource link.
 
         Puts the contents of the resource referenced by the link with the
-            specified rel and mediaType in the specified resource.
+        specified rel and mediaType in the specified resource.
+
+        :return: the result of the PUT operation.
+
+        :raises: OperationNotSupportedException: if the operation fails due to
+            the link being not visible to the logged in user of the client.
         """
         try:
             return self.put_resource(
@@ -963,8 +1000,8 @@ class Client(object):
     def post_resource(self, uri, contents, media_type, objectify_results=True):
         """Posts to a resource link.
 
-        Posts the specified contents to the specified resource.
-            (Does an HTTP POST.)
+        Posts the specified contents to the specified resource. (Does an HTTP
+        POST.)
         """
         return self._do_request(
             'POST',
@@ -977,7 +1014,12 @@ class Client(object):
         """Posts to a resource link.
 
         Posts the contents of the resource referenced by the link with the
-            specified rel and mediaType in the specified resource.
+        specified rel and mediaType in the specified resource.
+
+        :return: the result of the POST operation.
+
+        :raises: OperationNotSupportedException: if the operation fails due to
+            the link being not visible to the logged in user of the client.
         """
         try:
             return self.post_resource(
@@ -999,7 +1041,15 @@ class Client(object):
         """Gets the content of the resource link.
 
         Gets the contents of the resource referenced by the link with the
-            specified rel and mediaType in the specified resource.
+        specified rel and mediaType in the specified resource.
+
+        :return: an object containing XML representation of the resource the
+            link points to.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: OperationNotSupportedException: if the operation fails due to
+            the link being not visible to the logged in user of the client.
         """
         try:
             return self.get_resource(find_link(resource, rel, media_type).href)
@@ -1015,7 +1065,10 @@ class Client(object):
         """Deletes the resource referenced by the link.
 
         Deletes the resource referenced by the link with the specified rel and
-            mediaType in the specified resource.
+        mediaType in the specified resource.
+
+        :raises: OperationNotSupportedException: if the operation fails due to
+            the link being not visible to the logged in user of the client.
         """
         try:
             return self.delete_resource(
@@ -1051,8 +1104,11 @@ class Client(object):
     def get_org_by_name(self, org_name):
         """Retrieve an organization.
 
-        :param string org_name: name of the org to be retrieved.
-        :return: Org record.
+        :param str org_name: name of the organization to be retrieved.
+
+        :return: an object containing OrgRecord XML element.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         orgs = self.get_org_list()
         if hasattr(orgs, 'Org'):
@@ -1062,13 +1118,16 @@ class Client(object):
         raise EntityNotFoundException('org \'%s\' not found' % org_name)
 
     def get_user_in_org(self, user_name, org_href):
-        """Retrieve user from a particular org.
+        """Retrieve user from a particular organization.
 
-        :param str user_name: user name to be retrieved.
-        :param str org_href: org where the user belongs.
+        :param str user_name: name of the user to be retrieved.
+        :param str org_href: href of the organization to which the user
+            belongs.
 
-        :return:  A :class:`lxml.objectify.StringElement` object
-            representing the user
+        :return: an object containing EntityType.USER XML data which respresnts
+            an user in vCD.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         resource_type = 'user'
         org_filter = None
@@ -1107,21 +1166,25 @@ class Client(object):
                         fields=None):
         """Issue a query using vCD query API.
 
-        :param str query_type_name: Name of the entity, which should be a
-            string listed in ResourceType enum
-        :param tuple query_result_format: Tuple value from
-            QueryResultFormat enum
-        :param int page_size: Number of entries per page
-        :param include_links: (Not used)
-        :param str qfilter: Query filter expression, e.g., numberOfCpus=gt=4
-        :param str equality_filter: A field name and a value to filter
-            output; appends to qfilter if present
-        :param str sort_asc: If name present sort ascending by that field
-        :param str sort_desc: If name present sort descending by that field
-        :param str fields: Comma separated list of fields to return
+        :param str query_type_name: name of the entity, which should be a
+            string listed in ResourceType enum.
+        :param tuple query_result_format: tuple value from QueryResultFormat
+            enum.
+        :param int page_size: number of entries per page.
+        :param include_links: (not used).
+        :param str qfilter: query filter expression, e.g., 'numberOfCpus=gt=4'.
+        :param str equality_filter: a field name and a value to filter
+            output; appends to qfilter if present.
+        :param str sort_asc: if 'name' field is present in the result sort
+            ascending by that field.
+        :param str sort_desc: if 'name' field is present in the result sort
+            descending by that field.
+        :param str fields: comma separated list of fields to return.
 
         :return: A query object that runs the query when execute()
-            method is called
+            method is called.
+
+        :rtype: pyvcloud.vcd.client._TypedQuery
         """
         return _TypedQuery(
             query_type_name,
@@ -1150,13 +1213,18 @@ class Client(object):
 def find_link(resource, rel, media_type, fail_if_absent=True):
     """Returns the link of the specified rel and type in the resource.
 
-    :param resource: the resource with the link
-    :param rel: the rel of the desired link
-    :param media_type: media type of content
-    :param param fail_if_absent: Throw an exception if there's
-        not exactly one link of the specified rel and media type
-    :return: A link or null if no such link is present and fail_if_absent
-        is false
+    :param lxml.objectify.ObjectifiedElement resource: the resource with the
+        link.
+    :param ResourceType rel: the rel of the desired link.
+    :param str media_type: media type of content.
+    :param bool fail_if_absent: if True raise an exception if there's
+        not exactly one link of the specified rel and media type.
+
+    :return: an object containing Link XML element representing the desired
+        link or None if no such link is present and fail_if_absent is False.
+
+    :rtype: lxml.objectify.ObjectifiedElement
+
     :raises MissingLinkException: if no link of the specified rel and media
         type is found
     :raises MultipleLinksException: if multiple links of the specified rel
@@ -1178,10 +1246,15 @@ def find_link(resource, rel, media_type, fail_if_absent=True):
 def get_links(resource, rel=RelationType.DOWN, media_type=None):
     """Returns all the links of the specified rel and type in the resource.
 
-    :param resource: the resource with the link
-    :param rel: the rel of the desired link
-    :param media_type: media type of content
-    :return: list of links (could be an empty list)
+    :param lxml.objectify.ObjectifiedElement resource: the resource with the
+        links.
+    :param RelationType rel: the rel of the desired link.
+    :param str media_type: media type of content.
+
+    :return: list of lxml.objectify.ObjectifiedElement objects, where each
+        object contains a Link XML element. Result could include an empty list.
+
+    :rtype: list
     """
     links = []
     for link in resource.findall('{http://www.vmware.com/vcloud/v1.5}Link'):
@@ -1247,7 +1320,9 @@ class _AbstractQuery(object):
     def execute(self):
         """Executes query and returns results.
 
-        :return: A generator to returns results
+        :return: A generator to returns results.
+
+        :rtype: generator object
         """
         query_href = self._find_query_uri(self._query_result_format)
         if query_href is None:
@@ -1280,7 +1355,7 @@ class _AbstractQuery(object):
         """Convenience wrapper over execute().
 
         Convenience wrapper over execute() for the case where exactly one match
-            is expected.
+        is expected.
         """
         query_results = self.execute()
 

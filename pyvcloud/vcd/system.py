@@ -27,7 +27,7 @@ class System(object):
     def __init__(self, client, admin_href=None, admin_resource=None):
         """Constructor for System objects.
 
-        :param pyvcloud.vcd.client client: the client that will be used
+        :param pyvcloud.vcd.client.Client client: the client that will be used
             to make ReST calls to vCD.
         :param str admin_href: URI representing _WellKnownEndpoint.ADMIN.
         :param lxml.objectify.ObjectifiedElement admin_resource: an object

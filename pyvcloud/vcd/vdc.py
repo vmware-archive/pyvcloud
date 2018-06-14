@@ -34,7 +34,7 @@ class VDC(object):
     def __init__(self, client, name=None, href=None, resource=None):
         """Constructor for VDC objects.
 
-        :param pyvcloud.vcd.client client: the client that will be used
+        :param pyvcloud.vcd.client.Client client: the client that will be used
             to make ReST calls to vCD.
         :param str name: name of the entity.
         :param str href: URI of the entity.

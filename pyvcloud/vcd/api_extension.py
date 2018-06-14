@@ -30,7 +30,7 @@ class APIExtension(object):
     def __init__(self, client):
         """Constructor for APIExtension object.
 
-        :param pyvcloud.vcd.client client: the client that will be used
+        :param pyvcloud.vcd.client.Client client: the client that will be used
             to make ReST calls to vCD.
         """
         self.client = client

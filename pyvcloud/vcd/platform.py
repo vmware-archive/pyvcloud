@@ -94,7 +94,7 @@ class Platform(object):
         return []
 
     def get_external_network(self, name):
-        """Fetch an external network resource identified by it's name.
+        """Fetch an external network resource identified by its name.
 
         :param str name: name of the external network to be retrieved.
 

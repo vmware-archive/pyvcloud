@@ -82,7 +82,7 @@ class VApp(object):
             self.href = self.resource.get('href')
 
     def get_primary_ip(self, vm_name):
-        """Fetch the primary ip of a vm identified by its name in the vApp.
+        """Fetch the primary ip of a vm (in the vApp) identified by its name.
 
         :param str vm_name: name of the vm whose primary ip we want to
             retrieve.

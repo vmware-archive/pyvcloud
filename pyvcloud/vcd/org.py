@@ -1487,7 +1487,7 @@ class Org(object):
             params)
 
     def get_vdc(self, name):
-        """Retrieves resource of an org vdc identified by it's name.
+        """Retrieves resource of an org vdc identified by its name.
 
         :param str name: name of the org vdc to be retrieved.
 

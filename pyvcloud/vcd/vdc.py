@@ -671,7 +671,7 @@ class VDC(object):
             for disk in disks:
                 if disk.get('id') == disk_id:
                     result = disk
-                    # disk-id's are unique so its ok to break the loop
+                    # disk-id's are unique so it is ok to break the loop
                     # and stop looking further.
                     break
         elif name is not None:
@@ -1184,8 +1184,8 @@ class VDC(object):
 
         :param str name: name of the orgvdc network we want to delete.
         :param bool force: if True, will instruct vcd to force delete the
-            network, ignoring whether its connected to a vm or vapp network or
-            not.
+            network, ignoring whether it is connected to a vm or vapp network
+            or not.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that's deleting the network.
@@ -1204,8 +1204,8 @@ class VDC(object):
 
         :param str name: name of the orgvdc network we want to delete.
         :param bool force: if True, will instruct vcd to force delete the
-            network, ignoring whether its connected to a vm or vapp network or
-            not.
+            network, ignoring whether it is connected to a vm or vapp network
+            or not.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that's deleting the network.

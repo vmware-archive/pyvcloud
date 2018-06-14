@@ -314,7 +314,7 @@ class Org(object):
         """Helper method to determine need for download enabling.
 
         :param lxml.objectify.ObjectifiedElement entity_resource: an object
-            containing EntityType.MEDIA or EntityType.VAPP_TEMPLATE XMl data
+            containing EntityType.MEDIA or EntityType.VAPP_TEMPLATE XML data
             describing the entity corresponding to the catalog item which
             needs to be downloaded.
         :param str item_type: type of entity we are trying to enable for
@@ -346,7 +346,7 @@ class Org(object):
         from ESX hosts to spool area (transfer folder).
 
         :param lxml.objectify.ObjectifiedElement entity_resource: an object
-            containing EntityType.MEDIA or EntityType.VAPP_TEMPLATE XMl data
+            containing EntityType.MEDIA or EntityType.VAPP_TEMPLATE XML data
             describing the entity corresponding to the catalog item which
             needs to be downloaded.
         :param function task_callback: a function with signature
@@ -419,7 +419,7 @@ class Org(object):
         """Helper method to download an ova file from vCD catalog.
 
         :param lxml.objectify.ObjectifiedElement entity_resource: an object
-            containing EntityType.MEDIA or EntityType.VAPP_TEMPLATE XMl data
+            containing EntityType.MEDIA or EntityType.VAPP_TEMPLATE XML data
             describing the entity corresponding to the catalog item which
             needs to be downloaded.
         :param str file_name: name of the target file on local disk where
@@ -1163,7 +1163,7 @@ class Org(object):
 
         :param str right_name: name of the right.
 
-        :return: an object containing EntityType.RIGHT XMl data representing
+        :return: an object containing EntityType.RIGHT XML data representing
             the right.
 
         :rtype: lxml.objectify.ObjectifiedElement
@@ -1436,7 +1436,7 @@ class Org(object):
         :param bool is_enabled: True, if this vdc is enabled for use by the
             organization users.
 
-        :return: an object containing EntityType.VDC XMl data describing the
+        :return: an object containing EntityType.VDC XML data describing the
             new VDC.
 
         :rtype: lxml.objectify.ObjectifiedElement

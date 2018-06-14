@@ -50,7 +50,7 @@ class System(object):
         :param str full_org_name: full name of the organization.
         :param bool is_enabled: enable organization if True
 
-        :return: an object containing EntityType.ADMIN_ORG XMl data which
+        :return: an object containing EntityType.ADMIN_ORG XML data which
             represents the newly created organization.
 
         :rtype: lxml.objectify.ObjectifiedElement

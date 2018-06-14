@@ -325,6 +325,7 @@ class EntityType(Enum):
     VDCS_PARAMS = 'application/vnd.vmware.admin.createVdcParams+xml'
     VIM_SERVER_REFS = 'application/vnd.vmware.admin.vmwVimServerReferences+xml'
     VIRTUAL_CENTER = 'application/vnd.vmware.admin.vmwvirtualcenter+xml'
+    VM = 'application/vnd.vmware.vcloud.vm+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'
 
 

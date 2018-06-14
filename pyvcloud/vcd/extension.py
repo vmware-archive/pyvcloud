@@ -25,7 +25,15 @@ class Extension(object):
         self.resource = None
 
     def get_resource(self):
-        """Fetches the XML representation of /api/admin/extension endpoint."""
+        """Fetches the XML representation of /api/admin/extension endpoint.
+
+        Will serve cached response if possible.
+
+        :return: object containing EntityType.EXTENSION XML data representing
+            the endpoint.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         if self.resource is None:
             self.resource = self.client.get_extension()
         return self.resource

@@ -36,7 +36,7 @@ class AmqpService(object):
     def get_settings(self):
         """Fetches the XML representation of the AMQP service setting.
 
-        :return: an object containing EntityType.AMQP_SETTINGS XMl data.
+        :return: an object containing EntityType.AMQP_SETTINGS XML data.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """

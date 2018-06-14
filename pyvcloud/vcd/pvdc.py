@@ -84,6 +84,13 @@ class PVDC(object):
             self.resource, RelationType.DOWN, EntityType.VDC_REFERENCES.value)
 
     def get_metadata(self):
+        """Fetch metadata of the provider vdc.
+
+        :return: an object containing EntityType.METADATA XML data which
+            represents the metadata associated with the provider vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.admin_href)
         return self.client.get_linked_resource(
@@ -95,6 +102,19 @@ class PVDC(object):
                      key,
                      value,
                      metadata_type='MetadataStringValue'):
+        """Set metadata of the provider vdc.
+
+        :param str domain:
+        :param str visibility:
+        :param str key:
+        :param str value:
+        :param str metadata_type:
+
+        :return: an object containing EntityType.METADATA XML data which
+            represents the updated metadata associated with the provider vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         new_metadata = E.Metadata(

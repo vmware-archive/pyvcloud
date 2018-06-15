@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+19.3.0
+------
+
+* Updated changelog, authors. Fixed setup.cfg to drop / for license file location. Windows can't parse forward slash in file path
 * [VCDA-672] Formatted/Added doc-strings to most of the methods across all modules in pyvcloud to adhere to sphinx guidelines. (#253)
 * VCDA-635: Implement pyvcloud client to server API version compatibility (#248)
 * deleted entity type NSXT\_MANAGERS (#252)

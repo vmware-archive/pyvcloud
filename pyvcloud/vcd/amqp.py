@@ -21,6 +21,11 @@ from pyvcloud.vcd.exceptions import ClientException
 
 class AmqpService(object):
     def __init__(self, client):
+        """Constructor for AmqpService object.
+
+        :param pyvcloud.vcd.client.Client client: the client that will be used
+            to make REST calls to vCD.
+        """
         self.client = client
         if _WellKnownEndpoint.EXTENSION not in client._session_endpoints:
             raise ClientException("Requires login as 'system administrator'.")
@@ -29,9 +34,26 @@ class AmqpService(object):
             '/settings/amqp'
 
     def get_settings(self):
+        """Fetches the XML representation of the AMQP service setting.
+
+        :return: an object containing EntityType.AMQP_SETTINGS XML data.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         return self.client.get_resource(self.href)
 
     def _to_settings(self, config, password):
+        """Converts dictionary representation of configuration to XML element.
+
+        :param dict config: dictionary representation of AMQP service
+            configuration.
+        :param str password: password of the user for the AMQP service.
+
+        :return: an object containing EntityType.AMQP_SETTINGS XML data
+            representing the configuration of the AMQP service.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         settings = E_VMEXT.AmqpSettings()
         settings.append(E_VMEXT.AmqpHost(config['AmqpHost']))
         settings.append(E_VMEXT.AmqpPort(config['AmqpPort']))
@@ -45,11 +67,33 @@ class AmqpService(object):
         return settings
 
     def test_config(self, config, password):
+        """Tests the validity of configuration on the AMQP service.
+
+        :param dict config: dictionary representation of AMQP service
+            configuration.
+        :param str password: password of the user for the AMQP service.
+
+        :return: an object containing vmext:AmqpSettingsTest XML element
+            representing the result of the test performed on the AMQP service.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         return self.client.post_resource(self.href + '/action/test',
                                          self._to_settings(config, password),
                                          EntityType.AMQP_SETTINGS.value)
 
     def set_config(self, config, password):
+        """Updates the configuration of the AMQP service.
+
+        :param dict config: dictionary representation of AMQP service
+            configuration.
+        :param str password: password of the user for the amqp service.
+
+        :return: an object containing EntityType.AMQP_SETTINGS XML data
+            representing the configuration of the AMQP service.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         return self.client.put_resource(self.href,
                                         self._to_settings(config, password),
                                         EntityType.AMQP_SETTINGS.value)

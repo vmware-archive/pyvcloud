@@ -24,12 +24,13 @@ class VM(object):
     """A helper class to work with Virtual Machines."""
 
     def __init__(self, client, href=None, resource=None):
-        """Constructor.
+        """Constructor for VM object.
 
-        :param client: (Client): The client object to communicate with vCD.
-        :param href: (str): (optional) href of the VM.
-        :param resource: (:class:`lxml.objectify.StringElement`): (optional)
-            object describing the VM.
+        :param pyvcloud.vcd.client.Client client: the client that will be used
+            to make REST calls to vCD.
+        :param str href: href of the vm.
+        :param lxml.objectify.ObjectifiedElement resource: object containing
+            EntityType.VM XML data representing the vm.
         """
         self.client = client
         if href is None and resource is None:
@@ -42,20 +43,27 @@ class VM(object):
             self.href = resource.get('href')
 
     def reload(self):
-        """Updates the xml representation of the VM from vCD."""
+        """Reloads the resource representation of the vm.
+
+        This method should be called in between two method invocations on the
+        VM object, if the former call changes the representation of the
+        vm in vCD.
+        """
         self.resource = self.client.get_resource(self.href)
         if self.resource is not None:
             self.href = self.resource.get('href')
 
     def modify_cpu(self, virtual_quantity, cores_per_socket=None):
-        """Updates the number of CPUs of a VM.
+        """Updates the number of CPUs of a vm.
 
-        :param virtual_quantity: (int): The number of virtual CPUs to configure
-            on the VM.
-        :param cores_per_socket: (int): The number of cores per socket.
+        :param int virtual_quantity: number of virtual CPUs to configure on the
+            vm.
+        :param int cores_per_socket: number of cores per socket.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that updates the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that updates the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         uri = self.href + '/virtualHardwareSection/cpu'
         if cores_per_socket is None:
@@ -68,13 +76,15 @@ class VM(object):
         return self.client.put_resource(uri, item, EntityType.RASD_ITEM.value)
 
     def modify_memory(self, virtual_quantity):
-        """Updates the memory of a VM.
+        """Updates the memory of a vm.
 
-        :param virtual_quantity: (int): The number of MB of memory to configure
-            on the VM.
+        :param int virtual_quantity: number of MB of memory to configure on the
+            vm.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that updates the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that updates the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         uri = self.href + '/virtualHardwareSection/memory'
         item = self.client.get_resource(uri)
@@ -84,10 +94,12 @@ class VM(object):
         return self.client.put_resource(uri, item, EntityType.RASD_ITEM.value)
 
     def shutdown(self):
-        """Shutdown the VM.
+        """Shutdown the vm.
 
-        :return: A :class:`lxml.objectify.StringElement` object describing
-            the asynchronous Task shutting down the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task shutting down the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -95,10 +107,12 @@ class VM(object):
             self.resource, RelationType.POWER_SHUTDOWN, None, None)
 
     def reboot(self):
-        """Reboots the VM.
+        """Reboots the vm.
 
-        :return: A :class:`lxml.objectify.StringElement` object describing
-            the asynchronous Task rebooting the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task rebooting the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -106,10 +120,12 @@ class VM(object):
             self.resource, RelationType.POWER_REBOOT, None, None)
 
     def power_on(self):
-        """Powers on the VM.
+        """Powers on the vm.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates on the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is powering on the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -117,10 +133,12 @@ class VM(object):
             self.resource, RelationType.POWER_ON, None, None)
 
     def power_off(self):
-        """Powers off the VM.
+        """Powers off the vm.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates on the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is powering off the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -128,10 +146,12 @@ class VM(object):
             self.resource, RelationType.POWER_OFF, None, None)
 
     def power_reset(self):
-        """Powers reset the VM.
+        """Powers reset the vm.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates on the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is power resetting the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -139,19 +159,19 @@ class VM(object):
             self.resource, RelationType.POWER_RESET, None, None)
 
     def snapshot_create(self, memory=None, quiesce=None, name=None):
-        """Snapshot the VM.
+        """Create a snapshot of the vm.
 
-        :param memory: (bool): True if the snapshot should include the
-            virtual machine's memory.
-        :param quiesce: (bool): True if the file system of the virtual machine
-            should be quiesced before the snapshot is created.
-            (Requires VMware tools installed)
-        :param name: (bool): Typically used to name or identify the subject
-            of the request. For example, the name of the object being created
-            or modified.
+        :param bool memory: True, if the snapshot should include the virtual
+            machine's memory.
+        :param bool quiesce: True, if the file system of the virtual machine
+            should be quiesced before the snapshot is created. Requires VMware
+            tools to be installed on the vm.
+        :param str name: name of the snapshot.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates on the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is creating the snapshot.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -169,8 +189,10 @@ class VM(object):
     def snapshot_revert_to_current(self):
         """Reverts a virtual machine to the current snapshot, if any.
 
-        :return: A :class:`lxml.objectify.StringElement` object describing
-            the asynchronous Task shutting down the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is reverting the snapshot.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -178,10 +200,12 @@ class VM(object):
             self.resource, RelationType.SNAPSHOT_REVERT_TO_CURRENT, None, None)
 
     def snapshot_remove_all(self):
-        """Removes all user created snapshots for a virtual machine.
+        """Removes all user created snapshots of a virtual machine.
 
-        :return: A :class:`lxml.objectify.StringElement` object describing
-            the asynchronous Task shutting down the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task removing the snapshots.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -189,14 +213,16 @@ class VM(object):
             self.resource, RelationType.SNAPSHOT_REMOVE_ALL, None, None)
 
     def deploy(self, power_on=True, force_customization=False):
-        """Deploys the VM.
+        """Deploys the vm.
 
-        Deploying the VM will allocate all resources assigned
-        to the VM. If an already deployed VM is attempted to deploy,
-        an exception is raised.
+        Deploying the vm will allocate all resources assigned to the vm. If an
+        attempt is made to deploy an already deployed vm, an exception will be
+        raised.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates on the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is deploying the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -209,10 +235,12 @@ class VM(object):
             deploy_vm_params)
 
     def undeploy(self, action='default'):
-        """Undeploy the VM.
+        """Undeploy the vm.
 
-        :return:  A :class:`lxml.objectify.StringElement` object describing the
-            asynchronous task that operates on the VM.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is undeploying the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -222,11 +250,12 @@ class VM(object):
             params)
 
     def get_cpus(self):
-        """Returns the number of CPUs.
+        """Returns the number of CPUs in the vm.
 
-        :return: A dictionary with:
-            num_cpus: (int): number of cpus
-            num_cores_per_socket: (int): number of cores per socket
+        :return: number of cpus (int) and number of cores per socket (int) of
+            the vm.
+
+        :rtype: dict
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -240,7 +269,9 @@ class VM(object):
     def get_memory(self):
         """Returns the amount of memory in MB.
 
-        :return: (int): Amount of memory in MB
+        :return: amount of memory in MB.
+
+        :rtype: int
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -248,9 +279,11 @@ class VM(object):
             self.resource.VmSpecSection.MemoryResourceMb.Configured.text)
 
     def get_vc(self):
-        """Returns the vCenter where this VM is located.
+        """Returns the vCenter where this vm is located.
 
-        :return: (str): Name of the vCenter
+        :return: name of the vCenter server.
+
+        :rtype: str
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

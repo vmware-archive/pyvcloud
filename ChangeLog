@@ -1,6 +1,41 @@
 CHANGES
 =======
 
+19.3.0
+------
+
+* Updated changelog, authors. Fixed setup.cfg to drop / for license file location. Windows can't parse forward slash in file path
+* [VCDA-672] Formatted/Added doc-strings to most of the methods across all modules in pyvcloud to adhere to sphinx guidelines. (#253)
+* VCDA-635: Implement pyvcloud client to server API version compatibility (#248)
+* deleted entity type NSXT\_MANAGERS (#252)
+* fixed media type (NSXT\_MANAGERS -> NETWORK\_MANAGERS) (#251)
+* fixed bug due to change in location of ADD link for nsxtManager (#249)
+* [VDP-1661, VCDA-619] Added register, list, and unregister NSX-T Managers (#244)
+* [VCDA-633 and VCDA-586] Refactored org.py and added catalog system tests (#247)
+* vcd-cli 210: Fixed KeyError and added system test for search (#245)
+* [VCDA-604] Convert all print statements in system tests to logger.debug statements (#246)
+* [VCDA-574] Implement support for ovf:chunkSize while uploading vAppTemplates to a catalog. (#239)
+* Exception Handling doc (#243)
+* VCDA-594: Add scripts to enable Jenkins multi-branch builds on commits (#234)
+* [VCDA-606] Add NSX-T manager name optional parameter to create PVDC (#235)
+* [VCDA-585] Add system tests for vApp (#236)
+* Added an extra param to vapp\_instantiate() to take in description of vApp. (#238)
+* Updating documentation of org:create\_user() to relfect a subtle restriction on the 'password' param string. (#237)
+* VCDA-541: Refactor Pyvcloud to use the new exception classes (#231)
+* Exception class hierarchy implementation (#230)
+* [VCDA-605] add optional root\_folder parameter to attach VC (#233)
+* [VCDA-538/539] Initial commit for new test framework of CI/CD (#227)
+* #205 Deploying VM's with manual allocation mode
+* Only show VAPP entity types, per intention of example (#218)
+* Shortened name of highest\_supp\_hw\_vers parameter in create\_provider\_vdc (#224)
+* VCDA-420: Implemented Github Pages build procedure using Sphinx (#220)
+* Fix venv activation command (#217)
+* VCDA-502: Add additional Mac OS X install notes (#216)
+
+19.2.0
+------
+
+* Changelog
 * travis fix (#215)
 * Fix travis build (#214)
 * Updated license files (#203)
@@ -682,9 +717,17 @@ CHANGES
 * 10
 * wip
 * Fix create\_vapp
+
+v9
+--
+
 * v9
 * Fix response usage
 * Fix imports
+
+v8
+--
+
 * v8
 * merged, save response from vCD service
 * save response to examine reply from service
@@ -697,8 +740,16 @@ CHANGES
 * Update vapp interface
 * Set cpus and memory size on vapp creation
 * Set list of services when authenticating with password
+
+v7
+--
+
 * v7
 * doc
+
+v6
+--
+
 * v6
 * libraries
 * doc
@@ -707,23 +758,63 @@ CHANGES
 * readme
 * readme
 * readme
+
+v5
+--
+
 * v5
+
+v4
+--
+
 * v4
+
+v3
+--
+
 * v3
+
+v2.2
+----
+
 * v2.2
 * v2.2
 * v1.1
 * vm name
 * wip
+
+v2.1
+----
+
 * v2.1
+
+v0.8
+----
+
 * v0.8
+
+v0.7
+----
+
 * v0.7
 * v0.7
 * v0.7
 * Update requirements.txt
 * doc
+
+v0.6
+----
+
 * networking
+
+v0.5
+----
+
 * v0.5
+
+v0.4
+----
+
 * connect vms to network
 * connect vm to network
 * connect vm to network
@@ -736,8 +827,16 @@ CHANGES
 * added sample usage
 * connect vapp to network
 * connect vapp to network
+
+v0.3
+----
+
 * support types of services
 * support types of services
+
+v0.2
+----
+
 * wip
 * fixed imports
 * fixed vcd id

@@ -17,64 +17,82 @@ from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.utils import to_dict
 
 
 class APIExtension(object):
-
-    TYPE_NAME = 'adminService'
     ATTRIBUTES = [
         'name', 'namespace', 'enabled', 'exchange', 'routingKey', 'priority',
         'isAuthorizationEnabled', 'href', 'id'
     ]
 
     def __init__(self, client):
+        """Constructor for APIExtension object.
+
+        :param pyvcloud.vcd.client.Client client: the client that will be used
+            to make REST calls to vCD.
+        """
         self.client = client
 
     def list_extensions(self):
-        """Return the API extensions defined in the system.
+        """Fetch the API extensions defined in the system.
 
-        :return: (dict): list with the API
-            extensions defined in the system.
+        :return: all the API extensions defined in the system.
+
+        :rtype: dict
         """
         query = self.client.get_typed_query(
-            self.TYPE_NAME, query_result_format=QueryResultFormat.ID_RECORDS)
+            ResourceType.ADMIN_SERVICE,
+            query_result_format=QueryResultFormat.ID_RECORDS)
         return [to_dict(r, self.ATTRIBUTES) for r in query.execute()]
 
     def get_extension(self, name, namespace=None):
-        """Return the info about an API extension.
+        """Fetch info about a particular API extension.
 
-        :param name: (str): The name of the extension service.
-        :param namespace: (str): The namespace of the extension service. If
-            None, it will use the value defined by the `name` parameter.
-        :return: (dict): dictionary with the information about the extension.
+        :param str name: the name of the extension service whose info we want
+            to retrieve.
+        :param str namespace: the namespace of the extension service. If not
+            specified (i.e. = None), we will use the value passed in the
+            `name` parameter.
+
+        :return: information about the extension.
+
+        :rtype: dict
         """
         ext = self.client.get_typed_query(
-            self.TYPE_NAME,
+            ResourceType.ADMIN_SERVICE,
             qfilter='name==%s;namespace==%s' % (name, namespace
                                                 if namespace else name),
             query_result_format=QueryResultFormat.ID_RECORDS).find_unique()
         return to_dict(ext, self.ATTRIBUTES)
 
     def get_api_filters(self, service_id):
-        """Return the API filters defined for the service.
+        """Fetch the API filters defined for the service.
 
-        :param service_id: (str): The id of the extension service.
-        :return: (lxml.objectify.ObjectifiedElement): list with the API filters
-            registered for the API extension.
+        :param str service_id: the id of the extension service.
+
+        :return: API filters registered for the API extension.
+
+        :rtype: generator object
         """
         return self.client.get_typed_query(
-            'apiFilter',
+            ResourceType.API_FILTER,
             equality_filter=('service', service_id),
             query_result_format=QueryResultFormat.ID_RECORDS).execute()
 
     def get_extension_info(self, name, namespace=None):
-        """Return the info about an API extension, including filters.
+        """Return info about an API extension, including filters.
 
-        :param name: (str): The name of the extension service.
-        :param namespace: (str): The namespace of the extension service. If
-            None, it will use the value defined by the `name` parameter.
-        :return: (dict): dictionary with the information about the extension.
+        :param str name: the name of the extension service whose info we want
+            to retrieve.
+        :param str namespace: the namespace of the extension service. If not
+            specified (i.e. = None), we will use the value passed in the
+            `name` parameter.
+
+        :return: information about the extension.
+
+        :rtype: dict
         """
         ext = self.get_extension(name, namespace)
         filters = self.get_api_filters(ext['id'])
@@ -87,14 +105,16 @@ class APIExtension(object):
     def add_extension(self, name, namespace, routing_key, exchange, patterns):
         """Add an API extension.
 
-        :param name: (str): The name of the new API extension service.
-        :param namespace: (str): The namespace of the new API extension
-            service.
-        :param routing_key: (str): AMQP routing key to use with the extension.
-        :param exchange: (str): AMQP exchange to use with the extension.
-        :param patterns: (str): URI API filters to register with the extension.
-        :return: (lxml.objectify.ObjectifiedElement): object containing
-            the sparse representation of the API extension.
+        :param str name: name of the new API extension service.
+        :param str namespace: namespace of the new API extension service.
+        :param str routing_key: AMQP routing key to use with the extension.
+        :param str exchange: AMQP exchange to use with the extension.
+        :param str patterns: URI API filters to register with the extension.
+
+        :return: object containing EntityType.ADMIN_SERVICE XML data i.e. the
+            sparse representation of the API extension.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         params = E_VMEXT.Service({'name': name})
         params.append(E_VMEXT.Namespace(namespace))
@@ -114,17 +134,22 @@ class APIExtension(object):
                                                 params)
 
     def enable_extension(self, name, enabled=True, namespace=None):
-        """Enable or disable the API extension service.
+        """Enable or disable an API extension service.
 
-        :param name: (str): The name of the extension service.
-        :param namespace: (str): The namespace of the extension service. If
-            None, it will use the value defined by the `name` parameter.
-        :param enabled: (bool): Flag to enable or disable the extension.
-        :return: (lxml.objectify.ObjectifiedElement): object containing
-            the representation of the API extension.
+        :param str name: the name of the extension service whose we want to
+            enable/disable.
+        :param str namespace: the namespace of the extension service. If not
+            specified (i.e. = None), we will use the value passed in the
+            `name` parameter.
+        :param bool enabled: flag to enable or disable the extension.
+
+        :return: object containing EntityType.ADMIN_SERVICE XML data
+            representing the updated API extension.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         record = self.client.get_typed_query(
-            self.TYPE_NAME,
+            ResourceType.ADMIN_SERVICE,
             qfilter='name==%s;namespace==%s' % (name, namespace
                                                 if namespace else name),
             query_result_format=QueryResultFormat.RECORDS).find_unique()
@@ -137,13 +162,13 @@ class APIExtension(object):
         return record.get('href')
 
     def delete_extension(self, name, namespace):
-        """Delete the API extension service.
+        """Delete an API extension service.
 
-        :param name: (str): The name of the extension service.
-        :param namespace: (str): The namespace of the extension service. If
-            None, it will use the value defined by the `name` parameter.
-        :return: (lxml.objectify.ObjectifiedElement): object containing
-            the representation of the API extension.
+        :param str name: the name of the extension service whose we want to
+            delete.
+        :param str namespace: the namespace of the extension service. If not
+            specified (i.e. = None), we will use the value passed in the
+            `name` parameter.
         """
         href = self.enable_extension(name, enabled=False, namespace=namespace)
         return self.client.delete_resource(href)

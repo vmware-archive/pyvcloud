@@ -66,20 +66,17 @@ class TestCatalog(BaseTestCase):
         into the spool area(transfer folder) but it doesn't wait for the
         import of the template as catalog item to finish.
 
-        :param org: An object of :class:`lxml.objectify.StringElement`that
-            describes the organization which contains the catalog to which
-            the templates will be uploaded to.
-        :param catalog_name: (str): Name of the catalog to which the template
-            will be uploaded to.
-        :param template_name: (str): Name of the catalog item which represents
-            the uploaded template
-        :param template_file_name: (str): Name of the local template file which
+        :param pyvcloud.vcd.org.Org org: the organization which contains the
+            catalog to which the templates will be uploaded to.
+        :param str catalog_name: name of the catalog to which the template will
+            be uploaded to.
+        :param str template_name: name of the catalog item which represents the
+            uploaded template
+        :param str template_file_name: name of the local template file which
             will be uploaded.
 
-        :return: Nothing
-
-        :raises: EntityNotFoundException: If the catalog is not found.
-        :raises: InternalServerException: If template already exists in vCD.
+        :raises: EntityNotFoundException: if the catalog is not found.
+        :raises: InternalServerException: if template already exists in vCD.
         """
         bytes_uploaded = -1
         logger = Environment.get_default_logger()
@@ -94,19 +91,16 @@ class TestCatalog(BaseTestCase):
                                  template_name):
         """Helper method to block until a template is imported in vCD.
 
-        :param client: An object of :class: `pyvcloud.vcd.client.Client` that
-            would be used to make ReST calls to vCD.
-        :param org: An object of :class:`lxml.objectify.StringElement`that
-            describes the organization, which the templates is being imported
-            into.
-        :param catalog_name: (str): Name of the catalog to which the template
-            is being imported.
-        :param template_name: (str): Name of the catalog item which represents
-            the uploaded template.
+        :param pyvcloud.vcd.client.Client client: the client that would be used
+            to make ReST calls to vCD.
+        :param pyvcloud.vcd.org.Org org: the organization which contains the
+            catalog to which the templates will be uploaded to.
+        :param str catalog_name: name of the catalog to which the template is
+            being imported.
+        :param str template_name: (str): Name of the catalog item which
+            represents the uploaded template.
 
-        :return: Nothing
-
-        :raises: EntityNotFoundException: If the catalog/item is not found.
+        :raises: EntityNotFoundException: if the catalog/item is not found.
         """
         logger = Environment.get_default_logger()
         logger.debug('Importing template : ' + template_name + ' in vCD')
@@ -124,8 +118,7 @@ class TestCatalog(BaseTestCase):
         Upload an ova template to catalog. The template doesn't have
         ovf:chunkSize param in it's descriptor(ovf file).
 
-        This test passes if the upload succeeds and no exceptions are
-        raised.
+        This test passes if the upload succeeds and no exceptions are raised.
         """
         org = Environment.get_test_org(TestCatalog._client)
 
@@ -146,8 +139,7 @@ class TestCatalog(BaseTestCase):
         Upload an ova template to catalog. The template *has* ovf:chunkSize
         param in it's descriptor(ovf file).
 
-        This test passes if the upload succeeds and no exceptions are
-        raised.
+        This test passes if the upload succeeds and no exceptions are raised.
         """
         org = Environment.get_test_org(TestCatalog._client)
 
@@ -196,7 +188,7 @@ class TestCatalog(BaseTestCase):
     def test_0040_list_catalog(self):
         """Test the method org.list_catalog().
 
-        Fetches all catalogs in the current organization
+        Fetches all catalogs in the current organization.
 
         This test passes if the catalog created in test_0000_setup is present
         in the retrieved list of catalogs.
@@ -465,9 +457,9 @@ class TestCatalog(BaseTestCase):
         """Test the  method delete_catalog_item() and delete_catalog().
 
         Invoke the methods for templates and catalogs created by setup. This
-        test should be run as org admin, since a failure in any of the
-        previous tests might leave the catalog stranded with an user other
-        than the one who created the catalog in first place.
+        test should be run as org admin, since a failure in any of the previous
+        tests might leave the catalog stranded with an user other than the one
+        who created the catalog in first place.
 
         This test passes if none of the delete operations generate any
         exceptions.

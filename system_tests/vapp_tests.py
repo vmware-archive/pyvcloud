@@ -15,9 +15,7 @@ from pyvcloud.vcd.exceptions import EntityNotFoundException
 class TestVApp(BaseTestCase):
     """Test vApp functionalities implemented in pyvcloud."""
 
-    # TODO(VCDA-603) - Once the share catalog bug is fixed, the runner should
-    # be changed to vApp Author
-    _test_runner_role = CommonRoles.CATALOG_AUTHOR
+    _test_runner_role = CommonRoles.VAPP_AUTHOR
     _client = None
 
     _empty_vapp_name = 'empty_vApp'
@@ -46,7 +44,7 @@ class TestVApp(BaseTestCase):
         """Setup the vApps required for the other tests in this module.
 
         Create two vApps as per the configuration stated above. In case the
-           vApps exist, re-use them.
+        vApps exist, re-use them.
 
         This test passes if the two vApp hrefs are not None.
         """
@@ -88,12 +86,14 @@ class TestVApp(BaseTestCase):
     def _create_empty_vapp(self, client, vdc):
         """Helper method to create an empty vApp.
 
-        :param client: An object of :class: `pyvcloud.vcd.client.Client` that
-            would be used to make ReST calls to vCD.
-        :param vdc: An object of :class:`lxml.objectify.StringElement`
-            describing the vdc in which the vApp will be created.
+        :param pyvcloud.vcd.client.Client client: a client that would be used
+            to make ReST calls to vCD.
+        :param pyvcloud.vcd.vcd.VDC vdc: the vdc in which the vApp will be
+            created.
 
-        :return: (str): href of the created vApp
+        :return: href of the created vApp.
+
+        :rtype: str
         """
         logger = Environment.get_default_logger()
         logger.debug('Creating empty vApp.')
@@ -111,12 +111,14 @@ class TestVApp(BaseTestCase):
     def _create_customized_vapp_from_template(self, client, vdc):
         """Helper method to create a customized vApp from template.
 
-        :param client: An object of :class: `pyvcloud.vcd.client.Client` that
-            would be used to make ReST calls to vCD.
-        :param vdc: An object of :class:`lxml.objectify.StringElement`
-            describing the vdc in which the vApp will be created.
+        :param pyvcloud.vcd.client.Client client: a client that would be used
+            to make ReST calls to vCD.
+        :param pyvcloud.vcd.vcd.VDC vdc: the vdc in which the vApp will be
+            created.
 
-        :return: (str): href of the created vApp
+        :return: href of the created vApp.
+
+        :rtype: str
         """
         logger = Environment.get_default_logger()
         logger.debug('Creating customized vApp.')
@@ -144,8 +146,8 @@ class TestVApp(BaseTestCase):
     def test_0010_get_vapp(self):
         """Test the method vdc.get_vapp().
 
-        This test passes if the expected vApp can be successfully retrieved
-           by name.
+        This test passes if the expected vApp can be successfully retrieved by
+        name.
         """
         vdc = Environment.get_test_vdc(TestVApp._client)
         vapp_resource = vdc.get_vapp(TestVApp._customized_vapp_name)
@@ -155,7 +157,7 @@ class TestVApp(BaseTestCase):
         """Test the method vdc.get_vapp().
 
         This test passes if the non-existent vApp can't be successfully
-           retrieved by name.
+        retrieved by name.
         """
         vdc = Environment.get_test_vdc(TestVApp._client)
         try:
@@ -167,20 +169,22 @@ class TestVApp(BaseTestCase):
         self.fail('Should fail with EntityNotFoundException while fetching'
                   'vApp ' + TestVApp._non_existent_vapp_name)
 
-    def test_0020_add_delete_vm(self):
+    def test_0030_add_delete_vm(self):
         """Test the method vapp.add_vms() and vapp.delete_vms().
 
         This test passes if the supplied vm is sucessfully added to the vApp
-           and then successfully removed from the vApp.
+        and then successfully removed from the vApp.
         """
         logger = Environment.get_default_logger()
         vapp_name = TestVApp._empty_vapp_name
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=vapp_name)
 
-        source_vapp_resource = Environment.get_default_vapp(TestVApp._client).\
-            get_resource()
-        source_vm_name = Environment.get_default_vm_name()
+        source_vapp_name = TestVApp._customized_vapp_name
+        source_vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=source_vapp_name)
+        source_vapp_resource = source_vapp.get_resource()
+        source_vm_name = TestVApp._customized_vapp_vm_name
         target_vm_name = TestVApp._additional_vm_name
         spec = {
             'vapp': source_vapp_resource,
@@ -203,12 +207,12 @@ class TestVApp(BaseTestCase):
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0030_customized_vapp(self):
+    def test_0040_customized_vapp(self):
         """Test the correctness of the customization of vdc.instantiate_vapp().
 
         This test passes if the customized vApp is retrieved successfully
-           and it's verified that the vApp is correctly customized as per the
-           config in this file.
+        and it's verified that the vApp is correctly customized as per the
+        config in this file.
         """
         vapp_name = TestVApp._customized_vapp_name
         vapp = Environment.get_vapp_in_test_vdc(
@@ -259,12 +263,9 @@ class TestVApp(BaseTestCase):
     def _power_on_vapp_if_possible(self, client, vapp):
         """Power on a vApp if possible, else fail silently.
 
-        :param client: An object of :class: `pyvcloud.vcd.client.Client` that
-            would be used to make ReST calls to vCD.
-        :param vapp: An object of :class:`lxml.objectify.StringElement`
-            describing the vapp which we want to power on.
-
-        :return: Nothing
+        :param pyvcloud.vcd.client.Client client: a client would be used to
+            make ReST calls to vCD.
+        :param pyvcloud.vcd.vapp.VApp vapp: the vapp which we want to power on.
         """
         # TODO(VCDA-603) : update power_on to handle missing link exception
         try:
@@ -276,7 +277,7 @@ class TestVApp(BaseTestCase):
         except Exception as e:
             pass
 
-    def test_0040_vapp_power_options(self):
+    def test_0050_vapp_power_options(self):
         """Test the method related to power operations in vapp.py.
 
         This test passes if all the power operations are successful.
@@ -338,11 +339,11 @@ class TestVApp(BaseTestCase):
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         # end state of vApp is deployed and partially powered on.
 
-    def test_0050_vapp_network_connection(self):
+    def test_0060_vapp_network_connection(self):
         """Test vapp.connect/disconnect_org_vdc_network().
 
         This test passes if the connect and disconnect to orgvdc network
-           operations are successful.
+        operations are successful.
         """
         try:
             logger = Environment.get_default_logger()
@@ -370,7 +371,7 @@ class TestVApp(BaseTestCase):
         finally:
             client.logout()
 
-    def test_0060_vapp_acl(self):
+    def test_0070_vapp_acl(self):
         """Test the method related to access control list in vapp.py.
 
         This test passes if all the acl operations are successful.
@@ -440,11 +441,10 @@ class TestVApp(BaseTestCase):
         control_access = vapp.remove_access_settings(remove_all=True)
         self.assertFalse(hasattr(control_access, 'AccessSettings'))
 
-    def test_0070_vapp_lease(self):
+    def test_0080_vapp_lease(self):
         """Test the method vapp.set_lease().
 
-        This test passes if the lease setting operation completes
-           successfully.
+        This test passes if the lease setting operation completes successfully.
         """
         vapp_name = TestVApp._empty_vapp_name
         vapp = Environment.get_vapp_in_test_vdc(
@@ -457,11 +457,11 @@ class TestVApp(BaseTestCase):
             wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0080_change_vapp_owner(self):
+    def test_0090_change_vapp_owner(self):
         """Test the method vapp.change_owner().
 
-        This test passes if the owner of the vApp is successfuly changed
-           to the desired user.
+        This test passes if the owner of the vApp is successfuly changed to the
+        desired user.
         """
         try:
             logger = Environment.get_default_logger()
@@ -496,7 +496,7 @@ class TestVApp(BaseTestCase):
             org_admin_client.logout()
 
     @unittest.skip("Not enough documentation")
-    def test_0090_vapp_metadata(self):
+    def test_0100_vapp_metadata(self):
         """Test vapp.set/get_metadata()."""
         # TODO() - Unclear about the use of this feature, not enough
         # documentation in vapp.py

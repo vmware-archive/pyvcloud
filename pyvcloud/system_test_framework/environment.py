@@ -87,8 +87,6 @@ class Environment(object):
         :param object config_data: a PyYAML object that contains the yaml
             representation of configuration data read from the configuration
             file.
-
-        :return: Nothing
         """
         cls._config = config_data
         if not cls._config['connection']['verify'] and \
@@ -100,7 +98,7 @@ class Environment(object):
     def get_config(cls):
         """Get test configuration parameter dictionary.
 
-        :return: A dict containing configuration information.
+        :return: a dict containing configuration information.
 
         :rtype: dict
         """
@@ -137,20 +135,18 @@ class Environment(object):
     def _basic_check(cls):
         """Does basic sanity check for configuration and sys admin client.
 
-        :return: Nothing
-
         :raises: Exception: if the basic configuration is missing.
         """
         if cls._config is None:
             raise Exception('Missing base configuration.')
         if cls._sys_admin_client is None:
-            cls.get_sys_admin_client()
+            cls._sys_admin_client = cls.get_sys_admin_client()
 
     @classmethod
     def get_sys_admin_client(cls):
-        """Returns the sys admin client, creates one if required.
+        """Creates a sys admin client.
 
-        :return: the sys admin client.
+        :return: a sys admin client.
 
         :rtype: pyvcloud.vcd.client.Client
 
@@ -159,15 +155,10 @@ class Environment(object):
         if cls._config is None:
             raise Exception('Missing base configuration.')
 
-        if cls._sys_admin_client is None:
-            org = cls._config['vcd']['sys_org_name']
-            password = cls._config['vcd']['sys_admin_pass']
-            username = cls._config['vcd']['sys_admin_username']
-            cls._sys_admin_client = cls.get_client(org=org,
-                                                   username=username,
-                                                   password=password)
-
-        return cls._sys_admin_client
+        org = cls._config['vcd']['sys_org_name']
+        password = cls._config['vcd']['sys_admin_pass']
+        username = cls._config['vcd']['sys_admin_username']
+        return cls.get_client(org=org, username=username, password=password)
 
     @classmethod
     def get_client_in_default_org(cls, role):
@@ -205,7 +196,7 @@ class Environment(object):
         :param str username: username of the user.
         :param str password: password of the user.
 
-        :return: A :class:  object.
+        :return: a client.
 
         :rtype: pyvcloud.vcd.client.Client
 
@@ -232,8 +223,6 @@ class Environment(object):
         """Attaches VC and NSX to vCD as per configuration file.
 
         If VC is already attached no further action is taken.
-
-        :return: Nothing
         """
         cls._basic_check()
         platform = Platform(cls._sys_admin_client)
@@ -261,8 +250,6 @@ class Environment(object):
 
         Skips creating one, if such a pvdc already exists. Also stores the
         href and name of the provider vdc as class variables for future use.
-
-        :return: Nothing
         """
         cls._basic_check()
         pvdc_name = cls._config['vcd']['default_pvdc_name']
@@ -292,8 +279,6 @@ class Environment(object):
 
         Skips creating one, if such an org already exists. Also stores the
         href of the org as class variable for future use.
-
-        :return: Nothing
         """
         cls._basic_check()
         system = System(cls._sys_admin_client,
@@ -322,8 +307,6 @@ class Environment(object):
         """Creates users for each of the roles in CommonRoles.
 
         Skips creating users which are already present in the organization.
-
-        :return: Nothing
 
         :raises: Exception: if the class variable _org_href is not populated.
         """
@@ -358,9 +341,7 @@ class Environment(object):
         """Creates an org vdc with the name specified in the config file.
 
         Skips creating one, if such an org vdc already exists. Also stores the
-            href of the org vdc as class variable for future use.
-
-        :return: Nothing
+        href of the org vdc as class variable for future use.
 
         :raises: Exception: if the class variable _org_href or _pvdc_name
             is not populated.
@@ -451,8 +432,6 @@ class Environment(object):
         configuration file, skips creating one, if such a network already
         exists.
 
-        :return: Nothing
-
         :raises: Exception: if the class variable _ovdc_href is not populated.
         """
         cls._basic_check()
@@ -486,8 +465,6 @@ class Environment(object):
 
         Skips creating one, if such a catalog already exists.
 
-        :return: Nothing
-
         :raises: Exception: if the class variable _org_href is not populated.
         """
         cls._basic_check()
@@ -519,8 +496,6 @@ class Environment(object):
     def share_catalog(cls):
         """Shares the test catalog with all members in the test organization.
 
-        :return: Nothing
-
         :raises: Exception: if the class variable _org_href is not populated.
         :raises: EntityNotFoundException: if the catalog in question is
             missing.
@@ -530,26 +505,29 @@ class Environment(object):
             raise Exception('Org ' + cls._config['vcd']['default_org_name'] +
                             ' doesn\'t exist.')
 
-        org = Org(cls._sys_admin_client, href=cls._org_href)
-        catalog_name = cls._config['vcd']['default_catalog_name']
-        catalog_records = org.list_catalogs()
-        for catalog_record in catalog_records:
-            if catalog_record.get('name').lower() == catalog_name.lower():
-                cls._logger.debug('Sharing catalog ' + catalog_name +
-                                  ' to all members of org ' + org.get_name())
-                org.share_catalog_with_org_members(catalog_name=catalog_name)
-                return
-
-        raise EntityNotFoundException('Catalog ' + catalog_name + 'doesn\'t'
-                                      'exists.')
+        try:
+            catalog_author_client = Environment.get_client_in_default_org(
+                CommonRoles.CATALOG_AUTHOR)
+            org = Org(catalog_author_client, href=cls._org_href)
+            catalog_name = cls._config['vcd']['default_catalog_name']
+            catalog_records = org.list_catalogs()
+            for catalog_record in catalog_records:
+                if catalog_record.get('name') == catalog_name:
+                    cls._logger.debug('Sharing catalog ' + catalog_name + ' to'
+                                      ' all members of org ' + org.get_name())
+                    org.share_catalog_with_org_members(
+                        catalog_name=catalog_name)
+                    return
+            raise EntityNotFoundException('Catalog ' + catalog_name +
+                                          'doesn\'t exist.')
+        finally:
+            catalog_author_client.logout()
 
     @classmethod
     def upload_template(cls):
         """Uploads the test template to the test catalog.
 
         If template already exists in the catalog then skips uploading it.
-
-        :return: Nothing
 
         :raises: Exception: if the class variable _org_href is not populated.
         """
@@ -576,6 +554,7 @@ class Environment(object):
                               ' to catalog ' + catalog_name + '.')
             org.upload_ovf(catalog_name=catalog_name, file_name=template_name)
 
+            # wait for the template import to finish in vCD.
             catalog_item = org.get_catalog_item(name=catalog_name,
                                                 item_name=template_name)
             template = catalog_author_client.get_resource(
@@ -591,8 +570,6 @@ class Environment(object):
 
         This template will be used to create the test vApp. if the vApp already
         exists then skips creating it.
-
-        :return: Nothing
 
         :raises: Exception: if the class variable _ovdc_href is not populated.
         """
@@ -627,10 +604,7 @@ class Environment(object):
 
     @classmethod
     def cleanup(cls):
-        """Cleans up the various class variables.
-
-        :return: Nothing
-        """
+        """Cleans up the various class variables."""
         if cls._sys_admin_client is not None:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", ResourceWarning)  # NOQA

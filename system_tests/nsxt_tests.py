@@ -26,10 +26,10 @@ from pyvcloud.vcd.platform import Platform
 
 class TestNSXT(BaseTestCase):
 
-    def test_000_setup(self):
+    def test_0000_setup(self):
         TestNSXT._client = Environment.get_sys_admin_client()
 
-    def test_010_register_nsxt(self):
+    def test_0010_register_nsxt(self):
         """Client can register a new NSX-T mgr if none exists w/ same name."""
         platform = Platform(TestNSXT._client)
 
@@ -51,7 +51,7 @@ class TestNSXT(BaseTestCase):
             nsxt_manager_description=Environment._config['nsxt']['descrip'])
         assert Environment._config['nsxt']['manager_name'] == nsxt.get('name')
 
-    def test_020_list_nsxt_managers(self):
+    def test_0020_list_nsxt_managers(self):
         """Client can list NSX-T mgrs that have been registered."""
         platform = Platform(TestNSXT._client)
 
@@ -64,7 +64,7 @@ class TestNSXT(BaseTestCase):
 
         self.assertIn(manager_name, result)
 
-    def test_030_unregister_nsxt(self):
+    def test_0030_unregister_nsxt(self):
         """Client can unregister an NSX-T mgr."""
         platform = Platform(TestNSXT._client)
 
@@ -78,6 +78,10 @@ class TestNSXT(BaseTestCase):
             qfilter=query_filter)
         records = list(query.execute())
         self.assertTrue(len(records) == 0)
+
+    def test_9999_setup(self):
+        """Release all resources held by this object for testing purposes."""
+        TestNSXT._client.logout()
 
 
 if __name__ == '__main__':

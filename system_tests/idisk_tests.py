@@ -131,7 +131,7 @@ class TestDisk(BaseTestCase):
         Invoke the method with the name of the first independent disk.
 
         This test passes if the disk returned by the method is nor None, and
-        it's name matches the expected name of the disk.
+        its name matches the expected name of the disk.
         """
         vdc = Environment.get_test_vdc(TestDisk._client)
 
@@ -146,7 +146,7 @@ class TestDisk(BaseTestCase):
         Invoke the method with the id of the second independent disk.
 
         This test passes if the disk returned by the method is nor None, and
-        it's id matches the expected id of the disk.
+        its id matches the expected id of the disk.
         """
         vdc = Environment.get_test_vdc(TestDisk._client)
 
@@ -161,7 +161,7 @@ class TestDisk(BaseTestCase):
         owner of the disk. Revert back the ownership to the original owner once
         the test is over.
 
-        This test passes if the disk states it's owner as vapp_user after the
+        This test passes if the disk states its owner as vapp_user after the
         method call.
         """
         org_admin_client = Environment.get_client_in_default_org(
@@ -275,7 +275,7 @@ class TestDisk(BaseTestCase):
     def test_0070_update_disk(self):
         """Test the  method vapp.update_disk().
 
-        Invoke the method for the first independent disk, to update it's name,
+        Invoke the method for the first independent disk, to update its name,
         size and description. Revert the changes back once the test is over.
 
         This test passes if the updated disk's name, size and description

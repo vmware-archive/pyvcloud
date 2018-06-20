@@ -519,7 +519,7 @@ class Environment(object):
                         catalog_name=catalog_name)
                     return
             raise EntityNotFoundException('Catalog ' + catalog_name +
-                                          'doesn\'t exists.')
+                                          'doesn\'t exist.')
         finally:
             catalog_author_client.logout()
 

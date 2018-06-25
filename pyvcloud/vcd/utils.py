@@ -612,7 +612,12 @@ def get_admin_href(href):
 
     :rtype: str
     """
-    return href.replace('/api/', '/api/admin/')
+    if '/api/admin/extension/' in href:
+        return href.replace('/api/admin/extension', '/api/admin/')
+    elif '/api/admin/' in href:
+        return href
+    else:
+        return href.replace('/api/', '/api/admin/')
 
 
 def get_admin_extension_href(href):
@@ -624,7 +629,9 @@ def get_admin_extension_href(href):
 
     :rtype: str
     """
-    if '/api/admin/' in href:
+    if '/api/admin/extension/' in href:
+        return href
+    elif '/api/admin/' in href:
         return href.replace('/api/admin/', '/api/admin/extension/')
     else:
         return href.replace('/api/', '/api/admin/extension/')

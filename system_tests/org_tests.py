@@ -36,7 +36,7 @@ class TestOrg(BaseTestCase):
     _new_org_name = 'test_org_' + str(uuid1())
     _new_org_full_name = 'Test Org'
     _new_org_enabled = True
-    _new_org_href = None
+    _new_org_admin_href = None
 
     _non_existent_org_name = '_non_existent_org_' + str(uuid1())
 
@@ -46,7 +46,7 @@ class TestOrg(BaseTestCase):
         Create an Org as per the configuration stated above. Tests
         System.create_org() method.
 
-        This test passes if org hrefs is not None.
+        This test passes if org href is not None.
         """
         TestOrg._client = Environment.get_sys_admin_client()
         sys_admin_resource = TestOrg._client.get_admin()
@@ -54,28 +54,44 @@ class TestOrg(BaseTestCase):
         result = system.create_org(TestOrg._new_org_name,
                                    TestOrg._new_org_full_name,
                                    TestOrg._new_org_enabled)
-        TestOrg._new_org_href = result.get('href')
+        TestOrg._new_org_admin_href = result.get('href')
 
-        self.assertIsNotNone(TestOrg._new_og_href)
+        self.assertIsNotNone(TestOrg._new_org_admin_href)
 
     def test_0010_list_orgs(self):
-        """."""
+        """Test the  method Client.get_org_list().
+
+        This test passes if the expected organization name is in the list of
+        organizations returned by the method.
+        """
         orgs = TestOrg._client.get_org_list()
         org_names = []
         for org_resource in orgs:
-            org_names.append(org_resource.get('name'))
+            org_names.append(org_resource.get('name'))  
 
         self.assertIn(TestOrg._new_org_name, org_names)
 
     def test_0020_get_org(self):
-        """."""
+        """Test the  method Client.get_org_by_name().
+
+        Invoke the method with the name of the organization created in setup.
+
+        This test passes if the organization detail retrieved by the method is
+        not None, and the details e.g. name of the organization, are correct.
+        """
         org_resource = TestOrg._client.get_org_by_name(TestOrg._new_org_name)
-        self.assertNotNone(org_resource)
+        self.assertIsNotNone(org_resource)
         org = Org(TestOrg._client, resource=org_resource)
         self.assertEqual(TestOrg._new_org_name, org.get_name())
 
     def test_0030_get_non_existent_org(self):
-        """."""
+        """Test the  method Client.get_org_by_name().
+
+        Invoke the method with the name of a bogus organization.
+
+        This test passes if the operation fails with an
+        EntityNotFoundException.
+        """
         try:
             TestOrg._client.get_org_by_name(TestOrg._non_existent_org_name)
             self.fail('Should not be able to fetch organization ' +
@@ -86,19 +102,30 @@ class TestOrg(BaseTestCase):
                   'organization ' + TestOrg._non_existent_org_name)
 
     def test_0040_enable_disable_org(self):
-        """."""
+        """Test the  method Org.update_org().
+
+        First disable the organization then re-enable it.
+
+        This test passes if the state of organization matches our expectation
+        after each operation.
+        """
         logger = Environment.get_default_logger()
-        org = Org(TestOrg._client, href=TestOrg._new_org_href)
-        logger.debug('Disabling org: ' + TestOrg.new_org_name)
+        org = Org(TestOrg._client, href=TestOrg._new_org_admin_href)
+        logger.debug('Disabling org: ' + TestOrg._new_org_name)
         updated_org = org.update_org(is_enabled=False)
         self.assertFalse(updated_org['IsEnabled'])
 
-        logger.debug('Re-enabling org: ' + TestOrg.new_org_name)
-        updated_org = org.update_org(is_enabled=False)
+        logger.debug('Re-enabling org: ' + TestOrg._new_org_name)
+        updated_org = org.update_org(is_enabled=True)
         self.assertTrue(updated_org['IsEnabled'])
 
     def test_0050_delete_no_force_enabled_org(self):
-        """."""
+        """Test the  method System.delete_org().
+
+        Invoke delete operation on an enabled organization.
+
+        This test passes if the operation fails with a VcdTaskException.
+        """
         try:
             sys_admin_resource = TestOrg._client.get_admin()
             system = System(TestOrg._client, admin_resource=sys_admin_resource)
@@ -118,7 +145,7 @@ class TestOrg(BaseTestCase):
     def test_9998_teardown(self):
         """Test the method System.delete_org().
 
-        Invoke the method for the Org created by setup.
+        Invoke the method for the organization created by setup.
 
         This test passes if no errors are generated while deleting the org.
         """

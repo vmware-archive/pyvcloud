@@ -67,7 +67,7 @@ class TestOrg(BaseTestCase):
         orgs = TestOrg._client.get_org_list()
         org_names = []
         for org_resource in orgs:
-            org_names.append(org_resource.get('name'))  
+            org_names.append(org_resource.get('name'))
 
         self.assertIn(TestOrg._new_org_name, org_names)
 

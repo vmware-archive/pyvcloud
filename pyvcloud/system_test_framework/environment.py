@@ -297,7 +297,7 @@ class Environment(object):
         # The following contraption is required to get the non admin href of
         # the org. The result of create_org() contains the admin version of
         # the href, since we created the org as a sys admin.
-        org_resource  = cls._sys_admin_client.get_org_by_name(org_name)
+        org_resource = cls._sys_admin_client.get_org_by_name(org_name)
         cls._org_href = org_resource.get('href')
 
     @classmethod

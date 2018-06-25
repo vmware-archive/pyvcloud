@@ -25,9 +25,8 @@ from pyvcloud.vcd.exceptions import VcdException
 class TestClient(BaseTestCase):
     """Test pyvcloud client module functions.
 
-    Test cases in this module do not have ordering dependencies, hence
-    all setup is accomplished using Python unittest setUp and tearDown
-    methods.
+    Test cases in this module do not have ordering dependencies, hence all
+    setup is accomplished using Python unittest setUp and tearDown methods.
     """
 
     # Test configuration parameters and logger for output.
@@ -63,8 +62,8 @@ class TestClient(BaseTestCase):
     def test_0010_use_default_api_version(self):
         """Client defaults to highest server API version supported by pyvcloud.
 
-        This case must deal with the possibility that the server API level
-        is lower than the client in which case we'll get the highest level
+        This case must deal with the possibility that the server API level is
+        lower than the client in which case we'll get the highest level
         available on the server.
         """
         self._client = self._create_client_with_credentials(api_version=None)

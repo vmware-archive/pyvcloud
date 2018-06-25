@@ -17,20 +17,33 @@ from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.system import System
 
+
 class TestCleanup(BaseTestCase):
-    """Special test you can run to clean up the test environment after 
-       a successful tests"""
+    """Special test to clean up the test environment.
+
+    Usually run after a successful test run.
+    """
 
     def test_cleanup(self):
-        """Get the test Org and delete it"""
-        client = Environment.get_sys_admin_client()
-        test_org = Environment.get_test_org(client)
+        """Get the test Org and delete it."""
+        client = None
+        try:
+            logger = Environment.get_default_logger()
+            client = Environment.get_sys_admin_client()
+            test_org = Environment.get_test_org(client)
 
-        print("Deleting test org: {0}".format(test_org.get_name()))
-        sys_admin_resource = client.get_admin()
-        system = System(client, admin_resource=sys_admin_resource)
-        task = system.delete_org(test_org.get_name(), True, True)
+            logger.debug('Deleting test org: {0}'.format(test_org.get_name()))
+            sys_admin_resource = client.get_admin()
+            system = System(client, admin_resource=sys_admin_resource)
+            task = system.delete_org(test_org.get_name(), True, True)
 
-        # Track the task to completion. 
-        task = client.get_task_monitor().wait_for_success(task)
-        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+            # Track the task to completion.
+            result = client.get_task_monitor().wait_for_success(task)
+            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        finally:
+            if client is not None:
+                client.logout()
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -98,8 +98,6 @@ class TestOrg(BaseTestCase):
                       TestOrg._non_existent_org_name)
         except EntityNotFoundException as e:
             return
-        self.fail('Should fail with EntityNotFoundException while fetching'
-                  'organization ' + TestOrg._non_existent_org_name)
 
     def test_0040_enable_disable_org(self):
         """Test the  method Org.update_org().
@@ -139,9 +137,6 @@ class TestOrg(BaseTestCase):
                       'succeeded.')
         except VcdTaskException as e:
             return
-
-        self.fail('Deletion of org ' + TestOrg._new_org_name + 'should'
-                  'have failed with VcdTaskException.')
 
     @developerModeAware
     def test_9998_teardown(self):

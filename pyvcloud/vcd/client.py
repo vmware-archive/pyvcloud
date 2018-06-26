@@ -1085,7 +1085,7 @@ class Client(object):
         """Returns the list of supported queries."""
         return self._get_wk_resource(_WellKnownEndpoint.QUERY_LIST)
 
-    def get_logged_in_org(self):
+    def get_org(self):
         """Returns the logged in org.
 
         :return: a sparse representation of the logged in org. The returned

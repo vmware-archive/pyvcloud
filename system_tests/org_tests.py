@@ -120,9 +120,11 @@ class TestOrg(BaseTestCase):
         self.assertTrue(updated_org['IsEnabled'])
 
     def test_0050_delete_no_force_enabled_org(self):
-        """Test the  method System.delete_org().
+        """Test the method System.delete_org() with force = recursive = False.
 
-        Invoke delete operation on an enabled organization.
+        Invoke delete operation on an enabled organization with 'force' and
+        'recursive' flag set to False. An enabled organization can't be deleted
+        unless 'force' flag is set to True.
 
         This test passes if the operation fails with a VcdTaskException.
         """
@@ -143,7 +145,7 @@ class TestOrg(BaseTestCase):
 
     @developerModeAware
     def test_9998_teardown(self):
-        """Test the method System.delete_org().
+        """Test the method System.delete_org() with force = recursive = True.
 
         Invoke the method for the organization created by setup.
 

@@ -1134,7 +1134,7 @@ class Client(object):
             name couldn't be found.
         """
         # Avoid using get_org_list() to fetch all orgs and then filter the
-        # reuslt by organization name, since get_org_list() will fetch details
+        # result by organization name, since get_org_list() will fetch details
         # of all the organizations before filtering, it's expensive. In the
         # following implementation, we delay the REST call to fetch
         # organization details until we have narrowed down our target to

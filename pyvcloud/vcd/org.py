@@ -114,9 +114,10 @@ class Org(object):
         :raises: sub-class of VcdResponseException: if the REST call is not
             successful.
         """
-        catalog_resource = self.get_catalog(name)
+        catalog_admin_resource = self.get_catalog(name=name,
+                                                  is_admin_operation=True)
         self.client.delete_linked_resource(
-            catalog_resource, RelationType.REMOVE, media_type=None)
+            catalog_admin_resource, RelationType.REMOVE, media_type=None)
 
     def list_catalogs(self):
         """List all catalogs in the organization.

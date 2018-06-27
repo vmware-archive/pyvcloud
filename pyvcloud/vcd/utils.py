@@ -606,17 +606,28 @@ def stdout_xml(the_xml, is_colorized=True):
 def get_admin_href(href):
     """Returns admin version of a given vCD url.
 
+    This function is idempotent, which also means that if input href is already
+    an admin href no further action would be taken.
+
     :param str href: the href whose admin version we need.
 
     :return: admin version of the href.
 
     :rtype: str
     """
-    return href.replace('/api/', '/api/admin/')
+    if '/api/admin/extension/' in href:
+        return href.replace('/api/admin/extension', '/api/admin/')
+    elif '/api/admin/' in href:
+        return href
+    else:
+        return href.replace('/api/', '/api/admin/')
 
 
 def get_admin_extension_href(href):
     """Returns sys admin version of a given vCD url.
+
+    This function is idempotent, which also means that if input href is already
+    an admin extension href no further action would be taken.
 
     :param str href: the href whose sys admin version we need.
 
@@ -624,7 +635,9 @@ def get_admin_extension_href(href):
 
     :rtype: str
     """
-    if '/api/admin/' in href:
+    if '/api/admin/extension/' in href:
+        return href
+    elif '/api/admin/' in href:
         return href.replace('/api/admin/', '/api/admin/extension/')
     else:
         return href.replace('/api/', '/api/admin/extension/')

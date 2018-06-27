@@ -1086,7 +1086,14 @@ class Client(object):
         return self._get_wk_resource(_WellKnownEndpoint.QUERY_LIST)
 
     def get_org(self):
-        """Returns the logged in org."""
+        """Returns the logged in org.
+
+        :return: a sparse representation of the logged in org. The returned
+            object has an 'Org' XML element with 'name', 'href', and 'type'
+            attribute.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         return self._get_wk_resource(_WellKnownEndpoint.LOGGED_IN_ORG)
 
     def get_extensibility(self):
@@ -1098,23 +1105,45 @@ class Client(object):
         return self._get_wk_resource(_WellKnownEndpoint.EXTENSION)
 
     def get_org_list(self):
-        """Returns the list of organizations."""
-        return self._get_wk_resource(_WellKnownEndpoint.ORG_LIST)
+        """Returns the list of organizations visible to the user.
+
+        :return: a list of objects, where each object contains EntityType.ORG
+            XML data which represents a single organization.
+
+        :rtype: list
+        """
+        orgs = self._get_wk_resource(_WellKnownEndpoint.ORG_LIST)
+        result = []
+        if hasattr(orgs, 'Org'):
+            for org in orgs.Org:
+                org_resource = self.get_resource(org.get('href'))
+                result.append(org_resource)
+        return result
 
     def get_org_by_name(self, org_name):
         """Retrieve an organization.
 
         :param str org_name: name of the organization to be retrieved.
 
-        :return: an object containing OrgRecord XML element.
+        :return: object containing EntityType.ORG XML data representing the
+            organization.
 
         :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if organization with the provided
+            name couldn't be found.
         """
-        orgs = self.get_org_list()
+        # Avoid using get_org_list() to fetch all orgs and then filter the
+        # result by organization name, since get_org_list() will fetch details
+        # of all the organizations before filtering, it's expensive. In the
+        # following implementation, we delay the REST call to fetch
+        # organization details until we have narrowed down our target to
+        # exactly 1 organization.
+        orgs = self._get_wk_resource(_WellKnownEndpoint.ORG_LIST)
         if hasattr(orgs, 'Org'):
             for org in orgs.Org:
                 if org.get('name').lower() == org_name.lower():
-                    return org
+                    return self.get_resource(org.get('href'))
         raise EntityNotFoundException('org \'%s\' not found' % org_name)
 
     def get_user_in_org(self, user_name, org_href):

@@ -284,11 +284,11 @@ class Environment(object):
         system = System(cls._sys_admin_client,
                         admin_resource=cls._sys_admin_client.get_admin())
         org_name = cls._config['vcd']['default_org_name']
-        org_list = cls._sys_admin_client.get_org_list()
-        for org in [o for o in org_list.Org if hasattr(org_list, 'Org')]:
-            if org.get('name').lower() == org_name.lower():
+        org_resource_list = cls._sys_admin_client.get_org_list()
+        for org_resource in org_resource_list:
+            if org_resource.get('name').lower() == org_name.lower():
                 cls._logger.debug('Reusing existing org ' + org_name + '.')
-                cls._org_href = org.get('href')
+                cls._org_href = org_resource.get('href')
                 return
         cls._logger.debug('Creating new org ' + org_name)
         system.create_org(org_name=org_name,
@@ -297,10 +297,8 @@ class Environment(object):
         # The following contraption is required to get the non admin href of
         # the org. The result of create_org() contains the admin version of
         # the href, since we created the org as a sys admin.
-        org_list = cls._sys_admin_client.get_org_list()
-        for org in [o for o in org_list.Org if hasattr(org_list, 'Org')]:
-            if org.get('name').lower() == org_name.lower():
-                cls._org_href = org.get('href')
+        org_resource = cls._sys_admin_client.get_org_by_name(org_name)
+        cls._org_href = org_resource.get('href')
 
     @classmethod
     def create_users(cls):

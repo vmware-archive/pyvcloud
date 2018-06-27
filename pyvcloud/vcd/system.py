@@ -77,9 +77,9 @@ class System(object):
             and any objects it contains that are in a state that normally
             allows removal.
         """
-        org = self.client.get_org_by_name(org_name)
-        org_href = get_admin_href(org.get('href'))
-        return self.client.delete_resource(org_href, force, recursive)
+        org_resource = self.client.get_org_by_name(org_name)
+        org_admin_href = get_admin_href(org_resource.get('href'))
+        return self.client.delete_resource(org_admin_href, force, recursive)
 
     def list_provider_vdcs(self):
         """List provider vdcs in the system organization.

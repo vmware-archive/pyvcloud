@@ -15,8 +15,10 @@
 
 import unittest
 
+from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.test import TestCase
+from pyvcloud.vcd.utils import stdout_xml
 
 
 class TestVC(TestCase):
@@ -26,7 +28,22 @@ class TestVC(TestCase):
         vcenters = platform.list_vcenters()
         for vcenter in vcenters:
             self.logger.debug('vCenter found: %s' % vcenter.get('name'))
+            print('vCenter found: %s' % vcenter.get('name'))
+            stdout_xml(vcenter)
         assert len(vcenters) > 0
+
+    def test_00015_list_vc2(self):
+        platform = Platform(self.client)
+        vcenters = platform.list_vcenter()
+        for vcenter in vcenters:
+            print('vCenter found: %s' % vcenter.get('name'))
+            vc = self.client.get_resource(vcenter.get('href'))
+            url = vc.find('{' + NSMAP['vmext'] + '}Url')
+            print('vCenter URL: %s' % url)
+            is_enabled = vc.find('{' + NSMAP['vmext'] + '}IsEnabled')
+            print('is_enabled: %s' % is_enabled)
+            stdout_xml(vc)
+            stdout_xml(vcenter)
 
     def test_0002_get_vc(self):
         platform = Platform(self.client)
@@ -58,6 +75,11 @@ class TestVC(TestCase):
             nsx_admin_pwd=self.config['vcd']['NSXAdminPwd'],
             is_enabled=self.config['vcd']['isEnabled'])
         assert self.config['vcd']['vcServerName'] == vc.VimServer.get('name')
+
+    def test_0004_disable_vc(self):
+        platform = Platform(self.client)
+
+        platform.disable_vcenter(vc_name=self.config['vcd']['vcServerName'])
 
 
 if __name__ == '__main__':

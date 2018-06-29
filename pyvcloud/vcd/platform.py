@@ -23,6 +23,7 @@ from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.extension import Extension
 
 
@@ -329,6 +330,63 @@ class Platform(object):
                                  media_type=EntityType.
                                  REGISTER_VC_SERVER_PARAMS.value,
                                  contents=register_vc_server_params)
+
+    def list_vcenter(self):
+        """Return list of all registered VirtualCenters.
+
+        :return: VirtualCenterRecords.
+
+        :rtype: generator object
+        """
+        query = self.client.get_typed_query(
+            ResourceType.VIRTUAL_CENTER.value,
+            query_result_format=QueryResultFormat.RECORDS)
+
+        return query.execute()
+
+    def enable_disable_vcenter(self, vc_name, enable_flag):
+        """Enable or disable a Virtual Center (VC) server.
+
+        :param str vc_name: name of VC server.
+        :param boolean enable_flag: True mean enable, False means disable.
+
+        :return: an object containing XML data of the VC server.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vc_record = self.get_vcenter(vc_name)
+        vc_href = vc_record.get('href')
+        vc = self.client.get_resource(vc_href)
+        if enable_flag:
+            vc.IsEnabled = E_VMEXT.IsEnabled('true')
+        else:
+            vc.IsEnabled = E_VMEXT.IsEnabled('false')
+        return self.client.\
+            put_linked_resource(resource=vc,
+                                rel=RelationType.EDIT,
+                                media_type=EntityType.VIRTUAL_CENTER.value,
+                                contents=vc)
+
+    def detach_vcenter(self, vc_name):
+        """Detach (unregister) a Virtual Center (VC) server.
+
+        :param str vc_name: name of VC server.
+
+        :return: an object containing XML data of the VC server.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vc_record = self.get_vcenter(vc_name)
+        vc_href = vc_record.get('href')
+        vc = self.client.get_resource(vc_href)
+        if vc.IsEnabled:
+            raise InvalidStateException('VC must be disabled before detach.')
+
+        return self.client.\
+            post_linked_resource(resource=vc,
+                                 rel=RelationType.UNREGISTER,
+                                 media_type=None,
+                                 contents=vc)
 
     def register_nsxt_manager(self,
                               nsxt_manager_name,

@@ -348,15 +348,13 @@ class Platform(object):
         """Enable or disable a Virtual Center (VC) server.
 
         :param str vc_name: name of VC server.
-        :param boolean enable_flag: True mean enable, False means disable.
+        :param boolean enable_flag: True means enable, False means disable.
 
         :return: an object containing XML data of the VC server.
 
-        :rtype: lxml.objectify.ObjectifiedElement
+        :rtype: lxml.objectify.ObjectifiedElement (virtual center XML resource)
         """
-        vc_record = self.get_vcenter(vc_name)
-        vc_href = vc_record.get('href')
-        vc = self.client.get_resource(vc_href)
+        vc = self.client.get_resource(self.get_vcenter(vc_name).get('href'))
         if enable_flag:
             vc.IsEnabled = E_VMEXT.IsEnabled('true')
         else:
@@ -376,9 +374,7 @@ class Platform(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        vc_record = self.get_vcenter(vc_name)
-        vc_href = vc_record.get('href')
-        vc = self.client.get_resource(vc_href)
+        vc = self.client.get_resource(self.get_vcenter(vc_name).get('href'))
         if vc.IsEnabled:
             raise InvalidStateException('VC must be disabled before detach.')
 

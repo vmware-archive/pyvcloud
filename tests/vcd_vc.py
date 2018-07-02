@@ -13,12 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
 import unittest
 
-from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.test import TestCase
-from pyvcloud.vcd.utils import stdout_xml
 
 
 class TestVC(TestCase):
@@ -29,25 +28,11 @@ class TestVC(TestCase):
         for vcenter in vcenters:
             self.logger.debug('vCenter found: %s' % vcenter.get('name'))
             print('vCenter found: %s' % vcenter.get('name'))
-            stdout_xml(vcenter)
         assert len(vcenters) > 0
-
-    def test_00015_list_vc2(self):
-        platform = Platform(self.client)
-        vcenters = platform.list_vcenter()
-        for vcenter in vcenters:
-            print('vCenter found: %s' % vcenter.get('name'))
-            vc = self.client.get_resource(vcenter.get('href'))
-            url = vc.find('{' + NSMAP['vmext'] + '}Url')
-            print('vCenter URL: %s' % url)
-            is_enabled = vc.find('{' + NSMAP['vmext'] + '}IsEnabled')
-            print('is_enabled: %s' % is_enabled)
-            stdout_xml(vc)
-            stdout_xml(vcenter)
 
     def test_0002_get_vc(self):
         platform = Platform(self.client)
-        vcenter = platform.get_vcenter(self.config['vcd']['vcenter'])
+        vcenter = platform.get_vcenter(self.config['vcd']['vcServerName'])
         self.logger.debug('vCenter: name=%s, url=%s' %
                           (vcenter.get('name'), vcenter.Url.text))
         assert vcenter is not None
@@ -60,7 +45,7 @@ class TestVC(TestCase):
         except Exception as e:
             assert 'not found' in str(e).lower()
 
-    def attach_vc(self):
+    def test_0004_attach_vc(self):
         platform = Platform(self.client)
 
         vc = platform.attach_vcenter(
@@ -68,7 +53,6 @@ class TestVC(TestCase):
             vc_server_host=self.config['vcd']['vcServerHost'],
             vc_admin_user=self.config['vcd']['vcAdminUser'],
             vc_admin_pwd=self.config['vcd']['vcAdminPwd'],
-            vc_root_folder=self.config['vcd']['vcRootFolder'],
             nsx_server_name=self.config['vcd']['NSXServerName'],
             nsx_host=self.config['vcd']['NSXHost'],
             nsx_admin_user=self.config['vcd']['NSXAdminUser'],
@@ -76,10 +60,36 @@ class TestVC(TestCase):
             is_enabled=self.config['vcd']['isEnabled'])
         assert self.config['vcd']['vcServerName'] == vc.VimServer.get('name')
 
-    def test_0004_disable_vc(self):
+    def test_0005_enable_vc(self):
         platform = Platform(self.client)
 
-        platform.disable_vcenter(vc_name=self.config['vcd']['vcServerName'])
+        platform.\
+            enable_disable_vcenter(vc_name=self.config['vcd']['vcServerName'],
+                                   enable_flag=True)
+        time.sleep(5)
+        vc = platform.get_vcenter(name=self.config['vcd']['vcServerName'])
+        assert vc.IsEnabled
+
+    def test_0006_disable_vc(self):
+        platform = Platform(self.client)
+
+        platform.\
+            enable_disable_vcenter(vc_name=self.config['vcd']['vcServerName'],
+                                   enable_flag=False)
+        time.sleep(5)
+        vc = platform.get_vcenter(name=self.config['vcd']['vcServerName'])
+        assert not vc.IsEnabled
+
+    def test_0007_detach_vc(self):
+        try:
+            platform = Platform(self.client)
+
+            platform.detach_vcenter(vc_name=self.config['vcd']['vcServerName'])
+            time.sleep(5)
+            platform.get_vcenter(name=self.config['vcd']['vcServerName'])
+            assert False
+        except Exception as e:
+            assert 'not found' in str(e).lower()
 
 
 if __name__ == '__main__':

@@ -29,8 +29,10 @@ class TestVC(TestCase):
             self.logger.debug('vCenter found: %s' % vcenter.get('name'))
             print('vCenter found: %s' % vcenter.get('name'))
         assert len(vcenters) > 0
+        """No unit test for list_vc."""
 
     def test_0002_get_vc(self):
+        """Platform.get_vcenter finds a known vcenter."""
         platform = Platform(self.client)
         vcenter = platform.get_vcenter(self.config['vcd']['vcServerName'])
         self.logger.debug('vCenter: name=%s, url=%s' %
@@ -38,6 +40,7 @@ class TestVC(TestCase):
         assert vcenter is not None
 
     def test_0003_get_vc_negative(self):
+        """Platform.get_vcenter does not find a non-existent vcenter."""
         try:
             platform = Platform(self.client)
             platform.get_vcenter(self.config['vcd']['vcenter_invalid'])
@@ -46,6 +49,7 @@ class TestVC(TestCase):
             assert 'not found' in str(e).lower()
 
     def test_0004_attach_vc(self):
+        """Platform.attach_vcenter attaches a vcenter."""
         platform = Platform(self.client)
 
         vc = platform.attach_vcenter(
@@ -61,6 +65,10 @@ class TestVC(TestCase):
         assert self.config['vcd']['vcServerName'] == vc.VimServer.get('name')
 
     def test_0005_enable_vc(self):
+        """Platform.enable_vcenter enables a vcenter.
+
+        Sleep(5) to wait for async command to complete before checking result.
+        """
         platform = Platform(self.client)
 
         platform.\
@@ -71,6 +79,10 @@ class TestVC(TestCase):
         assert vc.IsEnabled
 
     def test_0006_disable_vc(self):
+        """Platform.disable_vcenter disables a vcenter.
+
+        Sleep(5) to wait for async command to complete before checking result.
+        """
         platform = Platform(self.client)
 
         platform.\
@@ -81,6 +93,10 @@ class TestVC(TestCase):
         assert not vc.IsEnabled
 
     def test_0007_detach_vc(self):
+        """Platform.detach_vcenter disables a vcenter.
+
+        Sleep(5) to wait for async command to complete before checking result.
+        """
         try:
             platform = Platform(self.client)
 

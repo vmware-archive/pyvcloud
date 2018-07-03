@@ -352,9 +352,10 @@ class Platform(object):
 
         :return: an object containing XML data of the VC server.
 
-        :rtype: lxml.objectify.ObjectifiedElement (virtual center XML resource)
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is enabling or disabling the VC.
         """
-        vc = self.client.get_resource(self.get_vcenter(vc_name).get('href'))
+        vc = self.get_vcenter(vc_name)
         if enable_flag:
             vc.IsEnabled = E_VMEXT.IsEnabled('true')
         else:
@@ -374,7 +375,7 @@ class Platform(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        vc = self.client.get_resource(self.get_vcenter(vc_name).get('href'))
+        vc = self.get_vcenter(vc_name)
         if vc.IsEnabled:
             raise InvalidStateException('VC must be disabled before detach.')
 

@@ -331,19 +331,6 @@ class Platform(object):
                                  REGISTER_VC_SERVER_PARAMS.value,
                                  contents=register_vc_server_params)
 
-    def list_vcenter(self):
-        """Return list of all registered VirtualCenters.
-
-        :return: VirtualCenterRecords.
-
-        :rtype: generator object
-        """
-        query = self.client.get_typed_query(
-            ResourceType.VIRTUAL_CENTER.value,
-            query_result_format=QueryResultFormat.RECORDS)
-
-        return query.execute()
-
     def enable_disable_vcenter(self, vc_name, enable_flag):
         """Enable or disable a Virtual Center (VC) server.
 

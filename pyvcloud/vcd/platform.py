@@ -337,10 +337,10 @@ class Platform(object):
         :param str vc_name: name of VC server.
         :param boolean enable_flag: True means enable, False means disable.
 
-        :return: an object containing XML data of the VC server.
-
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is enabling or disabling the VC.
+
+        rtype: lxml.objectify.ObjectifiedElement'
         """
         vc = self.get_vcenter(vc_name)
         if enable_flag:
@@ -358,7 +358,8 @@ class Platform(object):
 
         :param str vc_name: name of VC server.
 
-        :return: an object containing XML data of the VC server.
+        :return: an object containing XML data of the VC server
+        :   specifically: EntityType.VIRTUAL_CENTER
 
         :rtype: lxml.objectify.ObjectifiedElement
         """

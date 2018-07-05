@@ -19,16 +19,19 @@ from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import Environment
 
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.platform import Platform
 
 
 class TestVC(BaseTestCase):
 
     def test_0000_setup(self):
+        """#TODO(): we need more pipeline work before this test can be run."""
         TestVC._client = Environment.get_sys_admin_client()
         TestVC._config = Environment.get_config()
         TestVC._vcenter_host_name = self._config['vc']['vcenter_host_name']
-        TestVC._vcenter_invalid = self._config['vc']['vcenter_invalid']
+        TestVC._vcenter_invalid = 'xyz'
         TestVC._vcServerName = self._config['vc']['vcServerName']
         TestVC._vcServerHost = self._config['vc']['vcServerHost']
         TestVC._vcAdminUser = self._config['vc']['vcAdminUser']
@@ -37,7 +40,7 @@ class TestVC(BaseTestCase):
         TestVC._NSXHost = self._config['vc']['NSXHost']
         TestVC._NSXAdminUser = self._config['vc']['NSXAdminUser']
         TestVC._NSXAdminPwd = self._config['vc']['NSXAdminPwd']
-        TestVC._isEnabled = self._config['vc']['isEnabled']
+        TestVC._isEnabled = 'false'
 
     def test_0010_list_vc(self):
         """Platform.list_vcenters prints a list of virtual center servers."""
@@ -62,9 +65,12 @@ class TestVC(BaseTestCase):
         try:
             platform = Platform(TestVC._client)
             platform.get_vcenter(TestVC._vcenter_invalid)
-            self.assertFalse(False)
-        except Exception as e:
-            self.assertIn('not found', str(e).lower())
+            self.fail('Should not be able to find VC that does not exist ' +
+                      TestVC._vcenter_invalid)
+        except EntityNotFoundException as e:
+            return
+        self.fail('Should fail with EntityNotFoundException while fetching'
+                  'VC ' + TestVC._vcenter_invalid)
 
     def test_0040_attach_vc(self):
         """Platform.attach_vcenter attaches a vcenter."""
@@ -97,22 +103,21 @@ class TestVC(BaseTestCase):
         vc = platform.get_vcenter(name=TestVC._vcServerName)
         self.assertTrue(vc.IsEnabled)
 
-    def test_0060_detach_vc(self):
-        """Platform.detach_vcenter disables a vcenter.
+    def test_0060_detach_vc_while_still_enabled(self):
+        """Platform.detach_vcenter while VC is enabled should fail.
 
         Wait for async command to complete before checking result.
         """
-        logger = Environment.get_default_logger()
         platform = Platform(TestVC._client)
         try:
-            task = platform.detach_vcenter(
-                vc_name=TestVC._vcServerName)
+            task = platform.detach_vcenter(vc_name=TestVC._vcServerName)
             TestVC._client.get_task_monitor().wait_for_success(task=task)
-            platform.get_vcenter(name=TestVC._vcServerName)
-            self.assertFalse(False)
-        except Exception as e:
-            logger.debug('Error message=%s' % (str(e).lower()))
-            self.assertIn('must be disabled', str(e).lower())
+            self.fail('Should not be able to detach VC that is enabled ' +
+                      TestVC._vcServerName)
+        except InvalidStateException as e:
+            return
+        self.fail('Should fail with EntityNotFoundException while detaching'
+                  'VC ' + TestVC._vcServerName)
 
     def test_0070_disable_vc(self):
         """Platform.disable_vcenter disables a vcenter.
@@ -128,20 +133,22 @@ class TestVC(BaseTestCase):
         self.assertFalse(vc.IsEnabled)
 
     def test_0080_detach_vc(self):
-        """Platform.detach_vcenter disables a vcenter.
+        """Platform.detach_vcenter unregisters (detaches) a vcenter.
 
         Wait for async command to complete before checking result.
         """
-        try:
-            platform = Platform(TestVC._client)
+        platform = Platform(TestVC._client)
 
-            task = platform.detach_vcenter(
-                vc_name=TestVC._vcServerName)
-            TestVC._client.get_task_monitor().wait_for_success(task=task)
+        task = platform.detach_vcenter(vc_name=TestVC._vcServerName)
+        TestVC._client.get_task_monitor().wait_for_success(task=task)
+        try:
             platform.get_vcenter(name=TestVC._vcServerName)
-            self.assertFalse(False)
-        except Exception as e:
-            self.assertIn('not found', str(e).lower())
+            self.fail('Should not be able to find detached VC ' +
+                      TestVC._vcServerName)
+        except EntityNotFoundException as e:
+            return
+        self.fail('Should fail with EntityNotFoundException while fetching'
+                  'VC ' + TestVC._vcServerName)
 
     def test_9999_cleanup(self):
         """Release all resources held by this object for testing purposes."""

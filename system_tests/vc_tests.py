@@ -69,8 +69,6 @@ class TestVC(BaseTestCase):
                       TestVC._vcenter_invalid)
         except EntityNotFoundException as e:
             return
-        self.fail('Should fail with EntityNotFoundException while fetching'
-                  'VC ' + TestVC._vcenter_invalid)
 
     def test_0040_attach_vc(self):
         """Platform.attach_vcenter attaches a vcenter."""
@@ -116,8 +114,6 @@ class TestVC(BaseTestCase):
                       TestVC._vcServerName)
         except InvalidStateException as e:
             return
-        self.fail('Should fail with EntityNotFoundException while detaching'
-                  'VC ' + TestVC._vcServerName)
 
     def test_0070_disable_vc(self):
         """Platform.disable_vcenter disables a vcenter.
@@ -147,8 +143,6 @@ class TestVC(BaseTestCase):
                       TestVC._vcServerName)
         except EntityNotFoundException as e:
             return
-        self.fail('Should fail with EntityNotFoundException while fetching'
-                  'VC ' + TestVC._vcServerName)
 
     def test_9999_cleanup(self):
         """Release all resources held by this object for testing purposes."""

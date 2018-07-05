@@ -359,7 +359,7 @@ class Platform(object):
         :param str vc_name: name of VC server.
 
         :return: an object containing XML data of the VC server
-        :   specifically: EntityType.VIRTUAL_CENTER
+            specifically, EntityType.VIRTUAL_CENTER
 
         :rtype: lxml.objectify.ObjectifiedElement
         """

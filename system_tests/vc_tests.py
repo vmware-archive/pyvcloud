@@ -27,7 +27,7 @@ from pyvcloud.vcd.platform import Platform
 class TestVC(BaseTestCase):
 
     def test_0000_setup(self):
-        """#TODO(): we need more pipeline work before this test can be run."""
+        # TODO(): need more pipeline work before this test can actually be run
         TestVC._client = Environment.get_sys_admin_client()
         TestVC._config = Environment.get_config()
         TestVC._vcenter_host_name = self._config['vc']['vcenter_host_name']

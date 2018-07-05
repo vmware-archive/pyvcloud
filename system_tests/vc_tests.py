@@ -39,7 +39,7 @@ class TestVC(BaseTestCase):
         TestVC._NSXAdminPwd = self._config['vc']['NSXAdminPwd']
         TestVC._isEnabled = self._config['vc']['isEnabled']
 
-    def test_0001_list_vc(self):
+    def test_0010_list_vc(self):
         """Platform.list_vcenters prints a list of virtual center servers."""
         logger = Environment.get_default_logger()
         platform = Platform(TestVC._client)
@@ -48,7 +48,7 @@ class TestVC(BaseTestCase):
             logger.debug('vCenter found: %s' % vcenter.get('name'))
         self.assertTrue(len(vcenters) > 0)
 
-    def test_0002_get_vc(self):
+    def test_0020_get_vc(self):
         """Platform.get_vcenter finds a known vcenter."""
         logger = Environment.get_default_logger()
         platform = Platform(TestVC._client)
@@ -57,7 +57,7 @@ class TestVC(BaseTestCase):
                      (vcenter.get('name'), vcenter.Url.text))
         self.assertIsNotNone(vcenter)
 
-    def test_0003_get_vc_negative(self):
+    def test_0030_get_vc_negative(self):
         """Platform.get_vcenter does not find a non-existent vcenter."""
         try:
             platform = Platform(TestVC._client)
@@ -66,7 +66,7 @@ class TestVC(BaseTestCase):
         except Exception as e:
             self.assertIn('not found', str(e).lower())
 
-    def test_0004_attach_vc(self):
+    def test_0040_attach_vc(self):
         """Platform.attach_vcenter attaches a vcenter."""
         platform = Platform(TestVC._client)
 
@@ -84,7 +84,7 @@ class TestVC(BaseTestCase):
         TestVC._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(TestVC._vcServerName, vc.VimServer.get('name'))
 
-    def test_0005_enable_vc(self):
+    def test_0050_enable_vc(self):
         """Platform.enable_vcenter enables a vcenter.
 
         Wait for async command to complete before checking result.
@@ -97,7 +97,24 @@ class TestVC(BaseTestCase):
         vc = platform.get_vcenter(name=TestVC._vcServerName)
         self.assertTrue(vc.IsEnabled)
 
-    def test_0006_disable_vc(self):
+    def test_0060_detach_vc(self):
+        """Platform.detach_vcenter disables a vcenter.
+
+        Wait for async command to complete before checking result.
+        """
+        logger = Environment.get_default_logger()
+        platform = Platform(TestVC._client)
+        try:
+            task = platform.detach_vcenter(
+                vc_name=TestVC._vcServerName)
+            TestVC._client.get_task_monitor().wait_for_success(task=task)
+            platform.get_vcenter(name=TestVC._vcServerName)
+            self.assertFalse(False)
+        except Exception as e:
+            logger.debug('Error message=%s' % (str(e).lower()))
+            self.assertIn('must be disabled', str(e).lower())
+
+    def test_0070_disable_vc(self):
         """Platform.disable_vcenter disables a vcenter.
 
         Wait for async command to complete before checking result.
@@ -110,7 +127,7 @@ class TestVC(BaseTestCase):
         vc = platform.get_vcenter(name=TestVC._vcServerName)
         self.assertFalse(vc.IsEnabled)
 
-    def test_0007_detach_vc(self):
+    def test_0080_detach_vc(self):
         """Platform.detach_vcenter disables a vcenter.
 
         Wait for async command to complete before checking result.

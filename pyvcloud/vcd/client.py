@@ -160,6 +160,7 @@ class RelationType(Enum):
     TASK_CANCEL = 'task:cancel'
     UNDEPLOY = 'undeploy'
     UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'
+    UNREGISTER = 'unregister'
     UP = 'up'
 
 

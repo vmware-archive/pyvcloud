@@ -53,9 +53,14 @@ class Platform(object):
 
         :rtype: list
         """
-        return self.client.get_linked_resource(
-            self.extension.get_resource(), RelationType.DOWN,
-            EntityType.VIM_SERVER_REFS.value).VimServerReference
+        vim_server_references = self.client.get_linked_resource(
+            self.extension.get_resource(),
+            RelationType.DOWN,
+            EntityType.VIM_SERVER_REFS.value)
+        if hasattr(vim_server_references, 'VimServerReference'):
+            return vim_server_references.VimServerReference
+        else:
+            return []
 
     def get_vcenter(self, name):
         """Fetch a vCenter attached to the system by name.

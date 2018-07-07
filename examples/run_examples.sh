@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # 
 # Script to run all samples in order. 
 #
@@ -9,31 +9,42 @@
 #
 set -e
 
-# Get connection information.  If provided the file name must be absolute. 
-VCD_CONNECTION=$1
-if [ -z "$VCD_CONNECTION" ]; then
-  VCD_CONNECTION=$HOME/vcd_connection
-  if [ -e $HOME/vcd_connection ]; then
-    echo "Using default vcd_connection file location: $VCD_CONNECTION"
-  else
-    echo "Must have $VCD_CONNECTION or give alternative file as argument"
-    exit 0
-  fi
-fi
-. "$VCD_CONNECTION"
+SHOME=`dirname $0`
+cd $SHOME
 
-# Prepare a sample tenant yaml file by cat'ing so that environment variables
-# fill in. 
-SCRIPT_DIR=`dirname $0`
-eval "cat <<EOF
-$(<$SCRIPT_DIR/tenant.yaml)
+SRCROOT=`cd ..; pwd`
+cd $SRCROOT
+
+# Initialize the PYTHON3_IN_DOCKER variable and
+# load methods for interacting with Docker
+. ./support/lib.sh
+
+# Initialize the VCD_CONNECTION variable
+set_vcd_connection $1
+
+if [ "$PYTHON3_IN_DOCKER" != "0" ]; then
+    run_in_docker examples/run_examples.sh
+else
+    # Detect if a Python virtualenv is already active
+    if [ -z "$VIRTUAL_ENV" ]; then
+        . $PYVCLOUD_VENV_DIR/bin/activate
+    fi
+    . "$VCD_CONNECTION"
+
+    cd ${SRCROOT}/examples
+
+    # Prepare a sample tenant yaml file by cat'ing so that environment variables
+    # fill in. 
+    eval "cat <<EOF
+    $(<$SRCROOT/examples/tenant.yaml)
 EOF
-" 2> /dev/null > sample-test-tenant.yaml
+    " 2> /dev/null > sample-test-tenant.yaml
 
-# From here on out all commands are logged. 
-set -x
-python3 ${SCRIPT_DIR}/system-info.py ${VCD_HOST} ${VCD_ORG} ${VCD_USER} ${VCD_PASSWORD}
-python3 ${SCRIPT_DIR}/tenant-remove.py sample-test-tenant.yaml
-python3 ${SCRIPT_DIR}/tenant-onboard.py sample-test-tenant.yaml
-python3 ${SCRIPT_DIR}/list-vapps.py ${VCD_HOST} Test1 user1 secret VDC-A
-python3 ${SCRIPT_DIR}/list-vdc-resources.py ${VCD_HOST} Test1 user1 secret
+    # From here on out all commands are logged. 
+    set -x
+    python3 system-info.py ${VCD_HOST} ${VCD_ORG} ${VCD_USER} ${VCD_PASSWORD}
+    python3 tenant-remove.py sample-test-tenant.yaml
+    python3 tenant-onboard.py sample-test-tenant.yaml
+    python3 list-vapps.py ${VCD_HOST} Test1 user1 secret VDC-A
+    python3 list-vdc-resources.py ${VCD_HOST} Test1 user1 secret
+fi

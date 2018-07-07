@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Copyright (c) 2018 VMware, Inc. All Rights Reserved.
 #
 # This product is licensed to you under the
@@ -22,47 +22,58 @@
 # You can also set it in the VCD_CONNECTION environmental variable.
 #
 set -e
-SCRIPT_DIR=`dirname $0`
 
-# If there are tests to run use those. Otherwise use stable tests. 
-STABLE_TESTS="client_tests.py \
-idisk_tests.py \
-search_tests.py \
-vapp_tests.py \
-catalog_tests"
+SHOME=`dirname $0`
+cd $SHOME
 
-if [ $# == 0 ]; then
-  echo "No tests provided, will run stable list: ${STABLE_TESTS}"
-  TESTS=$STABLE_TESTS
+SRCROOT=`cd ..; pwd`
+cd $SRCROOT
+
+# Initialize the PYTHON3_IN_DOCKER variable and
+# load methods for interacting with Docker
+. ./support/lib.sh
+
+# Initialize the VCD_CONNECTION variable
+set_vcd_connection
+
+if [ "$PYTHON3_IN_DOCKER" != "0" ]; then
+    run_in_docker system_tests/run_system_tests.sh $*
 else
-  TESTS=$*
+    # If there are tests to run use those. Otherwise use stable tests. 
+    STABLE_TESTS="client_tests.py \
+    idisk_tests.py \
+    search_tests.py \
+    vapp_tests.py \
+    catalog_tests"
+
+    if [ $# == 0 ]; then
+        echo "No tests provided, will run stable list: ${STABLE_TESTS}"
+        TESTS=$STABLE_TESTS
+    else
+        TESTS=$*
+    fi
+
+    # Detect if a Python virtualenv is already active
+    if [ -z "$VIRTUAL_ENV" ]; then
+        . $PYVCLOUD_VENV_DIR/bin/activate
+    fi
+    . "$VCD_CONNECTION"
+
+    # Prepare a test parameter file. We'll use sed to replace values and create 
+    # a new file.  Note that some environmental variables may not be set in which
+    # case the corresponding parameter will end up an empty string. 
+    auto_base_config=${SRCROOT}/system_tests/auto.base_config.yaml
+    sed -e "s/<vcd ip>/${VCD_HOST}/" \
+    -e "s/30.0/${VCD_API_VERSION}/" \
+    -e "s/\(sys_admin_username: \'\)administrator/\1${VCD_USER}/" \
+    -e "s/<root-password>/${VCD_PASSWORD}/" \
+    < ${SRCROOT}/system_tests/base_config.yaml > ${auto_base_config}
+    echo "Generated parameter file: ${auto_base_config}"
+
+    # Run the tests with the new file. From here on out all commands are logged. 
+    set -x
+    export VCD_TEST_BASE_CONFIG_FILE=${auto_base_config}
+
+    cd $SRCROOT/system_tests
+    python3 -m unittest $TESTS -v
 fi
-
-# Get connection information.  
-if [ -z "$VCD_CONNECTION" ]; then
-  VCD_CONNECTION=$HOME/vcd_connection
-fi
-
-if [ -f $VCD_CONNECTION ]; then
-    echo "Using default vcd_connection file location: $VCD_CONNECTION"
-else
-  echo "Must set valid VCD_CONNECTION or define $HOME/vcd_connection"
-  exit 0
-fi
-. "$VCD_CONNECTION"
-
-# Prepare a test parameter file. We'll use sed to replace values and create 
-# a new file.  Note that some environmental variables may not be set in which
-# case the corresponding parameter will end up an empty string. 
-auto_base_config=${SCRIPT_DIR}/auto.base_config.yaml
-sed -e "s/<vcd ip>/${VCD_HOST}/" \
--e "s/30.0/${VCD_API_VERSION}/" \
--e "s/\(sys_admin_username: \'\)administrator/\1${VCD_USER}/" \
--e "s/<root-password>/${VCD_PASSWORD}/" \
-< ${SCRIPT_DIR}/base_config.yaml > ${auto_base_config}
-echo "Generated parameter file: ${auto_base_config}"
-
-# Run the tests with the new file. From here on out all commands are logged. 
-set -x
-export VCD_TEST_BASE_CONFIG_FILE=${auto_base_config}
-python3 -m unittest $TESTS -v

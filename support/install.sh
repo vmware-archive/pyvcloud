@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+#
+# Recreate a Python virtualenv directory and
+# install pyvcloud plus any prerequisite modules
+#
+# The $VIRTUAL_ENV_DIR variable may be used to 
+# specify the virtualenv to use.
+#
 set -e
 
 SHOME=`dirname $0`

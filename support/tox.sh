@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+#
+# Activate the Python virtualenv directory and run
+# code style checks on the pyvcloud project
+#
+# If a virtualenv is already active, it will be used instead
+# of activating a new one. The $VIRTUAL_ENV_DIR variable
+# may be used to specify the virtualenv to use.
+#
 set -e
 
 SHOME=`dirname $0`

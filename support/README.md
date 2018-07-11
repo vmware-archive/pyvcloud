@@ -18,11 +18,11 @@ requirements or configuration.
 1. Make sure you have a Jenkins executor with the label `docker`. The 
    executor should be configured with the Docker Engine running and so 
    that the executor user can launch containers in Docker.
-1. Create a Jenkins credential with a file holding the contents of a file 
+2. Create a Jenkins credential with a file holding the contents of a file 
    like `examples/vcd_connection.sample`. The ID of the credential should 
    be set to `pyvcloud_vcd_connection`.
-1. Install the `Pipeline: Multibranch` plugin along with all dependencies.
-1. Add a `Multibranch Pipeline` job to Jenkins that pulls from your Git 
+3. Install the `Pipeline: Multibranch` plugin along with all dependencies.
+4. Add a `Multibranch Pipeline` job to Jenkins that pulls from your Git 
    repository and reads the Jenkinsfile from `support/Jenkinsfile`.
 
 The Jenkins job will scan the repository and create jobs for all branches 

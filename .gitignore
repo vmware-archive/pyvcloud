@@ -64,4 +64,4 @@ target/
 tests/private.*
 
 # Automatically generated system test config
-system_tests/auto.base_config.yaml
+**/auto.*

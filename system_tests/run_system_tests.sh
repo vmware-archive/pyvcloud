@@ -22,7 +22,11 @@
 # You can also set it in the VCD_CONNECTION environmental variable.
 #
 set -e
-SCRIPT_DIR=`dirname $0`
+
+cd `dirname $0`
+SCRIPT_DIR=`pwd`
+SRCROOT=`cd ..; pwd`
+cd $SRCROOT
 
 # If there are tests to run use those. Otherwise use stable tests. 
 STABLE_TESTS="client_tests.py \
@@ -54,13 +58,23 @@ fi
 # Prepare a test parameter file. We'll use sed to replace values and create 
 # a new file.  Note that some environmental variables may not be set in which
 # case the corresponding parameter will end up an empty string. 
-auto_base_config=${SCRIPT_DIR}/auto.base_config.yaml
+auto_base_config=$SRCROOT/auto.base_config.yaml
 sed -e "s/<vcd ip>/${VCD_HOST}/" \
 -e "s/30.0/${VCD_API_VERSION}/" \
 -e "s/\(sys_admin_username: \'\)administrator/\1${VCD_USER}/" \
 -e "s/<root-password>/${VCD_PASSWORD}/" \
-< ${SCRIPT_DIR}/base_config.yaml > ${auto_base_config}
+< ${SRCROOT}/system_tests/base_config.yaml > ${auto_base_config}
 echo "Generated parameter file: ${auto_base_config}"
+
+# Detect if a Python virtualenv is already active
+if [ -z "$VIRTUAL_ENV" ]; then
+    # Load virtualenv if $VIRTUAL_ENV_DIR is set
+    if [ -n "$VIRTUAL_ENV_DIR" ]; then
+        . $VIRTUAL_ENV_DIR/bin/activate
+    fi
+fi
+
+cd system_tests
 
 # Run the tests with the new file. From here on out all commands are logged. 
 set -x

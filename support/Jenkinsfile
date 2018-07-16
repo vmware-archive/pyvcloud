@@ -1,0 +1,142 @@
+// Jenkins multi-branch pipeline build script. 
+//
+// Requirements:
+// * At least one executor node labeled 'docker' with 
+//   support for building and running Docker containers.
+// * A Jenkins file-type credential named 'pyvcloud_vcd_connection'
+//   with the contents of a vcd_connection file.
+
+// Global variable to hold methods from the 'lib.groovy' file. 
+externalMethods = null
+
+// Pipeline definition.
+pipeline {
+    agent { 
+        node { 
+            // Label on Jenkins node that runs this test. 
+            label 'docker'
+        }
+    }
+    environment {
+        DEFAULT_VCD_CONNECTION_CREDENTIALS_ID = 'pyvcloud_vcd_connection'
+        VIRTUAL_ENV_DIR = 'jenkins-venv'
+    }
+    parameters {
+        string(name: 'VCD_CONNECTION_CREDENTIALS_ID', defaultValue: 'Default',
+            description: 'A Jenkins file-type credential ID with the contents of a vcd_connection file.'
+        )
+        string(name: 'OVERRIDE_GIT_REPOSITORY', defaultValue: '',
+            description: 'The full git repository URL to clone from instead of the default.'
+        )
+        string(name: 'OVERRIDE_GIT_TREEISH', defaultValue: '',
+            description: 'The branch name or commit SHA to test from OVERRIDE_GIT_REPOSITORY.'
+        )
+        string(name: 'OVERRIDE_GIT_CREDENTIALS_ID', defaultValue: '',
+            description: 'A Jenkins credential ID to use when cloning from OVERRIDE_GIT_REPOSITORY.'
+        )
+        text(name: 'VCD_CONNECTION_CONTENTS', defaultValue: '',
+            description: 'The contents of a vcd_connection file to use for samples and system tests.'
+        )
+    }
+    stages {
+        stage('checkout') {
+            steps {
+                script {
+                    // Remove and checkout current branch from git using built-in
+                    // Jenkins commands exposed in groovy. Use parameters to determine
+                    // if a different git repo or branch should be checked out and tested.
+                    deleteDir()
+
+                    def overrideGit = false
+                    if (params.OVERRIDE_GIT_REPOSITORY != null) {
+                        if (params.OVERRIDE_GIT_REPOSITORY != '') {
+                            overrideGit = true
+                        }
+                    }
+
+                    if (overrideGit == false) {
+                        checkout scm
+                    } else {
+                        def gitTreeish = params.OVERRIDE_GIT_TREEISH
+                        def gitRemoteConfig = [:]
+                        gitRemoteConfig['url'] = params.OVERRIDE_GIT_REPOSITORY
+
+                        if (params.OVERRIDE_GIT_CREDENTIALS_ID != '') {
+                            gitRemoteConfig['credentialsId'] = params.OVERRIDE_GIT_CREDENTIALS_ID
+                        }
+                        
+                        checkout([
+                            $class: 'GitSCM',
+                            branches: [[name: gitTreeish]],
+                            userRemoteConfigs: [gitRemoteConfig]
+                        ])
+                    }
+
+                    // Print configuration for later debugging. 
+                    sh "git config --list"
+                    sh "git branch"
+                }
+            }
+        }
+        stage('prepare') {
+            steps {
+                script {
+                    // All code is available now, load the methods to do real work
+                    externalMethods = load 'support/lib.groovy'
+                }
+            }
+        }
+        stage('install') {
+            steps {
+                script {
+                    // Run this method from the lib.groovy file
+                    externalMethods.install()
+                }
+            }
+        }
+        stage('run-tox-flake8') {
+            steps {
+        		script {
+                    // Run this method from the lib.groovy file
+                    externalMethods.runToxFlake8()
+                }
+            }
+        }
+        stage('run-samples') {
+            steps {
+                script {
+                    // Run this method from the lib.groovy file
+                    externalMethods.runSamples()
+                }
+            }
+        }
+        stage('run-system-test') {
+            steps {
+                script {
+                    externalMethods.runSystemTests()
+                }
+            }
+        }
+    }
+    post { 
+        failure { 
+            echo "Job failed! System test environment will not be cleared."
+            script {
+                if (externalMethods != null) {
+                    // Run this method from the lib.groovy file
+                    externalMethods.cleanupWorkspace()
+                }
+            }
+        }
+        success { 
+            echo "Job succeeded! Cleaning up system test environment"
+            script {
+                if (externalMethods != null) {
+                    // Run these methods from the lib.groovy file
+                    externalMethods.cleanupSystemTests()
+                    externalMethods.cleanupWorkspace()
+                }
+            }
+        }
+    }
+}

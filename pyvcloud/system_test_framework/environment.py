@@ -231,7 +231,6 @@ class Environment(object):
             if record.get('name').lower() == vc_name.lower():
                 cls._logger.debug(vc_name + ' is already attached.')
                 return
-        # Untested code - see VCDA-603
         platform.attach_vcenter(
             vc_server_name=vc_name,
             vc_server_host=cls._config['vc']['vcenter_host_ip'],
@@ -242,7 +241,6 @@ class Environment(object):
             nsx_admin_user=cls._config['nsx']['nsx_admin_username'],
             nsx_admin_pwd=cls._config['nsx']['nsx_admin_password'],
             is_enabled=True)
-        # TODO(VCDA-603) wait for async task to finish
 
     @classmethod
     def create_pvdc(cls):
@@ -267,11 +265,15 @@ class Environment(object):
                     return
             cls._logger.debug('Creating new pvdc' + pvdc_name)
             # TODO(VCDA-603) : use create pvdc code
-
-        cls._logger.debug('Defaulting to first pvdc in the system viz.' +
-                          pvdc_refs[0].get('name'))
-        cls._pvdc_href = pvdc_refs[0].get('href')
-        cls._pvdc_name = pvdc_refs[0].get('name')
+        else:
+            if len(pvdc_refs) > 0:
+                cls._logger.debug('Defaulting to first pvdc in the system : ' +
+                                  pvdc_refs[0].get('name'))
+                cls._pvdc_href = pvdc_refs[0].get('href')
+                cls._pvdc_name = pvdc_refs[0].get('name')
+            else:
+                cls._logger.debug('No usable pVDC found. Aborting test.')
+                raise Exception('Test Aborted. No usable pVDC.')
 
     @classmethod
     def create_org(cls):
@@ -416,7 +418,7 @@ class Environment(object):
                     break
 
         if netpool_to_use is None:
-            cls._logger.debug('Using first netpool in system viz. ' +
+            cls._logger.debug('Using first netpool in system : ' +
                               netpools[0].get('name'))
             netpool_to_use = netpools[0].get('name')
 
@@ -577,7 +579,6 @@ class Environment(object):
                             ' doesn\'t exist.')
 
         try:
-            # TODO(VCDA-603) : use vApp author
             catalog_author_client = Environment.get_client_in_default_org(
                 CommonRoles.CATALOG_AUTHOR)
             vdc = VDC(catalog_author_client, href=cls._ovdc_href)
@@ -585,18 +586,16 @@ class Environment(object):
             vapp_resource = vdc.get_vapp(vapp_name)
             cls._logger.debug('Reusing existing vApp ' + vapp_name + '.')
             cls._vapp_href = vapp_resource.get('href')
-            # TODO(VCDA-603) : Change to ResourceNotFoundException
-        except Exception as e:
-            if 'not found' in str(e):
-                cls._logger.debug('Instantiating vApp ' + vapp_name + '.')
-                vapp_resource = vdc.instantiate_vapp(
-                    name=vapp_name,
-                    catalog=cls._config['vcd']['default_catalog_name'],
-                    template=cls._config['vcd']['default_template_file_name'],
-                    accept_all_eulas=True)
-                catalog_author_client.get_task_monitor()\
-                    .wait_for_success(task=vapp_resource.Tasks.Task[0])
-                cls._vapp_href = vapp_resource.get('href')
+        except EntityNotFoundException as e:
+            cls._logger.debug('Instantiating vApp ' + vapp_name + '.')
+            vapp_resource = vdc.instantiate_vapp(
+                name=vapp_name,
+                catalog=cls._config['vcd']['default_catalog_name'],
+                template=cls._config['vcd']['default_template_file_name'],
+                accept_all_eulas=True)
+            catalog_author_client.get_task_monitor()\
+                .wait_for_success(task=vapp_resource.Tasks.Task[0])
+            cls._vapp_href = vapp_resource.get('href')
         finally:
             catalog_author_client.logout()
 

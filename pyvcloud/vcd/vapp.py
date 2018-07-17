@@ -26,9 +26,11 @@ from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import InvalidStateException
+from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.vdc import VDC
 
 
@@ -94,8 +96,7 @@ class VApp(object):
         :raises: Exception: if the named vm or its NIC information can't be
             found.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         if hasattr(self.resource, 'Children') and \
            hasattr(self.resource.Children, 'Vm'):
             for vm in self.resource.Children.Vm:
@@ -122,8 +123,7 @@ class VApp(object):
 
         :raises: EntityNotFoundException: if the named vm can't be found.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         if hasattr(self.resource, 'Children') and \
            hasattr(self.resource.Children, 'Vm'):
             for vm in self.resource.Children.Vm:
@@ -141,8 +141,7 @@ class VApp(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         return self.client.get_linked_resource(
             self.resource, RelationType.DOWN, EntityType.METADATA.value)
 
@@ -165,8 +164,7 @@ class VApp(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         new_metadata = E.Metadata(
             E.MetadataEntry(
                 {
@@ -193,9 +191,7 @@ class VApp(object):
 
         :raises: EntityNotFoundException: if the named vm can't be found.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        vapp = self.resource
+        vapp = self.get_resource()
         if hasattr(vapp, 'Children') and hasattr(vapp.Children, 'Vm'):
             for vm in vapp.Children.Vm:
                 if vm.get('name') == vm_name:
@@ -215,8 +211,7 @@ class VApp(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         new_section = self.resource.LeaseSettingsSection
 
         new_section.DeploymentLeaseInSeconds = deployment_lease
@@ -232,8 +227,7 @@ class VApp(object):
 
         :param str href: href of the new owner.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         new_owner = self.resource.Owner
         new_owner.User.set('href', href)
         objectify.deannotate(new_owner)
@@ -241,6 +235,74 @@ class VApp(object):
         return self.client.put_resource(
             self.resource.get('href') + '/owner/', new_owner,
             EntityType.OWNER.value)
+
+    def get_power_state(self, vapp_resource=None):
+        """Returns the status of the vApp.
+
+        :param lxml.objectify.ObjectifiedElement vapp_resource: object
+            containing EntityType.VAPP XML data representing the vApp whose
+            power state we want to retrieve.
+
+        :return: The status of the vApp, the semantics of the value returned is
+            captured in pyvcloud.vcd.client.VCLOUD_STATUS_MAP
+
+        :rtype: int
+        """
+        if vapp_resource is None:
+            vapp_resource = self.get_resource()
+        return int(vapp_resource.get('status'))
+
+    def is_powered_on(self, vapp_resource=None):
+        """Checks if a vApp is powered on or not.
+
+        :param lxml.objectify.ObjectifiedElement vapp_resource: object
+            containing EntityType.VAPP XML data representing the vApp whose
+            power state we want to check.
+
+        :return: True if the vApp is powered on else False.
+
+        :rtype: bool
+        """
+        return self.get_power_state(vapp_resource) == 4
+
+    def is_powered_off(self, vapp_resource=None):
+        """Checks if a vApp is powered off or not.
+
+        :param lxml.objectify.ObjectifiedElement vapp_resource: object
+            containing EntityType.VAPP XML data representing the vApp whose
+            power state we want to check.
+
+        :return: True if the vApp is powered off else False.
+
+        :rtype: bool
+        """
+        return self.get_power_state(vapp_resource) == 8
+
+    def is_suspended(self, vapp_resource=None):
+        """Checks if a vApp is suspended or not.
+
+        :param lxml.objectify.ObjectifiedElement vapp_resource: object
+            containing EntityType.VAPP XML data representing the vApp whose
+            power state we want to check.
+
+        :return: True if the vApp is suspended else False.
+
+        :rtype: bool
+        """
+        return self.get_power_state(vapp_resource) == 3
+
+    def is_deployed(self, vapp_resource=None):
+        """Checks if a vApp is deployed or not.
+
+        :param lxml.objectify.ObjectifiedElement vapp_resource: object
+            containing EntityType.VAPP XML data representing the vApp whose
+            power state we want to check.
+
+        :return: True if the vApp is deployed else False.
+
+        :rtype: bool
+        """
+        return self.get_power_state(vapp_resource) == 2
 
     def deploy(self, power_on=None, force_customization=None):
         """Deploys the vApp.
@@ -259,18 +321,27 @@ class VApp(object):
             the asynchronous task that is deploying the vApp.
 
         :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises OperationNotSupportedException: if the vApp can't be deployed.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        vapp_resource = self.get_resource()
         deploy_vapp_params = E.DeployVAppParams()
         if power_on is not None:
             deploy_vapp_params.set('powerOn', str(power_on).lower())
         if force_customization is not None:
             deploy_vapp_params.set('forceCustomization',
                                    str(force_customization).lower())
-        return self.client.post_linked_resource(
-            self.resource, RelationType.DEPLOY, EntityType.DEPLOY.value,
-            deploy_vapp_params)
+        try:
+            return self.client.post_linked_resource(
+                vapp_resource,
+                RelationType.DEPLOY,
+                EntityType.DEPLOY.value,
+                deploy_vapp_params)
+        except OperationNotSupportedException as e:
+            power_state = self.get_power_state(vapp_resource)
+            raise OperationNotSupportedException(
+                'Can\'t deploy vApp. Current state of vApp:' +
+                VCLOUD_STATUS_MAP[power_state])
 
     def undeploy(self, action='default'):
         """Undeploys the vApp.
@@ -292,39 +363,65 @@ class VApp(object):
             the asynchronous task that is undeploying the vApp.
 
         :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises OperationNotSupportedException: if the vApp can't be
+            undeployed.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        vapp_resource = self.get_resource()
         params = E.UndeployVAppParams(E.UndeployPowerAction(action))
-        return self.client.post_linked_resource(
-            self.resource, RelationType.UNDEPLOY, EntityType.UNDEPLOY.value,
-            params)
+        try:
+            return self.client.post_linked_resource(
+                vapp_resource,
+                RelationType.UNDEPLOY,
+                EntityType.UNDEPLOY.value,
+                params)
+        except OperationNotSupportedException as e:
+            power_state = self.get_power_state(vapp_resource)
+            raise OperationNotSupportedException(
+                'Can\'t undeploy vApp. Current state of vApp:' +
+                VCLOUD_STATUS_MAP[power_state])
 
     def power_off(self):
-        """Power off the vApp.
+        """Power off the vms in the vApp.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is powering off the vApp.
 
         :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises OperationNotSupportedException: if the vApp can't be powered
+            off.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_OFF, None, None)
+        vapp_resource = self.get_resource()
+        try:
+            return self.client.post_linked_resource(
+                vapp_resource, RelationType.POWER_OFF, None, None)
+        except OperationNotSupportedException as e:
+            power_state = self.get_power_state(vapp_resource)
+            raise OperationNotSupportedException(
+                'Can\'t power off vApp. Current state of vApp:' +
+                VCLOUD_STATUS_MAP[power_state])
 
     def power_on(self):
-        """Power on the vApp.
+        """Power on the vms in the vApp.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is powering on the vApp.
 
         :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises OperationNotSupportedException: if the vApp can't be powered
+            on.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_ON, None, None)
+        vapp_resource = self.get_resource()
+        try:
+            return self.client.post_linked_resource(
+                vapp_resource, RelationType.POWER_ON, None, None)
+        except OperationNotSupportedException as e:
+            power_state = self.get_power_state(vapp_resource)
+            raise OperationNotSupportedException(
+                'Can\'t power on vApp. Current state of vApp:' +
+                VCLOUD_STATUS_MAP[power_state])
 
     def shutdown(self):
         """Shutdown the vApp.
@@ -333,41 +430,62 @@ class VApp(object):
             the asynchronous task shutting down the vApp.
 
         :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises OperationNotSupportedException: if the vApp can't be shutdown.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_SHUTDOWN, None, None)
+        vapp_resource = self.get_resource()
+        try:
+            return self.client.post_linked_resource(
+                vapp_resource, RelationType.POWER_SHUTDOWN, None, None)
+        except OperationNotSupportedException as e:
+            power_state = self.get_power_state(vapp_resource)
+            raise OperationNotSupportedException(
+                'Can\'t shutdown vApp. Current state of vApp:' +
+                VCLOUD_STATUS_MAP[power_state])
 
     def power_reset(self):
-        """Resets a vApp.
+        """Power resets the vms in the vApp.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task resetting the vApp.
 
         :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises OperationNotSupportedException: if the vApp can't be power
+            reset.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_RESET, None, None)
+        vapp_resource = self.get_resource()
+        try:
+            return self.client.post_linked_resource(
+                vapp_resource, RelationType.POWER_RESET, None, None)
+        except OperationNotSupportedException as e:
+            power_state = self.get_power_state(vapp_resource)
+            raise OperationNotSupportedException(
+                'Can\'t power reset vApp. Current state of vApp:' +
+                VCLOUD_STATUS_MAP[power_state])
 
     def reboot(self):
-        """Reboots the vApp.
+        """Reboots the vms in the vApp.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task rebooting the vApp.
 
         :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises OperationNotSupportedException: if the vApp can't be rebooted.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_REBOOT, None, None)
+        vapp_resource = self.get_resource()
+        try:
+            return self.client.post_linked_resource(
+                vapp_resource, RelationType.POWER_REBOOT, None, None)
+        except OperationNotSupportedException as e:
+            power_state = self.get_power_state(vapp_resource)
+            raise OperationNotSupportedException(
+                'Can\'t reboot vApp. Current state of vApp:' +
+                VCLOUD_STATUS_MAP[power_state])
 
     def connect_vm(self, mode='DHCP', reset_mac_address=False):
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         if hasattr(self.resource, 'Children') and \
            hasattr(self.resource.Children, 'Vm') and \
            len(self.resource.Children.Vm) > 0:
@@ -446,11 +564,10 @@ class VApp(object):
 
         :rtype: list
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
-        if hasattr(self.resource, 'Children') and \
-           hasattr(self.resource.Children, 'Vm') and \
-           len(self.resource.Children.Vm) > 0:
+        self.get_resource()
+        if hasattr(self.resource, 'Children') and hasattr(
+                self.resource.Children,
+                'Vm') and len(self.resource.Children.Vm) > 0:
             return self.resource.Children.Vm
         else:
             return []
@@ -467,8 +584,6 @@ class VApp(object):
 
         :raises: EntityNotFoundException: if the named vm could not be found.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
         for vm in self.get_all_vms():
             if vm.get('name') == vm_name:
                 return vm
@@ -603,13 +718,10 @@ class VApp(object):
 
         :rtype: xpath string
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         return self.resource.xpath(
             '//ovf:NetworkSection/ovf:Network',
-            namespaces={
-                'ovf': NSMAP['ovf']
-            })
+            namespaces={'ovf': NSMAP['ovf']})
 
     def get_vapp_network_name(self, index=0):
         """Returns the name of the network defined in the vApp by index.
@@ -871,8 +983,8 @@ class VApp(object):
                 orgvdc_network_name, network_configuration_section)
         if matched_orgvdc_network_config is None:
             raise InvalidStateException(
-                "Org vdc network \'%s\' is not attached to the vApp"
-                % orgvdc_network_name)
+                "Org vdc network \'%s\' is not attached to the vApp" %
+                orgvdc_network_name)
         else:
             network_configuration_section.remove(matched_orgvdc_network_config)
 

@@ -141,6 +141,7 @@ class TestVApp(BaseTestCase):
             name=TestVApp._customized_vapp_name,
             catalog=Environment.get_default_catalog_name(),
             template=Environment.get_default_template_name(),
+            description=TestVApp._customized_vapp_description,
             deploy=True,
             power_on=True,
             accept_all_eulas=True,
@@ -181,8 +182,6 @@ class TestVApp(BaseTestCase):
                       TestVApp._non_existent_vapp_name)
         except EntityNotFoundException as e:
             return
-        self.fail('Should fail with EntityNotFoundException while fetching'
-                  'vApp ' + TestVApp._non_existent_vapp_name)
 
     def test_0030_add_delete_vm(self):
         """Test the method vapp.add_vms() and vapp.delete_vms().
@@ -234,11 +233,8 @@ class TestVApp(BaseTestCase):
             client=TestVApp._client, vapp_name=vapp_name)
         vapp_resource = vapp.get_resource()
 
-        # TODO(https://github.com/vmware/vcd-cli/issues/220) : Bug in
-        # vdc.vapp_instantiate() doesn't take description as parameter.
-
-        # self.assertEqual(vapp_resource.Description.text,
-        #                 TestVApp._customized_vapp_description)
+        self.assertEqual(vapp_resource.Description.text,
+                         TestVApp._customized_vapp_description)
 
         vms = vapp_resource.xpath(
             '//vcloud:VApp/vcloud:Children/vcloud:Vm', namespaces=NSMAP)
@@ -275,23 +271,6 @@ class TestVApp(BaseTestCase):
         self.assertEqual(disk_size,
                          (TestVApp._customized_vapp_disk_size * 1024 * 1024))
 
-    def _power_on_vapp_if_possible(self, client, vapp):
-        """Power on a vApp if possible, else fail silently.
-
-        :param pyvcloud.vcd.client.Client client: a client would be used to
-            make ReST calls to vCD.
-        :param pyvcloud.vcd.vapp.VApp vapp: the vapp which we want to power on.
-        """
-        # TODO(VCDA-603) : update power_on to handle missing link exception
-        try:
-            logger = Environment.get_default_logger()
-            logger.debug('Making sure vApp ' +
-                         vapp.get_resource().get('name') + ' is powered on.')
-            task = vapp.power_on()
-            client.get_task_monitor().wait_for_success(task=task)
-        except Exception as e:
-            pass
-
     def test_0050_vapp_power_options(self):
         """Test the method related to power operations in vapp.py.
 
@@ -303,7 +282,14 @@ class TestVApp(BaseTestCase):
             client=TestVApp._client, vapp_name=vapp_name)
 
         # make sure the vApp is powered on before running tests
-        self._power_on_vapp_if_possible(TestVApp._client, vapp)
+        logger.debug('Making sure vApp ' + vapp_name + ' is powered on.')
+        if vapp.is_suspended():
+            task = vapp.deploy()
+            TestVApp._client.get_task_monitor().wait_for_success(task=task)
+
+        if not vapp.is_powered_on():
+            task = vapp.power_on()
+            TestVApp._client.get_task_monitor().wait_for_success(task=task)
 
         logger.debug('Un-deploying vApp ' + vapp_name)
         vapp.reload()
@@ -427,7 +413,7 @@ class TestVApp(BaseTestCase):
         self.assertEqual(len(control_access.AccessSettings.AccessSetting), 2)
 
         # remove
-        logger.debug('Fetching access control rules for vApp ' + vapp_name)
+        logger.debug('Removing 1 access control rule for vApp ' + vapp_name)
         vapp.reload()
         control_access = vapp.remove_access_settings(
             access_settings_list=[{

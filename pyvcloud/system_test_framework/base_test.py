@@ -29,7 +29,7 @@ class BaseTestCase(unittest.TestCase):
         if 'VCD_TEST_BASE_CONFIG_FILE' in os.environ:
             cls._config_file = os.environ['VCD_TEST_BASE_CONFIG_FILE']
         with open(cls._config_file, 'r') as f:
-            cls._config_yaml = yaml.load(f)
+            cls._config_yaml = yaml.safe_load(f)
 
         Environment.init(cls._config_yaml)
         Environment.attach_vc()

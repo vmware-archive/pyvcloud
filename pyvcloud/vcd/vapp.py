@@ -565,9 +565,9 @@ class VApp(object):
         :rtype: list
         """
         self.get_resource()
-        if hasattr(self.resource, 'Children') and hasattr(
-                self.resource.Children,
-                'Vm') and len(self.resource.Children.Vm) > 0:
+        if hasattr(self.resource, 'Children') and \
+                hasattr(self.resource.Children, 'Vm') and \
+                len(self.resource.Children.Vm) > 0:
             return self.resource.Children.Vm
         else:
             return []

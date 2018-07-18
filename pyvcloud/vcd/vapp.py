@@ -304,6 +304,41 @@ class VApp(object):
         """
         return self.get_power_state(vapp_resource) == 2
 
+    def _perform_power_operation(self, rel, operation_name, media_type=None,
+                                 contents=None):
+        """Perform a power operation on the vApp.
+
+        Perform one of the following power operations on the vApp.
+        Power on, Power off, Deploy, Undeploy, Shutdown, Reboot, Power reset.
+
+        :param pyvcloud.vcd.client.RelationType rel: relation of the link in
+            the vApp resource that will be triggered for the power operation.
+        :param str operation_name: name of the power operation to perform. This
+            value will be used while logging error messages (if any).
+        :param str media_type: media type of the link in
+            the vApp resource that will be triggered for the power operation.
+        :param lxml.objectify.ObjectifiedElement contents: payload for the
+            linked operation.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is tracking the power operation on the
+            vApp.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises OperationNotSupportedException: if the power operation can't be
+            performed on the vApp.
+        """
+        vapp_resource = self.get_resource()
+        try:
+            return self.client.post_linked_resource(
+                vapp_resource, rel, media_type, contents)
+        except OperationNotSupportedException as e:
+            power_state = self.get_power_state(vapp_resource)
+            raise OperationNotSupportedException(
+                'Can\'t ' + operation_name + ' vApp. Current state of vApp:' +
+                VCLOUD_STATUS_MAP[power_state])
+
     def deploy(self, power_on=None, force_customization=None):
         """Deploys the vApp.
 
@@ -324,24 +359,18 @@ class VApp(object):
 
         :raises OperationNotSupportedException: if the vApp can't be deployed.
         """
-        vapp_resource = self.get_resource()
         deploy_vapp_params = E.DeployVAppParams()
         if power_on is not None:
             deploy_vapp_params.set('powerOn', str(power_on).lower())
         if force_customization is not None:
             deploy_vapp_params.set('forceCustomization',
                                    str(force_customization).lower())
-        try:
-            return self.client.post_linked_resource(
-                vapp_resource,
-                RelationType.DEPLOY,
-                EntityType.DEPLOY.value,
-                deploy_vapp_params)
-        except OperationNotSupportedException as e:
-            power_state = self.get_power_state(vapp_resource)
-            raise OperationNotSupportedException(
-                'Can\'t deploy vApp. Current state of vApp:' +
-                VCLOUD_STATUS_MAP[power_state])
+
+        return self._perform_power_operation(
+            rel=RelationType.DEPLOY,
+            operation_name='deploy',
+            media_type=EntityType.DEPLOY.value,
+            contents=deploy_vapp_params)
 
     def undeploy(self, action='default'):
         """Undeploys the vApp.
@@ -367,31 +396,13 @@ class VApp(object):
         :raises OperationNotSupportedException: if the vApp can't be
             undeployed.
         """
-        vapp_resource = self.get_resource()
         params = E.UndeployVAppParams(E.UndeployPowerAction(action))
-        try:
-            return self.client.post_linked_resource(
-                vapp_resource,
-                RelationType.UNDEPLOY,
-                EntityType.UNDEPLOY.value,
-                params)
-        except OperationNotSupportedException as e:
-            power_state = self.get_power_state(vapp_resource)
-            raise OperationNotSupportedException(
-                'Can\'t undeploy vApp. Current state of vApp:' +
-                VCLOUD_STATUS_MAP[power_state])
 
-    def _perform_power_operation(self, rel, operation_name):
-        """."""
-        vapp_resource = self.get_resource()
-        try:
-            return self.client.post_linked_resource(
-                vapp_resource, rel, None, None)
-        except OperationNotSupportedException as e:
-            power_state = self.get_power_state(vapp_resource)
-            raise OperationNotSupportedException(
-                'Can\'t ' + operation_name + ' vApp. Current state of vApp:' +
-                VCLOUD_STATUS_MAP[power_state])
+        return self._perform_power_operation(
+            rel=RelationType.UNDEPLOY,
+            operation_name='undeploy',
+            media_type=EntityType.UNDEPLOY.value,
+            contents=params)
 
     def power_off(self):
         """Power off the vms in the vApp.

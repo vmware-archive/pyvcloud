@@ -286,13 +286,14 @@ class TestVApp(BaseTestCase):
         if vapp.is_suspended():
             task = vapp.deploy()
             TestVApp._client.get_task_monitor().wait_for_success(task=task)
+            vapp.reload()
 
         if not vapp.is_powered_on():
             task = vapp.power_on()
             TestVApp._client.get_task_monitor().wait_for_success(task=task)
+            vapp.reload()
 
         logger.debug('Un-deploying vApp ' + vapp_name)
-        vapp.reload()
         task = vapp.undeploy()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)

@@ -62,17 +62,18 @@ class TestDisk(BaseTestCase):
 
         disks = vdc.get_disks()
         for disk in disks:
-            if TestDisk._idisk1_id is None and disk.get('name').lower() \
-               == self._idisk1_name:
+            if TestDisk._idisk1_id is None and \
+                    disk.get('name').lower() == self._idisk1_name:
                 logger.debug('Reusing ' + TestDisk._idisk1_name)
                 TestDisk._idisk1_id = disk.get('id')[16:]
-            elif TestDisk._idisk2_id is None and disk.get('name').lower() \
-              == self._idisk2_name and str(disk.Description).lower() \
-              == self._idisk2_description.lower(): # NOQA
+            elif TestDisk._idisk2_id is None and \
+                    disk.get('name').lower() == self._idisk2_name and \
+                    str(disk.Description).lower() == \
+                    self._idisk2_description.lower():
                 logger.debug('Reusing ' + TestDisk._idisk2_name)
                 TestDisk._idisk2_id = disk.get('id')[16:]
-            elif TestDisk._idisk3_id is None and disk.get('name').lower() \
-              == self._idisk3_name: # NOQA
+            elif TestDisk._idisk3_id is None and \
+                    disk.get('name').lower() == self._idisk3_name:
                 logger.debug('Reusing ' + TestDisk._idisk3_name)
                 TestDisk._idisk3_id = disk.get('id')[16:]
 
@@ -228,11 +229,15 @@ class TestDisk(BaseTestCase):
         disk = vdc.get_disk(disk_id=TestDisk._idisk2_id)
 
         try:
-            result = vapp.attach_disk_to_vm(
+            if vapp.is_suspended():
+                task = vapp.deploy()
+                org_admin_client.get_task_monitor().wait_for_success(task=task)
+
+            task = vapp.attach_disk_to_vm(
                 disk_href=disk.get('href'), vm_name=vm_name)
-            task = org_admin_client.get_task_monitor().wait_for_success(
-                task=result)
-            self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+            result = org_admin_client.get_task_monitor().wait_for_success(
+                task=task)
+            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         finally:
             org_admin_client.logout()
 
@@ -255,7 +260,10 @@ class TestDisk(BaseTestCase):
 
         try:
             # vm needs to be powered off for detach to succeed.
-            self._power_off_vapp(org_admin_client, vapp)
+            is_vapp_powered_on_before_test = vapp.is_powered_on()
+            if is_vapp_powered_on_before_test:
+                task = vapp.power_off()
+                org_admin_client.get_task_monitor().wait_for_success(task=task)
 
             vapp.reload()
             result = vapp.detach_disk_from_vm(
@@ -265,27 +273,12 @@ class TestDisk(BaseTestCase):
             self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
 
             vapp.reload()
-            # power on vapp, once detaching disk is successful, for sanity of
-            # next test run.
-            self._power_on_vapp(org_admin_client, vapp)
+            # restore vApp to powered on state (if required)
+            if is_vapp_powered_on_before_test:
+                task = vapp.power_on()
+                org_admin_client.get_task_monitor().wait_for_success(task=task)
         finally:
             org_admin_client.logout()
-
-    def _power_off_vapp(self, org_admin_client, vapp):
-        # TODO(VCDA-603) : update power_off to handle missing link exception
-        try:
-            task = vapp.power_off()
-            org_admin_client.get_task_monitor().wait_for_success(task=task)
-        except Exception as e:
-            pass
-
-    def _power_on_vapp(self, org_admin_client, vapp):
-        # TODO(VCDA-603) : update power_on to handle missing link exception
-        try:
-            task = vapp.power_on()
-            org_admin_client.get_task_monitor().wait_for_success(task=task)
-        except Exception as e:
-            pass
 
     def test_0070_update_disk(self):
         """Test the  method vapp.update_disk().

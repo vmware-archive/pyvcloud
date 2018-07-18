@@ -381,6 +381,18 @@ class VApp(object):
                 'Can\'t undeploy vApp. Current state of vApp:' +
                 VCLOUD_STATUS_MAP[power_state])
 
+    def _perform_power_operation(self, rel, operation_name):
+        """."""
+        vapp_resource = self.get_resource()
+        try:
+            return self.client.post_linked_resource(
+                vapp_resource, rel, None, None)
+        except OperationNotSupportedException as e:
+            power_state = self.get_power_state(vapp_resource)
+            raise OperationNotSupportedException(
+                'Can\'t ' + operation_name + ' vApp. Current state of vApp:' +
+                VCLOUD_STATUS_MAP[power_state])
+
     def power_off(self):
         """Power off the vms in the vApp.
 
@@ -392,15 +404,8 @@ class VApp(object):
         :raises OperationNotSupportedException: if the vApp can't be powered
             off.
         """
-        vapp_resource = self.get_resource()
-        try:
-            return self.client.post_linked_resource(
-                vapp_resource, RelationType.POWER_OFF, None, None)
-        except OperationNotSupportedException as e:
-            power_state = self.get_power_state(vapp_resource)
-            raise OperationNotSupportedException(
-                'Can\'t power off vApp. Current state of vApp:' +
-                VCLOUD_STATUS_MAP[power_state])
+        return self._perform_power_operation(rel=RelationType.POWER_OFF,
+                                             operation_name='power off')
 
     def power_on(self):
         """Power on the vms in the vApp.
@@ -413,15 +418,8 @@ class VApp(object):
         :raises OperationNotSupportedException: if the vApp can't be powered
             on.
         """
-        vapp_resource = self.get_resource()
-        try:
-            return self.client.post_linked_resource(
-                vapp_resource, RelationType.POWER_ON, None, None)
-        except OperationNotSupportedException as e:
-            power_state = self.get_power_state(vapp_resource)
-            raise OperationNotSupportedException(
-                'Can\'t power on vApp. Current state of vApp:' +
-                VCLOUD_STATUS_MAP[power_state])
+        return self._perform_power_operation(rel=RelationType.POWER_ON,
+                                             operation_name='power on')
 
     def shutdown(self):
         """Shutdown the vApp.
@@ -433,15 +431,8 @@ class VApp(object):
 
         :raises OperationNotSupportedException: if the vApp can't be shutdown.
         """
-        vapp_resource = self.get_resource()
-        try:
-            return self.client.post_linked_resource(
-                vapp_resource, RelationType.POWER_SHUTDOWN, None, None)
-        except OperationNotSupportedException as e:
-            power_state = self.get_power_state(vapp_resource)
-            raise OperationNotSupportedException(
-                'Can\'t shutdown vApp. Current state of vApp:' +
-                VCLOUD_STATUS_MAP[power_state])
+        return self._perform_power_operation(rel=RelationType.POWER_SHUTDOWN,
+                                             operation_name='shutdown')
 
     def power_reset(self):
         """Power resets the vms in the vApp.
@@ -454,15 +445,8 @@ class VApp(object):
         :raises OperationNotSupportedException: if the vApp can't be power
             reset.
         """
-        vapp_resource = self.get_resource()
-        try:
-            return self.client.post_linked_resource(
-                vapp_resource, RelationType.POWER_RESET, None, None)
-        except OperationNotSupportedException as e:
-            power_state = self.get_power_state(vapp_resource)
-            raise OperationNotSupportedException(
-                'Can\'t power reset vApp. Current state of vApp:' +
-                VCLOUD_STATUS_MAP[power_state])
+        return self._perform_power_operation(rel=RelationType.POWER_RESET,
+                                             operation_name='power reset')
 
     def reboot(self):
         """Reboots the vms in the vApp.
@@ -474,15 +458,8 @@ class VApp(object):
 
         :raises OperationNotSupportedException: if the vApp can't be rebooted.
         """
-        vapp_resource = self.get_resource()
-        try:
-            return self.client.post_linked_resource(
-                vapp_resource, RelationType.POWER_REBOOT, None, None)
-        except OperationNotSupportedException as e:
-            power_state = self.get_power_state(vapp_resource)
-            raise OperationNotSupportedException(
-                'Can\'t reboot vApp. Current state of vApp:' +
-                VCLOUD_STATUS_MAP[power_state])
+        return self._perform_power_operation(rel=RelationType.POWER_REBOOT,
+                                             operation_name='reboot')
 
     def connect_vm(self, mode='DHCP', reset_mac_address=False):
         self.get_resource()

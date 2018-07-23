@@ -289,18 +289,19 @@ class Platform(object):
                        vc_server_host,
                        vc_admin_user,
                        vc_admin_pwd,
+                       is_enabled,
                        vc_root_folder=None,
                        nsx_server_name=None,
                        nsx_host=None,
                        nsx_admin_user=None,
-                       nsx_admin_pwd=None,
-                       is_enabled=None):
+                       nsx_admin_pwd=None):
         """Register (attach) a VirtualCenter server (also known as VimServer).
 
         :param str vc_server_name: vc server name (virtual center name).
         :param str vc_server_host: FQDN or IP address of vc host.
         :param str vc_admin_user: vc admin user.
         :param str vc_admin_pwd: vc admin password.
+        :param str is_enabled: true if VC is to be enabled.
         :param str vc_root_folder: vc root folder.
         :param str nsx_server_name: NSX server name.
         :param str nsx_host: FQDN or IP address of NSX host.
@@ -317,8 +318,7 @@ class Platform(object):
         vc_server.append(E_VMEXT.Username(vc_admin_user))
         vc_server.append(E_VMEXT.Password(vc_admin_pwd))
         vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
-        if is_enabled is not None:
-            vc_server.append(E_VMEXT.IsEnabled(is_enabled))
+        vc_server.append(E_VMEXT.IsEnabled(is_enabled))
         if vc_root_folder is not None:
             vc_server.append(E_VMEXT.rootFolder(vc_root_folder))
         register_vc_server_params.append(vc_server)

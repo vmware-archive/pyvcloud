@@ -40,7 +40,7 @@ class TestVC(BaseTestCase):
         TestVC._NSXHost = self._config['vc']['NSXHost']
         TestVC._NSXAdminUser = self._config['vc']['NSXAdminUser']
         TestVC._NSXAdminPwd = self._config['vc']['NSXAdminPwd']
-        TestVC._isEnabled = 'false'
+        TestVC._isEnabled = False
 
     def test_0010_list_vc(self):
         """Platform.list_vcenters prints a list of virtual center servers."""
@@ -79,11 +79,11 @@ class TestVC(BaseTestCase):
             vc_server_host=TestVC._vcServerHost,
             vc_admin_user=TestVC._vcAdminUser,
             vc_admin_pwd=TestVC._vcAdminPwd,
+            is_enabled=TestVC._isEnabled,
             nsx_server_name=TestVC._NSXServerName,
             nsx_host=TestVC._NSXHost,
             nsx_admin_user=TestVC._NSXAdminUser,
-            nsx_admin_pwd=TestVC._NSXAdminPwd,
-            is_enabled=TestVC._isEnabled)
+            nsx_admin_pwd=TestVC._NSXAdminPwd)
         task = vc.VimServer['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
         TestVC._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(TestVC._vcServerName, vc.VimServer.get('name'))

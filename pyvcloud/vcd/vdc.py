@@ -1074,9 +1074,7 @@ class VDC(object):
         :rtype: generator object
         """
         resource_type = ResourceType.ORG_VDC_NETWORK.value
-        vdc_filter = None
-        if self.client.is_sysadmin():
-            vdc_filter = 'vdc==%s' % self.href
+        vdc_filter = 'vdc==%s' % self.href
 
         query = self.client.get_typed_query(
             resource_type,

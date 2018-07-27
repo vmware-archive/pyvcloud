@@ -353,7 +353,7 @@ class TestVApp(BaseTestCase):
 
         vapp_name = TestVApp._customized_vapp_name
         vapp = Environment.get_vapp_in_test_vdc(
-            client=TestVapp._client, vapp_name=vapp_name)
+            client=TestVApp._client, vapp_name=vapp_name)
 
         logger.debug('Connecting vApp ' + vapp_name +
                      ' to orgvdc network ' + network_name)

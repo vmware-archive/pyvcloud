@@ -32,7 +32,7 @@ class TestCase(unittest.TestCase):
         if 'VCD_TEST_CONFIG_FILE' in os.environ:
             config_file = os.environ['VCD_TEST_CONFIG_FILE']
         with open(config_file, 'r') as f:
-            cls.config = yaml.load(f)
+            cls.config = yaml.safe_load(f)
         if not cls.config['vcd']['verify'] and \
                 cls.config['vcd']['disable_ssl_warnings']:
             requests.packages.urllib3.disable_warnings()

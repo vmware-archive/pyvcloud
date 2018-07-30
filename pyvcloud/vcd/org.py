@@ -40,6 +40,7 @@ from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import UploadException
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import get_admin_href
+from pyvcloud.vcd.utils import get_safe_members_in_tar_file
 from pyvcloud.vcd.utils import to_dict
 
 DEFAULT_CHUNK_SIZE = 1024 * 1024
@@ -575,7 +576,8 @@ class Org(object):
         try:
             tempdir = tempfile.mkdtemp(dir='.')
             ova = tarfile.open(file_name)
-            ova.extractall(path=tempdir)
+            ova.extractall(path=tempdir,
+                           members=get_safe_members_in_tar_file(ova))
             ova.close()
             ovf_file = None
             extracted_files = os.listdir(tempdir)

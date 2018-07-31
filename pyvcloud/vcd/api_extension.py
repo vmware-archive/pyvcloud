@@ -43,7 +43,7 @@ class APIExtension(object):
         :rtype: dict
         """
         query = self.client.get_typed_query(
-            ResourceType.ADMIN_SERVICE,
+            ResourceType.ADMIN_SERVICE.value,
             query_result_format=QueryResultFormat.ID_RECORDS)
         return [to_dict(r, self.ATTRIBUTES) for r in query.execute()]
 
@@ -61,7 +61,7 @@ class APIExtension(object):
         :rtype: dict
         """
         ext = self.client.get_typed_query(
-            ResourceType.ADMIN_SERVICE,
+            ResourceType.ADMIN_SERVICE.value,
             qfilter='name==%s;namespace==%s' % (name, namespace
                                                 if namespace else name),
             query_result_format=QueryResultFormat.ID_RECORDS).find_unique()
@@ -77,7 +77,7 @@ class APIExtension(object):
         :rtype: generator object
         """
         return self.client.get_typed_query(
-            ResourceType.API_FILTER,
+            ResourceType.API_FILTER.value,
             equality_filter=('service', service_id),
             query_result_format=QueryResultFormat.ID_RECORDS).execute()
 
@@ -149,7 +149,7 @@ class APIExtension(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         record = self.client.get_typed_query(
-            ResourceType.ADMIN_SERVICE,
+            ResourceType.ADMIN_SERVICE.value,
             qfilter='name==%s;namespace==%s' % (name, namespace
                                                 if namespace else name),
             query_result_format=QueryResultFormat.RECORDS).find_unique()

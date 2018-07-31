@@ -1085,7 +1085,7 @@ class VDC(object):
         return records
 
     def get_orgvdc_network_record_by_name(self, orgvdc_network_name):
-        """Fetch the orgvdc network identified by it's name in the current vdc.
+        """Fetch the orgvdc network identified by its name in the current vdc.
 
         :return: orgvdc network data in form of OrgVdcNetworkRecord XML
             element.

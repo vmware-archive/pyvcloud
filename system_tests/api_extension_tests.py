@@ -39,10 +39,8 @@ class TestApiExtension(BaseTestCase):
     _service_exchange = 'exchange_' + str(uuid1())
     _service_patterns = ['/api/bogus1', '/api/bogus2', '/api/bogus3']
 
-    _non_existent_service_name = '_non_existent_service_' +\
-        str(uuid1())
-    _non_existent_service_namespace = \
-        '_non_existent_service_namespace_' + str(uuid1())
+    _non_existent_service_name = '_non_existent_service_' + str(uuid1())
+    _non_existent_service_namespace = '_non_existent_namespace_' + str(uuid1())
 
     def test_0000_setup(self):
         """Setup an api extension service required by the other tests.
@@ -92,6 +90,7 @@ class TestApiExtension(BaseTestCase):
         self.assertEqual(service['exchange'],
                          TestApiExtension._service_exchange)
 
+    def _check_filter_details(self, service):
         expected_filter_patterns = TestApiExtension._service_patterns
         for i in range(1, len(expected_filter_patterns) + 1):
             self.assertIn(service['filter_' + str(i)],
@@ -107,6 +106,24 @@ class TestApiExtension(BaseTestCase):
         api_extension = APIExtension(TestApiExtension._client)
         service_list = api_extension.list_extensions()
         self.assertTrue(len(service_list) >= 2)
+
+        count_expected_services = 2
+        count_found_services = 0
+        for service in service_list:
+            if service['name'] == TestApiExtension._service_name:
+                if service['namespace'] == \
+                        TestApiExtension._service1_namespace:
+                    self._check_service_details(
+                        service,
+                        TestApiExtension._service1_namespace)
+                    count_found_services += 1
+                if service['namespace'] == \
+                        TestApiExtension._service2_namespace:
+                    self._check_service_details(
+                        service,
+                        TestApiExtension._service2_namespace)
+                    count_found_services += 1
+        self.assertEqual(count_found_services, count_expected_services)
 
     def test_0020_get_service_info(self):
         """Test the  method APIExtension.get_extension_info().
@@ -124,6 +141,7 @@ class TestApiExtension(BaseTestCase):
             namespace=TestApiExtension._service1_namespace)
         self._check_service_details(service,
                                     TestApiExtension._service1_namespace)
+        self._check_filter_details(service)
 
     def test_0030_get_service_info_with_invalid_name(self):
         """Test the  method APIExtension.get_extension_info().

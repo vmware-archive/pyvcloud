@@ -38,11 +38,11 @@ class APIExtension(object):
         self.client = client
 
     def list_extensions(self):
-        """Fetch the API extensions defined in the system.
+        """Fetch the API extension services defined in the system.
 
-        :return: all the API extensions defined in the system.
+        :return: all the registered API extension services in the system.
 
-        :rtype: dict
+        :rtype: list
         """
         query = self.client.get_typed_query(
             ResourceType.ADMIN_SERVICE.value,

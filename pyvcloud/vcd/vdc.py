@@ -21,7 +21,9 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
@@ -1063,25 +1065,45 @@ class VDC(object):
             request_payload)
 
     def list_orgvdc_network_records(self):
-        """Fetch all the orgvdc networks in the current vdc.
+        """Fetch all orgvdc networks in the current vdc.
 
-        :return: a list of lxml.objectify.ObjectifiedElement objects, where
-            each object contains OrgVdcNetworkRecord XML element which
-            represents an org vdc network record.
+        :return: org vdc network data in form of
+            lxml.objectify.ObjectifiedElement objects, where each object
+            contains OrgVdcNetworkRecord XML element.
 
-        :rtype: list
+        :rtype: generator object
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        resource_type = ResourceType.ORG_VDC_NETWORK.value
+        vdc_filter = 'vdc==%s' % self.href
 
-        records = self.client.get_linked_resource(
-            self.resource, RelationType.ORG_VDC_NETWORKS,
-            EntityType.RECORDS.value)
+        query = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=vdc_filter)
+        records = query.execute()
 
-        if hasattr(records, 'OrgVdcNetworkRecord'):
-            return records.OrgVdcNetworkRecord
-        else:
-            return []
+        return records
+
+    def get_orgvdc_network_record_by_name(self, orgvdc_network_name):
+        """Fetch the orgvdc network identified by its name in the current vdc.
+
+        :return: orgvdc network data in form of OrgVdcNetworkRecord XML
+            element.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if the named org vdc network cannot
+            be located.
+        """
+        records = self.list_orgvdc_network_records()
+
+        for record in records:
+            if orgvdc_network_name == record.get('name'):
+                return record
+
+        raise EntityNotFoundException(
+            "Org vdc network \'%s\' does not exist in vdc \'%s\'" %
+            (orgvdc_network_name, self.get_resource().get('name')))
 
     def list_orgvdc_network_resources(self, name=None, type=None):
         """Fetch orgvdc networks with filtering by name and type.

@@ -909,18 +909,12 @@ class VApp(object):
         :raises: InvalidStateException: if the vApp is already connected to the
             org vdc network.
         """
-        vdc = VDC(
-            self.client,
-            href=find_link(self.resource, RelationType.UP,
-                           EntityType.VDC.value).href)
-        orgvdc_networks = \
-            vdc.list_orgvdc_network_resources(orgvdc_network_name)
-        if len(orgvdc_networks) == 0:
-            raise EntityNotFoundException(
-                "Org vdc network \'%s\' does not exist in vdc "
-                "\'%s\'" % (orgvdc_network_name,
-                            vdc.get_resource().get('name')))
-        orgvdc_network_href = orgvdc_networks[0].get('href')
+        vdc = VDC(self.client,
+                  href=find_link(self.resource,
+                                 RelationType.UP,
+                                 EntityType.VDC.value).href)
+        orgvdc_network_href = vdc.get_orgvdc_network_record_by_name(
+            orgvdc_network_name).get('href')
 
         network_configuration_section = \
             deepcopy(self.resource.NetworkConfigSection)

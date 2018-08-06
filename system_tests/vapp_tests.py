@@ -347,31 +347,26 @@ class TestVApp(BaseTestCase):
         This test passes if the connect and disconnect to orgvdc network
         operations are successful.
         """
-        try:
-            logger = Environment.get_default_logger()
-            client = Environment.get_client_in_default_org(
-                CommonRoles.ORGANIZATION_ADMINISTRATOR)
+        logger = Environment.get_default_logger()
 
-            network_name = Environment.get_default_orgvdc_network_name()
+        network_name = Environment.get_default_orgvdc_network_name()
 
-            vapp_name = TestVApp._customized_vapp_name
-            vapp = Environment.get_vapp_in_test_vdc(
-                client=client, vapp_name=vapp_name)
+        vapp_name = TestVApp._customized_vapp_name
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=vapp_name)
 
-            logger.debug('Connecting vApp ' + vapp_name +
-                         ' to orgvdc network ' + network_name)
-            task = vapp.connect_org_vdc_network(network_name)
-            result = client.get_task_monitor().wait_for_success(task)
-            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        logger.debug('Connecting vApp ' + vapp_name +
+                     ' to orgvdc network ' + network_name)
+        task = vapp.connect_org_vdc_network(network_name)
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-            logger.debug('Disconnecting vApp ' + vapp_name +
-                         ' to orgvdc network ' + network_name)
-            vapp.reload()
-            task = vapp.disconnect_org_vdc_network(network_name)
-            result = client.get_task_monitor().wait_for_success(task)
-            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
-        finally:
-            client.logout()
+        logger.debug('Disconnecting vApp ' + vapp_name +
+                     ' to orgvdc network ' + network_name)
+        vapp.reload()
+        task = vapp.disconnect_org_vdc_network(network_name)
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0070_vapp_acl(self):
         """Test the method related to access control list in vapp.py.

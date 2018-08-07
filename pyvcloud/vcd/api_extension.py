@@ -57,7 +57,9 @@ class APIExtension(object):
 
         :param str name: the name of the extension service whose info we want
             to retrieve.
-        :param str namespace: the namespace of the extension service.
+        :param str namespace: the namespace of the extension service. If
+            omitted, all extension services matching the given name will be
+            retrieved and that would lead to a MultipleRecordsException.
         :param format QueryResultFormat: dictates whether id or href should be
             part of the returned record. By default id is returned.
 

@@ -180,7 +180,7 @@ class TestApiExtension(BaseTestCase):
             pass
 
     def test_0050_get_service_info_with_invalid_namespace(self):
-        """Test the  method APIExtension.get_extension_info().
+        """Test the method APIExtension.get_extension_info().
 
         Invoke the method with the name of the service created in setup, but an
         invalid namespace.

@@ -97,7 +97,7 @@ class TestApiExtension(BaseTestCase):
                           expected_filter_patterns)
 
     def test_0010_list_service(self):
-        """Test the  method APIExtension.list_extensions().
+        """Test the method APIExtension.list_extensions().
 
         This test passes if the a list of dictionary of size >= 2 is returned
         by the method. And the dictionary contains information about the
@@ -126,7 +126,7 @@ class TestApiExtension(BaseTestCase):
         self.assertEqual(count_found_services, count_expected_services)
 
     def test_0020_get_service_info(self):
-        """Test the  method APIExtension.get_extension_info().
+        """Test the method APIExtension.get_extension_info().
 
         Invoke the method with the name and namespace of the first service
         created in setup. A call to APIExtension.get_extension_info() also
@@ -144,7 +144,7 @@ class TestApiExtension(BaseTestCase):
         self._check_filter_details(service)
 
     def test_0030_get_service_info_with_invalid_name(self):
-        """Test the  method APIExtension.get_extension_info().
+        """Test the method APIExtension.get_extension_info().
 
         Invoke the method with an invalid service name.
 
@@ -161,7 +161,7 @@ class TestApiExtension(BaseTestCase):
             pass
 
     def test_0040_get_service_info_with_no_namespace(self):
-        """Test the  method APIExtension.get_extension_info().
+        """Test the method APIExtension.get_extension_info().
 
         Invoke the method with the name of the first service created in setup,
         but don't send the namespace.
@@ -198,7 +198,7 @@ class TestApiExtension(BaseTestCase):
             pass
 
     def test_0060_enable_disable_service(self):
-        """Test the  method APIExtension.enable_extension().
+        """Test the method APIExtension.enable_extension().
 
         This test passes if the href returned after each execution of the
         method matches the service href.

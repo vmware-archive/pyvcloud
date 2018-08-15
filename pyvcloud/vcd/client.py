@@ -162,6 +162,7 @@ class RelationType(Enum):
     UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'
     UNREGISTER = 'unregister'
     UP = 'up'
+    UPDATE_RESOURCE_POOLS = 'update:resourcePools'
 
 
 class ResourceType(Enum):
@@ -199,7 +200,6 @@ class ResourceType(Enum):
     CELL = 'cell'
     CONDITION = 'condition'
     DATASTORE = 'datastore'
-    DATASTORE_PROVIDER_VDC_RELATION = 'datastoreProviderVdcRelation'
     DISK = 'disk'
     DV_SWITCH = 'dvSwitch'
     EDGE_GATEWAY = 'edgeGateway'
@@ -221,13 +221,12 @@ class ResourceType(Enum):
     ORG_VDC_STORAGE_PROFILE = 'orgVdcStorageProfile'
     PORT_GROUP = 'portGroup'
     PROVIDER_VDC = 'providerVdc'
-    PROVIDER_VDC_RESOURCE_POOL_RELATION = 'providerVdcResourcePoolRelation'
-    PROVIDER_VDC_STORAGE_PROFILE = 'providerVdcStorageProfile'
     RESOURCE_POOL = 'resourcePool'
     RESOURCE_POOL_VM_LIST = 'resourcePoolVmList'
     RIGHT = 'right'
     RESOURCE_CLASS = 'resourceClass'
     RESOURCE_CLASS_ACTION = 'resourceClassAction'
+    RESOURCE_POOL = 'resourcePool'
     ROLE = 'role'
     SERVICE = 'service'
     SERVICE_LINK = 'serviceLink'
@@ -272,6 +271,8 @@ class EntityType(Enum):
     EDGE_GATEWAY = 'application/vnd.vmware.admin.edgeGateway+xml'
     EDGE_GATEWAY_SERVICE_CONFIGURATION = \
         'application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml'
+    EXTENSIBILITY_SELECTORS = \
+        'application/vnd.vmware.admin.extensibility.selectors+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
     EXTERNAL_NETWORK = 'application/vnd.vmware.admin.vmwexternalnet+xml'
@@ -309,6 +310,8 @@ class EntityType(Enum):
     RECORDS = 'application/vnd.vmware.vcloud.query.records+xml'
     REGISTER_VC_SERVER_PARAMS = \
         'application/vnd.vmware.admin.registerVimServerParams+xml'
+    RES_POOL_SET_UPDATE_PARAMS = \
+        'application/vnd.vmware.admin.resourcePoolSetUpdateParams+xml'
     ROLE = 'application/vnd.vmware.admin.role+xml'
     RIGHT = 'application/vnd.vmware.admin.right+xml'
     SNAPSHOT_CREATE = 'application/vnd.vmware.vcloud.createSnapshotParams+xml'

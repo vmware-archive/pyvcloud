@@ -16,15 +16,19 @@
 from urllib import parse
 import uuid
 
+
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import get_links
+from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.extension import Extension
+from pyvcloud.vcd.utils import get_admin_extension_href
 
 
 class Platform(object):
@@ -283,6 +287,142 @@ class Platform(object):
             rel=RelationType.ADD,
             media_type=EntityType.PROVIDER_VDC_PARAMS.value,
             contents=vmw_prov_vdc_params)
+
+    def update_provider_vdc(self,
+                            vim_server_name,
+                            resource_pool_names,
+                            storage_profiles,
+                            pvdc_name,
+                            is_enabled=None,
+                            description=None,
+                            highest_hw_vers=None,
+                            vxlan_network_pool=None,
+                            nsxt_manager_name=None):
+        """Update a Provider Virtual Datacenter.
+
+        :param str vim_server_name: vim_server_name (VC name).
+        :param list resource_pool_names: list of resource_pool_names.
+        :param list storage_profiles: list of storageProfile names.
+        :param str pvdc_name: name of PVDC.
+        :param bool is_enabled: flag, True to enable and False to disable.
+        :param str description: description of pvdc.
+        :param str highest_hw_vers: highest supported hw version number.
+        :param str vxlan_network_pool: name of vxlan_network_pool.
+        :param str nsxt_manager_name: name of nsx-t manager.
+
+        :return: an object containing vmext:VMWProviderVdc XML element that
+            represents the updated provider VDC.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+
+    def add_resource_pools_to_provider_vdc(self,
+                                           vim_server_name,
+                                           pvdc_name,
+                                           resource_pool_names):
+        """Add Resource Pools to a Provider Virtual Datacenter.
+
+        :param str vim_server_name: vim_server_name (VC name).
+        :param str pvdc_name: name of the Provider Virtual Datacenter.
+        :param list storage_profiles: list of storage_Profile names.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is adding Resource Pools to the PVDC.
+
+        rtype: lxml.objectify.ObjectifiedElement
+        """
+        vc_resource = self.get_vcenter(vim_server_name)
+        vc_href = vc_resource.get('href')
+        rp_morefs = self.get_resource_pool_morefs(vim_server_name, vc_href,
+                                                  resource_pool_names)
+        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
+                                            pvdc_name)
+        pvdc = self.client.get_resource(provider_vdc.get('href'))
+        pvdc_ext_href = get_admin_extension_href(pvdc.get('href'))
+        pvdc_ext = self.client.get_resource(pvdc_ext_href)
+        payload = E_VMEXT.UpdateResourcePoolSetParams()
+        for rp_moref in rp_morefs:
+            add_item = E_VMEXT.AddItem()
+            add_item.append(
+                E_VMEXT.VimServerRef(type=EntityType.VIRTUAL_CENTER.value,
+                                     href=vc_href))
+            add_item.append(E_VMEXT.MoRef(rp_moref))
+            add_item.append(E_VMEXT.VimObjectType('RESOURCE_POOL'))
+            payload.append(add_item)
+        return self.client.post_linked_resource(
+            resource=pvdc_ext,
+            rel=RelationType.UPDATE_RESOURCE_POOLS,
+            media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
+            contents=payload)
+
+    def del_resource_pools_from_provider_vdc(self,
+                                             vim_server_name,
+                                             pvdc_name,
+                                             resource_pool_names):
+        """Disable & Delete Resource Pools from a Provider Virtual Datacenter.
+
+        :param str vim_server_name: vim_server_name (VC name).
+        :param str pvdc_name: name of the Provider Virtual Datacenter.
+        :param list storage_profiles: list of storage_Profile names.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the async task that is deleting Resource Pools fronm the PVDC.
+
+        rtype: lxml.objectify.ObjectifiedElement
+        """
+        query = self.client.get_typed_query(
+            ResourceType.RESOURCE_POOL.value,
+            query_result_format=QueryResultFormat.RECORDS)
+        res_pools_in_use = list(query.execute())
+        morefs = []
+        for resource_pool_name in resource_pool_names:
+            res_pool_found = False
+            for res_pool in res_pools_in_use:
+                if res_pool.get('vcName') == vim_server_name and \
+                   res_pool.get('name') == resource_pool_name:
+                    moref = res_pool.get('moref')
+                    morefs.append(moref)
+                    res_pool_found = True
+                    break
+            if not res_pool_found:
+                raise EntityNotFoundException(
+                    'resource pool \'%s\' not Found' % resource_pool_name)
+        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
+                                            pvdc_name)
+        pvdc = self.client.get_resource(provider_vdc.get('href'))
+        pvdc_ext_href = get_admin_extension_href(pvdc.get('href'))
+        pvdc_ext = self.client.get_resource(pvdc_ext_href)
+        res_pools_in_pvdc = self.client.get_resource(pvdc_ext_href +
+                                                     '/resourcePools')
+        if hasattr(res_pools_in_pvdc,
+                   '{' + NSMAP['vmext'] + '}VMWProviderVdcResourcePool'):
+            res_pool_refs = []
+            for res_pool in res_pools_in_pvdc.VMWProviderVdcResourcePool:
+                links = get_links(resource=res_pool, rel=RelationType.DISABLE)
+                num_links = len(links)
+                if num_links == 1:
+                    self.client.post_linked_resource(resource=res_pool,
+                                                     rel=RelationType.DISABLE,
+                                                     media_type=None,
+                                                     contents=None)
+                if res_pool.ResourcePoolVimObjectRef.VimServerRef.get('name') \
+                   == vim_server_name:
+                    if res_pool.ResourcePoolVimObjectRef.MoRef in morefs:
+                        res_pool_refs.append(res_pool.ResourcePoolRef)
+            if len(res_pool_refs) > 0:
+                payload = E_VMEXT.UpdateResourcePoolSetParams()
+                for res_pool_ref in res_pool_refs:
+                    del_item = E_VMEXT.DeleteItem(
+                        href=res_pool_ref.get('href'),
+                        type=res_pool_ref.get('type'))
+                    payload.append(del_item)
+                return self.client.post_linked_resource(
+                    resource=pvdc_ext,
+                    rel=RelationType.UPDATE_RESOURCE_POOLS,
+                    media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
+                    contents=payload)
+            else:
+                return []
 
     def attach_vcenter(self,
                        vc_server_name,

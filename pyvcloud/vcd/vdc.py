@@ -548,7 +548,7 @@ class VDC(object):
         :param int new_iops: new iops requirement of the disk.
 
         :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task updating the disk.
+            the asynchronous task that is updating the disk.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
@@ -597,7 +597,7 @@ class VDC(object):
         :param str disk_id: id of the disk to delete.
 
         :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task deleting the disk.
+            the asynchronous task that is deleting the disk.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
@@ -769,14 +769,23 @@ class VDC(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         resource_admin = self.client.get_resource(self.href_admin)
-        link = RelationType.ENABLE if enable else RelationType.DISABLE
-        return self.client.post_linked_resource(resource_admin, link, None,
+        if enable:
+            rel = RelationType.ENABLE
+        else:
+            rel = RelationType.DISABLE
+
+        return self.client.post_linked_resource(resource_admin, rel, None,
                                                 None)
 
     def delete_vdc(self):
         """Delete the current org vdc.
 
         :param str vdc_name: name of the org vdc to delete.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is deleting the org vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -1210,7 +1219,7 @@ class VDC(object):
             or not.
 
         :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task that's deleting the network.
+            the asynchronous task that is deleting the network.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
@@ -1230,7 +1239,7 @@ class VDC(object):
             or not.
 
         :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task that's deleting the network.
+            the asynchronous task that is deleting the network.
 
         :rtype: lxml.objectify.ObjectifiedElement
 

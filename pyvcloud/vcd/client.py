@@ -270,8 +270,6 @@ class EntityType(Enum):
     EDGE_GATEWAY = 'application/vnd.vmware.admin.edgeGateway+xml'
     EDGE_GATEWAY_SERVICE_CONFIGURATION = \
         'application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml'
-    EXTENSIBILITY_SELECTORS = \
-        'application/vnd.vmware.admin.extensibility.selectors+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
     EXTERNAL_NETWORK = 'application/vnd.vmware.admin.vmwexternalnet+xml'

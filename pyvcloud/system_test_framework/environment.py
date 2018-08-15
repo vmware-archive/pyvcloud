@@ -617,7 +617,7 @@ class Environment(object):
     def get_test_pvdc_name(cls):
         """Gets the name of the pvdc to be used for testing.
 
-        Can return '*' if the method create_pvdc hasn't be called before
+        Can return None if the method create_pvdc hasn't be called before
         invoking this method.
 
         :return: name of the pvdc to be used for testing.

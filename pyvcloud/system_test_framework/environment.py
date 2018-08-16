@@ -614,6 +614,19 @@ class Environment(object):
                 cls._vapp_href = None
 
     @classmethod
+    def get_test_pvdc_name(cls):
+        """Gets the name of the pvdc to be used for testing.
+
+        Can return None if the method create_pvdc hasn't be called before
+        invoking this method.
+
+        :return: name of the pvdc to be used for testing.
+
+        :rtype: str
+        """
+        return cls._pvdc_name
+
+    @classmethod
     def get_test_org(cls, client):
         """Gets the organization used for testing.
 

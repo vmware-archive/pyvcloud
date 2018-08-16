@@ -123,7 +123,7 @@ class TestOrgVDC(BaseTestCase):
             pass
 
     def test_0040_enable_disable_vdc(self):
-        """Test the  method VDC.enable_vdc().
+        """Test the method VDC.enable_vdc().
 
         First disable the vdc, try to re-disable it (which should fail). Next,
         enable the vdc back, and then try to re-enable the vdc (which should
@@ -159,7 +159,7 @@ class TestOrgVDC(BaseTestCase):
             pass
 
     def test_0050_vdc_acl(self):
-        """Test the method related to access control list in vdc.py.
+        """Test the methods related to access control list in vdc.py.
 
         This test passes if all the acl operations are successful.
         """
@@ -229,7 +229,7 @@ class TestOrgVDC(BaseTestCase):
 
     @developerModeAware
     def test_9998_teardown(self):
-        """Test the  method VDC.delete_vdc().
+        """Test the method VDC.delete_vdc().
 
         Invoke the method for the vdc created by setup.
 

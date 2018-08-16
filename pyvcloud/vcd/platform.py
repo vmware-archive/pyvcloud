@@ -383,10 +383,6 @@ class Platform(object):
                    == vim_server_name and \
                    res_pool.ResourcePoolVimObjectRef.MoRef in morefs:
                     res_pool_refs.append(res_pool.ResourcePoolRef)
-                else:
-                    raise EntityNotFoundException(
-                        'resource pool MoRef \'%s\' not Found' %
-                        res_pool.ResourcePoolVimObjectRef.MoRef)
             if len(res_pool_refs) > 0:
                 payload = E_VMEXT.UpdateResourcePoolSetParams()
                 for res_pool_ref in res_pool_refs:

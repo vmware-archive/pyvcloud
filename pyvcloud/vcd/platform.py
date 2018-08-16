@@ -288,34 +288,6 @@ class Platform(object):
             media_type=EntityType.PROVIDER_VDC_PARAMS.value,
             contents=vmw_prov_vdc_params)
 
-    def update_provider_vdc(self,
-                            vim_server_name,
-                            resource_pool_names,
-                            storage_profiles,
-                            pvdc_name,
-                            is_enabled=None,
-                            description=None,
-                            highest_hw_vers=None,
-                            vxlan_network_pool=None,
-                            nsxt_manager_name=None):
-        """Update a Provider Virtual Datacenter.
-
-        :param str vim_server_name: vim_server_name (VC name).
-        :param list resource_pool_names: list of resource_pool_names.
-        :param list storage_profiles: list of storageProfile names.
-        :param str pvdc_name: name of PVDC.
-        :param bool is_enabled: flag, True to enable and False to disable.
-        :param str description: description of pvdc.
-        :param str highest_hw_vers: highest supported hw version number.
-        :param str vxlan_network_pool: name of vxlan_network_pool.
-        :param str nsxt_manager_name: name of nsx-t manager.
-
-        :return: an object containing vmext:VMWProviderVdc XML element that
-            represents the updated provider VDC.
-
-        :rtype: lxml.objectify.ObjectifiedElement
-        """
-
     def add_resource_pools_to_provider_vdc(self,
                                            vim_server_name,
                                            pvdc_name,
@@ -375,6 +347,7 @@ class Platform(object):
             query_result_format=QueryResultFormat.RECORDS)
         res_pools_in_use = list(query.execute())
         morefs = []
+        # join on RP name in RPs_in_use to get <vc, moref>
         for resource_pool_name in resource_pool_names:
             res_pool_found = False
             for res_pool in res_pools_in_use:
@@ -397,6 +370,7 @@ class Platform(object):
         if hasattr(res_pools_in_pvdc,
                    '{' + NSMAP['vmext'] + '}VMWProviderVdcResourcePool'):
             res_pool_refs = []
+            # join on <vc, moref> in the PVDC's RP list to get the RP href
             for res_pool in res_pools_in_pvdc.VMWProviderVdcResourcePool:
                 links = get_links(resource=res_pool, rel=RelationType.DISABLE)
                 num_links = len(links)
@@ -406,9 +380,13 @@ class Platform(object):
                                                      media_type=None,
                                                      contents=None)
                 if res_pool.ResourcePoolVimObjectRef.VimServerRef.get('name') \
-                   == vim_server_name:
-                    if res_pool.ResourcePoolVimObjectRef.MoRef in morefs:
-                        res_pool_refs.append(res_pool.ResourcePoolRef)
+                   == vim_server_name and \
+                   res_pool.ResourcePoolVimObjectRef.MoRef in morefs:
+                    res_pool_refs.append(res_pool.ResourcePoolRef)
+                else:
+                    raise EntityNotFoundException(
+                        'resource pool MoRef \'%s\' not Found' %
+                        res_pool.ResourcePoolVimObjectRef.MoRef)
             if len(res_pool_refs) > 0:
                 payload = E_VMEXT.UpdateResourcePoolSetParams()
                 for res_pool_ref in res_pool_refs:

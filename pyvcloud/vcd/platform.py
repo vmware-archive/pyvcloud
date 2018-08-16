@@ -396,7 +396,9 @@ class Platform(object):
                     media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
                     contents=payload)
             else:
-                return []
+                raise EntityNotFoundException(
+                    'resource pools \'%s\' not Found' %
+                    ' '.join(resource_pool_names))
 
     def attach_vcenter(self,
                        vc_server_name,

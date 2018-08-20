@@ -332,6 +332,30 @@ class Platform(object):
                                              resource_pool_names):
         """Disable & Delete Resource Pools from a Provider Virtual Datacenter.
 
+        This function deletes resource pools (RPs) from a Provider Virtual
+        Datacenter (PVDC). In order to do this, the input "user-friendly" RP
+        names must be translated into RP hrefs. This is a 2-step process, for
+        each RP in the input list: 1) do a join on RP name from the RPs
+        "in use" (by a PVDC) and find its <VC name, MoRef>, and then
+        2) do a join on the <VC name, MoRef> from the RPs that belong
+        to the specified PVDC to find its RP href. Note that RP names and
+        MoRefs are not globally unique, they are only unique within a VC and
+        PVDC. Hence the need for the <VC, MoRef> tuples. RP hrefs are globally
+        unique. Note that for deletions, the RP href is required (whereas, for
+        RP additions, only the <VC name, MoRef> is required).
+
+        Note that in order to delete a RP, it must first be disabled. This is
+        done if the disable link is present (which indicates that the RP is
+        enabled).
+
+        One shortcoming of this implementation is that it raises an exception
+        only if none of the input RPs could be found. This is due to the
+        complexity of tracking "not found" errors for each of the input RPs.
+        In order to do such tracking, it would be necessary to keep track of
+        ("remember") the RP names when doing the 2nd join on <VC, MoRef>. It
+        is questionable whether returning any error (even if no RPs are found)
+        is useful when deleting RPs from a PVDC.
+
         :param str vim_server_name: vim_server_name (VC name).
         :param str pvdc_name: name of the Provider Virtual Datacenter.
         :param list resource_pool_names: list or resource pool names.
@@ -341,6 +365,7 @@ class Platform(object):
 
         rtype: lxml.objectify.ObjectifiedElement
         """
+        # find the RPs that are in use
         query = self.client.get_typed_query(
             ResourceType.RESOURCE_POOL.value,
             query_result_format=QueryResultFormat.RECORDS)
@@ -359,6 +384,7 @@ class Platform(object):
             if not res_pool_found:
                 raise EntityNotFoundException(
                     'resource pool \'%s\' not Found' % resource_pool_name)
+        # find RPs by <vc, moref> in list of RPs in use by this PVDC
         provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
         pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
@@ -369,8 +395,9 @@ class Platform(object):
         if hasattr(res_pools_in_pvdc,
                    '{' + NSMAP['vmext'] + '}VMWProviderVdcResourcePool'):
             res_pool_refs = []
-            # join on <vc, moref> in the PVDC's RP list to get the RP href
+            # join on <vc, moref> in this PVDC's RP list to get the RP hrefs
             for res_pool in res_pools_in_pvdc.VMWProviderVdcResourcePool:
+                # disable the RP if it is enabled
                 links = get_links(resource=res_pool, rel=RelationType.DISABLE)
                 num_links = len(links)
                 if num_links == 1:
@@ -383,6 +410,8 @@ class Platform(object):
                    res_pool.ResourcePoolVimObjectRef.MoRef in morefs:
                     res_pool_refs.append(res_pool.ResourcePoolRef)
             if len(res_pool_refs) == 0:
+                # raise exception if none of the input RPs could be found in
+                # the list of this PVDC's RPs
                 raise EntityNotFoundException(
                     'resource pools \'%s\' not Found' %
                     ' '.join(resource_pool_names))

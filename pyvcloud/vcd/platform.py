@@ -16,7 +16,6 @@
 from urllib import parse
 import uuid
 
-
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
@@ -296,7 +295,7 @@ class Platform(object):
 
         :param str vim_server_name: vim_server_name (VC name).
         :param str pvdc_name: name of the Provider Virtual Datacenter.
-        :param list storage_profiles: list of storage_Profile names.
+        :param list resource_pool_names: list or resource pool names.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is adding Resource Pools to the PVDC.
@@ -309,9 +308,9 @@ class Platform(object):
                                                   resource_pool_names)
         provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
-        pvdc = self.client.get_resource(provider_vdc.get('href'))
-        pvdc_ext_href = get_admin_extension_href(pvdc.get('href'))
-        pvdc_ext = self.client.get_resource(pvdc_ext_href)
+        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
+        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
+        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
         payload = E_VMEXT.UpdateResourcePoolSetParams()
         for rp_moref in rp_morefs:
             add_item = E_VMEXT.AddItem()
@@ -322,7 +321,7 @@ class Platform(object):
             add_item.append(E_VMEXT.VimObjectType('RESOURCE_POOL'))
             payload.append(add_item)
         return self.client.post_linked_resource(
-            resource=pvdc_ext,
+            resource=pvdc_ext_resource,
             rel=RelationType.UPDATE_RESOURCE_POOLS,
             media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
             contents=payload)
@@ -335,7 +334,7 @@ class Platform(object):
 
         :param str vim_server_name: vim_server_name (VC name).
         :param str pvdc_name: name of the Provider Virtual Datacenter.
-        :param list storage_profiles: list of storage_Profile names.
+        :param list resource_pool_names: list or resource pool names.
 
         :return: an object containing EntityType.TASK XML data which represents
             the async task that is deleting Resource Pools fronm the PVDC.
@@ -362,9 +361,9 @@ class Platform(object):
                     'resource pool \'%s\' not Found' % resource_pool_name)
         provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
-        pvdc = self.client.get_resource(provider_vdc.get('href'))
-        pvdc_ext_href = get_admin_extension_href(pvdc.get('href'))
-        pvdc_ext = self.client.get_resource(pvdc_ext_href)
+        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
+        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
+        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
         res_pools_in_pvdc = self.client.get_resource(pvdc_ext_href +
                                                      '/resourcePools')
         if hasattr(res_pools_in_pvdc,
@@ -383,7 +382,11 @@ class Platform(object):
                    == vim_server_name and \
                    res_pool.ResourcePoolVimObjectRef.MoRef in morefs:
                     res_pool_refs.append(res_pool.ResourcePoolRef)
-            if len(res_pool_refs) > 0:
+            if len(res_pool_refs) == 0:
+                raise EntityNotFoundException(
+                    'resource pools \'%s\' not Found' %
+                    ' '.join(resource_pool_names))
+            else:
                 payload = E_VMEXT.UpdateResourcePoolSetParams()
                 for res_pool_ref in res_pool_refs:
                     del_item = E_VMEXT.DeleteItem(
@@ -391,14 +394,10 @@ class Platform(object):
                         type=res_pool_ref.get('type'))
                     payload.append(del_item)
                 return self.client.post_linked_resource(
-                    resource=pvdc_ext,
+                    resource=pvdc_ext_resource,
                     rel=RelationType.UPDATE_RESOURCE_POOLS,
                     media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
                     contents=payload)
-            else:
-                raise EntityNotFoundException(
-                    'resource pools \'%s\' not Found' %
-                    ' '.join(resource_pool_names))
 
     def attach_vcenter(self,
                        vc_server_name,

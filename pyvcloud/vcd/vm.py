@@ -66,6 +66,48 @@ class VM(object):
         if self.resource is not None:
             self.href = self.resource.get('href')
 
+    def get_vc(self):
+        """Returns the vCenter where this vm is located.
+
+        :return: name of the vCenter server.
+
+        :rtype: str
+        """
+        self.get_resource()
+        for record in self.resource.VCloudExtension[
+                '{' + NSMAP['vmext'] + '}VmVimInfo'].iterchildren():
+            if hasattr(record, '{' + NSMAP['vmext'] + '}VimObjectType'):
+                if 'VIRTUAL_MACHINE' == record.VimObjectType.text:
+                    return record.VimServerRef.get('name')
+        return None
+
+    def get_cpus(self):
+        """Returns the number of CPUs in the vm.
+
+        :return: number of cpus (int) and number of cores per socket (int) of
+            the vm.
+
+        :rtype: dict
+        """
+        self.get_resource()
+        return {
+            'num_cpus':
+            int(self.resource.VmSpecSection.NumCpus.text),
+            'num_cores_per_socket':
+            int(self.resource.VmSpecSection.NumCoresPerSocket.text)
+        }
+
+    def get_memory(self):
+        """Returns the amount of memory in MB.
+
+        :return: amount of memory in MB.
+
+        :rtype: int
+        """
+        self.get_resource()
+        return int(
+            self.resource.VmSpecSection.MemoryResourceMb.Configured.text)
+
     def modify_cpu(self, virtual_quantity, cores_per_socket=None):
         """Updates the number of CPUs of a vm.
 
@@ -106,6 +148,109 @@ class VM(object):
         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = virtual_quantity
         return self.client.put_resource(uri, item, EntityType.RASD_ITEM.value)
 
+    def get_power_state(self, vm_resource=None):
+        """Returns the status of the vm.
+
+        :param lxml.objectify.ObjectifiedElement vm_resource: object
+            containing EntityType.VM XML data representing the vm whose
+            power state we want to retrieve.
+
+        :return: The status of the vm, the semantics of the value returned is
+            captured in pyvcloud.vcd.client.VCLOUD_STATUS_MAP
+
+        :rtype: int
+        """
+        if vm_resource is None:
+            vm_resource = self.get_resource()
+        return int(vm_resource.get('status'))
+
+    def is_powered_on(self, vm_resource=None):
+        """Checks if a vm is powered on or not.
+
+        :param lxml.objectify.ObjectifiedElement vm_resource: object
+            containing EntityType.VM XML data representing the vm whose
+            power state we want to check.
+
+        :return: True if the vm is powered on else False.
+
+        :rtype: bool
+        """
+        return self.get_power_state(vm_resource) == 4
+
+    def is_powered_off(self, vm_resource=None):
+        """Checks if a vm is powered off or not.
+
+        :param lxml.objectify.ObjectifiedElement vm_resource: object
+            containing EntityType.VM XML data representing the vm whose
+            power state we want to check.
+
+        :return: True if the vm is powered off else False.
+
+        :rtype: bool
+        """
+        return self.get_power_state(vm_resource) == 8
+
+    def is_suspended(self, vm_resource=None):
+        """Checks if a vm is suspended or not.
+
+        :param lxml.objectify.ObjectifiedElement vm_resource: object
+            containing EntityType.VM XML data representing the vm whose
+            power state we want to check.
+
+        :return: True if the vm is suspended else False.
+
+        :rtype: bool
+        """
+        return self.get_power_state(vm_resource) == 3
+
+    def is_deployed(self, vm_resource=None):
+        """Checks if a vm is deployed or not.
+
+        :param lxml.objectify.ObjectifiedElement vm_resource: object
+            containing EntityType.VM XML data representing the vm whose
+            power state we want to check.
+
+        :return: True if the vm is deployed else False.
+
+        :rtype: bool
+        """
+        return self.get_power_state(vm_resource) == 2
+
+    def _perform_power_operation(self, rel, operation_name, media_type=None,
+                                 contents=None):
+        """Perform a power operation on the vm.
+
+        Perform one of the following power operations on the vm.
+        Power on, Power off, Deploy, Undeploy, Shutdown, Reboot, Power reset.
+
+        :param pyvcloud.vcd.client.RelationType rel: relation of the link in
+            the vm resource that will be triggered for the power operation.
+        :param str operation_name: name of the power operation to perform. This
+            value will be used while logging error messages (if any).
+        :param str media_type: media type of the link in
+            the vm resource that will be triggered for the power operation.
+        :param lxml.objectify.ObjectifiedElement contents: payload for the
+            linked operation.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is tracking the power operation on the
+            vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises OperationNotSupportedException: if the power operation can't be
+            performed on the vm.
+        """
+        vm_resource = self.get_resource()
+        try:
+            return self.client.post_linked_resource(
+                vm_resource, rel, media_type, contents)
+        except OperationNotSupportedException as e:
+            power_state = self.get_power_state(vm_resource)
+            raise OperationNotSupportedException(
+                'Can\'t ' + operation_name + ' vm. Current state of vm:' +
+                VCLOUD_STATUS_MAP[power_state])
+
     def shutdown(self):
         """Shutdown the vm.
 
@@ -114,9 +259,8 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        self.get_resource()
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_SHUTDOWN, None, None)
+        return self._perform_power_operation(rel=RelationType.POWER_SHUTDOWN,
+                                             operation_name='shutdown')
 
     def reboot(self):
         """Reboots the vm.
@@ -126,9 +270,8 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        self.get_resource()
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_REBOOT, None, None)
+        return self._perform_power_operation(rel=RelationType.POWER_REBOOT,
+                                             operation_name='reboot')
 
     def power_on(self):
         """Powers on the vm.
@@ -138,9 +281,8 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        self.get_resource()
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_ON, None, None)
+        return self._perform_power_operation(rel=RelationType.POWER_ON,
+                                             operation_name='power on')
 
     def power_off(self):
         """Powers off the vm.
@@ -150,9 +292,8 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        self.get_resource()
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_OFF, None, None)
+        return self._perform_power_operation(rel=RelationType.POWER_OFF,
+                                             operation_name='power off')
 
     def power_reset(self):
         """Powers reset the vm.
@@ -162,9 +303,45 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        self.get_resource()
-        return self.client.post_linked_resource(
-            self.resource, RelationType.POWER_RESET, None, None)
+        return self._perform_power_operation(rel=RelationType.POWER_RESET,
+                                             operation_name='power reset')
+
+    def deploy(self, power_on=True, force_customization=False):
+        """Deploys the vm.
+
+        Deploying the vm will allocate all resources assigned to the vm. If an
+        attempt is made to deploy an already deployed vm, an exception will be
+        raised.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is deploying the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        deploy_vm_params = E.DeployVAppParams()
+        deploy_vm_params.set('powerOn', str(power_on).lower())
+        deploy_vm_params.set('forceCustomization',
+                             str(force_customization).lower())
+        return self._perform_power_operation(
+            rel=RelationType.DEPLOY,
+            operation_name='deploy',
+            media_type=EntityType.DEPLOY.value,
+            contents=deploy_vm_params)
+
+    def undeploy(self, action='default'):
+        """Undeploy the vm.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is undeploying the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        params = E.UndeployVAppParams(E.UndeployPowerAction(action))
+        return self._perform_power_operation(
+            rel=RelationType.UNDEPLOY,
+            operation_name='undeploy',
+            media_type=EntityType.UNDEPLOY.value,
+            contents=params)
 
     def snapshot_create(self, memory=None, quiesce=None, name=None):
         """Create a snapshot of the vm.
@@ -216,80 +393,3 @@ class VM(object):
         self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.SNAPSHOT_REMOVE_ALL, None, None)
-
-    def deploy(self, power_on=True, force_customization=False):
-        """Deploys the vm.
-
-        Deploying the vm will allocate all resources assigned to the vm. If an
-        attempt is made to deploy an already deployed vm, an exception will be
-        raised.
-
-        :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task that is deploying the vm.
-
-        :rtype: lxml.objectify.ObjectifiedElement
-        """
-        self.get_resource()
-        deploy_vm_params = E.DeployVAppParams()
-        deploy_vm_params.set('powerOn', str(power_on).lower())
-        deploy_vm_params.set('forceCustomization',
-                             str(force_customization).lower())
-        return self.client.post_linked_resource(
-            self.resource, RelationType.DEPLOY, EntityType.DEPLOY.value,
-            deploy_vm_params)
-
-    def undeploy(self, action='default'):
-        """Undeploy the vm.
-
-        :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task that is undeploying the vm.
-
-        :rtype: lxml.objectify.ObjectifiedElement
-        """
-        self.get_resource()
-        params = E.UndeployVAppParams(E.UndeployPowerAction(action))
-        return self.client.post_linked_resource(
-            self.resource, RelationType.UNDEPLOY, EntityType.UNDEPLOY.value,
-            params)
-
-    def get_cpus(self):
-        """Returns the number of CPUs in the vm.
-
-        :return: number of cpus (int) and number of cores per socket (int) of
-            the vm.
-
-        :rtype: dict
-        """
-        self.get_resource()
-        return {
-            'num_cpus':
-            int(self.resource.VmSpecSection.NumCpus.text),
-            'num_cores_per_socket':
-            int(self.resource.VmSpecSection.NumCoresPerSocket.text)
-        }
-
-    def get_memory(self):
-        """Returns the amount of memory in MB.
-
-        :return: amount of memory in MB.
-
-        :rtype: int
-        """
-        self.get_resource()
-        return int(
-            self.resource.VmSpecSection.MemoryResourceMb.Configured.text)
-
-    def get_vc(self):
-        """Returns the vCenter where this vm is located.
-
-        :return: name of the vCenter server.
-
-        :rtype: str
-        """
-        self.get_resource()
-        for record in self.resource.VCloudExtension[
-                '{' + NSMAP['vmext'] + '}VmVimInfo'].iterchildren():
-            if hasattr(record, '{' + NSMAP['vmext'] + '}VimObjectType'):
-                if 'VIRTUAL_MACHINE' == record.VimObjectType.text:
-                    return record.VimServerRef.get('name')
-        return None

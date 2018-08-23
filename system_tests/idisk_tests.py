@@ -60,6 +60,8 @@ class TestDisk(BaseTestCase):
             TestDisk._test_runner_role)
         vdc = Environment.get_test_vdc(TestDisk._client)
 
+        #TODO(): Create a vApp for this test, so that attach and detach of disk
+        #        can be run as vapp author user instead of org admin
         disks = vdc.get_disks()
         for disk in disks:
             if TestDisk._idisk1_id is None and \

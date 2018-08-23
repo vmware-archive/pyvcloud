@@ -17,6 +17,7 @@ import logging
 import warnings
 
 from flufl.enum import Enum
+from pyvcloud.system_test_framework.utils import create_vapp_from_template
 import requests
 
 from pyvcloud.vcd.client import BasicLoginCredentials
@@ -49,6 +50,7 @@ def developerModeAware(function):
             Environment.get_default_logger().debug(
                 'Skipping ' + function.__name__ +
                 ' because developer mode is on.')
+
     return wrapper
 
 
@@ -76,7 +78,8 @@ class Environment(object):
         CommonRoles.CONSOLE_ACCESS_ONLY: 'console_user',
         CommonRoles.ORGANIZATION_ADMINISTRATOR: 'org_admin',
         CommonRoles.VAPP_AUTHOR: 'vapp_author',
-        CommonRoles.VAPP_USER: 'vapp_user'}
+        CommonRoles.VAPP_USER: 'vapp_user'
+    }
 
     _user_href_for_user_names = {}
 
@@ -252,8 +255,9 @@ class Environment(object):
         cls._basic_check()
         pvdc_name = cls._config['vcd']['default_pvdc_name']
 
-        system = System(cls._sys_admin_client,
-                        admin_resource=cls._sys_admin_client.get_admin())
+        system = System(
+            cls._sys_admin_client,
+            admin_resource=cls._sys_admin_client.get_admin())
 
         pvdc_refs = system.list_provider_vdcs()
         if pvdc_name is not '*':
@@ -283,8 +287,9 @@ class Environment(object):
         href of the org as class variable for future use.
         """
         cls._basic_check()
-        system = System(cls._sys_admin_client,
-                        admin_resource=cls._sys_admin_client.get_admin())
+        system = System(
+            cls._sys_admin_client,
+            admin_resource=cls._sys_admin_client.get_admin())
         org_name = cls._config['vcd']['default_org_name']
         org_resource_list = cls._sys_admin_client.get_org_list()
         for org_resource in org_resource_list:
@@ -293,9 +298,8 @@ class Environment(object):
                 cls._org_href = org_resource.get('href')
                 return
         cls._logger.debug('Creating new org ' + org_name)
-        system.create_org(org_name=org_name,
-                          full_org_name=org_name,
-                          is_enabled=True)
+        system.create_org(
+            org_name=org_name, full_org_name=org_name, is_enabled=True)
         # The following contraption is required to get the non admin href of
         # the org. The result of create_org() contains the admin version of
         # the href, since we created the org as a sys admin.
@@ -318,8 +322,8 @@ class Environment(object):
         org = Org(cls._sys_admin_client, href=cls._org_href)
         for role_enum in cls._user_name_for_roles.keys():
             user_name = cls._user_name_for_roles[role_enum]
-            user_records = list(org.list_users(
-                name_filter=('name', user_name)))
+            user_records = list(
+                org.list_users(name_filter=('name', user_name)))
             if len(user_records) > 0:
                 cls._logger.debug('Reusing existing user ' + user_name + '.')
                 cls._user_href_for_user_names[user_name] = \
@@ -371,8 +375,9 @@ class Environment(object):
             'default': True
         }]
 
-        system = System(cls._sys_admin_client,
-                        admin_resource=cls._sys_admin_client.get_admin())
+        system = System(
+            cls._sys_admin_client,
+            admin_resource=cls._sys_admin_client.get_admin())
         netpool_to_use = cls._get_netpool_name_to_use(system)
 
         cls._logger.debug('Creating ovdc ' + ovdc_name + '.')
@@ -418,8 +423,8 @@ class Environment(object):
                     break
 
         if netpool_to_use is None:
-            cls._logger.debug('Using first netpool in system : ' +
-                              netpools[0].get('name'))
+            cls._logger.debug(
+                'Using first netpool in system : ' + netpools[0].get('name'))
             netpool_to_use = netpools[0].get('name')
 
         return netpool_to_use
@@ -446,8 +451,8 @@ class Environment(object):
 
         for record in records:
             if record.get('name').lower() == net_name.lower():
-                cls._logger.debug('Reusing existing org-vdc network ' +
-                                  net_name)
+                cls._logger.debug(
+                    'Reusing existing org-vdc network ' + net_name)
                 return
 
         cls._logger.debug('Creating org-vdc network ' + net_name)
@@ -480,13 +485,13 @@ class Environment(object):
             catalog_records = org.list_catalogs()
             for catalog_record in catalog_records:
                 if catalog_record.get('name') == catalog_name:
-                    cls._logger.debug('Reusing existing catalog ' +
-                                      catalog_name)
+                    cls._logger.debug(
+                        'Reusing existing catalog ' + catalog_name)
                     return
 
             cls._logger.debug('Creating new catalog ' + catalog_name)
-            catalog_resource = org.create_catalog(name=catalog_name,
-                                                  description='')
+            catalog_resource = org.create_catalog(
+                name=catalog_name, description='')
             catalog_author_client.get_task_monitor().wait_for_success(
                 task=catalog_resource.Tasks.Task[0])
         finally:
@@ -518,8 +523,8 @@ class Environment(object):
                     org.share_catalog_with_org_members(
                         catalog_name=catalog_name)
                     return
-            raise EntityNotFoundException('Catalog ' + catalog_name +
-                                          'doesn\'t exist.')
+            raise EntityNotFoundException(
+                'Catalog ' + catalog_name + 'doesn\'t exist.')
         finally:
             catalog_author_client.logout()
 
@@ -546,8 +551,8 @@ class Environment(object):
             template_name = cls._config['vcd']['default_template_file_name']
             for item in catalog_items:
                 if item.get('name').lower() == template_name.lower():
-                    cls._logger.debug('Reusing existing template ' +
-                                      template_name)
+                    cls._logger.debug(
+                        'Reusing existing template ' + template_name)
                     return
 
             cls._logger.debug('Uploading template ' + template_name +
@@ -555,8 +560,8 @@ class Environment(object):
             org.upload_ovf(catalog_name=catalog_name, file_name=template_name)
 
             # wait for the template import to finish in vCD.
-            catalog_item = org.get_catalog_item(name=catalog_name,
-                                                item_name=template_name)
+            catalog_item = org.get_catalog_item(
+                name=catalog_name, item_name=template_name)
             template = catalog_author_client.get_resource(
                 catalog_item.Entity.get('href'))
             catalog_author_client.get_task_monitor().wait_for_success(
@@ -588,14 +593,12 @@ class Environment(object):
             cls._vapp_href = vapp_resource.get('href')
         except EntityNotFoundException as e:
             cls._logger.debug('Instantiating vApp ' + vapp_name + '.')
-            vapp_resource = vdc.instantiate_vapp(
+            cls._vapp_href = create_vapp_from_template(
+                client=catalog_author_client,
+                vdc=vdc,
                 name=vapp_name,
-                catalog=cls._config['vcd']['default_catalog_name'],
-                template=cls._config['vcd']['default_template_file_name'],
-                accept_all_eulas=True)
-            catalog_author_client.get_task_monitor()\
-                .wait_for_success(task=vapp_resource.Tasks.Task[0])
-            cls._vapp_href = vapp_resource.get('href')
+                catalog_name=cls._config['vcd']['default_catalog_name'],
+                template_name=cls._config['vcd']['default_template_file_name'])
         finally:
             catalog_author_client.logout()
 

@@ -190,12 +190,12 @@ class VDC(object):
         :param bool power_on: if True, power on the vApp after instantiation.
         :param bool accept_all_eulas: True, confirms acceptance of all EULAs in
             a vApp template.
-        :param int memory:
-        :param int cpu:
-        :param int disk_size:
-        :param str password:
-        :param str cust_script:
-        :param str vm_name: (str): when provided, sets the name of the vm.
+        :param int memory: size of memory of the first vm.
+        :param int cpu: number of cpus in the first vm.
+        :param int disk_size: size of the first disk of the first vm.
+        :param str password: admin password of the guest os on the first vm.
+        :param str cust_script: guest customization to run on the vm.
+        :param str vm_name: when provided, sets the name of the vm.
         :param str ip_address: when provided, sets the ip_address of the vm.
         :param str hostname: when provided, sets the hostname of the guest OS.
         :param str storage_profile:

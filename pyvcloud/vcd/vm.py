@@ -35,12 +35,25 @@ class VM(object):
         self.client = client
         if href is None and resource is None:
             raise InvalidParameterException(
-                "VM initialization failed as arguments "
-                "are either invalid or None")
+                'VM initialization failed as arguments are either invalid or'
+                ' None')
         self.href = href
         self.resource = resource
         if resource is not None:
             self.href = resource.get('href')
+
+    def get_resource(self):
+        """Fetches the XML representation of the vm from vCD.
+
+        Will serve cached response if possible.
+
+        :return: object containing EntityType.VM XML data representing the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if self.resource is None:
+            self.reload()
+        return self.resource
 
     def reload(self):
         """Reloads the resource representation of the vm.
@@ -101,8 +114,7 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_SHUTDOWN, None, None)
 
@@ -114,8 +126,7 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_REBOOT, None, None)
 
@@ -127,8 +138,7 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_ON, None, None)
 
@@ -140,8 +150,7 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_OFF, None, None)
 
@@ -153,8 +162,7 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.POWER_RESET, None, None)
 
@@ -173,8 +181,7 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         snapshot_vm_params = E.CreateSnapshotParams()
         if memory is not None:
             snapshot_vm_params.set('memory', str(memory).lower())
@@ -194,8 +201,7 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.SNAPSHOT_REVERT_TO_CURRENT, None, None)
 
@@ -207,8 +213,7 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.SNAPSHOT_REMOVE_ALL, None, None)
 
@@ -224,8 +229,7 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         deploy_vm_params = E.DeployVAppParams()
         deploy_vm_params.set('powerOn', str(power_on).lower())
         deploy_vm_params.set('forceCustomization',
@@ -242,8 +246,7 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         params = E.UndeployVAppParams(E.UndeployPowerAction(action))
         return self.client.post_linked_resource(
             self.resource, RelationType.UNDEPLOY, EntityType.UNDEPLOY.value,
@@ -257,8 +260,7 @@ class VM(object):
 
         :rtype: dict
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         return {
             'num_cpus':
             int(self.resource.VmSpecSection.NumCpus.text),
@@ -273,8 +275,7 @@ class VM(object):
 
         :rtype: int
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         return int(
             self.resource.VmSpecSection.MemoryResourceMb.Configured.text)
 
@@ -285,8 +286,7 @@ class VM(object):
 
         :rtype: str
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         for record in self.resource.VCloudExtension[
                 '{' + NSMAP['vmext'] + '}VmVimInfo'].iterchildren():
             if hasattr(record, '{' + NSMAP['vmext'] + '}VimObjectType'):

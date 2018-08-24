@@ -37,7 +37,6 @@ class TestPVDC(BaseTestCase):
         """Add resource pool(s) to a PVDC."""
         platform = Platform(TestPVDC._client)
         task = platform.add_resource_pools_to_provider_vdc(
-            TestPVDC._vcenter_host_name,
             TestPVDC._pvdc_name,
             TestPVDC._resource_pool_names)
         TestPVDC._client.get_task_monitor().wait_for_success(task=task)
@@ -46,7 +45,6 @@ class TestPVDC(BaseTestCase):
         """Disable and delete resource pool(s) from a PVDC."""
         platform = Platform(TestPVDC._client)
         task = platform.del_resource_pools_from_provider_vdc(
-            TestPVDC._vcenter_host_name,
             TestPVDC._pvdc_name,
             TestPVDC._resource_pool_names)
         TestPVDC._client.get_task_monitor().wait_for_success(task=task)

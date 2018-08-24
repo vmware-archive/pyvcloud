@@ -288,12 +288,10 @@ class Platform(object):
             contents=vmw_prov_vdc_params)
 
     def add_resource_pools_to_provider_vdc(self,
-                                           vim_server_name,
                                            pvdc_name,
                                            resource_pool_names):
         """Add Resource Pools to a Provider Virtual Datacenter.
 
-        :param str vim_server_name: vim_server_name (VC name).
         :param str pvdc_name: name of the Provider Virtual Datacenter.
         :param list resource_pool_names: list or resource pool names.
 
@@ -302,15 +300,15 @@ class Platform(object):
 
         rtype: lxml.objectify.ObjectifiedElement
         """
-        vc_resource = self.get_vcenter(vim_server_name)
-        vc_href = vc_resource.get('href')
-        rp_morefs = self.get_resource_pool_morefs(vim_server_name, vc_href,
-                                                  resource_pool_names)
         provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
         pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
         pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
         pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
+        vim_server_name = pvdc_ext_resource.VimServer.get('name')
+        vc_href = pvdc_ext_resource.VimServer.get('href')
+        rp_morefs = self.get_resource_pool_morefs(vim_server_name, vc_href,
+                                                  resource_pool_names)
         payload = E_VMEXT.UpdateResourcePoolSetParams()
         for rp_moref in rp_morefs:
             add_item = E_VMEXT.AddItem()
@@ -327,7 +325,6 @@ class Platform(object):
             contents=payload)
 
     def del_resource_pools_from_provider_vdc(self,
-                                             vim_server_name,
                                              pvdc_name,
                                              resource_pool_names):
         """Disable & Delete Resource Pools from a Provider Virtual Datacenter.
@@ -356,7 +353,6 @@ class Platform(object):
         is questionable whether returning any error (even if no RPs are found)
         is useful when deleting RPs from a PVDC.
 
-        :param str vim_server_name: vim_server_name (VC name).
         :param str pvdc_name: name of the Provider Virtual Datacenter.
         :param list resource_pool_names: list or resource pool names.
 
@@ -365,6 +361,12 @@ class Platform(object):
 
         rtype: lxml.objectify.ObjectifiedElement
         """
+        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
+                                            pvdc_name)
+        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
+        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
+        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
+        vim_server_name = pvdc_ext_resource.VimServer.get('name')
         # find the RPs that are in use
         query = self.client.get_typed_query(
             ResourceType.RESOURCE_POOL.value,
@@ -385,11 +387,6 @@ class Platform(object):
                 raise EntityNotFoundException(
                     'resource pool \'%s\' not Found' % resource_pool_name)
         # find RPs by <vc, moref> in list of RPs in use by this PVDC
-        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
-                                            pvdc_name)
-        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
-        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
-        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
         res_pools_in_pvdc = self.client.get_resource(pvdc_ext_href +
                                                      '/resourcePools')
         if hasattr(res_pools_in_pvdc,

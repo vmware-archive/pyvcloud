@@ -146,7 +146,7 @@ class TestVM(BaseTestCase):
     # how to test these functions.
 
     def test_0050_customize_vm(self):
-        """Test the merhods to update and retrieve memory and cpu of a vm.
+        """Test the methods to update and retrieve memory and cpu of a vm.
 
         The test passes if the update operations are successful and the values
         retrieved thereafter matches the expected values.

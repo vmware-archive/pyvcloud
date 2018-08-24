@@ -19,7 +19,7 @@ def create_empty_vapp(client, vdc, name, description):
 
     :param pyvcloud.vcd.client.Client client: a client that would be used
         to make ReST calls to vCD.
-    :param pyvcloud.vcd.vcd.VDC vdc: the vdc in which the vApp will be
+    :param pyvcloud.vcd.vdc.VDC vdc: the vdc in which the vApp will be
         created.
     :param str name: name of the new vApp.
     :param str description: description of the new vApp.
@@ -42,7 +42,7 @@ def create_vapp_from_template(client, vdc, name, catalog_name, template_name):
 
     :param pyvcloud.vcd.client.Client client: a client that would be used
         to make ReST calls to vCD.
-    :param pyvcloud.vcd.vcd.VDC vdc: the vdc in which the vApp will be
+    :param pyvcloud.vcd.vdc.VDC vdc: the vdc in which the vApp will be
         created.
     :param str name: name of the new vApp.
     :param str catalog_name: name of the catalog.
@@ -73,7 +73,7 @@ def create_customized_vapp_from_template(client, vdc, name, catalog_name,
 
     :param pyvcloud.vcd.client.Client client: a client that would be used
         to make ReST calls to vCD.
-    :param pyvcloud.vcd.vcd.VDC vdc: the vdc in which the vApp will be
+    :param pyvcloud.vcd.vdc.VDC vdc: the vdc in which the vApp will be
         created.
     :param str name: name of the new vApp.
     :param str catalog_name: name of the catalog.

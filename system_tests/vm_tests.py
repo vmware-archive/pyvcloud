@@ -61,7 +61,7 @@ class TestVM(BaseTestCase):
             TestVM._test_runner_role)
         vdc = Environment.get_test_vdc(TestVM._client)
 
-        logger.debug('Creating empty vApp.')
+        logger.debug('Creating vApp ' + TestVM._test_vapp_name + '.')
         TestVM._test_vapp_href = create_customized_vapp_from_template(
             client=TestVM._client,
             vdc=vdc,

@@ -17,7 +17,9 @@ from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
 from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.exceptions import OperationNotSupportedException
 
 
 class VM(object):

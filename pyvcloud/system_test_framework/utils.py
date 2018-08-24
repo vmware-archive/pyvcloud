@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyvcloud.vcd.client import Client
-from pyvcloud.vcd.vdc import VDC
-
 
 def create_empty_vapp(client, vdc, name, description):
     """Helper method to create an empty vApp.
@@ -35,7 +32,7 @@ def create_empty_vapp(client, vdc, name, description):
                                           description=description,
                                           accept_all_eulas=True)
 
-    task = client.get_task_monitor().wait_for_success(
+    client.get_task_monitor().wait_for_success(
         vapp_sparse_resouce.Tasks.Task[0])
 
     return vapp_sparse_resouce.get('href')
@@ -61,7 +58,7 @@ def create_vapp_from_template(client, vdc, name, catalog_name, template_name):
         template=template_name,
         accept_all_eulas=True)
 
-    task = client.get_task_monitor().wait_for_success(
+    client.get_task_monitor().wait_for_success(
         vapp_sparse_resouce.Tasks.Task[0])
 
     return vapp_sparse_resouce.get('href')
@@ -109,7 +106,7 @@ def create_customized_vapp_from_template(client, vdc, name, catalog_name,
         hostname=vm_hostname,
         network_adapter_type=nw_adapter_type)
 
-    task = client.get_task_monitor().wait_for_success(
+    client.get_task_monitor().wait_for_success(
         vapp_sparse_resouce.Tasks.Task[0])
 
     return vapp_sparse_resouce.get('href')

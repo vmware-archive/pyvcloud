@@ -550,7 +550,7 @@ class VApp(object):
         :return: a list of lxml.objectify.ObjectifiedElement objects, where
             each object contains EntityType.VM XML data and represents one vm.
 
-        :rtype: list
+        :rtype: empty list or generator object
         """
         self.get_resource()
         if hasattr(self.resource, 'Children') and \

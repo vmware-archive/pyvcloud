@@ -388,7 +388,7 @@ class Platform(object):
         if hasattr(res_pools_in_pvdc,
                    '{' + NSMAP['vmext'] + '}VMWProviderVdcResourcePool'):
             res_pool_refs = []
-            # join on <vc, moref> in this PVDC's RP list to get the RP hrefs
+            # join on <moref> in this PVDC's RP list to get the RP hrefs
             for res_pool in res_pools_in_pvdc.VMWProviderVdcResourcePool:
                 # disable the RP if it is enabled
                 links = get_links(resource=res_pool, rel=RelationType.DISABLE)

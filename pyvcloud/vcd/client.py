@@ -332,6 +332,10 @@ class EntityType(Enum):
     VIRTUAL_CENTER = 'application/vnd.vmware.admin.vmwvirtualcenter+xml'
     VM = 'application/vnd.vmware.vcloud.vm+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'
+    VMW_PROVIDER_VDC_RESOURCE_POOL = \
+        'application/vnd.vmware.admin.vmwProviderVdcResourcePool+xml'
+    VMW_PROVIDER_VDC_RESOURCE_POOL_SET = \
+        'application/vnd.vmware.admin.vmwProviderVdcResourcePoolSet+xml'
 
 
 class QueryResultFormat(Enum):

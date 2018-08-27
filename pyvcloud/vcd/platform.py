@@ -305,9 +305,9 @@ class Platform(object):
         pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
         pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
         pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
-        vim_server_name = pvdc_ext_resource.VimServer.get('name')
+        vc_name = pvdc_ext_resource.VimServer.get('name')
         vc_href = pvdc_ext_resource.VimServer.get('href')
-        rp_morefs = self.get_resource_pool_morefs(vim_server_name, vc_href,
+        rp_morefs = self.get_resource_pool_morefs(vc_name, vc_href,
                                                   resource_pool_names)
         payload = E_VMEXT.UpdateResourcePoolSetParams()
         for rp_moref in rp_morefs:
@@ -331,23 +331,20 @@ class Platform(object):
 
         This function deletes resource pools (RPs) from a Provider Virtual
         Datacenter (PVDC). In order to do this, the input "user-friendly" RP
-        names must be translated into RP hrefs. This is a 2-step process, for
-        each RP in the input list: 1) do a join on RP name from the RPs
-        "in use" associated w/ this VC and create a list of [<MoRef>], and then
-        2) do a join on the [<MoRef>] from the RPs that belong to the specified
-        PVDC to find their RP hrefs.
+        names must be translated into RP hrefs. This is a multi-step process.
+        1) create a dictionary of RP names associated w/ this PVDC's backing
+        VC that map to morefs.
+        2) create a list of morefs_to_delete, using the dictionary created
+        in step 1 -- filtered by the input set of RP names.
+        3) create a dictionary that maps RP morefs associated w/ this PVDC to
+        RP hrefs.
+        4) Use the list of morefs_to_delete (created in step 2) to filter
+        the list of RP hrefs created as a dictionary in step 3 to create
+        the final payload.
 
         Note that in order to delete a RP, it must first be disabled. This is
-        done if the disable link is present (which indicates that the RP is
-        enabled).
-
-        One shortcoming of this implementation is that it raises an exception
-        only if none of the input RPs could be found. This is due to the
-        complexity of tracking "not found" errors for each of the input RPs.
-        In order to do such tracking, it would be necessary to keep track of
-        ("remember") the RP names when doing the 2nd join on <VC, MoRef>. It
-        is questionable whether returning any error (even if no RPs are found)
-        is useful when deleting RPs from a PVDC.
+        done for each RP to be deleted if the disable link is present (which
+        indicates that the RP is enabled).
 
         :param str pvdc_name: name of the Provider Virtual Datacenter.
         :param list resource_pool_names: list or resource pool names.
@@ -362,34 +359,44 @@ class Platform(object):
         pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
         pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
         pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
-        vim_server_name = pvdc_ext_resource.VimServer.get('name')
-        # find the RPs that are in use
+        vc_name = pvdc_ext_resource.VimServer.get('name')
+
+        # find the RPs in use that are associated with the backing VC
         query = self.client.get_typed_query(
             ResourceType.RESOURCE_POOL.value,
-            query_result_format=QueryResultFormat.RECORDS)
-        res_pools_in_use = list(query.execute())
-        morefs = []
-        # join on RP name in RPs_in_use to get <moref>
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter='vcName==%s' % vc_name)
+        res_pools_in_use = {}
+        for res_pool in list(query.execute()):
+            res_pools_in_use[res_pool.get('name')] = res_pool.get('moref')
+
+        morefs_to_delete = []
         for resource_pool_name in resource_pool_names:
-            res_pool_found = False
-            for res_pool in res_pools_in_use:
-                if res_pool.get('vcName') == vim_server_name and \
-                   res_pool.get('name') == resource_pool_name:
-                    moref = res_pool.get('moref')
-                    morefs.append(moref)
-                    res_pool_found = True
-                    break
-            if not res_pool_found:
+            if resource_pool_name in res_pools_in_use.keys():
+                morefs_to_delete.append(res_pools_in_use[resource_pool_name])
+            else:
                 raise EntityNotFoundException(
                     'resource pool \'%s\' not Found' % resource_pool_name)
-        # find RPs by <moref> in list of RPs in use by this PVDC
-        res_pools_in_pvdc = self.client.get_resource(pvdc_ext_href +
-                                                     '/resourcePools')
+
+        res_pools_in_pvdc = self.client.get_linked_resource(
+            resource=pvdc_ext_resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL_SET.value)
+
+        pvdc_res_pools = {}
         if hasattr(res_pools_in_pvdc,
                    '{' + NSMAP['vmext'] + '}VMWProviderVdcResourcePool'):
-            res_pool_refs = []
-            # join on <moref> in this PVDC's RP list to get the RP hrefs
             for res_pool in res_pools_in_pvdc.VMWProviderVdcResourcePool:
+                pvdc_res_pools[res_pool.ResourcePoolVimObjectRef.MoRef] = \
+                    res_pool
+
+        res_pool_refs = []
+        for moref in morefs_to_delete:
+            if moref not in pvdc_res_pools.keys():
+                raise EntityNotFoundException(
+                    'resource pool with moref \'%s\' not Found' % moref)
+            else:
+                res_pool = pvdc_res_pools[moref]
                 # disable the RP if it is enabled
                 links = get_links(resource=res_pool, rel=RelationType.DISABLE)
                 num_links = len(links)
@@ -398,26 +405,20 @@ class Platform(object):
                                                      rel=RelationType.DISABLE,
                                                      media_type=None,
                                                      contents=None)
-                if res_pool.ResourcePoolVimObjectRef.MoRef in morefs:
-                    res_pool_refs.append(res_pool.ResourcePoolRef)
-            if len(res_pool_refs) == 0:
-                # raise exception if none of the input RPs could be found in
-                # the list of this PVDC's RPs
-                raise EntityNotFoundException(
-                    'resource pools \'%s\' not Found' %
-                    ' '.join(resource_pool_names))
-            else:
-                payload = E_VMEXT.UpdateResourcePoolSetParams()
-                for res_pool_ref in res_pool_refs:
-                    del_item = E_VMEXT.DeleteItem(
-                        href=res_pool_ref.get('href'),
-                        type=res_pool_ref.get('type'))
-                    payload.append(del_item)
-                return self.client.post_linked_resource(
-                    resource=pvdc_ext_resource,
-                    rel=RelationType.UPDATE_RESOURCE_POOLS,
-                    media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
-                    contents=payload)
+
+                res_pool_refs.append(res_pool)
+
+        payload = E_VMEXT.UpdateResourcePoolSetParams()
+        for res_pool_ref in res_pool_refs:
+            del_item = E_VMEXT.DeleteItem(
+                href=res_pool_ref.ResourcePoolRef.get('href'),
+                type=EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL.value)
+            payload.append(del_item)
+        return self.client.post_linked_resource(
+            resource=pvdc_ext_resource,
+            rel=RelationType.UPDATE_RESOURCE_POOLS,
+            media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
+            contents=payload)
 
     def attach_vcenter(self,
                        vc_server_name,

@@ -369,7 +369,7 @@ class Platform(object):
             query_result_format=QueryResultFormat.RECORDS)
         res_pools_in_use = list(query.execute())
         morefs = []
-        # join on RP name in RPs_in_use to get <vc, moref>
+        # join on RP name in RPs_in_use to get <moref>
         for resource_pool_name in resource_pool_names:
             res_pool_found = False
             for res_pool in res_pools_in_use:
@@ -382,7 +382,7 @@ class Platform(object):
             if not res_pool_found:
                 raise EntityNotFoundException(
                     'resource pool \'%s\' not Found' % resource_pool_name)
-        # find RPs by <vc, moref> in list of RPs in use by this PVDC
+        # find RPs by <moref> in list of RPs in use by this PVDC
         res_pools_in_pvdc = self.client.get_resource(pvdc_ext_href +
                                                      '/resourcePools')
         if hasattr(res_pools_in_pvdc,

@@ -333,13 +333,9 @@ class Platform(object):
         Datacenter (PVDC). In order to do this, the input "user-friendly" RP
         names must be translated into RP hrefs. This is a 2-step process, for
         each RP in the input list: 1) do a join on RP name from the RPs
-        "in use" (by a PVDC) and find its <VC name, MoRef>, and then
-        2) do a join on the <VC name, MoRef> from the RPs that belong
-        to the specified PVDC to find its RP href. Note that RP names and
-        MoRefs are not globally unique, they are only unique within a VC and
-        PVDC. Hence the need for the <VC, MoRef> tuples. RP hrefs are globally
-        unique. Note that for deletions, the RP href is required (whereas, for
-        RP additions, only the <VC name, MoRef> is required).
+        "in use" associated w/ this VC and create a list of [<MoRef>], and then
+        2) do a join on the [<MoRef>] from the RPs that belong to the specified
+        PVDC to find their RP hrefs.
 
         Note that in order to delete a RP, it must first be disabled. This is
         done if the disable link is present (which indicates that the RP is
@@ -402,9 +398,7 @@ class Platform(object):
                                                      rel=RelationType.DISABLE,
                                                      media_type=None,
                                                      contents=None)
-                if res_pool.ResourcePoolVimObjectRef.VimServerRef.get('name') \
-                   == vim_server_name and \
-                   res_pool.ResourcePoolVimObjectRef.MoRef in morefs:
+                if res_pool.ResourcePoolVimObjectRef.MoRef in morefs:
                     res_pool_refs.append(res_pool.ResourcePoolRef)
             if len(res_pool_refs) == 0:
                 # raise exception if none of the input RPs could be found in

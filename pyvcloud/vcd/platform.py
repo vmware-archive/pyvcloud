@@ -418,7 +418,6 @@ class Platform(object):
                                                  rel=RelationType.DISABLE,
                                                  media_type=None,
                                                  contents=None)
-
                     res_pool_to_delete_refs.append(res_pool)
 
         payload = E_VMEXT.UpdateResourcePoolSetParams()

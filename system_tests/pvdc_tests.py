@@ -19,7 +19,6 @@ from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import Environment
 
 from pyvcloud.vcd.platform import Platform
-# from pyvcloud.vcd.utils import stdout_xml
 
 
 class TestPVDC(BaseTestCase):

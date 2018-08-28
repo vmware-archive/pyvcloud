@@ -390,7 +390,7 @@ class Platform(object):
                 pvdc_res_pools[res_pool.ResourcePoolVimObjectRef.MoRef] = \
                     res_pool
 
-        res_pool_refs = []
+        res_pool_to_delete_refs = []
         for moref in morefs_to_delete:
             if moref not in pvdc_res_pools.keys():
                 raise EntityNotFoundException(
@@ -406,10 +406,10 @@ class Platform(object):
                                                      media_type=None,
                                                      contents=None)
 
-                res_pool_refs.append(res_pool)
+                res_pool_to_delete_refs.append(res_pool)
 
         payload = E_VMEXT.UpdateResourcePoolSetParams()
-        for res_pool_ref in res_pool_refs:
+        for res_pool_ref in res_pool_to_delete_refs:
             del_item = E_VMEXT.DeleteItem(
                 href=res_pool_ref.ResourcePoolRef.get('href'),
                 type=EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL.value)

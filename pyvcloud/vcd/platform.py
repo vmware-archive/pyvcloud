@@ -333,7 +333,7 @@ class Platform(object):
         Datacenter (PVDC). In order to do this, the input "user-friendly" RP
         names must be translated into RP hrefs. This is a multi-step process.
         1) create a dictionary of RP names associated w/ this PVDC's backing
-        VC that map to morefs.
+        VC that maps to morefs.
         2) create a list of morefs_to_delete, using the dictionary created
         in step 1 -- filtered by the input set of RP names.
         3) create a dictionary that maps RP morefs associated w/ this PVDC to

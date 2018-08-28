@@ -397,16 +397,23 @@ class Platform(object):
                     'resource pool with moref \'%s\' not Found' % moref)
             else:
                 res_pool = pvdc_res_pools[moref]
-                # disable the RP if it is enabled
-                links = get_links(resource=res_pool, rel=RelationType.DISABLE)
-                num_links = len(links)
-                if num_links == 1:
-                    self.client.post_linked_resource(resource=res_pool,
-                                                     rel=RelationType.DISABLE,
-                                                     media_type=None,
-                                                     contents=None)
+                if res_pool.get('primary') == 'true':
+                    raise EntityNotFoundException(
+                        'cannot delete primary respool with moref \'%s\' ' %
+                        res_pool.ResourcePoolVimObjectRef.MoRef)
+                else:
+                    # disable the RP if it is enabled
+                    links = get_links(resource=res_pool,
+                                      rel=RelationType.DISABLE)
+                    num_links = len(links)
+                    if num_links == 1:
+                        self.client.post_linked_resource(resource=res_pool,
+                                                         rel=RelationType.\
+                                                             DISABLE,
+                                                         media_type=None,
+                                                         contents=None)
 
-                res_pool_to_delete_refs.append(res_pool)
+                    res_pool_to_delete_refs.append(res_pool)
 
         payload = E_VMEXT.UpdateResourcePoolSetParams()
         for res_pool_ref in res_pool_to_delete_refs:

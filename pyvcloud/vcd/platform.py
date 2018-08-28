@@ -19,12 +19,15 @@ import uuid
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import get_links
+from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.extension import Extension
+from pyvcloud.vcd.utils import get_admin_extension_href
 
 
 class Platform(object):
@@ -283,6 +286,139 @@ class Platform(object):
             rel=RelationType.ADD,
             media_type=EntityType.PROVIDER_VDC_PARAMS.value,
             contents=vmw_prov_vdc_params)
+
+    def add_resource_pools_to_provider_vdc(self,
+                                           pvdc_name,
+                                           resource_pool_names):
+        """Add Resource Pools to a Provider Virtual Datacenter.
+
+        :param str pvdc_name: name of the Provider Virtual Datacenter.
+        :param list resource_pool_names: list or resource pool names.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is adding Resource Pools to the PVDC.
+
+        rtype: lxml.objectify.ObjectifiedElement
+        """
+        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
+                                            pvdc_name)
+        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
+        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
+        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
+        vc_name = pvdc_ext_resource.VimServer.get('name')
+        vc_href = pvdc_ext_resource.VimServer.get('href')
+        rp_morefs = self.get_resource_pool_morefs(vc_name, vc_href,
+                                                  resource_pool_names)
+        payload = E_VMEXT.UpdateResourcePoolSetParams()
+        for rp_moref in rp_morefs:
+            add_item = E_VMEXT.AddItem()
+            add_item.append(
+                E_VMEXT.VimServerRef(type=EntityType.VIRTUAL_CENTER.value,
+                                     href=vc_href))
+            add_item.append(E_VMEXT.MoRef(rp_moref))
+            add_item.append(E_VMEXT.VimObjectType('RESOURCE_POOL'))
+            payload.append(add_item)
+        return self.client.post_linked_resource(
+            resource=pvdc_ext_resource,
+            rel=RelationType.UPDATE_RESOURCE_POOLS,
+            media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
+            contents=payload)
+
+    def del_resource_pools_from_provider_vdc(self,
+                                             pvdc_name,
+                                             resource_pool_names):
+        """Disable & Delete Resource Pools from a Provider Virtual Datacenter.
+
+        This function deletes resource pools (RPs) from a Provider Virtual
+        Datacenter (PVDC). In order to do this, the input "user-friendly" RP
+        names must be translated into RP hrefs. This is a multi-step process.
+        1) create a dictionary that maps RP names associated w/ this PVDC's
+        backing VC to morefs.
+        2) create a list of morefs_to_delete, using the dictionary created
+        in step 1 -- filtered by the input set of RP names.
+        3) create a dictionary that maps RP morefs associated w/ this PVDC to
+        RP hrefs.
+        4) Use the list of morefs_to_delete (created in step 2) to filter
+        the list of RP hrefs created as a dictionary in step 3 to create
+        the final payload.
+
+        Note that in order to delete a RP, it must first be disabled. This is
+        done for each RP to be deleted if the disable link is present (which
+        indicates that the RP is enabled).
+
+        :param str pvdc_name: name of the Provider Virtual Datacenter.
+        :param list resource_pool_names: list or resource pool names.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the async task that is deleting Resource Pools fronm the PVDC.
+
+        rtype: lxml.objectify.ObjectifiedElement
+        """
+        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
+                                            pvdc_name)
+        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
+        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
+        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
+        vc_name = pvdc_ext_resource.VimServer.get('name')
+
+        # find the RPs in use that are associated with the backing VC
+        query = self.client.get_typed_query(
+            ResourceType.RESOURCE_POOL.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter='vcName==%s' % vc_name)
+        res_pools_in_use = {}
+        for res_pool in list(query.execute()):
+            res_pools_in_use[res_pool.get('name')] = res_pool.get('moref')
+
+        morefs_to_delete = []
+        for resource_pool_name in resource_pool_names:
+            if resource_pool_name in res_pools_in_use.keys():
+                morefs_to_delete.append(res_pools_in_use[resource_pool_name])
+            else:
+                raise EntityNotFoundException(
+                    'resource pool \'%s\' not Found' % resource_pool_name)
+
+        res_pools_in_pvdc = self.client.get_linked_resource(
+            resource=pvdc_ext_resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL_SET.value)
+
+        pvdc_res_pools = {}
+        if hasattr(res_pools_in_pvdc,
+                   '{' + NSMAP['vmext'] + '}VMWProviderVdcResourcePool'):
+            for res_pool in res_pools_in_pvdc.VMWProviderVdcResourcePool:
+                pvdc_res_pools[res_pool.ResourcePoolVimObjectRef.MoRef] = \
+                    res_pool
+
+        res_pool_to_delete_refs = []
+        for moref in morefs_to_delete:
+            if moref not in pvdc_res_pools.keys():
+                raise EntityNotFoundException(
+                    'resource pool with moref \'%s\' not Found' % moref)
+            else:
+                res_pool = pvdc_res_pools[moref]
+                # disable the RP if it is enabled
+                links = get_links(resource=res_pool, rel=RelationType.DISABLE)
+                num_links = len(links)
+                if num_links == 1:
+                    self.client.post_linked_resource(resource=res_pool,
+                                                     rel=RelationType.DISABLE,
+                                                     media_type=None,
+                                                     contents=None)
+
+                res_pool_to_delete_refs.append(res_pool)
+
+        payload = E_VMEXT.UpdateResourcePoolSetParams()
+        for res_pool_ref in res_pool_to_delete_refs:
+            del_item = E_VMEXT.DeleteItem(
+                href=res_pool_ref.ResourcePoolRef.get('href'),
+                type=EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL.value)
+            payload.append(del_item)
+        return self.client.post_linked_resource(
+            resource=pvdc_ext_resource,
+            rel=RelationType.UPDATE_RESOURCE_POOLS,
+            media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
+            contents=payload)
 
     def attach_vcenter(self,
                        vc_server_name,

@@ -162,6 +162,7 @@ class RelationType(Enum):
     UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'
     UNREGISTER = 'unregister'
     UP = 'up'
+    UPDATE_RESOURCE_POOLS = 'update:resourcePools'
 
 
 class ResourceType(Enum):
@@ -223,11 +224,11 @@ class ResourceType(Enum):
     PROVIDER_VDC = 'providerVdc'
     PROVIDER_VDC_RESOURCE_POOL_RELATION = 'providerVdcResourcePoolRelation'
     PROVIDER_VDC_STORAGE_PROFILE = 'providerVdcStorageProfile'
+    RESOURCE_CLASS = 'resourceClass'
+    RESOURCE_CLASS_ACTION = 'resourceClassAction'
     RESOURCE_POOL = 'resourcePool'
     RESOURCE_POOL_VM_LIST = 'resourcePoolVmList'
     RIGHT = 'right'
-    RESOURCE_CLASS = 'resourceClass'
-    RESOURCE_CLASS_ACTION = 'resourceClassAction'
     ROLE = 'role'
     SERVICE = 'service'
     SERVICE_LINK = 'serviceLink'
@@ -309,6 +310,8 @@ class EntityType(Enum):
     RECORDS = 'application/vnd.vmware.vcloud.query.records+xml'
     REGISTER_VC_SERVER_PARAMS = \
         'application/vnd.vmware.admin.registerVimServerParams+xml'
+    RES_POOL_SET_UPDATE_PARAMS = \
+        'application/vnd.vmware.admin.resourcePoolSetUpdateParams+xml'
     ROLE = 'application/vnd.vmware.admin.role+xml'
     RIGHT = 'application/vnd.vmware.admin.right+xml'
     SNAPSHOT_CREATE = 'application/vnd.vmware.vcloud.createSnapshotParams+xml'
@@ -329,6 +332,10 @@ class EntityType(Enum):
     VIRTUAL_CENTER = 'application/vnd.vmware.admin.vmwvirtualcenter+xml'
     VM = 'application/vnd.vmware.vcloud.vm+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'
+    VMW_PROVIDER_VDC_RESOURCE_POOL = \
+        'application/vnd.vmware.admin.vmwProviderVdcResourcePool+xml'
+    VMW_PROVIDER_VDC_RESOURCE_POOL_SET = \
+        'application/vnd.vmware.admin.vmwProviderVdcResourcePoolSet+xml'
 
 
 class QueryResultFormat(Enum):

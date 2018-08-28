@@ -26,6 +26,7 @@ from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidStateException
+from pyvcloud.vcd.exceptions import ValidationError
 from pyvcloud.vcd.extension import Extension
 from pyvcloud.vcd.utils import get_admin_extension_href
 
@@ -298,7 +299,7 @@ class Platform(object):
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is adding Resource Pools to the PVDC.
 
-        rtype: lxml.objectify.ObjectifiedElement
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
@@ -352,7 +353,12 @@ class Platform(object):
         :return: an object containing EntityType.TASK XML data which represents
             the async task that is deleting Resource Pools fronm the PVDC.
 
-        rtype: lxml.objectify.ObjectifiedElement
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if any resource_pool_name cannot be
+            found.
+        :raises: ValidationError: if primary resource pool is input for
+            deletion.
         """
         provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
@@ -397,16 +403,22 @@ class Platform(object):
                     'resource pool with moref \'%s\' not Found' % moref)
             else:
                 res_pool = pvdc_res_pools[moref]
-                # disable the RP if it is enabled
-                links = get_links(resource=res_pool, rel=RelationType.DISABLE)
-                num_links = len(links)
-                if num_links == 1:
-                    self.client.post_linked_resource(resource=res_pool,
-                                                     rel=RelationType.DISABLE,
-                                                     media_type=None,
-                                                     contents=None)
-
-                res_pool_to_delete_refs.append(res_pool)
+                if res_pool.get('primary') == 'true':
+                    raise ValidationError(
+                        'cannot delete primary respool with moref \'%s\' ' %
+                        res_pool.ResourcePoolVimObjectRef.MoRef)
+                else:
+                    # disable the RP if it is enabled
+                    links = get_links(resource=res_pool,
+                                      rel=RelationType.DISABLE)
+                    num_links = len(links)
+                    if num_links == 1:
+                        self.client.\
+                            post_linked_resource(resource=res_pool,
+                                                 rel=RelationType.DISABLE,
+                                                 media_type=None,
+                                                 contents=None)
+                    res_pool_to_delete_refs.append(res_pool)
 
         payload = E_VMEXT.UpdateResourcePoolSetParams()
         for res_pool_ref in res_pool_to_delete_refs:

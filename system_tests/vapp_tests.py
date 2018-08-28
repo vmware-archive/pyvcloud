@@ -20,6 +20,9 @@ from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
+from pyvcloud.system_test_framework.utils import \
+    create_customized_vapp_from_template
+from pyvcloud.system_test_framework.utils import create_empty_vapp
 
 from pyvcloud.vcd.client import NetworkAdapterType
 from pyvcloud.vcd.client import NSMAP
@@ -33,7 +36,7 @@ class TestVApp(BaseTestCase):
     _test_runner_role = CommonRoles.VAPP_AUTHOR
     _client = None
 
-    _empty_vapp_name = 'empty_vApp'
+    _empty_vapp_name = 'empty_vApp_' + str(uuid1())
     _empty_vapp_description = 'empty vApp description'
     _empty_vapp_runtime_lease = 86400  # in seconds
     _empty_vapp_storage_lease = 86400  # in seconds
@@ -42,7 +45,7 @@ class TestVApp(BaseTestCase):
 
     _additional_vm_name = 'additional-vm'
 
-    _customized_vapp_name = 'customized_vApp'
+    _customized_vapp_name = 'customized_vApp_' + str(uuid1())
     _customized_vapp_description = 'customized vApp description'
     _customized_vapp_num_cpu = 2
     _customized_vapp_memory_size = 64  # MB
@@ -58,8 +61,7 @@ class TestVApp(BaseTestCase):
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
 
-        Create two vApps as per the configuration stated above. In case the
-        vApps exist, re-use them.
+        Create two vApps as per the configuration stated above.
 
         This test passes if the two vApp hrefs are not None.
         """
@@ -68,96 +70,34 @@ class TestVApp(BaseTestCase):
             TestVApp._test_runner_role)
         vdc = Environment.get_test_vdc(TestVApp._client)
 
-        try:
-            vapp_resource = vdc.get_vapp(TestVApp._empty_vapp_name)
-            logger.debug('Reusing empty vApp')
-            TestVApp._empty_vapp_href = vapp_resource.get('href')
-            TestVApp._empty_vapp_owner_name = \
-                vapp_resource.Owner.User.get('name')
-        except EntityNotFoundException as e:
-            TestVApp._empty_vapp_href = self._create_empty_vapp(
-                TestVApp._client, vdc)
-            TestVApp._empty_vapp_owner_name = Environment.\
-                get_username_for_role_in_test_org(TestVApp._test_runner_role)
+        logger.debug('Creating empty vApp.')
+        TestVApp._empty_vapp_href = \
+            create_empty_vapp(client=TestVApp._client,
+                              vdc=vdc,
+                              name=TestVApp._empty_vapp_name,
+                              description=TestVApp._empty_vapp_description)
+        TestVApp._empty_vapp_owner_name = Environment.\
+            get_username_for_role_in_test_org(TestVApp._test_runner_role)
 
-        try:
-            vapp_resource = vdc.get_vapp(TestVApp._customized_vapp_name)
-            logger.debug('Reusing customized vApp')
-            TestVApp._customized_vapp_href = vapp_resource.get('href')
-            TestVApp._customized_vapp_owner_name = \
-                vapp_resource.Owner.User.get('name')
-        except EntityNotFoundException as e:
-            TestVApp._customized_vapp_href = \
-                self._create_customized_vapp_from_template(
-                    TestVApp._client,
-                    vdc)
-            TestVApp._customized_vapp_owner_name = Environment.\
-                get_username_for_role_in_test_org(
-                    TestVApp._test_runner_role)
+        logger.debug('Creating customized vApp.')
+        TestVApp._customized_vapp_href = create_customized_vapp_from_template(
+            client=TestVApp._client,
+            vdc=vdc,
+            name=TestVApp._customized_vapp_name,
+            catalog_name=Environment.get_default_catalog_name(),
+            template_name=Environment.get_default_template_name(),
+            description=TestVApp._customized_vapp_description,
+            memory_size=TestVApp._customized_vapp_memory_size,
+            num_cpu=TestVApp._customized_vapp_num_cpu,
+            disk_size=TestVApp._customized_vapp_disk_size,
+            vm_name=TestVApp._customized_vapp_vm_name,
+            vm_hostname=TestVApp._customized_vapp_vm_hostname,
+            nw_adapter_type=TestVApp._customized_vapp_vm_network_adapter_type)
+        TestVApp._customized_vapp_owner_name = Environment.\
+            get_username_for_role_in_test_org(TestVApp._test_runner_role)
 
         self.assertIsNotNone(TestVApp._empty_vapp_href)
         self.assertIsNotNone(TestVApp._customized_vapp_href)
-
-    def _create_empty_vapp(self, client, vdc):
-        """Helper method to create an empty vApp.
-
-        :param pyvcloud.vcd.client.Client client: a client that would be used
-            to make ReST calls to vCD.
-        :param pyvcloud.vcd.vcd.VDC vdc: the vdc in which the vApp will be
-            created.
-
-        :return: href of the created vApp.
-
-        :rtype: str
-        """
-        logger = Environment.get_default_logger()
-        logger.debug('Creating empty vApp.')
-        vapp_sparse_resouce = vdc.create_vapp(
-            name=TestVApp._empty_vapp_name,
-            description=TestVApp._empty_vapp_description,
-            accept_all_eulas=True)
-
-        task = client.get_task_monitor().wait_for_success(
-            vapp_sparse_resouce.Tasks.Task[0])
-        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
-
-        return vapp_sparse_resouce.get('href')
-
-    def _create_customized_vapp_from_template(self, client, vdc):
-        """Helper method to create a customized vApp from template.
-
-        :param pyvcloud.vcd.client.Client client: a client that would be used
-            to make ReST calls to vCD.
-        :param pyvcloud.vcd.vcd.VDC vdc: the vdc in which the vApp will be
-            created.
-
-        :return: href of the created vApp.
-
-        :rtype: str
-        """
-        logger = Environment.get_default_logger()
-        logger.debug('Creating customized vApp.')
-        vapp_sparse_resouce = vdc.instantiate_vapp(
-            name=TestVApp._customized_vapp_name,
-            catalog=Environment.get_default_catalog_name(),
-            template=Environment.get_default_template_name(),
-            description=TestVApp._customized_vapp_description,
-            deploy=True,
-            power_on=True,
-            accept_all_eulas=True,
-            memory=TestVApp._customized_vapp_memory_size,
-            cpu=TestVApp._customized_vapp_num_cpu,
-            disk_size=TestVApp._customized_vapp_disk_size,
-            vm_name=TestVApp._customized_vapp_vm_name,
-            hostname=TestVApp._customized_vapp_vm_hostname,
-            network_adapter_type=TestVApp.
-            _customized_vapp_vm_network_adapter_type)
-
-        task = client.get_task_monitor().wait_for_success(
-            vapp_sparse_resouce.Tasks.Task[0])
-        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
-
-        return vapp_sparse_resouce.get('href')
 
     def test_0010_get_vapp(self):
         """Test the method vdc.get_vapp().
@@ -355,8 +295,8 @@ class TestVApp(BaseTestCase):
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=vapp_name)
 
-        logger.debug('Connecting vApp ' + vapp_name +
-                     ' to orgvdc network ' + network_name)
+        logger.debug('Connecting vApp ' + vapp_name + ' to orgvdc network ' +
+                     network_name)
         task = vapp.connect_org_vdc_network(network_name)
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)

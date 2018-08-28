@@ -190,12 +190,12 @@ class VDC(object):
         :param bool power_on: if True, power on the vApp after instantiation.
         :param bool accept_all_eulas: True, confirms acceptance of all EULAs in
             a vApp template.
-        :param int memory:
-        :param int cpu:
-        :param int disk_size:
-        :param str password:
-        :param str cust_script:
-        :param str vm_name: (str): when provided, sets the name of the vm.
+        :param int memory: size of memory of the first vm.
+        :param int cpu: number of cpus in the first vm.
+        :param int disk_size: size of the first disk of the first vm.
+        :param str password: admin password of the guest os on the first vm.
+        :param str cust_script: guest customization to run on the vm.
+        :param str vm_name: when provided, sets the name of the vm.
         :param str ip_address: when provided, sets the ip_address of the vm.
         :param str hostname: when provided, sets the hostname of the guest OS.
         :param str storage_profile:
@@ -548,7 +548,7 @@ class VDC(object):
         :param int new_iops: new iops requirement of the disk.
 
         :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task updating the disk.
+            the asynchronous task that is updating the disk.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
@@ -597,7 +597,7 @@ class VDC(object):
         :param str disk_id: id of the disk to delete.
 
         :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task deleting the disk.
+            the asynchronous task that is deleting the disk.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
@@ -769,14 +769,23 @@ class VDC(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         resource_admin = self.client.get_resource(self.href_admin)
-        link = RelationType.ENABLE if enable else RelationType.DISABLE
-        return self.client.post_linked_resource(resource_admin, link, None,
+        if enable:
+            rel = RelationType.ENABLE
+        else:
+            rel = RelationType.DISABLE
+
+        return self.client.post_linked_resource(resource_admin, rel, None,
                                                 None)
 
     def delete_vdc(self):
         """Delete the current org vdc.
 
         :param str vdc_name: name of the org vdc to delete.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is deleting the org vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
@@ -1210,7 +1219,7 @@ class VDC(object):
             or not.
 
         :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task that's deleting the network.
+            the asynchronous task that is deleting the network.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
@@ -1230,7 +1239,7 @@ class VDC(object):
             or not.
 
         :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task that's deleting the network.
+            the asynchronous task that is deleting the network.
 
         :rtype: lxml.objectify.ObjectifiedElement
 

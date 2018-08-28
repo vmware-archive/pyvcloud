@@ -408,8 +408,8 @@ class Platform(object):
                     num_links = len(links)
                     if num_links == 1:
                         self.client.post_linked_resource(resource=res_pool,
-                                                         rel=RelationType.\
-                                                             DISABLE,
+                                                         rel=RelationType.
+                                                         DISABLE,
                                                          media_type=None,
                                                          contents=None)
 

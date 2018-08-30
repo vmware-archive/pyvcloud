@@ -180,7 +180,7 @@ class TestNetwork(BaseTestCase):
 
     @developerModeAware
     def test_9998_teardown(self):
-        """Test the  method vdc.delete_isolated_orgvdc_network().
+        """Test the method vdc.delete_isolated_orgvdc_network().
 
         Invoke the method for the orgvdc network created by setup.
 

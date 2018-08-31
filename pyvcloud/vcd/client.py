@@ -625,9 +625,13 @@ class Client(object):
         versions = self.get_supported_versions()
         active_versions = []
         for version in versions.VersionInfo:
+            # Versions must be explicitly assigned as text values using the
+            # .text property. Otherwise lxml will return "corrected" numbers
+            # that drop non-sigificant digits. For example, 5.10 becomes
+            # 5.1.  This transformation corrupts the version.
             if not hasattr(version, 'deprecated') or \
                version.get('deprecated') == 'false':
-                active_versions.append(str(version.Version))
+                active_versions.append(str(version.Version.text))
         active_versions.sort(key=StrictVersion)
         return active_versions
 

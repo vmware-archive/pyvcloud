@@ -32,18 +32,18 @@ class TestPVDC(BaseTestCase):
         TestPVDC._resource_pool_names = \
             self._config['pvdc']['resource_pool_names']
 
-    def test_0010_add_resource_pools(self):
-        """Add resource pool(s) to a PVDC."""
+    def test_0010_attach_resource_pools(self):
+        """Attach resource pool(s) to a PVDC."""
         platform = Platform(TestPVDC._client)
-        task = platform.add_resource_pools_to_provider_vdc(
+        task = platform.attach_resource_pools_to_provider_vdc(
             TestPVDC._pvdc_name,
             TestPVDC._resource_pool_names)
         TestPVDC._client.get_task_monitor().wait_for_success(task=task)
 
-    def test_0020_del_resource_pools(self):
+    def test_0020_detach_resource_pools(self):
         """Disable and delete resource pool(s) from a PVDC."""
         platform = Platform(TestPVDC._client)
-        task = platform.del_resource_pools_from_provider_vdc(
+        task = platform.detach_resource_pools_from_provider_vdc(
             TestPVDC._pvdc_name,
             TestPVDC._resource_pool_names)
         TestPVDC._client.get_task_monitor().wait_for_success(task=task)

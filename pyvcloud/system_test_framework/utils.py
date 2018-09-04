@@ -110,3 +110,24 @@ def create_customized_vapp_from_template(client, vdc, name, catalog_name,
         vapp_sparse_resouce.Tasks.Task[0])
 
     return vapp_sparse_resouce.get('href')
+
+def create_independent_disk(client, vdc, name, size, description):
+    """Helper method to create an independent disk in a given orgVDC.
+
+    :param pyvcloud.vcd.client.Client client: a client that would be used
+        to make ReST calls to vCD.
+    :param pyvcloud.vcd.vdc.VDC vdc: the vdc in which the disk will be
+        created.
+    :param str name: name of the disk to be created.
+    :param str size: size of the disk to be created in bytes.
+    :param str description: description of the disk to be created.
+
+    :return: id of the created independent disk.
+
+    :rtype: str
+    """
+    disk_sparse = vdc.create_disk(name=name, size=size,
+                                  description=description)
+    client.get_task_monitor().wait_for_success(disk_sparse.Tasks.Task[0])
+    # clip 'urn:vcloud:disk:' from the id returned by vCD.
+    return disk_sparse.get('id')[16:]

@@ -14,13 +14,19 @@
 # limitations under the License.
 
 import unittest
+from uuid import uuid1
 
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
+from pyvcloud.system_test_framework.utils import \
+    create_customized_vapp_from_template
+from pyvcloud.system_test_framework.utils import create_independent_disk
 
+from pyvcloud.vcd.client import NetworkAdapterType
 from pyvcloud.vcd.client import TaskStatus
+from pyvcloud.vcd.vapp import VApp
 
 
 class TestDisk(BaseTestCase):
@@ -29,98 +35,90 @@ class TestDisk(BaseTestCase):
     _test_runner_role = CommonRoles.VAPP_AUTHOR
     _client = None
 
-    _idisk1_name = 'test_idisk'
+    _idisk1_name = 'test_idisk_' + str(uuid1())
     _idisk1_size = '10'
     _idisk1_description = 'First disk'
     _idisk1_id = None
-    _idisk1_new_name = 'test_idisk_new'
+    _idisk1_new_name = 'test_idisk_new_name_' + str(uuid1())
     _idisk1_new_size = '20'
     _idisk1_new_description = 'New description of first disk'
 
-    _idisk2_name = 'test_idisk_2'
+    _idisk2_name = 'test_idisk_' + str(uuid1())
     _idisk2_size = '20'
     _idisk2_description = 'Second disk'
     _idisk2_id = None
 
-    _idisk3_name = 'test_idisk_2'
+    _idisk3_name = _idisk2_name
     _idisk3_size = '30'
-    _idisk3_description = 'Third disk namesake of Second disk'
+    _idisk3_description = 'Third disk, namesake of second disk'
     _idisk3_id = None
+
+    _test_vapp_name = 'test_vApp_' + str(uuid1())
+    _test_vapp_first_vm_num_cpu = 2
+    _test_vapp_first_vm_new_num_cpu = 4
+    _test_vapp_first_vm_memory_size = 64  # MB
+    _test_vapp_first_vm_new_memory_size = 128  # MB
+    _test_vapp_first_vm_first_disk_size = 100  # MB
+    _test_vapp_first_vm_name = 'first-vm'
+    _test_vapp_first_vm_network_adapter_type = NetworkAdapterType.VMXNET3
+    _test_vapp_href = None
 
     def test_0000_setup(self):
         """Setup the independent disks for the other tests in this module.
 
         Create three independent disks as per the configuration stated above.
-        In case the disks exist, re-use them.
+        Also create a vApp that will be used in attach/detach independent disk
+        tests.
 
-        This test passes if all the three disk ids are not None.
+        This test passes if all the three disk ids and the vapp href are not
+        None.
         """
         logger = Environment.get_default_logger()
         TestDisk._client = Environment.get_client_in_default_org(
             TestDisk._test_runner_role)
         vdc = Environment.get_test_vdc(TestDisk._client)
 
-        # TODO(): Create a vApp for this test, so that attach and detach of
-        # disk can be run as vapp author user instead of org admin
-        disks = vdc.get_disks()
-        for disk in disks:
-            if TestDisk._idisk1_id is None and \
-                    disk.get('name').lower() == self._idisk1_name:
-                logger.debug('Reusing ' + TestDisk._idisk1_name)
-                TestDisk._idisk1_id = disk.get('id')[16:]
-            elif TestDisk._idisk2_id is None and \
-                    disk.get('name').lower() == self._idisk2_name and \
-                    str(disk.Description).lower() == \
-                    self._idisk2_description.lower():
-                logger.debug('Reusing ' + TestDisk._idisk2_name)
-                TestDisk._idisk2_id = disk.get('id')[16:]
-            elif TestDisk._idisk3_id is None and \
-                    disk.get('name').lower() == self._idisk3_name:
-                logger.debug('Reusing ' + TestDisk._idisk3_name)
-                TestDisk._idisk3_id = disk.get('id')[16:]
+        logger.debug('Creating disk : ' + TestDisk._idisk1_name)
+        TestDisk._idisk1_id = create_independent_disk(
+            client=TestDisk._client,
+            vdc=vdc,
+            name=TestDisk._idisk1_name,
+            size=TestDisk._idisk1_size,
+            description=TestDisk._idisk1_description)
 
-        if TestDisk._idisk1_id is None:
-            TestDisk._idisk1_id = self._create_disk_helper(
-                client=TestDisk._client,
-                vdc=vdc,
-                disk_name=self._idisk1_name,
-                disk_size=self._idisk1_size,
-                disk_description=self._idisk1_description)
+        logger.debug('Creating disk : ' + TestDisk._idisk2_name)
+        TestDisk._idisk2_id = create_independent_disk(
+            client=TestDisk._client,
+            vdc=vdc,
+            name=TestDisk._idisk2_name,
+            size=TestDisk._idisk2_size,
+            description=TestDisk._idisk2_description)
 
-        if TestDisk._idisk2_id is None:
-            TestDisk._idisk2_id = self._create_disk_helper(
-                client=TestDisk._client,
-                vdc=vdc,
-                disk_name=self._idisk2_name,
-                disk_size=self._idisk2_size,
-                disk_description=self._idisk2_description)
+        logger.debug('Creating disk : ' + TestDisk._idisk3_name)
+        TestDisk._idisk3_id = create_independent_disk(
+            client=TestDisk._client,
+            vdc=vdc,
+            name=TestDisk._idisk3_name,
+            size=TestDisk._idisk3_size,
+            description=TestDisk._idisk3_description)
 
-        if TestDisk._idisk3_id is None:
-            TestDisk._idisk3_id = self._create_disk_helper(
-                client=TestDisk._client,
-                vdc=vdc,
-                disk_name=self._idisk3_name,
-                disk_size=self._idisk3_size,
-                disk_description=self._idisk3_description)
+        logger.debug('Creating vApp ' + TestDisk._test_vapp_name + '.')
+        TestDisk._test_vapp_href = create_customized_vapp_from_template(
+            client=TestDisk._client,
+            vdc=vdc,
+            name=TestDisk._test_vapp_name,
+            catalog_name=Environment.get_default_catalog_name(),
+            template_name=Environment.get_default_template_name(),
+            memory_size=TestDisk._test_vapp_first_vm_memory_size,
+            num_cpu=TestDisk._test_vapp_first_vm_num_cpu,
+            disk_size=TestDisk._test_vapp_first_vm_first_disk_size,
+            vm_name=TestDisk._test_vapp_first_vm_name,
+            nw_adapter_type=TestDisk._test_vapp_first_vm_network_adapter_type)
 
         self.assertIsNotNone(TestDisk._idisk1_id)
         self.assertIsNotNone(TestDisk._idisk2_id)
         self.assertIsNotNone(TestDisk._idisk3_id)
-
-    def _create_disk_helper(self, client, vdc, disk_name, disk_size,
-                            disk_description):
-        logger = Environment.get_default_logger()
-        logger.debug('Creating disk : ' + disk_name)
-        disk_sparse = vdc.create_disk(
-            name=disk_name, size=disk_size, description=disk_description)
-
-        task = client.get_task_monitor().wait_for_success(
-            disk_sparse.Tasks.Task[0])
-
-        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
-        disk_id = disk_sparse.get('id')[16:]
-        logger.debug('Created disk with id:' + disk_id)
-        return disk_id
+        self.assertIsNotNone(TestDisk._test_vapp_href)
 
     def test_0010_get_all_disks(self):
         """Test the  method vdc.get_disks().
@@ -219,68 +217,57 @@ class TestDisk(BaseTestCase):
         """Test the  method vapp.attach_disk_to_vm().
 
         Invoke the method for the second independent disk, and attach it to the
-        default test vm available in the Environment.
+        firt vm in the vApp created during setup. The vApp must be in deployed
+        state before we try to attach the disk to it.
 
         This test passes if the disk attachment task succeeds.
         """
-        org_admin_client = Environment.get_client_in_default_org(
-            CommonRoles.ORGANIZATION_ADMINISTRATOR)
-        vdc = Environment.get_test_vdc(org_admin_client)
-        vapp = Environment.get_default_vapp(org_admin_client)
-        vm_name = Environment.get_default_vm_name()
+        vdc = Environment.get_test_vdc(TestDisk._client)
+        vapp = VApp(TestDisk._client, href=TestDisk._test_vapp_href)
+        vm_name = TestDisk._test_vapp_first_vm_name
         disk = vdc.get_disk(disk_id=TestDisk._idisk2_id)
 
-        try:
-            if vapp.is_suspended():
-                task = vapp.deploy()
-                org_admin_client.get_task_monitor().wait_for_success(task=task)
+        # vApp needs to be deployed for attach to succeed.
+        if vapp.is_suspended():
+            task = vapp.deploy()
+            TestDisk._client.get_task_monitor().wait_for_success(task=task)
 
-            task = vapp.attach_disk_to_vm(
-                disk_href=disk.get('href'), vm_name=vm_name)
-            result = org_admin_client.get_task_monitor().wait_for_success(
-                task=task)
-            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
-        finally:
-            org_admin_client.logout()
+        task = vapp.attach_disk_to_vm(
+            disk_href=disk.get('href'), vm_name=vm_name)
+        TestDisk._client.get_task_monitor().wait_for_success(
+            task=task)
 
     def test_0060_detach_disk_from_vm_in_vapp(self):
         """Test the  method vapp.detach_disk_to_vm().
 
-        Invoke the method for the second independent disk, to detach it from
-        the default test vm available in the Environment. we need to power down
-        the vm before running this test, and power it back on once the test is
-        over.
+        Invoke the method for the second independent disk, detach it from the
+        first vm of the vApp created during setup. We need to power down the
+        vm before running this test, and power it back on once the test
+        is over.
 
         This test passes if the disk detachment task succeeds.
         """
-        org_admin_client = Environment.get_client_in_default_org(
-            CommonRoles.ORGANIZATION_ADMINISTRATOR)
-        vdc = Environment.get_test_vdc(org_admin_client)
-        vapp = Environment.get_default_vapp(org_admin_client)
-        vm_name = Environment.get_default_vm_name()
+        vdc = Environment.get_test_vdc(TestDisk._client)
+        vapp = VApp(TestDisk._client, href=TestDisk._test_vapp_href)
+        vm_name = TestDisk._test_vapp_first_vm_name
         disk = vdc.get_disk(disk_id=TestDisk._idisk2_id)
 
-        try:
-            # vm needs to be powered off for detach to succeed.
-            is_vapp_powered_on_before_test = vapp.is_powered_on()
-            if is_vapp_powered_on_before_test:
-                task = vapp.power_off()
-                org_admin_client.get_task_monitor().wait_for_success(task=task)
+        # vm needs to be powered off for detach to succeed.
+        is_vapp_powered_on_before_test = vapp.is_powered_on()
+        if is_vapp_powered_on_before_test:
+            task = vapp.power_off()
+            TestDisk._client.get_task_monitor().wait_for_success(task=task)
 
-            vapp.reload()
-            result = vapp.detach_disk_from_vm(
-                disk_href=disk.get('href'), vm_name=vm_name)
-            task = org_admin_client.get_task_monitor().wait_for_success(
-                task=result)
-            self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+        vapp.reload()
+        task = vapp.detach_disk_from_vm(
+            disk_href=disk.get('href'), vm_name=vm_name)
+        TestDisk._client.get_task_monitor().wait_for_success(task=task)
 
-            vapp.reload()
-            # restore vApp to powered on state (if required)
-            if is_vapp_powered_on_before_test:
-                task = vapp.power_on()
-                org_admin_client.get_task_monitor().wait_for_success(task=task)
-        finally:
-            org_admin_client.logout()
+        vapp.reload()
+        # restore vApp to powered on state (if required)
+        if is_vapp_powered_on_before_test:
+            task = vapp.power_on()
+            TestDisk._client.get_task_monitor().wait_for_success(task=task)
 
     def test_0070_update_disk(self):
         """Test the  method vapp.update_disk().
@@ -321,26 +308,31 @@ class TestDisk(BaseTestCase):
 
     @developerModeAware
     def test_9998_teardown(self):
-        """Test the  method vapp.delete_disk().
+        """Test the method vapp.delete_disk().
 
-        Invoke the method for all the disks created by setup.
+        Invoke the method for all the disks created by setup. Also delete the
+        vApp created suring setup.
 
-        This test passes if all the tasks for deleting the disks succeed.
+        This test passes if all the tasks for deleting the disks and vApp
+        succeed.
         """
-        disks_to_delete = [
-            TestDisk._idisk1_id, TestDisk._idisk2_id, TestDisk._idisk3_id
-        ]
         org_admin_client = Environment.get_client_in_default_org(
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
         vdc = Environment.get_test_vdc(org_admin_client)
 
         try:
+            disks_to_delete = [
+                TestDisk._idisk1_id, TestDisk._idisk2_id, TestDisk._idisk3_id
+            ]
             for disk_id in disks_to_delete:
                 if disk_id is not None:
+                    vdc.reload()
                     task = vdc.delete_disk(disk_id=disk_id)
                     org_admin_client.get_task_monitor()\
                         .wait_for_success(task=task)
-                    vdc.reload()
+
+            task = vdc.delete_vapp(name=TestDisk._test_vapp_name, force=True)
+            org_admin_client.get_task_monitor().wait_for_success(task)
         finally:
             org_admin_client.logout()
 

@@ -220,8 +220,8 @@ class TestOrgVDC(BaseTestCase):
         control_access = vdc.unshare_from_org_members()
         self.assertEqual(control_access.IsSharedToEveryone.text, 'false')
 
-        # re-share, before perofrming any other ACL operation to avoid
-        # https://bugzilla.eng.vmware.com/show_bug.cgi?id=2191368
+        # re-share, before performing any other ACL operation to avoid
+        # running into https://github.com/vmware/pyvcloud/issues/279
         logger.debug('Re-sharing vdc ' + vdc_name + ' with everyone in the ' +
                      'org')
         vdc.reload()

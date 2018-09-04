@@ -37,6 +37,7 @@ network_tests.py \
 org_tests.py \
 search_tests.py \
 vapp_tests.py \
+vdc_tests.py \
 vm_tests.py"
 
 if [ $# == 0 ]; then

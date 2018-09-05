@@ -122,14 +122,15 @@ class System(object):
 
         :rtype: list
         """
+        name_filter = None
         if name is not None:
-            query_filter = 'name==%s' % name
-        else:
-            query_filter = None
+            name_filter = ('name', name)
+
         q = self.client.get_typed_query(
             'providerVdcStorageProfile',
             query_result_format=QueryResultFormat.RECORDS,
-            qfilter=query_filter)
+            equality_filter=name_filter)
+
         return list(q.execute())
 
     def get_provider_vdc_storage_profile(self, name):

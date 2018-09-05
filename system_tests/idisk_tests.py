@@ -217,7 +217,7 @@ class TestDisk(BaseTestCase):
         """Test the  method vapp.attach_disk_to_vm().
 
         Invoke the method for the second independent disk, and attach it to the
-        firt vm in the vApp created during setup. The vApp must be in deployed
+        first vm in the vApp created during setup. The vApp must be in deployed
         state before we try to attach the disk to it.
 
         This test passes if the disk attachment task succeeds.

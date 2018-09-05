@@ -86,9 +86,9 @@ class TestClient(BaseTestCase):
 
         # Now prove we can login to any of them.
         for version in server_versions:
-            self._client = self._create_client_with_credentials(version)
             self._logger.debug(
-                "Logged in with server API version: {0}".format(version))
+                "Login using server API version {0}".format(version))
+            self._client = self._create_client_with_credentials(version)
             self._client.logout()
 
     def test_0030_server_highest_version(self):

@@ -6,10 +6,6 @@ agreement (CLA), our bot will update the issue when you open a pull
 request. For any questions about the CLA process, please refer to our
 [FAQ](https://cla.vmware.com/faq).
 
-## Community
-
-https://vmwarecode.slack.com, #vcd channel
-
 ## Logging Bugs
 
 Anyone can log a bug using the GitHub 'New Issue' button.  Please use

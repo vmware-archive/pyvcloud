@@ -71,7 +71,6 @@ class Environment(object):
     _pvdc_name = None
     _org_href = None
     _ovdc_href = None
-    _vapp_href = None
 
     _user_name_for_roles = {
         CommonRoles.CATALOG_AUTHOR: 'catalog_author',
@@ -570,39 +569,6 @@ class Environment(object):
             catalog_author_client.logout()
 
     @classmethod
-    def instantiate_vapp(cls):
-        """Instantiates the test template in the test catalog.
-
-        This template will be used to create the test vApp. if the vApp already
-        exists then skips creating it.
-
-        :raises: Exception: if the class variable _ovdc_href is not populated.
-        """
-        cls._basic_check()
-        if cls._ovdc_href is None:
-            raise Exception('OVDC ' + cls._config['vcd']['default_ovdc_name'] +
-                            ' doesn\'t exist.')
-
-        try:
-            catalog_author_client = Environment.get_client_in_default_org(
-                CommonRoles.CATALOG_AUTHOR)
-            vdc = VDC(catalog_author_client, href=cls._ovdc_href)
-            vapp_name = cls._config['vcd']['default_vapp_name']
-            vapp_resource = vdc.get_vapp(vapp_name)
-            cls._logger.debug('Reusing existing vApp ' + vapp_name + '.')
-            cls._vapp_href = vapp_resource.get('href')
-        except EntityNotFoundException as e:
-            cls._logger.debug('Instantiating vApp ' + vapp_name + '.')
-            cls._vapp_href = create_vapp_from_template(
-                client=catalog_author_client,
-                vdc=vdc,
-                name=vapp_name,
-                catalog_name=cls._config['vcd']['default_catalog_name'],
-                template_name=cls._config['vcd']['default_template_file_name'])
-        finally:
-            catalog_author_client.logout()
-
-    @classmethod
     def cleanup(cls):
         """Cleans up the various class variables."""
         if cls._sys_admin_client is not None:
@@ -614,7 +580,6 @@ class Environment(object):
                 cls._pvdc_name = None
                 cls._org_href = None
                 cls._ovdc_href = None
-                cls._vapp_href = None
 
     @classmethod
     def get_test_pvdc_name(cls):
@@ -712,19 +677,6 @@ class Environment(object):
         return cls._config['vcd']['default_ovdc_network_name']
 
     @classmethod
-    def get_default_vapp(cls, client):
-        """Gets the default vApp that will be used for testing.
-
-        :param pyvcloud.vcd.client.Client client: client which will be used to
-            create the VApp object.
-
-        :return: the vApp that will be used in tests.
-
-        :rtype: pyvcloud.vcd.vapp.VApp
-        """
-        return VApp(client, href=cls._vapp_href)
-
-    @classmethod
     def get_vapp_in_test_vdc(cls, client, vapp_name):
         """Gets the vApp identified by it's name in the current org vdc.
 
@@ -740,13 +692,3 @@ class Environment(object):
         vdc = cls.get_test_vdc(client)
         vapp_resource = vdc.get_vapp(vapp_name)
         return VApp(client, resource=vapp_resource)
-
-    @classmethod
-    def get_default_vm_name(cls):
-        """Get the name of the default vm that will be used for testing.
-
-        :return (str): The name of the test vm.
-
-        :rtype: str
-        """
-        return cls._config['vcd']['default_vm_name']

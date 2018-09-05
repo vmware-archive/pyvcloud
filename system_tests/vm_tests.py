@@ -36,7 +36,7 @@ class TestVM(BaseTestCase):
     _test_runner_role = CommonRoles.VAPP_AUTHOR
     _client = None
 
-    _test_vapp_name = 'tets_vApp_' + str(uuid1())
+    _test_vapp_name = 'test_vApp_' + str(uuid1())
     _test_vapp_first_vm_num_cpu = 2
     _test_vapp_first_vm_new_num_cpu = 4
     _test_vapp_first_vm_memory_size = 64  # MB

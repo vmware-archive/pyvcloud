@@ -41,7 +41,6 @@ class BaseTestCase(unittest.TestCase):
         Environment.create_catalog()
         Environment.share_catalog()
         Environment.upload_template()
-        Environment.instantiate_vapp()
 
     @classmethod
     def tearDownClass(cls):

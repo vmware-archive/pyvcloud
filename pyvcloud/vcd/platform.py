@@ -288,10 +288,24 @@ class Platform(object):
             media_type=EntityType.PROVIDER_VDC_PARAMS.value,
             contents=vmw_prov_vdc_params)
 
-    def add_resource_pools_to_provider_vdc(self,
-                                           pvdc_name,
-                                           resource_pool_names):
-        """Add Resource Pools to a Provider Virtual Datacenter.
+    def attach_resource_pools_to_provider_vdc(self,
+                                              pvdc_name,
+                                              resource_pool_names):
+        """Attach Resource Pools to a Provider Virtual Datacenter.
+
+        This function attaches one or more resource pools (RPs) to a
+        Provider Virtual Datacenter (PVDC).
+
+        Caveat: The current implementation of this function takes a list of RP
+        "basenames" as input. A basename is the last element of a full
+        pathname. For example, given a pathname /a/b/c, the basename of that
+        pathname is "c". Since RP names are only required to have unique
+        pathnames but not unique basenames, this function may not work
+        correctly if there are non-unique RP basenames. Therefore, in order to
+        use this function, all RP basenames must be unique. It is therefore up
+        to the user of this function to be aware of this limitation and name
+        their RPs appropriately. This limitation will be fixed in a future
+        version of this function.
 
         :param str pvdc_name: name of the Provider Virtual Datacenter.
         :param list resource_pool_names: list or resource pool names.
@@ -325,10 +339,10 @@ class Platform(object):
             media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
             contents=payload)
 
-    def del_resource_pools_from_provider_vdc(self,
-                                             pvdc_name,
-                                             resource_pool_names):
-        """Disable & Delete Resource Pools from a Provider Virtual Datacenter.
+    def detach_resource_pools_from_provider_vdc(self,
+                                                pvdc_name,
+                                                resource_pool_names):
+        """Disable & Detach Resource Pools from a Provider Virtual Datacenter.
 
         This function deletes resource pools (RPs) from a Provider Virtual
         Datacenter (PVDC). In order to do this, the input "user-friendly" RP
@@ -346,6 +360,17 @@ class Platform(object):
         Note that in order to delete a RP, it must first be disabled. This is
         done for each RP to be deleted if the disable link is present (which
         indicates that the RP is enabled).
+
+        Caveat: The current implementation of this function takes a list of RP
+        "basenames" as input. A basename is the last element of a full
+        pathname. For example, given a pathname /a/b/c, the basename of that
+        pathname is "c". Since RP names are only required to have unique
+        pathnames but not unique basenames, this function may not work
+        correctly if there are non-unique RP basenames. Therefore, in order to
+        use this function, all RP basenames must be unique. It is therefore up
+        to the user of this function to be aware of this limitation and name
+        their RPs appropriately. This limitation will be fixed in a future
+        version of this function.
 
         :param str pvdc_name: name of the Provider Virtual Datacenter.
         :param list resource_pool_names: list or resource pool names.

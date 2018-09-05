@@ -220,6 +220,15 @@ class TestOrgVDC(BaseTestCase):
         control_access = vdc.unshare_from_org_members()
         self.assertEqual(control_access.IsSharedToEveryone.text, 'false')
 
+        # re-share, before performing any other ACL operation to avoid
+        # running into https://github.com/vmware/pyvcloud/issues/279
+        logger.debug('Re-sharing vdc ' + vdc_name + ' with everyone in the ' +
+                     'org')
+        vdc.reload()
+        control_access = vdc.share_with_org_members()
+        self.assertEqual(control_access.IsSharedToEveryone.text, 'true')
+        self.assertEqual(control_access.EveryoneAccessLevel.text, 'ReadOnly')
+
         # remove the last access setting
         logger.debug('Removing the last remaining access control from'
                      ' vdc ' + vdc_name)

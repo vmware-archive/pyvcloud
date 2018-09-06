@@ -1363,7 +1363,7 @@ class _AbstractQuery(object):
                 self._filter = ''
             self._filter += equality_filter[0]
             self._filter += '=='
-            self._filter += urllib.parse.quote_plus(equality_filter[1])
+            self._filter += urllib.parse.quote(equality_filter[1])
 
         self._sort_desc = sort_desc
         self._sort_asc = sort_asc

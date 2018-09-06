@@ -1083,12 +1083,12 @@ class VDC(object):
         :rtype: generator object
         """
         resource_type = ResourceType.ORG_VDC_NETWORK.value
-        vdc_filter = 'vdc==%s' % self.href
+        vdc_filter = ('vdc', self.href)
 
         query = self.client.get_typed_query(
             resource_type,
             query_result_format=QueryResultFormat.RECORDS,
-            qfilter=vdc_filter)
+            equality_filter=vdc_filter)
         records = query.execute()
 
         return records

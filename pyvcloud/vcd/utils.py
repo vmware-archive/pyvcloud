@@ -542,8 +542,8 @@ def to_dict(obj, attributes=None, resource_type=None, exclude=['href',
     :param lxml.objectify.ObjectifiedElement obj:
     :param list attributes: list of attributes we want to extract from the XML
         object.
-    :param resource_type: type of resource in the param obj. Acceptable values
-        are listed in the enum pyvcloud.vcd.client.ResourceType.
+    :param str resource_type: type of resource in the param obj. Acceptable
+        values are listed in the enum pyvcloud.vcd.client.ResourceType.
     :param list exclude: list of attributes that should be excluded from the
         dictionary.
 

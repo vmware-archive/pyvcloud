@@ -1199,16 +1199,25 @@ class Client(object):
                         sort_asc=None,
                         sort_desc=None,
                         fields=None):
-        """Issue a query using vCD query API.
+        """Issue a typed query using vCD query API.
 
         :param str query_type_name: name of the entity, which should be a
-            string listed in ResourceType enum.
+            string listed in ResourceType enum values.
         :param QueryResultFormat query_result_format: format of query result.
         :param int page_size: number of entries per page.
         :param include_links: (not used).
-        :param str qfilter: query filter expression, e.g., 'numberOfCpus=gt=4'.
-        :param str equality_filter: a field name and a value to filter
-            output; appends to qfilter if present.
+        :param str qfilter: filter expression for the query. Is normally made
+            up of sub expressions, where each sub-expression is of the form
+            <filter name><operator><value>. Few of the allowed operators are
+            == for equality, =lt= for less than, =gt= for greater than etc.
+            Multiple sub expression can be joined using logical AND i.e. ;
+            logical OR i.e. , etc. Each value in query string must be
+            url-encoded. E.g. 'numberOfCpus=gt=4' , 'name==abc%20def'.
+        :param tuple equality_filter: a special filter that will be logically
+            AND-ed to qfilter, with the operator being ==. The first element in
+            the tuple is treated as filter name, while the second element is
+            treated as value. There is no need to url-encode the value in this
+            case.
         :param str sort_asc: if 'name' field is present in the result sort
             ascending by that field.
         :param str sort_desc: if 'name' field is present in the result sort
@@ -1341,7 +1350,7 @@ class _AbstractQuery(object):
             AND-ed to query filter. The first element in the tuple is treated
             as key, while the second element is treated as value. There is no
             need to url-encode the value, this function will do that the final
-            query url is constructed
+            query url is constructed.
         :param str sort_asc: sort results by attribute-name in ascending order.
             attribute-name cannot include metadata.
         :param str sort_desc: sort results by attribute-name in descending
@@ -1447,7 +1456,7 @@ class _AbstractQuery(object):
             # values, i.e. the value after each ==.
             uri += '&filterEncoded=true&filter='
             # Need to encode the value of filter param again to escape special
-            # characters like ',', ';' which has special meaning in context of
+            # characters like ',', ';' which have special meaning in context of
             # query filter.
             uri += urllib.parse.quote(qfilter)
 

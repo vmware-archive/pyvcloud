@@ -1078,12 +1078,23 @@ class VDC(object):
 
         :return: org vdc network data in form of
             lxml.objectify.ObjectifiedElement objects, where each object
-            contains OrgVdcNetworkRecord XML element.
+            contains OrgVdcNetworkRecord or OrgNetworkRecord (for non admin
+            users and api version <= 29.0) XML element.
 
         :rtype: generator object
         """
-        resource_type = ResourceType.ORG_VDC_NETWORK.value
-        vdc_filter = ('vdc', self.href)
+        # TODO(): We should remove this if check and defualt to ORG_VDC_NETWORK
+        # once vCD 9.0 reches EOL.
+        if not self.client.is_sysadmin() and\
+           float(self.client.get_api_version()) <= 29.0:
+            resource_type = ResourceType.ORG_NETWORK.value
+            # OrgNetwork doesn't have a vdc attribute, so the result will
+            # contain all org vdc networks in the organization and not just the
+            # networks in the current vdc. There is no fix for this!
+            vdc_filter = None
+        else:
+            resource_type = ResourceType.ORG_VDC_NETWORK.value
+            vdc_filter = ('vdc', self.href)
 
         query = self.client.get_typed_query(
             resource_type,
@@ -1096,7 +1107,8 @@ class VDC(object):
     def get_orgvdc_network_record_by_name(self, orgvdc_network_name):
         """Fetch the orgvdc network identified by its name in the current vdc.
 
-        :return: orgvdc network data in form of OrgVdcNetworkRecord XML
+        :return: orgvdc network data in form of OrgVdcNetworkRecord or
+            OrgNetworkRecord (for non admin users and api version <= 29.0) XML
             element.
 
         :rtype: lxml.objectify.ObjectifiedElement
@@ -1117,8 +1129,8 @@ class VDC(object):
     def list_orgvdc_network_resources(self, name=None, type=None):
         """Fetch orgvdc networks with filtering by name and type.
 
-        :param str name: name of the networks we want to retrieve.
-        :param str type: type of networks we want to retrieve, valid values
+        :param str name: name of the network we want to retrieve.
+        :param str type: type of network we want to retrieve, valid values
             are 'bridged' and 'isolated'.
 
         :return: a list of lxml.objectify.ObjectifiedElement objects, where
@@ -1130,8 +1142,14 @@ class VDC(object):
         records = self.list_orgvdc_network_records()
         result = []
         for record in records:
-            orgvdc_network_resource = \
-                self.client.get_resource(record.get('href'))
+            # If the record contains OrgNetworkRecord the href of the network
+            # will be non admin one, so we need to change it to it's admin
+            # version. OrgVdcNetworkRecord contains the admin version of the
+            # network href by default, and get_admin_href() method call on such
+            # a href will be a no-op.
+            href = record.get('href')
+            admin_href = get_admin_href(href)
+            orgvdc_network_resource = self.client.get_resource(admin_href)
             if type is not None:
                 if hasattr(orgvdc_network_resource, 'Configuration') and \
                    hasattr(orgvdc_network_resource.Configuration, 'FenceMode'):

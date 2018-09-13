@@ -913,8 +913,8 @@ class VApp(object):
                   href=find_link(self.resource,
                                  RelationType.UP,
                                  EntityType.VDC.value).href)
-        orgvdc_network_href = vdc.get_orgvdc_network_record_by_name(
-            orgvdc_network_name).get('href')
+        orgvdc_network_href = vdc.get_orgvdc_network_admin_href_by_name(
+            orgvdc_network_name)
 
         network_configuration_section = \
             deepcopy(self.resource.NetworkConfigSection)

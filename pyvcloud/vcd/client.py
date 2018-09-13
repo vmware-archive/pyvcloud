@@ -1388,6 +1388,8 @@ class _AbstractQuery(object):
         """
         query_href = self._find_query_uri(self._query_result_format)
         if query_href is None:
+            self._client._logger.warn('Unable to locate query href for \'%s\''
+                                      ' query.' % self._query_result_format)
             return []
         query_uri = self._build_query_uri(
             query_href,

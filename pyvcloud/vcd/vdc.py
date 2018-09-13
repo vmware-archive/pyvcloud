@@ -995,7 +995,7 @@ class VDC(object):
                                     dhcp_ip_range_start=None,
                                     dhcp_ip_range_end=None,
                                     is_shared=None):
-        """Create a new isolated OrgVdc network in this vdc.
+        """Create a new isolated org vdc network in this vdc.
 
         :param str network_name: name of the new network.
         :param str gateway_ip: IP address of the gateway of the new network.
@@ -1074,19 +1074,22 @@ class VDC(object):
             request_payload)
 
     def list_orgvdc_network_records(self):
-        """Fetch all orgvdc networks in the current vdc.
+        """Fetch all org vdc network's record in the current vdc.
 
-        :return: org vdc network data in form of
-            lxml.objectify.ObjectifiedElement objects, where each object
-            contains OrgVdcNetworkRecord or OrgNetworkRecord (for non admin
-            users and api version <= 29.0) XML element.
+        :return: org vdc network's name (as key) and admin href (as value)
 
-        :rtype: generator object
+        :rtype: dict
         """
-        # TODO(): We should remove this if check and defualt to ORG_VDC_NETWORK
-        # once vCD 9.0 reches EOL.
+        # TODO(): We should remove this hack and defualt to ORG_VDC_NETWORK
+        # once vCD 9.0 reches EOL. We are forced to use OrgNetwork typed
+        # query instead of OrgVdcNetwork typed query because for vCD api
+        # v29.0 and lower the link for the former is missing from /api/query
+        use_hack = False
         if not self.client.is_sysadmin() and\
            float(self.client.get_api_version()) <= 29.0:
+            use_hack = True
+
+        if use_hack:
             resource_type = ResourceType.ORG_NETWORK.value
             # OrgNetwork doesn't have a vdc attribute, so the result will
             # contain all org vdc networks in the organization and not just the
@@ -1102,32 +1105,43 @@ class VDC(object):
             equality_filter=vdc_filter)
         records = query.execute()
 
-        return records
+        result = {}
+        for record in records:
+            if use_hack:
+                # If the record contains OrgNetworkRecord the href of the
+                # network will be non admin one, so we need to change it to
+                # its admin version. OrgVdcNetworkRecord contains the admin
+                # version of the network href by default.
+                result[record.get('name')] = get_admin_href(record.get('href'))
+            else:
+                result[record.get('name')] = record.get('href')
 
-    def get_orgvdc_network_record_by_name(self, orgvdc_network_name):
-        """Fetch the orgvdc network identified by its name in the current vdc.
+        return result
 
-        :return: orgvdc network data in form of OrgVdcNetworkRecord or
-            OrgNetworkRecord (for non admin users and api version <= 29.0) XML
-            element.
+    def get_orgvdc_network_admin_href_by_name(self, orgvdc_network_name):
+        """Fetch the href of an org vdc network in the current vdc.
 
-        :rtype: lxml.objectify.ObjectifiedElement
+        :return: org vdc network admin href
+
+        :rtype: str
 
         :raises: EntityNotFoundException: if the named org vdc network cannot
             be located.
         """
-        records = self.list_orgvdc_network_records()
+        records_dict = self.list_orgvdc_network_records()
 
-        for record in records:
-            if orgvdc_network_name == record.get('name'):
-                return record
+        # dictionary key presence checks are case sensitive so we need to
+        # iterante over the keys and manually check each one of them.
+        for net_name in records_dict.keys():
+            if orgvdc_network_name.lower() == net_name.lower():
+                return records_dict.get(net_name)
 
         raise EntityNotFoundException(
             "Org vdc network \'%s\' does not exist in vdc \'%s\'" %
             (orgvdc_network_name, self.get_resource().get('name')))
 
     def list_orgvdc_network_resources(self, name=None, type=None):
-        """Fetch orgvdc networks with filtering by name and type.
+        """Fetch org vdc networks filtered by name and type.
 
         :param str name: name of the network we want to retrieve.
         :param str type: type of network we want to retrieve, valid values
@@ -1139,17 +1153,10 @@ class VDC(object):
 
         :rtype: list
         """
-        records = self.list_orgvdc_network_records()
+        records_dict = self.list_orgvdc_network_records()
         result = []
-        for record in records:
-            # If the record contains OrgNetworkRecord the href of the network
-            # will be non admin one, so we need to change it to it's admin
-            # version. OrgVdcNetworkRecord contains the admin version of the
-            # network href by default, and get_admin_href() method call on such
-            # a href will be a no-op.
-            href = record.get('href')
-            admin_href = get_admin_href(href)
-            orgvdc_network_resource = self.client.get_resource(admin_href)
+        for net_name, net_href in records_dict.items():
+            orgvdc_network_resource = self.client.get_resource(net_href)
             if type is not None:
                 if hasattr(orgvdc_network_resource, 'Configuration') and \
                    hasattr(orgvdc_network_resource.Configuration, 'FenceMode'):
@@ -1166,7 +1173,7 @@ class VDC(object):
         return result
 
     def list_orgvdc_direct_networks(self):
-        """Fetch all directly connected orgvdc networks in the current vdc.
+        """Fetch all directly connected org vdc networks in the current vdc.
 
         :return: a list of lxml.objectify.ObjectifiedElement objects, where
             each object contains EntityType.ORG_VDC_NETWORK XML data which
@@ -1177,7 +1184,7 @@ class VDC(object):
         return self.list_orgvdc_network_resources(type=FenceMode.BRIDGED.value)
 
     def list_orgvdc_isolated_networks(self):
-        """Fetch all isolated orgvdc networks in the current vdc.
+        """Fetch all isolated org vdc networks in the current vdc.
 
         :return: a list of lxml.objectify.ObjectifiedElement objects, where
             each object contains EntityType.ORG_VDC_NETWORK XML data which
@@ -1189,49 +1196,49 @@ class VDC(object):
             type=FenceMode.ISOLATED.value)
 
     def get_direct_orgvdc_network(self, name):
-        """Retrieve a directly connected orgvdc network in the current vdc.
+        """Retrieve a directly connected org vdc network in the current vdc.
 
-        :param str name: name of the orgvdc network we want to retrieve.
+        :param str name: name of the org vdc network we want to retrieve.
 
         :return: an object containing EntityType.ORG_VDC_NETWORK XML data which
             represents an org vdc network.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
-        :raises: EntityNotFoundException: if orgvdc network with the given name
-            is not found.
+        :raises: EntityNotFoundException: if org vdc network with the given
+            name is not found.
         """
         result = self.list_orgvdc_network_resources(
             name=name, type=FenceMode.BRIDGED.value)
         if len(result) == 0:
             raise EntityNotFoundException(
-                'OrgVdc network with name \'%s\' not found.' % name)
+                'Org vdc network with name \'%s\' not found.' % name)
         return result[0]
 
     def get_isolated_orgvdc_network(self, name):
-        """Retrieve an isolated orgvdc network in the current vdc.
+        """Retrieve an isolated org vdc network in the current vdc.
 
-        :param str name: name of the orgvdc network we want to retrieve.
+        :param str name: name of the org vdc network we want to retrieve.
 
         :return: an object containing EntityType.ORG_VDC_NETWORK XML data which
             represents an org vdc network.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
-        :raises: EntityNotFoundException: if orgvdc network with the given name
-            is not found.
+        :raises: EntityNotFoundException: if org vdc network with the given
+            name is not found.
         """
         result = self.list_orgvdc_network_resources(
             name=name, type=FenceMode.ISOLATED.value)
         if len(result) == 0:
             raise EntityNotFoundException(
-                'OrgVdc network with name \'%s\' not found.' % name)
+                'Org vdc network with name \'%s\' not found.' % name)
         return result[0]
 
     def delete_direct_orgvdc_network(self, name, force=False):
-        """Delete a directly connected orgvdc network in the current vdc.
+        """Delete a directly connected org vdc network in the current vdc.
 
-        :param str name: name of the orgvdc network we want to delete.
+        :param str name: name of the org vdc network we want to delete.
         :param bool force: if True, will instruct vcd to force delete the
             network, ignoring whether it is connected to a vm or vapp network
             or not.
@@ -1241,17 +1248,17 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
 
-        :raises: EntityNotFoundException: if orgvdc network with the given name
-            is not found.
+        :raises: EntityNotFoundException: if org vdc network with the given
+            name is not found.
         """
         net_resource = self.get_direct_orgvdc_network(name)
         return self.client.delete_resource(
             net_resource.get('href'), force=force)
 
     def delete_isolated_orgvdc_network(self, name, force=False):
-        """Delete an isolated orgvdc network in the current vdc.
+        """Delete an isolated org vdc network in the current vdc.
 
-        :param str name: name of the orgvdc network we want to delete.
+        :param str name: name of the org vdc network we want to delete.
         :param bool force: if True, will instruct vcd to force delete the
             network, ignoring whether it is connected to a vm or vapp network
             or not.
@@ -1261,8 +1268,8 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
 
-        :raises: EntityNotFoundException: if orgvdc network with the given name
-            is not found.
+        :raises: EntityNotFoundException: if org vdc network with the given
+            name is not found.
         """
         net_resource = self.get_isolated_orgvdc_network(name)
         return self.client.delete_resource(

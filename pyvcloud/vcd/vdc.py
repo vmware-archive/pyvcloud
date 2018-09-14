@@ -1080,8 +1080,8 @@ class VDC(object):
 
         :rtype: dict
         """
-        # TODO(): We should remove this hack and defualt to ORG_VDC_NETWORK
-        # once vCD 9.0 reches EOL. We are forced to use OrgNetwork typed
+        # TODO(): We should remove this hack and default to ORG_VDC_NETWORK
+        # once vCD 9.0 reaches EOL. We are forced to use OrgNetwork typed
         # query instead of OrgVdcNetwork typed query because for vCD api
         # v29.0 and lower the link for the former is missing from /api/query
         use_hack = False
@@ -1131,7 +1131,7 @@ class VDC(object):
         records_dict = self.list_orgvdc_network_records()
 
         # dictionary key presence checks are case sensitive so we need to
-        # iterante over the keys and manually check each one of them.
+        # iterate over the keys and manually check each one of them.
         for net_name in records_dict.keys():
             if orgvdc_network_name.lower() == net_name.lower():
                 return records_dict.get(net_name)

@@ -150,33 +150,31 @@ class TestNetwork(BaseTestCase):
         except AccessForbiddenException as e:
             return
 
-    def test_0050_list_orgvdc_network_records_as_non_admin_user(self):
+    def test_0060_list_orgvdc_network_records_as_non_admin_user(self):
         """Test the method vdc.list_orgvdc_network_records().
 
         This test passes if the record of the network created during setup is
         present in the retrieved list of networks.
         """
         vdc = Environment.get_test_vdc(TestNetwork._vapp_author_client)
-        records = vdc.list_orgvdc_network_records()
-        for network_record in records:
-            if network_record.get('name') == \
-               TestNetwork._isolated_orgvdc_network_name:
+        records_dict = vdc.list_orgvdc_network_records()
+        for net_name in records_dict.keys():
+            if net_name == TestNetwork._isolated_orgvdc_network_name:
                 return
 
         self.fail('Retrieved list of orgvdc network records doesn\'t ' +
                   'contain ' + TestNetwork._isolated_orgvdc_network_name)
 
-    def test_0060_get_orgvdc_network_record_as_non_admin_user(self):
-        """Test the method vdc.get_orgvdc_network_record_by_name().
+    def test_0070_get_orgvdc_network_admin_href_as_non_admin_user(self):
+        """Test the method vdc.get_orgvdc_network_admin_href_by_name().
 
-        This test passes if the record of the network created during setup is
+        This test passes if the href of the network created during setup is
         retrieved successfully without any errors.
         """
         vdc = Environment.get_test_vdc(TestNetwork._vapp_author_client)
-        network_record = vdc.get_orgvdc_network_record_by_name(
+        href = vdc.get_orgvdc_network_admin_href_by_name(
             TestNetwork._isolated_orgvdc_network_name)
-        self.assertEqual(TestNetwork._isolated_orgvdc_network_name,
-                         network_record.get('name'))
+        self.assertIsNotNone(href)
 
     @developerModeAware
     def test_9998_teardown(self):

@@ -257,7 +257,7 @@ class TestVM(BaseTestCase):
         # TODO() : Use a vApp template in which vmware tools are installed
         # on the VM.
 
-        # The reboot operation will fail with the following message 
+        # The reboot operation will fail with the following message
         # -Failed to reboot guest os for the VM "testvm1-p2oH" as required VM
         # tools were found unavailable.
 
@@ -267,7 +267,7 @@ class TestVM(BaseTestCase):
         # result = TestVM._client.get_task_monitor().wait_for_success(task)
         # self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        # The shutdown operation will fail with the following message 
+        # The shutdown operation will fail with the following message
         # - Cannot complete operation because VMware Tools is not running in
         # this virtual machine.
 

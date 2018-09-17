@@ -37,6 +37,7 @@ def create_empty_vapp(client, vdc, name, description):
 
     return vapp_sparse_resouce.get('href')
 
+
 def create_vapp_from_template(client, vdc, name, catalog_name, template_name):
     """Helper method to create a vApp from template.
 
@@ -62,6 +63,7 @@ def create_vapp_from_template(client, vdc, name, catalog_name, template_name):
         vapp_sparse_resouce.Tasks.Task[0])
 
     return vapp_sparse_resouce.get('href')
+
 
 def create_customized_vapp_from_template(client, vdc, name, catalog_name,
                                          template_name, description=None,
@@ -110,6 +112,7 @@ def create_customized_vapp_from_template(client, vdc, name, catalog_name,
         vapp_sparse_resouce.Tasks.Task[0])
 
     return vapp_sparse_resouce.get('href')
+
 
 def create_independent_disk(client, vdc, name, size, description):
     """Helper method to create an independent disk in a given orgVDC.

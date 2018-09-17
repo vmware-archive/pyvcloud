@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import urllib
+
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
@@ -74,9 +76,9 @@ class APIExtension(object):
         :raise MultipleRecordsException: if more than one service with the
             given name and namespace are found.
         """
-        qfilter = 'name==%s' % name
+        qfilter = 'name==%s' % urllib.parse.quote_plus(name)
         if namespace is not None:
-            qfilter += ';namespace==%s' % namespace
+            qfilter += ';namespace==%s' % urllib.parse.quote_plus(namespace)
         try:
             ext = self.client.get_typed_query(
                 ResourceType.ADMIN_SERVICE.value,

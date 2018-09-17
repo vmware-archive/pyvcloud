@@ -903,13 +903,10 @@ class Client(object):
             self._logger.debug('Request headers: %s, %s' % (session.headers,
                                                             headers))
         if self._log_bodies and data is not None:
-            if sys.version_info[0] < 3:
+            if isinstance(data, str):
                 d = data
             else:
-                if isinstance(data, str):
-                    d = data
-                else:
-                    d = data.decode(self.fsencoding)
+                d = data.decode(self.fsencoding)
             self._logger.debug('Request body: %s' % d)
         if self._log_requests or self._log_headers or self._log_bodies:
             self._logger.debug(
@@ -917,13 +914,10 @@ class Client(object):
         if self._log_headers:
             self._logger.debug('Response headers: %s' % response.headers)
         if self._log_bodies and _response_has_content(response):
-            if sys.version_info[0] < 3:
+            if isinstance(response.content, str):
                 d = response.content
             else:
-                if isinstance(response.content, str):
-                    d = response.content
-                else:
-                    d = response.content.decode(self.fsencoding)
+                d = response.content.decode(self.fsencoding)
             self._logger.debug('Response body: %s' % d)
         return response
 
@@ -1172,11 +1166,11 @@ class Client(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        resource_type = 'user'
+        resource_type = ResourceType.USER.value
         org_filter = None
         if self.is_sysadmin():
-            resource_type = 'adminUser'
-            org_filter = 'org==%s' % org_href
+            resource_type = ResourceType.ADMIN_USER.value
+            org_filter = 'org==%s' % urllib.parse.quote_plus(org_href)
         query = self.get_typed_query(
             resource_type,
             query_result_format=QueryResultFormat.REFERENCES,
@@ -1207,17 +1201,25 @@ class Client(object):
                         sort_asc=None,
                         sort_desc=None,
                         fields=None):
-        """Issue a query using vCD query API.
+        """Issue a typed query using vCD query API.
 
         :param str query_type_name: name of the entity, which should be a
-            string listed in ResourceType enum.
-        :param tuple query_result_format: tuple value from QueryResultFormat
-            enum.
+            string listed in ResourceType enum values.
+        :param QueryResultFormat query_result_format: format of query result.
         :param int page_size: number of entries per page.
         :param include_links: (not used).
-        :param str qfilter: query filter expression, e.g., 'numberOfCpus=gt=4'.
-        :param str equality_filter: a field name and a value to filter
-            output; appends to qfilter if present.
+        :param str qfilter: filter expression for the query. Is normally made
+            up of sub expressions, where each sub-expression is of the form
+            <filter name><operator><value>. Few of the allowed operators are
+            == for equality, =lt= for less than, =gt= for greater than etc.
+            Multiple sub expression can be joined using logical AND i.e. ;
+            logical OR i.e. , etc. Each value in query string must be
+            url-encoded. E.g. 'numberOfCpus=gt=4' , 'name==abc%20def'.
+        :param tuple equality_filter: a special filter that will be logically
+            AND-ed to qfilter, with the operator being ==. The first element in
+            the tuple is treated as filter name, while the second element is
+            treated as value. There is no need to url-encode the value in this
+            case.
         :param str sort_asc: if 'name' field is present in the result sort
             ascending by that field.
         :param str sort_desc: if 'name' field is present in the result sort
@@ -1336,6 +1338,28 @@ class _AbstractQuery(object):
                  sort_asc=None,
                  sort_desc=None,
                  fields=None):
+        """Constructor for _AbstractQuery object.
+
+        :param QueryResultFormat query_result_format: format of query result.
+        :param pyvcloud.vcd.client.Client client: the client that will be used
+            to make REST calls to vCD.
+        :param int page_size:
+        :param bool include_links: if True, query result will include links in
+            the body.
+        :param str qfilter: filter expression for the query. The values in the
+            query string must be url-encoded.
+        :param tuple equality_filter: a special filter that will be logically
+            AND-ed to query filter. The first element in the tuple is treated
+            as key, while the second element is treated as value. There is no
+            need to url-encode the value, this function will do that the final
+            query url is constructed.
+        :param str sort_asc: sort results by attribute-name in ascending order.
+            attribute-name cannot include metadata.
+        :param str sort_desc: sort results by attribute-name in descending
+            order. attribute-name cannot include metadata.
+        :param str fields: comma-separated list of attribute names or metadata
+            key names to return
+        """
         self._client = client
         self._query_result_format = query_result_format
         self._page_size = page_size
@@ -1350,10 +1374,7 @@ class _AbstractQuery(object):
                 self._filter = ''
             self._filter += equality_filter[0]
             self._filter += '=='
-            if sys.version_info[0] < 3:
-                self._filter += urllib.quote(equality_filter[1])
-            else:
-                self._filter += urllib.parse.quote(equality_filter[1])
+            self._filter += urllib.parse.quote(equality_filter[1])
 
         self._sort_desc = sort_desc
         self._sort_asc = sort_asc
@@ -1369,6 +1390,8 @@ class _AbstractQuery(object):
         """
         query_href = self._find_query_uri(self._query_result_format)
         if query_href is None:
+            self._client._logger.warn('Unable to locate query href for \'%s\''
+                                      ' query.' % self._query_result_format)
             return []
         query_uri = self._build_query_uri(
             query_href,
@@ -1404,19 +1427,13 @@ class _AbstractQuery(object):
 
         # Make sure we got at least one result record
         try:
-            if sys.version_info[0] < 3:
-                item = query_results.next()
-            else:
-                item = next(query_results)
+            item = next(query_results)
         except StopIteration:
             raise MissingRecordException()
 
         # Make sure we didn't get more than one result record
         try:
-            if sys.version_info[0] < 3:
-                query_results.next()
-            else:
-                next(query_results)
+            next(query_results)
             raise MultipleRecordsException()
         except StopIteration:
             pass
@@ -1439,10 +1456,13 @@ class _AbstractQuery(object):
             uri += str(page_size)
 
         if qfilter is not None:
-            # filterEncoded=true allows VCD to properly
-            # parse encoded '==' in the filter parameter.
+            # filterEncoded=true directs vCD to decode the individual filter
+            # values, i.e. the value after each ==.
             uri += '&filterEncoded=true&filter='
-            uri += qfilter
+            # Need to encode the value of filter param again to escape special
+            # characters like ',', ';' which have special meaning in context of
+            # query filter.
+            uri += urllib.parse.quote(qfilter)
 
         if fields is not None:
             uri += '&fields='

@@ -20,6 +20,7 @@ import tarfile
 import tempfile
 import time
 import traceback
+import urllib
 
 from lxml import etree
 from lxml import objectify
@@ -970,11 +971,12 @@ class Org(object):
         """
         if self.resource is None:
             self.reload()
-        resource_type = 'user'
+        resource_type = ResourceType.USER.value
         org_filter = None
         if self.client.is_sysadmin():
-            resource_type = 'adminUser'
-            org_filter = 'org==%s' % self.resource.get('href')
+            resource_type = ResourceType.ADMIN_USER.value
+            org_filter = 'org==%s' % \
+                urllib.parse.quote_plus(self.resource.get('href'))
         query = self.client.get_typed_query(
             resource_type,
             query_result_format=QueryResultFormat.RECORDS,
@@ -1078,11 +1080,12 @@ class Org(object):
             self.reload()
 
         org_filter = None
-        resource_type = 'role'
+        resource_type = ResourceType.ROLE.value
 
         if self.client.is_sysadmin():
-            resource_type = 'adminRole'
-            org_filter = 'org==%s' % self.resource.get('href')
+            resource_type = ResourceType.ADMIN_ROLE.value
+            org_filter = 'org==%s' % \
+                urllib.parse.quote_plus(self.resource.get('href'))
 
         query = self.client.get_typed_query(
             resource_type,
@@ -1191,7 +1194,7 @@ class Org(object):
         if self.resource is None:
             self.reload()
 
-        resource_type = 'right'
+        resource_type = ResourceType.RIGHT.value
         query = self.client.get_typed_query(
             resource_type,
             query_result_format=QueryResultFormat.RECORDS,

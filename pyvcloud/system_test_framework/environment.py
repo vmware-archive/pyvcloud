@@ -17,7 +17,6 @@ import logging
 import warnings
 
 from flufl.enum import Enum
-from pyvcloud.system_test_framework.utils import create_vapp_from_template
 import requests
 
 from pyvcloud.vcd.client import BasicLoginCredentials
@@ -445,18 +444,18 @@ class Environment(object):
                             ' doesn\'t exist.')
 
         vdc = VDC(cls._sys_admin_client, href=cls._ovdc_href)
-        net_name = cls._config['vcd']['default_ovdc_network_name']
-        records = vdc.list_orgvdc_network_records()
+        expected_net_name = cls._config['vcd']['default_ovdc_network_name']
+        records_dict = vdc.list_orgvdc_network_records()
 
-        for record in records:
-            if record.get('name').lower() == net_name.lower():
+        for net_name in records_dict.keys():
+            if net_name.lower() == expected_net_name.lower():
                 cls._logger.debug(
-                    'Reusing existing org-vdc network ' + net_name)
+                    'Reusing existing org-vdc network ' + expected_net_name)
                 return
 
-        cls._logger.debug('Creating org-vdc network ' + net_name)
+        cls._logger.debug('Creating org-vdc network ' + expected_net_name)
         result = vdc.create_isolated_vdc_network(
-            network_name=net_name,
+            network_name=expected_net_name,
             gateway_ip=cls._config['vcd']['default_ovdc_network_gateway_ip'],
             netmask=cls._config['vcd']['default_ovdc_network_gateway_netmask'])
 

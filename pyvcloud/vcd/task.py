@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import urllib
+
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
@@ -120,7 +122,7 @@ class Task(object):
         """
         query_filter = ''
         for f in filter_status_list:
-            query_filter += 'status==%s,' % f
+            query_filter += 'status==%s,' % urllib.parse.quote_plus(f)
         if len(query_filter) > 0:
             query_filter = query_filter[:-1]
         sort_asc = None

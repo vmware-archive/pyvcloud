@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from urllib import parse
 import uuid
 
 from pyvcloud.vcd.client import E
@@ -136,11 +135,11 @@ class Platform(object):
         :raises: EntityNotFoundException: If the named vxlan_network_pool
             cannot be found.
         """
-        query_filter = 'name==%s' % parse.quote_plus(vxlan_network_pool_name)
+        name_filter = ('name', vxlan_network_pool_name)
         query = self.client.get_typed_query(
             ResourceType.NETWORK_POOL,
             query_result_format=QueryResultFormat.RECORDS,
-            qfilter=query_filter)
+            equality_filter=name_filter)
         records = list(query.execute())
         vxlan_network_pool_record = None
         for record in records:
@@ -168,11 +167,11 @@ class Platform(object):
         :raises: EntityNotFoundException: if the named resource cannot be
             found.
         """
-        query_filter = 'name==%s' % parse.quote_plus(resource_name)
+        name_filter = ('name', resource_name)
         record = self.client.get_typed_query(
             resource_type.value,
             query_result_format=QueryResultFormat.REFERENCES,
-            qfilter=query_filter).find_unique()
+            equality_filter=name_filter).find_unique()
         if resource_name == record.get('name'):
             return record
         else:
@@ -393,10 +392,11 @@ class Platform(object):
         vc_name = pvdc_ext_resource.VimServer.get('name')
 
         # find the RPs in use that are associated with the backing VC
+        name_filter = ('vcName', vc_name)
         query = self.client.get_typed_query(
             ResourceType.RESOURCE_POOL.value,
             query_result_format=QueryResultFormat.RECORDS,
-            qfilter='vcName==%s' % vc_name)
+            equality_filter=name_filter)
         res_pools_in_use = {}
         for res_pool in list(query.execute()):
             res_pools_in_use[res_pool.get('name')] = res_pool.get('moref')

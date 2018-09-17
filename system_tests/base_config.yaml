@@ -80,4 +80,7 @@ nsxt:
 
 pvdc:
   pvdc_name: '<pvdc-name>'
-  resource_pool_names: ['resource-pool-name-1', 'resource-pool-name-2', ...]
+  resource_pool_names: ['<resource-pool-name1>', '<resource-pool-name2>', ...]
+  vms_to_migrate: ['<vm-name1>', '<vm-name2>', ...]
+  source_resource_pool: '<source-resource-pool-name>'
+  target_resource_pool: '<target-resource-pool-name>'

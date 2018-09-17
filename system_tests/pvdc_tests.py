@@ -31,6 +31,11 @@ class TestPVDC(BaseTestCase):
         TestPVDC._pvdc_name = self._config['pvdc']['pvdc_name']
         TestPVDC._resource_pool_names = \
             self._config['pvdc']['resource_pool_names']
+        TestPVDC._vms_to_migrate = self._config['pvdc']['vms_to_migrate']
+        TestPVDC._source_resource_pool = \
+            self._config['pvdc']['source_resource_pool']
+        TestPVDC._target_resource_pool = \
+            self._config['pvdc']['target_resource_pool']
 
     def test_0010_attach_resource_pools(self):
         """Attach resource pool(s) to a PVDC."""
@@ -40,7 +45,26 @@ class TestPVDC(BaseTestCase):
             TestPVDC._resource_pool_names)
         TestPVDC._client.get_task_monitor().wait_for_success(task=task)
 
-    def test_0020_detach_resource_pools(self):
+    def test_0020_migrate_vms(self):
+        """Migrate VM(s) from one resource pool to another."""
+        platform = Platform(TestPVDC._client)
+        task = platform.pvdc_migrate_vms(
+            TestPVDC._pvdc_name,
+            TestPVDC._vms_to_migrate,
+            TestPVDC._source_resource_pool,
+            TestPVDC._target_resource_pool)
+        TestPVDC._client.get_task_monitor().wait_for_success(task=task)
+
+    def test_0030_migrate_vms_back(self):
+        """Migrate VM(s) from one resource pool to another."""
+        platform = Platform(TestPVDC._client)
+        task = platform.pvdc_migrate_vms(
+            TestPVDC._pvdc_name,
+            TestPVDC._vms_to_migrate,
+            TestPVDC._target_resource_pool)
+        TestPVDC._client.get_task_monitor().wait_for_success(task=task)
+
+    def test_0040_detach_resource_pools(self):
         """Disable and delete resource pool(s) from a PVDC."""
         platform = Platform(TestPVDC._client)
         task = platform.detach_resource_pools_from_provider_vdc(

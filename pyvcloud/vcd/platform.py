@@ -376,7 +376,7 @@ class Platform(object):
         :param list resource_pool_names: list or resource pool names.
 
         :return: an object containing EntityType.TASK XML data which represents
-            the async task that is deleting Resource Pools fronm the PVDC.
+            the async task that is deleting Resource Pools from the PVDC.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
@@ -456,6 +456,109 @@ class Platform(object):
             rel=RelationType.UPDATE_RESOURCE_POOLS,
             media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
             contents=payload)
+
+    def pvdc_migrate_vms(self,
+                         pvdc_name,
+                         vms_to_migrate,
+                         src_resource_pool,
+                         target_resource_pool=None):
+        """Migrate VMs to (an optionally) specified ResourcePool.
+
+        :param str pvdc_name: name of the Provider Virtual Datacenter.
+        :param list(str) vms_to_migrate: list of VMs to migrate.
+        :param str src_resource_pool: source resource pool name.
+        :param str target_resource_pool: target resource pool name (optional).
+
+        This function migrates the specified VMs to (an optionally) specified
+        resource pool. If no resource pool is specified, the system will
+        automatically choose a target resource pool and migrate the VMs to it.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the async task that is migrating VMs.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
+                                            pvdc_name)
+        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
+        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
+        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
+        vc_name = pvdc_ext_resource.VimServer.get('name')
+        vc_href = pvdc_ext_resource.VimServer.get('href')
+
+        # find the src_respool_resource to get href and link to migrate VMs
+        query_filter = 'vcName==%s' % vc_name
+        query = self.client.get_typed_query(
+            ResourceType.RESOURCE_POOL.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=query_filter)
+        res_pools_in_use = {}
+        for res_pool in list(query.execute()):
+            res_pools_in_use[res_pool.get('name')] = res_pool.get('moref')
+        if src_resource_pool not in res_pools_in_use.keys():
+            raise EntityNotFoundException(
+                'source resource pool: \'%s\' not found' % src_resource_pool)
+        else:
+            src_rp_moref = res_pools_in_use[src_resource_pool]
+        if target_resource_pool is not None:
+            if target_resource_pool not in res_pools_in_use.keys():
+                raise EntityNotFoundException(
+                    'target resource pool: \'%s\' not found' %
+                    target_resource_pool)
+            else:
+                target_rp_moref = res_pools_in_use[target_resource_pool]
+
+        res_pools_in_pvdc = self.client.get_linked_resource(
+            resource=pvdc_ext_resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL_SET.value)
+
+        pvdc_res_pools = {}
+        if hasattr(res_pools_in_pvdc,
+                   '{' + NSMAP['vmext'] + '}VMWProviderVdcResourcePool'):
+            for res_pool in res_pools_in_pvdc.VMWProviderVdcResourcePool:
+                pvdc_res_pools[res_pool.ResourcePoolVimObjectRef.MoRef] = \
+                    res_pool
+
+        src_respool_resource = pvdc_res_pools[src_rp_moref]
+        # create map of VM names to VM hrefs (in source respool)
+        vms_in_respool = self.client.get_linked_resource(
+            resource=src_respool_resource,
+            rel=RelationType.RESOURCE_POOL_VM_LIST, media_type=None)
+
+        vm_hrefs_in_respool = {}
+        if hasattr(vms_in_respool, 'ResourcePoolVMRecord'):
+            for vm in vms_in_respool.ResourcePoolVMRecord:
+                vm_hrefs_in_respool[vm.get('name')] = vm.get('href')
+        else:
+            print('ResourcePoolVMRecord attribute not present')
+
+        # check that vms_to_migrate are contained in vms in respool
+        # and build the vms to migrate list
+        payload = E_VMEXT.MigrateParams()
+        for vm_to_migrate in vms_to_migrate:
+            if vm_to_migrate in vm_hrefs_in_respool.keys():
+                payload.append(
+                    E_VMEXT.VmRef(href=vm_hrefs_in_respool[vm_to_migrate]))
+            else:
+                raise EntityNotFoundException(
+                    'virtual machine \'%s\' not Found' % vm_to_migrate)
+
+        # if target respool specified, add target RP <vc, moref> to payload
+        if target_resource_pool is not None:
+            res_pool_ref = E_VMEXT.ResourcePoolRef()
+            vc_ref = E_VMEXT.VimServerRef(href=vc_href)
+            moref = E_VMEXT.MoRef(target_rp_moref)
+            obj_type = E_VMEXT.VimObjectType('RESOURCE_POOL')
+            res_pool_ref.append(vc_ref)
+            res_pool_ref.append(moref)
+            res_pool_ref.append(obj_type)
+            payload.append(res_pool_ref)
+
+        # do the migrate, return task
+        return self.client.post_linked_resource(
+            resource=src_respool_resource, rel=RelationType.MIGRATE_VMS,
+            media_type=None, contents=payload)
 
     def attach_vcenter(self,
                        vc_server_name,

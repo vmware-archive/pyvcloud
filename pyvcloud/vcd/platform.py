@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import urllib
 import uuid
 
 from pyvcloud.vcd.client import E
@@ -151,7 +152,7 @@ class Platform(object):
         raise EntityNotFoundException(
             'vxlan_network_pool \'%s\' not found' % vxlan_network_pool_name)
 
-    def get_res_by_name(self, resource_type, resource_name):
+    def get_ref_by_name(self, resource_type, resource_name):
         """Fetch a reference to a resource by its name.
 
         :param pyvcloud.vcd.client.ResourceType resource_type: type of the
@@ -258,12 +259,12 @@ class Platform(object):
         vmw_prov_vdc_params.append(resource_pool_refs)
         vmw_prov_vdc_params.append(E_VMEXT.VimServer(href=vc_href))
         if vxlan_network_pool is not None:
-            network_pool_rec = self.get_res_by_name(ResourceType.NETWORK_POOL,
+            network_pool_rec = self.get_ref_by_name(ResourceType.NETWORK_POOL,
                                                     vxlan_network_pool)
             vx_href = network_pool_rec.get('href')
             vmw_prov_vdc_params.append(E_VMEXT.VxlanNetworkPool(href=vx_href))
         if nsxt_manager_name is not None:
-            nsxt_manager_rec = self.get_res_by_name(ResourceType.NSXT_MANAGER,
+            nsxt_manager_rec = self.get_ref_by_name(ResourceType.NSXT_MANAGER,
                                                     nsxt_manager_name)
             nsxt_href = nsxt_manager_rec.get('href')
             vmw_prov_vdc_params.append(
@@ -314,7 +315,7 @@ class Platform(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
+        provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
         pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
         pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
@@ -384,7 +385,7 @@ class Platform(object):
         :raises: ValidationError: if primary resource pool is input for
             deletion.
         """
-        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
+        provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
         pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
         pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
@@ -470,24 +471,30 @@ class Platform(object):
         :param str target_resource_pool: target resource pool name (optional).
 
         This function migrates the specified VMs to (an optionally) specified
-        resource pool. If no resource pool is specified, the system will
-        automatically choose a target resource pool and migrate the VMs to it.
+        target resource pool. If no target resource pool is specified, the
+        system will automatically choose a target resource pool and migrate
+        the VMs to it. If any of the vms_to_migrate are not found on the
+        source resource pool, an exception will be thrown.
 
         :return: an object containing EntityType.TASK XML data which represents
             the async task that is migrating VMs.
 
         :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if source or target resource pool
+            cannot be found.
+        :raises: EntityNotFoundException: if any of the vms_to_migrate are
+            not found on the source resource pool.
         """
-        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
+        provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
-        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
-        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
+        pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
         pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
         vc_name = pvdc_ext_resource.VimServer.get('name')
         vc_href = pvdc_ext_resource.VimServer.get('href')
 
         # find the src_respool_resource to get href and link to migrate VMs
-        query_filter = 'vcName==%s' % vc_name
+        query_filter = 'vcName==%s' % urllib.parse.quote(vc_name)
         query = self.client.get_typed_query(
             ResourceType.RESOURCE_POOL.value,
             query_result_format=QueryResultFormat.RECORDS,
@@ -530,8 +537,6 @@ class Platform(object):
         if hasattr(vms_in_respool, 'ResourcePoolVMRecord'):
             for vm in vms_in_respool.ResourcePoolVMRecord:
                 vm_hrefs_in_respool[vm.get('name')] = vm.get('href')
-        else:
-            print('ResourcePoolVMRecord attribute not present')
 
         # check that vms_to_migrate are contained in vms in respool
         # and build the vms to migrate list
@@ -696,7 +701,7 @@ class Platform(object):
 
         :param str nsxt_manager_name: name of the NSX-T manager.
         """
-        nsxt_manager = self.get_res_by_name(ResourceType.NSXT_MANAGER,
+        nsxt_manager = self.get_ref_by_name(ResourceType.NSXT_MANAGER,
                                             nsxt_manager_name).get('href')
         nsxt_manager_resource = self.client.get_resource(nsxt_manager)
         return \

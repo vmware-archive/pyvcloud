@@ -482,8 +482,7 @@ class Platform(object):
         :rtype: lxml.objectify.ObjectifiedElement
 
         :raises: EntityNotFoundException: if source or target resource pool
-            cannot be found.
-        :raises: EntityNotFoundException: if any of the vms_to_migrate are
+            cannot be found, or if any of the vms_to_migrate are
             not found on the source resource pool.
         """
         provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,

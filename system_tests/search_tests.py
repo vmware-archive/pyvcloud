@@ -75,7 +75,7 @@ class TestSearch(BaseTestCase):
     def test_0020_find_existing_entities_with_org_user(self):
         """Find entities with low-privilege org user."""
         self._client = Environment.get_client_in_default_org(
-            CommonRoles.CATALOG_AUTHOR)
+            CommonRoles.VAPP_USER)
         q1 = self._client.get_typed_query(
             ResourceType.CATALOG.value,
             query_result_format=QueryResultFormat.ID_RECORDS)
@@ -86,7 +86,7 @@ class TestSearch(BaseTestCase):
     def test_0030_find_non_existing(self):
         """Verify we return nothing if no entities exist."""
         self._client = Environment.get_client_in_default_org(
-            CommonRoles.CATALOG_AUTHOR)
+            CommonRoles.VAPP_USER)
         for format in self._result_formats:
             q1 = self._client.get_typed_query(
                 ResourceType.CATALOG.value,

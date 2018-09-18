@@ -97,7 +97,7 @@ E_RASD = objectify.ElementMaker(
 
 # Important! Values must be listed in ascending order.
 API_CURRENT_VERSIONS = [
-    '27.0', '28.0', '29.0', '30.0'
+    '28.0', '29.0', '30.0', '31.0'
 ]
 
 VCLOUD_STATUS_MAP = {

@@ -317,8 +317,7 @@ class Platform(object):
         """
         provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
-        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
-        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
+        pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
         pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
         vc_name = pvdc_ext_resource.VimServer.get('name')
         vc_href = pvdc_ext_resource.VimServer.get('href')
@@ -387,8 +386,7 @@ class Platform(object):
         """
         provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
-        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
-        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
+        pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
         pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
         vc_name = pvdc_ext_resource.VimServer.get('name')
 

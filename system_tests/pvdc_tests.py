@@ -136,12 +136,14 @@ class TestPVDC(BaseTestCase):
         TestPVDC._config = Environment.get_config()
         TestPVDC._pvdc_name = self._config['pvdc']['pvdc_name']
         TestPVDC._resource_pool_names = \
-            self._config['pvdc']['resource_pool_names']
-        TestPVDC._vms_to_migrate = self._config['pvdc']['vms_to_migrate']
+            self._config['pvdc']['respools_to_attach']
+        TestPVDC._vms_to_migrate = []
+        TestPVDC._vms_to_migrate.append(TestPVDC._test_vapp_first_vm_name)
         TestPVDC._source_resource_pool = \
             self._config['pvdc']['source_resource_pool']
         TestPVDC._target_resource_pool = \
             self._config['pvdc']['target_resource_pool']
+        TestPVDC._interactive_test = self._config['pvdc']['interactive_test']
 
     def test_0030_attach_resource_pools(self):
         """Attach resource pool(s) to a PVDC."""
@@ -164,8 +166,9 @@ class TestPVDC(BaseTestCase):
             task=task)
 
     def test_0045_wait(self):
-        x = input("pausing for interactive test check: ")
-        print("input read was: %s" % x)
+        if TestPVDC._interactive_test:
+            x = input("type any character to continue ")
+            print("input read was: %s" % x)
 
     def test_0050_migrate_vms_back(self):
         """Migrate VM(s) from one resource pool to another."""

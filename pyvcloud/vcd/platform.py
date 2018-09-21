@@ -494,7 +494,7 @@ class Platform(object):
 
         # Do not assume the supplied parameter is not a URL
         vc_server_host_url = urlparse(vc_server_host)
-        if vc_server_host_url.netloc is not None:
+        if vc_server_host_url.scheme is not None:
             vc_server.append(E_VMEXT.Url(vc_server_host))
         else:
             vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
@@ -510,7 +510,7 @@ class Platform(object):
 
             # Do not assume the supplied parameter is not a URL
             nsx_host_url = urlparse(nsx_host)
-            if nsx_host_url.netloc is not None:
+            if nsx_host_url.scheme is not None:
                 nsx_manager.append(E_VMEXT.Url(nsx_host))
             else:
                 nsx_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))

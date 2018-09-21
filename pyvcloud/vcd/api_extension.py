@@ -22,6 +22,7 @@ from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import MissingRecordException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
+from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.utils import to_dict
 
 
@@ -46,10 +47,15 @@ class APIExtension(object):
 
         :rtype: list
         """
-        query = self.client.get_typed_query(
-            ResourceType.ADMIN_SERVICE.value,
-            query_result_format=QueryResultFormat.ID_RECORDS)
-        return [to_dict(r, self.ATTRIBUTES) for r in query.execute()]
+        try:
+            records = self.client.get_typed_query(
+                ResourceType.ADMIN_SERVICE.value,
+                query_result_format=QueryResultFormat.ID_RECORDS).execute()
+        except OperationNotSupportedException as e:
+            msg = 'User doesn\'t have permission to view extensions.'
+            raise OperationNotSupportedException(msg)
+
+        return [to_dict(r, self.ATTRIBUTES) for r in records]
 
     def _get_extension_record(self,
                               name,
@@ -84,6 +90,9 @@ class APIExtension(object):
                 ResourceType.ADMIN_SERVICE.value,
                 qfilter=qfilter,
                 query_result_format=format).find_unique()
+        except OperationNotSupportedException as e:
+            msg = 'User doesn\'t have permission to interact with extensions.'
+            raise OperationNotSupportedException(msg)
         except MissingRecordException as e:
             msg = 'API Extension service (name:' + name
             if namespace is not None:
@@ -128,10 +137,16 @@ class APIExtension(object):
 
         :rtype: generator object
         """
-        return self.client.get_typed_query(
-            ResourceType.API_FILTER.value,
-            equality_filter=('service', service_id),
-            query_result_format=QueryResultFormat.ID_RECORDS).execute()
+        try:
+            records = self.client.get_typed_query(
+                ResourceType.API_FILTER.value,
+                equality_filter=('service', service_id),
+                query_result_format=QueryResultFormat.ID_RECORDS).execute()
+        except OperationNotSupportedException as e:
+            msg = 'User doesn\'t have permission to view api filters.'
+            raise OperationNotSupportedException(msg)
+
+        return records
 
     def get_extension_info(self, name, namespace=None):
         """Return info about an API extension, including filters.

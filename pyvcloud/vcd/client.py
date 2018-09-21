@@ -97,7 +97,7 @@ E_RASD = objectify.ElementMaker(
 
 # Important! Values must be listed in ascending order.
 API_CURRENT_VERSIONS = [
-    '27.0', '28.0', '29.0', '30.0'
+    '28.0', '29.0', '30.0', '31.0'
 ]
 
 VCLOUD_STATUS_MAP = {
@@ -222,7 +222,7 @@ class ResourceType(Enum):
     ORG_VDC_NETWORK = 'orgVdcNetwork'
     ORG_VDC_RESOURCE_POOL_RELATION = 'orgVdcResourcePoolRelation'
     ORG_VDC_STORAGE_PROFILE = 'orgVdcStorageProfile'
-    PORT_GROUP = 'portGroup'
+    PORT_GROUP = 'portgroup'
     PROVIDER_VDC = 'providerVdc'
     PROVIDER_VDC_RESOURCE_POOL_RELATION = 'providerVdcResourcePoolRelation'
     PROVIDER_VDC_STORAGE_PROFILE = 'providerVdcStorageProfile'
@@ -1392,9 +1392,7 @@ class _AbstractQuery(object):
         """
         query_href = self._find_query_uri(self._query_result_format)
         if query_href is None:
-            self._client._logger.warn('Unable to locate query href for \'%s\''
-                                      ' query.' % self._query_result_format)
-            return []
+            raise OperationNotSupportedException('Unable to execute query.')
         query_uri = self._build_query_uri(
             query_href,
             self._page,
@@ -1512,4 +1510,8 @@ class _TypedQuery(_AbstractQuery):
             _client. \
             _get_query_list_map().get(
                 (query_media_type, self._query_type_name))
+        if query_href is None:
+            self._client._logger.warning(
+                'Unable to locate query href for \'%s\' typed query.' %
+                self._query_type_name)
         return query_href

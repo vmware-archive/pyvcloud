@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from urllib.parse import urlparse
 import uuid
 
 from pyvcloud.vcd.client import E
@@ -490,7 +491,14 @@ class Platform(object):
         vc_server = E_VMEXT.VimServer(name=vc_server_name)
         vc_server.append(E_VMEXT.Username(vc_admin_user))
         vc_server.append(E_VMEXT.Password(vc_admin_pwd))
-        vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
+
+        # Do not assume the supplied parameter is not a URL
+        vc_server_host_url = urlparse(vc_server_host)
+        if vc_server_host_url.scheme is not None:
+            vc_server.append(E_VMEXT.Url(vc_server_host))
+        else:
+            vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
+
         vc_server.append(E_VMEXT.IsEnabled(is_enabled))
         if vc_root_folder is not None:
             vc_server.append(E_VMEXT.rootFolder(vc_root_folder))
@@ -499,7 +507,14 @@ class Platform(object):
             nsx_manager = E_VMEXT.ShieldManager(name=nsx_server_name)
             nsx_manager.append(E_VMEXT.Username(nsx_admin_user))
             nsx_manager.append(E_VMEXT.Password(nsx_admin_pwd))
-            nsx_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))
+
+            # Do not assume the supplied parameter is not a URL
+            nsx_host_url = urlparse(nsx_host)
+            if nsx_host_url.scheme is not None:
+                nsx_manager.append(E_VMEXT.Url(nsx_host))
+            else:
+                nsx_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))
+
             register_vc_server_params.append(nsx_manager)
 
         return self.client.\

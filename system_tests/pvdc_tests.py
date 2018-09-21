@@ -23,10 +23,16 @@ from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.utils import \
     create_customized_vapp_from_template
 
+from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NetworkAdapterType
+from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import QueryResultFormat
+from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.platform import Platform
+from pyvcloud.vcd.utils import get_admin_extension_href
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
 
@@ -68,9 +74,35 @@ class TestPVDC(BaseTestCase):
         logger = Environment.get_default_logger()
         TestPVDC._sys_admin_client = Environment.get_sys_admin_client()
         org = Environment.get_test_org(TestPVDC._sys_admin_client)
+        platform = Platform(TestPVDC._sys_admin_client)
 
         vdc_name = TestPVDC._new_vdc_name
         pvdc_name = Environment.get_test_pvdc_name()
+        provider_vdc = platform.get_ref_by_name(ResourceType.PROVIDER_VDC,
+                                                pvdc_name)
+        pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
+        pvdc_ext_resource = TestPVDC._sys_admin_client.get_resource(
+            pvdc_ext_href)
+        vc_name = pvdc_ext_resource.VimServer.get('name')
+        res_pools_in_pvdc = TestPVDC._sys_admin_client.get_linked_resource(
+            resource=pvdc_ext_resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL_SET.value)
+        if hasattr(res_pools_in_pvdc,
+                   '{' + NSMAP['vmext'] + '}VMWProviderVdcResourcePool'):
+            src_respool = res_pools_in_pvdc.VMWProviderVdcResourcePool[0]
+        name_filter = ('vcName', vc_name)
+        query = TestPVDC._sys_admin_client.get_typed_query(
+            ResourceType.RESOURCE_POOL.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter)
+        res_pools_in_use = {}
+        for res_pool in list(query.execute()):
+            res_pools_in_use[res_pool.get('moref')] = res_pool.get('name')
+        source_respool_name = res_pools_in_use[
+            src_respool.ResourcePoolVimObjectRef.MoRef]
+        TestPVDC._source_resource_pool = source_respool_name
+
         storage_profiles = [{
             'name': '*',
             'enabled': True,
@@ -139,11 +171,8 @@ class TestPVDC(BaseTestCase):
             self._config['pvdc']['respools_to_attach']
         TestPVDC._vms_to_migrate = []
         TestPVDC._vms_to_migrate.append(TestPVDC._test_vapp_first_vm_name)
-        TestPVDC._source_resource_pool = \
-            self._config['pvdc']['source_resource_pool']
         TestPVDC._target_resource_pool = \
             self._config['pvdc']['target_resource_pool']
-        TestPVDC._interactive_test = self._config['pvdc']['interactive_test']
 
     def test_0030_attach_resource_pools(self):
         """Attach resource pool(s) to a PVDC."""
@@ -164,11 +193,6 @@ class TestPVDC(BaseTestCase):
             TestPVDC._target_resource_pool)
         TestPVDC._sys_admin_client.get_task_monitor().wait_for_success(
             task=task)
-
-    def test_0045_wait(self):
-        if TestPVDC._interactive_test:
-            x = input("type any character to continue ")
-            print("input read was: %s" % x)
 
     def test_0050_migrate_vms_back(self):
         """Migrate VM(s) from one resource pool to another."""

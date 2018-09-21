@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import urllib
+from urllib.parse import urlparse
 import uuid
 
 from pyvcloud.vcd.client import E
@@ -180,10 +181,9 @@ class Platform(object):
                 'resource: \'%s\' name: \'%s\' not found' %
                 resource_type.value, resource_name)
 
-    def get_resource_pool_morefs(self, vc_name, vc_href, resource_pool_names):
+    def get_resource_pool_morefs(self, vc_href, resource_pool_names):
         """Fetch list of morefs for a given list of resource_pool_names.
 
-        :param str vc_name: vim_server name.
         :param str vc_href: vim_server href.
         :param list resource_pool_names: resource pool names as a list of
             strings.
@@ -196,20 +196,21 @@ class Platform(object):
             found.
         """
         morefs = []
-        resource_pool_list = self.client.get_resource(vc_href +
-                                                      '/resourcePoolList')
+        vc_resource = self.client.get_resource(vc_href)
+        resource_pool_list = self.client.get_linked_resource(
+            resource=vc_resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.RESOURCE_POOL_LIST.value)
         if hasattr(resource_pool_list, 'ResourcePool'):
             for resource_pool_name in resource_pool_names:
                 res_pool_found = False
                 for resource_pool in resource_pool_list.ResourcePool:
-                    if resource_pool.DataStoreRefs.VimObjectRef.VimServerRef.\
-                       get('name') == vc_name:  # rp belongs to VC
-                        name = resource_pool.get('name')
-                        moref = resource_pool.MoRef.text
-                        if name == resource_pool_name:
-                            morefs.append(moref)
-                            res_pool_found = True
-                            break
+                    name = resource_pool.get('name')
+                    moref = resource_pool.MoRef.text
+                    if name == resource_pool_name:
+                        morefs.append(moref)
+                        res_pool_found = True
+                        break
                 if not res_pool_found:
                     raise EntityNotFoundException(
                         'resource pool \'%s\' not Found' % resource_pool_name)
@@ -244,7 +245,7 @@ class Platform(object):
         """
         vc_record = self.get_vcenter(vim_server_name)
         vc_href = vc_record.get('href')
-        rp_morefs = self.get_resource_pool_morefs(vim_server_name, vc_href,
+        rp_morefs = self.get_resource_pool_morefs(vc_href,
                                                   resource_pool_names)
         vmw_prov_vdc_params = E_VMEXT.VMWProviderVdcParams(name=pvdc_name)
         if description is not None:
@@ -319,9 +320,8 @@ class Platform(object):
                                             pvdc_name)
         pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
         pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
-        vc_name = pvdc_ext_resource.VimServer.get('name')
         vc_href = pvdc_ext_resource.VimServer.get('href')
-        rp_morefs = self.get_resource_pool_morefs(vc_name, vc_href,
+        rp_morefs = self.get_resource_pool_morefs(vc_href,
                                                   resource_pool_names)
         payload = E_VMEXT.UpdateResourcePoolSetParams()
         for rp_moref in rp_morefs:
@@ -595,7 +595,11 @@ class Platform(object):
         vc_server = E_VMEXT.VimServer(name=vc_server_name)
         vc_server.append(E_VMEXT.Username(vc_admin_user))
         vc_server.append(E_VMEXT.Password(vc_admin_pwd))
-        vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
+        vc_server_host_url = urlparse(vc_server_host)
+        if vc_server_host_url.netloc is not '':
+            vc_server.append(E_VMEXT.Url(vc_server_host))
+        else:
+            vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
         vc_server.append(E_VMEXT.IsEnabled(is_enabled))
         if vc_root_folder is not None:
             vc_server.append(E_VMEXT.rootFolder(vc_root_folder))
@@ -604,7 +608,11 @@ class Platform(object):
             nsx_manager = E_VMEXT.ShieldManager(name=nsx_server_name)
             nsx_manager.append(E_VMEXT.Username(nsx_admin_user))
             nsx_manager.append(E_VMEXT.Password(nsx_admin_pwd))
-            nsx_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))
+            nsx_host_url = urlparse(nsx_host)
+            if nsx_host_url.netloc is not '':
+                nsx_manager.append(E_VMEXT.Url(nsx_host))
+            else:
+                nsx_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))
             register_vc_server_params.append(nsx_manager)
 
         return self.client.\

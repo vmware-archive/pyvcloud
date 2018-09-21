@@ -312,6 +312,8 @@ class EntityType(Enum):
     RECORDS = 'application/vnd.vmware.vcloud.query.records+xml'
     REGISTER_VC_SERVER_PARAMS = \
         'application/vnd.vmware.admin.registerVimServerParams+xml'
+    RESOURCE_POOL_LIST = \
+        'application/vnd.vmware.admin.resourcePoolList+xml'
     RES_POOL_SET_UPDATE_PARAMS = \
         'application/vnd.vmware.admin.resourcePoolSetUpdateParams+xml'
     ROLE = 'application/vnd.vmware.admin.role+xml'

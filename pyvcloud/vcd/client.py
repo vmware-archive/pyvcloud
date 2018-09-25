@@ -143,6 +143,7 @@ class RelationType(Enum):
     EDIT = 'edit'
     ENABLE = 'enable'
     LINK_TO_TEMPLATE = 'linkToTemplate'
+    MIGRATE_VMS = 'migrateVms'
     NEXT_PAGE = 'nextPage'
     ORG_VDC_NETWORKS = 'orgVdcNetworks'
     POWER_OFF = 'power:powerOff'
@@ -154,6 +155,7 @@ class RelationType(Enum):
     PUBLISH = 'publish'
     RECOMPOSE = 'recompose'
     REMOVE = 'remove'
+    RESOURCE_POOL_VM_LIST = 'resourcePoolVmList'
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
     SNAPSHOT_REMOVE_ALL = 'snapshot:removeAll'
@@ -310,6 +312,8 @@ class EntityType(Enum):
     RECORDS = 'application/vnd.vmware.vcloud.query.records+xml'
     REGISTER_VC_SERVER_PARAMS = \
         'application/vnd.vmware.admin.registerVimServerParams+xml'
+    RESOURCE_POOL_LIST = \
+        'application/vnd.vmware.admin.resourcePoolList+xml'
     RES_POOL_SET_UPDATE_PARAMS = \
         'application/vnd.vmware.admin.resourcePoolSetUpdateParams+xml'
     ROLE = 'application/vnd.vmware.admin.role+xml'

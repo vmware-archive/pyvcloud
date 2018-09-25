@@ -80,4 +80,5 @@ nsxt:
 
 pvdc:
   pvdc_name: '<pvdc-name>'
-  resource_pool_names: ['resource-pool-name-1', 'resource-pool-name-2', ...]
+  respools_to_attach: ['<resource-pool-name1>', '<resource-pool-name2>', ...]
+  target_resource_pool: '<target-resource-pool-name>'

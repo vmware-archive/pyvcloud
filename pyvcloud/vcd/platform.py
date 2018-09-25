@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import urllib
+from urllib.parse import urlparse
 import uuid
 
 from pyvcloud.vcd.client import E
@@ -151,7 +153,7 @@ class Platform(object):
         raise EntityNotFoundException(
             'vxlan_network_pool \'%s\' not found' % vxlan_network_pool_name)
 
-    def get_res_by_name(self, resource_type, resource_name):
+    def get_ref_by_name(self, resource_type, resource_name):
         """Fetch a reference to a resource by its name.
 
         :param pyvcloud.vcd.client.ResourceType resource_type: type of the
@@ -179,10 +181,9 @@ class Platform(object):
                 'resource: \'%s\' name: \'%s\' not found' %
                 resource_type.value, resource_name)
 
-    def get_resource_pool_morefs(self, vc_name, vc_href, resource_pool_names):
+    def get_resource_pool_morefs(self, vc_href, resource_pool_names):
         """Fetch list of morefs for a given list of resource_pool_names.
 
-        :param str vc_name: vim_server name.
         :param str vc_href: vim_server href.
         :param list resource_pool_names: resource pool names as a list of
             strings.
@@ -195,20 +196,21 @@ class Platform(object):
             found.
         """
         morefs = []
-        resource_pool_list = self.client.get_resource(vc_href +
-                                                      '/resourcePoolList')
+        vc_resource = self.client.get_resource(vc_href)
+        resource_pool_list = self.client.get_linked_resource(
+            resource=vc_resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.RESOURCE_POOL_LIST.value)
         if hasattr(resource_pool_list, 'ResourcePool'):
             for resource_pool_name in resource_pool_names:
                 res_pool_found = False
                 for resource_pool in resource_pool_list.ResourcePool:
-                    if resource_pool.DataStoreRefs.VimObjectRef.VimServerRef.\
-                       get('name') == vc_name:  # rp belongs to VC
-                        name = resource_pool.get('name')
-                        moref = resource_pool.MoRef.text
-                        if name == resource_pool_name:
-                            morefs.append(moref)
-                            res_pool_found = True
-                            break
+                    name = resource_pool.get('name')
+                    moref = resource_pool.MoRef.text
+                    if name == resource_pool_name:
+                        morefs.append(moref)
+                        res_pool_found = True
+                        break
                 if not res_pool_found:
                     raise EntityNotFoundException(
                         'resource pool \'%s\' not Found' % resource_pool_name)
@@ -243,7 +245,7 @@ class Platform(object):
         """
         vc_record = self.get_vcenter(vim_server_name)
         vc_href = vc_record.get('href')
-        rp_morefs = self.get_resource_pool_morefs(vim_server_name, vc_href,
+        rp_morefs = self.get_resource_pool_morefs(vc_href,
                                                   resource_pool_names)
         vmw_prov_vdc_params = E_VMEXT.VMWProviderVdcParams(name=pvdc_name)
         if description is not None:
@@ -258,12 +260,12 @@ class Platform(object):
         vmw_prov_vdc_params.append(resource_pool_refs)
         vmw_prov_vdc_params.append(E_VMEXT.VimServer(href=vc_href))
         if vxlan_network_pool is not None:
-            network_pool_rec = self.get_res_by_name(ResourceType.NETWORK_POOL,
+            network_pool_rec = self.get_ref_by_name(ResourceType.NETWORK_POOL,
                                                     vxlan_network_pool)
             vx_href = network_pool_rec.get('href')
             vmw_prov_vdc_params.append(E_VMEXT.VxlanNetworkPool(href=vx_href))
         if nsxt_manager_name is not None:
-            nsxt_manager_rec = self.get_res_by_name(ResourceType.NSXT_MANAGER,
+            nsxt_manager_rec = self.get_ref_by_name(ResourceType.NSXT_MANAGER,
                                                     nsxt_manager_name)
             nsxt_href = nsxt_manager_rec.get('href')
             vmw_prov_vdc_params.append(
@@ -314,14 +316,12 @@ class Platform(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
+        provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
-        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
-        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
+        pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
         pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
-        vc_name = pvdc_ext_resource.VimServer.get('name')
         vc_href = pvdc_ext_resource.VimServer.get('href')
-        rp_morefs = self.get_resource_pool_morefs(vc_name, vc_href,
+        rp_morefs = self.get_resource_pool_morefs(vc_href,
                                                   resource_pool_names)
         payload = E_VMEXT.UpdateResourcePoolSetParams()
         for rp_moref in rp_morefs:
@@ -375,7 +375,7 @@ class Platform(object):
         :param list resource_pool_names: list or resource pool names.
 
         :return: an object containing EntityType.TASK XML data which represents
-            the async task that is deleting Resource Pools fronm the PVDC.
+            the async task that is deleting Resource Pools from the PVDC.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
@@ -384,10 +384,9 @@ class Platform(object):
         :raises: ValidationError: if primary resource pool is input for
             deletion.
         """
-        provider_vdc = self.get_res_by_name(ResourceType.PROVIDER_VDC,
+        provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
                                             pvdc_name)
-        pvdc_resource = self.client.get_resource(provider_vdc.get('href'))
-        pvdc_ext_href = get_admin_extension_href(pvdc_resource.get('href'))
+        pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
         pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
         vc_name = pvdc_ext_resource.VimServer.get('name')
 
@@ -457,6 +456,112 @@ class Platform(object):
             media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
             contents=payload)
 
+    def pvdc_migrate_vms(self,
+                         pvdc_name,
+                         vms_to_migrate,
+                         src_resource_pool,
+                         target_resource_pool=None):
+        """Migrate VMs to (an optionally) specified ResourcePool.
+
+        :param str pvdc_name: name of the Provider Virtual Datacenter.
+        :param list(str) vms_to_migrate: list of VMs to migrate.
+        :param str src_resource_pool: source resource pool name.
+        :param str target_resource_pool: target resource pool name (optional).
+
+        This function migrates the specified VMs to (an optionally) specified
+        target resource pool. If no target resource pool is specified, the
+        system will automatically choose a target resource pool and migrate
+        the VMs to it. If any of the vms_to_migrate are not found on the
+        source resource pool, an exception will be thrown.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the async task that is migrating VMs.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if source or target resource pool
+            cannot be found, or if any of the vms_to_migrate are
+            not found on the source resource pool.
+        """
+        provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
+                                            pvdc_name)
+        pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
+        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
+        vc_name = pvdc_ext_resource.VimServer.get('name')
+        vc_href = pvdc_ext_resource.VimServer.get('href')
+
+        # find the src_respool_resource to get href and link to migrate VMs
+        query_filter = 'vcName==%s' % urllib.parse.quote(vc_name)
+        query = self.client.get_typed_query(
+            ResourceType.RESOURCE_POOL.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=query_filter)
+        res_pools_in_use = {}
+        for res_pool in list(query.execute()):
+            res_pools_in_use[res_pool.get('name')] = res_pool.get('moref')
+        if src_resource_pool not in res_pools_in_use.keys():
+            raise EntityNotFoundException(
+                'source resource pool: \'%s\' not found' % src_resource_pool)
+        else:
+            src_rp_moref = res_pools_in_use[src_resource_pool]
+        if target_resource_pool is not None:
+            if target_resource_pool not in res_pools_in_use.keys():
+                raise EntityNotFoundException(
+                    'target resource pool: \'%s\' not found' %
+                    target_resource_pool)
+            else:
+                target_rp_moref = res_pools_in_use[target_resource_pool]
+
+        res_pools_in_pvdc = self.client.get_linked_resource(
+            resource=pvdc_ext_resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL_SET.value)
+
+        pvdc_res_pools = {}
+        if hasattr(res_pools_in_pvdc,
+                   '{' + NSMAP['vmext'] + '}VMWProviderVdcResourcePool'):
+            for res_pool in res_pools_in_pvdc.VMWProviderVdcResourcePool:
+                pvdc_res_pools[res_pool.ResourcePoolVimObjectRef.MoRef] = \
+                    res_pool
+
+        src_respool_resource = pvdc_res_pools[src_rp_moref]
+        # create map of VM names to VM hrefs (in source respool)
+        vms_in_respool = self.client.get_linked_resource(
+            resource=src_respool_resource,
+            rel=RelationType.RESOURCE_POOL_VM_LIST, media_type=None)
+
+        vm_hrefs_in_respool = {}
+        if hasattr(vms_in_respool, 'ResourcePoolVMRecord'):
+            for vm in vms_in_respool.ResourcePoolVMRecord:
+                vm_hrefs_in_respool[vm.get('name')] = vm.get('href')
+
+        # check that vms_to_migrate are contained in vms in respool
+        # and build the vms to migrate list
+        payload = E_VMEXT.MigrateParams()
+        for vm_to_migrate in vms_to_migrate:
+            if vm_to_migrate in vm_hrefs_in_respool.keys():
+                payload.append(
+                    E_VMEXT.VmRef(href=vm_hrefs_in_respool[vm_to_migrate]))
+            else:
+                raise EntityNotFoundException(
+                    'virtual machine \'%s\' not Found' % vm_to_migrate)
+
+        # if target respool specified, add target RP <vc, moref> to payload
+        if target_resource_pool is not None:
+            res_pool_ref = E_VMEXT.ResourcePoolRef()
+            vc_ref = E_VMEXT.VimServerRef(href=vc_href)
+            moref = E_VMEXT.MoRef(target_rp_moref)
+            obj_type = E_VMEXT.VimObjectType('RESOURCE_POOL')
+            res_pool_ref.append(vc_ref)
+            res_pool_ref.append(moref)
+            res_pool_ref.append(obj_type)
+            payload.append(res_pool_ref)
+
+        # do the migrate, return task
+        return self.client.post_linked_resource(
+            resource=src_respool_resource, rel=RelationType.MIGRATE_VMS,
+            media_type=None, contents=payload)
+
     def attach_vcenter(self,
                        vc_server_name,
                        vc_server_host,
@@ -490,7 +595,11 @@ class Platform(object):
         vc_server = E_VMEXT.VimServer(name=vc_server_name)
         vc_server.append(E_VMEXT.Username(vc_admin_user))
         vc_server.append(E_VMEXT.Password(vc_admin_pwd))
-        vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
+        vc_server_host_url = urlparse(vc_server_host)
+        if vc_server_host_url.netloc is not '':
+            vc_server.append(E_VMEXT.Url(vc_server_host))
+        else:
+            vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
         vc_server.append(E_VMEXT.IsEnabled(is_enabled))
         if vc_root_folder is not None:
             vc_server.append(E_VMEXT.rootFolder(vc_root_folder))
@@ -499,7 +608,11 @@ class Platform(object):
             nsx_manager = E_VMEXT.ShieldManager(name=nsx_server_name)
             nsx_manager.append(E_VMEXT.Username(nsx_admin_user))
             nsx_manager.append(E_VMEXT.Password(nsx_admin_pwd))
-            nsx_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))
+            nsx_host_url = urlparse(nsx_host)
+            if nsx_host_url.netloc is not '':
+                nsx_manager.append(E_VMEXT.Url(nsx_host))
+            else:
+                nsx_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))
             register_vc_server_params.append(nsx_manager)
 
         return self.client.\
@@ -593,7 +706,7 @@ class Platform(object):
 
         :param str nsxt_manager_name: name of the NSX-T manager.
         """
-        nsxt_manager = self.get_res_by_name(ResourceType.NSXT_MANAGER,
+        nsxt_manager = self.get_ref_by_name(ResourceType.NSXT_MANAGER,
                                             nsxt_manager_name).get('href')
         nsxt_manager_resource = self.client.get_resource(nsxt_manager)
         return \

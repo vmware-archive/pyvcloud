@@ -153,20 +153,17 @@ class TestSearch(BaseTestCase):
             # feature introduced in api v31.0
             allowed_exceptions.append(ResourceType.NSXT_MANAGER)
 
-        resource_types = [r.value for r in ResourceType \
-            if r not in allowed_exceptions]
+        resource_types = [r.value for r in ResourceType
+                          if r not in allowed_exceptions]
         # All typed queries apart from the allowed_exceptions shouldn't fail.
         for resource_type in resource_types:
-            try:
-                q1 = self._client.get_typed_query(
-                    resource_type,
-                    query_result_format=QueryResultFormat.ID_RECORDS)
-                q1_records = list(q1.execute())
-                self.assertTrue(
-                    len(q1_records) >= 0,
-                    "Should get a list, even if empty")
-            except:
-                print(resource_type)
+            q1 = self._client.get_typed_query(
+                resource_type,
+                query_result_format=QueryResultFormat.ID_RECORDS)
+            q1_records = list(q1.execute())
+            self.assertTrue(
+                len(q1_records) >= 0,
+                "Should get a list, even if empty")
 
     def test_0060_check_result_formats(self):
         """Verify we get expected results for all result formats."""

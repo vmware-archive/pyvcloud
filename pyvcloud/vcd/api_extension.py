@@ -181,7 +181,8 @@ class APIExtension(object):
         :param str namespace: namespace of the new API extension service.
         :param str routing_key: AMQP routing key to use with the extension.
         :param str exchange: AMQP exchange to use with the extension.
-        :param str patterns: URI API filters to register with the extension.
+        :param list patterns: list of url API filters to register with the
+            extension.
 
         :return: object containing EntityType.ADMIN_SERVICE XML data i.e. the
             sparse representation of the API extension.

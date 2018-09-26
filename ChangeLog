@@ -1,6 +1,39 @@
 CHANGES
 =======
 
+* Fix search test for api version <= 29.0 (#295)
+* Fix documentation for method add\_extension in module api\_extension.py  (#296)
+* [VDP-2083, VCDA-721] Implement migrate-vms from one resource pool to another (#287)
+* [VCDA-756] Update version of lxml to 4.2.1 to avoid failure during installation on Windows machines (#290)
+* Include 31.0 and remove 27.0 to/form default supported version (#289)
+* [VCDA-762] Invalid Query will raise OperationNotSupportedException instead of silently returning empty list as result. (#288)
+* [VCDA-750] Restore access to org vdc network related workflows for non admin users while using api version <= 29.0 (#284)
+* [VCDA-549] Fix query service in pyvcloud to accomodate filtering names with commas (#282)
+* [VCDA-736] Remove creation of default vapp and vm from base test. (#281)
+* Temporary workaround in orgVDC system test to avoid issue#279 (#278)
+* [VCDA-550] Remove slack reference from contributing.md (#280)
+* BUG FIX: Add to docstring about current RP name limitation (basenames must be unique) and rename functions from add/delete to attach/detach (#276)
+* Fixed server API version bug and added stable system tests (#277)
+* [VCDA-589] Added network system tests. (#275)
+* BUG FIX: Throw exception if primary resource pool removal is attempted. (#274)
+* [VDP-1663, VCDA-696]: Implement add, delete ResourcePool from a PVDC (#271)
+* [VCDA-692] Added VM system tests (#273)
+* [VCDA-588] Implement system tests for org VDC. (#272)
+* [VCDA-592] Fix for vcd-cli issue 234. Added system tests for API extension methods.  (#270)
+* [VCDA-691] Fixed orgvdc network access for non admin users (#269)
+* [VCDA-708] CVE-2017-18342 : Replace yaml.load() with yaml.safe\_load() (#266)
+* [VCDA-707] Fixed security hole in tarfile.extractall() related to directory walking. (#268)
+* Cleaned up obsolete Jenkinsfile (#267)
+* Vc attach bugs -- (issues #229 and #230 filed under vcd-cli) (#265)
+* [VCDA-333] Added functionality to retrieve vApp power state (#264)
+* [VCDA-689] Integrate generalized Jenkins build script (#263)
+* Added guard code to handle cases in list\_vcenters() when vCD isn't connected to any vCenter. (#262)
+* [VDP-1665, VCDA-642] Implemented enable, disable, detach VC (#260)
+* [VDCA-584] Added Org system tests (#258)
+* Fixed catalog delete operation for vCD 9.0. (#259)
+* [VCDA-603] Catalog sharing fix for system tests, (#257)
+* Updated AUTHORS and ChangeLog for v19.3.0 (#255)
+
 19.3.0
 ------
 

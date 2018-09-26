@@ -230,7 +230,7 @@ class Platform(object):
 
         :param str vim_server_name: vim_server_name (VC name).
         :param list resource_pool_names: list of resource_pool_names.
-        :param list storage_profiles: (list): list of storageProfile namespace.
+        :param list storage_profiles: (list): list of storageProfile names.
         :param str pvdc_name: name of PVDC to be created.
         :param bool is_enabled: flag, True to enable and False to disable.
         :param str description: description of pvdc.

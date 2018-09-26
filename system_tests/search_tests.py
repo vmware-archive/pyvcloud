@@ -120,36 +120,43 @@ class TestSearch(BaseTestCase):
     def test_0050_check_all_resource_types(self):
         """Verify that we can search on any resource type without error."""
         self._client = Environment.get_sys_admin_client()
-        resource_types = [r.value for r in ResourceType]
+        api_version = float(self._client.get_api_version())
 
+        # only admin version visible to sys admin in /api/query
         allowed_exceptions = [
-            # deprecated
-            ResourceType.ADMIN_ALLOCATED_EXTERNAL_ADDRESS.value,
-            # deprecated
-            ResourceType.ADMIN_ORG_NETWORK.value,
-            # deprecated
-            ResourceType.ALLOCATED_EXTERNAL_ADDRESS.value,
-            # only admin version visible to sys admin in /api/query
-            ResourceType.CATALOG_ITEM.value,
-            # only admin version visible to sys admin in /api/query
-            ResourceType.DISK.value,
-            # only admin version visible to sys admin in /api/query
-            ResourceType.GROUP.value,
-            # deprecated
-            ResourceType.ORG_NETWORK.value,
-            # only admin version visible to sys admin in /api/query
-            ResourceType.ORG_VDC_STORAGE_PROFILE.value,
-            # only admin version visible to sys admin in /api/query
-            ResourceType.USER.value,
-            # only admin version visible to sys admin in /api/query
-            ResourceType.VAPP_NETWORK.value,
-            # only admin version visible to sys admin in /api/query
-            ResourceType.VM_DISK_RELATION.value]
+            ResourceType.ALLOCATED_EXTERNAL_ADDRESS,
+            ResourceType.CATALOG_ITEM,
+            ResourceType.DISK,
+            ResourceType.GROUP,
+            ResourceType.ORG_NETWORK,
+            ResourceType.ORG_VDC_STORAGE_PROFILE,
+            ResourceType.USER,
+            ResourceType.VAPP_NETWORK,
+            ResourceType.VM_DISK_RELATION]
 
+        if api_version < 30.0:
+            # links added in api v30.0
+            allowed_exceptions.append(ResourceType.CATALOG)
+            allowed_exceptions.append(ResourceType.MEDIA)
+            allowed_exceptions.append(ResourceType.ORG_VDC)
+            allowed_exceptions.append(ResourceType.VAPP)
+            allowed_exceptions.append(ResourceType.VAPP_TEMPLATE)
+            allowed_exceptions.append(ResourceType.VM)
+        else:
+            # features deprecated in api v30.0
+            allowed_exceptions.append(
+                ResourceType.ADMIN_ORG_NETWORK)
+            allowed_exceptions.append(
+                ResourceType.ADMIN_ALLOCATED_EXTERNAL_ADDRESS)
+
+        if api_version < 31.0:
+            # feature introduced in api v31.0
+            allowed_exceptions.append(ResourceType.NSXT_MANAGER)
+
+        resource_types = [r.value for r in ResourceType
+                          if r not in allowed_exceptions]
         # All typed queries apart from the allowed_exceptions shouldn't fail.
         for resource_type in resource_types:
-            if resource_type in allowed_exceptions:
-                continue
             q1 = self._client.get_typed_query(
                 resource_type,
                 query_result_format=QueryResultFormat.ID_RECORDS)

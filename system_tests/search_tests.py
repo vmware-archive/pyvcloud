@@ -143,7 +143,7 @@ class TestSearch(BaseTestCase):
             allowed_exceptions.append(ResourceType.VAPP_TEMPLATE)
             allowed_exceptions.append(ResourceType.VM)
         else:
-            # feature deprecated in api v30.0
+            # features deprecated in api v30.0
             allowed_exceptions.append(
                 ResourceType.ADMIN_ORG_NETWORK)
             allowed_exceptions.append(

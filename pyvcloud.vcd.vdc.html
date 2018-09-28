@@ -155,7 +155,7 @@ that is creating the disk.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.create_isolated_vdc_network">
 <code class="descname">create_isolated_vdc_network</code><span class="sig-paren">(</span><em>network_name</em>, <em>gateway_ip</em>, <em>netmask</em>, <em>description=None</em>, <em>primary_dns_ip=None</em>, <em>secondary_dns_ip=None</em>, <em>dns_suffix=None</em>, <em>ip_range_start=None</em>, <em>ip_range_end=None</em>, <em>is_dhcp_enabled=None</em>, <em>default_lease_time=None</em>, <em>max_lease_time=None</em>, <em>dhcp_ip_range_start=None</em>, <em>dhcp_ip_range_end=None</em>, <em>is_shared=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.create_isolated_vdc_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a new isolated OrgVdc network in this vdc.</p>
+<dd><p>Create a new isolated org vdc network in this vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -232,13 +232,13 @@ the new created vApp in the org vdc.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.delete_direct_orgvdc_network">
 <code class="descname">delete_direct_orgvdc_network</code><span class="sig-paren">(</span><em>name</em>, <em>force=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.delete_direct_orgvdc_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>Delete a directly connected orgvdc network in the current vdc.</p>
+<dd><p>Delete a directly connected org vdc network in the current vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> (<em>str</em>) – name of the orgvdc network we want to delete.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the org vdc network we want to delete.</li>
 <li><strong>force</strong> (<em>bool</em>) – if True, will instruct vcd to force delete the
 network, ignoring whether it is connected to a vm or vapp network
 or not.</li>
@@ -246,14 +246,14 @@ or not.</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
-the asynchronous task that’s deleting the network.</p>
+the asynchronous task that is deleting the network.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if orgvdc network with the given name
-is not found.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if org vdc network with the given
+name is not found.</p>
 </td>
 </tr>
 </tbody>
@@ -275,7 +275,7 @@ is not found.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
-the asynchronous task deleting the disk.</p>
+the asynchronous task that is deleting the disk.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
@@ -291,13 +291,13 @@ the asynchronous task deleting the disk.</p>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.delete_isolated_orgvdc_network">
 <code class="descname">delete_isolated_orgvdc_network</code><span class="sig-paren">(</span><em>name</em>, <em>force=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.delete_isolated_orgvdc_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>Delete an isolated orgvdc network in the current vdc.</p>
+<dd><p>Delete an isolated org vdc network in the current vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> (<em>str</em>) – name of the orgvdc network we want to delete.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the org vdc network we want to delete.</li>
 <li><strong>force</strong> (<em>bool</em>) – if True, will instruct vcd to force delete the
 network, ignoring whether it is connected to a vm or vapp network
 or not.</li>
@@ -305,14 +305,14 @@ or not.</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
-the asynchronous task that’s deleting the network.</p>
+the asynchronous task that is deleting the network.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if orgvdc network with the given name
-is not found.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">EntityNotFoundException: if org vdc network with the given
+name is not found.</p>
 </td>
 </tr>
 </tbody>
@@ -347,6 +347,11 @@ provided name are found.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vdc_name</strong> (<em>str</em>) – name of the org vdc to delete.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.TASK XML data which represents
+the asynchronous task that is deleting the org vdc.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
 </tbody>
 </table>
@@ -391,20 +396,20 @@ represents the access control list of the vdc.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.get_direct_orgvdc_network">
 <code class="descname">get_direct_orgvdc_network</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.get_direct_orgvdc_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a directly connected orgvdc network in the current vdc.</p>
+<dd><p>Retrieve a directly connected org vdc network in the current vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the orgvdc network we want to retrieve.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the org vdc network we want to retrieve.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.ORG_VDC_NETWORK XML data which
 represents an org vdc network.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if orgvdc network with the given name
-is not found.</td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if org vdc network with the given
+name is not found.</td>
 </tr>
 </tbody>
 </table>
@@ -465,20 +470,39 @@ attached to.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.get_isolated_orgvdc_network">
 <code class="descname">get_isolated_orgvdc_network</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.get_isolated_orgvdc_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve an isolated orgvdc network in the current vdc.</p>
+<dd><p>Retrieve an isolated org vdc network in the current vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the orgvdc network we want to retrieve.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – name of the org vdc network we want to retrieve.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing EntityType.ORG_VDC_NETWORK XML data which
 represents an org vdc network.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if orgvdc network with the given name
-is not found.</td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if org vdc network with the given
+name is not found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vdc.VDC.get_orgvdc_network_admin_href_by_name">
+<code class="descname">get_orgvdc_network_admin_href_by_name</code><span class="sig-paren">(</span><em>orgvdc_network_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.get_orgvdc_network_admin_href_by_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the href of an org vdc network in the current vdc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">org vdc network admin href</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the named org vdc network cannot
+be located.</td>
 </tr>
 </tbody>
 </table>
@@ -624,12 +648,12 @@ are <cite>pool</cite>, <cite>dhcp</cite> and <cite>manual</cite>.</li>
 <li><strong>power_on</strong> (<em>bool</em>) – if True, power on the vApp after instantiation.</li>
 <li><strong>accept_all_eulas</strong> (<em>bool</em>) – True, confirms acceptance of all EULAs in
 a vApp template.</li>
-<li><strong>memory</strong> (<em>int</em>) – </li>
-<li><strong>cpu</strong> (<em>int</em>) – </li>
-<li><strong>disk_size</strong> (<em>int</em>) – </li>
-<li><strong>password</strong> (<em>str</em>) – </li>
-<li><strong>cust_script</strong> (<em>str</em>) – </li>
-<li><strong>vm_name</strong> (<em>str</em>) – (str): when provided, sets the name of the vm.</li>
+<li><strong>memory</strong> (<em>int</em>) – size of memory of the first vm.</li>
+<li><strong>cpu</strong> (<em>int</em>) – number of cpus in the first vm.</li>
+<li><strong>disk_size</strong> (<em>int</em>) – size of the first disk of the first vm.</li>
+<li><strong>password</strong> (<em>str</em>) – admin password of the guest os on the first vm.</li>
+<li><strong>cust_script</strong> (<em>str</em>) – guest customization to run on the vm.</li>
+<li><strong>vm_name</strong> (<em>str</em>) – when provided, sets the name of the vm.</li>
 <li><strong>ip_address</strong> (<em>str</em>) – when provided, sets the ip_address of the vm.</li>
 <li><strong>hostname</strong> (<em>str</em>) – when provided, sets the hostname of the guest OS.</li>
 <li><strong>storage_profile</strong> (<em>str</em>) – </li>
@@ -669,7 +693,7 @@ name and href of an edge gateway.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.list_orgvdc_direct_networks">
 <code class="descname">list_orgvdc_direct_networks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.list_orgvdc_direct_networks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fetch all directly connected orgvdc networks in the current vdc.</p>
+<dd><p>Fetch all directly connected org vdc networks in the current vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -687,7 +711,7 @@ represents an org vdc network.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.list_orgvdc_isolated_networks">
 <code class="descname">list_orgvdc_isolated_networks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.list_orgvdc_isolated_networks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fetch all isolated orgvdc networks in the current vdc.</p>
+<dd><p>Fetch all isolated org vdc networks in the current vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -705,16 +729,14 @@ represents an org vdc network.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.list_orgvdc_network_records">
 <code class="descname">list_orgvdc_network_records</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.list_orgvdc_network_records" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fetch all the orgvdc networks in the current vdc.</p>
+<dd><p>Fetch all org vdc network’s record in the current vdc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of lxml.objectify.ObjectifiedElement objects, where
-each object contains OrgVdcNetworkRecord XML element which
-represents an org vdc network record.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">org vdc network’s name (as key) and admin href (as value)</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
 </tbody>
 </table>
@@ -723,14 +745,14 @@ represents an org vdc network record.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vdc.VDC.list_orgvdc_network_resources">
 <code class="descname">list_orgvdc_network_resources</code><span class="sig-paren">(</span><em>name=None</em>, <em>type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vdc.VDC.list_orgvdc_network_resources" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fetch orgvdc networks with filtering by name and type.</p>
+<dd><p>Fetch org vdc networks filtered by name and type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> (<em>str</em>) – name of the networks we want to retrieve.</li>
-<li><strong>type</strong> (<em>str</em>) – type of networks we want to retrieve, valid values
+<li><strong>name</strong> (<em>str</em>) – name of the network we want to retrieve.</li>
+<li><strong>type</strong> (<em>str</em>) – type of network we want to retrieve, valid values
 are ‘bridged’ and ‘isolated’.</li>
 </ul>
 </td>
@@ -872,7 +894,7 @@ will be moved to.</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an object containing EntityType.TASK XML data which represents
-the asynchronous task updating the disk.</p>
+the asynchronous task that is updating the disk.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>

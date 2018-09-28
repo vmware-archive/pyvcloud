@@ -161,6 +161,18 @@ the link being not visible to the logged in user of the client.</td>
 <dt id="pyvcloud.vcd.client.Client.get_org">
 <code class="descname">get_org</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_org" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the logged in org.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a sparse representation of the logged in org. The returned
+object has an ‘Org’ XML element with ‘name’, ‘href’, and ‘type’
+attribute.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -173,9 +185,13 @@ the link being not visible to the logged in user of the client.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>org_name</strong> (<em>str</em>) – name of the organization to be retrieved.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object containing OrgRecord XML element.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">object containing EntityType.ORG XML data representing the
+organization.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if organization with the provided
+name couldn’t be found.</td>
 </tr>
 </tbody>
 </table>
@@ -184,7 +200,18 @@ the link being not visible to the logged in user of the client.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.get_org_list">
 <code class="descname">get_org_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_org_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the list of organizations.</p>
+<dd><p>Returns the list of organizations visible to the user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of objects, where each object contains EntityType.ORG
+XML data which represents a single organization.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -241,21 +268,29 @@ represents versions supported by vCD.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.client.Client.get_typed_query">
 <code class="descname">get_typed_query</code><span class="sig-paren">(</span><em>query_type_name</em>, <em>query_result_format=&lt;EnumValue: QueryResultFormat.REFERENCES [value=('application/vnd.vmware.vcloud.query.references+xml'</em>, <em>'references')]&gt;</em>, <em>page_size=None</em>, <em>include_links=False</em>, <em>qfilter=None</em>, <em>equality_filter=None</em>, <em>sort_asc=None</em>, <em>sort_desc=None</em>, <em>fields=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.client.Client.get_typed_query" title="Permalink to this definition">¶</a></dt>
-<dd><p>Issue a query using vCD query API.</p>
+<dd><p>Issue a typed query using vCD query API.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>query_type_name</strong> (<em>str</em>) – name of the entity, which should be a
-string listed in ResourceType enum.</li>
-<li><strong>query_result_format</strong> (<em>tuple</em>) – tuple value from QueryResultFormat
-enum.</li>
+string listed in ResourceType enum values.</li>
+<li><strong>query_result_format</strong> (<a class="reference internal" href="#pyvcloud.vcd.client.QueryResultFormat" title="pyvcloud.vcd.client.QueryResultFormat"><em>QueryResultFormat</em></a>) – format of query result.</li>
 <li><strong>page_size</strong> (<em>int</em>) – number of entries per page.</li>
 <li><strong>include_links</strong> – (not used).</li>
-<li><strong>qfilter</strong> (<em>str</em>) – query filter expression, e.g., ‘numberOfCpus=gt=4’.</li>
-<li><strong>equality_filter</strong> (<em>str</em>) – a field name and a value to filter
-output; appends to qfilter if present.</li>
+<li><strong>qfilter</strong> (<em>str</em>) – filter expression for the query. Is normally made
+up of sub expressions, where each sub-expression is of the form
+&lt;filter name&gt;&lt;operator&gt;&lt;value&gt;. Few of the allowed operators are
+== for equality, =lt= for less than, =gt= for greater than etc.
+Multiple sub expression can be joined using logical AND i.e. ;
+logical OR i.e. , etc. Each value in query string must be
+url-encoded. E.g. ‘numberOfCpus=gt=4’ , ‘name==abc%20def’.</li>
+<li><strong>equality_filter</strong> (<em>tuple</em>) – a special filter that will be logically
+AND-ed to qfilter, with the operator being ==. The first element in
+the tuple is treated as filter name, while the second element is
+treated as value. There is no need to url-encode the value in this
+case.</li>
 <li><strong>sort_asc</strong> (<em>str</em>) – if ‘name’ field is present in the result sort
 ascending by that field.</li>
 <li><strong>sort_desc</strong> (<em>str</em>) – if ‘name’ field is present in the result sort
@@ -651,6 +686,16 @@ version or set the API version explicitly to freeze compatibility.</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pyvcloud.vcd.client.EntityType.RESOURCE_POOL_LIST">
+<code class="descname">RESOURCE_POOL_LIST</code><em class="property"> = &lt;EnumValue: EntityType.RESOURCE_POOL_LIST [value=application/vnd.vmware.admin.resourcePoolList+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.RESOURCE_POOL_LIST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.EntityType.RES_POOL_SET_UPDATE_PARAMS">
+<code class="descname">RES_POOL_SET_UPDATE_PARAMS</code><em class="property"> = &lt;EnumValue: EntityType.RES_POOL_SET_UPDATE_PARAMS [value=application/vnd.vmware.admin.resourcePoolSetUpdateParams+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.RES_POOL_SET_UPDATE_PARAMS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pyvcloud.vcd.client.EntityType.RIGHT">
 <code class="descname">RIGHT</code><em class="property"> = &lt;EnumValue: EntityType.RIGHT [value=application/vnd.vmware.admin.right+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.RIGHT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -743,6 +788,16 @@ version or set the API version explicitly to freeze compatibility.</p>
 <dl class="attribute">
 <dt id="pyvcloud.vcd.client.EntityType.VMS">
 <code class="descname">VMS</code><em class="property"> = &lt;EnumValue: EntityType.VMS [value=application/vnd.vmware.vcloud.vms+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.VMS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL">
+<code class="descname">VMW_PROVIDER_VDC_RESOURCE_POOL</code><em class="property"> = &lt;EnumValue: EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL [value=application/vnd.vmware.admin.vmwProviderVdcResourcePool+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL_SET">
+<code class="descname">VMW_PROVIDER_VDC_RESOURCE_POOL_SET</code><em class="property"> = &lt;EnumValue: EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL_SET [value=application/vnd.vmware.admin.vmwProviderVdcResourcePoolSet+xml]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.EntityType.VMW_PROVIDER_VDC_RESOURCE_POOL_SET" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -912,6 +967,11 @@ version or set the API version explicitly to freeze compatibility.</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pyvcloud.vcd.client.RelationType.MIGRATE_VMS">
+<code class="descname">MIGRATE_VMS</code><em class="property"> = &lt;EnumValue: RelationType.MIGRATE_VMS [value=migrateVms]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.RelationType.MIGRATE_VMS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pyvcloud.vcd.client.RelationType.NEXT_PAGE">
 <code class="descname">NEXT_PAGE</code><em class="property"> = &lt;EnumValue: RelationType.NEXT_PAGE [value=nextPage]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.RelationType.NEXT_PAGE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -967,6 +1027,11 @@ version or set the API version explicitly to freeze compatibility.</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pyvcloud.vcd.client.RelationType.RESOURCE_POOL_VM_LIST">
+<code class="descname">RESOURCE_POOL_VM_LIST</code><em class="property"> = &lt;EnumValue: RelationType.RESOURCE_POOL_VM_LIST [value=resourcePoolVmList]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.RelationType.RESOURCE_POOL_VM_LIST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pyvcloud.vcd.client.RelationType.SNAPSHOT_CREATE">
 <code class="descname">SNAPSHOT_CREATE</code><em class="property"> = &lt;EnumValue: RelationType.SNAPSHOT_CREATE [value=snapshot:create]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.RelationType.SNAPSHOT_CREATE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -997,8 +1062,18 @@ version or set the API version explicitly to freeze compatibility.</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pyvcloud.vcd.client.RelationType.UNREGISTER">
+<code class="descname">UNREGISTER</code><em class="property"> = &lt;EnumValue: RelationType.UNREGISTER [value=unregister]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.RelationType.UNREGISTER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pyvcloud.vcd.client.RelationType.UP">
 <code class="descname">UP</code><em class="property"> = &lt;EnumValue: RelationType.UP [value=up]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.RelationType.UP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyvcloud.vcd.client.RelationType.UPDATE_RESOURCE_POOLS">
+<code class="descname">UPDATE_RESOURCE_POOLS</code><em class="property"> = &lt;EnumValue: RelationType.UPDATE_RESOURCE_POOLS [value=update:resourcePools]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.RelationType.UPDATE_RESOURCE_POOLS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1270,7 +1345,7 @@ version or set the API version explicitly to freeze compatibility.</p>
 
 <dl class="attribute">
 <dt id="pyvcloud.vcd.client.ResourceType.PORT_GROUP">
-<code class="descname">PORT_GROUP</code><em class="property"> = &lt;EnumValue: ResourceType.PORT_GROUP [value=portGroup]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.PORT_GROUP" title="Permalink to this definition">¶</a></dt>
+<code class="descname">PORT_GROUP</code><em class="property"> = &lt;EnumValue: ResourceType.PORT_GROUP [value=portgroup]&gt;</em><a class="headerlink" href="#pyvcloud.vcd.client.ResourceType.PORT_GROUP" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">

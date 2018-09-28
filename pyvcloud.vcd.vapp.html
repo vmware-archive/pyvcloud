@@ -261,7 +261,10 @@ customization on deployment. False, no action is performed.</li>
 the asynchronous task that is deploying the vApp.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lxml.objectify.ObjectifiedElement</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">lxml.objectify.ObjectifiedElement</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.OperationNotSupportedException" title="pyvcloud.vcd.exceptions.OperationNotSupportedException"><strong>OperationNotSupportedException</strong></a> – if the vApp can’t be deployed.</p>
 </td>
 </tr>
 </tbody>
@@ -387,7 +390,7 @@ networks.</td>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of lxml.objectify.ObjectifiedElement objects, where
 each object contains EntityType.VM XML data and represents one vm.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">empty list or generator object</td>
 </tr>
 </tbody>
 </table>
@@ -405,6 +408,27 @@ each object contains EntityType.VM XML data and represents one vm.</td>
 represents the metadata associated with the vApp.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vapp.VApp.get_power_state">
+<code class="descname">get_power_state</code><span class="sig-paren">(</span><em>vapp_resource=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.get_power_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the status of the vApp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vapp_resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – object
+containing EntityType.VAPP XML data representing the vApp whose
+power state we want to retrieve.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The status of the vApp, the semantics of the value returned is
+captured in pyvcloud.vcd.client.VCLOUD_STATUS_MAP</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
 </tr>
 </tbody>
 </table>
@@ -513,9 +537,89 @@ vm.</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="pyvcloud.vcd.vapp.VApp.is_deployed">
+<code class="descname">is_deployed</code><span class="sig-paren">(</span><em>vapp_resource=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.is_deployed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a vApp is deployed or not.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vapp_resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – object
+containing EntityType.VAPP XML data representing the vApp whose
+power state we want to check.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the vApp is deployed else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vapp.VApp.is_powered_off">
+<code class="descname">is_powered_off</code><span class="sig-paren">(</span><em>vapp_resource=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.is_powered_off" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a vApp is powered off or not.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vapp_resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – object
+containing EntityType.VAPP XML data representing the vApp whose
+power state we want to check.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the vApp is powered off else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vapp.VApp.is_powered_on">
+<code class="descname">is_powered_on</code><span class="sig-paren">(</span><em>vapp_resource=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.is_powered_on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a vApp is powered on or not.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vapp_resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – object
+containing EntityType.VAPP XML data representing the vApp whose
+power state we want to check.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the vApp is powered on else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vapp.VApp.is_suspended">
+<code class="descname">is_suspended</code><span class="sig-paren">(</span><em>vapp_resource=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.is_suspended" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a vApp is suspended or not.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vapp_resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – object
+containing EntityType.VAPP XML data representing the vApp whose
+power state we want to check.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the vApp is suspended else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.power_off">
 <code class="descname">power_off</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.power_off" title="Permalink to this definition">¶</a></dt>
-<dd><p>Power off the vApp.</p>
+<dd><p>Power off the vms in the vApp.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -525,6 +629,9 @@ the asynchronous task that is powering off the vApp.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.OperationNotSupportedException" title="pyvcloud.vcd.exceptions.OperationNotSupportedException"><strong>OperationNotSupportedException</strong></a> – if the vApp can’t be powered
+off.</td>
+</tr>
 </tbody>
 </table>
 </dd></dl>
@@ -532,7 +639,7 @@ the asynchronous task that is powering off the vApp.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.power_on">
 <code class="descname">power_on</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.power_on" title="Permalink to this definition">¶</a></dt>
-<dd><p>Power on the vApp.</p>
+<dd><p>Power on the vms in the vApp.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -542,6 +649,9 @@ the asynchronous task that is powering on the vApp.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.OperationNotSupportedException" title="pyvcloud.vcd.exceptions.OperationNotSupportedException"><strong>OperationNotSupportedException</strong></a> – if the vApp can’t be powered
+on.</td>
+</tr>
 </tbody>
 </table>
 </dd></dl>
@@ -549,7 +659,7 @@ the asynchronous task that is powering on the vApp.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.power_reset">
 <code class="descname">power_reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.power_reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resets a vApp.</p>
+<dd><p>Power resets the vms in the vApp.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -559,6 +669,9 @@ the asynchronous task resetting the vApp.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.OperationNotSupportedException" title="pyvcloud.vcd.exceptions.OperationNotSupportedException"><strong>OperationNotSupportedException</strong></a> – if the vApp can’t be power
+reset.</td>
+</tr>
 </tbody>
 </table>
 </dd></dl>
@@ -566,7 +679,7 @@ the asynchronous task resetting the vApp.</td>
 <dl class="method">
 <dt id="pyvcloud.vcd.vapp.VApp.reboot">
 <code class="descname">reboot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vapp.VApp.reboot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reboots the vApp.</p>
+<dd><p>Reboots the vms in the vApp.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -575,6 +688,8 @@ the asynchronous task resetting the vApp.</td>
 the asynchronous task rebooting the vApp.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.OperationNotSupportedException" title="pyvcloud.vcd.exceptions.OperationNotSupportedException"><strong>OperationNotSupportedException</strong></a> – if the vApp can’t be rebooted.</td>
 </tr>
 </tbody>
 </table>
@@ -709,6 +824,8 @@ the asynchronous task shutting down the vApp.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
 </tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.OperationNotSupportedException" title="pyvcloud.vcd.exceptions.OperationNotSupportedException"><strong>OperationNotSupportedException</strong></a> – if the vApp can’t be shutdown.</td>
+</tr>
 </tbody>
 </table>
 </dd></dl>
@@ -803,6 +920,9 @@ from the database.</dd>
 the asynchronous task that is undeploying the vApp.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.exceptions.html#pyvcloud.vcd.exceptions.OperationNotSupportedException" title="pyvcloud.vcd.exceptions.OperationNotSupportedException"><strong>OperationNotSupportedException</strong></a> – if the vApp can’t be
+undeployed.</td>
 </tr>
 </tbody>
 </table>

@@ -116,6 +116,8 @@ type.</td>
 <dt id="pyvcloud.vcd.utils.get_admin_extension_href">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">get_admin_extension_href</code><span class="sig-paren">(</span><em>href</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.get_admin_extension_href" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns sys admin version of a given vCD url.</p>
+<p>This function is idempotent, which also means that if input href is already
+an admin extension href no further action would be taken.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -134,6 +136,8 @@ type.</td>
 <dt id="pyvcloud.vcd.utils.get_admin_href">
 <code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">get_admin_href</code><span class="sig-paren">(</span><em>href</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.get_admin_href" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns admin version of a given vCD url.</p>
+<p>This function is idempotent, which also means that if input href is already
+an admin href no further action would be taken.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -143,6 +147,25 @@ type.</td>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">admin version of the href.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvcloud.vcd.utils.get_safe_members_in_tar_file">
+<code class="descclassname">pyvcloud.vcd.utils.</code><code class="descname">get_safe_members_in_tar_file</code><span class="sig-paren">(</span><em>tarfile</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.utils.get_safe_members_in_tar_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve members of a tar file that are safe to extract.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tarfile</strong> (<em>Tarfile</em>) – the archive that has been opened as a TarFile
+object.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of members in the archive that are safe to extract.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -251,8 +274,8 @@ EntityType.TASK XML data.</td>
 <li><strong>obj</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – </li>
 <li><strong>attributes</strong> (<em>list</em>) – list of attributes we want to extract from the XML
 object.</li>
-<li><strong>resource_type</strong> – type of resource in the param obj. Acceptable values
-are listed in the enum pyvcloud.vcd.client.ResourceType.</li>
+<li><strong>resource_type</strong> (<em>str</em>) – type of resource in the param obj. Acceptable
+values are listed in the enum pyvcloud.vcd.client.ResourceType.</li>
 <li><strong>exclude</strong> (<em>list</em>) – list of attributes that should be excluded from the
 dictionary.</li>
 </ul>

@@ -1,0 +1,225 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pyvcloud.system_test_framework.utils module &#8212; pyvcloud  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pyvcloud.vcd package" href="pyvcloud.vcd.html" />
+    <link rel="prev" title="pyvcloud.system_test_framework.environment module" href="pyvcloud.system_test_framework.environment.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pyvcloud.system_test_framework.utils">
+<span id="pyvcloud-system-test-framework-utils-module"></span><h1>pyvcloud.system_test_framework.utils module<a class="headerlink" href="#module-pyvcloud.system_test_framework.utils" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="pyvcloud.system_test_framework.utils.create_customized_vapp_from_template">
+<code class="descclassname">pyvcloud.system_test_framework.utils.</code><code class="descname">create_customized_vapp_from_template</code><span class="sig-paren">(</span><em>client</em>, <em>vdc</em>, <em>name</em>, <em>catalog_name</em>, <em>template_name</em>, <em>description=None</em>, <em>memory_size=None</em>, <em>num_cpu=None</em>, <em>disk_size=None</em>, <em>vm_name=None</em>, <em>vm_hostname=None</em>, <em>nw_adapter_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.utils.create_customized_vapp_from_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method to create a customized vApp from template.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>client</strong> (<a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client"><em>pyvcloud.vcd.client.Client</em></a>) – a client that would be used
+to make ReST calls to vCD.</li>
+<li><strong>vdc</strong> (<a class="reference internal" href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC" title="pyvcloud.vcd.vdc.VDC"><em>pyvcloud.vcd.vdc.VDC</em></a>) – the vdc in which the vApp will be
+created.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the new vApp.</li>
+<li><strong>catalog_name</strong> (<em>str</em>) – name of the catalog.</li>
+<li><strong>template_name</strong> (<em>str</em>) – name of the vApp template.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the new vApp.</li>
+<li><strong>memory_size</strong> (<em>int</em>) – size of memory of the first vm.</li>
+<li><strong>num_cpu</strong> (<em>int</em>) – number of cpus in the first vm.</li>
+<li><strong>disk_size</strong> (<em>int</em>) – size of the first disk of the first vm.</li>
+<li><strong>vm_name</strong> (<em>str</em>) – when provided, sets the name of the vm.</li>
+<li><strong>vm_hostname</strong> (<em>str</em>) – when provided, sets the hostname of the guest OS.</li>
+<li><strong>nw_adapter_type</strong> (<em>str</em>) – One of the values in
+pyvcloud.vcd.client.NetworkAdapterType.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">href of the created vApp.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvcloud.system_test_framework.utils.create_empty_vapp">
+<code class="descclassname">pyvcloud.system_test_framework.utils.</code><code class="descname">create_empty_vapp</code><span class="sig-paren">(</span><em>client</em>, <em>vdc</em>, <em>name</em>, <em>description</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.utils.create_empty_vapp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method to create an empty vApp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>client</strong> (<a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client"><em>pyvcloud.vcd.client.Client</em></a>) – a client that would be used
+to make ReST calls to vCD.</li>
+<li><strong>vdc</strong> (<a class="reference internal" href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC" title="pyvcloud.vcd.vdc.VDC"><em>pyvcloud.vcd.vdc.VDC</em></a>) – the vdc in which the vApp will be
+created.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the new vApp.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the new vApp.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">href of the created vApp.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvcloud.system_test_framework.utils.create_independent_disk">
+<code class="descclassname">pyvcloud.system_test_framework.utils.</code><code class="descname">create_independent_disk</code><span class="sig-paren">(</span><em>client</em>, <em>vdc</em>, <em>name</em>, <em>size</em>, <em>description</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.utils.create_independent_disk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method to create an independent disk in a given orgVDC.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>client</strong> (<a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client"><em>pyvcloud.vcd.client.Client</em></a>) – a client that would be used
+to make ReST calls to vCD.</li>
+<li><strong>vdc</strong> (<a class="reference internal" href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC" title="pyvcloud.vcd.vdc.VDC"><em>pyvcloud.vcd.vdc.VDC</em></a>) – the vdc in which the disk will be
+created.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the disk to be created.</li>
+<li><strong>size</strong> (<em>str</em>) – size of the disk to be created in bytes.</li>
+<li><strong>description</strong> (<em>str</em>) – description of the disk to be created.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">id of the created independent disk.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvcloud.system_test_framework.utils.create_vapp_from_template">
+<code class="descclassname">pyvcloud.system_test_framework.utils.</code><code class="descname">create_vapp_from_template</code><span class="sig-paren">(</span><em>client</em>, <em>vdc</em>, <em>name</em>, <em>catalog_name</em>, <em>template_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.utils.create_vapp_from_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method to create a vApp from template.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>client</strong> (<a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client"><em>pyvcloud.vcd.client.Client</em></a>) – a client that would be used
+to make ReST calls to vCD.</li>
+<li><strong>vdc</strong> (<a class="reference internal" href="pyvcloud.vcd.vdc.html#pyvcloud.vcd.vdc.VDC" title="pyvcloud.vcd.vdc.VDC"><em>pyvcloud.vcd.vdc.VDC</em></a>) – the vdc in which the vApp will be
+created.</li>
+<li><strong>name</strong> (<em>str</em>) – name of the new vApp.</li>
+<li><strong>catalog_name</strong> (<em>str</em>) – name of the catalog.</li>
+<li><strong>template_name</strong> (<em>str</em>) – name of the vApp template.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">href of the created vApp.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pyvcloud</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pyvcloud.html">Python Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyvcloud.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyvcloud.html#module-pyvcloud">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<hr />
+<ul>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud">Visit project on Github</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/LICENSE.txt">License</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/docs/install.md">Installation</a></li>
+    <li class="toctree-l1"><a href="https://github.com/vmware/pyvcloud/blob/master/CONTRIBUTING.md">Contributing</a></li>
+    <li class="toctree-l1"><a href="https://blogs.vmware.com/vcat/">Blog Articles</a></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, VMware Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/pyvcloud.system_test_framework.utils.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

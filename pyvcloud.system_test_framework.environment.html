@@ -15,7 +15,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="pyvcloud.vcd package" href="pyvcloud.vcd.html" />
+    <link rel="next" title="pyvcloud.system_test_framework.utils module" href="pyvcloud.system_test_framework.utils.html" />
     <link rel="prev" title="pyvcloud.system_test_framework.base_test module" href="pyvcloud.system_test_framework.base_test.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -73,28 +73,12 @@
 <em class="property">classmethod </em><code class="descname">attach_vc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.attach_vc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attaches VC and NSX to vCD as per configuration file.</p>
 <p>If VC is already attached no further action is taken.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="pyvcloud.system_test_framework.environment.Environment.cleanup">
 <em class="property">classmethod </em><code class="descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.cleanup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cleans up the various class variables.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="classmethod">
@@ -106,9 +90,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
 </tr>
 </tbody>
 </table>
@@ -120,31 +102,19 @@
 <dd><p>Creates an org by the name specified in the config file.</p>
 <p>Skips creating one, if such an org already exists. Also stores the
 href of the org as class variable for future use.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="pyvcloud.system_test_framework.environment.Environment.create_ovdc">
 <em class="property">classmethod </em><code class="descname">create_ovdc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.create_ovdc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates an org vdc with the name specified in the config file.</p>
-<dl class="docutils">
-<dt>Skips creating one, if such an org vdc already exists. Also stores the</dt>
-<dd>href of the org vdc as class variable for future use.</dd>
-</dl>
+<p>Skips creating one, if such an org vdc already exists. Also stores the
+href of the org vdc as class variable for future use.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href or _pvdc_name
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href or _pvdc_name
 is not populated.</td>
 </tr>
 </tbody>
@@ -162,9 +132,7 @@ exists.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _ovdc_href is not populated.</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _ovdc_href is not populated.</td>
 </tr>
 </tbody>
 </table>
@@ -176,14 +144,6 @@ exists.</p>
 <dd><p>Creates a pvdc by the name specified in the config file.</p>
 <p>Skips creating one, if such a pvdc already exists. Also stores the
 href and name of the provider vdc as class variables for future use.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="classmethod">
@@ -195,9 +155,7 @@ href and name of the provider vdc as class variables for future use.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
 </tr>
 </tbody>
 </table>
@@ -220,7 +178,7 @@ given organization.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A :class:  object.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a client.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client">pyvcloud.vcd.client.Client</a></p>
@@ -264,7 +222,7 @@ in.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dict containing configuration information.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a dict containing configuration information.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -337,49 +295,14 @@ in.</td>
 </dd></dl>
 
 <dl class="classmethod">
-<dt id="pyvcloud.system_test_framework.environment.Environment.get_default_vapp">
-<em class="property">classmethod </em><code class="descname">get_default_vapp</code><span class="sig-paren">(</span><em>client</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_default_vapp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets the default vApp that will be used for testing.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>client</strong> (<a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client"><em>pyvcloud.vcd.client.Client</em></a>) – client which will be used to
-create the VApp object.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the vApp that will be used in tests.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.vapp.html#pyvcloud.vcd.vapp.VApp" title="pyvcloud.vcd.vapp.VApp">pyvcloud.vcd.vapp.VApp</a></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="pyvcloud.system_test_framework.environment.Environment.get_default_vm_name">
-<em class="property">classmethod </em><code class="descname">get_default_vm_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_default_vm_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the name of the default vm that will be used for testing.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return (str):</th><td class="field-body">The name of the test vm.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="classmethod">
 <dt id="pyvcloud.system_test_framework.environment.Environment.get_sys_admin_client">
 <em class="property">classmethod </em><code class="descname">get_sys_admin_client</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_sys_admin_client" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the sys admin client, creates one if required.</p>
+<dd><p>Creates a sys admin client.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the sys admin client.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a sys admin client.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.client.html#pyvcloud.vcd.client.Client" title="pyvcloud.vcd.client.Client">pyvcloud.vcd.client.Client</a></td>
 </tr>
@@ -403,6 +326,24 @@ create the Org object.</td>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the organization in which all tests will run.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="pyvcloud.vcd.org.html#pyvcloud.vcd.org.Org" title="pyvcloud.vcd.org.Org">pyvcloud.vcd.org.Org</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyvcloud.system_test_framework.environment.Environment.get_test_pvdc_name">
+<em class="property">classmethod </em><code class="descname">get_test_pvdc_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.get_test_pvdc_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the name of the pvdc to be used for testing.</p>
+<p>Can return None if the method create_pvdc hasn’t be called before
+invoking this method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">name of the pvdc to be used for testing.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
 </tr>
 </tbody>
 </table>
@@ -502,26 +443,6 @@ create the VApp object.</li>
 representation of configuration data read from the configuration
 file.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="pyvcloud.system_test_framework.environment.Environment.instantiate_vapp">
-<em class="property">classmethod </em><code class="descname">instantiate_vapp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.system_test_framework.environment.Environment.instantiate_vapp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiates the test template in the test catalog.</p>
-<p>This template will be used to create the test vApp. if the vApp already
-exists then skips creating it.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _ovdc_href is not populated.</td>
-</tr>
 </tbody>
 </table>
 </dd></dl>
@@ -534,11 +455,9 @@ exists then skips creating it.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the catalog in question is
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">EntityNotFoundException: if the catalog in question is
 missing.</td>
 </tr>
 </tbody>
@@ -554,9 +473,7 @@ missing.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">Exception: if the class variable _org_href is not populated.</td>
 </tr>
 </tbody>
 </table>

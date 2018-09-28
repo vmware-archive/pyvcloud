@@ -91,6 +91,44 @@ the vm.</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="pyvcloud.vcd.vm.VM.get_power_state">
+<code class="descname">get_power_state</code><span class="sig-paren">(</span><em>vm_resource=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.get_power_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the status of the vm.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vm_resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – object
+containing EntityType.VM XML data representing the vm whose
+power state we want to retrieve.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The status of the vm, the semantics of the value returned is
+captured in pyvcloud.vcd.client.VCLOUD_STATUS_MAP</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vm.VM.get_resource">
+<code class="descname">get_resource</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.get_resource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches the XML representation of the vm from vCD.</p>
+<p>Will serve cached response if possible.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">object containing EntityType.VM XML data representing the vm.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">lxml.objectify.ObjectifiedElement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="pyvcloud.vcd.vm.VM.get_vc">
 <code class="descname">get_vc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.get_vc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the vCenter where this vm is located.</p>
@@ -101,6 +139,86 @@ the vm.</td>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">name of the vCenter server.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vm.VM.is_deployed">
+<code class="descname">is_deployed</code><span class="sig-paren">(</span><em>vm_resource=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.is_deployed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a vm is deployed or not.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vm_resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – object
+containing EntityType.VM XML data representing the vm whose
+power state we want to check.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the vm is deployed else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vm.VM.is_powered_off">
+<code class="descname">is_powered_off</code><span class="sig-paren">(</span><em>vm_resource=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.is_powered_off" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a vm is powered off or not.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vm_resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – object
+containing EntityType.VM XML data representing the vm whose
+power state we want to check.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the vm is powered off else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vm.VM.is_powered_on">
+<code class="descname">is_powered_on</code><span class="sig-paren">(</span><em>vm_resource=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.is_powered_on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a vm is powered on or not.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vm_resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – object
+containing EntityType.VM XML data representing the vm whose
+power state we want to check.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the vm is powered on else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvcloud.vcd.vm.VM.is_suspended">
+<code class="descname">is_suspended</code><span class="sig-paren">(</span><em>vm_resource=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvcloud.vcd.vm.VM.is_suspended" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a vm is suspended or not.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vm_resource</strong> (<em>lxml.objectify.ObjectifiedElement</em>) – object
+containing EntityType.VM XML data representing the vm whose
+power state we want to check.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the vm is suspended else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
 </tr>
 </tbody>
 </table>

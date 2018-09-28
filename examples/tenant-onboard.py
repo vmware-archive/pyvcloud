@@ -76,7 +76,7 @@ config_yaml = sys.argv[1]
 # top-level entries.  Values are either scalar variables, dictionaries,
 # or lists depending on the structure of the YAML.
 with open(config_yaml, "r") as config_file:
-    config_dict = yaml.load(config_file)
+    config_dict = yaml.safe_load(config_file)
     cfg = namedtuple('ConfigObject', config_dict.keys())(**config_dict)
 
 # Disable warnings from self-signed certificates.

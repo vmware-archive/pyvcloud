@@ -36,7 +36,7 @@ config_yaml = sys.argv[1]
 
 # Load the YAML configuration and convert to an object with properties.
 with open(config_yaml, "r") as config_file:
-    config_dict = yaml.load(config_file)
+    config_dict = yaml.safe_load(config_file)
     cfg = namedtuple('ConfigObject', config_dict.keys())(**config_dict)
 
 # Disable warnings from self-signed certificates.

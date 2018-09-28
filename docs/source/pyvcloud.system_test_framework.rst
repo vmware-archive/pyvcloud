@@ -8,6 +8,7 @@ Submodules
 
    pyvcloud.system_test_framework.base_test
    pyvcloud.system_test_framework.environment
+   pyvcloud.system_test_framework.utils
 
 Module contents
 ---------------

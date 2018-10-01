@@ -1,9 +1,9 @@
 CHANGES
 =======
 
-* fixed travis build failure
-* Removed extra blank spaces and non printable ASCII characters in license file
-* update OSL files and related files
+* [VCDA-752] Update doc generation source files (#300)
+* Change occurrence of yaml.load() to yaml.safe\_load() in pyvcloud sample app (#299)
+* bug fix: correct typo in comments (namespace -> names) (#297)
 * Fix search test for api version <= 29.0 (#295)
 * Fix documentation for method add\_extension in module api\_extension.py  (#296)
 * [VDP-2083, VCDA-721] Implement migrate-vms from one resource pool to another (#287)

@@ -788,7 +788,7 @@ class Org(object):
                 if data_size <= chunk_size:
                     range_str = 'bytes %s-%s/%s' % \
                                 (offset + uploaded_bytes,
-                                 data_size - 1,
+                                 offset + uploaded_bytes + data_size - 1,
                                  total_file_size)
                     self.client.upload_fragment(target_uri, data, range_str)
                     uploaded_bytes += data_size

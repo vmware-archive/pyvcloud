@@ -35,7 +35,8 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     MultipleRecordsException, NotAcceptableException, NotFoundException, \
     OperationNotSupportedException, RequestTimeoutException,\
     TaskTimeoutException, UnauthorizedException, UnknownApiException, \
-    UnsupportedMediaTypeException, VcdException, VcdTaskException  # NOQA
+    UnsupportedMediaTypeException, VcdException, VcdResponseException, \
+    VcdTaskException  # NOQA
 
 
 SIZE_1MB = 1024 * 1024
@@ -536,7 +537,17 @@ class Client(object):
     :param boolean log_bodies: if True log HTTP bodies.
     """
 
-    _REQUEST_ID_HDR_NAME = 'X-VMWARE-VCLOUD-REQUEST-ID'
+    _HEADER_ACCEPT_NAME = 'Accept'
+    _HEADER_CONNECTION_NAME = 'Connection'
+    _HEADER_CONTENT_LENGTH_NAME = 'Content-Length'
+    _HEADER_CONTENT_RANGE_NAME = 'Content-Range'
+    _HEADER_CONTENT_TYPE_NAME = 'Content-Type'
+    _HEADER_REQUEST_ID_NAME = 'X-VMWARE-VCLOUD-REQUEST-ID'
+    _HEADER_X_VCLOUD_AUTH_NAME = 'x-vcloud-authorization'
+
+    _HEADER_CONNECTION_VALUE_CLOSE = 'close'
+
+    _UPLOAD_FRAGMENT_MAX_RETRIES = 5
 
     def __init__(self,
                  uri,
@@ -608,7 +619,28 @@ class Client(object):
 
         :rtype: str
         """
-        return response.headers[self._REQUEST_ID_HDR_NAME]
+        return response.headers[self._HEADER_REQUEST_ID_NAME]
+
+    def is_connection_closed(self, response):
+        """Determine from server response if the connection has been closed.
+
+        :param requests.Response response: the response received from server
+            for the last REST call.
+
+        :return: True, if the response from server indicates that the
+            connection has been closed, else False.
+
+        :rtype: boolean
+        """
+        if response is None:
+            return False
+
+        if self._HEADER_CONNECTION_NAME in response.headers:
+            if response.headers[self._HEADER_CONNECTION_NAME].lower() == \
+               self._HEADER_CONNECTION_VALUE_CLOSE.lower():
+                return True
+
+        return False
 
     def get_api_version(self):
         """Return vCD API version client is using.
@@ -620,9 +652,9 @@ class Client(object):
         return self._api_version
 
     def get_supported_versions_list(self):
-        """Return non-deprecated server API versions as iterable list.
+        """Return non-deprecated server API versions as a list.
 
-        :return: versions (str) sorted in numerical order.
+        :return: versions as strings, sorted in numerical order.
 
         :rtype: list
         """
@@ -631,7 +663,7 @@ class Client(object):
         for version in versions.VersionInfo:
             # Versions must be explicitly assigned as text values using the
             # .text property. Otherwise lxml will return "corrected" numbers
-            # that drop non-sigificant digits. For example, 5.10 becomes
+            # that drop non-significant digits. For example, 5.10 becomes
             # 5.1.  This transformation corrupts the version.
             if not hasattr(version, 'deprecated') or \
                version.get('deprecated') == 'false':
@@ -725,7 +757,7 @@ class Client(object):
                 auth=('%s@%s' % (creds.user, creds.org), creds.password))
 
             sc = response.status_code
-            if sc != 200:
+            if sc is not 200:
                 r = None
                 try:
                     r = _objectify_response(response)
@@ -742,8 +774,8 @@ class Client(object):
             self._session_endpoints = _get_session_endpoints(session)
 
             self._session = new_session
-            self._session.headers['x-vcloud-authorization'] = \
-                response.headers['x-vcloud-authorization']
+            self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
+                response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
             self._is_sysadmin = self._is_sys_admin(session.get('org'))
         except Exception:
             new_session.close()
@@ -751,7 +783,8 @@ class Client(object):
 
     def rehydrate(self, state):
         self._session = requests.Session()
-        self._session.headers['x-vcloud-authorization'] = state.get('token')
+        self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
+            state.get('token')
         self._is_sysadmin = self._is_sys_admin(state.get('org'))
         wkep = state.get('wkep')
         self._session_endpoints = {}
@@ -761,13 +794,11 @@ class Client(object):
 
     def rehydrate_from_token(self, token):
         new_session = requests.Session()
-        new_session.headers['x-vcloud-authorization'] = token
-        new_session.headers['Accept'] = 'application/*+xml;version=%s' % \
-            self._api_version
+        new_session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = token
         response = self._do_request_prim('GET', self._uri + "/session",
                                          new_session)
         sc = response.status_code
-        if sc != 200:
+        if sc is not 200:
             self._response_code_to_exception(sc, self._get_response_request_id(
                 response), _objectify_response(response))
 
@@ -776,12 +807,12 @@ class Client(object):
         self._is_sysadmin = self._is_sys_admin(session.get('org'))
         self._session_endpoints = _get_session_endpoints(session)
         self._session = new_session
-        self._session.headers['x-vcloud-authorization'] = \
-            response.headers['x-vcloud-authorization']
+        self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
+            response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
         return session
 
     def logout(self):
-        """Destroy the server session and deallocate local resources.
+        """Destroy the server session and de-allocate local resources.
 
         Logout is idempotent. Reusing a client after logout will result
         in undefined behavior.
@@ -821,8 +852,8 @@ class Client(object):
             self._session,
             contents=contents,
             media_type=media_type)
-        sc = response.status_code
 
+        sc = response.status_code
         if 200 <= sc <= 299:
             return _objectify_response(response, objectify_results)
 
@@ -868,6 +899,40 @@ class Client(object):
 
         raise UnknownApiException(sc, request_id, objectify_response)
 
+    def _log_request_response(self,
+                              response,
+                              request_body=None,
+                              skip_logging_response_body=False):
+        if not self._log_requests:
+            return
+
+        self._logger.debug('Request uri (%s): %s' %
+                           (response.request.method, response.request.url))
+
+        if self._log_headers:
+            self._logger.debug('Request headers: %s' %
+                               response.request.headers)
+
+        if self._log_bodies and request_body is not None:
+            if isinstance(request_body, str):
+                body = request_body
+            else:
+                body = request_body.decode(self.fsencoding)
+            self._logger.debug('Request body: %s' % body)
+
+        self._logger.debug('Response status code: %s' % response.status_code)
+
+        if self._log_headers:
+            self._logger.debug('Response headers: %s' % response.headers)
+
+        if self._log_bodies and not skip_logging_response_body and \
+           _response_has_content(response):
+            if isinstance(response.content, str):
+                response_body = response.content
+            else:
+                response_body = response.content.decode(self.fsencoding)
+            self._logger.debug('Response body: %s' % response_body)
+
     def _do_request_prim(self,
                          method,
                          uri,
@@ -878,8 +943,8 @@ class Client(object):
                          auth=None):
         headers = {}
         if media_type is not None:
-            headers['Content-Type'] = media_type
-        headers['Accept'] = '%s;version=%s' % \
+            headers[self._HEADER_CONTENT_TYPE_NAME] = media_type
+        headers[self._HEADER_ACCEPT_NAME] = '%s;version=%s' % \
             ('application/*+xml' if accept_type is None else accept_type,
              self._api_version)
 
@@ -899,53 +964,42 @@ class Client(object):
             auth=auth,
             verify=self._verify_ssl_certs)
 
-        if self._log_requests or self._log_headers or self._log_bodies:
-            self._logger.debug('Request uri (%s): %s' % (method, uri))
-        if self._log_headers:
-            self._logger.debug('Request headers: %s, %s' % (session.headers,
-                                                            headers))
-        if self._log_bodies and data is not None:
-            if isinstance(data, str):
-                d = data
-            else:
-                d = data.decode(self.fsencoding)
-            self._logger.debug('Request body: %s' % d)
-        if self._log_requests or self._log_headers or self._log_bodies:
-            self._logger.debug(
-                'Response status code: %s' % response.status_code)
-        if self._log_headers:
-            self._logger.debug('Response headers: %s' % response.headers)
-        if self._log_bodies and _response_has_content(response):
-            if isinstance(response.content, str):
-                d = response.content
-            else:
-                d = response.content.decode(self.fsencoding)
-            self._logger.debug('Response body: %s' % d)
+        self._log_request_response(response=response, request_body=data)
+
         return response
 
     def upload_fragment(self, uri, contents, range_str):
         headers = {}
-        headers['Content-Range'] = range_str
-        headers['Content-Length'] = str(len(contents))
+        headers[self._HEADER_CONTENT_RANGE_NAME] = range_str
+        headers[self._HEADER_CONTENT_LENGTH_NAME] = str(len(contents))
         data = contents
-        response = self._session.request(
-            'PUT',
-            uri,
-            data=data,
-            headers=headers,
-            verify=self._verify_ssl_certs)
-        if self._log_headers or self._log_bodies:
-            self._logger.debug('Request uri: %s' % uri)
-        if self._log_headers:
-            self._logger.debug('Request headers: %s, %s' %
-                               (self._session.headers, headers))
-        if self._log_headers:
-            self._logger.debug(
-                'Response status code: %s' % response.status_code)
-            self._logger.debug('Response headers: %s' % response.headers)
-        if self._log_bodies and _response_has_content(response):
-            self._logger.debug('Response body: %s' % response.content)
-        return response
+
+        # If we pump data too fast, server can reply back with statuses other
+        # than 200 e.g. 416. As counter measure, on receiving non 200 status,
+        # we will retry the upload for a fixed number of times. If all the
+        # retry efforts fail, we will fail the upload completely and return.
+        for attempt in range(1, self._UPLOAD_FRAGMENT_MAX_RETRIES + 1):
+            try:
+                response = self._session.put(uri, data=data, headers=headers,
+                                             verify=self._verify_ssl_certs)
+                self._log_request_response(response)
+
+                sc = response.status_code
+                if sc is not 200:
+                    self._response_code_to_exception(sc, None, response)
+                else:
+                    return response
+            except VcdResponseException as e:
+                # retry if not the last attempt
+                if attempt < self._UPLOAD_FRAGMENT_MAX_RETRIES:
+                    self._logger.debug('Failure: attempt#%s to upload data in '
+                                       'range %s failed. Retrying.' %
+                                       (attempt, range_str))
+                    continue
+                else:
+                    self._logger.debug(
+                        'Reached max retry limit. Failing upload.')
+                    raise
 
     def download_from_uri(self,
                           uri,
@@ -953,10 +1007,12 @@ class Client(object):
                           chunk_size=SIZE_1MB,
                           size=0,
                           callback=None):
-        response = self._session.request(
-            'GET', uri, stream=True, verify=self._verify_ssl_certs)
-        sc = response.status_code
 
+        response = self._session.get(
+            uri, stream=True, verify=self._verify_ssl_certs)
+        self._log_request_response(response, skip_logging_response_body=True)
+
+        sc = response.status_code
         if sc is not 200:
             self._response_code_to_exception(sc, None, response)
 
@@ -968,13 +1024,8 @@ class Client(object):
                     bytes_written += len(chunk)
                     if callback is not None:
                         callback(bytes_written, size)
-                    if self._log_headers or self._log_bodies:
-                        self._logger.debug('Request uri: %s' % uri)
-                    if self._log_headers:
-                        self._logger.debug(
-                            'Response status code: %s' % response.status_code)
-                        self._logger.debug(
-                            'Response headers: %s' % response.headers)
+                    self._logger.debug('Downloaded bytes : %s' %
+                                       bytes_written)
         return bytes_written
 
     def put_resource(self, uri, contents, media_type, objectify_results=True):

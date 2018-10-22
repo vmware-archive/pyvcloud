@@ -44,7 +44,10 @@ from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import get_safe_members_in_tar_file
 from pyvcloud.vcd.utils import to_dict
 
-DEFAULT_CHUNK_SIZE = 1024 * 1024
+# Uptil pyvcloud v20.0.0 1 MB was the default chunk size,
+# in constrast vCD H5 UI uses 50MB for upload chunk size,
+# 10MB is a happy medium between 50MB and 1MB.
+DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024
 
 
 class Org(object):
@@ -790,10 +793,29 @@ class Org(object):
                                 (offset + uploaded_bytes,
                                  offset + uploaded_bytes + data_size - 1,
                                  total_file_size)
-                    self.client.upload_fragment(target_uri, data, range_str)
+                    response = self.client.upload_fragment(
+                        target_uri, data, range_str)
                     uploaded_bytes += data_size
                     if callback is not None:
                         callback(offset + uploaded_bytes, total_file_size)
+
+                    # We can hit an issue similar to the following issue
+                    # https://github.com/requests/requests/issues/4664
+                    #
+                    # Our uploads would fail with the error message,
+                    #
+                    # urllib3.exceptions.ProtocolError: ('Connection aborted.',
+                    # ConnectionResetError(10054, 'An existing connection was
+                    # forcibly closed by the remote host', None, 10054, None))
+                    #
+                    # This error is probably caused by request lib reusing
+                    # keep-alive connections that were marked as closed by the
+                    # server. As a workaround for this, we will wait 1 second
+                    # after issuing the PUT call if the connection is closed by
+                    # the server. Spacing out the requests seems to help
+                    # requests lib with pruning dead keep-alive connections.
+                    if self.client.is_connection_closed(response):
+                        time.sleep(1)
         return uploaded_bytes
 
     def capture_vapp(self,

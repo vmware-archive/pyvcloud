@@ -997,7 +997,7 @@ class Client(object):
                                        (attempt, range_str))
                     continue
                 else:
-                    self._logger.debug(
+                    self._logger.error(
                         'Reached max retry limit. Failing upload.')
                     raise
 

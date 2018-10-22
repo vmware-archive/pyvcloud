@@ -1,6 +1,16 @@
 CHANGES
 =======
 
+20.0.1
+------
+
+* [VCDA-786] Additional fix for failures during template uploads to catalog.  (#304)
+* [VCDA-786] Fix failure during template uploads to catalog
+
+20.0.0
+------
+
+* [VCDA-764] Update OSL files for pyvcloud. (#298)
 * [VCDA-752] Update doc generation source files (#300)
 * Change occurrence of yaml.load() to yaml.safe\_load() in pyvcloud sample app (#299)
 * bug fix: correct typo in comments (namespace -> names) (#297)

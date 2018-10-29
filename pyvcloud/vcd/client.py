@@ -341,7 +341,6 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.vmwProviderVdcResourcePool+xml'
     VMW_PROVIDER_VDC_RESOURCE_POOL_SET = \
         'application/vnd.vmware.admin.vmwProviderVdcResourcePoolSet+xml'
-    PVDC_NETWORKS = 'application/vnd.vmware.admin.network+xml'
 
 
 class QueryResultFormat(Enum):

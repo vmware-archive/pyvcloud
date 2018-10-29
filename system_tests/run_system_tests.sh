@@ -34,7 +34,7 @@ api_extension_tests.py \
 catalog_tests \
 idisk_tests.py \
 network_tests.py \
-s.py \
+org_tests.py \
 search_tests.py \
 vapp_tests.py \
 vdc_tests.py \

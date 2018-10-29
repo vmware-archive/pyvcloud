@@ -341,6 +341,7 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.vmwProviderVdcResourcePool+xml'
     VMW_PROVIDER_VDC_RESOURCE_POOL_SET = \
         'application/vnd.vmware.admin.vmwProviderVdcResourcePoolSet+xml'
+    PVDC_NETWORKS = 'application/vnd.vmware.admin.network+xml'
 
 
 class QueryResultFormat(Enum):
@@ -349,7 +350,6 @@ class QueryResultFormat(Enum):
                   'idrecords')
     REFERENCES = ('application/vnd.vmware.vcloud.query.references+xml',
                   'references')
-
 
 class _WellKnownEndpoint(Enum):
     LOGGED_IN_ORG = (RelationType.DOWN, EntityType.ORG.value)

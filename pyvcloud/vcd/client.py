@@ -332,6 +332,7 @@ class EntityType(Enum):
     VDC = 'application/vnd.vmware.vcloud.vdc+xml'
     VDC_REFERENCES = 'application/vnd.vmware.admin.vdcReferences+xml'
     VDCS_PARAMS = 'application/vnd.vmware.admin.createVdcParams+xml'
+    VIM_SERVER_NETWORKS = 'application/vnd.vmware.admin.vimServerNetworks+xml'
     VIM_SERVER_REFS = 'application/vnd.vmware.admin.vmwVimServerReferences+xml'
     VIRTUAL_CENTER = 'application/vnd.vmware.admin.vmwvirtualcenter+xml'
     VM = 'application/vnd.vmware.vcloud.vm+xml'

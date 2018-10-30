@@ -60,10 +60,7 @@ class TestGateway(BaseTestCase):
         subnet_addr = gateway_ip + '/' + str(first_ipscope.SubnetPrefixLength)
         ext_net_to_participated_subnet_with_ip_settings = {
             ext_net_resource.get('name'): {
-                subnet_addr: {
-                    'participate': True,
-                    'ip_assigned': 'Auto'
-                }
+                subnet_addr: 'Auto'
             }
         }
 
@@ -78,15 +75,14 @@ class TestGateway(BaseTestCase):
         }
         ext_net_to_rate_limit = {
             ext_net_resource.get('name'): {
-                'incoming_rate_limit': 100,
-                'outgoing_rate_limit': 100
+                100 : 100
             }
         }
         gateway = vdc.create_gateway(
-            self._name, 'compact', [ext_net_resource.get('name')], None, True,
-            ext_net_resource.get('name'), gateway_ip, True, False, True, False,
-            True, ext_net_to_participated_subnet_with_ip_settings, True,
-            ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+            self._name, [ext_net_resource.get('name')], 'compact', None, True,
+            ext_net_resource.get('name'), gateway_ip, True, False, True,
+            False, True, ext_net_to_participated_subnet_with_ip_settings,
+            True, ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=gateway.Tasks.Task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)

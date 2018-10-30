@@ -222,7 +222,9 @@ class VDC(object):
         # vApp network name specified in the template
         template_networks = template_resource.xpath(
             '//ovf:NetworkSection/ovf:Network',
-            namespaces={'ovf': NSMAP['ovf']})
+            namespaces={
+                'ovf': NSMAP['ovf']
+            })
         assert len(template_networks) > 0
         network_name_from_template = template_networks[0].get(
             '{' + NSMAP['ovf'] + '}name')
@@ -283,10 +285,12 @@ class VDC(object):
 
         # Configure network of the first vm
         if network_name is not None:
-            primary_index = int(vms[0].NetworkConnectionSection.
-                                PrimaryNetworkConnectionIndex.text)
+            primary_index = int(vms[
+                0].NetworkConnectionSection.PrimaryNetworkConnectionIndex.text)
             network_connection_param = E.NetworkConnection(
-                E.NetworkConnectionIndex(primary_index), network=network_name)
+                E.NetworkConnectionIndex(primary_index),
+                network=network_name
+            )
             if ip_address is not None:
                 network_connection_param.append(E.IpAddress(ip_address))
             network_connection_param.append(E.IsConnected('true'))
@@ -308,7 +312,9 @@ class VDC(object):
                 E_OVF.Info('Virtual hardware requirements'))
             items = vms[0].xpath(
                 '//ovf:VirtualHardwareSection/ovf:Item',
-                namespaces={'ovf': NSMAP['ovf']})
+                namespaces={
+                    'ovf': NSMAP['ovf']
+                })
             for item in items:
                 if memory is not None and memory_params is None:
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 4:
@@ -450,8 +456,8 @@ class VDC(object):
 
     def create_gateway(self,
                        name,
-                       gateway_backing_config='compact',
                        external_networks=[],
+                       gateway_backing_config='compact',
                        desc=None,
                        is_configured_default_gw=False,
                        selected_extnw_for_default_gw=None,
@@ -465,39 +471,37 @@ class VDC(object):
                        is_sub_allocate_ip_pools_enabled=False,
                        ext_net_to_subnet_with_ip_range={},
                        ext_net_to_rate_limit={},
-                       is_fips_mode_enabled=False):
+                       is_flips_mode_enabled=False):
         """Request the creation of a gateway.
 
         :param str name: name of the new gateway.
         :param list external_networks: list of external network to which
-            gateway can connect.
+        gateway can connect.
+        :param str gateway_backing_config: gateway backing config. Possible
+        values can be compact/full/full4/x-large.
         :param str desc: description.
         :param bool is_configured_default_gw: configure default gateway.
         :param str description: description of the new disk.
         :param str selected_extnw_for_default_gw: selected external network
-            for default gateway
+        for default gateway.
         :param str default_gateway_ip: selected dafault gateway IP
         :param bool is_default_gw_for_dns_realy_selected: is default gateway
-            for dns realy selected
+         for dns realy selected
         :param bool is_ha_enabled: is HA enabled
         :param bool is_create_as_advanced: create as advanced gateway selected
         :param bool is_dr_enabled: is distributed routing enabled
         :param bool is_ip_settings_configured: is ip settings configured
-        :param dict ext_net_to_participated_subnet_with_ip_settings: external
-            network to subnet ip with
-             participate staus and ip assigned in case of manual else Auto
-             for ex: {"ext_net' : {'10.3.2.1/24' : {'participate': True/False,
-              'ip_assigned': Auto/10.3.2.2}}}
-        :param bool  is_sub_allocate_ip_pools_enabled: is sub allocate ip pools
-            enabled
+        :param dict ext_net_to_participated_subnet_with_ip_settings:
+        external network to subnet ip with ip assigned in case of manual
+        else Auto. for ex: {"ext_net' : {'10.3.2.1/24' : Auto/10.3.2.2}}
+        :param bool is_sub_allocate_ip_pools_enabled: is sub allocate ip
+        pools enabled
         :param dict ext_net_to_subnet_with_ip_range: external network to sub
-            allocated ip with ip ranges
-            for ex: {"ext_net' : {'10.3.2.1/24' : [10.3.2.2-10.3.2.5,
-             10.3.2.12-10.3.2.15]}}
-        :param dict ext_net_to_rate_limit: external network to rate limit
-            for ex: {'ext_net' : {'incoming_rate_limit' : 100,
-            'outgoing_rate_limit' : 100}}
-        :param bool is_fips_mode_enabled: is flip mode enabled
+        allocated ip with ip ranges. for ex: {"ext_net' : {'10.3.2.1/24' : [
+        10.3.2.2-10.3.2.5, 10.3.2.12-10.3.2.15]}}
+        :param dict ext_net_to_rate_limit: external network to rate limit.
+        for ex: {'ext_net' : {100 : 100}}
+        :param bool is_flips_mode_enabled: is flip mode enabled
 
         :return: an object containing EntityType.GATEWAY XML data which
             represents the new gateway being created along with the the
@@ -531,7 +535,6 @@ class VDC(object):
             gateway_interface_param.append(E.DisplayName(ext_net.get('name')))
             gateway_interface_param.append(E.Network(href=ext_net.get('href')))
             gateway_interface_param.append(E.InterfaceType('uplink'))
-
             # Add subnet participation
             for ip_scope in ext_net_resource.Configuration.IpScopes.IpScope:
                 subnet_participation_param = E.SubnetParticipation()
@@ -546,31 +549,29 @@ class VDC(object):
                         E.Gateway(ip_scope.Gateway.text))
                     subnet_participation_param.append(
                         E.Netmask(ip_scope.Netmask.text))
-                    subnet_participation_param.append(
-                        E.SubnetPrefixLength(ip_scope.SubnetPrefixLength.text))
+                    subnet_participation_param.append(E.SubnetPrefixLength(
+                        ip_scope.SubnetPrefixLength.text))
                     is_default_gw_configured = True
-
                 # Configure Ip Settings
                 if is_ip_settings_configured is True and len(
                         ext_net_to_participated_subnet_with_ip_settings) > 0:
                     participated_subnet_with_ip_settings = \
                         ext_net_to_participated_subnet_with_ip_settings.get(
-                        ext_net.get('name'))
-                    if participated_subnet_with_ip_settings is not None and\
+                            ext_net.get('name'))
+                    if participated_subnet_with_ip_settings is not None and \
                             len(participated_subnet_with_ip_settings) > 0:
-                        for subnet in participated_subnet_with_ip_settings\
+                        for subnet in participated_subnet_with_ip_settings \
                                 .keys():
                             subnet_arr = subnet.split('/')
                             if len(subnet_arr) < 2:
                                 continue
                             if subnet_arr[0] == ip_scope.Gateway.text and \
-                                    subnet_arr[
-                                        1] == ip_scope.SubnetPrefixLength.text:
-                                participated_to_ip_settings = \
-                                    participated_subnet_with_ip_settings.get(
-                                    subnet)
-                                if participated_to_ip_settings.get(
-                                        'participate') is True:
+                                    subnet_arr[1] == \
+                                    ip_scope.SubnetPrefixLength.text:
+                                ip_assigned = \
+                                    participated_subnet_with_ip_settings\
+                                        .get(subnet)
+                                if len(ip_assigned) > 0:
                                     is_ip_scope_participating = True
                                     if is_default_gw_configured is False:
                                         subnet_participation_param.append(
@@ -580,17 +581,14 @@ class VDC(object):
                                         subnet_participation_param.append(
                                             E.SubnetPrefixLength(
                                                 ip_scope.SubnetPrefixLength.
-                                                text))
-                                    ip_assigned = participated_to_ip_settings\
-                                        .get('ip_assigned')
-                                    if ip_assigned != 'Auto' and len(
-                                            ip_assigned) > 0:
+                                                    text))
+                                    if ip_assigned != 'Auto':
                                         subnet_participation_param.append(
                                             E.IpAddress(ip_assigned))
                 # Configure Sub Allocated Ips
                 if is_sub_allocate_ip_pools_enabled is True and len(
                         ext_net_to_subnet_with_ip_range) > 0:
-                    subnet_with_ip_ranges = ext_net_to_subnet_with_ip_range\
+                    subnet_with_ip_ranges = ext_net_to_subnet_with_ip_range \
                         .get(ext_net.get('name'))
                     if subnet_with_ip_ranges is not None and len(
                             subnet_with_ip_ranges) > 0:
@@ -599,10 +597,10 @@ class VDC(object):
                             if len(subnet_arr) < 2:
                                 continue
                             if subnet_arr[0] == ip_scope.Gateway.text and \
-                                    subnet_arr[
-                                        1] == ip_scope.SubnetPrefixLength.text:
+                                    subnet_arr[1] == \
+                                    ip_scope.SubnetPrefixLength.text:
                                 ip_ranges = subnet_with_ip_ranges.get(subnet)
-                                if is_default_gw_configured is False and\
+                                if is_default_gw_configured is False and \
                                         is_ip_scope_participating is False:
                                     subnet_participation_param.append(
                                         E.Gateway(ip_scope.Gateway.text))
@@ -629,8 +627,8 @@ class VDC(object):
                 if is_default_gw_configured is True:
                     subnet_participation_param.append(
                         E.UseForDefaultRoute(True))
-                if is_ip_scope_participating is True or\
-                        is_default_gw_configured is True or ip_range_provided\
+                if is_ip_scope_participating is True or \
+                     is_default_gw_configured is True or ip_range_provided \
                         is True:
                     gateway_interface_param.append(subnet_participation_param)
             # Configure Rate Limit
@@ -639,10 +637,10 @@ class VDC(object):
                 rate_limit = ext_net_to_rate_limit.get(ext_net.get('name'))
                 if rate_limit is not None and len(rate_limit) > 0:
                     gateway_interface_param.append(E.ApplyRateLimit(True))
-                    gateway_interface_param.append(
-                        E.InRateLimit(rate_limit.get('incoming_rate_limit')))
-                    gateway_interface_param.append(
-                        E.OutRateLimit(rate_limit.get('outgoing_rate_limit')))
+                    for key in rate_limit.keys():
+                        gateway_interface_param.append(E.InRateLimit(key))
+                        gateway_interface_param.append(E.OutRateLimit(
+                            rate_limit.get(key)))
 
             # Add to the Interfaces
             gateway_interfaces_param.append(gateway_interface_param)
@@ -661,7 +659,7 @@ class VDC(object):
         gateway_configuration_param.append(
             E.DistributedRoutingEnabled(is_dr_enabled))
         gateway_configuration_param.append(
-            E.FipsModeEnabled(is_fips_mode_enabled))
+            E.FipsModeEnabled(is_flips_mode_enabled))
         gateway_params.append(gateway_configuration_param)
 
         return self.client.post_linked_resource(
@@ -684,7 +682,8 @@ class VDC(object):
 
         :param str name: name of the gateway to be deleted.
 
-        :raises: EntityNotFoundException: if the named gateway can not be found.
+        :raises: EntityNotFoundException: if the named gateway can not be
+         found.
         :raises: MultipleRecordsException: if more than one gateway with the
             provided name are found.
         """

@@ -350,6 +350,7 @@ class QueryResultFormat(Enum):
     REFERENCES = ('application/vnd.vmware.vcloud.query.references+xml',
                   'references')
 
+
 class _WellKnownEndpoint(Enum):
     LOGGED_IN_ORG = (RelationType.DOWN, EntityType.ORG.value)
     ORG_VDC = (RelationType.DOWN, EntityType.VDC.value)

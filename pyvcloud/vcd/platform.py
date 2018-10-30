@@ -162,15 +162,31 @@ class Platform(object):
             contents=vmw_external_network)
 
     def get_port_group_morefs(self, port_group_names):
+        """Fetches port group moref and type for a given list of port group
+            names.
+
+        :return: list of tuples containing port group moref and type.
+
+        :rtype: list
+
+        :raises: EntityNotFoundException: if any port group names cannot be
+            found.
+        """
         query = self.client.get_typed_query(
             ResourceType.PORT_GROUP.value,
             query_result_format=QueryResultFormat.RECORDS)
         records = list(query.execute())
         port_group_morefs = []
-        for record in records:
-            if record.get('name') in port_group_names:
-                port_group_morefs.append((record.get('moref'),
-                                          record.get('portgroupType')))
+        for port_group_name in port_group_names:
+            port_group_found = False
+            for record in records:
+                if record.get('name') == port_group_name:
+                    port_group_found = True
+                    port_group_morefs.append(
+                        (record.get('moref'), record.get('portgroupType')))
+            if not port_group_found:
+                raise EntityNotFoundException(
+                    'port group \'%s\' not Found' % port_group_name)
         return port_group_morefs
 
     def delete_external_network(self, name, force=False):

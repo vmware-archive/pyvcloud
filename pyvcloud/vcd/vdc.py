@@ -423,7 +423,8 @@ class VDC(object):
         vapp_template_params.append(E.AllEULAsAccepted(all_eulas_accepted))
 
         return self.client.post_linked_resource(
-            self.resource, RelationType.ADD,
+            self.resource,
+            RelationType.ADD,
             EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value,
             vapp_template_params)
 
@@ -555,12 +556,12 @@ class VDC(object):
                 # Configure Ip Settings
                 if is_ip_settings_configured is True and len(
                         ext_net_to_participated_subnet_with_ip_settings) > 0:
-                    participated_subnet_with_ip_settings = \
+                    subnet_with_ip_settings = \
                         ext_net_to_participated_subnet_with_ip_settings.get(
                             ext_net.get('name'))
-                    if participated_subnet_with_ip_settings is not None and \
-                            len(participated_subnet_with_ip_settings) > 0:
-                        for subnet in participated_subnet_with_ip_settings \
+                    if subnet_with_ip_settings is not None and \
+                            len(subnet_with_ip_settings) > 0:
+                        for subnet in subnet_with_ip_settings \
                                 .keys():
                             subnet_arr = subnet.split('/')
                             if len(subnet_arr) < 2:
@@ -569,8 +570,7 @@ class VDC(object):
                                     subnet_arr[1] == \
                                     ip_scope.SubnetPrefixLength.text:
                                 ip_assigned = \
-                                    participated_subnet_with_ip_settings\
-                                        .get(subnet)
+                                    subnet_with_ip_settings.get(subnet)
                                 if len(ip_assigned) > 0:
                                     is_ip_scope_participating = True
                                     if is_default_gw_configured is False:
@@ -580,8 +580,9 @@ class VDC(object):
                                             E.Netmask(ip_scope.Netmask.text))
                                         subnet_participation_param.append(
                                             E.SubnetPrefixLength(
-                                                ip_scope.SubnetPrefixLength.
-                                                    text))
+                                                ip_scope.subnetPrefixLength
+                                                .text))
+
                                     if ip_assigned != 'Auto':
                                         subnet_participation_param.append(
                                             E.IpAddress(ip_assigned))
@@ -625,11 +626,11 @@ class VDC(object):
                                         ip_ranges_param)
 
                 if is_default_gw_configured is True:
-                    subnet_participation_param.append(
-                        E.UseForDefaultRoute(True))
+                    subnet_participation_param.append(E.UseForDefaultRoute(
+                        True))
                 if is_ip_scope_participating is True or \
-                     is_default_gw_configured is True or ip_range_provided \
-                        is True:
+                        is_default_gw_configured is True or \
+                        ip_range_provided is True:
                     gateway_interface_param.append(subnet_participation_param)
             # Configure Rate Limit
             if ext_net_to_rate_limit is not None and len(
@@ -667,7 +668,7 @@ class VDC(object):
             gateway_params)
 
     def list_external_network(self):
-        """list external network pertaining to current org vdc
+        """List external network pertaining to current org vdc.
 
         :return: list of external networks
         """

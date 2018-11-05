@@ -742,8 +742,8 @@ class Client(object):
             # suitable version.
             if self._negotiate_api_version:
                 raise VcdException(
-                    "Unable to find a supported API version in " +
-                    " available server versions: {0}".format(active_versions))
+                    "Unable to find a supported API version in available \
+                        server versions: {0}".format(active_versions))
 
         # We can now proceed to login. Ensure we close session if
         # any exception is thrown to avoid leaking a socket connection.
@@ -989,7 +989,7 @@ class Client(object):
                     self._response_code_to_exception(sc, None, response)
                 else:
                     return response
-            except VcdResponseException as e:
+            except VcdResponseException:
                 # retry if not the last attempt
                 if attempt < self._UPLOAD_FRAGMENT_MAX_RETRIES:
                     self._logger.debug('Failure: attempt#%s to upload data in '

@@ -373,9 +373,9 @@ class Acl(object):
                     access_settings_params.AccessSetting:
                 # if the subject name and type matches with the
                 # access_setting_params, return it.
-                if (access_setting_params.Subject.attrib['name'].lower() ==
-                    subject_name.lower()) and \
-                        (access_setting_params.Subject.attrib['type'] ==
-                         subject_type_to_entity_dict[subject_type]):
+                name = access_setting_params.Subject.attrib['name']
+                type = access_setting_params.Subject.attrib['type']
+                if (name.lower() == subject_name.lower()) and \
+                        (type == subject_type_to_entity_dict[subject_type]):
                     return access_setting_params
         return None

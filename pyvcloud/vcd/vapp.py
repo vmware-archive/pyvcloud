@@ -333,11 +333,11 @@ class VApp(object):
         try:
             return self.client.post_linked_resource(
                 vapp_resource, rel, media_type, contents)
-        except OperationNotSupportedException as e:
+        except OperationNotSupportedException:
             power_state = self.get_power_state(vapp_resource)
             raise OperationNotSupportedException(
-                'Can\'t ' + operation_name + ' vApp. Current state of vApp:' +
-                VCLOUD_STATUS_MAP[power_state])
+                'Can\'t {0} vApp. Current state of vApp: {1}.'
+                .format(operation_name, VCLOUD_STATUS_MAP[power_state]))
 
     def deploy(self, power_on=None, force_customization=None):
         """Deploys the vApp.
@@ -610,8 +610,8 @@ class VApp(object):
         new_disk['{' + NSMAP['rasd'] + '}AddressOnParent'] = addr
         new_disk['{' + NSMAP['rasd'] + '}ElementName'] = 'Hard disk %s' % addr
         new_disk['{' + NSMAP['rasd'] + '}InstanceID'] = instance_id
-        new_disk['{' + NSMAP['rasd'] +
-                 '}VirtualQuantity'] = disk_size * 1024 * 1024
+        new_disk['{' + NSMAP['rasd'] + '}VirtualQuantity'] = \
+            disk_size * 1024 * 1024
         new_disk['{' + NSMAP['rasd'] + '}HostResource'].set(
             '{' + NSMAP['vcloud'] + '}capacity', str(disk_size))
         disk_list.append(new_disk)

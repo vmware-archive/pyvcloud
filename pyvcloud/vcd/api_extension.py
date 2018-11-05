@@ -51,7 +51,7 @@ class APIExtension(object):
             records = self.client.get_typed_query(
                 ResourceType.ADMIN_SERVICE.value,
                 query_result_format=QueryResultFormat.ID_RECORDS).execute()
-        except OperationNotSupportedException as e:
+        except OperationNotSupportedException:
             msg = 'User doesn\'t have permission to view extensions.'
             raise OperationNotSupportedException(msg)
 
@@ -90,16 +90,16 @@ class APIExtension(object):
                 ResourceType.ADMIN_SERVICE.value,
                 qfilter=qfilter,
                 query_result_format=format).find_unique()
-        except OperationNotSupportedException as e:
+        except OperationNotSupportedException:
             msg = 'User doesn\'t have permission to interact with extensions.'
             raise OperationNotSupportedException(msg)
-        except MissingRecordException as e:
+        except MissingRecordException:
             msg = 'API Extension service (name:' + name
             if namespace is not None:
                 msg += ', namespace:' + namespace
             msg += ') not found.'
             raise MissingRecordException(msg)
-        except MultipleRecordsException as e:
+        except MultipleRecordsException:
             msg = 'Found multiple API Extension service with (name:' + name
             if namespace is not None:
                 msg += ', namespace:' + namespace + ').'
@@ -142,7 +142,7 @@ class APIExtension(object):
                 ResourceType.API_FILTER.value,
                 equality_filter=('service', service_id),
                 query_result_format=QueryResultFormat.ID_RECORDS).execute()
-        except OperationNotSupportedException as e:
+        except OperationNotSupportedException:
             msg = 'User doesn\'t have permission to view api filters.'
             raise OperationNotSupportedException(msg)
 

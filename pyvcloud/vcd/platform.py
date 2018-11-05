@@ -86,6 +86,123 @@ class Platform(object):
                 return self.client.get_resource(record.get('href'))
         raise EntityNotFoundException('vCenter \'%s\' not found' % name)
 
+    def create_external_network(self,
+                                name,
+                                vim_server_name,
+                                port_group_names,
+                                gateway_ip,
+                                netmask,
+                                ip_ranges,
+                                description=None,
+                                primary_dns_ip=None,
+                                secondary_dns_ip=None,
+                                dns_suffix=None):
+        """Create an external network.
+
+        :param str name: name of external network to be created.
+        :param str vim_server_name: VIM server_name (VC name).
+        :param list port_group_names: list of port group names.
+        :param str gateway_ip: IP address of the gateway of the new network.
+        :param str netmask: Netmask of the gateway.
+        :param list ip_ranges: list of IP ranges used for static pool
+            allocation in the network.
+        :param str description: description of external network.
+        :param str primary_dns_ip: IP address of primary DNS server.
+        :param str secondary_dns_ip: IP address of secondary DNS Server.
+        :param str dns_suffix: DNS suffix.
+
+        :return: an object containing vmext:VMWExternalNetwork XML element that
+            represents the new external network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vc_record = self.get_vcenter(vim_server_name)
+        vc_href = vc_record.get('href')
+        pg_morefs = self.get_port_group_morefs(port_group_names)
+        vmw_external_network = E_VMEXT.VMWExternalNetwork(name=name)
+        if description is not None:
+            vmw_external_network.append(E.Description(description))
+        config = E.Configuration()
+        ip_scopes = E.IpScopes()
+        ip_scope = E.IpScope()
+        ip_scope.append(E.IsInherited(False))
+        ip_scope.append(E.Gateway(gateway_ip))
+        ip_scope.append(E.Netmask(netmask))
+        if primary_dns_ip is not None:
+            ip_scope.append(E.Dns1(primary_dns_ip))
+        if secondary_dns_ip is not None:
+            ip_scope.append(E.Dns2(secondary_dns_ip))
+        if dns_suffix is not None:
+            ip_scope.append(E.DnsSuffix(dns_suffix))
+        e_ip_ranges = E.IpRanges()
+        for ip_range in ip_ranges:
+            e_ip_range = E.IpRange()
+            ip_range_token = ip_range.split('-')
+            e_ip_range.append(E.StartAddress(ip_range_token[0]))
+            e_ip_range.append(E.EndAddress(ip_range_token[1]))
+            e_ip_ranges.append(e_ip_range)
+        ip_scope.append(e_ip_ranges)
+        ip_scopes.append(ip_scope)
+        config.append(ip_scopes)
+        config.append(E.FenceMode('isolated'))
+        vmw_external_network.append(config)
+        vim_port_group_refs = E_VMEXT.VimPortGroupRefs()
+        for pg_moref in pg_morefs:
+            vim_object_ref = E_VMEXT.VimObjectRef()
+            vim_object_ref.append(E_VMEXT.VimServerRef(href=vc_href))
+            vim_object_ref.append(E_VMEXT.MoRef(pg_moref[0]))
+            vim_object_ref.append(E_VMEXT.VimObjectType(pg_moref[1]))
+            vim_port_group_refs.append(vim_object_ref)
+        vmw_external_network.append(vim_port_group_refs)
+
+        return self.client.post_linked_resource(
+            self.extension.get_resource(),
+            rel=RelationType.ADD,
+            media_type=EntityType.EXTERNAL_NETWORK.value,
+            contents=vmw_external_network)
+
+    def get_port_group_morefs(self, port_group_names):
+        """Fetches moref and type for a given list of port group names.
+
+        :return: list of tuples containing port group moref and type.
+
+        :rtype: list
+
+        :raises: EntityNotFoundException: if any port group names cannot be
+            found.
+        """
+        query = self.client.get_typed_query(
+            ResourceType.PORT_GROUP.value,
+            query_result_format=QueryResultFormat.RECORDS)
+        records = list(query.execute())
+        port_group_morefs = []
+        for port_group_name in port_group_names:
+            port_group_found = False
+            for record in records:
+                if record.get('name') == port_group_name:
+                    port_group_found = True
+                    port_group_morefs.append(
+                        (record.get('moref'), record.get('portgroupType')))
+            if not port_group_found:
+                raise EntityNotFoundException(
+                    'port group \'%s\' not Found' % port_group_name)
+        return port_group_morefs
+
+    def delete_external_network(self, name, force=False):
+        """Delete an external network.
+
+        :param str name: name of the external network to be deleted.
+
+        :raises: EntityNotFoundException: if the named external network can not
+            be found.
+        """
+        ext_net_refs = self.list_external_networks()
+        for ext_net in ext_net_refs:
+            if ext_net.get('name') == name:
+                return self.client.delete_resource(ext_net.get('href'), force)
+        raise EntityNotFoundException(
+            'External network \'%s\' not found.' % name)
+
     def list_external_networks(self):
         """List all external networks available in the system.
 

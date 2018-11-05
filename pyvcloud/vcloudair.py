@@ -1692,6 +1692,7 @@ class VCA(object):
                     ip_allocation_mode=None,
                     ip_address=None,
                     mac_address=None,
+                    storage_profile=None,
                     deploy='false',
                     poweron='false'):
         """
@@ -1728,7 +1729,8 @@ class VCA(object):
                                             'connection_index': connection_index,
                                             'ip_allocation_mode': ip_allocation_mode,
                                             'ip_address': ip_address,
-                                            'mac_address': mac_address}])
+                                            'mac_address': mac_address,
+                                            'storage_profile': storage_profile}])
 
     def instantiate_vapp(self, vdc_name, vapp_name, template_name, catalog_name,
                          network_name=None, network_mode='bridged', vm_name=None,
@@ -1737,6 +1739,7 @@ class VCA(object):
                          ip_allocation_mode=None,
                          ip_address=None,
                          mac_address=None,
+                         storage_profile=None
                          deploy='false',
                          poweron='false'):
         """
@@ -1773,7 +1776,8 @@ class VCA(object):
                                          'connection_index': connection_index,
                                          'ip_allocation_mode': ip_allocation_mode,
                                          'ip_address': ip_address,
-                                         'mac_address': mac_address}])
+                                         'mac_address': mac_address,
+                                         'storage_profile': storage_profile}])
 
     def block_until_completed(self, task):
         """

@@ -126,8 +126,8 @@ class VM(object):
         if cores_per_socket is None:
             cores_per_socket = virtual_quantity
         item = self.client.get_resource(uri)
-        item['{' + NSMAP['rasd'] +
-             '}ElementName'] = '%s virtual CPU(s)' % virtual_quantity
+        item['{' + NSMAP['rasd'] + '}ElementName'] = \
+            '%s virtual CPU(s)' % virtual_quantity
         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = virtual_quantity
         item['{' + NSMAP['vmw'] + '}CoresPerSocket'] = cores_per_socket
         return self.client.put_resource(uri, item, EntityType.RASD_ITEM.value)
@@ -145,8 +145,8 @@ class VM(object):
         """
         uri = self.href + '/virtualHardwareSection/memory'
         item = self.client.get_resource(uri)
-        item['{' + NSMAP['rasd'] +
-             '}ElementName'] = '%s virtual CPU(s)' % virtual_quantity
+        item['{' + NSMAP['rasd'] + '}ElementName'] = \
+            '%s virtual CPU(s)' % virtual_quantity
         item['{' + NSMAP['rasd'] + '}VirtualQuantity'] = virtual_quantity
         return self.client.put_resource(uri, item, EntityType.RASD_ITEM.value)
 
@@ -247,11 +247,11 @@ class VM(object):
         try:
             return self.client.post_linked_resource(
                 vm_resource, rel, media_type, contents)
-        except OperationNotSupportedException as e:
+        except OperationNotSupportedException:
             power_state = self.get_power_state(vm_resource)
             raise OperationNotSupportedException(
-                'Can\'t ' + operation_name + ' vm. Current state of vm:' +
-                VCLOUD_STATUS_MAP[power_state])
+                'Can\'t {0} vm. Current state of vm: {1}.'
+                .format(operation_name, VCLOUD_STATUS_MAP[power_state]))
 
     def shutdown(self):
         """Shutdown the vm.

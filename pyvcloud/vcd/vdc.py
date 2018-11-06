@@ -24,6 +24,7 @@ from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
+from pyvcloud.vcd.exceptions import BadRequestException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
@@ -1276,7 +1277,7 @@ class VDC(object):
 
     def create_gateway(self,
                        name,
-                       external_networks=[],
+                       external_networks=None,
                        gateway_backing_config='compact',
                        desc=None,
                        is_configured_default_gw=False,
@@ -1287,10 +1288,10 @@ class VDC(object):
                        is_create_as_advanced=False,
                        is_dr_enabled=False,
                        is_ip_settings_configured=False,
-                       ext_net_to_participated_subnet_with_ip_settings={},
+                       ext_net_to_participated_subnet_with_ip_settings=None,
                        is_sub_allocate_ip_pools_enabled=False,
-                       ext_net_to_subnet_with_ip_range={},
-                       ext_net_to_rate_limit={},
+                       ext_net_to_subnet_with_ip_range=None,
+                       ext_net_to_rate_limit=None,
                        is_flips_mode_enabled=False):
         """Request the creation of a gateway.
 
@@ -1330,6 +1331,8 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
+        if external_networks is None or len(external_networks) == 0:
+            raise BadRequestException('external network can not be Null.')
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         resource_admin = self.client.get_resource(self.href_admin)
@@ -1373,7 +1376,9 @@ class VDC(object):
                         ip_scope.SubnetPrefixLength.text))
                     is_default_gw_configured = True
                 # Configure Ip Settings
-                if is_ip_settings_configured is True and len(
+                if is_ip_settings_configured is True and \
+                        ext_net_to_participated_subnet_with_ip_settings is \
+                        not None and len(
                         ext_net_to_participated_subnet_with_ip_settings) > 0:
                     subnet_with_ip_settings = \
                         ext_net_to_participated_subnet_with_ip_settings.get(
@@ -1399,14 +1404,15 @@ class VDC(object):
                                             E.Netmask(ip_scope.Netmask.text))
                                         subnet_participation_param.append(
                                             E.SubnetPrefixLength(
-                                                ip_scope.subnetPrefixLength
+                                                ip_scope.SubnetPrefixLength
                                                 .text))
 
                                     if ip_assigned != 'Auto':
                                         subnet_participation_param.append(
                                             E.IpAddress(ip_assigned))
                 # Configure Sub Allocated Ips
-                if is_sub_allocate_ip_pools_enabled is True and len(
+                if is_sub_allocate_ip_pools_enabled is True and \
+                        ext_net_to_subnet_with_ip_range is not None and len(
                         ext_net_to_subnet_with_ip_range) > 0:
                     subnet_with_ip_ranges = ext_net_to_subnet_with_ip_range \
                         .get(ext_net.get('name'))

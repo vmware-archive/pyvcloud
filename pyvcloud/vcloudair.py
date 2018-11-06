@@ -1739,7 +1739,7 @@ class VCA(object):
                          ip_allocation_mode=None,
                          ip_address=None,
                          mac_address=None,
-                         storage_profile=None
+                         storage_profile=None,
                          deploy='false',
                          poweron='false'):
         """

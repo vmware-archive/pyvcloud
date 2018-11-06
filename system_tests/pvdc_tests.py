@@ -266,7 +266,7 @@ class TestPVDC(BaseTestCase):
         try:
             vdc.enable_vdc(enable=False)
             logger.debug('Disabled vdc ' + TestPVDC._new_vdc_name + '.')
-        except OperationNotSupportedException as e:
+        except OperationNotSupportedException:
             logger.debug('vdc ' + TestPVDC._new_vdc_name +
                          ' is already disabled.')
             pass

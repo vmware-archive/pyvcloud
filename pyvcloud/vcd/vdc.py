@@ -1520,6 +1520,10 @@ class VDC(object):
             query_result_format=QueryResultFormat.RECORDS,
             equality_filter=name_filter)
         records = query.execute()
+        if records is None:
+            raise EntityNotFoundException(
+                'Gateway with name \'%s\' not found for delete.' % name)
+        href = None
         for record in records:
             href = record.get('href')
             break

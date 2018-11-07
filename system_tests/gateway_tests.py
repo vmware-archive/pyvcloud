@@ -28,7 +28,7 @@ from pyvcloud.vcd.client import TaskStatus
 class TestGateway(BaseTestCase):
     """Test Gateway functionalities implemented in pyvcloud."""
 
-    # All tests in this module should run as System Administrator.
+    # All tests in this module should run as System Administrator.l
     _client = None
     _name = ("test_gateway1" + str(uuid1()))[:34]
 
@@ -45,7 +45,6 @@ class TestGateway(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         TestGateway._client = Environment.get_sys_admin_client()
-        org = Environment.get_test_org(TestGateway._client)
         vdc = Environment.get_test_vdc(TestGateway._client)
         external_networks = vdc.list_external_network()
         self.assertTrue(len(external_networks) > 0)
@@ -93,7 +92,7 @@ class TestGateway(BaseTestCase):
 
         Invoke the method for the organization created by setup.
 
-        This test passes if no errors are generated while deleting the org.
+        This test passes if no errors are generated while deleting the gateway.
         """
         sys_admin_resource = TestGateway._client.get_admin()
         vdc = Environment.get_test_vdc(TestGateway._client)

@@ -32,14 +32,14 @@ cd $SRCROOT
 STABLE_TESTS="client_tests.py \
 api_extension_tests.py \
 catalog_tests \
+gateway_tests.py \
 idisk_tests.py \
 network_tests.py \
 org_tests.py \
 search_tests.py \
 vapp_tests.py \
 vdc_tests.py \
-vm_tests.py \
-gateway_tests.py"
+vm_tests.py"
 
 if [ $# == 0 ]; then
   echo "No tests provided, will run stable list: ${STABLE_TESTS}"

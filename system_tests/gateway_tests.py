@@ -48,7 +48,7 @@ class TestGateway(BaseTestCase):
         org = Environment.get_test_org(TestGateway._client)
         vdc = Environment.get_test_vdc(TestGateway._client)
         external_networks = vdc.list_external_network()
-        self.assertEqual(len(external_networks) > 0, True)
+        self.assertTrue(len(external_networks) > 0)
         external_network = external_networks[0]
 
         ext_net_resource = TestGateway._client.get_resource(

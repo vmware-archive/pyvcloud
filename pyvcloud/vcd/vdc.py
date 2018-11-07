@@ -20,11 +20,11 @@ from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
+from pyvcloud.vcd.client import GatewayBackingConfigType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
-from pyvcloud.vcd.exceptions import BadRequestException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
@@ -1278,14 +1278,15 @@ class VDC(object):
     def create_gateway(self,
                        name,
                        external_networks=None,
-                       gateway_backing_config='compact',
+                       gateway_backing_config=GatewayBackingConfigType
+                       .COMPACT.value,
                        desc=None,
-                       is_configured_default_gw=False,
+                       is_default_gateway=False,
                        selected_extnw_for_default_gw=None,
                        default_gateway_ip=None,
-                       is_default_gw_for_dns_realy_selected=False,
+                       is_default_gw_for_dns_relay_selected=False,
                        is_ha_enabled=False,
-                       is_create_as_advanced=False,
+                       should_create_as_advanced=False,
                        is_dr_enabled=False,
                        is_ip_settings_configured=False,
                        ext_net_to_participated_subnet_with_ip_settings=None,
@@ -1296,43 +1297,43 @@ class VDC(object):
         """Request the creation of a gateway.
 
         :param str name: name of the new gateway.
-        :param list external_networks: list of external network to which
-        gateway can connect.
+        :param list external_networks: list of external network's name to
+        which gateway can connect.
         :param str gateway_backing_config: gateway backing config. Possible
         values can be compact/full/full4/x-large.
-        :param str desc: description.
-        :param bool is_configured_default_gw: configure default gateway.
-        :param str description: description of the new disk.
+        :param str desc: description of the new gateway
+        :param bool is_default_gateway: should the new gateway be configured as
+         the default gateway.
         :param str selected_extnw_for_default_gw: selected external network
         for default gateway.
         :param str default_gateway_ip: selected dafault gateway IP
-        :param bool is_default_gw_for_dns_realy_selected: is default gateway
-         for dns realy selected
+        :param bool is_default_gw_for_dns_relay_selected: is default gateway
+         for dns relay selected
         :param bool is_ha_enabled: is HA enabled
-        :param bool is_create_as_advanced: create as advanced gateway selected
+        :param bool should_create_as_advanced: create as advanced gateway
         :param bool is_dr_enabled: is distributed routing enabled
         :param bool is_ip_settings_configured: is ip settings configured
         :param dict ext_net_to_participated_subnet_with_ip_settings:
         external network to subnet ip with ip assigned in case of manual
-        else Auto. for ex: {"ext_net' : {'10.3.2.1/24' : Auto/10.3.2.2}}
+        else Auto e.g., {"ext_net' : {'10.3.2.1/24' : Auto/10.3.2.2}}
         :param bool is_sub_allocate_ip_pools_enabled: is sub allocate ip
         pools enabled
         :param dict ext_net_to_subnet_with_ip_range: external network to sub
-        allocated ip with ip ranges. for ex: {"ext_net' : {'10.3.2.1/24' : [
+        allocated ip with ip ranges e.g., {"ext_net' : {'10.3.2.1/24' : [
         10.3.2.2-10.3.2.5, 10.3.2.12-10.3.2.15]}}
-        :param dict ext_net_to_rate_limit: external network to rate limit.
-        for ex: {'ext_net' : {100 : 100}}
+        :param dict ext_net_to_rate_limit: external network to rate limit
+        e.g., {'ext_net' : {100 : 100}}
         :param bool is_flips_mode_enabled: is flip mode enabled
 
         :return: an object containing EntityType.GATEWAY XML data which
-            represents the new gateway being created along with the the
-            asynchronous task
-            that is creating the gateway.
+        represents the new gateway being created along with the the
+        asynchronous task that is creating the gateway.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
         if external_networks is None or len(external_networks) == 0:
-            raise BadRequestException('external network can not be Null.')
+            raise InvalidParameterException('external networks can not be '
+                                            'Null.')
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         resource_admin = self.client.get_resource(self.href_admin)
@@ -1365,7 +1366,7 @@ class VDC(object):
                 is_default_gw_configured = False
                 ip_range_provided = False
                 # Configure Default Gateway
-                if is_configured_default_gw is True and (
+                if is_default_gateway is True and (
                         ext_net.get('name') == selected_extnw_for_default_gw
                 ) and ip_scope.Gateway == default_gateway_ip:
                     subnet_participation_param.append(
@@ -1473,15 +1474,15 @@ class VDC(object):
 
         gateway_configuration_param.append(gateway_interfaces_param)
         gateway_configuration_param.append(E.HaEnabled(is_ha_enabled))
-        if is_configured_default_gw is True:
+        if is_default_gateway is True:
             gateway_configuration_param.append(
                 E.UseDefaultRouteForDnsRelay(
-                    is_default_gw_for_dns_realy_selected))
+                    is_default_gw_for_dns_relay_selected))
         syslog_server_settings = E.SyslogServerSettings()
         syslog_server_settings.append(E.TenantSyslogServerSettings())
         gateway_configuration_param.append(syslog_server_settings)
         gateway_configuration_param.append(
-            E.AdvancedNetworkingEnabled(is_create_as_advanced))
+            E.AdvancedNetworkingEnabled(should_create_as_advanced))
         gateway_configuration_param.append(
             E.DistributedRoutingEnabled(is_dr_enabled))
         gateway_configuration_param.append(
@@ -1513,11 +1514,14 @@ class VDC(object):
         :raises: MultipleRecordsException: if more than one gateway with the
             provided name are found.
         """
-        edge_gateways = self.list_edge_gateways()
-        for gateway in edge_gateways:
-            gateway_name = gateway.get('name')
-            if gateway_name == name:
-                href = gateway.get('href')
-                break
+        name_filter = ('name', name)
+        query = self.client.get_typed_query(
+            ResourceType.EDGE_GATEWAY.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter)
+        records = query.execute()
+        for record in records:
+            href = record.get('href')
+            break
 
         return self.client.delete_resource(href)

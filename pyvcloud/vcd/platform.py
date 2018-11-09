@@ -20,6 +20,7 @@ import uuid
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
@@ -105,7 +106,8 @@ class Platform(object):
         :param str gateway_ip: IP address of the gateway of the new network.
         :param str netmask: Netmask of the gateway.
         :param list ip_ranges: list of IP ranges used for static pool
-            allocation in the network.
+            allocation in the network. For example, [192.168.1.2-192.168.1.49,
+            192.168.1.100-192.168.1.149].
         :param str description: description of external network.
         :param str primary_dns_ip: IP address of primary DNS server.
         :param str secondary_dns_ip: IP address of secondary DNS Server.
@@ -144,7 +146,7 @@ class Platform(object):
         ip_scope.append(e_ip_ranges)
         ip_scopes.append(ip_scope)
         config.append(ip_scopes)
-        config.append(E.FenceMode('isolated'))
+        config.append(E.FenceMode(FenceMode.ISOLATED.value))
         vmw_external_network.append(config)
         vim_port_group_refs = E_VMEXT.VimPortGroupRefs()
         for pg_moref in pg_morefs:
@@ -175,14 +177,16 @@ class Platform(object):
             ResourceType.PORT_GROUP.value,
             query_result_format=QueryResultFormat.RECORDS)
         records = list(query.execute())
+        port_groups = {}
+        for record in records:
+            port_groups[record.get('name')] = ((record.get('moref'),
+                                                record.get('portgroupType')))
         port_group_morefs = []
         for port_group_name in port_group_names:
             port_group_found = False
-            for record in records:
-                if record.get('name') == port_group_name:
+            if port_group_name in port_groups:
                     port_group_found = True
-                    port_group_morefs.append(
-                        (record.get('moref'), record.get('portgroupType')))
+                    port_group_morefs.append(port_groups[port_group_name])
             if not port_group_found:
                 raise EntityNotFoundException(
                     'port group \'%s\' not Found' % port_group_name)
@@ -192,6 +196,11 @@ class Platform(object):
         """Delete an external network.
 
         :param str name: name of the external network to be deleted.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is deleting external network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
 
         :raises: EntityNotFoundException: if the named external network can not
             be found.

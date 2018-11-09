@@ -44,8 +44,13 @@ class TestExtNet(BaseTestCase):
 
     def test_0000_setup(self):
         """
-        Create one external network as per the configuration stated above.Test
-        the method Platform.create_external_network().
+        Create one external network as per the configuration stated aboveself.
+
+        Choose first unused port group which is not a VxLAN. Unused port groups
+        have network names set to '--'. VxLAN port groups have name starting
+        with 'vxw-'.
+
+        Test the method Platform.create_external_network().
 
         This test passes if external network is created successfully.
         """
@@ -67,8 +72,8 @@ class TestExtNet(BaseTestCase):
                     TestExtNet._port_group = record.get('name')
                     break
 
-        self.assertFalse(self._port_group is None,
-                         'None of the port groups are free.')
+        self.assertIsNotNone(
+            self._port_group, 'None of the port groups are free.')
 
         ext_net = platform.create_external_network(
             name=TestExtNet._name,

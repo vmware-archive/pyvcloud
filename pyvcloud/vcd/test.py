@@ -35,7 +35,7 @@ class TestCase(unittest.TestCase):
             cls.config = yaml.safe_load(f)
         if not cls.config['vcd']['verify'] and \
                 cls.config['vcd']['disable_ssl_warnings']:
-            requests.packages.urllib3.disable_warnings()
+            requests.urllib3.disable_warnings()
         cls.client = Client(
             cls.config['vcd']['host'],
             api_version=cls.config['vcd']['api_version'],

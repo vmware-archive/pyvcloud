@@ -250,6 +250,40 @@ class Platform(object):
         raise EntityNotFoundException(
             'External network \'%s\' not found.' % name)
 
+    def update_external_network(self,
+                                name,
+                                new_name=None,
+                                new_description=None):
+        """Update name and description of an external network.
+
+        :param str name: name of the external network to be updated.
+
+        :param str new_name: new name of the external network.
+
+        :param str new_description: new description of the external network.
+
+        :return: an object containing vmext:VMWExternalNetwork XML element that
+            represents the updated external network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        ext_net = self.get_external_network(name)
+
+        if (new_name is None) and (new_description is None):
+            return ext_net
+
+        if new_name is not None:
+            ext_net.set('name', new_name)
+        if new_description is not None:
+            description = ext_net.find('vcloud:Description', NSMAP)
+            ext_net.replace(description, E.Description(new_description))
+
+        return self.client.put_linked_resource(
+            ext_net,
+            rel=RelationType.EDIT,
+            media_type=EntityType.EXTERNAL_NETWORK.value,
+            contents=ext_net)
+
     def get_vxlan_network_pool(self, vxlan_network_pool_name):
         """[Deprecated] Fetch a vxlan_network_pool by its name.
 

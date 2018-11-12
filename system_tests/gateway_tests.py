@@ -14,15 +14,15 @@
 # limitations under the License.
 import unittest
 from uuid import uuid1
-
+from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import TaskStatus
+from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
-
-from pyvcloud.vcd.exceptions import EntityNotFoundException
-from pyvcloud.vcd.exceptions import OperationNotSupportedException
-from pyvcloud.vcd.client import TaskStatus
+from pyvcloud.vcd.platform import Platform
 
 
 class TestGateway(BaseTestCase):
@@ -35,7 +35,7 @@ class TestGateway(BaseTestCase):
     _description = "test_gateway1 description"
 
     def test_0000_setup(self):
-        """Setup the org vdc required for the other tests in this module.
+        """Setup the gateway required for the other tests in this module.
 
         Create a gateway as per the configuration stated
         above.
@@ -46,14 +46,17 @@ class TestGateway(BaseTestCase):
         logger = Environment.get_default_logger()
         TestGateway._client = Environment.get_sys_admin_client()
         vdc = Environment.get_test_vdc(TestGateway._client)
-        external_networks = vdc.list_external_network()
+        platform = Platform(TestGateway._client)
+        external_networks = platform.list_external_networks()
         self.assertTrue(len(external_networks) > 0)
         external_network = external_networks[0]
 
         ext_net_resource = TestGateway._client.get_resource(
-            external_network.Network.get('href'))
-
-        first_ipscope = ext_net_resource.Configuration.IpScopes.IpScope[0]
+            external_network.get('href'))
+        ip_scopes = ext_net_resource.xpath(
+            'vcloud:Configuration/vcloud:IpScopes/vcloud:IpScope',
+            namespaces=NSMAP)
+        first_ipscope = ip_scopes[0]
         gateway_ip = first_ipscope.Gateway.text
 
         subnet_addr = gateway_ip + '/' + str(first_ipscope.SubnetPrefixLength)
@@ -87,10 +90,9 @@ class TestGateway(BaseTestCase):
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0001_teardown(self):
-        """Test the method System.delete_gateway() with force = recursive =
-         True.
+        """Test the method System.delete_gateway().
 
-        Invoke the method for the organization created by setup.
+        Invoke the method for the gateway created by setup.
 
         This test passes if no errors are generated while deleting the gateway.
         """

@@ -1337,11 +1337,11 @@ class VDC(object):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         resource_admin = self.client.get_resource(self.href_admin)
-        external_networks_resource = self.list_external_network()
+        platform = Platform(self.client)
         provided_networks_resource = []
-        for network in external_networks_resource.Network:
-            if network.get('name') in external_networks:
-                provided_networks_resource.append(network)
+        for ext_net_name in external_networks:
+            ext_network = platform.get_external_network(ext_net_name)
+            provided_networks_resource.append(ext_network)
 
         gateway_params = E.EdgeGateway(name=name)
         if desc is not None:
@@ -1360,7 +1360,10 @@ class VDC(object):
             gateway_interface_param.append(E.Network(href=ext_net.get('href')))
             gateway_interface_param.append(E.InterfaceType('uplink'))
             # Add subnet participation
-            for ip_scope in ext_net_resource.Configuration.IpScopes.IpScope:
+            ip_scopes = ext_net_resource.xpath(
+                'vcloud:Configuration/vcloud:IpScopes/vcloud:IpScope',
+                namespaces=NSMAP)
+            for ip_scope in ip_scopes:
                 subnet_participation_param = E.SubnetParticipation()
                 is_ip_scope_participating = False
                 is_default_gw_configured = False
@@ -1493,17 +1496,6 @@ class VDC(object):
             resource_admin, RelationType.ADD, EntityType.EDGE_GATEWAY.value,
             gateway_params)
 
-    def list_external_network(self):
-        """List external network pertaining to current org vdc.
-
-        :return: list of external networks
-        """
-        resource_admin = self.client.get_resource(self.href_admin)
-        prov_vdc_ref = resource_admin.ProviderVdcReference
-        self.prov_vdc_link = prov_vdc_ref.get('href')
-        self.prov_vdc_resource = self.client.get_resource(self.prov_vdc_link)
-        return self.prov_vdc_resource.AvailableNetworks
-
     def delete_gateway(self, name):
         """Delete a gateway in the current org vdc.
 
@@ -1511,8 +1503,6 @@ class VDC(object):
 
         :raises: EntityNotFoundException: if the named gateway can not be
          found.
-        :raises: MultipleRecordsException: if more than one gateway with the
-            provided name are found.
         """
         name_filter = ('name', name)
         query = self.client.get_typed_query(

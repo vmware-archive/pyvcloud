@@ -28,7 +28,7 @@ from pyvcloud.vcd.platform import Platform
 class TestGateway(BaseTestCase):
     """Test Gateway functionalities implemented in pyvcloud."""
 
-    # All tests in this module should run as System Administrator.
+    # All tests in this module should be run as System Administrator.
     _client = None
     _name = ("test_gateway1" + str(uuid1()))[:34]
 

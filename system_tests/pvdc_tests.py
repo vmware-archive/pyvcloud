@@ -173,6 +173,8 @@ class TestPVDC(BaseTestCase):
         TestPVDC._vms_to_migrate.append(TestPVDC._test_vapp_first_vm_name)
         TestPVDC._target_resource_pool = \
             self._config['pvdc']['target_resource_pool']
+        TestPVDC._storage_profiles = \
+            self._config['pvdc']['storage_profiles']
 
     def test_0030_attach_resource_pools(self):
         """Attach resource pool(s) to a PVDC."""
@@ -180,6 +182,15 @@ class TestPVDC(BaseTestCase):
         task = platform.attach_resource_pools_to_provider_vdc(
             TestPVDC._pvdc_name,
             TestPVDC._resource_pool_names)
+        TestPVDC._sys_admin_client.get_task_monitor().wait_for_success(
+            task=task)
+
+    def test_0035_add_storage_profile(self):
+        """Add storage profile(s) to a PVDC."""
+        platform = Platform(TestPVDC._sys_admin_client)
+        task = platform.pvdc_add_storage_profile(
+            TestPVDC._pvdc_name,
+            TestPVDC._storage_profiles)
         TestPVDC._sys_admin_client.get_task_monitor().wait_for_success(
             task=task)
 
@@ -201,6 +212,15 @@ class TestPVDC(BaseTestCase):
             TestPVDC._pvdc_name,
             TestPVDC._vms_to_migrate,
             TestPVDC._target_resource_pool)
+        TestPVDC._sys_admin_client.get_task_monitor().wait_for_success(
+            task=task)
+
+    def test_0055_del_storage_profile(self):
+        """Delete storage profile(s) from a PVDC."""
+        platform = Platform(TestPVDC._sys_admin_client)
+        task = platform.pvdc_del_storage_profile(
+            TestPVDC._pvdc_name,
+            TestPVDC._storage_profiles)
         TestPVDC._sys_admin_client.get_task_monitor().wait_for_success(
             task=task)
 
@@ -246,7 +266,7 @@ class TestPVDC(BaseTestCase):
         try:
             vdc.enable_vdc(enable=False)
             logger.debug('Disabled vdc ' + TestPVDC._new_vdc_name + '.')
-        except OperationNotSupportedException as e:
+        except OperationNotSupportedException:
             logger.debug('vdc ' + TestPVDC._new_vdc_name +
                          ' is already disabled.')
             pass

@@ -325,6 +325,8 @@ class EntityType(Enum):
     TASKS_LIST = 'application/vnd.vmware.vcloud.tasksList+xml'
     TEXT_XML = 'text/xml'
     UNDEPLOY = 'application/vnd.vmware.vcloud.undeployVAppParams+xml'
+    UPDATE_PROVIDER_VDC_STORAGE_PROFILES = \
+        'application/vnd.vmware.admin.updateProviderVdcStorageProfiles+xml'
     UPLOAD_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.uploadVAppTemplateParams+xml'
     USER = 'application/vnd.vmware.admin.user+xml'
@@ -341,6 +343,10 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.vmwProviderVdcResourcePool+xml'
     VMW_PROVIDER_VDC_RESOURCE_POOL_SET = \
         'application/vnd.vmware.admin.vmwProviderVdcResourcePoolSet+xml'
+    VMW_PVDC_STORAGE_PROFILE = \
+        'application/vnd.vmware.admin.vmwPvdcStorageProfile+xml'
+    VMW_STORAGE_PROFILES = \
+        'application/vnd.vmware.admin.vmwStorageProfiles+xml'
 
 
 class QueryResultFormat(Enum):

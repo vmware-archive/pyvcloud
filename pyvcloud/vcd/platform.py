@@ -275,7 +275,8 @@ class Platform(object):
         if new_name is not None:
             ext_net.set('name', new_name)
         if new_description is not None:
-            description = ext_net.find('vcloud:Description', NSMAP)
+
+            description = ext_net['{' + NSMAP['vcloud'] + '}Description']
             ext_net.replace(description, E.Description(new_description))
 
         return self.client.put_linked_resource(

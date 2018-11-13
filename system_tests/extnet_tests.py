@@ -110,7 +110,7 @@ class TestExtNet(BaseTestCase):
         ext_net = platform.update_external_network(TestExtNet._name, new_name,
                                                    new_description)
 
-        task = ext_net.find('vcloud:Tasks', NSMAP).Task[0]
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
         TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
             task=task)
         logger.debug('Updated external network ' + TestExtNet._name + '.')
@@ -123,7 +123,7 @@ class TestExtNet(BaseTestCase):
         # Reset the name and description to original
         ext_net = platform.update_external_network(new_name, self._name,
                                                    self._description)
-        task = ext_net.find('vcloud:Tasks', NSMAP).Task[0]
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
         TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
             task=task)
 

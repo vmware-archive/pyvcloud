@@ -1519,3 +1519,31 @@ class VDC(object):
             break
 
         return self.client.delete_resource(href)
+
+    def get_gateway(self, name):
+        """Get a gateway in the current org vdc.
+
+        :param str name: name of the gateway to be fetched.
+
+        :return: gateway
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if the named gateway can not be
+        found.
+        :raises: MultipleRecordsException: if more than one gateway with the
+            provided name are found.
+        """
+        name_filter = ('name', name)
+        query = self.client.get_typed_query(
+            ResourceType.EDGE_GATEWAY.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter)
+        records = list(query.execute())
+        if records is None or len(records) == 0:
+            raise EntityNotFoundException(
+                'Gateway with name \'%s\' not found.' % name)
+        elif len(records) > 1:
+            raise MultipleRecordsException("Found multiple gateway named "
+                                           "'%s'," % name)
+        return records[0]

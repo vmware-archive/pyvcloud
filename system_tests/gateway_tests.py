@@ -26,6 +26,7 @@ class TestGateway(BaseTestCase):
     """Test Gateway functionalities implemented in pyvcloud."""
 
     # All tests in this module should be run as System Administrator.
+
     _client = None
     _name = ("test_gateway1" + str(uuid1()))[:34]
 
@@ -38,10 +39,10 @@ class TestGateway(BaseTestCase):
         Create a gateway as per the configuration stated
         above.
 
-        This test passes if the gateway is created
-        successfully.
+        This test passes if the gateway is created successfully.
         """
         logger = Environment.get_default_logger()
+
         TestGateway._client = Environment.get_sys_admin_client()
         vdc = Environment.get_test_vdc(TestGateway._client)
         platform = Platform(TestGateway._client)
@@ -89,11 +90,12 @@ class TestGateway(BaseTestCase):
 
     def test_0001_convert_to_advanced(self):
         """Convert the legacy gateway to advance gateway.
+
         Invoke the convert_to_advanced method for gateway.
         """
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
-        task = gateway_obj.convert_to_advanced(self._name)
+        task = gateway_obj.convert_to_advanced()
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
@@ -105,26 +107,25 @@ class TestGateway(BaseTestCase):
         """
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
-        task = gateway_obj.enable_distributed_routing(self._name, True)
+        task = gateway_obj.enable_distributed_routing(True)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0003_teardown(self):
+    def test_0098_teardown(self):
         """Test the method System.delete_gateway().
 
         Invoke the method for the gateway created by setup.
 
         This test passes if no errors are generated while deleting the gateway.
         """
-        sys_admin_resource = TestGateway._client.get_admin()
         vdc = Environment.get_test_vdc(TestGateway._client)
         task = vdc.delete_gateway(TestGateway._name)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0004_cleanup(self):
+    def test_0099_cleanup(self):
         """Release all resources held by this object for testing purposes."""
         TestGateway._client.logout()
 

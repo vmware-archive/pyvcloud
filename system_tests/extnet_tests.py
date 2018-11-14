@@ -72,8 +72,8 @@ class TestExtNet(BaseTestCase):
                     TestExtNet._port_group = record.get('name')
                     break
 
-        self.assertIsNotNone(
-            self._port_group, 'None of the port groups are free.')
+        self.assertIsNotNone(self._port_group,
+                             'None of the port groups are free.')
 
         ext_net = platform.create_external_network(
             name=TestExtNet._name,
@@ -92,6 +92,40 @@ class TestExtNet(BaseTestCase):
             task=task)
 
         logger.debug('Created external network ' + TestExtNet._name + '.')
+
+    def test_0010_update(self):
+        """Test the method Platform.update_external_network()
+
+        Update name and description of the external network created by setup.
+        Verifies name and description after update completes. Reset the name
+        and description to original.
+
+        This test passes if name and description are updated successfully.
+        """
+        logger = Environment.get_default_logger()
+        platform = Platform(TestExtNet._sys_admin_client)
+        new_name = 'updated_' + TestExtNet._name
+        new_description = 'Updated ' + TestExtNet._description
+
+        ext_net = platform.update_external_network(TestExtNet._name, new_name,
+                                                   new_description)
+
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+            task=task)
+        logger.debug('Updated external network ' + TestExtNet._name + '.')
+
+        ext_net = platform.get_external_network(new_name)
+        self.assertIsNotNone(ext_net)
+        self.assertEqual(new_description,
+                         ext_net.find('vcloud:Description', NSMAP).text)
+
+        # Reset the name and description to original
+        ext_net = platform.update_external_network(new_name, self._name,
+                                                   self._description)
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+            task=task)
 
     @developerModeAware
     def test_9998_teardown(self):

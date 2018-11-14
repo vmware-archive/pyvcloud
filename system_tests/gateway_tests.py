@@ -16,12 +16,9 @@ import unittest
 from uuid import uuid1
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
-from pyvcloud.vcd.exceptions import EntityNotFoundException
-from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.system_test_framework.base_test import BaseTestCase
-from pyvcloud.system_test_framework.environment import CommonRoles
-from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
+from pyvcloud.vcd.gateway import Gateway
 from pyvcloud.vcd.platform import Platform
 
 
@@ -29,10 +26,12 @@ class TestGateway(BaseTestCase):
     """Test Gateway functionalities implemented in pyvcloud."""
 
     # All tests in this module should be run as System Administrator.
+
     _client = None
     _name = ("test_gateway1" + str(uuid1()))[:34]
 
     _description = "test_gateway1 description"
+    _gateway = None
 
     def test_0000_setup(self):
         """Setup the gateway required for the other tests in this module.
@@ -40,10 +39,10 @@ class TestGateway(BaseTestCase):
         Create a gateway as per the configuration stated
         above.
 
-        This test passes if the gateway is created
-        successfully.
+        This test passes if the gateway is created successfully.
         """
         logger = Environment.get_default_logger()
+
         TestGateway._client = Environment.get_sys_admin_client()
         vdc = Environment.get_test_vdc(TestGateway._client)
         platform = Platform(TestGateway._client)
@@ -80,30 +79,53 @@ class TestGateway(BaseTestCase):
                 100 : 100
             }
         }
-        gateway = vdc.create_gateway(
+        TestGateway._gateway = vdc.create_gateway(
             self._name, [ext_net_resource.get('name')], 'compact', None, True,
-            ext_net_resource.get('name'), gateway_ip, True, False, True,
+            ext_net_resource.get('name'), gateway_ip, True, False, False,
             False, True, ext_net_to_participated_subnet_with_ip_settings,
             True, ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
         result = TestGateway._client.get_task_monitor().wait_for_success(
-            task=gateway.Tasks.Task)
+            task=TestGateway._gateway.Tasks.Task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0001_teardown(self):
+    def test_0001_convert_to_advanced(self):
+        """Convert the legacy gateway to advance gateway.
+
+        Invoke the convert_to_advanced method for gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        task = gateway_obj.convert_to_advanced()
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0002_enable_dr(self):
+        """Enable the Distributed routing.
+
+        Invoke the enable_distributed_routing method for the gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        task = gateway_obj.enable_distributed_routing(True)
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0098_teardown(self):
         """Test the method System.delete_gateway().
 
         Invoke the method for the gateway created by setup.
 
         This test passes if no errors are generated while deleting the gateway.
         """
-        sys_admin_resource = TestGateway._client.get_admin()
         vdc = Environment.get_test_vdc(TestGateway._client)
         task = vdc.delete_gateway(TestGateway._name)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0002_cleanup(self):
+    def test_0099_cleanup(self):
         """Release all resources held by this object for testing purposes."""
         TestGateway._client.logout()
 

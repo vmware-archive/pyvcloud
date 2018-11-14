@@ -438,6 +438,13 @@ class TaskStatus(Enum):
     ABORTED = 'aborted'
 
 
+class GatewayBackingConfigType(Enum):
+    COMPACT = 'compact'
+    FULL = 'full'
+    FULL4 = 'full4'
+    XLARGE = 'x-large'
+
+
 class _TaskMonitor(object):
     _DEFAULT_POLL_SEC = 5
     _DEFAULT_TIMEOUT_SEC = 600

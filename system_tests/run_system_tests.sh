@@ -33,6 +33,7 @@ STABLE_TESTS="client_tests.py \
 api_extension_tests.py \
 catalog_tests \
 extnet_tests.py \
+gateway_tests.py \
 idisk_tests.py \
 network_tests.py \
 org_tests.py \

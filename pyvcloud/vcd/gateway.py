@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import GatewayBackingConfigType
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.utils import get_admin_href
@@ -108,3 +108,32 @@ class Gateway(object):
                                                RelationType.EDIT,
                                                EntityType.EDGE_GATEWAY.value,
                                                gateway)
+
+    def modify_form_factor(self, gateway_type):
+        """Modify form factor.
+
+        System Administrators can only perform modify form factor on gateway.
+
+        :param str gateway_type: gateway type. Possible values can be
+            compact/full/full4/x-large.
+        :return: object containing EntityType.TASK XML data representing the
+            asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: InvalidParameterException: if provided gateway type is not
+            from list compact/full/full4/x-large.
+        """
+        self.get_resource()
+        try:
+            GatewayBackingConfigType.__getitem__(gateway_type)
+        except ValueError:
+            raise InvalidParameterException('Provided %s is not valid. It '
+                                            'should be from allowed list '
+                                            'compact/full/full4/x-large' %
+                                            gateway_type)
+        gateway_form_factor = E.EdgeGatewayFormFactor()
+        gateway_form_factor.append(E.gatewayType(gateway_type))
+        return self.client.post_linked_resource(
+            self.resource, RelationType.MODIFY_FORM_FACTOR,
+            EntityType.EDGE_GATEWAY_FORM_FACTOR.value, gateway_form_factor)

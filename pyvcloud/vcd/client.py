@@ -146,6 +146,7 @@ class RelationType(Enum):
     ENABLE = 'enable'
     LINK_TO_TEMPLATE = 'linkToTemplate'
     MIGRATE_VMS = 'migrateVms'
+    MODIFY_FORM_FACTOR = 'edgeGateway:modifyFormFactor'
     NEXT_PAGE = 'nextPage'
     ORG_VDC_NETWORKS = 'orgVdcNetworks'
     POWER_OFF = 'power:powerOff'
@@ -275,6 +276,8 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.diskAttachOrDetachParams+xml'
     DISK_CREATE_PARMS = 'application/vnd.vmware.vcloud.diskCreateParams+xml'
     EDGE_GATEWAY = 'application/vnd.vmware.admin.edgeGateway+xml'
+    EDGE_GATEWAY_FORM_FACTOR = \
+        'application/vnd.vmware.vcloud.edgeGatewayFormFactor+xml'
     EDGE_GATEWAY_SERVICE_CONFIGURATION = \
         'application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'

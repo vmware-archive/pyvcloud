@@ -112,17 +112,18 @@ class Gateway(object):
     def modify_form_factor(self, gateway_type):
         """Modify form factor.
 
-        System Administrators can only perform modify form factor on gateway.
+        This operation can be performed by only System Administrators.
 
-        :param str gateway_type: gateway type. Possible values can be
-            compact/full/full4/x-large.
+        :param str gateway_type: gateway config type, possible values
+            are compact/full/full4/x-large.
+
         :return: object containing EntityType.TASK XML data representing the
             asynchronous task.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
-        :raises: InvalidParameterException: if provided gateway type is not
-            from list compact/full/full4/x-large.
+        :raises: InvalidParameterException: if provided gateway config type
+            is not from list compact/full/full4/x-large.
         """
         self.get_resource()
         try:

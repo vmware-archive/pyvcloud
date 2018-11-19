@@ -14,6 +14,7 @@
 # limitations under the License.
 import unittest
 from uuid import uuid1
+from pyvcloud.vcd.client import GatewayBackingConfigType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.system_test_framework.base_test import BaseTestCase
@@ -108,6 +109,19 @@ class TestGateway(BaseTestCase):
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
         task = gateway_obj.enable_distributed_routing(True)
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0003_modify_form_factor(self):
+        """Modify form factor.
+
+        Invoke the modify_form_factor method for the gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        task = gateway_obj.modify_form_factor(
+            GatewayBackingConfigType.FULL.value)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)

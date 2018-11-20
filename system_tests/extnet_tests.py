@@ -19,6 +19,7 @@ from uuid import uuid1
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
+from pyvcloud.vcd.externalNetwork import ExternalNetwork
 
 from pyvcloud.vcd.platform import Platform
 
@@ -41,6 +42,12 @@ class TestExtNet(BaseTestCase):
     _dns1 = '8.8.8.8'
     _dns2 = '8.8.8.9'
     _dns_suffix = 'example.com'
+    _gateway_addsubnet = '10.10.30.1'
+    _netmask_addsubnet = '255.255.255.0'
+    _ip_range_addsubnet = '10.10.30.2-10.10.30.99'
+    _dns1_addsubnet = '8.8.8.8'
+    _dns2_addsubnet = '8.8.8.9'
+    _dns_suffix_addsubnet = 'example1.com'
 
     def test_0000_setup(self):
         """
@@ -126,6 +133,36 @@ class TestExtNet(BaseTestCase):
         task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
         TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
             task=task)
+
+    def test_0009_add_subnet(self):
+        """Test the method externalNetwork.add_subnet()
+
+        Add subnet to the existing external network
+
+        This test passes if subnet is added successfully.
+        """
+        logger = Environment.get_default_logger()
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net_resource = platform.get_external_network(self._name)
+        TestExtNet._sys_admin_client = Environment.get_sys_admin_client()
+        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+                                     resource=ext_net_resource)
+
+        ext_net = extnet_obj.add_subnet(self._name,
+                                        TestExtNet._gateway_addsubnet,
+                                        TestExtNet._netmask_addsubnet,
+                                        [TestExtNet._ip_range_addsubnet],
+                                        TestExtNet._dns1_addsubnet,
+                                        TestExtNet._dns2_addsubnet,
+                                        TestExtNet._dns_suffix_addsubnet)
+
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+            task=task)
+        logger.debug(
+            'Added subnet to external network ' + TestExtNet._name + '.')
+
+        self.assertIsNotNone(ext_net)
 
     @developerModeAware
     def test_9998_teardown(self):

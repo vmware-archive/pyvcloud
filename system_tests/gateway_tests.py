@@ -42,8 +42,6 @@ class TestGateway(BaseTestCase):
 
         This test passes if the gateway is created successfully.
         """
-        logger = Environment.get_default_logger()
-
         TestGateway._client = Environment.get_sys_admin_client()
         vdc = Environment.get_test_vdc(TestGateway._client)
         platform = Platform(TestGateway._client)
@@ -75,16 +73,12 @@ class TestGateway(BaseTestCase):
                 subnet_addr: [next_ip + '-' + next_ip]
             }
         }
-        ext_net_to_rate_limit = {
-            ext_net_resource.get('name'): {
-                100 : 100
-            }
-        }
+        ext_net_to_rate_limit = {ext_net_resource.get('name'): {100: 100}}
         TestGateway._gateway = vdc.create_gateway(
             self._name, [ext_net_resource.get('name')], 'compact', None, True,
             ext_net_resource.get('name'), gateway_ip, True, False, False,
-            False, True, ext_net_to_participated_subnet_with_ip_settings,
-            True, ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+            False, True, ext_net_to_participated_subnet_with_ip_settings, True,
+            ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=TestGateway._gateway.Tasks.Task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
@@ -125,6 +119,16 @@ class TestGateway(BaseTestCase):
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0004_list_external_network_ip_allocations(self):
+        """List external network ip allocations.
+
+        Invoke the list_external_network_ip_allocations of the gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        ip_allocations = gateway_obj.list_external_network_ip_allocations()
+        self.assertEqual(bool(ip_allocations), True)
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

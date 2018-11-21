@@ -81,10 +81,9 @@ class Gateway(object):
         if self.resource is None:
             self.reload()
 
-        return self.client.post_linked_resource(self.resource,
-                                                RelationType.
-                                                CONVERT_TO_ADVANCED_GATEWAY,
-                                                None, None)
+        return self.client.post_linked_resource(
+            self.resource, RelationType.CONVERT_TO_ADVANCED_GATEWAY, None,
+            None)
 
     def enable_distributed_routing(self, enable=True):
         """Enable Distributed Routing.
@@ -104,10 +103,9 @@ class Gateway(object):
             return
         gateway.Configuration.DistributedRoutingEnabled = \
             E.DistributedRoutingEnabled(enable)
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.EDGE_GATEWAY.value,
-                                               gateway)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
+            gateway)
 
     def modify_form_factor(self, gateway_type):
         """Modify form factor.
@@ -129,12 +127,30 @@ class Gateway(object):
         try:
             GatewayBackingConfigType.__getitem__(gateway_type)
         except ValueError:
-            raise InvalidParameterException('Provided %s is not valid. It '
-                                            'should be from allowed list '
-                                            'compact/full/full4/x-large' %
-                                            gateway_type)
+            raise InvalidParameterException(
+                'Provided %s is not valid. It '
+                'should be from allowed list '
+                'compact/full/full4/x-large' % gateway_type)
         gateway_form_factor = E.EdgeGatewayFormFactor()
         gateway_form_factor.append(E.gatewayType(gateway_type))
         return self.client.post_linked_resource(
             self.resource, RelationType.MODIFY_FORM_FACTOR,
             EntityType.EDGE_GATEWAY_FORM_FACTOR.value, gateway_form_factor)
+
+    def list_external_network_ip_allocations(self):
+        """List external network ip allocations of the gateway.
+
+        This operation can be performed by System/Org Administrators.
+
+        :return: a dictionary that maps external network name to list of ip
+            addresses. Ex: {'extnw1': ['10.10.10.2'...]}
+
+        :rtype: dict
+        """
+        gateway = self.get_resource()
+        out = {}
+        for inf in gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            if inf.InterfaceType.text == 'uplink':
+                ips = out.setdefault(inf.Name.text, [])
+                ips.append(inf.SubnetParticipation.IpAddress.text)
+        return out

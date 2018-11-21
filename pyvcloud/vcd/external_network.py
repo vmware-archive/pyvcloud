@@ -30,7 +30,7 @@ class ExternalNetwork(object):
         :param str name: name of the entity.
         :param str href: URI of the entity.
         :param lxml.objectify.ObjectifiedElement resource: object containing
-            EntityType.EXTERNAL_NETWORK XML data representing the gateway.
+            EntityType.EXTERNAL_NETWORK XML data representing the external network.
         """
         self.client = client
         self.name = name
@@ -51,7 +51,7 @@ class ExternalNetwork(object):
         Will serve cached response if possible.
 
         :return: object containing EntityType.EXTERNAL_NETWORK XML data
-        representing the gateway.
+        representing the external network.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """

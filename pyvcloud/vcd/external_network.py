@@ -30,7 +30,8 @@ class ExternalNetwork(object):
         :param str name: name of the entity.
         :param str href: URI of the entity.
         :param lxml.objectify.ObjectifiedElement resource: object containing
-            EntityType.EXTERNAL_NETWORK XML data representing the external network.
+            EntityType.EXTERNAL_NETWORK XML data representing the external
+            network.
         """
         self.client = client
         self.name = name
@@ -105,7 +106,7 @@ class ExternalNetwork(object):
         platform = Platform(self.client)
         ext_net = platform.get_external_network(name)
         config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
-        ip_scopes = config['{' + NSMAP['vcloud'] + '}IpScopes']
+        ip_scopes = config.IpScopes
 
         ip_scope = E.IpScope()
         ip_scope.append(E.IsInherited(False))

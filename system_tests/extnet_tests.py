@@ -90,7 +90,7 @@ class TestExtNet(BaseTestCase):
             secondary_dns_ip=TestExtNet._dns2,
             dns_suffix=TestExtNet._dns_suffix)
 
-        task = ext_net.find('vcloud:Tasks', NSMAP).Task[0]
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
         TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
             task=task)
 
@@ -121,7 +121,7 @@ class TestExtNet(BaseTestCase):
         ext_net = platform.get_external_network(new_name)
         self.assertIsNotNone(ext_net)
         self.assertEqual(new_description,
-                         ext_net.find('vcloud:Description', NSMAP).text)
+                         ext_net['{' + NSMAP['vcloud'] + '}Description'].text)
 
         # Reset the name and description to original
         ext_net = platform.update_external_network(new_name, self._name,
@@ -160,13 +160,9 @@ class TestExtNet(BaseTestCase):
         ext_net = platform.get_external_network(self._name)
         self.assertIsNotNone(ext_net)
         config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
-        ip_scopes = config['{' + NSMAP['vcloud'] + '}IpScopes']
-        ip_scope = ip_scopes['{' + NSMAP['vcloud'] + '}IpScope']
-        new_subnet = ip_scope[1]
-        self.assertEqual(TestExtNet._gateway2,
-                         new_subnet.find('vcloud:Gateway', NSMAP).text)
-        self.assertEqual(TestExtNet._netmask,
-                         new_subnet.find('vcloud:Netmask', NSMAP).text)
+        new_subnet = config.IpScopes.IpScope[-1]
+        self.assertEqual(TestExtNet._gateway2, new_subnet.Gateway.text)
+        self.assertEqual(TestExtNet._netmask, new_subnet.Netmask.text)
 
     @developerModeAware
     def test_9998_teardown(self):

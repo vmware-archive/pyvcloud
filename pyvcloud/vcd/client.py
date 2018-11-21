@@ -861,22 +861,33 @@ class Client(object):
     def _do_request(self,
                     method,
                     uri,
+                    session=None,
                     contents=None,
                     media_type=None,
+                    accept_type=None,
                     objectify_results=True):
         response = self._do_request_prim(
             method,
             uri,
-            self._session,
+            self._session if session is None else session,
             contents=contents,
-            media_type=media_type)
+            media_type=media_type,
+            accept_type=accept_type)
+        sc = response.status_code
 
         sc = response.status_code
         if 200 <= sc <= 299:
+            if accept_type == 'application/json':
+                return response
+
             return _objectify_response(response, objectify_results)
 
-        self._response_code_to_exception(sc, self._get_response_request_id(
-            response), _objectify_response(response, objectify_results))
+        if accept_type == 'application/json':
+            self._response_code_to_exception(sc, self._get_response_request_id(
+                response), response.json())
+        else:
+            self._response_code_to_exception(sc, self._get_response_request_id(
+                response), _objectify_response(response, objectify_results))
 
     @staticmethod
     def _response_code_to_exception(sc, request_id, objectify_response):
@@ -960,6 +971,9 @@ class Client(object):
                          accept_type=None,
                          auth=None):
         headers = {}
+        if isinstance(session, requests.Session) is not True:
+            token_name = 'x-vcloud-authorization'
+            headers[token_name] = self._session.headers[token_name]
         if media_type is not None:
             headers[self._HEADER_CONTENT_TYPE_NAME] = media_type
         headers[self._HEADER_ACCEPT_NAME] = '%s;version=%s' % \
@@ -971,6 +985,9 @@ class Client(object):
         else:
             if isinstance(contents, dict):
                 data = json.dumps(contents)
+            elif isinstance(contents, str) is True or \
+                    isinstance(contents, bytes) is True:
+                data = contents
             else:
                 data = etree.tostring(contents)
 
@@ -1182,6 +1199,54 @@ class Client(object):
     def get_extension(self):
         """Returns the 'extension' resource type."""
         return self._get_wk_resource(_WellKnownEndpoint.EXTENSION)
+
+    def get_ui_extension(self, uri, contents, media_type, accept_type,
+                         objectify_results=True):
+        """Get action to ui extension endpoints."""
+        return self._do_request(
+            'GET',
+            uri,
+            session=requests,
+            contents=contents,
+            media_type=media_type,
+            accept_type=accept_type,
+            objectify_results=objectify_results)
+
+    def post_ui_extension(self, uri, contents, media_type, accept_type,
+                          objectify_results=True):
+        """Post action to ui extension endpoints."""
+        return self._do_request(
+            'POST',
+            uri,
+            session=requests,
+            contents=contents,
+            media_type=media_type,
+            accept_type=accept_type,
+            objectify_results=objectify_results)
+
+    def put_ui_extension(self, uri, contents, media_type, accept_type,
+                         objectify_results=True):
+        """Put action to ui extension endpoints."""
+        return self._do_request(
+            'PUT',
+            uri,
+            session=requests,
+            contents=contents,
+            media_type=media_type,
+            accept_type=accept_type,
+            objectify_results=objectify_results)
+
+    def delete_ui_extension(self, uri, contents, media_type, accept_type,
+                            objectify_results=True):
+        """Delete action to ui extension endpoints."""
+        return self._do_request(
+            'DELETE',
+            uri,
+            session=requests,
+            contents=contents,
+            media_type=media_type,
+            accept_type=accept_type,
+            objectify_results=objectify_results)
 
     def get_org_list(self):
         """Returns the list of organizations visible to the user.

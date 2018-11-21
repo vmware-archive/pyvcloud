@@ -15,7 +15,7 @@ To run system tests in a build, follow the steps below.
 
 1. Copy `../examples/vcd_connection.sample` to `vcd_connection` and fill in 
 connection data.
-2. Export `VCD_CONNECTION`, e.g., `export VDC_CONNECTION=$PWD/vcd_connection`
+2. Export `VCD_CONNECTION`, e.g., `export VCD_CONNECTION=$PWD/vcd_connection`
 3. Execute the script as follows: `./run_system_tests.sh`
 
 This will run a default list of tests.  You can specify different tests 

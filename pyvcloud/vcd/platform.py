@@ -449,6 +449,22 @@ class Platform(object):
             media_type=EntityType.PROVIDER_VDC_PARAMS.value,
             contents=vmw_prov_vdc_params)
 
+    def get_pvdc(self,
+                 pvdc_name):
+        """Fetch pvdc reference, href, and extension resource.
+
+        :param str pvdc_name: name of pvdc.
+
+        :return: PVDC reference, href, and extension resource.
+
+        :rtype: list
+        """
+        provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
+                                            pvdc_name)
+        pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
+        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
+        return provider_vdc, pvdc_ext_href, pvdc_ext_resource
+
     def attach_resource_pools_to_provider_vdc(self,
                                               pvdc_name,
                                               resource_pool_names):
@@ -469,17 +485,15 @@ class Platform(object):
         version of this function.
 
         :param str pvdc_name: name of the Provider Virtual Datacenter.
-        :param list resource_pool_names: list or resource pool names.
+        :param list resource_pool_names: list of resource pool names.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is adding Resource Pools to the PVDC.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
-                                            pvdc_name)
-        pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
-        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
+        provider_vdc, pvdc_ext_href, pvdc_ext_resource = self.get_pvdc(
+            pvdc_name)
         vc_href = pvdc_ext_resource.VimServer.get('href')
         rp_morefs = self.get_resource_pool_morefs(vc_href,
                                                   resource_pool_names)
@@ -532,7 +546,7 @@ class Platform(object):
         version of this function.
 
         :param str pvdc_name: name of the Provider Virtual Datacenter.
-        :param list resource_pool_names: list or resource pool names.
+        :param list resource_pool_names: list of resource pool names.
 
         :return: an object containing EntityType.TASK XML data which represents
             the async task that is deleting Resource Pools from the PVDC.
@@ -544,10 +558,8 @@ class Platform(object):
         :raises: ValidationError: if primary resource pool is input for
             deletion.
         """
-        provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
-                                            pvdc_name)
-        pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
-        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
+        provider_vdc, pvdc_ext_href, pvdc_ext_resource = self.get_pvdc(
+            pvdc_name)
         vc_name = pvdc_ext_resource.VimServer.get('name')
 
         # find the RPs in use that are associated with the backing VC
@@ -616,6 +628,110 @@ class Platform(object):
             media_type=EntityType.RES_POOL_SET_UPDATE_PARAMS.value,
             contents=payload)
 
+    def pvdc_add_storage_profile(self,
+                                 pvdc_name,
+                                 storage_profile_names):
+        """Add storage profiles to a PVDC.
+
+        :param str pvdc_name: name of the Provider Virtual Datacenter.
+        :param list storage_profile_names: list of storage profile names.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the async task that is deleting storage profiles from the PVDC.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if any storage_profile_name is not
+            available.
+        """
+        provider_vdc, pvdc_ext_href, pvdc_ext_resource = self.get_pvdc(
+            pvdc_name)
+        avail_storage_profiles = self.client.get_linked_resource(
+            resource=pvdc_ext_resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.VMW_STORAGE_PROFILES.value)
+        avail_sps = []
+        if hasattr(avail_storage_profiles,
+                   '{' + NSMAP['vmext'] + '}VMWStorageProfile'):
+            for avail_stor_prof in avail_storage_profiles.VMWStorageProfile:
+                avail_sps.append(avail_stor_prof.get('name'))
+        payload = E_VMEXT.UpdateProviderVdcStorageProfiles()
+        for sp_to_add in storage_profile_names:
+            if sp_to_add not in avail_sps:
+                raise EntityNotFoundException(
+                    'storage profile: \'%s\' not available' % sp_to_add)
+            payload.append(E_VMEXT.AddStorageProfile(sp_to_add))
+        return self.client.post_linked_resource(
+            resource=pvdc_ext_resource,
+            rel=RelationType.EDIT,
+            media_type=EntityType.UPDATE_PROVIDER_VDC_STORAGE_PROFILES.value,
+            contents=payload)
+
+    def pvdc_del_storage_profile(self,
+                                 pvdc_name,
+                                 storage_profile_names):
+        """Delete storage profiles from a PVDC.
+
+        :param str pvdc_name: name of the Provider Virtual Datacenter.
+        :param list storage_profile_names: list of storage profile names.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the async task that is deleting storage profiles from the PVDC.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if any storage_profile_name is not
+            associated with the specified PVDC.
+        """
+        provider_vdc, pvdc_ext_href, pvdc_ext_resource = self.get_pvdc(
+            pvdc_name)
+        sp_map = {}
+        if hasattr(pvdc_ext_resource,
+                   '{' + NSMAP['vcloud'] + '}StorageProfiles'):
+            stor_profs = \
+                pvdc_ext_resource['{' + NSMAP['vcloud'] + '}StorageProfiles']
+            if hasattr(stor_profs,
+                       '{' + NSMAP['vcloud'] + '}ProviderVdcStorageProfile'):
+                for stor_prof in stor_profs.ProviderVdcStorageProfile:
+                    sp_map[stor_prof.get('name')] = stor_prof.get('href')
+        payload = E_VMEXT.UpdateProviderVdcStorageProfiles()
+        for sp_name in storage_profile_names:
+            if sp_name not in sp_map.keys():
+                raise EntityNotFoundException(
+                    'storage profile: \'%s\' not in this PVDC' % sp_name)
+            sp_href = sp_map[sp_name]
+            payload.append(
+                E_VMEXT.RemoveStorageProfile(href=sp_href))
+            sp_resource = self.client.get_resource(sp_href)
+            links = get_links(
+                resource=sp_resource,
+                rel=RelationType.EDIT,
+                media_type=EntityType.VMW_PVDC_STORAGE_PROFILE.value)
+            num_links = len(links)
+            if num_links == 1:
+                if hasattr(sp_resource,
+                   '{' + NSMAP['vcloud'] + '}Units'):
+                    units = \
+                        sp_resource['{' + NSMAP['vcloud'] + '}Units']
+                    disable_payload = \
+                        E_VMEXT.VMWProviderVdcStorageProfile(
+                            name=sp_name,
+                            href=sp_href
+                        )
+                    disable_payload.append(E.Enabled('false'))
+                    disable_payload.append(units)
+                    self.client.put_linked_resource(
+                        resource=sp_resource,
+                        rel=RelationType.EDIT,
+                        media_type=EntityType.
+                        VMW_PVDC_STORAGE_PROFILE.value,
+                        contents=disable_payload)
+        return self.client.post_linked_resource(
+            resource=pvdc_ext_resource,
+            rel=RelationType.EDIT,
+            media_type=EntityType.UPDATE_PROVIDER_VDC_STORAGE_PROFILES.value,
+            contents=payload)
+
     def pvdc_migrate_vms(self,
                          pvdc_name,
                          vms_to_migrate,
@@ -643,10 +759,8 @@ class Platform(object):
             cannot be found, or if any of the vms_to_migrate are
             not found on the source resource pool.
         """
-        provider_vdc = self.get_ref_by_name(ResourceType.PROVIDER_VDC,
-                                            pvdc_name)
-        pvdc_ext_href = get_admin_extension_href(provider_vdc.get('href'))
-        pvdc_ext_resource = self.client.get_resource(pvdc_ext_href)
+        provider_vdc, pvdc_ext_href, pvdc_ext_resource = self.get_pvdc(
+            pvdc_name)
         vc_name = pvdc_ext_resource.VimServer.get('name')
         vc_href = pvdc_ext_resource.VimServer.get('href')
 

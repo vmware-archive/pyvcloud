@@ -128,7 +128,7 @@ class TestGateway(BaseTestCase):
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
         ip_allocations = gateway_obj.list_external_network_ip_allocations()
-        self.assertEqual(bool(ip_allocations), True)
+        self.assertTrue(bool(ip_allocations))
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

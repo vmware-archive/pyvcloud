@@ -12,13 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pyvcloud.vcd.exceptions import InvalidParameterException
-from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.client import E
-from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.platform import Platform
+from pyvcloud.vcd.utils import get_admin_href
 
 
 class ExternalNetwork(object):
@@ -79,22 +79,26 @@ class ExternalNetwork(object):
                    primary_dns_ip=None,
                    secondary_dns_ip=None,
                    dns_suffix=None):
-
         """Add subnet to an external network.
 
         :param str name: Name of external network.
+
         :param str gateway_ip: IP address of the gateway of the new network.
+
         :param str netmask: Netmask of the gateway.
+
         :param list ip_ranges: list of IP ranges used for static pool
             allocation in the network. For example, [192.168.1.2-192.168.1.49,
             192.168.1.100-192.168.1.149].
+
         :param str primary_dns_ip: IP address of primary DNS server.
+
         :param str secondary_dns_ip: IP address of secondary DNS Server.
+
         :param str dns_suffix: DNS suffix.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-
         if self.resource is None:
             self.reload()
 

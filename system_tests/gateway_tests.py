@@ -130,6 +130,18 @@ class TestGateway(BaseTestCase):
         ip_allocations = gateway_obj.list_external_network_ip_allocations()
         self.assertTrue(bool(ip_allocations))
 
+    def test_0005_redeploy(self):
+        """Redeploy the gateway.
+
+        Invoke the redeploy function of gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        task = gateway_obj.redeploy()
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().
 

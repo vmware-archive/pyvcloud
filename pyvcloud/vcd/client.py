@@ -38,7 +38,6 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     UnsupportedMediaTypeException, VcdException, VcdResponseException, \
     VcdTaskException  # NOQA
 
-
 SIZE_1MB = 1024 * 1024
 
 NSMAP = {
@@ -83,9 +82,7 @@ E_VMEXT = objectify.ElementMaker(
     })
 
 E_OVF = objectify.ElementMaker(
-    annotate=False, namespace=NSMAP['ovf'], nsmap={
-        None: NSMAP['ovf']
-    })
+    annotate=False, namespace=NSMAP['ovf'], nsmap={None: NSMAP['ovf']})
 
 E_RASD = objectify.ElementMaker(
     annotate=False,
@@ -95,11 +92,8 @@ E_RASD = objectify.ElementMaker(
         'vcloud': NSMAP['vcloud']
     })
 
-
 # Important! Values must be listed in ascending order.
-API_CURRENT_VERSIONS = [
-    '28.0', '29.0', '30.0', '31.0'
-]
+API_CURRENT_VERSIONS = ['28.0', '29.0', '30.0', '31.0']
 
 VCLOUD_STATUS_MAP = {
     -1: "Could not be created",
@@ -144,6 +138,7 @@ class RelationType(Enum):
     EDGE_GATEWAYS = 'edgeGateways'
     EDIT = 'edit'
     ENABLE = 'enable'
+    GATEWAY_REDEPLOY = 'edgeGateway:redeploy'
     LINK_TO_TEMPLATE = 'linkToTemplate'
     MIGRATE_VMS = 'migrateVms'
     MODIFY_FORM_FACTOR = 'edgeGateway:modifyFormFactor'
@@ -722,8 +717,7 @@ class Client(object):
         self._api_version = active_versions[-1]
         self._negotiate_api_version = False
         self._logger.debug('API versions supported: %s' % active_versions)
-        self._logger.debug(
-            'API version set to: %s' % self._api_version)
+        self._logger.debug('API version set to: %s' % self._api_version)
         return self._api_version
 
     def set_credentials(self, creds):
@@ -783,8 +777,7 @@ class Client(object):
                     pass
                 if r is not None:
                     self._response_code_to_exception(
-                        sc,
-                        self._get_response_request_id(response), r)
+                        sc, self._get_response_request_id(response), r)
                 else:
                     raise VcdException('Login failed.')
 
@@ -817,8 +810,9 @@ class Client(object):
                                          new_session)
         sc = response.status_code
         if sc is not 200:
-            self._response_code_to_exception(sc, self._get_response_request_id(
-                response), _objectify_response(response))
+            self._response_code_to_exception(
+                sc, self._get_response_request_id(response),
+                _objectify_response(response))
 
         session = objectify.fromstring(response.content)
 
@@ -875,8 +869,9 @@ class Client(object):
         if 200 <= sc <= 299:
             return _objectify_response(response, objectify_results)
 
-        self._response_code_to_exception(sc, self._get_response_request_id(
-            response), _objectify_response(response, objectify_results))
+        self._response_code_to_exception(
+            sc, self._get_response_request_id(response),
+            _objectify_response(response, objectify_results))
 
     @staticmethod
     def _response_code_to_exception(sc, request_id, objectify_response):
@@ -924,12 +919,12 @@ class Client(object):
         if not self._log_requests:
             return
 
-        self._logger.debug('Request uri (%s): %s' %
-                           (response.request.method, response.request.url))
+        self._logger.debug('Request uri (%s): %s' % (response.request.method,
+                                                     response.request.url))
 
         if self._log_headers:
-            self._logger.debug('Request headers: %s' %
-                               response.request.headers)
+            self._logger.debug(
+                'Request headers: %s' % response.request.headers)
 
         if self._log_bodies and request_body is not None:
             if isinstance(request_body, str):
@@ -998,8 +993,11 @@ class Client(object):
         # retry efforts fail, we will fail the upload completely and return.
         for attempt in range(1, self._UPLOAD_FRAGMENT_MAX_RETRIES + 1):
             try:
-                response = self._session.put(uri, data=data, headers=headers,
-                                             verify=self._verify_ssl_certs)
+                response = self._session.put(
+                    uri,
+                    data=data,
+                    headers=headers,
+                    verify=self._verify_ssl_certs)
                 self._log_request_response(response)
 
                 sc = response.status_code
@@ -1010,9 +1008,9 @@ class Client(object):
             except VcdResponseException:
                 # retry if not the last attempt
                 if attempt < self._UPLOAD_FRAGMENT_MAX_RETRIES:
-                    self._logger.debug('Failure: attempt#%s to upload data in '
-                                       'range %s failed. Retrying.' %
-                                       (attempt, range_str))
+                    self._logger.debug(
+                        'Failure: attempt#%s to upload data in '
+                        'range %s failed. Retrying.' % (attempt, range_str))
                     continue
                 else:
                     self._logger.error(
@@ -1042,8 +1040,7 @@ class Client(object):
                     bytes_written += len(chunk)
                     if callback is not None:
                         callback(bytes_written, size)
-                    self._logger.debug('Downloaded bytes : %s' %
-                                       bytes_written)
+                    self._logger.debug('Downloaded bytes : %s' % bytes_written)
         return bytes_written
 
     def put_resource(self, uri, contents, media_type, objectify_results=True):

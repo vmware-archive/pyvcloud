@@ -154,3 +154,17 @@ class Gateway(object):
                 ips = out.setdefault(inf.Name.text, [])
                 ips.append(inf.SubnetParticipation.IpAddress.text)
         return out
+
+    def redeploy(self):
+        """Redeploy the gateway.
+
+        :return: object containing EntityType.TASK XML data representing the
+            asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if self.resource is None:
+            self.reload()
+
+        return self.client.post_linked_resource(
+            self.resource, RelationType.GATEWAY_REDEPLOY, None, None)

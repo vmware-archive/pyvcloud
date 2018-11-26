@@ -142,6 +142,18 @@ class TestGateway(BaseTestCase):
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def test_0006_sync_syslog_settings(self):
+        """Sync syslog settings of the gateway.
+
+        Invoke the sync_syslog_settings function of gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        task = gateway_obj.sync_syslog_settings()
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().
 

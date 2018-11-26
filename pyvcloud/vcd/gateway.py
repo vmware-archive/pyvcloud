@@ -168,3 +168,18 @@ class Gateway(object):
 
         return self.client.post_linked_resource(
             self.resource, RelationType.GATEWAY_REDEPLOY, None, None)
+
+    def sync_syslog_settings(self):
+        """Sync syslog settings of the gateway.
+
+        :return: object containing EntityType.TASK XML data representing the
+            asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if self.resource is None:
+            self.reload()
+
+        return self.client.post_linked_resource(
+            self.resource, RelationType.GATEWAY_SYNC_SYSLOG_SETTINGS, None,
+            None)

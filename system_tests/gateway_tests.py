@@ -18,6 +18,7 @@ from pyvcloud.vcd.client import GatewayBackingConfigType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.system_test_framework.base_test import BaseTestCase
+from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.vcd.gateway import Gateway
 from pyvcloud.vcd.platform import Platform
@@ -44,6 +45,10 @@ class TestGateway(BaseTestCase):
         """
         TestGateway._client = Environment.get_sys_admin_client()
         vdc = Environment.get_test_vdc(TestGateway._client)
+
+        TestGateway._org_client = Environment.get_client_in_default_org(
+            CommonRoles.ORGANIZATION_ADMINISTRATOR)
+
         platform = Platform(TestGateway._client)
         external_networks = platform.list_external_networks()
         self.assertTrue(len(external_networks) > 0)
@@ -88,7 +93,7 @@ class TestGateway(BaseTestCase):
 
         Invoke the convert_to_advanced method for gateway.
         """
-        gateway_obj = Gateway(TestGateway._client, self._name,
+        gateway_obj = Gateway(TestGateway._org_client, self._name,
                               TestGateway._gateway.get('href'))
         task = gateway_obj.convert_to_advanced()
         result = TestGateway._client.get_task_monitor().wait_for_success(
@@ -125,34 +130,37 @@ class TestGateway(BaseTestCase):
 
         Invoke the list_external_network_ip_allocations of the gateway.
         """
-        gateway_obj = Gateway(TestGateway._client, self._name,
-                              TestGateway._gateway.get('href'))
-        ip_allocations = gateway_obj.list_external_network_ip_allocations()
-        self.assertTrue(bool(ip_allocations))
+        for client in (TestGateway._client, TestGateway._org_client):
+            gateway_obj = Gateway(client, self._name,
+                                  TestGateway._gateway.get('href'))
+            ip_allocations = gateway_obj.list_external_network_ip_allocations()
+            self.assertTrue(bool(ip_allocations))
 
     def test_0005_redeploy(self):
         """Redeploy the gateway.
 
         Invoke the redeploy function of gateway.
         """
-        gateway_obj = Gateway(TestGateway._client, self._name,
-                              TestGateway._gateway.get('href'))
-        task = gateway_obj.redeploy()
-        result = TestGateway._client.get_task_monitor().wait_for_success(
-            task=task)
-        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        for client in (TestGateway._client, TestGateway._org_client):
+            gateway_obj = Gateway(client, self._name,
+                                  TestGateway._gateway.get('href'))
+            task = gateway_obj.redeploy()
+            result = TestGateway._client.get_task_monitor().wait_for_success(
+                task=task)
+            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0006_sync_syslog_settings(self):
         """Sync syslog settings of the gateway.
 
         Invoke the sync_syslog_settings function of gateway.
         """
-        gateway_obj = Gateway(TestGateway._client, self._name,
-                              TestGateway._gateway.get('href'))
-        task = gateway_obj.sync_syslog_settings()
-        result = TestGateway._client.get_task_monitor().wait_for_success(
-            task=task)
-        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        for client in (TestGateway._client, TestGateway._org_client):
+            gateway_obj = Gateway(client, self._name,
+                                  TestGateway._gateway.get('href'))
+            task = gateway_obj.sync_syslog_settings()
+            result = TestGateway._client.get_task_monitor().wait_for_success(
+                task=task)
+            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

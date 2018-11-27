@@ -938,6 +938,81 @@ class VDC(object):
             self.resource, RelationType.ADD,
             EntityType.COMPOSE_VAPP_PARAMS.value, params)
 
+    def create_routed_vdc_network(self,
+                                  network_name,
+                                  gateway_ip,
+                                  gateway_name,
+                                  netmask,
+                                  description=None,
+                                  primary_dns_ip=None,
+                                  secondary_dns_ip=None,
+                                  dns_suffix=None,
+                                  ip_range_start=None,
+                                  ip_range_end=None,
+                                  is_shared=None):
+        """Create a new Routed org vdc network in this vdc.
+
+        :param str network_name: name of the new network.
+        :param str gateway_ip: IP address of the gateway of the new network.
+        :param str gateway_name: name of an existing edge Gateway
+                                 appliance that will manage the virtual
+                                 network.
+        :param str netmask: network mask.
+        :param str description: description of the new network.
+        :param str primary_dns_ip: IP address of primary DNS server.
+        :param str secondary_dns_ip: IP address of secondary DNS Server.
+        :param str dns_suffix: DNS suffix.
+        :param str ip_range_start: start address of the IP ranges used for
+            static pool allocation in the network.
+        :param str ip_range_end: end address of the IP ranges used for static
+            pool allocation in the network.
+        :param bool is_shared: True, if the network is shared with other vdc(s)
+            in the organization, else False.
+
+        :return: an object containing EntityType.ORG_VDC_NETWORK XML data which
+            represents an org vdc network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        request_payload = E.OrgVdcNetwork(name=network_name)
+        if description is not None:
+            request_payload.append(E.Description(description))
+
+        vdc_network_configuration = E.Configuration()
+        ip_scope = E.IpScope()
+        ip_scope.append(E.IsInherited('false'))
+        ip_scope.append(E.Gateway(gateway_ip))
+        ip_scope.append(E.Netmask(netmask))
+        if primary_dns_ip is not None:
+            ip_scope.append(E.Dns1(primary_dns_ip))
+        if secondary_dns_ip is not None:
+            ip_scope.append(E.Dns2(secondary_dns_ip))
+        if dns_suffix is not None:
+            ip_scope.append(E.DnsSuffix(dns_suffix))
+        if ip_range_start is not None and ip_range_end is not None:
+            ip_range = E.IpRange()
+            ip_range.append(E.StartAddress(ip_range_start))
+            ip_range.append(E.EndAddress(ip_range_end))
+            ip_scope.append(E.IpRanges(ip_range))
+        vdc_network_configuration.append(E.IpScopes(ip_scope))
+        vdc_network_configuration.append(
+            E.FenceMode(FenceMode.NAT_ROUTED.value))
+        request_payload.append(vdc_network_configuration)
+
+        gateway = self.get_gateway(gateway_name)
+        gateway_href = gateway.get('href')
+        request_payload.append(E.EdgeGateway(href=gateway_href))
+
+        if is_shared is not None:
+            request_payload.append(E.IsShared(is_shared))
+
+        return self.client.post_linked_resource(
+            self.resource, RelationType.ADD, EntityType.ORG_VDC_NETWORK.value,
+            request_payload)
+
     def create_directly_connected_vdc_network(self,
                                               network_name,
                                               parent_network_name,
@@ -1172,6 +1247,18 @@ class VDC(object):
             result.append(orgvdc_network_resource)
         return result
 
+    def list_orgvdc_routed_networks(self):
+        """Fetch all routed org vdc networks in the current vdc.
+
+        :return: a list of lxml.objectify.ObjectifiedElement objects, where
+            each object contains EntityType.ORG_VDC_NETWORK XML data which
+            represents an org vdc network.
+
+        :rtype: list
+        """
+        return self.list_orgvdc_network_resources(
+            type=FenceMode.NAT_ROUTED.value)
+
     def list_orgvdc_direct_networks(self):
         """Fetch all directly connected org vdc networks in the current vdc.
 
@@ -1194,6 +1281,26 @@ class VDC(object):
         """
         return self.list_orgvdc_network_resources(
             type=FenceMode.ISOLATED.value)
+
+    def get_routed_orgvdc_network(self, name):
+        """Retrieve a routed org vdc network in the current vdc.
+
+        :param str name: name of the org vdc network we want to retrieve.
+
+        :return: an object containing EntityType.ORG_VDC_NETWORK XML data which
+            represents an org vdc network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if org vdc network with the given
+            name is not found.
+        """
+        result = self.list_orgvdc_network_resources(
+            name=name, type=FenceMode.NAT_ROUTED.value)
+        if len(result) == 0:
+            raise EntityNotFoundException(
+                'Org vdc network with name \'%s\' not found.' % name)
+        return result[0]
 
     def get_direct_orgvdc_network(self, name):
         """Retrieve a directly connected org vdc network in the current vdc.
@@ -1234,6 +1341,26 @@ class VDC(object):
             raise EntityNotFoundException(
                 'Org vdc network with name \'%s\' not found.' % name)
         return result[0]
+
+    def delete_routed_orgvdc_network(self, name, force=False):
+        """Delete a routed org vdc network in the current vdc.
+
+        :param str name: name of the org vdc network we want to delete.
+        :param bool force: if True, will instruct vcd to force delete the
+            network, ignoring whether it is connected to a vm or vapp network
+            or not.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is deleting the network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if org vdc network with the given
+            name is not found.
+        """
+        net_resource = self.get_routed_orgvdc_network(name)
+        return self.client.delete_resource(
+            net_resource.get('href'), force=force)
 
     def delete_direct_orgvdc_network(self, name, force=False):
         """Delete a directly connected org vdc network in the current vdc.

@@ -23,6 +23,24 @@ from pyvcloud.vcd.vdc import VDC
 
 
 class TestNetwork(TestCase):
+
+    def test_005_create_routed_orgvdc_network(self):
+        org_record = self.client.get_org_by_name(
+            self.config['vcd']['org_name'])
+        org = Org(self.client, href=org_record.get('href'))
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+
+        result = vdc.create_routed_vdc_network(
+            network_name=self.config['vcd']['vdc_routed_network_name'],
+            gateway_ip=self.config['vcd']['routed_network_gateway_ip'],
+            netmask=self.config['vcd']['routed_network_gateway_netmask'],
+            gateway_name=self.config['vcd']['routed_network_gateway_name'],
+            description='Dummy description')
+        task = self.client.get_task_monitor().wait_for_success(
+            task=result.Tasks.Task[0])
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
     def test_010_create_direct_orgvdc_network(self):
         org_record = self.client.get_org_by_name(
             self.config['vcd']['org_name'])
@@ -59,6 +77,16 @@ class TestNetwork(TestCase):
         ext_net_refs = platform.list_external_networks()
         assert len(ext_net_refs) > 0
 
+    def test_035_list_routed_orgvdc_networks(self):
+        org_record = self.client.get_org_by_name(
+            self.config['vcd']['org_name'])
+        org = Org(self.client, href=org_record.get('href'))
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+
+        result = vdc.list_orgvdc_routed_networks()
+        assert len(result) > 0
+
     def test_040_list_direct_orgvdc_networks(self):
         org_record = self.client.get_org_by_name(
             self.config['vcd']['org_name'])
@@ -78,6 +106,19 @@ class TestNetwork(TestCase):
 
         result = vdc.list_orgvdc_isolated_networks()
         assert len(result) > 0
+
+    def test_180_delete_routed_orgvdc_networks(self):
+        org_record = self.client.get_org_by_name(
+            self.config['vcd']['org_name'])
+        org = Org(self.client, href=org_record.get('href'))
+        vdc_resource = org.get_vdc(self.config['vcd']['vdc_name'])
+        vdc = VDC(self.client, href=vdc_resource.get('href'))
+
+        result = vdc.delete_routed_orgvdc_network(
+            name=self.config['vcd']['vdc_routed_network_name'], force=True)
+        task = self.client.get_task_monitor().wait_for_success(
+            task=result)
+        assert task.get('status') == TaskStatus.SUCCESS.value
 
     def test_190_delete_direct_orgvdc_networks(self):
         org_record = self.client.get_org_by_name(

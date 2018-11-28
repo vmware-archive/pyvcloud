@@ -31,6 +31,7 @@ from pyvcloud.vcd.exceptions import MultipleRecordsException
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import get_admin_href
+from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 
 class VDC(object):
@@ -222,9 +223,7 @@ class VDC(object):
         # vApp network name specified in the template
         template_networks = template_resource.xpath(
             '//ovf:NetworkSection/ovf:Network',
-            namespaces={
-                'ovf': NSMAP['ovf']
-            })
+            namespaces={'ovf': NSMAP['ovf']})
         assert len(template_networks) > 0
         network_name_from_template = template_networks[0].get(
             '{' + NSMAP['ovf'] + '}name')
@@ -285,12 +284,10 @@ class VDC(object):
 
         # Configure network of the first vm
         if network_name is not None:
-            primary_index = int(vms[
-                0].NetworkConnectionSection.PrimaryNetworkConnectionIndex.text)
+            primary_index = int(vms[0].NetworkConnectionSection.
+                                PrimaryNetworkConnectionIndex.text)
             network_connection_param = E.NetworkConnection(
-                E.NetworkConnectionIndex(primary_index),
-                network=network_name
-            )
+                E.NetworkConnectionIndex(primary_index), network=network_name)
             if ip_address is not None:
                 network_connection_param.append(E.IpAddress(ip_address))
             network_connection_param.append(E.IsConnected('true'))
@@ -312,9 +309,7 @@ class VDC(object):
                 E_OVF.Info('Virtual hardware requirements'))
             items = vms[0].xpath(
                 '//ovf:VirtualHardwareSection/ovf:Item',
-                namespaces={
-                    'ovf': NSMAP['ovf']
-                })
+                namespaces={'ovf': NSMAP['ovf']})
             for item in items:
                 if memory is not None and memory_params is None:
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 4:
@@ -423,8 +418,7 @@ class VDC(object):
         vapp_template_params.append(E.AllEULAsAccepted(all_eulas_accepted))
 
         return self.client.post_linked_resource(
-            self.resource,
-            RelationType.ADD,
+            self.resource, RelationType.ADD,
             EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value,
             vapp_template_params)
 
@@ -1275,25 +1269,25 @@ class VDC(object):
         return self.client.delete_resource(
             net_resource.get('href'), force=force)
 
-    def create_gateway(self,
-                       name,
-                       external_networks=None,
-                       gateway_backing_config=GatewayBackingConfigType
-                       .COMPACT.value,
-                       desc=None,
-                       is_default_gateway=False,
-                       selected_extnw_for_default_gw=None,
-                       default_gateway_ip=None,
-                       is_default_gw_for_dns_relay_selected=False,
-                       is_ha_enabled=False,
-                       should_create_as_advanced=False,
-                       is_dr_enabled=False,
-                       is_ip_settings_configured=False,
-                       ext_net_to_participated_subnet_with_ip_settings=None,
-                       is_sub_allocate_ip_pools_enabled=False,
-                       ext_net_to_subnet_with_ip_range=None,
-                       ext_net_to_rate_limit=None,
-                       is_flips_mode_enabled=False):
+    def create_gateway(
+            self,
+            name,
+            external_networks=None,
+            gateway_backing_config=GatewayBackingConfigType.COMPACT.value,
+            desc=None,
+            is_default_gateway=False,
+            selected_extnw_for_default_gw=None,
+            default_gateway_ip=None,
+            is_default_gw_for_dns_relay_selected=False,
+            is_ha_enabled=False,
+            should_create_as_advanced=False,
+            is_dr_enabled=False,
+            is_ip_settings_configured=False,
+            ext_net_to_participated_subnet_with_ip_settings=None,
+            is_sub_allocate_ip_pools_enabled=False,
+            ext_net_to_subnet_with_ip_range=None,
+            ext_net_to_rate_limit=None,
+            is_flips_mode_enabled=False):
         """Request the creation of a gateway.
 
         :param str name: name of the new gateway.
@@ -1337,15 +1331,136 @@ class VDC(object):
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
         resource_admin = self.client.get_resource(self.href_admin)
+
+        gateway_params = E.EdgeGateway(name=name)
+        if desc is not None:
+            gateway_params.append(E.Description(desc))
+        gateway_configuration_param = \
+            self._create_gateway_configuration_param(
+                external_networks, gateway_backing_config,
+                is_default_gateway, selected_extnw_for_default_gw,
+                default_gateway_ip, is_default_gw_for_dns_relay_selected,
+                is_ha_enabled, should_create_as_advanced, is_dr_enabled,
+                is_ip_settings_configured,
+                ext_net_to_participated_subnet_with_ip_settings,
+                is_sub_allocate_ip_pools_enabled,
+                ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+        gateway_configuration_param.append(
+            E.FipsModeEnabled(is_flips_mode_enabled))
+        gateway_params.append(gateway_configuration_param)
+
+        return self.client.post_linked_resource(
+            resource_admin, RelationType.ADD, EntityType.EDGE_GATEWAY.value,
+            gateway_params)
+
+    def create_gateway_api_version_30(
+            self,
+            name,
+            external_networks=None,
+            gateway_backing_config=GatewayBackingConfigType.COMPACT.value,
+            desc=None,
+            is_default_gateway=False,
+            selected_extnw_for_default_gw=None,
+            default_gateway_ip=None,
+            is_default_gw_for_dns_relay_selected=False,
+            is_ha_enabled=False,
+            should_create_as_advanced=False,
+            is_dr_enabled=False,
+            is_ip_settings_configured=False,
+            ext_net_to_participated_subnet_with_ip_settings=None,
+            is_sub_allocate_ip_pools_enabled=False,
+            ext_net_to_subnet_with_ip_range=None,
+            ext_net_to_rate_limit=None):
+        """Request the creation of a gateway for API version 30 or lower.
+
+        :param str name: name of the new gateway.
+        :param list external_networks: list of external network's name to
+        which gateway can connect.
+        :param str gateway_backing_config: gateway backing config. Possible
+        values can be compact/full/full4/x-large.
+        :param str desc: description of the new gateway
+        :param bool is_default_gateway: should the new gateway be configured as
+         the default gateway.
+        :param str selected_extnw_for_default_gw: selected external network
+        for default gateway.
+        :param str default_gateway_ip: selected dafault gateway IP
+        :param bool is_default_gw_for_dns_relay_selected: is default gateway
+         for dns relay selected
+        :param bool is_ha_enabled: is HA enabled
+        :param bool should_create_as_advanced: create as advanced gateway
+        :param bool is_dr_enabled: is distributed routing enabled
+        :param bool is_ip_settings_configured: is ip settings configured
+        :param dict ext_net_to_participated_subnet_with_ip_settings:
+        external network to subnet ip with ip assigned in case of manual
+        else Auto e.g., {"ext_net' : {'10.3.2.1/24' : Auto/10.3.2.2}}
+        :param bool is_sub_allocate_ip_pools_enabled: is sub allocate ip
+        pools enabled
+        :param dict ext_net_to_subnet_with_ip_range: external network to sub
+        allocated ip with ip ranges e.g., {"ext_net' : {'10.3.2.1/24' : [
+        10.3.2.2-10.3.2.5, 10.3.2.12-10.3.2.15]}}
+        :param dict ext_net_to_rate_limit: external network to rate limit
+        e.g., {'ext_net' : {100 : 100}}
+
+        :return: an object containing EntityType.GATEWAY XML data which
+        represents the new gateway being created along with the the
+        asynchronous task that is creating the gateway.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if external_networks is None or len(external_networks) == 0:
+            raise InvalidParameterException('external networks can not be '
+                                            'Null.')
+        if self.resource is None:
+            self.resource = self.client.get_resource(self.href)
+
+        resource_admin = self.client.get_resource(self.href_admin)
+        gateway_params = E.EdgeGateway(name=name)
+        if desc is not None:
+            gateway_params.append(E.Description(desc))
+
+        gateway_configuration_param = \
+            self._create_gateway_configuration_param(
+                external_networks, gateway_backing_config,
+                is_default_gateway, selected_extnw_for_default_gw,
+                default_gateway_ip, is_default_gw_for_dns_relay_selected,
+                is_ha_enabled, should_create_as_advanced, is_dr_enabled,
+                is_ip_settings_configured,
+                ext_net_to_participated_subnet_with_ip_settings,
+                is_sub_allocate_ip_pools_enabled,
+                ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+        gateway_params.append(gateway_configuration_param)
+
+        return self.client.post_linked_resource(
+            resource_admin, RelationType.ADD, EntityType.EDGE_GATEWAY.value,
+            gateway_params)
+
+    def _create_gateway_configuration_param(
+            self,
+            external_networks,
+            gateway_backing_config,
+            is_default_gateway=False,
+            selected_extnw_for_default_gw=None,
+            default_gateway_ip=None,
+            is_default_gw_for_dns_relay_selected=False,
+            is_ha_enabled=False,
+            should_create_as_advanced=False,
+            is_dr_enabled=False,
+            is_ip_settings_configured=False,
+            ext_net_to_participated_subnet_with_ip_settings=None,
+            is_sub_allocate_ip_pools_enabled=False,
+            ext_net_to_subnet_with_ip_range=None,
+            ext_net_to_rate_limit=None):
+        """Create gateway configuration param.
+
+        :return: gateway configuration param
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         platform = Platform(self.client)
         provided_networks_resource = []
         for ext_net_name in external_networks:
             ext_network = platform.get_external_network(ext_net_name)
             provided_networks_resource.append(ext_network)
-
-        gateway_params = E.EdgeGateway(name=name)
-        if desc is not None:
-            gateway_params.append(E.Description(desc))
         gateway_configuration_param = E.Configuration()
         gateway_configuration_param.append(
             E.GatewayBackingConfig(gateway_backing_config))
@@ -1364,6 +1479,9 @@ class VDC(object):
                 'vcloud:Configuration/vcloud:IpScopes/vcloud:IpScope',
                 namespaces=NSMAP)
             for ip_scope in ip_scopes:
+                prefix_len = netmask_to_cidr_prefix_len(
+                    ip_scope.Gateway.text, ip_scope.Netmask.text)
+
                 subnet_participation_param = E.SubnetParticipation()
                 is_ip_scope_participating = False
                 is_default_gw_configured = False
@@ -1376,8 +1494,6 @@ class VDC(object):
                         E.Gateway(ip_scope.Gateway.text))
                     subnet_participation_param.append(
                         E.Netmask(ip_scope.Netmask.text))
-                    subnet_participation_param.append(E.SubnetPrefixLength(
-                        ip_scope.SubnetPrefixLength.text))
                     is_default_gw_configured = True
                 # Configure Ip Settings
                 if is_ip_settings_configured is True and \
@@ -1395,8 +1511,7 @@ class VDC(object):
                             if len(subnet_arr) < 2:
                                 continue
                             if subnet_arr[0] == ip_scope.Gateway.text and \
-                                    subnet_arr[1] == \
-                                    ip_scope.SubnetPrefixLength.text:
+                                    subnet_arr[1] == prefix_len:
                                 ip_assigned = \
                                     subnet_with_ip_settings.get(subnet)
                                 if len(ip_assigned) > 0:
@@ -1406,10 +1521,6 @@ class VDC(object):
                                             E.Gateway(ip_scope.Gateway.text))
                                         subnet_participation_param.append(
                                             E.Netmask(ip_scope.Netmask.text))
-                                        subnet_participation_param.append(
-                                            E.SubnetPrefixLength(
-                                                ip_scope.SubnetPrefixLength
-                                                .text))
 
                                     if ip_assigned != 'Auto':
                                         subnet_participation_param.append(
@@ -1427,8 +1538,7 @@ class VDC(object):
                             if len(subnet_arr) < 2:
                                 continue
                             if subnet_arr[0] == ip_scope.Gateway.text and \
-                                    subnet_arr[1] == \
-                                    ip_scope.SubnetPrefixLength.text:
+                                    subnet_arr[1] == prefix_len:
                                 ip_ranges = subnet_with_ip_ranges.get(subnet)
                                 if is_default_gw_configured is False and \
                                         is_ip_scope_participating is False:
@@ -1436,9 +1546,7 @@ class VDC(object):
                                         E.Gateway(ip_scope.Gateway.text))
                                     subnet_participation_param.append(
                                         E.Netmask(ip_scope.Netmask.text))
-                                    subnet_participation_param.append(
-                                        E.SubnetPrefixLength(
-                                            ip_scope.SubnetPrefixLength.text))
+
                                 ip_ranges_param = E.IpRanges()
 
                                 for ip_range in ip_ranges:
@@ -1455,8 +1563,8 @@ class VDC(object):
                                         ip_ranges_param)
 
                 if is_default_gw_configured is True:
-                    subnet_participation_param.append(E.UseForDefaultRoute(
-                        True))
+                    subnet_participation_param.append(
+                        E.UseForDefaultRoute(True))
                 if is_ip_scope_participating is True or \
                         is_default_gw_configured is True or \
                         ip_range_provided is True:
@@ -1469,8 +1577,8 @@ class VDC(object):
                     gateway_interface_param.append(E.ApplyRateLimit(True))
                     for key in rate_limit.keys():
                         gateway_interface_param.append(E.InRateLimit(key))
-                        gateway_interface_param.append(E.OutRateLimit(
-                            rate_limit.get(key)))
+                        gateway_interface_param.append(
+                            E.OutRateLimit(rate_limit.get(key)))
 
             # Add to the Interfaces
             gateway_interfaces_param.append(gateway_interface_param)
@@ -1488,13 +1596,7 @@ class VDC(object):
             E.AdvancedNetworkingEnabled(should_create_as_advanced))
         gateway_configuration_param.append(
             E.DistributedRoutingEnabled(is_dr_enabled))
-        gateway_configuration_param.append(
-            E.FipsModeEnabled(is_flips_mode_enabled))
-        gateway_params.append(gateway_configuration_param)
-
-        return self.client.post_linked_resource(
-            resource_admin, RelationType.ADD, EntityType.EDGE_GATEWAY.value,
-            gateway_params)
+        return gateway_configuration_param
 
     def delete_gateway(self, name):
         """Delete a gateway in the current org vdc.

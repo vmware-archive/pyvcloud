@@ -22,6 +22,7 @@ from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.vcd.gateway import Gateway
 from pyvcloud.vcd.platform import Platform
+from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 
 class TestGateway(BaseTestCase):
@@ -61,8 +62,9 @@ class TestGateway(BaseTestCase):
             namespaces=NSMAP)
         first_ipscope = ip_scopes[0]
         gateway_ip = first_ipscope.Gateway.text
-
-        subnet_addr = gateway_ip + '/' + str(first_ipscope.SubnetPrefixLength)
+        prefix_len = netmask_to_cidr_prefix_len(gateway_ip,
+                                         first_ipscope.Netmask.text)
+        subnet_addr = gateway_ip + '/' + str(prefix_len)
         ext_net_to_participated_subnet_with_ip_settings = {
             ext_net_resource.get('name'): {
                 subnet_addr: 'Auto'

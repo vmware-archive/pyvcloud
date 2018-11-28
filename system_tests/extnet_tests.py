@@ -45,8 +45,6 @@ class TestExtNet(BaseTestCase):
     _gateway2 = '10.10.30.1'
     _ip_range2 = '10.10.30.2-10.10.30.99'
     _ip_range3 = '10.10.30.101-10.10.30.120'
-    _ip_range3_start_address = '10.10.30.101'
-    _ip_range3_end_address = '10.10.30.120'
 
     def test_0000_setup(self):
         """
@@ -226,10 +224,13 @@ class TestExtNet(BaseTestCase):
                 ip_scope = scope
                 break
         self.assertIsNotNone(ip_scope)
+
+        _ip_ranges = TestExtNet._ip_range3.split('-')
+        _ip_range3_start_address = _ip_ranges[0]
+        _ip_range3_end_address = _ip_ranges[1]
         for ip_range in ip_scope.IpRanges.IpRange:
-            if ip_range.StartAddress == TestExtNet._ip_range3_start_address:
-                self.assertEqual(ip_range.EndAddress,
-                                 TestExtNet._ip_range3_end_address)
+            if ip_range.StartAddress == _ip_range3_start_address:
+                self.assertEqual(ip_range.EndAddress, _ip_range3_end_address)
 
     @developerModeAware
     def test_9998_teardown(self):

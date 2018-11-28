@@ -179,12 +179,14 @@ class ExternalNetwork(object):
         for ip_scope in ip_scopes.IpScope:
             if ip_scope.Gateway == gateway_ip:
                 existing_ip_ranges = ip_scope.IpRanges
-                for range in ip_ranges:
-                    range_token = range.split('-')
-                    e_ip_range = E.IpRange()
-                    e_ip_range.append(E.StartAddress(range_token[0]))
-                    e_ip_range.append(E.EndAddress(range_token[1]))
-                    existing_ip_ranges.append(e_ip_range)
+                break
+
+        for range in ip_ranges:
+            range_token = range.split('-')
+            e_ip_range = E.IpRange()
+            e_ip_range.append(E.StartAddress(range_token[0]))
+            e_ip_range.append(E.EndAddress(range_token[1]))
+            existing_ip_ranges.append(e_ip_range)
 
         return self.client. \
             put_linked_resource(ext_net, rel=RelationType.EDIT,

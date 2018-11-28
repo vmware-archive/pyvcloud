@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ipaddress import IPv4Network
 from os.path import abspath
 from os.path import dirname
 from os.path import join as joinpath
@@ -699,3 +700,30 @@ def get_safe_members_in_tar_file(tarfile):
         else:
             result.append(finfo)
     return result
+
+
+def cidr_to_netmask(cidr):
+    """Convert the cidr to netmask.
+
+    :param str cidr: provide cidr in the format of 10.2.2.1/20
+
+    :return network_address and netmask
+
+    :rtype: str, str
+    """
+    return IPv4Network(cidr).network_address, IPv4Network(cidr).netmask
+
+
+def netmask_to_cidr_prefix_len(network, netmask):
+    """Determine the cidr prefix length from network and netmask.
+
+    :param str network: provide gateway IP
+
+    :param str netmask: provide netmask
+
+    :return prefixlen
+
+    :rtype: int
+    """
+    subnet = network + '/' + netmask
+    return IPv4Network(subnet, False).prefixlen

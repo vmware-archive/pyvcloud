@@ -711,7 +711,8 @@ def cidr_to_netmask(cidr):
 
     :rtype: str, str
     """
-    return IPv4Network(cidr).network_address, IPv4Network(cidr).netmask
+    ipv4 = IPv4Network(cidr, False)
+    return ipv4.network_address, ipv4.netmask
 
 
 def netmask_to_cidr_prefix_len(network, netmask):

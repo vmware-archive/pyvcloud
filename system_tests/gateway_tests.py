@@ -23,6 +23,7 @@ from pyvcloud.vcd.gateway import Gateway
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
+
 class TestGateway(BaseTestCase):
     """Test Gateway functionalities implemented in pyvcloud."""
 

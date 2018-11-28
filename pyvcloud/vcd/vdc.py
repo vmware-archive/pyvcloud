@@ -1371,7 +1371,7 @@ class VDC(object):
             is_sub_allocate_ip_pools_enabled=False,
             ext_net_to_subnet_with_ip_range=None,
             ext_net_to_rate_limit=None):
-        """Request the creation of a gateway for API version 30 or lowerl.
+        """Request the creation of a gateway for API version 30 or lower.
 
         :param str name: name of the new gateway.
         :param list external_networks: list of external network's name to

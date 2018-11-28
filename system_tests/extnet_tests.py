@@ -44,7 +44,7 @@ class TestExtNet(BaseTestCase):
     _dns_suffix = 'example.com'
     _gateway2 = '10.10.30.1'
     _ip_range2 = '10.10.30.2-10.10.30.99'
-    _ip_range3 = '10.10.30.101-10.10.30.110,10.10.30.111-10.10.30.120'
+    _ip_range3 = '10.10.30.101-10.10.30.120'
     _ip_range3_start_address = '10.10.30.101'
     _ip_range3_end_address = '10.10.30.120'
 
@@ -168,7 +168,7 @@ class TestExtNet(BaseTestCase):
         self.assertEqual(TestExtNet._netmask, new_subnet.Netmask.text)
 
     def test_0030_enable_subnet(self):
-        """Test the method externalNetwork.add_subnet()
+        """Test the method externalNetwork.enable_subnet()
 
         Enable subnet of external network
 
@@ -176,11 +176,9 @@ class TestExtNet(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         platform = Platform(TestExtNet._sys_admin_client)
-        ext_net_resource = platform.get_external_network(self._name)
-        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
-                                     resource=ext_net_resource)
 
-        ext_net = extnet_obj.enable_subnet(TestExtNet._gateway2, True)
+        ext_net = self._get_ext_net(platform).enable_subnet(
+            TestExtNet._gateway2, True)
 
         task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
         TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
@@ -208,12 +206,9 @@ class TestExtNet(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         platform = Platform(TestExtNet._sys_admin_client)
-        ext_net_resource = platform.get_external_network(self._name)
-        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
-                                     resource=ext_net_resource)
-
-        ext_net = extnet_obj.add_ip_range(TestExtNet._gateway2,
-                                          TestExtNet._ip_range3)
+        ext_net = self._get_ext_net(platform).add_ip_range(
+            TestExtNet._gateway2,
+            [TestExtNet._ip_range3])
 
         task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
         TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
@@ -255,6 +250,11 @@ class TestExtNet(BaseTestCase):
     def test_9999_cleanup(self):
         """Release all resources held by this object for testing purposes."""
         TestExtNet._sys_admin_client.logout()
+
+    def _get_ext_net(self, platform):
+        ext_net_resource = platform.get_external_network(self._name)
+        return ExternalNetwork(TestExtNet._sys_admin_client,
+                               resource=ext_net_resource)
 
 
 if __name__ == '__main__':

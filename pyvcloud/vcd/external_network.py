@@ -161,7 +161,7 @@ class ExternalNetwork(object):
         return ext_net
 
     def add_ip_range(self, gateway_ip, ip_ranges):
-        """Enable subnet of an external network.
+        """Add new ip range into a subnet of an external network.
 
         :param str gateway_ip: IP address of the gateway of external network.
 
@@ -179,8 +179,7 @@ class ExternalNetwork(object):
         for ip_scope in ip_scopes.IpScope:
             if ip_scope.Gateway == gateway_ip:
                 existing_ip_ranges = ip_scope.IpRanges
-                all_ranges = ip_ranges.split(',')
-                for range in all_ranges:
+                for range in ip_ranges:
                     range_token = range.split('-')
                     e_ip_range = E.IpRange()
                     e_ip_range.append(E.StartAddress(range_token[0]))

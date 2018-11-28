@@ -703,11 +703,11 @@ def get_safe_members_in_tar_file(tarfile):
 
 
 def cidr_to_netmask(cidr):
-    """Convert the cidr to netmask.
+    """Convert CIDR to netmask.
 
-    :param str cidr: provide cidr in the format of 10.2.2.1/20
+    :param str cidr: CIDR in the format of 10.2.2.1/20
 
-    :return network_address and netmask
+    :return network address and netmask
 
     :rtype: str, str
     """
@@ -716,13 +716,13 @@ def cidr_to_netmask(cidr):
 
 
 def netmask_to_cidr_prefix_len(network, netmask):
-    """Determine the cidr prefix length from network and netmask.
+    """Determine CIDR prefix length from network and netmask.
 
-    :param str network: provide gateway IP
+    :param str network: gateway IP
 
-    :param str netmask: provide netmask
+    :param str netmask: netmask
 
-    :return prefixlen
+    :return prefix len
 
     :rtype: int
     """

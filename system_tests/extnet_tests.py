@@ -44,6 +44,7 @@ class TestExtNet(BaseTestCase):
     _dns_suffix = 'example.com'
     _gateway2 = '10.10.30.1'
     _ip_range2 = '10.10.30.2-10.10.30.99'
+    _ip_range3 = '10.10.30.101-10.10.30.120'
 
     def test_0000_setup(self):
         """
@@ -164,6 +165,73 @@ class TestExtNet(BaseTestCase):
         self.assertEqual(TestExtNet._gateway2, new_subnet.Gateway.text)
         self.assertEqual(TestExtNet._netmask, new_subnet.Netmask.text)
 
+    def test_0030_enable_subnet(self):
+        """Test the method externalNetwork.enable_subnet()
+
+        Enable subnet of external network
+
+        This test passes if subnet is enabled successfully.
+        """
+        logger = Environment.get_default_logger()
+        platform = Platform(TestExtNet._sys_admin_client)
+
+        ext_net = self._get_ext_net(platform).enable_subnet(
+            TestExtNet._gateway2, True)
+
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+            task=task)
+        logger.debug(
+            'Enabled subnet of external network ' + TestExtNet._name + '.')
+
+        ext_net = platform.get_external_network(self._name)
+        self.assertIsNotNone(ext_net)
+        config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
+        ip_scope = config.IpScopes.IpScope
+        for scope in ip_scope:
+            if scope.Gateway == TestExtNet._gateway2:
+                ip_scope = scope
+                break
+        self.assertIsNotNone(ip_scope)
+        self.assertEqual(ip_scope.IsEnabled, True)
+
+    def test_0040_add_ip_range(self):
+        """Test the method externalNetwork.add_ip_range()
+
+        Add ip range to a subnet of external network
+
+        This test passes if ip range is added successfully for a subnet.
+        """
+        logger = Environment.get_default_logger()
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net = self._get_ext_net(platform).add_ip_range(
+            TestExtNet._gateway2,
+            [TestExtNet._ip_range3])
+
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+            task=task)
+        logger.debug(
+            'Added new ip-range to a subnet of external network '
+            + TestExtNet._name + '.')
+
+        ext_net = platform.get_external_network(self._name)
+        self.assertIsNotNone(ext_net)
+        config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
+        ip_scope = config.IpScopes.IpScope
+        for scope in ip_scope:
+            if scope.Gateway == TestExtNet._gateway2:
+                ip_scope = scope
+                break
+        self.assertIsNotNone(ip_scope)
+
+        _ip_ranges = TestExtNet._ip_range3.split('-')
+        _ip_range3_start_address = _ip_ranges[0]
+        _ip_range3_end_address = _ip_ranges[1]
+        for ip_range in ip_scope.IpRanges.IpRange:
+            if ip_range.StartAddress == _ip_range3_start_address:
+                self.assertEqual(ip_range.EndAddress, _ip_range3_end_address)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the method Platform.delete_external_network().
@@ -183,6 +251,11 @@ class TestExtNet(BaseTestCase):
     def test_9999_cleanup(self):
         """Release all resources held by this object for testing purposes."""
         TestExtNet._sys_admin_client.logout()
+
+    def _get_ext_net(self, platform):
+        ext_net_resource = platform.get_external_network(self._name)
+        return ExternalNetwork(TestExtNet._sys_admin_client,
+                               resource=ext_net_resource)
 
 
 if __name__ == '__main__':

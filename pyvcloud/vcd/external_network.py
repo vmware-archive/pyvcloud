@@ -133,3 +133,64 @@ class ExternalNetwork(object):
             rel=RelationType.EDIT,
             media_type=EntityType.EXTERNAL_NETWORK.value,
             contents=ext_net)
+
+    def enable_subnet(self, gateway_ip, is_enabled=None):
+        """Enable subnet of an external network.
+
+        :param str gateway_ip: IP address of the gateway of external network.
+
+        :param bool is_enabled: flag to enable/disable the subnet
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        ext_net = self.client.get_resource(self.href)
+
+        config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
+        ip_scopes = config.IpScopes
+
+        if is_enabled is not None:
+            for ip_scope in ip_scopes.IpScope:
+                if ip_scope.Gateway == gateway_ip:
+                    if hasattr(ip_scope, 'IsEnabled'):
+                        ip_scope['IsEnabled'] = E.IsEnabled(is_enabled)
+                        return self.client. \
+                            put_linked_resource(ext_net, rel=RelationType.EDIT,
+                                                media_type=EntityType.
+                                                EXTERNAL_NETWORK.value,
+                                                contents=ext_net)
+        return ext_net
+
+    def add_ip_range(self, gateway_ip, ip_ranges):
+        """Add new ip range into a subnet of an external network.
+
+        :param str gateway_ip: IP address of the gateway of external network.
+
+        :param list ip_ranges: list of IP ranges used for static pool
+            allocation in the network. For example, [192.168.1.2-192.168.1.49,
+            192.168.1.100-192.168.1.149]
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        ext_net = self.client.get_resource(self.href)
+
+        config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
+        ip_scopes = config.IpScopes
+
+        for ip_scope in ip_scopes.IpScope:
+            if ip_scope.Gateway == gateway_ip:
+                existing_ip_ranges = ip_scope.IpRanges
+                break
+
+        for range in ip_ranges:
+            range_token = range.split('-')
+            e_ip_range = E.IpRange()
+            e_ip_range.append(E.StartAddress(range_token[0]))
+            e_ip_range.append(E.EndAddress(range_token[1]))
+            existing_ip_ranges.append(e_ip_range)
+
+        return self.client. \
+            put_linked_resource(ext_net, rel=RelationType.EDIT,
+                                media_type=EntityType.
+                                EXTERNAL_NETWORK.value,
+                                contents=ext_net)
+        return ext_net

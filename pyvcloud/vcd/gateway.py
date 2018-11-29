@@ -18,8 +18,8 @@ from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import AlreadyExistsException
 from pyvcloud.vcd.exceptions import InvalidParameterException
-from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.platform import Platform
+from pyvcloud.vcd.utils import get_admin_href
 
 
 class Gateway(object):
@@ -187,7 +187,7 @@ class Gateway(object):
             self.resource, RelationType.GATEWAY_SYNC_SYSLOG_SETTINGS, None,
             None)
 
-    def _create_gateway_interafce(self, ext_nw, interface_type):
+    def _create_gateway_interface(self, ext_nw, interface_type):
         """Creates gateway interface object connected to given network.
 
         :param lxml.objectify.ObjectifiedElement ext_nw: external network.
@@ -238,7 +238,7 @@ class Gateway(object):
                                              'already added to the gateway.')
 
         ext_nw = self._get_external_network(network_name)
-        gw_interface = self._create_gateway_interafce(ext_nw, 'uplink')
+        gw_interface = self._create_gateway_interface(ext_nw, 'uplink')
 
         # Add subnet participation
         ip_scopes = ext_nw.xpath(
@@ -258,10 +258,8 @@ class Gateway(object):
             # Configure Ip Settings
             subnet_participation_param.append(E.Gateway(ip_scope.Gateway.text))
             subnet_participation_param.append(E.Netmask(ip_scope.Netmask.text))
-            subnet_participation_param.append(
-                E.SubnetPrefixLength(ip_scope.SubnetPrefixLength.text))
 
-            if not ip_assigned and ip_assigned != 'Auto':
+            if not ip_assigned and ip_assigned.lower() != 'auto':
                 subnet_participation_param.append(E.IpAddress(ip_assigned))
 
             gw_interface.append(subnet_participation_param)

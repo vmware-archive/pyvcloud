@@ -189,6 +189,12 @@ class Gateway(object):
 
     def _create_gateway_interafce(self, ext_nw, interface_type):
         """Creates gateway interface object connected to given network.
+
+        :param lxml.objectify.ObjectifiedElement ext_nw: external network.
+
+        :param str interface_type: interface type of the gateway.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         gateway_interface_param = E.GatewayInterface()
         gateway_interface_param.append(E.Name(ext_nw.get('name')))
@@ -199,6 +205,10 @@ class Gateway(object):
 
     def _get_external_network(self, name):
         """Gets external network object by given name.
+
+        :param str name: external network name.
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         platform = Platform(self.client)
         return platform.get_external_network(name)

@@ -14,9 +14,12 @@
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import GatewayBackingConfigType
+from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import AlreadyExistsException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.utils import get_admin_href
+from pyvcloud.vcd.platform import Platform
 
 
 class Gateway(object):
@@ -183,3 +186,100 @@ class Gateway(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.GATEWAY_SYNC_SYSLOG_SETTINGS, None,
             None)
+
+    def _create_gateway_interafce(self, ext_nw, interface_type):
+        """Creates gateway interface object connected to given network.
+        """
+        gateway_interface_param = E.GatewayInterface()
+        gateway_interface_param.append(E.Name(ext_nw.get('name')))
+        gateway_interface_param.append(E.DisplayName(ext_nw.get('name')))
+        gateway_interface_param.append(E.Network(href=ext_nw.get('href')))
+        gateway_interface_param.append(E.InterfaceType(interface_type))
+        return gateway_interface_param
+
+    def _get_external_network(self, name):
+        """Gets external network object by given name.
+        """
+        platform = Platform(self.client)
+        return platform.get_external_network(name)
+
+    def add_external_network(self, network_name, ip_configuration):
+        """Add the given external network to the gateway.
+
+        :param str network_name: external network name.
+
+        :param list ip_configuration: list of tuples that contain subnet in
+            CIDR format and allocated ip address.
+            Example [(10.10.10.1/24, Auto), (10.10.20.1/24, 10.10.20.3)]
+
+        :return: object containing EntityType.TASK XML data representing the
+            asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if self.resource is None:
+            self.reload()
+
+        gateway = self.resource
+        for inf in gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            if inf.Network.get('name') == network_name:
+                raise AlreadyExistsException('External network ' +
+                                             network_name +
+                                             'already added to the gateway.')
+
+        ext_nw = self._get_external_network(network_name)
+        gw_interface = self._create_gateway_interafce(ext_nw, 'uplink')
+
+        # Add subnet participation
+        ip_scopes = ext_nw.xpath(
+            'vcloud:Configuration/vcloud:IpScopes/vcloud:IpScope',
+            namespaces=NSMAP)
+        for ip_scope in ip_scopes:
+            subnet_participation_param = E.SubnetParticipation()
+            subnet = None
+            for sn in ip_configuration:
+                if sn[0].startswith(ip_scope.Gateway.text):
+                    subnet = sn
+                    break
+            if subnet is None:
+                continue
+
+            ip_assigned = subnet[1].trim()
+            # Configure Ip Settings
+            subnet_participation_param.append(E.Gateway(ip_scope.Gateway.text))
+            subnet_participation_param.append(E.Netmask(ip_scope.Netmask.text))
+            subnet_participation_param.append(
+                E.SubnetPrefixLength(ip_scope.SubnetPrefixLength.text))
+
+            if not ip_assigned and ip_assigned != 'Auto':
+                subnet_participation_param.append(E.IpAddress(ip_assigned))
+
+            gw_interface.append(subnet_participation_param)
+
+        gateway.Configuration.GatewayInterfaces.append(gw_interface)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.GATEWAY_UPDATE_PROPERTIES,
+            EntityType.EDGE_GATEWAY.value, gateway)
+
+    def remove_external_network(self, network_name):
+        """Remove the given external network to the gateway.
+
+        :param str network_name: external network name.
+
+        :return: object containing EntityType.TASK XML data representing the
+            asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if self.resource is None:
+            self.reload()
+
+        gateway = self.resource
+        interfaces = gateway.Configuration.GatewayInterfaces
+        for inf in interfaces.GatewayInterface:
+            if inf.Network.get('name') == network_name:
+                interfaces.remove(inf)
+                break
+        return self.client.put_linked_resource(
+            self.resource, RelationType.GATEWAY_UPDATE_PROPERTIES,
+            EntityType.EDGE_GATEWAY.value, gateway)

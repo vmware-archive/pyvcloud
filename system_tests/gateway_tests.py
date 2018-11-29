@@ -51,8 +51,10 @@ class TestGateway(BaseTestCase):
 
         platform = Platform(TestGateway._client)
         external_networks = platform.list_external_networks()
-        self.assertTrue(len(external_networks) > 0)
+        self.assertTrue(len(external_networks) > 1)
         external_network = external_networks[0]
+        TestGateway._external_network2 = TestGateway._client.get_resource(
+            external_networks[1].get('href'))
 
         ext_net_resource = TestGateway._client.get_resource(
             external_network.get('href'))
@@ -161,6 +163,39 @@ class TestGateway(BaseTestCase):
             result = TestGateway._client.get_task_monitor().wait_for_success(
                 task=task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0007_add_external_network(self):
+        """Add an exernal netowrk to the gateway.
+
+        Invoke the add_external_network function of gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        ip_scopes = TestGateway._external_network2.xpath(
+            'vcloud:Configuration/vcloud:IpScopes/vcloud:IpScope',
+            namespaces=NSMAP)
+        first_ipscope = ip_scopes[0]
+        gateway_ip = first_ipscope.Gateway.text
+        subnet_addr = gateway_ip + '/' + str(first_ipscope.SubnetPrefixLength)
+
+        task = gateway_obj.add_external_network(
+            TestGateway._external_network2.get('name'), (subnet_addr, 'Auto'))
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0008_remove_external_network(self):
+        """Remove an exernal netowrk from the gateway.
+
+        Invoke the remove_external_network function of gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        task = gateway_obj.remove_external_network(
+            TestGateway._external_network2.get('name'))
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

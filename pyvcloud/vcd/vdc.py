@@ -30,6 +30,7 @@ from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
+# from pyvcloud.vcd.utils import cidr_to_netmask
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
@@ -943,7 +944,11 @@ class VDC(object):
                                   dns_suffix=None,
                                   ip_range_start=None,
                                   ip_range_end=None,
-                                  is_shared=None):
+                                  is_shared=None,
+                                  guest_vlan_allowed=None,
+                                  sub_interface=None,
+                                  distributed_interface=None,
+                                  retain_net_info_across_deployments=False):
         """Create a new Routed org vdc network in this vdc.
 
         :param str network_name: name of the new network.
@@ -957,14 +962,26 @@ class VDC(object):
         :param str secondary_dns_ip: IP address of secondary DNS Server.
         :param str dns_suffix: DNS suffix.
         :param str ip_range_start: start address of the IP ranges used for
-            static pool allocation in the network.
+                                   static pool allocation in the network.
         :param str ip_range_end: end address of the IP ranges used for static
-            pool allocation in the network.
+                                 pool allocation in the network.
         :param bool is_shared: True, if the network is shared with other vdc(s)
-            in the organization, else False.
+                               in the organization, else False.
+        :param bool guest_vlan_allowed: True if Network allows guest VLAN
+                                        tagging
+        :param bool sub_interface: True if Network is connected to an Edge
+                                   Gateway subinterface.
+        :param bool distributed_interface: True if Network is connected to a
+                                           distributed logical router.
+        :param bool retain_net_info_across_deployments: Specifies whether the
+                                                        network resources such
+                                                        as IP/MAC of router
+                                                        will be retained across
+                                                        deployments. Default is
+                                                        false.
 
         :return: an object containing EntityType.ORG_VDC_NETWORK XML data which
-            represents an org vdc network.
+                 represents an org vdc network.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
@@ -994,6 +1011,19 @@ class VDC(object):
         vdc_network_configuration.append(E.IpScopes(ip_scope))
         vdc_network_configuration.append(
             E.FenceMode(FenceMode.NAT_ROUTED.value))
+        if guest_vlan_allowed is not None:
+            vdc_network_configuration.append(
+                E.GuestVlanAllowed(guest_vlan_allowed))
+        if sub_interface is not None:
+            vdc_network_configuration.append(
+                E.SubInterface(sub_interface))
+        if distributed_interface is not None:
+            vdc_network_configuration.append(
+                E.DistributedInterface(distributed_interface))
+        if retain_net_info_across_deployments is not None:
+            vdc_network_configuration.append(
+                E.RetainNetInfoAcrossDeployments(
+                    retain_net_info_across_deployments))
         request_payload.append(vdc_network_configuration)
 
         gateway = self.get_gateway(gateway_name)

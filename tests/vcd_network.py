@@ -33,9 +33,8 @@ class TestNetwork(TestCase):
 
         result = vdc.create_routed_vdc_network(
             network_name=self.config['vcd']['vdc_routed_network_name'],
-            gateway_ip=self.config['vcd']['routed_network_gateway_ip'],
-            netmask=self.config['vcd']['routed_network_gateway_netmask'],
             gateway_name=self.config['vcd']['routed_network_gateway_name'],
+            network_cidr=self.config['vcd']['network_cidr'],
             description='Dummy description')
         task = self.client.get_task_monitor().wait_for_success(
             task=result.Tasks.Task[0])

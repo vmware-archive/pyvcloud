@@ -30,7 +30,7 @@ from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
-# from pyvcloud.vcd.utils import cidr_to_netmask
+from pyvcloud.vcd.utils import cidr_to_netmask
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
@@ -935,9 +935,8 @@ class VDC(object):
 
     def create_routed_vdc_network(self,
                                   network_name,
-                                  gateway_ip,
                                   gateway_name,
-                                  netmask,
+                                  network_cidr,
                                   description=None,
                                   primary_dns_ip=None,
                                   secondary_dns_ip=None,
@@ -952,11 +951,10 @@ class VDC(object):
         """Create a new Routed org vdc network in this vdc.
 
         :param str network_name: name of the new network.
-        :param str gateway_ip: IP address of the gateway of the new network.
         :param str gateway_name: name of an existing edge Gateway
                                  appliance that will manage the virtual
                                  network.
-        :param str netmask: network mask.
+        :param str network_cidr: CIDR in the format of 10.2.2.1/20.
         :param str description: description of the new network.
         :param str primary_dns_ip: IP address of primary DNS server.
         :param str secondary_dns_ip: IP address of secondary DNS Server.
@@ -985,6 +983,11 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
+        cidr = cidr_to_netmask(network_cidr)
+        # since cidr[0] in network address we need to get first host address
+        gateway_ip = str(cidr[0] + 1)
+        netmask = str(cidr[1])
+
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)
 

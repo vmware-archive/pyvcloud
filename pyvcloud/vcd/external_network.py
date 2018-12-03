@@ -194,3 +194,44 @@ class ExternalNetwork(object):
                                 EXTERNAL_NETWORK.value,
                                 contents=ext_net)
         return ext_net
+
+    def modify_ip_range(self, gateway_ip, old_ip_range, new_ip_range):
+        """Modify ip range of a subnet in external network.
+
+        :param str gateway_ip: IP address of the gateway of external
+             network.
+        :param str old_ip_range: existing ip range present in the static pool
+             allocation in the network. For example, [192.168.1.2-192.168.1.20]
+
+        :param str new_ip_range: new ip range to replace the existing ip range
+             present in the static pool allocation in the network.
+
+        :return: object containing vmext:VMWExternalNetwork XML element that
+             representing the external network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if self.resource is None:
+            self.reload()
+        ext_net = self.resource
+        old_ip_addrs = old_ip_range.split('-')
+        new_ip_addrs = new_ip_range.split('-')
+        config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
+        ip_scopes = config.IpScopes
+
+        for ip_scope in ip_scopes.IpScope:
+            if ip_scope.Gateway == gateway_ip:
+                for exist_ip_range in ip_scope.IpRanges.IpRange:
+                    if exist_ip_range.StartAddress == old_ip_addrs[0]:
+                        exist_ip_range['StartAddress'] = \
+                            E.StartAddress(new_ip_addrs[0])
+                        exist_ip_range['EndAddress'] = \
+                            E.EndAddress(new_ip_addrs[1])
+                        break
+
+        return self.client. \
+            put_linked_resource(ext_net, rel=RelationType.EDIT,
+                                media_type=EntityType.
+                                EXTERNAL_NETWORK.value,
+                                contents=ext_net)
+        return ext_net

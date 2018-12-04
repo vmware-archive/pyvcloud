@@ -27,10 +27,6 @@ from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 class TestGateway(BaseTestCase):
     """Test Gateway functionalities implemented in pyvcloud."""
-
-    # All tests in this module should be run as System Administrator.
-
-    _client = None
     _name = ("test_gateway1" + str(uuid1()))[:34]
 
     _description = "test_gateway1 description"
@@ -163,6 +159,21 @@ class TestGateway(BaseTestCase):
             result = TestGateway._client.get_task_monitor().wait_for_success(
                 task=task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0007_list_external_network_config_ip_allocations(self):
+        """List external network configure ip allocations.
+
+        Invoke the list_gateways_configure_ip_settings of the gateway.
+        """
+        for client in (TestGateway._client, TestGateway._org_client):
+            gateway_obj = Gateway(client, self._name,
+                                  TestGateway._gateway.get('href'))
+            ip_allocations = gateway_obj.list_gateways_configure_ip_settings()
+            platform = Platform(TestGateway._client)
+            external_networks = platform.list_external_networks()
+            self.assertTrue(bool(ip_allocations))
+            exnet = ip_allocations[0].get('External Networks')
+            self.assertEqual(external_networks[0].get('name'), exnet[0])
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

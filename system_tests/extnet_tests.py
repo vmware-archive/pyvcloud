@@ -225,13 +225,7 @@ class TestExtNet(BaseTestCase):
                 ip_scope = scope
                 break
         self.assertIsNotNone(ip_scope)
-
-        _ip_ranges = TestExtNet._ip_range3.split('-')
-        _ip_range3_start_address = _ip_ranges[0]
-        _ip_range3_end_address = _ip_ranges[1]
-        for ip_range in ip_scope.IpRanges.IpRange:
-            if ip_range.StartAddress == _ip_range3_start_address:
-                self.assertEqual(ip_range.EndAddress, _ip_range3_end_address)
+        self.validate_ip_range(ip_scope, TestExtNet._ip_range3)
 
     def test_0050_modify_ip_range(self):
         """Test the method externalNetwork.modify_ip_range()
@@ -262,12 +256,16 @@ class TestExtNet(BaseTestCase):
                  ip_scope = scope
                  break
         self.assertIsNotNone(ip_scope)
-        _ip_ranges = TestExtNet._ip_range4.split('-')
-        _ip_range4_start_address = _ip_ranges[0]
-        _ip_range4_end_address = _ip_ranges[1]
+        self.validate_ip_range(ip_scope, TestExtNet._ip_range4)
+
+    def validate_ip_range(self, ip_scope, _ip_range1):
+        """ Validate if the ip range present in the existing ip ranges """
+        _ip_ranges = _ip_range1.split('-')
+        _ip_range1_start_address = _ip_ranges[0]
+        _ip_range1_end_address = _ip_ranges[1]
         for ip_range in ip_scope.IpRanges.IpRange:
-            if ip_range.StartAddress == _ip_range4_start_address:
-                 self.assertEqual(ip_range.EndAddress, _ip_range4_end_address)
+            if ip_range.StartAddress == _ip_range1_start_address:
+                self.assertEqual(ip_range.EndAddress, _ip_range1_end_address)
 
     @developerModeAware
     def test_9998_teardown(self):
@@ -293,7 +291,6 @@ class TestExtNet(BaseTestCase):
         ext_net_resource = platform.get_external_network(self._name)
         return ExternalNetwork(TestExtNet._sys_admin_client,
                                resource=ext_net_resource)
-
 
 if __name__ == '__main__':
     unittest.main()

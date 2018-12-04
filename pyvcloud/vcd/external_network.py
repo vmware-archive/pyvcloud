@@ -16,6 +16,7 @@ from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import get_admin_href
@@ -218,16 +219,25 @@ class ExternalNetwork(object):
         new_ip_addrs = new_ip_range.split('-')
         config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
         ip_scopes = config.IpScopes
+        ip_range_found = False
 
         for ip_scope in ip_scopes.IpScope:
             if ip_scope.Gateway == gateway_ip:
                 for exist_ip_range in ip_scope.IpRanges.IpRange:
-                    if exist_ip_range.StartAddress == old_ip_addrs[0]:
+                    if exist_ip_range.StartAddress == \
+                       old_ip_addrs[0] and \
+                       exist_ip_range.EndAddress \
+                       == old_ip_addrs[1]:
                         exist_ip_range['StartAddress'] = \
                             E.StartAddress(new_ip_addrs[0])
                         exist_ip_range['EndAddress'] = \
                             E.EndAddress(new_ip_addrs[1])
+                        ip_range_found = True
                         break
+
+        if not ip_range_found:
+            raise EntityNotFoundException(
+                'IP Range \'%s\' not Found' % old_ip_range)
 
         return self.client. \
             put_linked_resource(ext_net, rel=RelationType.EDIT,

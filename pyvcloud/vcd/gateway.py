@@ -184,13 +184,13 @@ class Gateway(object):
             self.resource, RelationType.GATEWAY_SYNC_SYSLOG_SETTINGS, None,
             None)
 
-    def list_gateways_configure_ip_settings(self):
+    def list_configure_ip_settings(self):
         """List all gateway's configure ip settings in the current vdc.
 
         :return:  a list of dictionary that has gateway's configure ip settings
-            Ex: {'External Networks':
-            ['external_network_de99a4e2-f6d8-11e8-9e0c-9061ae543719'],
-            'Gateway': ['10.20.30.1/24'], 'Ip Address': ['10.20.30.2']}
+            Ex: [{'External Networks':
+            'external_network_de99a4e2-f6d8-11e8-9e0c-9061ae543719',
+            'Gateway': ['10.20.30.1/24'], 'Ip Address': ['10.20.30.2']}]
 
         :rtype: list
 
@@ -202,13 +202,12 @@ class Gateway(object):
         gateway = self.get_resource()
         for gatewayinf in \
                 gateway.Configuration.GatewayInterfaces.GatewayInterface:
-            ipconfigsettings = {}
-            extnetwork = ipconfigsettings.setdefault('External Networks', [])
-            extnetwork.append(gatewayinf.Name.text)
-            gatewayips = ipconfigsettings.setdefault('Gateway', [])
-            ips = ipconfigsettings.setdefault('Ip Address', [])
+            ipconfigsettings = dict()
+            ipconfigsettings['external_networks'] = gatewayinf.Name.text
+            gatewayips = ipconfigsettings.setdefault('gateway', [])
+            ips = ipconfigsettings.setdefault('ip_address', [])
             for subnetpart in gatewayinf.SubnetParticipation:
-                if hasattr(self.resource, 'SubnetPrefixLength'):
+                if hasattr(subnetpart, 'SubnetPrefixLength'):
                     gatewayips.append(subnetpart.Gateway.text + '/' +
                                       subnetpart.SubnetPrefixLength.text)
                 else:

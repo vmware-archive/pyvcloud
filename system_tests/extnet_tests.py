@@ -225,7 +225,7 @@ class TestExtNet(BaseTestCase):
                 ip_scope = scope
                 break
         self.assertIsNotNone(ip_scope)
-        self.validate_ip_range(ip_scope, TestExtNet._ip_range3)
+        self.__validate_ip_range(ip_scope, TestExtNet._ip_range3)
 
     def test_0050_modify_ip_range(self):
         """Test the method externalNetwork.modify_ip_range()
@@ -256,9 +256,9 @@ class TestExtNet(BaseTestCase):
                  ip_scope = scope
                  break
         self.assertIsNotNone(ip_scope)
-        self.validate_ip_range(ip_scope, TestExtNet._ip_range4)
+        self.__validate_ip_range(ip_scope, TestExtNet._ip_range4)
 
-    def validate_ip_range(self, ip_scope, _ip_range1):
+    def __validate_ip_range(self, ip_scope, _ip_range1):
         """ Validate if the ip range present in the existing ip ranges """
         _ip_ranges = _ip_range1.split('-')
         _ip_range1_start_address = _ip_ranges[0]

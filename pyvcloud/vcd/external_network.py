@@ -194,7 +194,6 @@ class ExternalNetwork(object):
                                 media_type=EntityType.
                                 EXTERNAL_NETWORK.value,
                                 contents=ext_net)
-        return ext_net
 
     def modify_ip_range(self, gateway_ip, old_ip_range, new_ip_range):
         """Modify ip range of a subnet in external network.
@@ -244,4 +243,3 @@ class ExternalNetwork(object):
                                 media_type=EntityType.
                                 EXTERNAL_NETWORK.value,
                                 contents=ext_net)
-        return ext_net

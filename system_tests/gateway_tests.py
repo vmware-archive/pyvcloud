@@ -16,6 +16,8 @@ import unittest
 from uuid import uuid1
 from pyvcloud.vcd.client import GatewayBackingConfigType
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import QueryResultFormat
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
@@ -49,15 +51,12 @@ class TestGateway(BaseTestCase):
         TestGateway._org_client = Environment.get_client_in_default_org(
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
 
-        platform = Platform(TestGateway._client)
-        external_networks = platform.list_external_networks()
-        self.assertTrue(len(external_networks) > 1)
-        external_network = external_networks[0]
-        TestGateway._external_network2 = TestGateway._client.get_resource(
-            external_networks[1].get('href'))
+        TestGateway._config = Environment.get_config()
 
-        ext_net_resource = TestGateway._client.get_resource(
-            external_network.get('href'))
+        external_network = Environment.get_test_external_network(
+            TestGateway._client)
+
+        ext_net_resource = external_network.get_resource()
         ip_scopes = ext_net_resource.xpath(
             'vcloud:Configuration/vcloud:IpScopes/vcloud:IpScope',
             namespaces=NSMAP)
@@ -164,6 +163,45 @@ class TestGateway(BaseTestCase):
                 task=task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def _create_external_network(self):
+        """Creates an external network from the available portgroup."""
+        vc_name = TestGateway._config['vc']['vcenter_host_name']
+        name_filter = ('vcName', vc_name)
+        query = TestGateway._client.get_typed_query(
+            ResourceType.PORT_GROUP.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter)
+
+        port_group = None
+        for record in list(query.execute()):
+            if record.get('networkName') == '--':
+                if not record.get('name').startswith('vxw-'):
+                    port_group = record.get('name')
+                    break
+
+        if port_group is None:
+            raise Exception(
+                'None of the port groups are free for new network.')
+
+        name = 'external_network_' + str(uuid1())
+        platform = Platform(TestGateway._client)
+        ext_net = platform.create_external_network(
+            name=name,
+            vim_server_name=vc_name,
+            port_group_names=[port_group],
+            gateway_ip='10.10.30.1',
+            netmask='255.255.255.0',
+            ip_ranges=['10.10.30.101-10.10.30.150'],
+            description=name,
+            primary_dns_ip='8.8.8.8',
+            secondary_dns_ip='8.8.8.9',
+            dns_suffix='example.com')
+
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+        TestGateway._client.get_task_monitor().wait_for_success(task=task)
+        TestGateway._external_network2 = ext_net
+        return ext_net
+
     def test_0007_add_external_network(self):
         """Add an exernal netowrk to the gateway.
 
@@ -171,7 +209,9 @@ class TestGateway(BaseTestCase):
         """
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
-        ip_scopes = TestGateway._external_network2.xpath(
+
+        extNw2 = self._create_external_network()
+        ip_scopes = extNw2.xpath(
             'vcloud:Configuration/vcloud:IpScopes/vcloud:IpScope',
             namespaces=NSMAP)
         first_ipscope = ip_scopes[0]
@@ -179,7 +219,7 @@ class TestGateway(BaseTestCase):
         subnet_addr = gateway_ip + '/' + str(first_ipscope.SubnetPrefixLength)
 
         task = gateway_obj.add_external_network(
-            TestGateway._external_network2.get('name'), (subnet_addr, 'Auto'))
+            extNw2.get('name'), (subnet_addr, 'Auto'))
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)

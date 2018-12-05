@@ -254,7 +254,7 @@ class Gateway(object):
             if subnet is None:
                 continue
 
-            ip_assigned = subnet[1].trim()
+            ip_assigned = subnet[1].strip()
             # Configure Ip Settings
             subnet_participation_param.append(E.Gateway(ip_scope.Gateway.text))
             subnet_participation_param.append(E.Netmask(ip_scope.Netmask.text))

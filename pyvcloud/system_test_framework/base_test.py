@@ -34,13 +34,14 @@ class BaseTestCase(unittest.TestCase):
         Environment.init(cls._config_yaml)
         Environment.attach_vc()
         Environment.create_pvdc()
+        Environment.create_external_network()
         Environment.create_org()
         Environment.create_users()
         Environment.create_ovdc()
         Environment.create_ovdc_network()
         Environment.create_catalog()
         Environment.share_catalog()
-        Environment.upload_template()
+        #Environment.upload_template()
 
     @classmethod
     def tearDownClass(cls):

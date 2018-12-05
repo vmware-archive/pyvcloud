@@ -21,12 +21,17 @@ import requests
 
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
+from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import QueryResultFormat
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.external_network import ExternalNetwork
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
+from pyvcloud.vcd.utils import convert_prefix_length_to_netmask
 
 
 def developerModeAware(function):
@@ -42,6 +47,7 @@ def developerModeAware(function):
 
     :rtype: function
     """
+
     def wrapper(self):
         if not Environment._config['global']['developer_mode']:
             function(self)
@@ -68,6 +74,8 @@ class Environment(object):
     _sys_admin_client = None
     _pvdc_href = None
     _pvdc_name = None
+    _external_network_href = None
+    _external_network_name = None
     _org_href = None
     _ovdc_href = None
 
@@ -278,6 +286,90 @@ class Environment(object):
                 raise Exception('Test Aborted. No usable pVDC.')
 
     @classmethod
+    def _create_external_network(cls):
+        vc_name = cls._config['vc']['vcenter_host_name']
+        name_filter = ('vcName', vc_name)
+        query = cls._sys_admin_client.get_typed_query(
+            ResourceType.PORT_GROUP.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter)
+
+        port_group = None
+        for record in list(query.execute()):
+            if record.get('networkName') == '--':
+                if not record.get('name').startswith('vxw-'):
+                    port_group = record.get('name')
+                    break
+
+        if port_group is None:
+            raise Exception(
+                'None of the port groups are free for new network.')
+
+        ext_config = cls._config['external_network']
+        ip_scopes = cls._config['external_network']['ip_scopes']
+        if len(ip_scopes) == 0:
+            raise Exception('No network spec provided.')
+        # [{subnet:'10.10.10.1/24', ip_range:'10.10.10.101-10.10.10.150'}]
+        primary_subnet = ip_scopes[0]['subnet']
+        gateway_ip, prefix_len = primary_subnet.split('/')
+        netmask = convert_prefix_length_to_netmask(prefix_len)
+        ip_ranges = ip_scopes[0]['ip_ranges']
+        primary_dns_ip = '8.8.8.8'
+        secondary_dns_ip = '8.8.8.9'
+        dns_suffix = 'example.com'
+        platform = Platform(cls._sys_admin_client)
+        ext_net = platform.create_external_network(
+            name=ext_config['name'],
+            vim_server_name=vc_name,
+            port_group_names=[port_group],
+            gateway_ip=gateway_ip,
+            netmask=netmask,
+            ip_ranges=ip_ranges,
+            description=ext_config['name'],
+            primary_dns_ip=primary_dns_ip,
+            secondary_dns_ip=secondary_dns_ip,
+            dns_suffix=dns_suffix)
+
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+        cls._sys_admin_client.get_task_monitor().wait_for_success(task=task)
+        return ext_net
+
+    @classmethod
+    def create_external_network(cls):
+        """Creates an external network by the name specified in the config file.
+
+        Skips creating one, if such a network already exists. Also stores the
+        href and name of the network as class variables for future use.
+        """
+        cls._basic_check()
+        net_name = cls._config['external_network']['name']
+
+        platform = Platform(cls._sys_admin_client)
+
+        net_refs = platform.list_external_networks()
+        if net_name is not '*':
+            for net_ref in net_refs:
+                if net_ref.get('name').lower() == net_name.lower():
+                    cls._logger.debug('Reusing existing ' + net_name)
+                    cls._external_network_href = net_ref.get('href')
+                    cls._external_network_name = net_name
+                    return
+            cls._logger.debug('Creating new external network' + net_name)
+            ext_nw = cls._create_external_network()
+            cls._external_network_href = ext_nw.get('href')
+            cls._external_network_name = net_name
+            cls._logger.debug('Created external network ' + net_name)
+        else:
+            if len(net_refs) > 0:
+                cls._logger.debug('Defaulting to first network : ' +
+                                  net_refs[0].get('name'))
+                cls._external_network_href = net_refs[0].get('href')
+                cls._external_network_name = net_refs[0].get('name')
+            else:
+                cls._logger.debug('No usable network found. Aborting test.')
+                raise Exception('Test Aborted. No usable external network.')
+
+    @classmethod
     def create_org(cls):
         """Creates an org by the name specified in the config file.
 
@@ -366,11 +458,16 @@ class Environment(object):
                 return
 
         storage_profiles = [{
-            'name': cls._config['vcd']['default_storage_profile_name'],
-            'enabled': True,
-            'units': 'MB',
-            'limit': 0,
-            'default': True
+            'name':
+            cls._config['vcd']['default_storage_profile_name'],
+            'enabled':
+            True,
+            'units':
+            'MB',
+            'limit':
+            0,
+            'default':
+            True
         }]
 
         system = System(
@@ -421,8 +518,8 @@ class Environment(object):
                     break
 
         if netpool_to_use is None:
-            cls._logger.debug(
-                'Using first netpool in system : ' + netpools[0].get('name'))
+            cls._logger.debug('Using first netpool in system : ' +
+                              netpools[0].get('name'))
             netpool_to_use = netpools[0].get('name')
 
         return netpool_to_use
@@ -449,8 +546,8 @@ class Environment(object):
 
         for net_name in records_dict.keys():
             if net_name.lower() == expected_net_name.lower():
-                cls._logger.debug(
-                    'Reusing existing org-vdc network ' + expected_net_name)
+                cls._logger.debug('Reusing existing org-vdc network ' +
+                                  expected_net_name)
                 return
 
         cls._logger.debug('Creating org-vdc network ' + expected_net_name)
@@ -483,8 +580,8 @@ class Environment(object):
             catalog_records = org.list_catalogs()
             for catalog_record in catalog_records:
                 if catalog_record.get('name') == catalog_name:
-                    cls._logger.debug(
-                        'Reusing existing catalog ' + catalog_name)
+                    cls._logger.debug('Reusing existing catalog ' +
+                                      catalog_name)
                     return
 
             cls._logger.debug('Creating new catalog ' + catalog_name)
@@ -521,8 +618,8 @@ class Environment(object):
                     org.share_catalog_with_org_members(
                         catalog_name=catalog_name)
                     return
-            raise EntityNotFoundException(
-                'Catalog ' + catalog_name + 'doesn\'t exist.')
+            raise EntityNotFoundException('Catalog ' + catalog_name +
+                                          'doesn\'t exist.')
         finally:
             catalog_author_client.logout()
 
@@ -549,8 +646,8 @@ class Environment(object):
             template_name = cls._config['vcd']['default_template_file_name']
             for item in catalog_items:
                 if item.get('name').lower() == template_name.lower():
-                    cls._logger.debug(
-                        'Reusing existing template ' + template_name)
+                    cls._logger.debug('Reusing existing template ' +
+                                      template_name)
                     return
 
             cls._logger.debug('Uploading template ' + template_name +
@@ -577,6 +674,8 @@ class Environment(object):
                 cls._sys_admin_client = None
                 cls._pvdc_href = None
                 cls._pvdc_name = None
+                cls._external_network_href = None
+                cls._external_network_name = None
                 cls._org_href = None
                 cls._ovdc_href = None
 
@@ -592,6 +691,19 @@ class Environment(object):
         :rtype: str
         """
         return cls._pvdc_name
+
+    @classmethod
+    def get_test_external_network(cls, client):
+        """Gets the external used for testing.
+
+        :param pyvcloud.vcd.client.Client client: client which will be used to
+            create the External Network object.
+
+        :return: the organization in which all tests will run.
+
+        :rtype: pyvcloud.vcd.external_network.ExternalNetwork
+        """
+        return ExternalNetwork(client, href=cls._external_network_href)
 
     @classmethod
     def get_test_org(cls, client):

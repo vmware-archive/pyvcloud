@@ -188,9 +188,9 @@ class Gateway(object):
         """List all gateway's configure ip settings in the current vdc.
 
         :return:  a list of dictionary that has gateway's configure ip settings
-            Ex: [{'External Networks':
+            Ex: [{'external_network':
             'external_network_de99a4e2-f6d8-11e8-9e0c-9061ae543719',
-            'Gateway': ['10.20.30.1/24'], 'Ip Address': ['10.20.30.2']}]
+            'gateway': ['10.20.30.1/24'], 'ip_address': ['10.20.30.2']}]
 
         :rtype: list
 
@@ -203,7 +203,7 @@ class Gateway(object):
         for gatewayinf in \
                 gateway.Configuration.GatewayInterfaces.GatewayInterface:
             ipconfigsettings = dict()
-            ipconfigsettings['external_networks'] = gatewayinf.Name.text
+            ipconfigsettings['external_network'] = gatewayinf.Name.text
             gatewayips = ipconfigsettings.setdefault('gateway', [])
             ips = ipconfigsettings.setdefault('ip_address', [])
             for subnetpart in gatewayinf.SubnetParticipation:

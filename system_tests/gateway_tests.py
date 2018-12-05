@@ -175,7 +175,7 @@ class TestGateway(BaseTestCase):
             platform = Platform(TestGateway._client)
             external_networks = platform.list_external_networks()
             self.assertTrue(bool(ip_allocations))
-            exnet = ip_allocations[0].get('external_networks')
+            exnet = ip_allocations[0].get('external_network')
             self.assertEqual(external_networks[0].get('name'), exnet)
 
     def test_0098_teardown(self):

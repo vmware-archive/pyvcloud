@@ -20,6 +20,7 @@ from pyvcloud.vcd.exceptions import AlreadyExistsException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import get_admin_href
+from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 
 class Gateway(object):
@@ -247,8 +248,14 @@ class Gateway(object):
         for ip_scope in ip_scopes:
             subnet_participation_param = E.SubnetParticipation()
             subnet = None
+            ext_nw_subnet = ip_scope.Gateway.text + '/' + \
+                netmask_to_cidr_prefix_len(ip_scope.Gateway.text,
+                                           ip_scope.Netmask.text)
             for sn in ip_configuration:
-                if sn[0].startswith(ip_scope.Gateway.text):
+                if len(sn) != 2:
+                    raise InvalidParameterException(
+                        'IP Configuration should have both subnet and IP.')
+                if sn[0] == ext_nw_subnet:
                     subnet = sn
                     break
             if subnet is None:

@@ -458,16 +458,11 @@ class Environment(object):
                 return
 
         storage_profiles = [{
-            'name':
-            cls._config['vcd']['default_storage_profile_name'],
-            'enabled':
-            True,
-            'units':
-            'MB',
-            'limit':
-            0,
-            'default':
-            True
+            'name': cls._config['vcd']['default_storage_profile_name'],
+            'enabled': True,
+            'units': 'MB',
+            'limit': 0,
+            'default': True
         }]
 
         system = System(

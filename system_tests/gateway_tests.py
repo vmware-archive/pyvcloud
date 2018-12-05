@@ -202,6 +202,13 @@ class TestGateway(BaseTestCase):
         TestGateway._external_network2 = ext_net
         return ext_net
 
+    def _delete_external_network(self, network):
+        logger = Environment.get_default_logger()
+        platform = Platform(TestGateway._client)
+        task = platform.delete_external_network(network.get('name'))
+        TestGateway._client.get_task_monitor().wait_for_success(task=task)
+        logger.debug('Deleted external network ' + network.get('name') + '.')
+
     def test_0007_add_external_network(self):
         """Add an exernal netowrk to the gateway.
 
@@ -236,6 +243,8 @@ class TestGateway(BaseTestCase):
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        self._delete_external_network(TestGateway._external_network2)
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

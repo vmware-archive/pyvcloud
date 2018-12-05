@@ -41,7 +41,7 @@ class BaseTestCase(unittest.TestCase):
         Environment.create_ovdc_network()
         Environment.create_catalog()
         Environment.share_catalog()
-        #Environment.upload_template()
+        Environment.upload_template()
 
     @classmethod
     def tearDownClass(cls):

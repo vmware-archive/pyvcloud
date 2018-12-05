@@ -31,7 +31,7 @@ from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
-from pyvcloud.vcd.utils import convert_prefix_length_to_netmask
+from pyvcloud.vcd.utils import cidr_to_netmask
 
 
 def developerModeAware(function):
@@ -312,7 +312,7 @@ class Environment(object):
         # [{subnet:'10.10.10.1/24', ip_range:'10.10.10.101-10.10.10.150'}]
         primary_subnet = ip_scopes[0]['subnet']
         gateway_ip, prefix_len = primary_subnet.split('/')
-        netmask = convert_prefix_length_to_netmask(prefix_len)
+        netmask = cidr_to_netmask(primary_subnet)[1]
         ip_ranges = ip_scopes[0]['ip_ranges']
         primary_dns_ip = '8.8.8.8'
         secondary_dns_ip = '8.8.8.9'
@@ -458,11 +458,16 @@ class Environment(object):
                 return
 
         storage_profiles = [{
-            'name': cls._config['vcd']['default_storage_profile_name'],
-            'enabled': True,
-            'units': 'MB',
-            'limit': 0,
-            'default': True
+            'name':
+            cls._config['vcd']['default_storage_profile_name'],
+            'enabled':
+            True,
+            'units':
+            'MB',
+            'limit':
+            0,
+            'default':
+            True
         }]
 
         system = System(

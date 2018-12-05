@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ipaddress import IPv4Network
 from os.path import abspath
 from os.path import dirname
 from os.path import join as joinpath
@@ -29,9 +30,6 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
-
-from socket import inet_ntoa
-from struct import pack
 
 
 def extract_id(urn):
@@ -704,12 +702,22 @@ def get_safe_members_in_tar_file(tarfile):
     return result
 
 
-def convert_prefix_length_to_netmask(prefixlen):
-    """Converts prefix length to netmaskself.
-    :param str prefixlen: prefix length of a subnet ex:  /24(without slash)
-
-    :return netmask of the prefix length
-    :rtype: str
+def cidr_to_netmask(cidr):
+    """Convert CIDR to netmask.
+    :param str cidr: CIDR in the format of 10.2.2.1/20
+    :return network address and netmask
+    :rtype: str, str
     """
-    bits = 0xffffffff ^ (1 << 32 - int(prefixlen)) - 1
-    return inet_ntoa(pack('>I', bits))
+    ipv4 = IPv4Network(cidr, False)
+    return ipv4.network_address, ipv4.netmask
+
+
+def netmask_to_cidr_prefix_len(network, netmask):
+    """Determine CIDR prefix length from network and netmask.
+    :param str network: gateway IP
+    :param str netmask: netmask
+    :return prefix len
+    :rtype: int
+    """
+    subnet = network + '/' + netmask
+    return IPv4Network(subnet, False).prefixlen

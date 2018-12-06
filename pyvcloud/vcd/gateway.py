@@ -249,8 +249,8 @@ class Gateway(object):
             subnet_participation_param = E.SubnetParticipation()
             subnet = None
             ext_nw_subnet = ip_scope.Gateway.text + '/' + \
-                netmask_to_cidr_prefix_len(ip_scope.Gateway.text,
-                                           ip_scope.Netmask.text)
+                str(netmask_to_cidr_prefix_len(ip_scope.Gateway.text,
+                                               ip_scope.Netmask.text))
             for sn in ip_configuration:
                 if len(sn) != 2:
                     raise InvalidParameterException(

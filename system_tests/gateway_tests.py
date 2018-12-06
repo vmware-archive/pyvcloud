@@ -227,7 +227,7 @@ class TestGateway(BaseTestCase):
         gateway_ip = first_ipscope.Gateway.text
         prefixlen = netmask_to_cidr_prefix_len(gateway_ip,
                                                first_ipscope.Netmask.text)
-        subnet_addr = gateway_ip + '/' + prefixlen
+        subnet_addr = gateway_ip + '/' + str(prefixlen)
 
         task = gateway_obj.add_external_network(
             extNw2.get('name'), (subnet_addr, 'Auto'))

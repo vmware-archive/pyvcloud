@@ -83,3 +83,11 @@ pvdc:
   respools_to_attach: ['<resource-pool-name1>', '<resource-pool-name2>', ...]
   target_resource_pool: '<target-resource-pool-name>'
   storage_profiles: ['<storage-profile-name1>', '<storage-profile-name2', ...]
+
+external_network:
+  name: '<ext-net-name>'
+  port_group_name: '<pg-name>'
+  ip_scopes:
+    - subnet: '<gateway-ip/prefix_len>'
+      ip_ranges:
+        - '<start-ip>-<end-ip>'

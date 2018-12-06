@@ -63,8 +63,9 @@ class TestGateway(BaseTestCase):
             namespaces=NSMAP)
         first_ipscope = ip_scopes[0]
         gateway_ip = first_ipscope.Gateway.text
-
-        subnet_addr = gateway_ip + '/' + str(first_ipscope.SubnetPrefixLength)
+        prefix_len = netmask_to_cidr_prefix_len(gateway_ip,
+                                         first_ipscope.Netmask.text)
+        subnet_addr = gateway_ip + '/' + str(prefix_len)
         ext_net_to_participated_subnet_with_ip_settings = {
             ext_net_resource.get('name'): {
                 subnet_addr: 'Auto'

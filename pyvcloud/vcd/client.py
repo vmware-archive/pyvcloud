@@ -92,8 +92,19 @@ E_RASD = objectify.ElementMaker(
         'vcloud': NSMAP['vcloud']
     })
 
+
+class ApiVersion(Enum):
+    VERSION_29 = '29.0'
+    VERSION_30 = '30.0'
+    VERSION_31 = '31.0'
+    VERSION_32 = '32.0'
+
+
 # Important! Values must be listed in ascending order.
-API_CURRENT_VERSIONS = ['28.0', '29.0', '30.0', '31.0']
+API_CURRENT_VERSIONS = [ApiVersion.VERSION_29.value,
+                        ApiVersion.VERSION_30.value,
+                        ApiVersion.VERSION_31.value,
+                        ApiVersion.VERSION_32.value]
 
 VCLOUD_STATUS_MAP = {
     -1: "Could not be created",

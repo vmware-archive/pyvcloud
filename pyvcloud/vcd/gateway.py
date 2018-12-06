@@ -17,6 +17,7 @@ from pyvcloud.vcd.client import GatewayBackingConfigType
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.utils import get_admin_href
+from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 
 class Gateway(object):
@@ -211,7 +212,10 @@ class Gateway(object):
                     gatewayips.append(subnetpart.Gateway.text + '/' +
                                       subnetpart.SubnetPrefixLength.text)
                 else:
-                    gatewayips.append(subnetpart.Gateway.text)
+                    gatewayips.append(subnetpart.Gateway.text + '/' +
+                                      str(netmask_to_cidr_prefix_len(
+                                          subnetpart.Gateway.text,
+                                          subnetpart.Netmask.text)))
                 ips.append(subnetpart.IpAddress.text)
             out_list.append(ipconfigsettings)
         return out_list

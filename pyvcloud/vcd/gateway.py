@@ -196,9 +196,6 @@ class Gateway(object):
         :rtype: list
 
         """
-        if self.resource is None:
-            self.reload()
-
         out_list = []
         gateway = self.get_resource()
         for gatewayinf in \

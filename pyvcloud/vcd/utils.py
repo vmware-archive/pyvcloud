@@ -124,8 +124,9 @@ def vdc_to_dict(vdc, access_control_settings=None):
             str(vdc.ComputeCapacity.Memory.Reserved),
             'used':
             humanfriendly.format_size(
-                int(str(vdc.ComputeCapacity.Memory.Used)) * humanfriendly.
-                parse_size('1 %s' % str(vdc.ComputeCapacity.Memory.Units)))
+                int(str(vdc.ComputeCapacity.Memory.Used)) *
+                humanfriendly.parse_size(
+                    '1 %s' % str(vdc.ComputeCapacity.Memory.Units)))
         }
         if hasattr(vdc.ComputeCapacity.Memory, 'Overhead'):
             result['mem_capacity'] = str(vdc.ComputeCapacity.Memory.Overhead)
@@ -344,15 +345,14 @@ def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
                         value = '{:,} {}'.format(int(quantity), units).strip()
                 else:
                     value = '{}: {}'.format(
-                        connection.get(
-                            '{' + NSMAP['vcloud'] + '}ipAddressingMode'),
+                        connection.get('{' + NSMAP['vcloud'] +
+                                       '}ipAddressingMode'),
                         connection.get('{' + NSMAP['vcloud'] + '}ipAddress'))
                 result['%s: %s' % (k, element_name)] = value
             env = vm.xpath('ovfenv:Environment', namespaces=NSMAP)
             if len(env) > 0:
-                result['%s: %s' %
-                       (k,
-                        'moid')] = env[0].get('{' + NSMAP['ve'] + '}vCenterId')
+                result['%s: %s' % (k, 'moid')] = env[0].get('{' + NSMAP['ve'] +
+                                                            '}vCenterId')
             if hasattr(vm, 'StorageProfile'):
                 result['%s: %s' % (k, 'storage-profile')] = \
                     vm.StorageProfile.get('name')

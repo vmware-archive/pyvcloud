@@ -151,6 +151,7 @@ class RelationType(Enum):
     ENABLE = 'enable'
     GATEWAY_REDEPLOY = 'edgeGateway:redeploy'
     GATEWAY_SYNC_SYSLOG_SETTINGS = 'edgeGateway:syncSyslogSettings'
+    GATEWAY_UPDATE_PROPERTIES = 'edgeGateway:updateProperties'
     LINK_TO_TEMPLATE = 'linkToTemplate'
     MIGRATE_VMS = 'migrateVms'
     MODIFY_FORM_FACTOR = 'edgeGateway:modifyFormFactor'

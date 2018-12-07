@@ -271,11 +271,12 @@ class TestGateway(BaseTestCase):
         """
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
-        task = gateway_obj.edit_gateway_name(TestGateway._name, 'gateway2')
+        task = gateway_obj.edit_gateway_name('gateway2')
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
-        TestGateway._name = 'gateway2'
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        task = gateway_obj.edit_gateway_name(TestGateway._name)
+        TestGateway._client.get_task_monitor().wait_for_success(task=task)
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

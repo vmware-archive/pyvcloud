@@ -264,6 +264,19 @@ class TestGateway(BaseTestCase):
 
         self._delete_external_network(TestGateway._external_network2)
 
+    def test_0010_edit_gateway_name(self):
+        """Edit the gateway name.
+
+        Invokes the edit_gateway_name of the gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        task = gateway_obj.edit_gateway_name(TestGateway._name, 'gateway2')
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        TestGateway._name = 'gateway2'
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().
 

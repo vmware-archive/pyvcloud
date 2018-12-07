@@ -275,8 +275,10 @@ class TestGateway(BaseTestCase):
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        '''resetting back to original gateway name'''
         task = gateway_obj.edit_gateway_name(TestGateway._name)
-        TestGateway._client.get_task_monitor().wait_for_success(task=task)
+        result = TestGateway._client.get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

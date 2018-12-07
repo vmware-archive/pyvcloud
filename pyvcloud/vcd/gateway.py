@@ -331,10 +331,9 @@ class Gateway(object):
             self.resource, RelationType.GATEWAY_UPDATE_PROPERTIES,
             EntityType.EDGE_GATEWAY.value, gateway)
 
-    def edit_gateway_name(self, oldname=None, newname=None):
+    def edit_gateway_name(self, newname=None):
         """It changes the old name of the gateway to the new name.
 
-        :param String oldname: Old name of the gateway
         :param String newname: new name of the gateway
 
         :return: object containing EntityType.TASK XML data
@@ -342,16 +341,10 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if oldname is None or newname is None:
-            raise ValueError('Invalid input, oldname and newname cannot be '
-                             'empty.')
+        if newname is None:
+            raise ValueError('Invalid input, name cannot be empty.')
 
         gateway = self.get_resource()
-        gateway_name = gateway.get('name')
-        if gateway_name != oldname:
-            raise ValueError('Gateway with name: {0} does not exists'.format
-                             (oldname))
-
         gateway.set('name', newname)
         return self.client.put_linked_resource(self.resource,
                                                RelationType.EDIT,

@@ -322,7 +322,7 @@ class TestExtNet(BaseTestCase):
 
         Invoke the method for the external network created by setup.
 
-        This test passes if4 the task for deleting the external network
+        This test passes if the task for deleting the external network
         succeeds.
         """
         logger = Environment.get_default_logger()

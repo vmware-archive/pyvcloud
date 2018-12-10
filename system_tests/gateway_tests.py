@@ -26,15 +26,14 @@ from pyvcloud.vcd.gateway import Gateway
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
+from system_tests.constants import GatewayConstants
 
 class TestGateway(BaseTestCase):
     """Test Gateway functionalities implemented in pyvcloud."""
     # All tests in this module should be run as System Administrator.
     _client = None
-
-    _name = ("test_gateway1" + str(uuid1()))[:34]
-
-    _description = "test_gateway1 description"
+    _name = GatewayConstants.name
+    _description = GatewayConstants.description
     _gateway = None
 
     def test_0000_setup(self):
@@ -46,12 +45,19 @@ class TestGateway(BaseTestCase):
         This test passes if the gateway is created successfully.
         """
         TestGateway._client = Environment.get_sys_admin_client()
-        vdc = Environment.get_test_vdc(TestGateway._client)
+        TestGateway._vdc = Environment.get_test_vdc(TestGateway._client)
 
         TestGateway._org_client = Environment.get_client_in_default_org(
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
-
         TestGateway._config = Environment.get_config()
+
+        TestGateway._gateway = Environment.get_test_gateway(
+            TestGateway._client)
+        if TestGateway._gateway is not None:
+            task = TestGateway._vdc.delete_gateway(self._name)
+            result = TestGateway._client.get_task_monitor().wait_for_success(
+                task=task)
+            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
         external_network = Environment.get_test_external_network(
             TestGateway._client)
@@ -81,10 +87,11 @@ class TestGateway(BaseTestCase):
             }
         }
         ext_net_to_rate_limit = {ext_net_resource.get('name'): {100: 100}}
-        TestGateway._gateway = vdc.create_gateway(
-            self._name, [ext_net_resource.get('name')], 'compact', None, True,
-            ext_net_resource.get('name'), gateway_ip, True, False, False,
-            False, True, ext_net_to_participated_subnet_with_ip_settings, True,
+        TestGateway._gateway = TestGateway._vdc.create_gateway(
+            self._name, [ext_net_resource.get('name')], 'compact', None,
+            True, ext_net_resource.get('name'), gateway_ip, True, False,
+            False, False, True,
+            ext_net_to_participated_subnet_with_ip_settings, True,
             ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=TestGateway._gateway.Tasks.Task)
@@ -244,7 +251,7 @@ class TestGateway(BaseTestCase):
         subnet_addr = gateway_ip + '/' + str(prefixlen)
 
         task = gateway_obj.add_external_network(
-            extNw2.get('name'), (subnet_addr, 'Auto'))
+            extNw2.get('name'), [(subnet_addr, 'Auto')])
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)

@@ -33,6 +33,7 @@ from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.utils import cidr_to_netmask
 
+from system_tests.constants import GatewayConstants
 
 def developerModeAware(function):
     """Decorator function to skip execution of decorated function.
@@ -803,3 +804,36 @@ class Environment(object):
         vdc = cls.get_test_vdc(client)
         vapp_resource = vdc.get_vapp(vapp_name)
         return VApp(client, resource=vapp_resource)
+
+    @classmethod
+    def create_gateway(cls):
+        """Creates a gateway."""
+
+        cls._basic_check()
+        _gateway = None
+        try:
+            _gateway = cls.get_test_gateway(cls._sys_admin_client)
+        except EntityNotFoundException:
+            pass
+
+        if _gateway is None:
+            ext_config = cls._config['external_network']
+            vdc = cls.get_test_vdc(cls._sys_admin_client)
+            gateway = vdc.create_gateway(GatewayConstants.name, [ext_config[
+                                                                     'name']])
+            cls._sys_admin_client.get_task_monitor().wait_for_success(task
+                                                    = gateway.Tasks.Task[0])
+
+    @classmethod
+    def get_test_gateway(cls, client):
+        """Gets gateway by name.
+
+        :param pyvcloud.vcd.client.Client client: client which will be used
+        to create the VDC object.
+
+        :return: gateway.
+
+        :rtype: pyvcloud.vcd.gateway gateway
+        """
+        vdc = cls.get_test_vdc(client)
+        return vdc.get_gateway(GatewayConstants.name)

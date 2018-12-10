@@ -48,11 +48,14 @@ class VDC(object):
         """
         self.client = client
         self.name = name
-        if href is None and resource is None:
+        if href is None:
             raise InvalidParameterException(
                 "VDC initialization failed as arguments are either invalid "
                 "or None")
         self.href = href
+        if resource is None:
+            self.resource = None
+            self.get_resource()
         self.resource = resource
         if resource is not None:
             self.name = resource.get('name')
@@ -983,10 +986,7 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        cidr = cidr_to_netmask(network_cidr)
-        # since cidr[0] in network address we need to get first host address
-        gateway_ip = str(cidr[0] + 1)
-        netmask = str(cidr[1])
+        gateway_ip, netmask = cidr_to_netmask(network_cidr)
 
         if self.resource is None:
             self.resource = self.client.get_resource(self.href)

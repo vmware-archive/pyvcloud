@@ -20,9 +20,11 @@ from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
 
+from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import AccessForbiddenException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 
+from system_tests.constants import GatewayConstants
 
 class TestNetwork(BaseTestCase):
     """Test network functionalities implemented in pyvcloud."""
@@ -38,8 +40,12 @@ class TestNetwork(BaseTestCase):
     _isolated_orgvdc_network_gateway = '10.0.0.1'
     _isolated_orgvdc_network_netmask = '255.255.255.0'
 
+    _routed_orgvdc_network_gateway_ip = '6.6.2.1/10'
+
     _non_existent_isolated_orgvdc_network_name = 'non_existent_isolated_' + \
         'orgvdc_network_' + str(uuid1())
+
+    _routed_org_vdc_network_name = 'routed_orgvdc_network_' + str(uuid1())
 
     def test_0000_setup(self):
         """Setup the networks required for the other tests in this module.
@@ -65,6 +71,21 @@ class TestNetwork(BaseTestCase):
             netmask=TestNetwork._isolated_orgvdc_network_netmask)
         TestNetwork._client.get_task_monitor().wait_for_success(
             task=result.Tasks.Task[0])
+
+    def test_0005_create_routed_orgvdc_network(self):
+        """Test creation of routed vdc network.
+
+        Fetches the gateway and invoke VDC.create_gateway method.
+        """
+        vdc = Environment.get_test_vdc(TestNetwork._client)
+        result = vdc.create_routed_vdc_network(
+            network_name = TestNetwork._routed_org_vdc_network_name,
+            gateway_name = GatewayConstants.name,
+            network_cidr = TestNetwork._routed_orgvdc_network_gateway_ip,
+            description='Dummy description')
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result.Tasks.Task[0])
+        assert task.get('status') == TaskStatus.SUCCESS.value
 
     def test_0010_list_isolated_orgvdc_networks(self):
         """Test the method vdc.list_orgvdc_isolated_networks().
@@ -112,6 +133,11 @@ class TestNetwork(BaseTestCase):
                       TestNetwork._non_existent_isolated_orgvdc_network_name)
         except EntityNotFoundException as e:
             return
+
+    def test_0035_list_routed_orgvdc_networks(self):
+        vdc = Environment.get_test_vdc(TestNetwork._client)
+        result = vdc.list_orgvdc_routed_networks()
+        assert len(result) > 0
 
     def test_0040_list_isolated_orgvdc_networks_as_non_admin_user(self):
         """Test the method vdc.list_orgvdc_isolated_networks().
@@ -175,6 +201,15 @@ class TestNetwork(BaseTestCase):
         href = vdc.get_orgvdc_network_admin_href_by_name(
             TestNetwork._isolated_orgvdc_network_name)
         self.assertIsNotNone(href)
+
+    def test_0080_delete_routed_orgvdc_networks(self):
+        vdc = Environment.get_test_vdc(TestNetwork._client)
+
+        result = vdc.delete_routed_orgvdc_network(
+            name = TestNetwork._routed_org_vdc_network_name, force=True)
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        assert task.get('status') == TaskStatus.SUCCESS.value
 
     @developerModeAware
     def test_9998_teardown(self):

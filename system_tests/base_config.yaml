@@ -23,10 +23,10 @@ logging:
 vcd:
 # Fill in the vCloud Dirctor host, sysadmin credentials and other related
 # information here. These will be required for the tests to run.
-  host: '<vcd ip>'
-  api_version: '30.0'
+  host: 'bos1-vcd-sp-static-199-53.eng.vmware.com'
+  api_version: '31.0'
   sys_admin_username: 'administrator'
-  sys_admin_pass: '<root-password>'
+  sys_admin_pass: 'ca$hc0w'
   sys_org_name: 'System'
 
 # The following params defines the org, pvdc, ovdc, etc. that the tests will
@@ -64,6 +64,7 @@ vc:
   vcenter_host_ip: '<vc ip>'
   vcenter_admin_username: 'administrator@vsphere.local'
   vcenter_admin_password: '<vc root password>'
+  vcenter1_host_name: 'vc2'
 
 nsx:
   nsx_hostname: 'nsx1'

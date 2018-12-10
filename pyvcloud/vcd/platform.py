@@ -1002,13 +1002,15 @@ class Platform(object):
         return query.execute()
 
     def get_port_group_moref_types(self, vim_server_name, port_group_name):
-        """Fetches moref and type for a given list of port group name.
+        """Fetches portgroup moref and portgroup type(DV_PORTGROUP or NETWORK).
+
+        Using portgroup name in particular vCenter.
 
         :return: list of tuples containing port group moref and type.
 
         :rtype: list
 
-        :raises: EntityNotFoundException: if any port group names cannot be
+        :raises: EntityNotFoundException: if any port group name cannot be
         found.
         """
         vcfilter = 'vcName==%s' % urllib.parse.quote_plus(vim_server_name)
@@ -1017,19 +1019,43 @@ class Platform(object):
             qfilter=vcfilter,
             query_result_format=QueryResultFormat.RECORDS)
         records = list(query.execute())
-        port_groups = {}
-        for record in records:
-            port_groups[record.get('name')] = ((record.get('moref'),
-                                                record.get('portgroupType')))
+
         port_group_moref_types = []
-        for port_group in port_groups:
-            port_group_found = False
-            if port_group_name == port_group:
-                port_group_found = True
-                port_group_moref_types.append(port_groups[port_group_name][0])
-                port_group_moref_types.append(port_groups[port_group_name][1])
+        for record in records:
+            if record.get('name') == port_group_name:
+                port_group_moref_types.append(record.get('moref'))
+                port_group_moref_types.append(record.get('portgroupType'))
                 break
-        if not port_group_found:
+        if not port_group_moref_types:
             raise EntityNotFoundException(
                 'port group \'%s\' not Found' % port_group_name)
         return port_group_moref_types
+
+    def get_pgroup_name(self, vim_server_name, portgroupType):
+        """Fetches portgroup name using portgroup type(DV_PORTGROUP or NETWORK).
+
+        Query uses vCenter Server name as filter.
+
+        :param str vim_server_name: vCenter server name
+        :param str portgroupType: type of port group
+        :return: name of the portgroup
+        :rtype: str
+        :raises: EntityNotFoundException: if any port group cannot be found.
+        """
+        name_filter = ('vcName', vim_server_name)
+        query = self.client.get_typed_query(
+            ResourceType.PORT_GROUP.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter)
+        pgroup_name = ''
+        for record in list(query.execute()):
+            if record.get('networkName') == '--':
+                if record.get('portgroupType') == portgroupType  \
+                   and not record.get('name').startswith('vxw-'):
+                    pgroup_name = record.get('name')
+                    break
+        if not pgroup_name:
+            raise EntityNotFoundException('port group not found in'
+                                          'vCenter : ' + vim_server_name)
+
+        return pgroup_name

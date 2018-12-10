@@ -74,7 +74,7 @@ class TestExtNet(BaseTestCase):
 
         for record in list(query.execute()):
             if record.get('networkName') == '--':
-                if record.get('portgroupType') == TestExtNet._portgroupType \
+                if record.get('portgroupType') == TestExtNet._portgroupType  \
                     and not record.get('name').startswith('vxw-'):
                     TestExtNet._port_group = record.get('name')
                     break
@@ -270,17 +270,19 @@ class TestExtNet(BaseTestCase):
                 self.assertEqual(ip_range.EndAddress, _ip_range1_end_address)
 
     def test_0060_attach_port_group(self):
-        """Attach a portgroup to an external network in external network
-       This test passes if the ip range for a subnet is
-       modified successfully.
+        """Attach a portgroup to an external network
+       This test passes if the portgroup from another vCenter is added
+       to external network successfully.
        """
         logger = Environment.get_default_logger()
         platform = Platform(TestExtNet._sys_admin_client)
-        vim_server_name = TestExtNet._config['vc']['vcenter1_host_name']
-        self.__set_pg_group_name(vim_server_name)
+        vim_server_name = TestExtNet._config['vc2']['vcenter_host_name']
+
+        pgroup_name = platform.get_pgroup_name(vim_server_name,
+            TestExtNet._portgroupType)
         ext_net = self._get_ext_net(platform).attach_port_group(
             vim_server_name,
-            TestExtNet._port_group)
+            pgroup_name)
         task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
         TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
         task=task)
@@ -299,22 +301,6 @@ class TestExtNet(BaseTestCase):
                 vc_href_found = True
                 break
         self.assertTrue(vc_href_found)
-
-    def __set_pg_group_name(self, vim_server_name):
-        name_filter = ('vcName', vim_server_name)
-        query = TestExtNet._sys_admin_client.get_typed_query(
-            ResourceType.PORT_GROUP.value,
-            query_result_format=QueryResultFormat.RECORDS,
-            equality_filter=name_filter)
-        for record in list(query.execute()):
-            if record.get('networkName') == '--':
-                if record.get('portgroupType') == TestExtNet._portgroupType \
-                    and not record.get('name').startswith('vxw-') :
-                    TestExtNet._port_group = record.get('name')
-                    break
-        self.assertIsNotNone(TestExtNet._port_group,
-            msg="Multiple vCenters not attached to vcd or"
-                     "no portgroups available in vCenter")
 
     @developerModeAware
     def test_9998_teardown(self):

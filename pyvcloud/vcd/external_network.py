@@ -256,15 +256,14 @@ class ExternalNetwork(object):
              representing the external network.
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.reload()
-        ext_net = self.resource
+        ext_net = self.get_resource()
         platform = Platform(self.client)
-        vc_record = platform.get_vcenter(vim_server_name)
-        vc_href = vc_record.get('href')
-        pg_moref_types = \
-            platform.get_port_group_moref_types(vim_server_name,
-                                                port_group_name)
+        if vim_server_name and port_group_name is not None:
+            vc_record = platform.get_vcenter(vim_server_name)
+            vc_href = vc_record.get('href')
+            pg_moref_types =  \
+                platform.get_port_group_moref_types(vim_server_name,
+                                                    port_group_name)
 
         if hasattr(ext_net,
                    '{' + NSMAP['vmext'] + '}VimPortGroupRef'):
@@ -274,6 +273,10 @@ class ExternalNetwork(object):
                 pg_moref_types[0],
                 pg_moref_types[1])
 
+            # Create a new VimObjectRef using vc href, portgroup moref and type
+            # from existing VimPortGroupRef. Add the VimObjectRef to
+            # VimPortGroupRefs and then delete VimPortGroupRef
+            # from external network.
             vim_pg_ref = ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRef']
             vc2_href = vim_pg_ref.VimServerRef.get('href')
             vim_object_ref2 = self.__create_vimobj_ref(
@@ -284,6 +287,7 @@ class ExternalNetwork(object):
             vim_port_group_refs.append(vim_object_ref1)
             vim_port_group_refs.append(vim_object_ref2)
             ext_net.remove(vim_pg_ref)
+            ext_net.append(vim_port_group_refs)
         else:
             vim_port_group_refs = \
                 ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRefs']
@@ -292,8 +296,6 @@ class ExternalNetwork(object):
                 pg_moref_types[0],
                 pg_moref_types[1])
             vim_port_group_refs.append(vim_object_ref1)
-
-        ext_net.append(vim_port_group_refs)
 
         return self.client. \
             put_linked_resource(ext_net, rel=RelationType.EDIT,

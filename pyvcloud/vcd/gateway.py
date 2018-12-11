@@ -354,3 +354,50 @@ class Gateway(object):
                                                RelationType.EDIT,
                                                EntityType.EDGE_GATEWAY.value,
                                                gateway)
+
+    def edit_config_ip_settings(self, ipconfig_settings=None):
+        """It edits the config ip settings of gateway.
+
+        In this user can only modify Subnet participation and config Ip address
+        of gateway's external network.Expected subnet input should be always be
+        in CIDR format.
+
+        :param ipconfig_settings: map of list of ipconfig settings for
+        e.g: { extNetName:[{'subnet': '192.168.1.1/24', 'enable': True,
+        'ip_address': '192.168.1.2'}]}
+
+        :return: object containing EntityType.TASK XML data
+                representing the asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        gateway = self.get_resource()
+        externalnetwork_found = False
+        for gatewayinf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            if ipconfig_settings.get(gatewayinf.Name.text) is not None:
+                externalnetwork_found = True
+                subnet_found = False
+                subnets = ipconfig_settings.get(gatewayinf.Name.text)
+                for subnetpart in gatewayinf.SubnetParticipation:
+                    for subnet in subnets:
+                        gateway_ip = subnet.get('subnet').split('/')
+                        if gateway_ip[0] == subnetpart.Gateway.text:
+                            subnet_found = True
+                            if subnet.get('enable') is not None:
+                                subnetpart.UseForDefaultRoute = E. \
+                                    UseForDefaultRoute(subnet.get('enable'))
+                            if subnet.get('ip_address') is not None:
+                                subnetpart.IpAddress = E.IpAddress(
+                                    subnet.get('ip_address'))
+
+                if not subnet_found:
+                    raise ValueError('Subnet not found')
+
+        if not externalnetwork_found:
+            raise ValueError('External network not found')
+
+        return self.client.put_linked_resource(self.resource,
+                                               RelationType.EDIT,
+                                               EntityType.EDGE_GATEWAY.value,
+                                               gateway)

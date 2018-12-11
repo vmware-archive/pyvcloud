@@ -284,7 +284,32 @@ class TestGateway(BaseTestCase):
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         '''resetting back to original gateway name'''
         task = gateway_obj.edit_gateway_name(TestGateway._name)
-        result = TestGateway._client.get_task_monitor().wait_for_success(task=task)
+        result = TestGateway._client.get_task_monitor().wait_for_success(task=
+                                                                         task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0012_edit_config_ipaddress(self):
+        """It edits the config ip settings of gateway.
+        In this user can only modify Subnet participation and config Ip address
+        of gateway's external network.
+
+        Invokes the edit_config_ip_settings of the gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        ip_allocations = gateway_obj.list_configure_ip_settings()
+        ip_allocation = ip_allocations[0]
+        ipconfig = dict()
+        subnet_participation = dict()
+        subnet_participation['subnet'] = ip_allocation.get('gateway')[0]
+        subnet_participation['enable'] = True
+        subnet_participation['ip_address'] = ip_allocation.get('ip_address')[0]
+
+        ipconfig[ip_allocation.get('external_network')] = [subnet_participation
+                                                           ]
+        task = gateway_obj.edit_config_ip_settings(ipconfig)
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0098_teardown(self):

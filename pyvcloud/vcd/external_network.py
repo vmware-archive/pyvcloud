@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pyvcloud.vcd.client import E
+from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
@@ -243,3 +244,74 @@ class ExternalNetwork(object):
                                 media_type=EntityType.
                                 EXTERNAL_NETWORK.value,
                                 contents=ext_net)
+
+    def attach_port_group(self, vim_server_name, port_group_name):
+        """Attach a portgroup to an external network.
+
+        :param str vc_name: name of vc where portgroup is present.
+        :param str pg_name: name of the portgroup to be attached to
+             external network.
+
+        return: object containing vmext:VMWExternalNetwork XML element that
+             representing the external network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        ext_net = self.get_resource()
+        platform = Platform(self.client)
+
+        if not vim_server_name or not port_group_name:
+            raise InvalidParameterException(
+                "Either vCenter Server name is none or portgroup name is none")
+
+        vc_record = platform.get_vcenter(vim_server_name)
+        vc_href = vc_record.get('href')
+        pg_moref_types =  \
+            platform.get_port_group_moref_types(vim_server_name,
+                                                port_group_name)
+
+        if hasattr(ext_net,
+                   '{' + NSMAP['vmext'] + '}VimPortGroupRef'):
+            vim_port_group_refs = E_VMEXT.VimPortGroupRefs()
+            vim_object_ref1 = self.__create_vimobj_ref(
+                vc_href,
+                pg_moref_types[0],
+                pg_moref_types[1])
+
+            # Create a new VimObjectRef using vc href, portgroup moref and type
+            # from existing VimPortGroupRef. Add the VimObjectRef to
+            # VimPortGroupRefs and then delete VimPortGroupRef
+            # from external network.
+            vim_pg_ref = ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRef']
+            vc2_href = vim_pg_ref.VimServerRef.get('href')
+            vim_object_ref2 = self.__create_vimobj_ref(
+                vc2_href,
+                vim_pg_ref.MoRef.text,
+                vim_pg_ref.VimObjectType.text)
+
+            vim_port_group_refs.append(vim_object_ref1)
+            vim_port_group_refs.append(vim_object_ref2)
+            ext_net.remove(vim_pg_ref)
+            ext_net.append(vim_port_group_refs)
+        else:
+            vim_port_group_refs = \
+                ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRefs']
+            vim_object_ref1 = self.__create_vimobj_ref(
+                vc_href,
+                pg_moref_types[0],
+                pg_moref_types[1])
+            vim_port_group_refs.append(vim_object_ref1)
+
+        return self.client. \
+            put_linked_resource(ext_net, rel=RelationType.EDIT,
+                                media_type=EntityType.
+                                EXTERNAL_NETWORK.value,
+                                contents=ext_net)
+
+    def __create_vimobj_ref(self, vc_href, pg_moref, pg_type):
+        """Creates the VimObjectRef."""
+        vim_object_ref = E_VMEXT.VimObjectRef()
+        vim_object_ref.append(E_VMEXT.VimServerRef(href=vc_href))
+        vim_object_ref.append(E_VMEXT.MoRef(pg_moref))
+        vim_object_ref.append(E_VMEXT.VimObjectType(pg_type))
+
+        return vim_object_ref

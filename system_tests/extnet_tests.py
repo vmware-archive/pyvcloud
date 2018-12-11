@@ -16,6 +16,7 @@
 import unittest
 from uuid import uuid1
 
+from helpers.portgroup_helper import PortgroupHelper
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
@@ -41,6 +42,7 @@ class TestExtNet(BaseTestCase):
     _ip_range = '10.20.30.2-10.20.30.99'
     _dns1 = '8.8.8.8'
     _dns2 = '8.8.8.9'
+    _portgroupType = "DV_PORTGROUP"
     _dns_suffix = 'example.com'
     _gateway2 = '10.10.30.1'
     _ip_range2 = '10.10.30.2-10.10.30.99'
@@ -65,25 +67,14 @@ class TestExtNet(BaseTestCase):
 
         platform = Platform(TestExtNet._sys_admin_client)
         vc_name = TestExtNet._config['vc']['vcenter_host_name']
-        name_filter = ('vcName', vc_name)
-        query = TestExtNet._sys_admin_client.get_typed_query(
-            ResourceType.PORT_GROUP.value,
-            query_result_format=QueryResultFormat.RECORDS,
-            equality_filter=name_filter)
-
-        for record in list(query.execute()):
-            if record.get('networkName') == '--':
-                if not record.get('name').startswith('vxw-'):
-                    TestExtNet._port_group = record.get('name')
-                    break
-
-        self.assertIsNotNone(self._port_group,
-                             'None of the port groups are free.')
+        portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
+        pg_name = portgrouphelper.get_available_portgroup_name(vc_name,
+            TestExtNet._portgroupType)
 
         ext_net = platform.create_external_network(
             name=TestExtNet._name,
             vim_server_name=vc_name,
-            port_group_names=[TestExtNet._port_group],
+            port_group_names= [pg_name],
             gateway_ip=TestExtNet._gateway,
             netmask=TestExtNet._netmask,
             ip_ranges=[TestExtNet._ip_range],
@@ -266,6 +257,40 @@ class TestExtNet(BaseTestCase):
         for ip_range in ip_scope.IpRanges.IpRange:
             if ip_range.StartAddress == _ip_range1_start_address:
                 self.assertEqual(ip_range.EndAddress, _ip_range1_end_address)
+
+    def test_0060_attach_port_group(self):
+        """Attach a portgroup to an external network
+       This test passes if the portgroup from another vCenter is added
+       to external network successfully.
+       """
+        logger = Environment.get_default_logger()
+        platform = Platform(TestExtNet._sys_admin_client)
+        vc_name = TestExtNet._config['vc2']['vcenter_host_name']
+        portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
+        pg_name = portgrouphelper.get_available_portgroup_name(vc_name,
+            TestExtNet._portgroupType)
+
+        ext_net = self._get_ext_net(platform).attach_port_group(
+            vc_name,
+            pg_name)
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+        task=task)
+        logger.debug(
+        'Attach a portgroup to an external network'
+        + TestExtNet._name + '.')
+        ext_net = platform.get_external_network(self._name)
+        self.assertIsNotNone(ext_net)
+        vc_record = platform.get_vcenter(vc_name)
+        vc_href = vc_record.get('href')
+        vim_port_group_refs = \
+            ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRefs']
+        vc_href_found = False
+        for vim_obj_ref in vim_port_group_refs.VimObjectRef:
+            if vim_obj_ref.VimServerRef.get('href') == vc_href:
+                vc_href_found = True
+                break
+        self.assertTrue(vc_href_found)
 
     @developerModeAware
     def test_9998_teardown(self):

@@ -258,12 +258,16 @@ class ExternalNetwork(object):
         """
         ext_net = self.get_resource()
         platform = Platform(self.client)
-        if vim_server_name and port_group_name is not None:
-            vc_record = platform.get_vcenter(vim_server_name)
-            vc_href = vc_record.get('href')
-            pg_moref_types =  \
-                platform.get_port_group_moref_types(vim_server_name,
-                                                    port_group_name)
+
+        if not vim_server_name or not port_group_name:
+            raise InvalidParameterException(
+                "Either vCenter Server name is none or portgroup name is none")
+
+        vc_record = platform.get_vcenter(vim_server_name)
+        vc_href = vc_record.get('href')
+        pg_moref_types =  \
+            platform.get_port_group_moref_types(vim_server_name,
+                                                port_group_name)
 
         if hasattr(ext_net,
                    '{' + NSMAP['vmext'] + '}VimPortGroupRef'):

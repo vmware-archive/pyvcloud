@@ -68,7 +68,8 @@ class TestExtNet(BaseTestCase):
         platform = Platform(TestExtNet._sys_admin_client)
         vc_name = TestExtNet._config['vc']['vcenter_host_name']
         portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
-        pg_name = portgrouphelper.get_pgroup_name(vc_name, TestExtNet._portgroupType)
+        pg_name = portgrouphelper.get_available_portgroup_name(vc_name,
+            TestExtNet._portgroupType)
 
         ext_net = platform.create_external_network(
             name=TestExtNet._name,
@@ -266,7 +267,8 @@ class TestExtNet(BaseTestCase):
         platform = Platform(TestExtNet._sys_admin_client)
         vc_name = TestExtNet._config['vc2']['vcenter_host_name']
         portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
-        pg_name = portgrouphelper.get_pgroup_name(vc_name, TestExtNet._portgroupType)
+        pg_name = portgrouphelper.get_available_portgroup_name(vc_name,
+            TestExtNet._portgroupType)
 
         ext_net = self._get_ext_net(platform).attach_port_group(
             vc_name,

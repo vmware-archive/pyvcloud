@@ -29,10 +29,11 @@ class PortgroupHelper(object):
         """
         self.client = client
 
-    def get_pgroup_name(self, vim_server_name, portgroupType):
+    def get_available_portgroup_name(self, vim_server_name, portgroupType):
         """Fetches portgroup name using portgroup type(DV_PORTGROUP or NETWORK).
 
-        Query uses vCenter Server name as filter.
+        Query uses vCenter Server name as filter and returns the first available
+        portgroup
 
         :param str vim_server_name: vCenter server name
         :param str portgroupType: type of port group

@@ -1014,19 +1014,19 @@ class VDC(object):
         vdc_network_configuration.append(E.IpScopes(ip_scope))
         vdc_network_configuration.append(
             E.FenceMode(FenceMode.NAT_ROUTED.value))
-        if guest_vlan_allowed is not None:
+        if retain_net_info_across_deployments is not None:
             vdc_network_configuration.append(
-                E.GuestVlanAllowed(guest_vlan_allowed))
+                E.RetainNetInfoAcrossDeployments(
+                    retain_net_info_across_deployments))
         if sub_interface is not None:
             vdc_network_configuration.append(
                 E.SubInterface(sub_interface))
         if distributed_interface is not None:
             vdc_network_configuration.append(
                 E.DistributedInterface(distributed_interface))
-        if retain_net_info_across_deployments is not None:
+        if guest_vlan_allowed is not None:
             vdc_network_configuration.append(
-                E.RetainNetInfoAcrossDeployments(
-                    retain_net_info_across_deployments))
+                E.GuestVlanAllowed(guest_vlan_allowed))
         request_payload.append(vdc_network_configuration)
 
         gateway = self.get_gateway(gateway_name)

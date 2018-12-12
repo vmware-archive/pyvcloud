@@ -355,21 +355,22 @@ class Gateway(object):
                                                EntityType.EDGE_GATEWAY.value,
                                                gateway)
 
-    def update_subnet_participation(self, subnets, subnetparticipation):
+    def update_subnet_participation(self, subnets, subnet_participation):
         """It updates subnetparticipation of the gateway with subnets.
 
-        :param subnets: list of map of ipconfig settings for e.g.
-                [{'subnet': '192.168.1.1/24', 'enable': True,
-                'ip_address': '192.168.1.2'}]}
+        :param subnets: dict of ipconfig settings for e.g.
+                {192.168.1.1/24 :{'enable': True,
+        'ip_address': '192.168.1.2'}}
 
-        :param subnetparticipation: object containing gateway's subnet
+        :param subnet_participation: object containing gateway's subnet
 
         """
         subnet_found = False
-        for subnetpart in subnetparticipation:
-            for subnet in subnets:
-                gateway_ip = subnet.get('subnet').split('/')
-                if gateway_ip[0] == subnetpart.Gateway.text:
+        for subnetpart in subnet_participation:
+                subnet = subnets.get(subnetpart.Gateway.text+'/'+str(
+                    netmask_to_cidr_prefix_len(subnetpart.Gateway.text,
+                                               subnetpart.Netmask.text)))
+                if subnet is not None:
                     subnet_found = True
                     if subnet.get('enable') is not None:
                         subnetpart.UseForDefaultRoute = E. \
@@ -388,9 +389,11 @@ class Gateway(object):
         of gateway's external network.Expected subnet input should be in
         CIDR format.
 
-        :param ipconfig_settings: map of list of ipconfig settings for
-        e.g: { extNetName:[{'subnet': '192.168.1.1/24', 'enable': True,
-        'ip_address': '192.168.1.2'}]}
+        :param ipconfig_settings: dict of ipconfig settings for
+        e.g: { extNetName:{192.168.1.1/24 :{'enable': True,
+        'ip_address': '192.168.1.2'}},
+        10.20.30.1/24: {'enable': True,
+        'ip_address': '10.20.30.2'}}}
 
         :return: object containing EntityType.TASK XML data
                 representing the asynchronous task.

@@ -1030,3 +1030,27 @@ class Platform(object):
             raise EntityNotFoundException(
                 'port group \'%s\' not Found' % port_group_name)
         return port_group_moref_types
+
+    def list_port_group_names(self, vim_server_name):
+        """Fetches the list of portgroup name in a particular vCenter.
+
+        :return: list of portgroup name. ex- VM Network
+
+        :rtype: list
+
+        :raises: EntityNotFoundException: if any port group name cannot be
+        found.
+        """
+        vcfilter = 'vcName==%s' % urllib.parse.quote_plus(vim_server_name)
+        query = self.client.get_typed_query(
+            ResourceType.PORT_GROUP.value,
+            qfilter=vcfilter,
+            query_result_format=QueryResultFormat.RECORDS)
+        records = list(query.execute())
+
+        port_group_names = [record.get('name') for record in records
+                            if (record.get('networkName') == '--' and
+                                not record.get('name').startswith('vxw-'))]
+        if not port_group_names:
+            raise EntityNotFoundException('No port group name found')
+        return port_group_names

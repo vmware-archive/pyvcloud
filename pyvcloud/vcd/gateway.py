@@ -367,7 +367,7 @@ class Gateway(object):
         """
         subnet_found = False
         for subnetpart in subnet_participation:
-                subnet = subnets.get(subnetpart.Gateway.text+'/'+str(
+                subnet = subnets.get(subnetpart.Gateway.text + '/' + str(
                     netmask_to_cidr_prefix_len(subnetpart.Gateway.text,
                                                subnetpart.Netmask.text)))
                 if subnet is not None:

@@ -385,7 +385,7 @@ class Gateway(object):
     def edit_config_ip_settings(self, ipconfig_settings=None):
         """It edits the config ip settings of gateway.
 
-        In this user can only modify Subnet participation and config Ip address
+        User can only modify Subnet participation and config Ip address
         of gateway's external network.Expected subnet input should be in
         CIDR format.
 

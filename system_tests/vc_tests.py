@@ -60,11 +60,12 @@ class TestVC(BaseTestCase):
                      (vcenter.get('name'), vcenter.Url.text))
         self.assertIsNotNone(vcenter)
 
-    def test_0021_list_port_group_names(self):
+    def test_0021_list_available_port_group_names(self):
         """Test the method Platform.list_port_group_names, this method fetches
         list of portgroup name for a particular vCenter"""
         platform = Platform(TestVC._client)
-        port_group_names = platform.list_port_group_names(TestVC._vcenter_host_name)
+        port_group_names = \
+            platform.list_available_port_group_names(TestVC._vcenter_host_name)
         self.assertTrue(len(port_group_names) > 0)
 
     def test_0030_get_vc_negative(self):

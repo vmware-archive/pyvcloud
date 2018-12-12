@@ -1031,10 +1031,10 @@ class Platform(object):
                 'port group \'%s\' not Found' % port_group_name)
         return port_group_moref_types
 
-    def list_port_group_names(self, vim_server_name):
+    def list_available_port_group_names(self, vim_server_name):
         """Fetches the list of portgroup name in a particular vCenter.
 
-        :return: list of portgroup name. ex- VM Network
+        :return: list of available portgroup name. ex- VM Network
 
         :rtype: list
 

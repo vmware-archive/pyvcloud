@@ -354,3 +354,66 @@ class Gateway(object):
                                                RelationType.EDIT,
                                                EntityType.EDGE_GATEWAY.value,
                                                gateway)
+
+    def update_subnet_participation(self, subnets, subnet_participation):
+        """It updates subnetparticipation of the gateway with subnets.
+
+        :param subnets: dict of ipconfig settings for e.g.
+                {192.168.1.1/24 :{'enable': True,
+        'ip_address': '192.168.1.2'}}
+
+        :param subnet_participation: object containing gateway's subnet
+
+        """
+        subnet_found = False
+        for subnetpart in subnet_participation:
+                subnet = subnets.get(subnetpart.Gateway.text + '/' + str(
+                    netmask_to_cidr_prefix_len(subnetpart.Gateway.text,
+                                               subnetpart.Netmask.text)))
+                if subnet is not None:
+                    subnet_found = True
+                    if subnet.get('enable') is not None:
+                        subnetpart.UseForDefaultRoute = E. \
+                            UseForDefaultRoute(subnet.get('enable'))
+                    if subnet.get('ip_address') is not None:
+                        subnetpart.IpAddress = E.IpAddress(
+                            subnet.get('ip_address'))
+
+        if not subnet_found:
+            raise ValueError('Subnet not found')
+
+    def edit_config_ip_settings(self, ipconfig_settings=None):
+        """It edits the config ip settings of gateway.
+
+        User can only modify Subnet participation and config Ip address
+        of gateway's external network.Expected subnet input should be in
+        CIDR format.
+
+        :param ipconfig_settings: dict of ipconfig settings for
+        e.g: { extNetName:{192.168.1.1/24 :{'enable': True,
+        'ip_address': '192.168.1.2'}},
+        10.20.30.1/24: {'enable': True,
+        'ip_address': '10.20.30.2'}}}
+
+        :return: object containing EntityType.TASK XML data
+                representing the asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        gateway = self.get_resource()
+        externalnetwork_found = False
+        for gatewayinf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            if ipconfig_settings.get(gatewayinf.Name.text) is not None:
+                externalnetwork_found = True
+                subnets = ipconfig_settings.get(gatewayinf.Name.text)
+                self.update_subnet_participation(subnets, gatewayinf.
+                                                 SubnetParticipation)
+
+        if not externalnetwork_found:
+            raise ValueError('External network not found')
+
+        return self.client.put_linked_resource(self.resource,
+                                               RelationType.EDIT,
+                                               EntityType.EDGE_GATEWAY.value,
+                                               gateway)

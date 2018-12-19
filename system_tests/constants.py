@@ -16,3 +16,5 @@
 class GatewayConstants(object):
     name = "test_gateway1"
     description = "test_gateway1 description"
+    gateway_sub_allocated_ip_range = None
+    gateway_sub_allocated_ip_range1 = None

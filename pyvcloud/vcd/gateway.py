@@ -17,6 +17,7 @@ from pyvcloud.vcd.client import GatewayBackingConfigType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import AlreadyExistsException
+from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import get_admin_href
@@ -363,7 +364,6 @@ class Gateway(object):
         'ip_address': '192.168.1.2'}}
 
         :param subnet_participation: object containing gateway's subnet
-
         """
         subnet_found = False
         for subnetpart in subnet_participation:
@@ -412,6 +412,125 @@ class Gateway(object):
 
         if not externalnetwork_found:
             raise ValueError('External network not found')
+
+        return self.client.put_linked_resource(self.resource,
+                                               RelationType.EDIT,
+                                               EntityType.EDGE_GATEWAY.value,
+                                               gateway)
+
+    def update_ip_ranges(self, subnet_participation, ip_range, new_ip_range):
+        """Updates existing ip range element present in the sub static pool.
+
+         It updates the existing ip range element present in the sub static
+         pool of gateway.
+
+        :param subnet_participation: SubnetParticipation object of the gateway
+
+        :param ip_range: existing ip range present in the static pool
+             allocation in the network. For example, [192.168.1.2-192.168.1.20]
+
+        :param new_ip_range: new ip range to replace the existing ip range
+             present in the static pool allocation in the network
+        """
+        old_start_end_range = ip_range.split('-')
+        new_start_end_range = new_ip_range.split('-')
+        for subnetpart in subnet_participation:
+            for ip_range in subnetpart.IpRanges.IpRange:
+                if old_start_end_range[0] == ip_range.StartAddress and \
+                        old_start_end_range[1] == ip_range.EndAddress:
+                    ip_range.StartAddress = E.StartAddress(
+                        new_start_end_range[0])
+                    ip_range.EndAddress = E.EndAddress(
+                        new_start_end_range[1])
+                    return
+        raise EntityNotFoundException('IP Range \'%s\' not Found' % ip_range)
+
+    def edit_sub_allocated_ip_pools(self, ext_network=None, ip_range=None,
+                                    new_ip_change=None):
+        """Edits existing ip range present in the sub allocate pool of gateway.
+
+        :param ext_network: external network connected to the gateway
+
+        :param ip_range: existing ip range present in the static pool
+             allocation in the network. For example, [192.168.1.2-192.168.1.20]
+
+        :param new_ip_change: new ip range to replace the existing ip range
+             present in the static pool allocation in the network
+
+        :return: object containing EntityType.TASK XML data
+             representing the asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        gateway = self.get_resource()
+        for gatewayinf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            if gatewayinf.Name == ext_network:
+                self.update_ip_ranges(
+                    gatewayinf.SubnetParticipation, ip_range,
+                    new_ip_change)
+                break
+
+        return self.client.put_linked_resource(self.resource,
+                                               RelationType.EDIT,
+                                               EntityType.EDGE_GATEWAY.value,
+                                               gateway)
+
+    def get_sub_allocate_ip_ranges_element(self, subnet_participation):
+        """Gets existing ip range present in the sub allocate pool of gateway.
+
+        :param subnet_participation: SubnetParticipation object of the gateway.
+
+        return: existing ip range.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        for subnetpart in subnet_participation:
+            if hasattr(subnetpart, 'IpRanges'):
+                return subnetpart.IpRanges
+        return None
+
+    def add_ip_ranges_element(self, existing_ip_ranges, ip_ranges):
+        """Adds to the existing ip range present in the sub allocate pool.
+
+        :param existing_ip_ranges: existing ip range present in the sub
+        allocate pool.
+
+        :param ip_ranges: new ip range.
+        """
+        for range in ip_ranges:
+            range_token = range.split('-')
+            e_ip_range = E.IpRange()
+            e_ip_range.append(E.StartAddress(range_token[0]))
+            e_ip_range.append(E.EndAddress(range_token[1]))
+            existing_ip_ranges.append(e_ip_range)
+
+    def add_sub_allocated_ip_pools(self, ext_network=None, ip_ranges=None):
+        """Adds new ip range present to the sub allocate pool of gateway.
+
+        :param ext_network: external network connected to the gateway.
+
+        :param ip_ranges: list of IP ranges used for static pool
+            allocation in the network. For example, [192.168.1.2-192.168.1.49,
+            192.168.1.100-192.168.1.149]
+
+        :return: object containing EntityType.TASK XML data representing the
+            asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        gateway = self.get_resource()
+        for gatewayinf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            if gatewayinf.Name == ext_network:
+                subnet_participation = gatewayinf.SubnetParticipation
+                existing_ip_ranges = self.get_sub_allocate_ip_ranges_element(
+                    subnet_participation)
+                if existing_ip_ranges is None:
+                    existing_ip_ranges = E.IpRanges()
+                    subnet_participation.IpAddress.addnext(existing_ip_ranges)
+                self.add_ip_ranges_element(existing_ip_ranges, ip_ranges)
+                break
 
         return self.client.put_linked_resource(self.resource,
                                                RelationType.EDIT,

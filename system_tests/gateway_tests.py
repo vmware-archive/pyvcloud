@@ -35,10 +35,6 @@ class TestGateway(BaseTestCase):
     _name = GatewayConstants.name
     _description = GatewayConstants.description
     _gateway = None
-    _gateway_sub_allocated_ip_range = \
-        GatewayConstants.gateway_sub_allocated_ip_range
-    _gateway_sub_allocated_ip_range1 = \
-        GatewayConstants.gateway_sub_allocated_ip_range1
 
     def test_0000_setup(self):
         """Setup the gateway required for the other tests in this module.
@@ -316,6 +312,21 @@ class TestGateway(BaseTestCase):
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def __get_subnet_participation(self, gateway, ext_network):
+        for gatewayinf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            if gatewayinf.Name == ext_network:
+                return gatewayinf.SubnetParticipation
+
+    def __validate_ip_range(self, IpRanges, _ip_range1):
+        """ Validate if the ip range present in the existing ip ranges """
+        _ip_ranges = _ip_range1.split('-')
+        _ip_range1_start_address = _ip_ranges[0]
+        _ip_range1_end_address = _ip_ranges[1]
+        for ip_range in IpRanges.IpRange:
+            if ip_range.StartAddress == _ip_range1_start_address:
+                self.assertEqual(ip_range.EndAddress, _ip_range1_end_address)
+
     def test_0013_add_sub_allocated_ip_pools(self):
         """It adds the sub allocated ip pools to gateway.
 
@@ -326,13 +337,23 @@ class TestGateway(BaseTestCase):
         ip_allocations = gateway_obj.list_configure_ip_settings()
         ip_allocation = ip_allocations[0]
         ext_network = ip_allocation.get('external_network')
-        ip_range_list = [self._gateway_sub_allocated_ip_range]
+        config = TestGateway._config['external_network']
+        gateway_sub_allocated_ip_range = \
+            config['gateway_sub_allocated_ip_range']
+        ip_range_list = [gateway_sub_allocated_ip_range]
 
         task = gateway_obj.add_sub_allocated_ip_pools(ext_network,
                                                       ip_range_list)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        subnet_participation = self.__get_subnet_participation(
+            gateway_obj.get_resource(), ext_network)
+        ip_ranges = gateway_obj.get_sub_allocate_ip_ranges_element(
+            subnet_participation)
+        self.__validate_ip_range(ip_ranges, gateway_sub_allocated_ip_range)
 
     def test_0014_edit_sub_allocated_ip_pools(self):
         """It edits the sub allocated ip pools of gateway.
@@ -344,13 +365,26 @@ class TestGateway(BaseTestCase):
         ip_allocations = gateway_obj.list_configure_ip_settings()
         ip_allocation = ip_allocations[0]
         ext_network = ip_allocation.get('external_network')
+        config = TestGateway._config['external_network']
+        gateway_sub_allocated_ip_range = \
+            config['gateway_sub_allocated_ip_range']
+
+        gateway_sub_allocated_ip_range1 = \
+            config['new_gateway_sub_allocated_ip_range']
 
         task = gateway_obj.edit_sub_allocated_ip_pools(ext_network,
-                                         self._gateway_sub_allocated_ip_range,
-                                         self._gateway_sub_allocated_ip_range1)
+                                               gateway_sub_allocated_ip_range,
+                                               gateway_sub_allocated_ip_range1)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        subnet_participation = self.__get_subnet_participation(
+            gateway_obj.get_resource(), ext_network)
+        ip_ranges = gateway_obj.get_sub_allocate_ip_ranges_element(
+            subnet_participation)
+        self.__validate_ip_range(ip_ranges, gateway_sub_allocated_ip_range)
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

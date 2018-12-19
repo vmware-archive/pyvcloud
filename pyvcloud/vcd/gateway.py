@@ -418,7 +418,7 @@ class Gateway(object):
                                                EntityType.EDGE_GATEWAY.value,
                                                gateway)
 
-    def update_ip_ranges(self, subnet_participation, ip_range, new_ip_range):
+    def __update_ip_ranges(self, subnet_participation, ip_range, new_ip_range):
         """Updates existing ip range element present in the sub static pool.
 
          It updates the existing ip range element present in the sub static
@@ -445,8 +445,8 @@ class Gateway(object):
                     return
         raise EntityNotFoundException('IP Range \'%s\' not Found' % ip_range)
 
-    def edit_sub_allocated_ip_pools(self, ext_network=None, ip_range=None,
-                                    new_ip_change=None):
+    def edit_sub_allocated_ip_pools(self, ext_network, ip_range,
+                                    new_ip_change):
         """Edits existing ip range present in the sub allocate pool of gateway.
 
         :param ext_network: external network connected to the gateway
@@ -463,11 +463,11 @@ class Gateway(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         gateway = self.get_resource()
-        for gatewayinf in \
+        for gateway_inf in \
                 gateway.Configuration.GatewayInterfaces.GatewayInterface:
-            if gatewayinf.Name == ext_network:
-                self.update_ip_ranges(
-                    gatewayinf.SubnetParticipation, ip_range,
+            if gateway_inf.Name == ext_network:
+                self.__update_ip_ranges(
+                    gateway_inf.SubnetParticipation, ip_range,
                     new_ip_change)
                 break
 
@@ -490,7 +490,7 @@ class Gateway(object):
                 return subnetpart.IpRanges
         return None
 
-    def add_ip_ranges_element(self, existing_ip_ranges, ip_ranges):
+    def __add_ip_ranges_element(self, existing_ip_ranges, ip_ranges):
         """Adds to the existing ip range present in the sub allocate pool.
 
         :param existing_ip_ranges: existing ip range present in the sub
@@ -505,7 +505,7 @@ class Gateway(object):
             e_ip_range.append(E.EndAddress(range_token[1]))
             existing_ip_ranges.append(e_ip_range)
 
-    def add_sub_allocated_ip_pools(self, ext_network=None, ip_ranges=None):
+    def add_sub_allocated_ip_pools(self, ext_network, ip_ranges):
         """Adds new ip range present to the sub allocate pool of gateway.
 
         :param ext_network: external network connected to the gateway.
@@ -520,16 +520,16 @@ class Gateway(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         gateway = self.get_resource()
-        for gatewayinf in \
+        for gateway_inf in \
                 gateway.Configuration.GatewayInterfaces.GatewayInterface:
-            if gatewayinf.Name == ext_network:
-                subnet_participation = gatewayinf.SubnetParticipation
+            if gateway_inf.Name == ext_network:
+                subnet_participation = gateway_inf.SubnetParticipation
                 existing_ip_ranges = self.get_sub_allocate_ip_ranges_element(
                     subnet_participation)
                 if existing_ip_ranges is None:
                     existing_ip_ranges = E.IpRanges()
                     subnet_participation.IpAddress.addnext(existing_ip_ranges)
-                self.add_ip_ranges_element(existing_ip_ranges, ip_ranges)
+                self.__add_ip_ranges_element(existing_ip_ranges, ip_ranges)
                 break
 
         return self.client.put_linked_resource(self.resource,

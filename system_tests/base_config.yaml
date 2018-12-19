@@ -97,3 +97,5 @@ external_network:
     - subnet: '<gateway-ip/prefix_len>'
       ip_ranges:
         - '<start-ip>-<end-ip>'
+  gateway_sub_allocated_ip_range: '<ip-range>'
+  new_gateway_sub_allocated_ip_range: '<ip-range>'

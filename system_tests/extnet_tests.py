@@ -293,15 +293,15 @@ class TestExtNet(BaseTestCase):
         self.assertTrue(vc_href_found)
 
     def test_0061_detach_port_group(self):
-        """Detach a portgroup to an external network
+        """Detach a portgroup from an external network
        This test passes if the portgroup from another vCenter is removed
        from external network successfully.
        """
         logger = Environment.get_default_logger()
         platform = Platform(TestExtNet._sys_admin_client)
         vc_name = TestExtNet._config['vc2']['vcenter_host_name']
-        portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
-        pg_name = portgrouphelper.get_ext_net_portgroup_name(vc_name, self._name, TestExtNet._portgroupType)
+        port_group_helper = PortgroupHelper(TestExtNet._sys_admin_client)
+        pg_name = port_group_helper.get_ext_net_portgroup_name(vc_name, self._name)
 
         ext_net = self._get_ext_net(platform).detach_port_group(vc_name, pg_name)
         task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
@@ -311,8 +311,7 @@ class TestExtNet(BaseTestCase):
         self.assertIsNotNone(ext_net)
         vc_record = platform.get_vcenter(vc_name)
         vc_href = vc_record.get('href')
-        vim_port_group_ref = \
-            ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRef']
+        vim_port_group_ref = ext_net.VimPortGroupRef
         vc_href_found = False
 
         if vim_port_group_ref.VimServerRef.get('href') == vc_href:

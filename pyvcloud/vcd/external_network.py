@@ -319,8 +319,9 @@ class ExternalNetwork(object):
     def detach_port_group(self, vim_server_name, port_group_name):
         """Detach a portgroup from an external network.
 
-        :param str vc_name: name of vc where portgroup is present.
-        :param str pg_name: name of the portgroup to be detached from
+        :param str vim_server_name: name of vim server where
+        portgroup is present.
+        :param str port_group_name: name of the portgroup to be detached from
              external network.
 
         return: object containing vmext:VMWExternalNetwork XML element that
@@ -336,12 +337,16 @@ class ExternalNetwork(object):
 
         vc_record = platform.get_vcenter(vim_server_name)
         vc_href = vc_record.get('href')
-        pg_moref_types = \
-            platform.get_port_group_moref_types(vim_server_name,
-                                                port_group_name)
+        if hasattr(ext_net, 'VimPortGroupRefs'):
+            pg_moref_types = \
+                platform.get_port_group_moref_types(vim_server_name,
+                                                    port_group_name)
+        else:
+            raise \
+                InvalidParameterException("External network"
+                                          " has only one port group")
 
-        vim_port_group_refs = \
-            ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRefs']
+        vim_port_group_refs = ext_net.VimPortGroupRefs
         vim_obj_refs = vim_port_group_refs.VimObjectRef
         for vim_obj_ref in vim_obj_refs:
             if vim_obj_ref.VimServerRef.get('href') == vc_href \

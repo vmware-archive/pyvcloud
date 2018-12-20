@@ -538,12 +538,12 @@ class Gateway(object):
                                                gateway)
 
     def __remove_ip_range_elements(self, existing_ip_ranges, ip_ranges):
-        """Removes to the existing ip range present in the sub allocate pool.
+        """Removes the given IP ranges from existing IP ranges.
 
-        :param existing_ip_ranges: existing ip range present in the sub
+        :param existing_ip_ranges: existing IP range present in the sub
                 allocate pool.
 
-        :param ip_ranges: ip range needs to be removed.
+        :param ip_ranges: IP ranges that needs to be removed.
         """
         for exist_range in existing_ip_ranges.IpRange:
             for remove_range in ip_ranges:
@@ -555,12 +555,12 @@ class Gateway(object):
                     existing_ip_ranges.remove(exist_range)
 
     def remove_sub_allocated_ip_pools(self, ext_network, ip_ranges):
-        """Removes new ip range present to the sub allocate pool of gateway.
+        """Removes the given IP ranges from the sub allocated pool..
 
         :param ext_network: external network connected to the gateway.
 
-        :param ip_ranges: list of IP ranges used for static pool
-            allocation in the network. For example, [192.168.1.2-192.168.1.49,
+        :param ip_ranges: list of IP ranges that needs to be removed.
+            For example, .... For example, [192.168.1.2-192.168.1.49,
             192.168.1.100-192.168.1.149]
 
         :return: object containing EntityType.TASK XML data representing the

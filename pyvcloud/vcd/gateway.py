@@ -536,3 +536,51 @@ class Gateway(object):
                                                RelationType.EDIT,
                                                EntityType.EDGE_GATEWAY.value,
                                                gateway)
+
+    def __remove_ip_range_elements(self, existing_ip_ranges, ip_ranges):
+        """Removes to the existing ip range present in the sub allocate pool.
+
+        :param existing_ip_ranges: existing ip range present in the sub
+                allocate pool.
+
+        :param ip_ranges: ip range tha needs to be removed.
+        """
+        for exist_range in existing_ip_ranges.IpRange:
+            for remove_range in ip_ranges:
+                address = remove_range.split('-')
+                start_addr = address[0]
+                end_addr = address[1]
+                if start_addr == exist_range.StartAddress and \
+                        end_addr == exist_range.EndAddress:
+                    existing_ip_ranges.remove(exist_range)
+
+    def remove_sub_allocated_ip_pools(self, ext_network, ip_ranges):
+        """removes new ip range present to the sub allocate pool of gateway.
+
+        :param ext_network: external network connected to the gateway.
+
+        :param ip_ranges: list of IP ranges used for static pool
+            allocation in the network. For example, [192.168.1.2-192.168.1.49,
+            192.168.1.100-192.168.1.149]
+
+        :return: object containing EntityType.TASK XML data representing the
+            asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        gateway = self.get_resource()
+        for gateway_inf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            if gateway_inf.Name == ext_network:
+                subnet_participation = gateway_inf.SubnetParticipation
+                existing_ip_ranges = self.get_sub_allocate_ip_ranges_element(
+                    subnet_participation)
+                self.__remove_ip_range_elements(existing_ip_ranges, ip_ranges)
+                if not hasattr(existing_ip_ranges, 'IpRange'):
+                    subnet_participation.remove(existing_ip_ranges)
+                break
+
+        return self.client.put_linked_resource(self.resource,
+                                               RelationType.EDIT,
+                                               EntityType.EDGE_GATEWAY.value,
+                                               gateway)

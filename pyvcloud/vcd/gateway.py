@@ -543,7 +543,7 @@ class Gateway(object):
         :param existing_ip_ranges: existing ip range present in the sub
                 allocate pool.
 
-        :param ip_ranges: ip range tha needs to be removed.
+        :param ip_ranges: ip range needs to be removed.
         """
         for exist_range in existing_ip_ranges.IpRange:
             for remove_range in ip_ranges:
@@ -555,7 +555,7 @@ class Gateway(object):
                     existing_ip_ranges.remove(exist_range)
 
     def remove_sub_allocated_ip_pools(self, ext_network, ip_ranges):
-        """removes new ip range present to the sub allocate pool of gateway.
+        """Removes new ip range present to the sub allocate pool of gateway.
 
         :param ext_network: external network connected to the gateway.
 

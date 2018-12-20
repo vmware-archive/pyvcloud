@@ -560,7 +560,7 @@ class Gateway(object):
         :param ext_network: external network connected to the gateway.
 
         :param ip_ranges: list of IP ranges that needs to be removed.
-            For example, .... For example, [192.168.1.2-192.168.1.49,
+            For example, [192.168.1.2-192.168.1.49,
             192.168.1.100-192.168.1.149]
 
         :return: object containing EntityType.TASK XML data representing the

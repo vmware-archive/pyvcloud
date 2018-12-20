@@ -80,8 +80,8 @@ class PortgroupHelper(object):
             equality_filter=name_filter)
         pgroup_name = ''
         for record in list(query.execute()):
-            if record.get('networkName') == ext_net_name:
-                if not record.get('name').startswith('vxw-'):
+            if record.get('networkName') == ext_net_name \
+                    and not record.get('name').startswith('vxw-'):
                     pgroup_name = record.get('name')
                     break
         if not pgroup_name:

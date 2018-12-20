@@ -69,12 +69,12 @@ class TestExtNet(BaseTestCase):
         vc_name = TestExtNet._config['vc']['vcenter_host_name']
         portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
         pg_name = portgrouphelper.get_available_portgroup_name(vc_name,
-            TestExtNet._portgroupType)
+                                                               TestExtNet._portgroupType)
 
         ext_net = platform.create_external_network(
             name=TestExtNet._name,
             vim_server_name=vc_name,
-            port_group_names= [pg_name],
+            port_group_names=[pg_name],
             gateway_ip=TestExtNet._gateway,
             netmask=TestExtNet._netmask,
             ip_ranges=[TestExtNet._ip_range],
@@ -233,10 +233,10 @@ class TestExtNet(BaseTestCase):
 
         task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
         TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
-        task=task)
+            task=task)
         logger.debug(
-        'Modify ip-range of a subnet in external network'
-        + TestExtNet._name + '.')
+            'Modify ip-range of a subnet in external network'
+            + TestExtNet._name + '.')
 
         ext_net = platform.get_external_network(self._name)
         self.assertIsNotNone(ext_net)
@@ -244,8 +244,8 @@ class TestExtNet(BaseTestCase):
         ip_scope = config.IpScopes.IpScope
         for scope in ip_scope:
             if scope.Gateway == TestExtNet._gateway2:
-                 ip_scope = scope
-                 break
+                ip_scope = scope
+                break
         self.assertIsNotNone(ip_scope)
         self.__validate_ip_range(ip_scope, TestExtNet._ip_range4)
 
@@ -268,17 +268,17 @@ class TestExtNet(BaseTestCase):
         vc_name = TestExtNet._config['vc2']['vcenter_host_name']
         portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
         pg_name = portgrouphelper.get_available_portgroup_name(vc_name,
-            TestExtNet._portgroupType)
+                                                               TestExtNet._portgroupType)
 
         ext_net = self._get_ext_net(platform).attach_port_group(
             vc_name,
             pg_name)
         task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
         TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
-        task=task)
+            task=task)
         logger.debug(
-        'Attach a portgroup to an external network'
-        + TestExtNet._name + '.')
+            'Attach a portgroup to an external network'
+            + TestExtNet._name + '.')
         ext_net = platform.get_external_network(self._name)
         self.assertIsNotNone(ext_net)
         vc_record = platform.get_vcenter(vc_name)
@@ -291,6 +291,33 @@ class TestExtNet(BaseTestCase):
                 vc_href_found = True
                 break
         self.assertTrue(vc_href_found)
+
+    def test_0061_detach_port_group(self):
+        """Detach a portgroup to an external network
+       This test passes if the portgroup from another vCenter is removed
+       from external network successfully.
+       """
+        logger = Environment.get_default_logger()
+        platform = Platform(TestExtNet._sys_admin_client)
+        vc_name = TestExtNet._config['vc2']['vcenter_host_name']
+        portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
+        pg_name = portgrouphelper.get_ext_net_portgroup_name(vc_name, self._name, TestExtNet._portgroupType)
+
+        ext_net = self._get_ext_net(platform).detach_port_group(vc_name, pg_name)
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(task=task)
+        logger.debug('Detach a portgroup from an external network' + TestExtNet._name + '.')
+        ext_net = platform.get_external_network(self._name)
+        self.assertIsNotNone(ext_net)
+        vc_record = platform.get_vcenter(vc_name)
+        vc_href = vc_record.get('href')
+        vim_port_group_ref = \
+            ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRef']
+        vc_href_found = False
+
+        if vim_port_group_ref.VimServerRef.get('href') == vc_href:
+            vc_href_found = True
+        self.assertFalse(vc_href_found)
 
     @developerModeAware
     def test_9998_teardown(self):
@@ -316,6 +343,7 @@ class TestExtNet(BaseTestCase):
         ext_net_resource = platform.get_external_network(self._name)
         return ExternalNetwork(TestExtNet._sys_admin_client,
                                resource=ext_net_resource)
+
 
 if __name__ == '__main__':
     unittest.main()

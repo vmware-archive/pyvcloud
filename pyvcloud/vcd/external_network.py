@@ -225,9 +225,9 @@ class ExternalNetwork(object):
             if ip_scope.Gateway == gateway_ip:
                 for exist_ip_range in ip_scope.IpRanges.IpRange:
                     if exist_ip_range.StartAddress == \
-                       old_ip_addrs[0] and \
-                       exist_ip_range.EndAddress \
-                       == old_ip_addrs[1]:
+                            old_ip_addrs[0] and \
+                            exist_ip_range.EndAddress \
+                            == old_ip_addrs[1]:
                         exist_ip_range['StartAddress'] = \
                             E.StartAddress(new_ip_addrs[0])
                         exist_ip_range['EndAddress'] = \
@@ -265,7 +265,7 @@ class ExternalNetwork(object):
 
         vc_record = platform.get_vcenter(vim_server_name)
         vc_href = vc_record.get('href')
-        pg_moref_types =  \
+        pg_moref_types = \
             platform.get_port_group_moref_types(vim_server_name,
                                                 port_group_name)
 
@@ -315,3 +315,40 @@ class ExternalNetwork(object):
         vim_object_ref.append(E_VMEXT.VimObjectType(pg_type))
 
         return vim_object_ref
+
+    def detach_port_group(self, vim_server_name, port_group_name):
+        """Detach a portgroup from an external network.
+
+        :param str vc_name: name of vc where portgroup is present.
+        :param str pg_name: name of the portgroup to be detached from
+             external network.
+
+        return: object containing vmext:VMWExternalNetwork XML element that
+             representing the external network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        ext_net = self.get_resource()
+        platform = Platform(self.client)
+
+        if not vim_server_name or not port_group_name:
+            raise InvalidParameterException(
+                "Either vCenter Server name is none or portgroup name is none")
+
+        vc_record = platform.get_vcenter(vim_server_name)
+        vc_href = vc_record.get('href')
+        pg_moref_types = \
+            platform.get_port_group_moref_types(vim_server_name,
+                                                port_group_name)
+
+        vim_port_group_refs = ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRefs']
+        vim_obj_refs = vim_port_group_refs.VimObjectRef
+        for vim_obj_ref in vim_obj_refs:
+            if vim_obj_ref.VimServerRef.get('href') == vc_href and vim_obj_ref.MoRef == pg_moref_types[0] \
+                    and vim_obj_ref.VimObjectType == pg_moref_types[1]:
+                vim_port_group_refs.remove(vim_obj_ref)
+
+        return self.client. \
+            put_linked_resource(ext_net, rel=RelationType.EDIT,
+                                media_type=EntityType.
+                                EXTERNAL_NETWORK.value,
+                                contents=ext_net)

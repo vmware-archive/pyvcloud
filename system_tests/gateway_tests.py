@@ -301,12 +301,12 @@ class TestGateway(BaseTestCase):
         ip_allocation = ip_allocations[0]
         ipconfig = dict()
         subnet_participation = dict()
-        subnet_participation['subnet'] = ip_allocation.get('gateway')[0]
+        subnet = dict()
         subnet_participation['enable'] = True
         subnet_participation['ip_address'] = ip_allocation.get('ip_address')[0]
+        subnet[ip_allocation.get('gateway')[0]] = subnet_participation
 
-        ipconfig[ip_allocation.get('external_network')] = [subnet_participation
-                                                           ]
+        ipconfig[ip_allocation.get('external_network')] = subnet
         task = gateway_obj.edit_config_ip_settings(ipconfig)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
@@ -385,6 +385,32 @@ class TestGateway(BaseTestCase):
         ip_ranges = gateway_obj.get_sub_allocate_ip_ranges_element(
             subnet_participation)
         self.__validate_ip_range(ip_ranges, gateway_sub_allocated_ip_range)
+
+    def test_0015_remove_sub_allocated_ip_pools(self):
+        """Remove the sub allocated ip pools of gateway.
+
+        Invokes the remove_sub_allocated_ip_pools of the gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        ip_allocations = gateway_obj.list_configure_ip_settings()
+        ip_allocation = ip_allocations[0]
+        ext_network = ip_allocation.get('external_network')
+        config = TestGateway._config['external_network']
+        gateway_sub_allocated_ip_range1 = \
+            config['new_gateway_sub_allocated_ip_range']
+
+        task = gateway_obj.remove_sub_allocated_ip_pools(ext_network,
+                                             [gateway_sub_allocated_ip_range1])
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        subnet_participation = self.__get_subnet_participation(
+            gateway_obj.get_resource(), ext_network)
+        """removed the IpRanges form subnet_participation."""
+        self.assertFalse(hasattr(subnet_participation, 'IpRanges'))
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

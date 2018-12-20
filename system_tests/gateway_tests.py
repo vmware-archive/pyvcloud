@@ -145,7 +145,6 @@ class TestGateway(BaseTestCase):
             ip_allocations = gateway_obj.list_external_network_ip_allocations()
             self.assertTrue(bool(ip_allocations))
 
-    @unittest.skip("skipping test_0005_redeploy")
     def test_0005_redeploy(self):
         """Redeploy the gateway.
 
@@ -159,7 +158,6 @@ class TestGateway(BaseTestCase):
                 task=task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    @unittest.skip("skipping test_0005_redeploy")
     def test_0006_sync_syslog_settings(self):
         """Sync syslog settings of the gateway.
 
@@ -188,7 +186,6 @@ class TestGateway(BaseTestCase):
             exnet = ip_allocations[0].get('external_network')
             self.assertEqual(external_networks[0].get('name'), exnet)
 
-    @unittest.skip("skipping test_0005_redeploy")
     def _create_external_network(self):
         """Creates an external network from the available portgroup."""
         vc_name = TestGateway._config['vc']['vcenter_host_name']
@@ -228,7 +225,6 @@ class TestGateway(BaseTestCase):
         TestGateway._external_network2 = ext_net
         return ext_net
 
-    @unittest.skip("skipping test_0005_redeploy")
     def _delete_external_network(self, network):
         logger = Environment.get_default_logger()
         platform = Platform(TestGateway._client)
@@ -236,7 +232,6 @@ class TestGateway(BaseTestCase):
         TestGateway._client.get_task_monitor().wait_for_success(task=task)
         logger.debug('Deleted external network ' + network.get('name') + '.')
 
-    @unittest.skip("skipping test_0005_redeploy")
     def test_0008_add_external_network(self):
         """Add an exernal netowrk to the gateway.
 
@@ -261,7 +256,6 @@ class TestGateway(BaseTestCase):
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    @unittest.skip("skipping test_0005_redeploy")
     def test_0009_remove_external_network(self):
         """Remove an exernal netowrk from the gateway.
 
@@ -277,7 +271,6 @@ class TestGateway(BaseTestCase):
 
         self._delete_external_network(TestGateway._external_network2)
 
-    @unittest.skip("skipping test_0005_redeploy")
     def test_0010_edit_gateway_name(self):
         """Edit the gateway name.
 

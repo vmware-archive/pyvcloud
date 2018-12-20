@@ -340,10 +340,12 @@ class ExternalNetwork(object):
             platform.get_port_group_moref_types(vim_server_name,
                                                 port_group_name)
 
-        vim_port_group_refs = ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRefs']
+        vim_port_group_refs = \
+            ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRefs']
         vim_obj_refs = vim_port_group_refs.VimObjectRef
         for vim_obj_ref in vim_obj_refs:
-            if vim_obj_ref.VimServerRef.get('href') == vc_href and vim_obj_ref.MoRef == pg_moref_types[0] \
+            if vim_obj_ref.VimServerRef.get('href') == vc_href \
+                    and vim_obj_ref.MoRef == pg_moref_types[0] \
                     and vim_obj_ref.VimObjectType == pg_moref_types[1]:
                 vim_port_group_refs.remove(vim_obj_ref)
 

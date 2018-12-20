@@ -49,8 +49,39 @@ class PortgroupHelper(object):
         pgroup_name = ''
         for record in list(query.execute()):
             if record.get('networkName') == '--':
-                if record.get('portgroupType') == portgroupType  \
-                   and not record.get('name').startswith('vxw-'):
+                if record.get('portgroupType') == portgroupType \
+                        and not record.get('name').startswith('vxw-'):
+                    pgroup_name = record.get('name')
+                    break
+        if not pgroup_name:
+            raise EntityNotFoundException('port group not found in'
+                                          'vCenter : ' + vim_server_name)
+
+        return pgroup_name
+
+    def get_ext_net_portgroup_name(self, vim_server_name, ext_net_name):
+        """Fetches portgroup name using portgroup type(DV_PORTGROUP or NETWORK)
+         which is used by given external network.
+
+        Query uses vCenter Server name as filter and returns the first available
+        portgroup
+
+        :param str vim_server_name: vCenter server name
+        :param str ext_net_name: external network name
+        :return: name of the portgroup
+        :rtype: str
+        :raises: EntityNotFoundException: if any port group cannot be found.
+        """
+        name_filter = ('vcName', vim_server_name)
+
+        query = self.client.get_typed_query(
+            ResourceType.PORT_GROUP.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter)
+        pgroup_name = ''
+        for record in list(query.execute()):
+            if record.get('networkName') == ext_net_name \
+                    and not record.get('name').startswith('vxw-'):
                     pgroup_name = record.get('name')
                     break
         if not pgroup_name:

@@ -257,8 +257,7 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
 
         gateway = self.resource
         for inf in gateway.Configuration.GatewayInterfaces.GatewayInterface:
@@ -315,8 +314,7 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
 
         gateway = self.resource
         interfaces = gateway.Configuration.GatewayInterfaces

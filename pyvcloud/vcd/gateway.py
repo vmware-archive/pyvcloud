@@ -83,8 +83,7 @@ class Gateway(object):
         :rtype: lxml.objectify.ObjectifiedElement
 
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
 
         return self.client.post_linked_resource(
             self.resource, RelationType.CONVERT_TO_ADVANCED_GATEWAY, None,
@@ -100,8 +99,7 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
         gateway = self.resource
         current_dr_status = gateway.Configuration.DistributedRoutingEnabled
         if enable == current_dr_status:
@@ -168,8 +166,7 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
 
         return self.client.post_linked_resource(
             self.resource, RelationType.GATEWAY_REDEPLOY, None, None)
@@ -182,8 +179,7 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
 
         return self.client.post_linked_resource(
             self.resource, RelationType.GATEWAY_SYNC_SYSLOG_SETTINGS, None,

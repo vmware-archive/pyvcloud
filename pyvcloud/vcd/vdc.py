@@ -48,14 +48,11 @@ class VDC(object):
         """
         self.client = client
         self.name = name
-        if href is None:
+        if href is None and resource is None:
             raise InvalidParameterException(
                 "VDC initialization failed as arguments are either invalid "
                 "or None")
         self.href = href
-        if resource is None:
-            self.resource = None
-            self.get_resource()
         self.resource = resource
         if resource is not None:
             self.name = resource.get('name')
@@ -92,8 +89,7 @@ class VDC(object):
         :raises: MultipleRecordsException: if more than one vApp with the
             provided name are found.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         result = []
         if hasattr(self.resource, 'ResourceEntities') and \
            hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
@@ -212,8 +208,7 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         # Get hold of the template
         org_href = find_link(self.resource, RelationType.UP,
@@ -439,8 +434,7 @@ class VDC(object):
 
         :rtype: dict
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         result = []
         if hasattr(self.resource, 'ResourceEntities') and \
            hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
@@ -461,8 +455,7 @@ class VDC(object):
 
         :rtype: list
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
         links = self.client.get_linked_resource(self.resource,
                                                 RelationType.EDGE_GATEWAYS,
                                                 EntityType.RECORDS.value)
@@ -500,8 +493,7 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         disk_params = E.DiskCreateParams(E.Disk(name=name, size=str(size)))
         if iops is not None:
@@ -552,8 +544,7 @@ class VDC(object):
 
         :raises: EntityNotFoundException: if the named disk cannot be located.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         if disk_id is not None:
             disk = self.get_disk(disk_id=disk_id)
@@ -601,8 +592,7 @@ class VDC(object):
 
         :raises: EntityNotFoundException: if the named disk cannot be located.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         if disk_id is not None:
             disk = self.get_disk(disk_id=disk_id)
@@ -623,8 +613,7 @@ class VDC(object):
 
         :rtype: list
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         disks = []
         if hasattr(self.resource, 'ResourceEntities') and \
@@ -659,8 +648,7 @@ class VDC(object):
             raise InvalidParameterException(
                 'Unable to idendify disk without name or id.')
 
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         disks = self.get_disks()
 
@@ -700,8 +688,7 @@ class VDC(object):
 
         :raises: EntityNotFoundException: if the named disk cannot be located.
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         if disk_id is not None:
             disk = self.get_disk(disk_id=disk_id)
@@ -724,8 +711,7 @@ class VDC(object):
         :rtype: list
         """
         profile_list = []
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         if hasattr(self.resource, 'VdcStorageProfiles') and \
            hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
@@ -744,8 +730,7 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         if hasattr(self.resource, 'VdcStorageProfiles') and \
            hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
@@ -785,8 +770,7 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         return self.client.delete_linked_resource(self.resource,
                                                   RelationType.REMOVE, None)
@@ -896,8 +880,7 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         network_href = network_name = None
         if network is not None:
@@ -988,8 +971,7 @@ class VDC(object):
         """
         gateway_ip, netmask = cidr_to_netmask(network_cidr)
 
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         request_payload = E.OrgVdcNetwork(name=network_name)
         if description is not None:
@@ -1059,8 +1041,7 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         platform = Platform(self.client)
         parent_network = platform.get_external_network(parent_network_name)
@@ -1127,8 +1108,7 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
+        self.get_resource()
 
         request_payload = E.OrgVdcNetwork(name=network_name)
         if description is not None:
@@ -1488,8 +1468,6 @@ class VDC(object):
         if external_networks is None or len(external_networks) == 0:
             raise InvalidParameterException('external networks can not be '
                                             'Null.')
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
         resource_admin = self.client.get_resource(self.href_admin)
 
         gateway_params = E.EdgeGateway(name=name)
@@ -1570,8 +1548,6 @@ class VDC(object):
         if external_networks is None or len(external_networks) == 0:
             raise InvalidParameterException('external networks can not be '
                                             'Null.')
-        if self.resource is None:
-            self.resource = self.client.get_resource(self.href)
 
         resource_admin = self.client.get_resource(self.href_admin)
         gateway_params = E.EdgeGateway(name=name)

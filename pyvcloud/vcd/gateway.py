@@ -37,15 +37,11 @@ class Gateway(object):
         """
         self.client = client
         self.name = name
-        if href is None:
+        if href is None and resource is None:
             raise InvalidParameterException(
                 "Gateway initialization failed as arguments are either "
                 "invalid or None")
         self.href = href
-        if resource is None:
-            self.resource = None
-            self.get_resource()
-
         self.resource = resource
         if resource is not None:
             self.name = resource.get('name')
@@ -87,8 +83,7 @@ class Gateway(object):
         :rtype: lxml.objectify.ObjectifiedElement
 
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
 
         return self.client.post_linked_resource(
             self.resource, RelationType.CONVERT_TO_ADVANCED_GATEWAY, None,
@@ -104,8 +99,7 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
         gateway = self.resource
         current_dr_status = gateway.Configuration.DistributedRoutingEnabled
         if enable == current_dr_status:
@@ -172,8 +166,7 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
 
         return self.client.post_linked_resource(
             self.resource, RelationType.GATEWAY_REDEPLOY, None, None)
@@ -186,8 +179,7 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
 
         return self.client.post_linked_resource(
             self.resource, RelationType.GATEWAY_SYNC_SYSLOG_SETTINGS, None,
@@ -265,8 +257,7 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
 
         gateway = self.resource
         for inf in gateway.Configuration.GatewayInterfaces.GatewayInterface:
@@ -323,8 +314,7 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if self.resource is None:
-            self.reload()
+        self.get_resource()
 
         gateway = self.resource
         interfaces = gateway.Configuration.GatewayInterfaces

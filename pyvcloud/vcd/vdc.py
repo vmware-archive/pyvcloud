@@ -48,14 +48,11 @@ class VDC(object):
         """
         self.client = client
         self.name = name
-        if href is None:
+        if href is None and resource is None:
             raise InvalidParameterException(
                 "VDC initialization failed as arguments are either invalid "
                 "or None")
         self.href = href
-        if resource is None:
-            self.resource = None
-            self.get_resource()
         self.resource = resource
         if resource is not None:
             self.name = resource.get('name')

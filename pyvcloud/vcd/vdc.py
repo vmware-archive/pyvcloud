@@ -754,7 +754,7 @@ class VDC(object):
                      key,
                      value,
                      domain=MetadataDomain.GENERAL,
-                     visibility=MetadataVisibility.READONLY,
+                     visibility=MetadataVisibility.READ_WRITE,
                      metadata_value_type=MetadataValueType.STRING):
         """Add a metadata entry to the org vdc.
 

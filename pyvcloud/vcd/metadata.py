@@ -90,7 +90,7 @@ class Metadata(object):
                      key,
                      value,
                      domain=MetadataDomain.GENERAL,
-                     visibility=MetadataVisibility.READONLY,
+                     visibility=MetadataVisibility.READ_WRITE,
                      metadata_value_type=MetadataValueType.STRING,
                      use_admin_endpoint=False):
         """Add/update a metadata entry to/of the parent object.
@@ -164,7 +164,7 @@ class Metadata(object):
             href = get_admin_href(self.href)
 
         metadata_entry_href = \
-            f"{href}/metadata/{domain.value}/{key}"
+            f"{href}/{domain.value}/{key}"
 
         return self.client.get_resource(metadata_entry_href)
 

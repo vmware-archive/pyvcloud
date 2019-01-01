@@ -24,6 +24,8 @@ from pyvcloud.system_test_framework.utils import \
     create_customized_vapp_from_template
 from pyvcloud.system_test_framework.utils import create_empty_vapp
 
+from pyvcloud.vcd.client import MetadataDomain
+from pyvcloud.vcd.client import MetadataVisibility
 from pyvcloud.vcd.client import NetworkAdapterType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
@@ -57,6 +59,11 @@ class TestVApp(BaseTestCase):
     _customized_vapp_href = None
 
     _non_existent_vapp_name = 'non_existent_vapp_' + str(uuid1())
+
+    _metadata_key = 'key_' + str(uuid1())
+    _metadata_value = 'value_' + str(uuid1())
+    _metadata_new_value = 'new_value_' + str(uuid1())
+    _non_existent_metadata_key = 'non_existent_key_' + str(uuid1())
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -432,12 +439,57 @@ class TestVApp(BaseTestCase):
         finally:
             org_admin_client.logout()
 
-    @unittest.skip("Not enough documentation")
     def test_0100_vapp_metadata(self):
-        """Test vapp.set/get_metadata()."""
-        # TODO() - Unclear about the use of this feature, not enough
-        # documentation in vapp.py
-        pass
+        """Test the methods related to metadata manipulation in vapp.py.
+
+        This test passes if all the metadata operations are successful.
+        """
+        logger = Environment.get_default_logger()
+        vapp_name = TestVApp._empty_vapp_name
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=vapp_name)
+
+        # add new metadata
+        logger.debug(f'Adding metadata [key={TestVApp._metadata_key},'
+                     'value={TestVApp._metadata_value}]) to vApp:'
+                     '{vapp_name}')
+        task = vapp.set_metadata(
+            domain=MetadataDomain.GENERAL.value,
+            visibility=MetadataVisibility.READ_WRITE,
+            key=TestVApp._metadata_key,
+            value=TestVApp._metadata_value)
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        # retrieve metadata
+        logger.debug(f'Retriving metadata with key='
+                     '{TestVApp._metadata_key} from vApp:{vapp_name}.')
+        metadata_entries = list(vapp.get_metadata().MetadataEntry)
+        found_entry = False
+        for entry in metadata_entries:
+            if entry.TypedValue.Value.text == TestVApp._metadata_value:
+                found_entry = True
+                break
+        self.assertTrue(found_entry, f'Should have been able to retrieve '
+                        'metadata entry with key={TestVApp._metadata_key}.')
+
+        # update metadata value as org admin
+        logger.debug(f'Updtaing metadata on vApp:{vapp_name} with key='
+                     '{TestVApp._metadata_key} to value='
+                     '{TestVApp._metadata_new_value}.')
+        task = vapp.set_metadata(
+            domain=MetadataDomain.GENERAL.value,
+            visibility=MetadataVisibility.READ_WRITE,
+            key=TestVApp._metadata_key,
+            value=TestVApp._metadata_new_value)
+        TestVApp._client.get_task_monitor().wait_for_success(task)
+
+        # remove metadata entry
+        logger.debug(f'Removing metadata with '
+                     'key={TestVApp._metadata_key} from vApp:{vapp_name}.')
+        task = vapp.remove_metadata(key=TestVApp._metadata_key)
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     @developerModeAware
     def test_9998_teardown(self):

@@ -183,6 +183,25 @@ class VApp(object):
             metadata_value_type=MetadataValueType(metadata_type),
             use_admin_endpoint=False)
 
+    def remove_metadata(self, key, domain=MetadataDomain.GENERAL):
+        """Remove a metadata entry from the vApp.
+
+        :param str key: key of the metadata to be removed.
+        :param client.MetadataDomain domain: domain of the entry to be removed.
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is deleting the metadata on the vApp.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: AccessForbiddenException: If there is no metadata entry
+            corresponding to the key provided.
+        """
+        metadata = Metadata(client=self.client, resource=self.get_metadata())
+        return metadata.remove_metadata(key=key,
+                                        domain=domain,
+                                        use_admin_endpoint=False)
+
     def get_vm_moid(self, vm_name):
         """Fetch the moref of a named vm in the vApp.
 

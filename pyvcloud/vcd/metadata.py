@@ -190,10 +190,10 @@ class Metadata(object):
             indicates that the wrong api endpoint was used viz. /api instead of
             /api/admin.
         """
-        metadata = self.get_metadata_entry(
+        metadata_entry = self.get_metadata_entry(
             key=key,
             domain=domain,
             use_admin_endpoint=use_admin_endpoint)
 
-        return self.client.delete_linked_resource(metadata,
+        return self.client.delete_linked_resource(metadata_entry,
                                                   RelationType.REMOVE, None)

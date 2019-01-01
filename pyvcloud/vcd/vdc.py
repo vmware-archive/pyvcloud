@@ -733,10 +733,8 @@ class VDC(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         self.get_resource()
-        metadata_href = self.find_link(
-            self.href, RelationType.DOWN, EntityType.METADATA.value)
-        metadata = Metadata(client=self.client, href=metadata_href)
-        return metadata.get_metadata()
+        return self.client.get_linked_resource(
+            self.resource, RelationType.DOWN, EntityType.METADATA.value)
 
     def get_metadata_entry(self, key, domain=MetadataDomain.GENERAL):
         """Fetch a metadata entry identified by the domain and key.
@@ -749,10 +747,7 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        self.get_resource()
-        metadata_href = self.find_link(
-            self.href, RelationType.DOWN, EntityType.METADATA.value)
-        metadata = Metadata(client=self.client, href=metadata_href)
+        metadata = Metadata(client=self.client, resource=self.get_metadata())
         return metadata.get_metadata_entry(key, domain)
 
     def set_metadata(self,
@@ -780,10 +775,7 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        self.get_resource()
-        metadata_href = self.find_link(
-            self.href, RelationType.DOWN, EntityType.METADATA.value)
-        metadata = Metadata(client=self.client, href=metadata_href)
+        metadata = Metadata(client=self.client, resource=self.get_metadata())
         return metadata.set_metadata(key=key,
                                      value=value,
                                      domain=domain,
@@ -807,10 +799,7 @@ class VDC(object):
         :raises: AccessForbiddenException: If there is no metadata entry
             corresponding to the key provided.
         """
-        self.get_resource()
-        metadata_href = self.find_link(
-            self.href, RelationType.DOWN, EntityType.METADATA.value)
-        metadata = Metadata(client=self.client, href=metadata_href)
+        metadata = Metadata(client=self.client, resource=self.get_metadata())
         return metadata.remove_metadata(key=key,
                                         domain=domain,
                                         use_admin_endpoint=True)

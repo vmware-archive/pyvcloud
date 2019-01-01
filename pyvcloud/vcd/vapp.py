@@ -146,10 +146,8 @@ class VApp(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         self.get_resource()
-        metadata_href = self.find_link(
-            self.href, RelationType.DOWN, EntityType.METADATA.value)
-        metadata = Metadata(client=self.client, href=metadata_href)
-        return metadata.get_metadata()
+        return self.client.get_linked_resource(
+            self.resource, RelationType.DOWN, EntityType.METADATA.value)
 
     def set_metadata(self,
                      domain,
@@ -176,10 +174,7 @@ class VApp(object):
         :return: an object of type EntityType.TASK XML which represents
              the asynchronous task that is updating the metadata on the vApp.
         """
-        self.get_resource()
-        metadata_href = self.find_link(
-            self.href, RelationType.DOWN, EntityType.METADATA.value)
-        metadata = Metadata(client=self.client, href=metadata_href)
+        metadata = Metadata(client=self.client, resource=self.get_metadata())
         return metadata.set_metadata(
             key=key,
             value=value,

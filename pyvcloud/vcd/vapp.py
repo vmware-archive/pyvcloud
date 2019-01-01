@@ -24,6 +24,9 @@ from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
+from pyvcloud.vcd.client import MetadataDomain
+from pyvcloud.vcd.client import MetadataValueType
+from pyvcloud.vcd.client import MetadataVisibility
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
@@ -31,6 +34,7 @@ from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
+from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.vdc import VDC
 
 
@@ -142,43 +146,47 @@ class VApp(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         self.get_resource()
-        return self.client.get_linked_resource(
-            self.resource, RelationType.DOWN, EntityType.METADATA.value)
+        metadata_href = self.find_link(
+            self.href, RelationType.DOWN, EntityType.METADATA.value)
+        metadata = Metadata(client=self.client, href=metadata_href)
+        return metadata.get_metadata()
 
     def set_metadata(self,
                      domain,
                      visibility,
                      key,
                      value,
-                     metadata_type='MetadataStringValue'):
-        """Set metadata of the vApp.
+                     metadata_type=MetadataValueType.STRING.value):
+        """Add a new metadata entry to the vApp.
 
-        :param str domain:
-        :param str visibility:
-        :param str key:
-        :param str value:
-        :param str metadata_type:
+        If an entry with the same key exists, it will be updated with the new
+        value.
 
-        :return: an object containing EntityType.METADATA XML data which
-            represents the updated metadata associated with the vApp.
+        :param str domain: a value of SYSTEM places this MetadataEntry in the
+            SYSTEM domain. Omit or leave empty to place this MetadataEntry in
+            the GENERAL domain.
+        :param str visibility: must be one of the values specified in
+            MetadataVisibility enum.
+        :param str key: an arbitrary key name. Length cannot exceed 256 UTF-8
+            characters.
+        :param str value: value of the metadata entry.
+        :param str metadata_type: one of the types specified in
+            client.MetadataValueType enum.
 
-        :rtype: lxml.objectify.ObjectifiedElement
+        :return: an object of type EntityType.TASK XML which represents
+             the asynchronous task that is updating the metadata on the vApp.
         """
         self.get_resource()
-        new_metadata = E.Metadata(
-            E.MetadataEntry(
-                {
-                    'type': 'xs:string'
-                }, E.Domain(domain, visibility=visibility), E.Key(key),
-                E.TypedValue(
-                    {
-                        '{' + NSMAP['xsi'] + '}type': 'MetadataStringValue'
-                    }, E.Value(value))))
-        metadata = self.client.get_linked_resource(
-            self.resource, RelationType.DOWN, EntityType.METADATA.value)
-        return self.client.post_linked_resource(metadata, RelationType.ADD,
-                                                EntityType.METADATA.value,
-                                                new_metadata)
+        metadata_href = self.find_link(
+            self.href, RelationType.DOWN, EntityType.METADATA.value)
+        metadata = Metadata(client=self.client, href=metadata_href)
+        return metadata.set_metadata(
+            key=key,
+            value=value,
+            domain=MetadataDomain(domain),
+            visibility=MetadataVisibility(visibility),
+            metadata_value_type=MetadataValueType(metadata_type),
+            use_admin_endpoint=False)
 
     def get_vm_moid(self, vm_name):
         """Fetch the moref of a named vm in the vApp.

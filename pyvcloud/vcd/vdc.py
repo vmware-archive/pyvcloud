@@ -21,6 +21,9 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import GatewayBackingConfigType
+from pyvcloud.vcd.client import MetadataDomain
+from pyvcloud.vcd.client import MetadataValueType
+from pyvcloud.vcd.client import MetadataVisibility
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
@@ -28,6 +31,7 @@ from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
+from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import cidr_to_netmask
@@ -719,6 +723,97 @@ class VDC(object):
                 profile_list.append(profile)
             return profile_list
         return None
+
+    def get_metadata(self):
+        """Fetch all metadata entries of the org vdc.
+
+        :return: an object containing EntityType.METADATA XML data which
+            represents the metadata entries associated with the org vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        metadata_href = self.find_link(
+            self.href, RelationType.DOWN, EntityType.METADATA.value)
+        metadata = Metadata(client=self.client, href=metadata_href)
+        return metadata.get_metadata()
+
+    def get_metadata_entry(self, key, domain=MetadataDomain.GENERAL):
+        """Fetch a metadata entry identified by the domain and key.
+
+        :param str key: key of the entry to be fetched.
+        :param client.MetadataDomain domain: domain of the entry to be fetched.
+
+        :return: an object containing EntityType.METADATA_VALUE XML data which
+            represents the metadata entry.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        metadata_href = self.find_link(
+            self.href, RelationType.DOWN, EntityType.METADATA.value)
+        metadata = Metadata(client=self.client, href=metadata_href)
+        return metadata.get_metadata_entry(key, domain)
+
+    def set_metadata(self,
+                     key,
+                     value,
+                     domain=MetadataDomain.GENERAL,
+                     visibility=MetadataVisibility.READONLY,
+                     metadata_value_type=MetadataValueType.STRING):
+        """Add a metadata entry to the org vdc.
+
+        Only admins can perform this operation. If an entry with the same key
+        exists, it will be updated with the new value.
+
+        :param str key: an arbitrary key name. Length cannot exceed 256 UTF-8
+            characters.
+        :param str value: value of the metadata entry
+        :param client.MetadataDomain domain: domain where the new entry would
+            be put.
+        :param client.MetadataVisibility visibility: visibility of the metadata
+            entry.
+        :param client.MetadataValueType metadata_value_type:
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is updating the metadata on the org vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        metadata_href = self.find_link(
+            self.href, RelationType.DOWN, EntityType.METADATA.value)
+        metadata = Metadata(client=self.client, href=metadata_href)
+        return metadata.set_metadata(key=key,
+                                     value=value,
+                                     domain=domain,
+                                     visibility=visibility,
+                                     metadata_value_type=metadata_value_type,
+                                     use_admin_endpoint=True)
+
+    def remove_metadata(self, key, domain=MetadataDomain.GENERAL):
+        """Remove a metadata entry from the org vdc.
+
+        Only admins can perform this operation.
+
+        :param str key: key of the metadata to be removed.
+        :param client.MetadataDomain domain: domain of the entry to be removed.
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is deleting the metadata on the org vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: AccessForbiddenException: If there is no metadata entry
+            corresponding to the key provided.
+        """
+        self.get_resource()
+        metadata_href = self.find_link(
+            self.href, RelationType.DOWN, EntityType.METADATA.value)
+        metadata = Metadata(client=self.client, href=metadata_href)
+        return metadata.remove_metadata(key=key,
+                                        domain=domain,
+                                        use_admin_endpoint=True)
 
     def get_storage_profile(self, profile_name):
         """Fetch a specific Storage Profile within an org vdc.

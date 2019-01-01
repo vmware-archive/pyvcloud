@@ -298,6 +298,7 @@ class EntityType(Enum):
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'
     METADATA = 'application/vnd.vmware.vcloud.metadata+xml'
+    METADATA_VALUE = 'application/vnd.vmware.vcloud.metadata.value+xml'
     NETWORK_CONFIG_SECTION = \
         'application/vnd.vmware.vcloud.networkConfigSection+xml'
     NETWORK_CONNECTION_SECTION = \
@@ -399,6 +400,24 @@ class NetworkAdapterType(Enum):
     E1000 = 'E1000'
     E1000E = 'E1000E'
     VLANCE = 'PCNet32'
+
+
+class MetadataDomain(Enum):
+    GENERAL = 'GENERAL'
+    SYSTEM = 'SYSTEM'
+
+
+class MetadataVisibility(Enum):
+    PRIVATE = 'PRIVATE'
+    READONLY = 'READONLY'
+    READ_WRITE = 'READWRITE'
+
+
+class MetadataValueType(Enum):
+    STRING = 'MetadataStringValue'
+    NUMBER = 'MetadataNumberValue'
+    BOOLEAN = 'MetadataBooleanValue'
+    DATA_TIME = 'MetadataDateTimeValue'
 
 
 def _get_session_endpoints(session):

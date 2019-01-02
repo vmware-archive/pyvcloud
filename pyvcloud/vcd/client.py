@@ -410,8 +410,8 @@ class MetadataDomain(Enum):
 class MetadataVisibility(Enum):
     # vCD docs lists these values but only READWRITE works, others thro
     # Interal server error (500)
-    #PRIVATE = 'PRIVATE'
-    #READONLY = 'READONLY'
+    # PRIVATE = 'PRIVATE'
+    # READONLY = 'READONLY'
     READ_WRITE = 'READWRITE'
 
 

@@ -216,7 +216,8 @@ class TestExtNet(BaseTestCase):
                 ip_scope = scope
                 break
         self.assertIsNotNone(ip_scope)
-        self.__validate_ip_range(ip_scope, TestExtNet._ip_range3)
+        assert self.__validate_ip_range(ip_scope,
+                                        TestExtNet._ip_range3) == True
 
     def test_0050_modify_ip_range(self):
         """Test the method externalNetwork.modify_ip_range()
@@ -247,7 +248,39 @@ class TestExtNet(BaseTestCase):
                 ip_scope = scope
                 break
         self.assertIsNotNone(ip_scope)
-        self.__validate_ip_range(ip_scope, TestExtNet._ip_range4)
+        assert self.__validate_ip_range(ip_scope,
+                                        TestExtNet._ip_range4) == True
+
+    def test_0055_delete_ip_range(self):
+        """Test the method externalNetwork.delete_ip_range()
+       Delete ip range of a subnet in external network
+       This test passes if the ip range for a subnet is
+       deleted successfully.
+       """
+        logger = Environment.get_default_logger()
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net = self._get_ext_net(platform).delete_ip_range(
+            TestExtNet._gateway2,
+            TestExtNet._ip_range4)
+
+        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+            task=task)
+        logger.debug(
+            'Deleted ip-range of a subnet in external network'
+            + TestExtNet._name + '.')
+
+        ext_net = platform.get_external_network(self._name)
+        self.assertIsNotNone(ext_net)
+        config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
+        ip_scope = config.IpScopes.IpScope
+        for scope in ip_scope:
+            if scope.Gateway == TestExtNet._gateway2:
+                ip_scope = scope
+                break
+        self.assertIsNotNone(ip_scope)
+        assert self.__validate_ip_range(ip_scope,
+                                        TestExtNet._ip_range4) == False
 
     def __validate_ip_range(self, ip_scope, _ip_range1):
         """ Validate if the ip range present in the existing ip ranges """
@@ -255,8 +288,10 @@ class TestExtNet(BaseTestCase):
         _ip_range1_start_address = _ip_ranges[0]
         _ip_range1_end_address = _ip_ranges[1]
         for ip_range in ip_scope.IpRanges.IpRange:
-            if ip_range.StartAddress == _ip_range1_start_address:
-                self.assertEqual(ip_range.EndAddress, _ip_range1_end_address)
+            if ip_range.StartAddress == _ip_range1_start_address and \
+                    ip_range.EndAddress == _ip_range1_end_address:
+                return True
+        return False
 
     def test_0060_attach_port_group(self):
         """Attach a portgroup to an external network
@@ -301,12 +336,16 @@ class TestExtNet(BaseTestCase):
         platform = Platform(TestExtNet._sys_admin_client)
         vc_name = TestExtNet._config['vc2']['vcenter_host_name']
         port_group_helper = PortgroupHelper(TestExtNet._sys_admin_client)
-        pg_name = port_group_helper.get_ext_net_portgroup_name(vc_name, self._name)
+        pg_name = port_group_helper.get_ext_net_portgroup_name(vc_name,
+                                                               self._name)
 
-        ext_net = self._get_ext_net(platform).detach_port_group(vc_name, pg_name)
+        ext_net = self._get_ext_net(platform).detach_port_group(vc_name,
+                                                                pg_name)
         task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
-        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(task=task)
-        logger.debug('Detach a portgroup from an external network' + TestExtNet._name + '.')
+        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+            task=task)
+        logger.debug(
+            'Detach a portgroup from an external network' + TestExtNet._name + '.')
         ext_net = platform.get_external_network(self._name)
         self.assertIsNotNone(ext_net)
         vc_record = platform.get_vcenter(vc_name)

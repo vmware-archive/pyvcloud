@@ -16,13 +16,13 @@
 from datetime import datetime
 from datetime import timedelta
 from distutils.version import StrictVersion
+from enum import Enum
 import json
 import logging
 import sys
 import time
 import urllib
 
-from flufl.enum import Enum
 from lxml import etree
 from lxml import objectify
 import requests

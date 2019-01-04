@@ -19,6 +19,10 @@ import warnings
 from flufl.enum import Enum
 import requests
 
+from pyvcloud.system_test_framework.constants.gateway_constants import \
+    GatewayConstants
+from pyvcloud.vcd.client import ApiVersion
+
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import NSMAP
@@ -33,7 +37,6 @@ from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.utils import cidr_to_netmask
 
-from system_tests.constants import GatewayConstants
 
 def developerModeAware(function):
     """Decorator function to skip execution of decorated function.
@@ -819,8 +822,15 @@ class Environment(object):
         if _gateway is None:
             ext_config = cls._config['external_network']
             vdc = cls.get_test_vdc(cls._sys_admin_client)
-            gateway = vdc.create_gateway(GatewayConstants.name, [ext_config[
-                                                                     'name']])
+            api_version = cls._config['vcd']['api_version']
+            if float(api_version) <= float(
+                    ApiVersion.VERSION_30.value):
+                gateway = vdc.create_gateway_api_version_30(
+                    GatewayConstants.name, [ext_config['name']])
+            else:
+                gateway = vdc.create_gateway(GatewayConstants.name,
+                                             [ext_config['name']])
+
             cls._sys_admin_client.get_task_monitor().wait_for_success(task
                                                     = gateway.Tasks.Task[0])
 

@@ -19,12 +19,13 @@ from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
+from pyvcloud.system_test_framework.constants.gateway_constants import \
+    GatewayConstants
 
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import AccessForbiddenException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 
-from system_tests.constants import GatewayConstants
 
 class TestNetwork(BaseTestCase):
     """Test network functionalities implemented in pyvcloud."""

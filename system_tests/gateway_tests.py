@@ -14,6 +14,7 @@
 # limitations under the License.
 import unittest
 from uuid import uuid1
+from pyvcloud.vcd.client import ApiVersion
 from pyvcloud.vcd.client import GatewayBackingConfigType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
@@ -22,11 +23,11 @@ from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import Environment
+from pyvcloud.system_test_framework.constants.gateway_constants import \
+    GatewayConstants
 from pyvcloud.vcd.gateway import Gateway
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
-
-from system_tests.constants import GatewayConstants
 
 class TestGateway(BaseTestCase):
     """Test Gateway functionalities implemented in pyvcloud."""
@@ -50,7 +51,7 @@ class TestGateway(BaseTestCase):
         TestGateway._org_client = Environment.get_client_in_default_org(
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
         TestGateway._config = Environment.get_config()
-
+        TestGateway._api_version = TestGateway._config['vcd']['api_version']
         TestGateway._gateway = Environment.get_test_gateway(
             TestGateway._client)
         if TestGateway._gateway is not None:
@@ -87,12 +88,25 @@ class TestGateway(BaseTestCase):
             }
         }
         ext_net_to_rate_limit = {ext_net_resource.get('name'): {100: 100}}
-        TestGateway._gateway = TestGateway._vdc.create_gateway(
-            self._name, [ext_net_resource.get('name')], 'compact', None,
-            True, ext_net_resource.get('name'), gateway_ip, True, False,
-            False, False, True,
-            ext_net_to_participated_subnet_with_ip_settings, True,
-            ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+        if float(TestGateway._api_version) <= float(
+                ApiVersion.VERSION_30.value):
+            TestGateway._gateway = \
+                TestGateway._vdc.create_gateway_api_version_30(
+                    self._name, [ext_net_resource.get('name')], 'compact',
+                    None,
+                    True, ext_net_resource.get('name'), gateway_ip, True,
+                    False,
+                    False, False, True,
+                    ext_net_to_participated_subnet_with_ip_settings, True,
+                    ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+        else:
+            TestGateway._gateway = TestGateway._vdc.create_gateway(
+                self._name, [ext_net_resource.get('name')], 'compact', None,
+                True, ext_net_resource.get('name'), gateway_ip, True, False,
+                False, False, True,
+                ext_net_to_participated_subnet_with_ip_settings, True,
+                ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=TestGateway._gateway.Tasks.Task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
@@ -102,6 +116,9 @@ class TestGateway(BaseTestCase):
 
         Invoke the convert_to_advanced method for gateway.
         """
+        if float(TestGateway._api_version) >= float(
+                ApiVersion.VERSION_32.value):
+            return
         gateway_obj = Gateway(TestGateway._org_client, self._name,
                               TestGateway._gateway.get('href'))
         task = gateway_obj.convert_to_advanced()

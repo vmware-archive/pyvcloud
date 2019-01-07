@@ -36,6 +36,8 @@ class TestGateway(BaseTestCase):
     _name = GatewayConstants.name
     _description = GatewayConstants.description
     _gateway = None
+    _rate_limit_start = '101.0'
+    _rate_limit_end = '101.0'
 
     def test_0000_setup(self):
         """Setup the gateway required for the other tests in this module.
@@ -439,10 +441,8 @@ class TestGateway(BaseTestCase):
         ip_allocations = gateway_obj.list_configure_ip_settings()
         ip_allocation = ip_allocations[0]
         ext_network = ip_allocation.get('external_network')
-        rate_limit_start = '101.0'
-        rate_limit_end = '101.0'
         config = dict()
-        config[ext_network] = [rate_limit_start, rate_limit_end]
+        config[ext_network] = [self._rate_limit_start, self._rate_limit_end]
 
         task = gateway_obj.edit_rate_limits(config)
         result = TestGateway._client.get_task_monitor().wait_for_success(
@@ -454,9 +454,10 @@ class TestGateway(BaseTestCase):
                 gateway_obj.get_resource().Configuration.GatewayInterfaces.\
                         GatewayInterface:
             if gateway_inf.Name == ext_network:
-                self.assertEqual(rate_limit_start,
+                self.assertEqual(self._rate_limit_start,
                                  gateway_inf.InRateLimit.text)
-                self.assertEqual(rate_limit_end, gateway_inf.OutRateLimit.text)
+                self.assertEqual(self._rate_limit_end,
+                                 gateway_inf.OutRateLimit.text)
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

@@ -261,7 +261,7 @@ class TestExtNet(BaseTestCase):
         platform = Platform(TestExtNet._sys_admin_client)
         ext_net = self._get_ext_net(platform).delete_ip_range(
             TestExtNet._gateway2,
-            TestExtNet._ip_range4)
+            [TestExtNet._ip_range4])
 
         task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
         TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(

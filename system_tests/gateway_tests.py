@@ -36,6 +36,8 @@ class TestGateway(BaseTestCase):
     _name = GatewayConstants.name
     _description = GatewayConstants.description
     _gateway = None
+    _rate_limit_start = '101.0'
+    _rate_limit_end = '101.0'
 
     def test_0000_setup(self):
         """Setup the gateway required for the other tests in this module.
@@ -428,6 +430,34 @@ class TestGateway(BaseTestCase):
             gateway_obj.get_resource(), ext_network)
         """removed the IpRanges form subnet_participation."""
         self.assertFalse(hasattr(subnet_participation, 'IpRanges'))
+
+    def test_0016_edit_rate_limit(self):
+        """Edits existing rate limit of gateway.
+
+        Invokes the edit_rate_limits of the gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        ip_allocations = gateway_obj.list_configure_ip_settings()
+        ip_allocation = ip_allocations[0]
+        ext_network = ip_allocation.get('external_network')
+        config = dict()
+        config[ext_network] = [self._rate_limit_start, self._rate_limit_end]
+
+        task = gateway_obj.edit_rate_limits(config)
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        for gateway_inf in \
+                gateway_obj.get_resource().Configuration.GatewayInterfaces.\
+                        GatewayInterface:
+            if gateway_inf.Name == ext_network:
+                self.assertEqual(self._rate_limit_start,
+                                 gateway_inf.InRateLimit.text)
+                self.assertEqual(self._rate_limit_end,
+                                 gateway_inf.OutRateLimit.text)
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

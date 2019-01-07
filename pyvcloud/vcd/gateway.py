@@ -574,3 +574,31 @@ class Gateway(object):
                                                RelationType.EDIT,
                                                EntityType.EDGE_GATEWAY.value,
                                                gateway)
+
+    def edit_rate_limits(self, rate_limit_configs):
+        """Edits existing rate limit of gateway.
+
+        :param rate_limit_configs: dict of external network vs rate limit
+        for e.g.
+        { extNework1:['101.0', '101.0'],
+          extNework2:['101.0', '101.0']
+        }
+
+        :return: object containing EntityType.TASK XML data
+             representing the asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        gateway = self.get_resource()
+        for gateway_inf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            ext_name = gateway_inf.Name.text
+            if rate_limit_configs.get(ext_name) is not None:
+                rate_limit_range = rate_limit_configs.get(ext_name)
+                gateway_inf.InRateLimit = E.InRateLimit(rate_limit_range[0])
+                gateway_inf.OutRateLimit = E.OutRateLimit(rate_limit_range[1])
+
+        return self.client.put_linked_resource(self.resource,
+                                               RelationType.EDIT,
+                                               EntityType.EDGE_GATEWAY.value,
+                                               gateway)

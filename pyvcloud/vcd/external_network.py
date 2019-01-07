@@ -248,13 +248,13 @@ class ExternalNetwork(object):
                                 EXTERNAL_NETWORK.value,
                                 contents=ext_net)
 
-    def delete_ip_range(self, gateway_ip, ip_range):
+    def delete_ip_range(self, gateway_ip, ip_ranges):
         """Delete ip range of a subnet in external network.
 
         :param str gateway_ip: IP address of the gateway of external
              network.
 
-        :param str ip_range: existing ip range present in the static pool
+        :param list ip_ranges: existing ip range present in the static pool
              allocation in the network to be deleted.
              For example, [192.168.1.2-192.168.1.20]
 
@@ -266,26 +266,14 @@ class ExternalNetwork(object):
         if self.resource is None:
             self.reload()
         ext_net = self.resource
-        ip_addrs = ip_range.split('-')
+
         config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
         ip_scopes = config.IpScopes
-        ip_range_found = False
 
         for ip_scope in ip_scopes.IpScope:
             if ip_scope.Gateway == gateway_ip:
-                ip_ranges = ip_scope.IpRanges
-                for exist_ip_range in ip_scope.IpRanges.IpRange:
-                    if exist_ip_range.StartAddress == \
-                            ip_addrs[0] and \
-                            exist_ip_range.EndAddress \
-                            == ip_addrs[1]:
-                        ip_ranges.remove(exist_ip_range)
-                        ip_range_found = True
-                        break
-
-        if not ip_range_found:
-            raise EntityNotFoundException(
-                'IP Range \'%s\' not Found' % ip_range)
+                exist_ip_ranges = ip_scope.IpRanges
+                self.__remove_ip_range_elements(exist_ip_ranges, ip_ranges)
 
         return self.client. \
             put_linked_resource(ext_net, rel=RelationType.EDIT,
@@ -437,3 +425,20 @@ class ExternalNetwork(object):
         if pvdc_ext_nw_name == self.name:
             return pvdc_resource.get('name')
         return None
+
+    def __remove_ip_range_elements(self, existing_ip_ranges, ip_ranges):
+        """Removes the given IP ranges from existing IP ranges.
+
+        :param existing_ip_ranges: existing IP range present from the subnet
+               pool.
+
+        :param list ip_ranges: IP ranges that needs to be removed.
+        """
+        for exist_range in existing_ip_ranges.IpRange:
+            for remove_range in ip_ranges:
+                address = remove_range.split('-')
+                start_addr = address[0]
+                end_addr = address[1]
+                if start_addr == exist_range.StartAddress and \
+                        end_addr == exist_range.EndAddress:
+                    existing_ip_ranges.remove(exist_range)

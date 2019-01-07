@@ -19,6 +19,7 @@ import warnings
 from flufl.enum import Enum
 import requests
 
+from helpers.portgroup_helper import PortgroupHelper
 from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
 from pyvcloud.vcd.client import ApiVersion
@@ -82,6 +83,7 @@ class Environment(object):
     _external_network_name = None
     _org_href = None
     _ovdc_href = None
+    _portgroupType = "DV_PORTGROUP"
 
     _user_name_for_roles = {
         CommonRoles.CATALOG_AUTHOR: 'catalog_author',
@@ -292,18 +294,9 @@ class Environment(object):
     @classmethod
     def _create_external_network(cls):
         vc_name = cls._config['vc']['vcenter_host_name']
-        name_filter = ('vcName', vc_name)
-        query = cls._sys_admin_client.get_typed_query(
-            ResourceType.PORT_GROUP.value,
-            query_result_format=QueryResultFormat.RECORDS,
-            equality_filter=name_filter)
-
-        port_group = None
-        for record in list(query.execute()):
-            if record.get('networkName') == '--':
-                if not record.get('name').startswith('vxw-'):
-                    port_group = record.get('name')
-                    break
+        portgrouphelper = PortgroupHelper(cls._sys_admin_client)
+        port_group = portgrouphelper.get_available_portgroup_name(vc_name,
+                                                                  Environment._portgroupType)
 
         if port_group is None:
             raise Exception(

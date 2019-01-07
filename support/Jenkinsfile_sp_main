@@ -69,17 +69,17 @@ pipeline {
         string(name: 'VCD_CONNECTION_CREDENTIALS_ID', defaultValue: 'Default',
             description: 'A Jenkins file-type credential ID with the contents of a vcd_connection file.'
         )
-        string(name: 'OVERRIDE_GIT_REPOSITORY', defaultValue: '',
+        string(name: 'OVERRIDE_GIT_REPOSITORY', defaultValue: 'git@github.com:vmware/pyvcloud.git',
             description: 'The full git repository URL to clone from instead of the default.'
         )
-        string(name: 'OVERRIDE_GIT_TREEISH', defaultValue: '',
-            description: 'The branch name or commit SHA to test from OVERRIDE_GIT_REPOSITORY.'
+        string(name: 'OVERRIDE_GIT_TREEISH', defaultValue: 'master',
+            description: 'The branch name or commit SHA to test from OVERRIDE_GIT_TREEISH.'
         )
-        string(name: 'OVERRIDE_GIT_CREDENTIALS_ID', defaultValue: '',
-            description: 'A Jenkins credential ID to use when cloning from OVERRIDE_GIT_REPOSITORY.'
+        string(name: 'VCD_SETUP_JSON_URL', defaultValue: '',
+            description: 'The provided json will be used for running PySdk Test. No new vCD setup will be deployed.'
         )
-        text(name: 'VCD_CONNECTION_CONTENTS', defaultValue: '',
-            description: 'The contents of a vcd_connection file to use for samples and system tests.'
+        string(name: 'VCD_API_VERSION', defaultValue: '',
+            description: 'API version for provided VCD json'
         )
         string(name: 'VCD_BUILD', defaultValue: '',
             description: 'A VCD Build required. If empty then fetch latest build from sp-main.'
@@ -150,29 +150,29 @@ pipeline {
                 script {
                     println "Build::"+ env.VCD_BUILD
                     try {
-                       def result = triggerRemoteJob(
-                            auth: TokenAuth(apiToken: '5d8e9831b0132ee7eb7ed1adbfc20428', userName: 'rajeshk'),
-                            job: 'Preflight-4.0-STF', maxConn: 1,
-                            parameters:
-                                """TESTBED_DESCRIPTOR_NAME=simple-testbed-postgres.json.template
-                                VCD_BUILD=${VCD_BUILD}
-                                OWNER=rajeshk
-                                VCD_VAPP_PREFIX=python-sdk
-                                VCD_API_VERSION=VCLOUD_API_32_0
-                                CASSINI_API_VERSION=VCLOUD_API_31_0
-                                VCD_ORGANIZATION=Development
-                                VCD_API_ENDPOINT=https://cassini.eng.vmware.com/api
-                                VCD_ORG_VDC=DevelopmentOrgVdc
-                                VCD_ORG_VDC_NETWORK=CassiniDirectOrgVdcNetwork
-                                DELETE_FAILED_DEPLOYMENT=true""",
-                            remoteJenkinsUrl: 'https://butler-vcd-staging.svc.eng.vmware.com/', useCrumbCache: true, useJobInfoCache: true)
+                       def testbedJsonUrl = env.VCD_SETUP_JSON_URL
+                       println "Before vcd setup start, checking for json URL" + testbedJsonUrl
+                       if (testbedJsonUrl  == '') {
+                           def result = triggerRemoteJob(
+                                auth: TokenAuth(apiToken: '5d8e9831b0132ee7eb7ed1adbfc20428', userName: 'rajeshk'),
+                                job: 'Preflight-4.0-STF', maxConn: 1,
+                                parameters:
+                                    """TESTBED_DESCRIPTOR_NAME=simple-testbed-postgres.json.template
+                                    VCD_BUILD=${VCD_BUILD}
+                                    OWNER=rajeshk
+                                    VCD_VAPP_PREFIX=python-sdk
+                                    VCD_API_VERSION=VCLOUD_API_32_0
+                                    CASSINI_API_VERSION=VCLOUD_API_31_0
+                                    VCD_ORGANIZATION=Development
+                                    VCD_API_ENDPOINT=https://cassini.eng.vmware.com/api
+                                    VCD_ORG_VDC=DevelopmentOrgVdc
+                                    VCD_ORG_VDC_NETWORK=CassiniDirectOrgVdcNetwork
+                                    DELETE_FAILED_DEPLOYMENT=true""",
+                                remoteJenkinsUrl: 'https://butler-vcd-staging.svc.eng.vmware.com/', useCrumbCache: true, useJobInfoCache: true)
+                           def buildUrl = result.buildUrl
+                           testbedJsonUrl = buildUrl.toString() + "artifact/output/testbed.json"
+                        }
 
-                        def buildUrl = result.buildUrl
-                        println "Job Result: " + result.properties
-                        println "Build url: " + buildUrl.properties
-
-                        //def buildUrl = "https://sp-taas-vcd-butler.svc.eng.vmware.com/view/Preflight-4.0/job/Preflight-4.0-STF/210/"
-                        def testbedJsonUrl = buildUrl.toString() + "artifact/output/testbed.json"
                         println "testbedJson url: " + testbedJsonUrl
                         try {
                             retry(3) {
@@ -196,16 +196,25 @@ pipeline {
                 script {
                     try {
                         println "Checking out PyVcloud sdk code ..."
-
+                        println "Git repository branch::"+OVERRIDE_GIT_TREEISH
+                        println "Git repository::"+OVERRIDE_GIT_REPOSITORY
+                        if (OVERRIDE_GIT_TREEISH == '') {
+                            OVERRIDE_GIT_TREEISH = 'master'
+                        }
+                        if (OVERRIDE_GIT_REPOSITORY == '') {
+                            OVERRIDE_GIT_REPOSITORY = 'git@github.com:vmware/pyvcloud.git'
+                        }
+                        println "Git repository branchAfter::"+OVERRIDE_GIT_TREEISH
+                        println "Git repository::"+OVERRIDE_GIT_REPOSITORY
                         retry(5) {
                           checkout([$class: 'GitSCM',
-                            branches: [[name: 'master']],
+                            branches: [[name: OVERRIDE_GIT_TREEISH]],
                             doGenerateSubmoduleConfigurations: false,
                             extensions: [], submoduleCfg: [],
                             userRemoteConfigs: [
                                 [
                                     credentialsId: 'pyvcloud_vcd_connection',
-                                    url: 'git@github.com:vmware/pyvcloud.git'
+                                    url: OVERRIDE_GIT_REPOSITORY
                                 ]
                             ]
                            ])
@@ -236,13 +245,19 @@ pipeline {
                     def vc_server = props['sites'][0]['vcServers'][0]
                     def vc_username = vc_server['credentials']['username']
                     def vc_password = vc_server['credentials']['password']
+                    if(vcd_password=='ca$hc0w') {
+                        vcd_password = 'ca\\$hc0w'
+                        println vcd_password
+                    }
 
-                    vcd_password = 'ca\\$hc0w'
                     println vcd_password
-
+                    if (VCD_API_VERSION == '') {
+                        VCD_API_VERSION = 32.0
+                    }
+                    println 'API Version::'+VCD_API_VERSION
                     writeFile file: 'vcd_connection', text:"""
                     VCD_HOST=$vcd_hostname
-                    VCD_API_VERSION=32.0
+                    VCD_API_VERSION=$VCD_API_VERSION
                     VCD_ORG=System
                     VCD_USER=$vcd_username
                     VCD_PASSWORD=$vcd_password

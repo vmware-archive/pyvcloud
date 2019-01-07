@@ -42,7 +42,7 @@ class TestExtNet(BaseTestCase):
     _ip_range = '10.20.30.2-10.20.30.99'
     _dns1 = '8.8.8.8'
     _dns2 = '8.8.8.9'
-    _portgroupType = "DV_PORTGROUP"
+    _portgroupType = "NETWORK"
     _dns_suffix = 'example.com'
     _gateway2 = '10.10.30.1'
     _ip_range2 = '10.10.30.2-10.10.30.99'

@@ -25,6 +25,7 @@ from pyvcloud.system_test_framework.constants.gateway_constants import \
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import AccessForbiddenException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.vdc_network import VdcNetwork
 
 
 class TestNetwork(BaseTestCase):
@@ -47,6 +48,8 @@ class TestNetwork(BaseTestCase):
         'orgvdc_network_' + str(uuid1())
 
     _routed_org_vdc_network_name = 'routed_orgvdc_network_' + str(uuid1())
+    _routed_org_vdc_network_new_name = 'routed_orgvdc_network_new_' + str(
+        uuid1())
 
     def test_0000_setup(self):
         """Setup the networks required for the other tests in this module.
@@ -202,6 +205,29 @@ class TestNetwork(BaseTestCase):
         href = vdc.get_orgvdc_network_admin_href_by_name(
             TestNetwork._isolated_orgvdc_network_name)
         self.assertIsNotNone(href)
+
+    def test_0075_edit_name_description_and_shared_state_for_routed_network(
+            self):
+        vdc = Environment.get_test_vdc(TestNetwork._client)
+        org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
+            TestNetwork._routed_org_vdc_network_name)
+        vdcNetwork = VdcNetwork(TestNetwork._client,
+                                resource=org_vdc_routed_nw)
+        result = vdcNetwork.edit_name_description_and_shared_state(
+            TestNetwork._routed_org_vdc_network_new_name, 'Test '
+                                                          'Description', True)
+
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+        #Reseting to origin name
+        result = vdcNetwork.edit_name_description_and_shared_state(
+            TestNetwork._routed_org_vdc_network_name, None, False)
+
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
 
     def test_0080_delete_routed_orgvdc_networks(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)

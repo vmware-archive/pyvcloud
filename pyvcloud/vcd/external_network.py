@@ -16,10 +16,13 @@ from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.platform import Platform
+from pyvcloud.vcd.pvdc import PVDC
 from pyvcloud.vcd.utils import get_admin_href
 
 
@@ -392,6 +395,36 @@ class ExternalNetwork(object):
                                 media_type=EntityType.
                                 EXTERNAL_NETWORK.value,
                                 contents=ext_net)
+
+    def list_provider_vdc(self, filter=None):
+        """List associated provider vdcs.
+
+        :param str filter: filter to fetch the selected pvdc, e.g., name==pvdc*
+        :return: list of associated provider vdcs
+        :rtype: list
+        """
+        pvdc_name_list = []
+        query = self.client.get_typed_query(
+            ResourceType.PROVIDER_VDC.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=filter)
+        records = query.execute()
+        if records is None:
+            raise EntityNotFoundException('No Provider Vdc found associated')
+        for record in records:
+            href = record.get('href')
+            pvdc_name = self._get_provider_vdc_name_for_provided_ext_nw(href)
+            if pvdc_name is not None:
+                pvdc_name_list.append(pvdc_name)
+        return pvdc_name_list
+
+    def _get_provider_vdc_name_for_provided_ext_nw(self, pvdc_href):
+        pvdc = PVDC(self.client, href=pvdc_href)
+        pvdc_resource = pvdc.get_resource()
+        pvdc_ext_nw_name = pvdc_resource.AvailableNetworks.Network.get("name")
+        if pvdc_ext_nw_name == self.name:
+            return pvdc_resource.get('name')
+        return None
 
     def __remove_ip_range_elements(self, existing_ip_ranges, ip_ranges):
         """Removes the given IP ranges from existing IP ranges.

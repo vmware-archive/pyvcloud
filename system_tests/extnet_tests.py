@@ -357,6 +357,26 @@ class TestExtNet(BaseTestCase):
             vc_href_found = True
         self.assertFalse(vc_href_found)
 
+    def test_0065_list_available_pvdc(self):
+        """List available provider Vdcs.
+        """
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net_resource = platform.get_external_network(self._name)
+        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+                                    resource=ext_net_resource)
+        pvdc_name_list = extnet_obj.list_provider_vdc()
+        self.assertTrue(len(pvdc_name_list) > 0)
+
+    def test_0070_list_available_pvdc_with_filter(self):
+        """List available provider Vdcs.
+        """
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net_resource = platform.get_external_network(self._name)
+        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+                                    resource=ext_net_resource)
+        pvdc_name_list = extnet_obj.list_provider_vdc('name==pvdc*')
+        self.assertTrue(len(pvdc_name_list) > 0)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the method Platform.delete_external_network().

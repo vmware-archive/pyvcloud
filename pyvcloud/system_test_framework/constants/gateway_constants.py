@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 class GatewayConstants(object):
     name = "test_gateway1"
     description = "test_gateway1 description"
+    rate_limit_start = '101.0'
+    rate_limit_end = '101.0'

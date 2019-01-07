@@ -374,7 +374,7 @@ class TestExtNet(BaseTestCase):
         ext_net_resource = platform.get_external_network(self._name)
         extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
                                     resource=ext_net_resource)
-        pvdc_name_list = extnet_obj.list_provider_vdc('name==pvdc*')
+        pvdc_name_list = extnet_obj.list_provider_vdc('name==*')
         self.assertTrue(len(pvdc_name_list) > 0)
 
     @developerModeAware

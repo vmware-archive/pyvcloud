@@ -301,7 +301,7 @@ class ResourceType(Enum):
     ORG_VDC_NETWORK = 'orgVdcNetwork'
     ORG_VDC_RESOURCE_POOL_RELATION = 'orgVdcResourcePoolRelation'
     ORG_VDC_STORAGE_PROFILE = 'orgVdcStorageProfile'
-    PORT_GROUP = 'portgroup'
+    PORT_GROUP = 'portGroup'
     PROVIDER_VDC = 'providerVdc'
     PROVIDER_VDC_RESOURCE_POOL_RELATION = 'providerVdcResourcePoolRelation'
     PROVIDER_VDC_STORAGE_PROFILE = 'providerVdcStorageProfile'
@@ -376,14 +376,14 @@ class EntityType(Enum):
     EXTERNAL_NETWORK = 'application/vnd.vmware.admin.vmwexternalnet+xml'
     EXTERNAL_NETWORK_REFS = \
         'application/vnd.vmware.admin.vmwExternalNetworkReferences+xml'
-    HOST = 'application/vnd.vmware.admin.host+xml'
-    HOST_REFS = 'application/vnd.vmware.admin.vmwHostReferences+xml'
-    INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
-        'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
     GUEST_CUSTOMIZATION_SECTION = \
         'application/vnd.vmware.vcloud.guestCustomizationSection+xml'
     HISTORIC_USAGE = \
         'application/vnd.vmware.vcloud.metrics.historicUsageSpec+xml'
+    HOST = 'application/vnd.vmware.admin.host+xml'
+    HOST_REFS = 'application/vnd.vmware.admin.vmwHostReferences+xml'
+    INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
+        'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
     JSON = 'application/json'
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'

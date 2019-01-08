@@ -86,6 +86,16 @@ class VDC(object):
             self.reload()
         return self.resource
 
+    def get_resource_admin(self):
+        """Fetches the XML representation of the admin org vdc from vCD.
+
+        :return: object containing EntityType.VDC_ADMIN XML data representing
+            the org vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        return self.client.get_resource(self.href_admin)
+
     def get_resource_href(self, name, entity_type=EntityType.VAPP):
         """Fetches href of a vApp in the org vdc from vCD.
 
@@ -130,6 +140,28 @@ class VDC(object):
         if self.resource is not None:
             self.name = self.resource.get('name')
             self.href = self.resource.get('href')
+
+    def query_vm_by_name(self, name):
+        """Query a VM by name.
+
+        :param str name: name of the VM.
+
+        :return: object containing EntityType.VM XML data representing the VM.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: MissingRecordException: if the named VM can not be found.
+        :raises: MultipleRecordsException: if more than one VM with the provided
+            name are found.
+        """
+        vdc_filter = ('vdc==%s' % self.href)
+        name_filter = ('name', name)
+        query_obj = self.client.get_typed_query(
+            ResourceType.ADMIN_VM.value,
+            qfilter=vdc_filter,
+            equality_filter=name_filter)
+        vm_href = query_obj.find_unique().get('href')
+        return self.client.get_resource(vm_href)
 
     def get_vapp_href(self, name):
         name_filter = ('name', name)
@@ -1002,6 +1034,20 @@ class VDC(object):
 
         return self.client.delete_linked_resource(self.resource,
                                                   RelationType.REMOVE, None)
+
+    def get_vc(self):
+        """Returns the vCenter where this vdc is located.
+
+        :return: name of the vCenter server.
+
+        :rtype: str
+        """
+        self.get_resource()
+
+        vim_server_ref = self.resource.VCloudExtension[
+            '{' + NSMAP['vmext'] + '}VimObjectRef'][
+                '{' + NSMAP['vmext'] + '}VimServerRef']
+        return vim_server_ref.get('name')
 
     def get_access_settings(self):
         """Get the access settings of the vdc.

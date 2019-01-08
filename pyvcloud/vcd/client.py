@@ -438,6 +438,8 @@ class EntityType(Enum):
     UNDEPLOY = 'application/vnd.vmware.vcloud.undeployVAppParams+xml'
     UPDATE_PROVIDER_VDC_STORAGE_PROFILES = \
         'application/vnd.vmware.admin.updateProviderVdcStorageProfiles+xml'
+    UPDATE_VDC_STORAGE_PROFILES = \
+        'application/vnd.vmware.admin.updateVdcStorageProfiles+xml'
     UPLOAD_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.uploadVAppTemplateParams+xml'
     USER = 'application/vnd.vmware.admin.user+xml'
@@ -448,6 +450,8 @@ class EntityType(Enum):
     VDC_COMPUTE_POLICY_REFERENCES = \
         "application/vnd.vmware.vcloud.vdcComputePolicyReferences+xml"
     VDC_REFERENCES = 'application/vnd.vmware.admin.vdcReferences+xml'
+    VDC_STORAGE_PROFILE = 'application/vnd.vmware.vcloud.vdcStorageProfile+xml'
+    VDC_STORAGE_PROFILE_ADMIN = 'application/vnd.vmware.admin.vdcStorageProfile+xml'
     VDCS_PARAMS = 'application/vnd.vmware.admin.createVdcParams+xml'
     VIM_SERVER_REFS = 'application/vnd.vmware.admin.vmwVimServerReferences+xml'
     VIRTUAL_CENTER = 'application/vnd.vmware.admin.vmwvirtualcenter+xml'

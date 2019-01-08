@@ -141,6 +141,7 @@ class RelationType(Enum):
     CONVERT_TO_ADVANCED_GATEWAY = 'edgeGateway:convertToAdvancedGateway'
     DEPLOY = 'deploy'
     DISABLE = 'disable'
+    DISCARD_SUSPENDED_STATE = 'discardState'
     DISK_ATTACH = 'disk:attach'
     DISK_DETACH = 'disk:detach'
     DOWN = 'down'
@@ -165,6 +166,7 @@ class RelationType(Enum):
     POWER_SUSPEND = 'power:suspend'
     PUBLISH = 'publish'
     RECOMPOSE = 'recompose'
+    RECONFIGURE_VM = 'reconfigureVm'
     REMOVE = 'remove'
     RESOURCE_POOL_VM_LIST = 'resourcePoolVmList'
     SNAPSHOT_CREATE = 'snapshot:create'
@@ -233,7 +235,7 @@ class ResourceType(Enum):
     ORG_VDC_NETWORK = 'orgVdcNetwork'
     ORG_VDC_RESOURCE_POOL_RELATION = 'orgVdcResourcePoolRelation'
     ORG_VDC_STORAGE_PROFILE = 'orgVdcStorageProfile'
-    PORT_GROUP = 'portgroup'
+    PORT_GROUP = 'portGroup'
     PROVIDER_VDC = 'providerVdc'
     PROVIDER_VDC_RESOURCE_POOL_RELATION = 'providerVdcResourcePoolRelation'
     PROVIDER_VDC_STORAGE_PROFILE = 'providerVdcStorageProfile'
@@ -293,6 +295,8 @@ class EntityType(Enum):
     EXTERNAL_NETWORK = 'application/vnd.vmware.admin.vmwexternalnet+xml'
     EXTERNAL_NETWORK_REFS = \
         'application/vnd.vmware.admin.vmwExternalNetworkReferences+xml'
+    GUEST_CUSTOMIZATION_SECTION = \
+        'application/vnd.vmware.vcloud.guestCustomizationSection+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'

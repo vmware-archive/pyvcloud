@@ -119,7 +119,7 @@ class VdcNetwork(object):
                 start_address = ip_range_arr[0]
                 end_address = ip_range_arr[1]
             elif len(ip_range_arr) == 1:
-                #if provided parameter is just start Address then it will
+                # if provided parameter is just start Address then it will
                 # consider endAddress as same.
                 start_address = ip_range_arr[0]
                 end_address = ip_range_arr[0]

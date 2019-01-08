@@ -95,3 +95,39 @@ class VdcNetwork(object):
         return self.client.put_linked_resource(
             self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
             vdc_network)
+
+    def add_static_ip_pool(self, ip_ranges_param=None):
+        """Add static IP pool for org vdc nw.
+
+        :param list ip_ranges_param: list of ip ranges.
+            For ex: [2.3.3.2-2.3.3.10]
+
+        :return: object containing EntityType.TASK XML data representing the
+            asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vdc_network = self.get_resource()
+        ip_scope = vdc_network.Configuration.IpScopes.IpScope
+        if not hasattr(ip_scope, 'IpRanges'):
+            ip_scope.append(E.IpRanges())
+
+        ip_ranges_list = ip_scope.IpRanges
+        for ip_range in ip_ranges_param:
+            ip_range_arr = ip_range.split('-')
+            if len(ip_range_arr) > 1:
+                start_address = ip_range_arr[0]
+                end_address = ip_range_arr[1]
+            elif len(ip_range_arr) == 1:
+                start_address =  ip_range_arr[0]
+                end_address = ip_range_arr[0]
+            ip_range_tag = E.IpRange()
+            ip_range_tag.append(E.StartAddress(
+                start_address))
+            ip_range_tag.append(E.EndAddress(
+                end_address))
+            ip_ranges_list.append(ip_range_tag)
+
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
+            vdc_network)

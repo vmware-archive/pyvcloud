@@ -43,6 +43,7 @@ class TestNetwork(BaseTestCase):
     _isolated_orgvdc_network_netmask = '255.255.255.0'
 
     _routed_orgvdc_network_gateway_ip = '6.6.2.1/10'
+    _ip_range = '6.6.2.2-6.6.2.10'
 
     _non_existent_isolated_orgvdc_network_name = 'non_existent_isolated_' + \
         'orgvdc_network_' + str(uuid1())
@@ -227,6 +228,29 @@ class TestNetwork(BaseTestCase):
         task = TestNetwork._client.get_task_monitor().wait_for_success(
             task=result)
         self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0076_add_static_ip_pool(self):
+        vdc = Environment.get_test_vdc(TestNetwork._client)
+        org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
+            TestNetwork._routed_org_vdc_network_name)
+        vdcNetwork = VdcNetwork(TestNetwork._client,
+                                resource=org_vdc_routed_nw)
+        result = vdcNetwork.add_static_ip_pool([TestNetwork._ip_range])
+
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+        #Verify
+        vdcNetwork.reload()
+        vdc_routed_nw = vdcNetwork.get_resource()
+        ip_scope = vdc_routed_nw.Configuration.IpScopes.IpScope
+        ip_ranges = ip_scope.IpRanges.IpRange
+        match_found = False
+        for ip_range in ip_ranges:
+            if (ip_range.StartAddress+'-'+ip_range.EndAddress) == \
+                    TestNetwork._ip_range:
+                match_found = True
+        self.assertTrue(match_found)
 
 
     def test_0080_delete_routed_orgvdc_networks(self):

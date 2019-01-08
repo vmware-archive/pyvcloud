@@ -1054,3 +1054,63 @@ class Platform(object):
         if not port_group_names:
             raise EntityNotFoundException('No port group name found')
         return port_group_names
+
+    def list_hosts(self):
+        """List all hosts available in the system.
+
+        :return: list of lxml.objectify.ObjectifiedElement objects which
+            contains vmext:HostReference XML element representing
+            the host references.
+
+        :rtype: list
+        """
+        host_refs = self.client.get_linked_resource(
+            self.extension.get_resource(), RelationType.DOWN,
+            EntityType.HOST_REFS.value)
+
+        if hasattr(host_refs, 'HostReference'):
+            return host_refs.HostReference
+
+        return []
+
+    def get_host(self, name):
+        """Fetch an host resource identified by its name.
+
+        :param str name: name of the host to be retrieved.
+
+        :return: an object containing EntityType.HOST XML data
+            which represents a host.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: If the named host cannot
+            be located.
+        """
+        host_refs = self.list_hosts()
+        for host in host_refs:
+            if host.get('name') == name:
+                return self.client.get_resource(host.get('href'))
+        raise EntityNotFoundException('Host \'%s\' not found.' % name)
+
+    def enable_disable_host(self, name, enable_flag):
+        """Enable or disable a host.
+
+        :param str name: name of the host.
+        :param boolean enable_flag: True means enable, False means disable.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is enabling or disabling the host.
+            None, if the host was already in correct state.
+
+        rtype: lxml.objectify.ObjectifiedElement'
+        """
+        host = self.get_host(name)
+        if enable_flag == bool(host.Enabled):
+            return None
+        else:
+            return self.client.post_linked_resource(
+                resource=host,
+                rel=RelationType.ENABLE if enable_flag \
+                    else RelationType.DISABLE,
+                media_type=None,
+                contents=None)

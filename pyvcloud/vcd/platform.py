@@ -185,8 +185,8 @@ class Platform(object):
         for port_group_name in port_group_names:
             port_group_found = False
             if port_group_name in port_groups:
-                    port_group_found = True
-                    port_group_morefs.append(port_groups[port_group_name])
+                port_group_found = True
+                port_group_morefs.append(port_groups[port_group_name])
             if not port_group_found:
                 raise EntityNotFoundException(
                     'port group \'%s\' not Found' % port_group_name)
@@ -709,10 +709,8 @@ class Platform(object):
                 media_type=EntityType.VMW_PVDC_STORAGE_PROFILE.value)
             num_links = len(links)
             if num_links == 1:
-                if hasattr(sp_resource,
-                   '{' + NSMAP['vcloud'] + '}Units'):
-                    units = \
-                        sp_resource['{' + NSMAP['vcloud'] + '}Units']
+                if hasattr(sp_resource, '{' + NSMAP['vcloud'] + '}Units'):
+                    units = sp_resource['{' + NSMAP['vcloud'] + '}Units']
                     disable_payload = \
                         E_VMEXT.VMWProviderVdcStorageProfile(
                             name=sp_name,
@@ -958,7 +956,7 @@ class Platform(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         payload = E_VMEXT.NsxTManager(name=nsxt_manager_name)
-        if (nsxt_manager_description is not None):
+        if nsxt_manager_description is not None:
             payload.append(E.Description(nsxt_manager_description))
         payload.append(E_VMEXT.Username(nsxt_manager_username))
         payload.append(E_VMEXT.Password(nsxt_manager_password))
@@ -1107,10 +1105,8 @@ class Platform(object):
         host = self.get_host(name)
         if enable_flag == bool(host.Enabled):
             return None
-        else:
-            return self.client.post_linked_resource(
-                resource=host,
-                rel=RelationType.ENABLE if enable_flag \
-                    else RelationType.DISABLE,
-                media_type=None,
-                contents=None)
+        return self.client.post_linked_resource(
+            resource=host,
+            rel=(RelationType.ENABLE if enable_flag else RelationType.DISABLE),
+            media_type=None,
+            contents=None)

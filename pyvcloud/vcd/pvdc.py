@@ -143,8 +143,8 @@ class PVDC(object):
         profile_list = []
         self.get_resource()
 
-        if hasattr(self.resource, 'StorageProfiles') and \
-            hasattr(self.resource.StorageProfiles, 'ProviderVdcStorageProfile'):
+        if hasattr(self.resource, 'StorageProfiles') and hasattr(
+                self.resource.StorageProfiles, 'ProviderVdcStorageProfile'):
             profiles = self.resource.StorageProfiles.ProviderVdcStorageProfile
             for profile in profiles:
                 profile_list.append(profile)
@@ -163,8 +163,8 @@ class PVDC(object):
         """
         self.get_resource()
 
-        if hasattr(self.resource, 'StorageProfiles') and \
-            hasattr(self.resource.StorageProfiles, 'ProviderVdcStorageProfile'):
+        if hasattr(self.resource, 'StorageProfiles') and hasattr(
+                self.resource.StorageProfiles, 'ProviderVdcStorageProfile'):
             profiles = self.resource.StorageProfiles.ProviderVdcStorageProfile
             for profile in profiles:
                 if profile.get('name') == profile_name:

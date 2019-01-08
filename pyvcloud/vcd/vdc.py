@@ -1036,16 +1036,17 @@ class VDC(object):
         params = E.AdminVdcStorageProfile(
             E.Enabled(enabled),
             E.Units(
-                str(profile_admin_res.Units) if limit_in_mb is None \
+                str(profile_admin_res.Units) if limit_in_mb is None
                 else 'MB'),
             E.Limit(
-                int(profile_admin_res.Limit) if limit_in_mb is None \
+                int(profile_admin_res.Limit) if limit_in_mb is None
                 else limit_in_mb),
             E.Default(
-                bool(profile_admin_res.Default) if default is None \
+                bool(profile_admin_res.Default) if default is None
                 else default),
-            E.ProviderVdcStorageProfile('', href=\
-                profile_admin_res.ProviderVdcStorageProfile.get('href')),
+            E.ProviderVdcStorageProfile(
+                '',
+                href=profile_admin_res.ProviderVdcStorageProfile.get('href')),
             href=profile_admin_res.get('href'),
             name=profile_admin_res.get('name')
         )

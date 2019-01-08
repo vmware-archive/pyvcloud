@@ -96,8 +96,8 @@ class VdcNetwork(object):
             self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
             vdc_network)
 
-    def add_static_ip_pool(self, ip_ranges_param=None):
-        """Add static IP pool for org vdc nw.
+    def add_static_ip_pool(self, ip_ranges_param):
+        """Add static IP pool for org vdc network.
 
         :param list ip_ranges_param: list of ip ranges.
             For ex: [2.3.3.2-2.3.3.10]
@@ -119,6 +119,8 @@ class VdcNetwork(object):
                 start_address = ip_range_arr[0]
                 end_address = ip_range_arr[1]
             elif len(ip_range_arr) == 1:
+                #if provided parameter is just start Address then it will
+                # consider endAddress as same.
                 start_address = ip_range_arr[0]
                 end_address = ip_range_arr[0]
             ip_range_tag = E.IpRange()

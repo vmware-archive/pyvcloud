@@ -554,6 +554,24 @@ class VApp(object):
         return self._perform_power_operation(
             rel=RelationType.POWER_REBOOT, operation_name='reboot')
 
+    def set_name(self, name):
+        """Set the name of the vApp.
+
+        :param str name: new name for the vApp.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is recomposing the vApp.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        params = E.RecomposeVAppParams(
+            name=name
+        )
+        return self.client.post_linked_resource(
+            self.resource, RelationType.RECOMPOSE,
+            EntityType.RECOMPOSE_VAPP_PARAMS.value, params)
+
     def connect_vm(self, mode='DHCP', reset_mac_address=False):
         self.get_resource()
         if hasattr(self.resource, 'Children') and \

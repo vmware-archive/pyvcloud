@@ -41,7 +41,8 @@ class Task(object):
                user_name,
                org_href=None,
                task_href=None,
-               error_message=None):
+               error_message=None,
+               stack_trace=''):
         """Update a task in vCD.
 
         :param str status: new status of the task.
@@ -67,6 +68,8 @@ class Task(object):
         :param str task_href: href of the task.
         :param str error_message: represents error information from a failed
             task.
+        :param str stack_trace: stack trace of the error message from a
+            failed task.
 
         :return: an object containing EntityType.TASK XML data representing the
             updated task.
@@ -84,7 +87,7 @@ class Task(object):
         if error_message is not None:
             t.append(
                 E.Error(
-                    stackTrace='',
+                    stackTrace=stack_trace,
                     majorErrorCode='500',
                     message=error_message,
                     minorErrorCode='INTERNAL_SERVER_ERROR'))

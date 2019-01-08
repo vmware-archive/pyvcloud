@@ -119,7 +119,7 @@ class VdcNetwork(object):
                 start_address = ip_range_arr[0]
                 end_address = ip_range_arr[1]
             elif len(ip_range_arr) == 1:
-                start_address =  ip_range_arr[0]
+                start_address = ip_range_arr[0]
                 end_address = ip_range_arr[0]
             ip_range_tag = E.IpRange()
             ip_range_tag.append(E.StartAddress(

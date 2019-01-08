@@ -39,6 +39,7 @@ from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
+from pyvcloud.vcd.pvdc import PVDC
 from pyvcloud.vcd.utils import cidr_to_netmask
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import is_admin
@@ -955,6 +956,128 @@ class VDC(object):
 
         raise EntityNotFoundException(
             'Storage Profile named \'%s\' not found' % profile_name)
+
+    def get_default_storage_profile(self):
+        """Fetch the default Storage Profile within an org vdc.
+
+        :return: an object containing VdcStorageProfile XML element that
+            represents the requested storage profile.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        for profile in self.get_storage_profiles():
+            profile_admin_href = get_admin_href(profile.get('href'))
+            profile_admin_res = self.client.get_resource(profile_admin_href)
+            if bool(profile_admin_res.Default):
+                return profile_admin_res
+
+        raise EntityNotFoundException('Default Storage Profile not found')
+
+    def add_storage_profile(self, profile_name,
+                            enabled=True, default=False, limit_in_mb=0):
+        """Add a storage profile to the vdc.
+
+        :param str profile_name: name of the storage profile.
+        :param bool enabled: True, if the profile should be enabled
+            (default to True).
+        :param bool default: True, if the profile should be the default profile
+            (default to False).
+        :param int limit_in_mb: the profile limit in MB
+            (default to 0, means unlimited).
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vdc storage profiles.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        resource_admin = self.client.get_resource(self.href_admin)
+
+        pvdc_href = resource_admin.ProviderVdcReference.get('href')
+        pvdc = PVDC(self.client, href=pvdc_href)
+        pvdc_profile = pvdc.get_storage_profile(profile_name)
+
+        params = E.UpdateVdcStorageProfiles(
+            E.AddStorageProfile(
+                E.Enabled(enabled),
+                E.Units('MB'),
+                E.Limit(limit_in_mb),
+                E.Default(default),
+                E.ProviderVdcStorageProfile('', href=pvdc_profile.get('href'))
+            )
+        )
+
+        return self.client.post_linked_resource(
+            resource=resource_admin,
+            rel=RelationType.EDIT,
+            media_type=EntityType.UPDATE_VDC_STORAGE_PROFILES.value,
+            contents=params)
+
+    def update_storage_profile(self, profile_name, enabled,
+                               default=None, limit_in_mb=None):
+        """Update a storage profile of the vdc.
+
+        :param str profile_name: name of the storage profile.
+        :param bool enabled: True, if the profile should be enabled
+            (default to True).
+        :param bool default: True, if the profile should be the default profile
+            (default to None, means current value).
+        :param int limit_in_mb: the profile limit in MB
+            (default to None, means current value).
+
+        :return: an object containing AdminVdcStorageProfile XML element that
+            represents the updated storage profile.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        profile = self.get_storage_profile(profile_name)
+        profile_admin_href = get_admin_href(profile.get('href'))
+        profile_admin_res = self.client.get_resource(profile_admin_href)
+
+        params = E.AdminVdcStorageProfile(
+            E.Enabled(enabled),
+            E.Units(
+                str(profile_admin_res.Units) if limit_in_mb is None \
+                else 'MB'),
+            E.Limit(
+                int(profile_admin_res.Limit) if limit_in_mb is None \
+                else limit_in_mb),
+            E.Default(
+                bool(profile_admin_res.Default) if default is None \
+                else default),
+            E.ProviderVdcStorageProfile('', href=\
+                profile_admin_res.ProviderVdcStorageProfile.get('href')),
+            href=profile_admin_res.get('href'),
+            name=profile_admin_res.get('name')
+        )
+
+        return self.client.put_resource(
+            uri=profile_admin_res.get('href'),
+            contents=params,
+            media_type=EntityType.VDC_STORAGE_PROFILE_ADMIN.value)
+
+    def remove_storage_profile(self, profile_name):
+        """Remove a storage profile from the vdc.
+
+        :param str profile_name: name of the storage profile.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vdc storage profiles.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        resource_admin = self.client.get_resource(self.href_admin)
+
+        profile = self.get_storage_profile(profile_name)
+
+        params = E.UpdateVdcStorageProfiles(
+            E.RemoveStorageProfile('', href=profile.get('href'))
+        )
+
+        return self.client.post_linked_resource(
+            resource=resource_admin,
+            rel=RelationType.EDIT,
+            media_type=EntityType.UPDATE_VDC_STORAGE_PROFILES.value,
+            contents=params)
 
     def enable_vdc(self, enable=True):
         """Enable current vdc.

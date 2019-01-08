@@ -350,7 +350,8 @@ class EntityType(Enum):
     VDC_ADMIN = 'application/vnd.vmware.admin.vdc+xml'
     VDC_REFERENCES = 'application/vnd.vmware.admin.vdcReferences+xml'
     VDC_STORAGE_PROFILE = 'application/vnd.vmware.vcloud.vdcStorageProfile+xml'
-    VDC_STORAGE_PROFILE_ADMIN = 'application/vnd.vmware.admin.vdcStorageProfile+xml'
+    VDC_STORAGE_PROFILE_ADMIN = \
+        'application/vnd.vmware.admin.vdcStorageProfile+xml'
     VDCS_PARAMS = 'application/vnd.vmware.admin.createVdcParams+xml'
     VIM_SERVER_REFS = 'application/vnd.vmware.admin.vmwVimServerReferences+xml'
     VIRTUAL_CENTER = 'application/vnd.vmware.admin.vmwvirtualcenter+xml'

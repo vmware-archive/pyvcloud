@@ -16,6 +16,7 @@ from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.utils import get_admin_href
 
 
@@ -129,6 +130,43 @@ class VdcNetwork(object):
             ip_range_tag.append(E.EndAddress(
                 end_address))
             ip_ranges_list.append(ip_range_tag)
+
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
+            vdc_network)
+
+    def modify_static_ip_pool(self, ip_range_param, new_ip_range_param):
+        """Modify static IP pool of org vdc network.
+
+        :param str ip_range_param: ip range. For ex: 2.3.3.2-2.3.3.10
+
+        :param str new_ip_range_param: new ip range. For ex: 2.3.3.11-2.3.3.20
+
+        :return: object containing EntityType.TASK XML data representing the
+            asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vdc_network = self.get_resource()
+        ip_scope = vdc_network.Configuration.IpScopes.IpScope
+        if not hasattr(ip_scope, 'IpRanges'):
+            raise OperationNotSupportedException('No IP range found.')
+        ip_ranges_list = ip_scope.IpRanges.IpRange
+
+        for ip_range in ip_ranges_list:
+            ip_range_arr = ip_range_param.split('-')
+            new_ip_range_arr = new_ip_range_param.split('-')
+            if len(ip_range_arr) <= 1 or len(new_ip_range_arr) <= 1:
+                raise InvalidParameterException('Input params should be in '
+                                                'x.x.x.x-y.y.y.y')
+            if (ip_range.StartAddress + '-' + ip_range.EndAddress) != \
+                    ip_range_param:
+                continue
+            new_start_address = new_ip_range_arr[0]
+            new_end_address = new_ip_range_arr[1]
+
+            ip_range.StartAddress = E.StartAddress(new_start_address)
+            ip_range.EndAddress = E.StartAddress(new_end_address)
 
         return self.client.put_linked_resource(
             self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,

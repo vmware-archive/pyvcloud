@@ -602,3 +602,24 @@ class Gateway(object):
                                                RelationType.EDIT,
                                                EntityType.EDGE_GATEWAY.value,
                                                gateway)
+
+    def list_syslog_server_ip(self):
+        """List syslog server ip of the gateway.
+
+        This operation can be performed by System/Org Administrators.
+
+        :return: a dictionary that maps tenant syslog server to ip
+            address. Ex: {'Tenant Syslog server:': '1.1.1.1'}
+
+        :rtype: dict
+        """
+        gateway = self.get_resource()
+        out = {}
+        syslogserver_settings = gateway.Configuration.SyslogServerSettings.\
+            TenantSyslogServerSettings
+        if hasattr(syslogserver_settings, 'SyslogServerIp'):
+            out["Tenant Syslog server"] = syslogserver_settings.SyslogServerIp
+        else:
+            raise EntityNotFoundException('TenantSyslogServer Ip in gateway' +
+                                          self.name + 'is not set.')
+        return out

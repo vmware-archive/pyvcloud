@@ -459,6 +459,19 @@ class TestGateway(BaseTestCase):
                 self.assertEqual(self._rate_limit_end,
                                  gateway_inf.OutRateLimit.text)
 
+    @unittest.skip("Skipping test case because set syslog server is not in "
+                   "code")
+    def test_0018_list_syslog_settings(self):
+        """List Tenant syslog server of the gateway.
+
+        Invoke the list_syslog_server_ip function of gateway.
+        """
+        for client in (TestGateway._client, TestGateway._org_client):
+            gateway_obj = Gateway(client, self._name,
+                                  TestGateway._gateway.get('href'))
+            tenant_syslog_server = gateway_obj.list_syslog_server_ip()
+            self.assertEqual(len(tenant_syslog_server), 1)
+
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().
 

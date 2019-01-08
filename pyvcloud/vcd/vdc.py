@@ -138,8 +138,8 @@ class VDC(object):
         :rtype: lxml.objectify.ObjectifiedElement
 
         :raises: MissingRecordException: if the named VM can not be found.
-        :raises: MultipleRecordsException: if more than one VM with the provided
-            name are found.
+        :raises: MultipleRecordsException: if more than one VM with the
+            provided name are found.
         """
         vdc_filter = ('vdc==%s' % self.href)
         name_filter = ('name', name)

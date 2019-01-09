@@ -399,6 +399,28 @@ class TestExtNet(BaseTestCase):
         gateway_name_list = extnet_obj.list_extnw_gateways('name==*')
         self.assertTrue(len(gateway_name_list) > 0)
 
+    def test_0085_list_allocated_ip(self):
+        """List allocated ip.
+        """
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net_name = TestExtNet._config['external_network']['name']
+        ext_net_resource = platform.get_external_network(ext_net_name)
+        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+                                    resource=ext_net_resource)
+        allocated_ip_dict = extnet_obj.list_allocated_ip_address()
+        self.assertTrue(len(allocated_ip_dict) > 0)
+
+    def test_0090_list_allocated_ip__with_gateway_filter(self):
+        """List allocated ips.
+        """
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net_name = TestExtNet._config['external_network']['name']
+        ext_net_resource = platform.get_external_network(ext_net_name)
+        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+                                    resource=ext_net_resource)
+        allocated_ip_dict = extnet_obj.list_allocated_ip_address('name==*')
+        self.assertTrue(len(allocated_ip_dict) > 0)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the method Platform.delete_external_network().

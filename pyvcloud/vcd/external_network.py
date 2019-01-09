@@ -510,6 +510,46 @@ class ExternalNetwork(object):
                 return gateway_allocated_ip
         return None
 
+    def list_gateway_ip_suballocation(self, filter=None):
+        """List gateway ip sub allocation.
+
+        :param str filter: filter to fetch the selected gateway, e.g.,
+        name==gateway*
+        :return: dict gateway ip sub allocation
+        :rtype: dict
+        """
+        gateway_name_sub_allocated_ip_dict = {}
+        records = self.__execute_gateway_query_api(filter)
+        for record in records:
+            href = record.get('href')
+            gateway_entry = self. \
+                _get_gateway_sub_allocated_ip_for_provided_ext_nw(href)
+            if gateway_entry is not None:
+                gateway_name_sub_allocated_ip_dict[gateway_entry[0]] = \
+                    gateway_entry[1]
+        return gateway_name_sub_allocated_ip_dict
+
+    def _get_gateway_sub_allocated_ip_for_provided_ext_nw(self,
+                                                          gateway_href):
+
+        gateway_sub_allocated_ip = []
+        gateway_resource = self.__get_gateway_resource(gateway_href)
+        for gw_inf in gateway_resource.Configuration.GatewayInterfaces. \
+                GatewayInterface:
+            if gw_inf.InterfaceType == "uplink" and gw_inf.Name == self.name:
+                if hasattr(gw_inf.SubnetParticipation, 'IpRanges'):
+                    allocation_range = ""
+                    for ip_range in gw_inf.SubnetParticipation. \
+                            IpRanges.IpRange:
+                        start_address = ip_range.StartAddress
+                        end_address = ip_range.EndAddress
+                        allocation_range += \
+                            start_address + '-' + end_address + ','
+            gateway_sub_allocated_ip.append(gateway_resource.get('name'))
+            gateway_sub_allocated_ip.append(allocation_range)
+            return gateway_sub_allocated_ip
+        return None
+
     def __get_gateway_resource(self, gateway_href):
         gateway = Gateway(self.client, href=gateway_href)
         return gateway.get_resource()

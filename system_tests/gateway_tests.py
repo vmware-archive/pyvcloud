@@ -33,8 +33,8 @@ class TestGateway(BaseTestCase):
     """Test Gateway functionalities implemented in pyvcloud."""
     # All tests in this module should be run as System Administrator.
     _client = None
-    _name = GatewayConstants.name
-    _description = GatewayConstants.description
+    _name = GatewayConstants.name + str(uuid1())
+    _description = GatewayConstants.description + str(uuid1())
     _gateway = None
     _rate_limit_start = '101.0'
     _rate_limit_end = '101.0'

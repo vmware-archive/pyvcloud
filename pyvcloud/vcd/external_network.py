@@ -453,13 +453,7 @@ class ExternalNetwork(object):
         :rtype: list
         """
         gateway_name_list = []
-        query = self.client.get_typed_query(
-            ResourceType.EDGE_GATEWAY.value,
-            query_result_format=QueryResultFormat.RECORDS,
-            qfilter=filter)
-        records = query.execute()
-        if records is None:
-            raise EntityNotFoundException('No Gateway found associated')
+        records = self.__execute_gateway_query_api(filter)
         for record in records:
             href = record.get('href')
             gateway_name = self._get_gateway_name_for_provided_ext_nw(href)
@@ -468,10 +462,54 @@ class ExternalNetwork(object):
         return gateway_name_list
 
     def _get_gateway_name_for_provided_ext_nw(self, gateway_href):
-        gateway = Gateway(self.client, href=gateway_href)
-        gateway_resource = gateway.get_resource()
-        gateway_interfaces = gateway_resource.Configuration.GatewayInterfaces
-        for gw_inf in gateway_interfaces.GatewayInterface:
+        gateway_resource = self.__get_gateway_resource(gateway_href)
+        for gw_inf in gateway_resource.Configuration.GatewayInterfaces. \
+                GatewayInterface:
             if gw_inf.InterfaceType == "uplink" and gw_inf.Name == self.name:
                 return gateway_resource.get('name')
         return None
+
+    def list_allocated_ip_address(self, filter=None):
+        """List allocated ip address of gateways.
+
+        :param str filter: filter to fetch the selected gateway, e.g.,
+        name==gateway*
+        :return: dict allocated ip address of associated gateways
+        :rtype: dict
+        """
+        gateway_name_allocated_ip_dict = {}
+        records = self.__execute_gateway_query_api(filter)
+        for record in records:
+            href = record.get('href')
+            gateway_entry = self. \
+                _get_gateway_allocated_ip_for_provided_ext_nw(href)
+            if gateway_entry is not None:
+                gateway_name_allocated_ip_dict[gateway_entry[0]] = \
+                    gateway_entry[1]
+        return gateway_name_allocated_ip_dict
+
+    def __execute_gateway_query_api(self, filter=None):
+        query = self.client.get_typed_query(
+            ResourceType.EDGE_GATEWAY.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=filter)
+        query_records = query.execute()
+        if query_records is None:
+            raise EntityNotFoundException('No Gateway found associated')
+        return query_records
+
+    def _get_gateway_allocated_ip_for_provided_ext_nw(self, gateway_href):
+        gateway_allocated_ip = []
+        gateway_resource = self.__get_gateway_resource(gateway_href)
+        for gw_inf in gateway_resource.Configuration.GatewayInterfaces. \
+                GatewayInterface:
+            if gw_inf.InterfaceType == "uplink" and gw_inf.Name == self.name:
+                gateway_allocated_ip.append(gateway_resource.get('name'))
+                gateway_allocated_ip. \
+                    append(gw_inf.SubnetParticipation.IpAddress)
+                return gateway_allocated_ip
+        return None
+
+    def __get_gateway_resource(self, gateway_href):
+        gateway = Gateway(self.client, href=gateway_href)
+        return gateway.get_resource()

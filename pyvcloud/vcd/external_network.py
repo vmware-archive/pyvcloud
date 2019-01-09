@@ -539,11 +539,12 @@ class ExternalNetwork(object):
             if gw_inf.InterfaceType == "uplink" and gw_inf.Name == self.name:
                 if hasattr(gw_inf.SubnetParticipation, 'IpRanges'):
                     allocation_range = ""
-                    for ip_range in gw_inf.SubnetParticipation.IpRanges.IpRange:
+                    for ip_range in gw_inf.SubnetParticipation. \
+                            IpRanges.IpRange:
                         start_address = ip_range.StartAddress
                         end_address = ip_range.EndAddress
-                        allocation_range += start_address + '-' \
-                                            + end_address + ' , '
+                        allocation_range += \
+                            start_address + '-' + end_address + ','
             gateway_sub_allocated_ip.append(gateway_resource.get('name'))
             gateway_sub_allocated_ip.append(allocation_range)
             return gateway_sub_allocated_ip

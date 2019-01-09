@@ -25,8 +25,7 @@ from pyvcloud.vcd.external_network import ExternalNetwork
 from pyvcloud.vcd.platform import Platform
 
 from pyvcloud.vcd.client import NSMAP
-from pyvcloud.vcd.client import QueryResultFormat
-from pyvcloud.vcd.client import ResourceType
+from pyvcloud.vcd.gateway import Gateway
 
 
 class TestExtNet(BaseTestCase):
@@ -48,6 +47,7 @@ class TestExtNet(BaseTestCase):
     _ip_range2 = '10.10.30.2-10.10.30.99'
     _ip_range3 = '10.10.30.101-10.10.30.120'
     _ip_range4 = '10.10.30.25-10.10.30.30'
+    _gateway_sub_allocate_ip_pool_range = '2.2.3.10-2.2.3.20'
 
     def test_0000_setup(self):
         """
@@ -420,6 +420,53 @@ class TestExtNet(BaseTestCase):
                                      resource=ext_net_resource)
         allocated_ip_dict = extnet_obj.list_allocated_ip_address('name==*')
         self.assertTrue(len(allocated_ip_dict) > 0)
+
+    def test_0095_list_sub_allocated_ip(self):
+        """List sub allocated ip.
+        """
+        self.__add_sub_allocate_ip_pool()
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net_name = TestExtNet._config['external_network']['name']
+        ext_net_resource = platform.get_external_network(ext_net_name)
+        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+                                     resource=ext_net_resource)
+        sub_allocated_ip_dict = extnet_obj.list_gateway_ip_suballocation()
+        self.assertTrue(len(sub_allocated_ip_dict) > 0)
+
+    def test_0096_list_sub_allocated_ip_with_gateway_filter(self):
+        """List sub allocated ips.
+        """
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net_name = TestExtNet._config['external_network']['name']
+        ext_net_resource = platform.get_external_network(ext_net_name)
+        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+                                     resource=ext_net_resource)
+        sub_allocated_ip_dict = \
+            extnet_obj.list_gateway_ip_suballocation('name==*')
+        self.assertTrue(len(sub_allocated_ip_dict) > 0)
+        self.__remove_sub_allocate_ip_pool()
+
+    def __add_sub_allocate_ip_pool(self):
+        gateway = Environment. \
+            get_test_gateway(TestExtNet._sys_admin_client)
+        gateway_obj = Gateway(TestExtNet._sys_admin_client,
+                              href=gateway.get('href'))
+        ext_net = TestExtNet._config['external_network']['name']
+        task = gateway_obj.add_sub_allocated_ip_pools(ext_net,
+                            [TestExtNet._gateway_sub_allocate_ip_pool_range])
+        TestExtNet._sys_admin_client.get_task_monitor(). \
+            wait_for_success(task=task)
+
+    def __remove_sub_allocate_ip_pool(self):
+        gateway = Environment. \
+            get_test_gateway(TestExtNet._sys_admin_client)
+        gateway_obj = Gateway(TestExtNet._sys_admin_client,
+                              href=gateway.get('href'))
+        ext_net = TestExtNet._config['external_network']['name']
+        task = gateway_obj.remove_sub_allocated_ip_pools(ext_net,
+                            [TestExtNet._gateway_sub_allocate_ip_pool_range])
+        TestExtNet._sys_admin_client.get_task_monitor(). \
+            wait_for_success(task=task)
 
     @developerModeAware
     def test_9998_teardown(self):

@@ -217,7 +217,7 @@ class TestExtNet(BaseTestCase):
                 break
         self.assertIsNotNone(ip_scope)
         self.assertTrue(self.__validate_ip_range(ip_scope,
-                                        TestExtNet._ip_range3))
+                                                 TestExtNet._ip_range3))
 
     def test_0050_modify_ip_range(self):
         """Test the method externalNetwork.modify_ip_range()
@@ -249,7 +249,7 @@ class TestExtNet(BaseTestCase):
                 break
         self.assertIsNotNone(ip_scope)
         self.assertTrue(self.__validate_ip_range(ip_scope,
-                                        TestExtNet._ip_range4))
+                                                 TestExtNet._ip_range4))
 
     def test_0055_delete_ip_range(self):
         """Test the method externalNetwork.delete_ip_range()
@@ -363,7 +363,7 @@ class TestExtNet(BaseTestCase):
         platform = Platform(TestExtNet._sys_admin_client)
         ext_net_resource = platform.get_external_network(self._name)
         extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
-                                    resource=ext_net_resource)
+                                     resource=ext_net_resource)
         pvdc_name_list = extnet_obj.list_provider_vdc()
         self.assertTrue(len(pvdc_name_list) > 0)
 
@@ -373,7 +373,7 @@ class TestExtNet(BaseTestCase):
         platform = Platform(TestExtNet._sys_admin_client)
         ext_net_resource = platform.get_external_network(self._name)
         extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
-                                    resource=ext_net_resource)
+                                     resource=ext_net_resource)
         pvdc_name_list = extnet_obj.list_provider_vdc('name==*')
         self.assertTrue(len(pvdc_name_list) > 0)
 
@@ -384,7 +384,7 @@ class TestExtNet(BaseTestCase):
         ext_net_name = TestExtNet._config['external_network']['name']
         ext_net_resource = platform.get_external_network(ext_net_name)
         extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
-                                    resource=ext_net_resource)
+                                     resource=ext_net_resource)
         gateway_name_list = extnet_obj.list_extnw_gateways()
         self.assertTrue(len(gateway_name_list) > 0)
 
@@ -395,7 +395,7 @@ class TestExtNet(BaseTestCase):
         ext_net_name = TestExtNet._config['external_network']['name']
         ext_net_resource = platform.get_external_network(ext_net_name)
         extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
-                                    resource=ext_net_resource)
+                                     resource=ext_net_resource)
         gateway_name_list = extnet_obj.list_extnw_gateways('name==*')
         self.assertTrue(len(gateway_name_list) > 0)
 
@@ -406,18 +406,18 @@ class TestExtNet(BaseTestCase):
         ext_net_name = TestExtNet._config['external_network']['name']
         ext_net_resource = platform.get_external_network(ext_net_name)
         extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
-                                    resource=ext_net_resource)
+                                     resource=ext_net_resource)
         allocated_ip_dict = extnet_obj.list_allocated_ip_address()
         self.assertTrue(len(allocated_ip_dict) > 0)
 
-    def test_0090_list_allocated_ip__with_gateway_filter(self):
+    def test_0090_list_allocated_ip_with_gateway_filter(self):
         """List allocated ips.
         """
         platform = Platform(TestExtNet._sys_admin_client)
         ext_net_name = TestExtNet._config['external_network']['name']
         ext_net_resource = platform.get_external_network(ext_net_name)
         extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
-                                    resource=ext_net_resource)
+                                     resource=ext_net_resource)
         allocated_ip_dict = extnet_obj.list_allocated_ip_address('name==*')
         self.assertTrue(len(allocated_ip_dict) > 0)
 

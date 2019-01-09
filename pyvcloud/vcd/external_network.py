@@ -21,6 +21,7 @@ from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.gateway import Gateway
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.pvdc import PVDC
 from pyvcloud.vcd.utils import get_admin_href
@@ -442,3 +443,35 @@ class ExternalNetwork(object):
                 if start_addr == exist_range.StartAddress and \
                         end_addr == exist_range.EndAddress:
                     existing_ip_ranges.remove(exist_range)
+
+    def list_extnw_gateways(self, filter=None):
+        """List associated gateways.
+
+        :param str filter: filter to fetch the selected gateway, e.g.,
+        name==gateway*
+        :return: list of associated gateways
+        :rtype: list
+        """
+        gateway_name_list = []
+        query = self.client.get_typed_query(
+            ResourceType.EDGE_GATEWAY.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=filter)
+        records = query.execute()
+        if records is None:
+            raise EntityNotFoundException('No Gateway found associated')
+        for record in records:
+            href = record.get('href')
+            gateway_name = self._get_gateway_name_for_provided_ext_nw(href)
+            if gateway_name is not None:
+                gateway_name_list.append(gateway_name)
+        return gateway_name_list
+
+    def _get_gateway_name_for_provided_ext_nw(self, gateway_href):
+        gateway = Gateway(self.client, href=gateway_href)
+        gateway_resource = gateway.get_resource()
+        gateway_interfaces = gateway_resource.Configuration.GatewayInterfaces
+        for gw_inf in gateway_interfaces.GatewayInterface:
+            if gw_inf.InterfaceType == "uplink" and gw_inf.Name == self.name:
+                return gateway_resource.get('name')
+        return None

@@ -377,6 +377,28 @@ class TestExtNet(BaseTestCase):
         pvdc_name_list = extnet_obj.list_provider_vdc('name==*')
         self.assertTrue(len(pvdc_name_list) > 0)
 
+    def test_0075_list_available_gateways(self):
+        """List available gateways.
+        """
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net_name = TestExtNet._config['external_network']['name']
+        ext_net_resource = platform.get_external_network(ext_net_name)
+        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+                                    resource=ext_net_resource)
+        gateway_name_list = extnet_obj.list_extnw_gateways()
+        self.assertTrue(len(gateway_name_list) > 0)
+
+    def test_0080_list_available_gateways_with_filter(self):
+        """List available gateways.
+        """
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net_name = TestExtNet._config['external_network']['name']
+        ext_net_resource = platform.get_external_network(ext_net_name)
+        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+                                    resource=ext_net_resource)
+        gateway_name_list = extnet_obj.list_extnw_gateways('name==*')
+        self.assertTrue(len(gateway_name_list) > 0)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the method Platform.delete_external_network().

@@ -402,16 +402,20 @@ class NetworkAdapterType(Enum):
     VLANCE = 'PCNet32'
 
 
+# vCD docs are incomplete about valid Metadata Domain and Visibility values
+# Looking at vCD code the following are the only valid combinations, anything
+# else will generate a 400 or 500 response from vCD.
+# SYSTEM - PRIVATE
+# SYSTEM - READONLY
+# GENERAL - READWRITE
 class MetadataDomain(Enum):
     GENERAL = 'GENERAL'
     SYSTEM = 'SYSTEM'
 
 
 class MetadataVisibility(Enum):
-    # vCD docs lists these values but only READWRITE works, others thro
-    # Interal server error (500)
-    # PRIVATE = 'PRIVATE'
-    # READONLY = 'READONLY'
+    PRIVATE = 'PRIVATE'
+    READONLY = 'READONLY'
     READ_WRITE = 'READWRITE'
 
 

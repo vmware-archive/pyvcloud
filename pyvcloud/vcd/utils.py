@@ -507,6 +507,63 @@ def access_settings_to_dict(control_access_params):
     return result
 
 
+def metadata_to_dict(metadata):
+    """Converts a lxml.objectify.ObjectifiedElement metadata object to a dict.
+
+    All MetadataEntry tags in the metadata object is converted to simple
+    key-value pair.
+
+    :param lxml.objectify.ObjectifiedElement metadata: an object containing
+        EntityType.METADATA XML data.
+
+    :return: dictionary representation of metadata entries. All keys and values
+        will be string.
+
+    :rtype: dict
+    """
+    result = {}
+    if hasattr(metadata, 'MetadataEntry'):
+        for entry in metadata.MetadataEntry:
+            key, value = metadata_entry_to_tuple(entry)
+            result[key] = value
+    return result
+
+
+def metadata_entry_to_tuple(metadata_entry):
+    """Converts a lxml.objectify.ObjectifiedElement metadata entry to a tuple.
+
+    The metadata entry object is converted into a simple (key, value) tuple.
+
+    :param lxml.objectify.ObjectifiedElement metadata_entry: an object
+        containing MetadataEntry XML data. This tag is a child tag of
+        EntityType.Metadata XML.
+
+    :return: a key-value tuple respresnting the metadata entry. Both key and
+        value will be strings.
+
+    :rtype: tuple
+    """
+    key = metadata_entry.Key.text
+    value = metadata_entry.TypedValue.Value.text
+    return (key, value)
+
+
+def extract_metadata_value(metadata_value):
+    """Converts a lxml.objectify.ObjectifiedElement metadata value to a string.
+
+    The textual representation of the metadata value is extracted out of the
+    metadata value object.
+
+    :param lxml.objectify.ObjectifiedElement metadata_value: an object
+        containing EntityType.METADATA_VALUE XML data.
+
+    :return: string representation of the metadata value
+
+    :rtype: str
+    """
+    return metadata_value.TypedValue.Value.text
+
+
 def filter_attributes(resource_type):
     """Returns a list of attributes for a given resource type.
 

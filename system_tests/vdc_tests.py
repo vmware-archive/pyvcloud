@@ -24,6 +24,7 @@ from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import AccessForbiddenException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
+from pyvcloud.vcd.utils import extract_metadata_value
 from pyvcloud.vcd.vdc import VDC
 
 
@@ -275,9 +276,9 @@ class TestOrgVDC(BaseTestCase):
             except OperationNotSupportedException as e:
                 pass
 
-            # add new metadata as org admin
+            # add new metadata as sys admin
             logger.debug(f'Adding metadata [key={TestOrgVDC._metadata_key},'
-                         'value={TestOrgVDC._metadata_value}]) as Org admin.')
+                         'value={TestOrgVDC._metadata_value}]) as Sys admin.')
             task = vdc_sys_admin_view.set_metadata(
                 key=TestOrgVDC._metadata_key,
                 value=TestOrgVDC._metadata_value)
@@ -287,9 +288,9 @@ class TestOrgVDC(BaseTestCase):
             # retrieve metadata as vapp author
             logger.debug(f'Retriving metadata with key='
                          '{TestOrgVDC._metadata_key} as vApp author.')
-            metadata_entry = vdc_vapp_author_view.get_metadata_entry(
+            metadata_value = vdc_vapp_author_view.get_metadata_value(
                 key=TestOrgVDC._metadata_key)
-            self.assertEqual(metadata_entry.TypedValue.Value.text,
+            self.assertEqual(extract_metadata_value(metadata_value),
                              TestOrgVDC._metadata_value)
 
             # try to retrieve non existent metadata entry
@@ -297,7 +298,7 @@ class TestOrgVDC(BaseTestCase):
                 logger.debug(f'Retriving metadata with invalid key='
                              '{TestOrgVDC._non_existent_metadata_key} as vApp '
                              'author')
-                metadata_entry = vdc_vapp_author_view.get_metadata_entry(
+                metadata_value = vdc_vapp_author_view.get_metadata_value(
                     key=TestOrgVDC._non_existent_metadata_key)
                 self.assertFail('Shouldn\'t have been able to retrieve metadta'
                                 ' entry with bad key.')
@@ -306,7 +307,7 @@ class TestOrgVDC(BaseTestCase):
 
             # try to update metadata value as vapp author
             try:
-                logger.debug(f'Trying to u[date metadata with key='
+                logger.debug(f'Trying to update metadata with key='
                              '{TestOrgVDC._metadata_key} to value='
                              '{TestOrgVDC._metadata_new_value} as vApp '
                              'author.')
@@ -318,17 +319,17 @@ class TestOrgVDC(BaseTestCase):
             except OperationNotSupportedException as e:
                 pass
 
-            # update metadata value as org admin
+            # update metadata value as sys admin
             logger.debug(f'Updtaing metadata with key='
                          '{TestOrgVDC._metadata_key} to value='
-                         '{TestOrgVDC._metadata_new_value} as Org Admin.')
+                         '{TestOrgVDC._metadata_new_value} as Sys Admin.')
             task = vdc_sys_admin_view.set_metadata(
                 key=TestOrgVDC._metadata_key,
                 value=TestOrgVDC._metadata_new_value)
             sys_admin_client.get_task_monitor().wait_for_success(task)
-            metadata_entry = vdc_sys_admin_view.get_metadata_entry(
+            metadata_value = vdc_sys_admin_view.get_metadata_value(
                 key=TestOrgVDC._metadata_key)
-            self.assertEqual(metadata_entry.TypedValue.Value.text,
+            self.assertEqual(extract_metadata_value(metadata_value),
                              TestOrgVDC._metadata_new_value)
 
             # try to remove metadata as vapp author
@@ -342,9 +343,9 @@ class TestOrgVDC(BaseTestCase):
             except OperationNotSupportedException as e:
                 pass
 
-            # remove metadata entry as org admin
+            # remove metadata entry as sys admin
             logger.debug(f'Removing metadata with '
-                         'key={TestOrgVDC._metadata_key},as Org Admin.')
+                         'key={TestOrgVDC._metadata_key},as Sys Admin.')
             task = vdc_sys_admin_view.remove_metadata(
                 key=TestOrgVDC._metadata_key)
             result = sys_admin_client.get_task_monitor().wait_for_success(task)

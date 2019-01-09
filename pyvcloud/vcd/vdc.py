@@ -724,7 +724,7 @@ class VDC(object):
             return profile_list
         return None
 
-    def get_metadata(self):
+    def get_all_metadata(self):
         """Fetch all metadata entries of the org vdc.
 
         :return: an object containing EntityType.METADATA XML data which
@@ -736,19 +736,20 @@ class VDC(object):
         return self.client.get_linked_resource(
             self.resource, RelationType.DOWN, EntityType.METADATA.value)
 
-    def get_metadata_entry(self, key, domain=MetadataDomain.GENERAL):
-        """Fetch a metadata entry identified by the domain and key.
+    def get_metadata_value(self, key, domain=MetadataDomain.GENERAL):
+        """Fetch a metadata value identified by the domain and key.
 
-        :param str key: key of the entry to be fetched.
-        :param client.MetadataDomain domain: domain of the entry to be fetched.
+        :param str key: key of the value to be fetched.
+        :param client.MetadataDomain domain: domain of the value to be fetched.
 
         :return: an object containing EntityType.METADATA_VALUE XML data which
-            represents the metadata entry.
+            represents the metadata value.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        metadata = Metadata(client=self.client, resource=self.get_metadata())
-        return metadata.get_metadata_entry(key, domain)
+        metadata = Metadata(client=self.client,
+                            resource=self.get_all_metadata())
+        return metadata.get_metadata_value(key, domain)
 
     def set_metadata(self,
                      key,
@@ -775,13 +776,46 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        metadata = Metadata(client=self.client, resource=self.get_metadata())
+        metadata = Metadata(client=self.client,
+                            resource=self.get_all_metadata())
         return metadata.set_metadata(key=key,
                                      value=value,
                                      domain=domain,
                                      visibility=visibility,
                                      metadata_value_type=metadata_value_type,
                                      use_admin_endpoint=True)
+
+    def set_multiple_metadata(self,
+                              key_value_dict,
+                              domain=MetadataDomain.GENERAL,
+                              visibility=MetadataVisibility.READ_WRITE,
+                              metadata_value_type=MetadataValueType.STRING):
+        """Add multiple metadata entries to the org vdc.
+
+        Only Sys admins can perform this operation. If an entry with the same
+        key exists, it will be updated with the new value.
+
+        :param dict key_value_dict: a dict containing key-value pairs to be
+            added/updated.
+        :param client.MetadataDomain domain: domain where the new entries would
+            be put.
+        :param client.MetadataVisibility visibility: visibility of the metadata
+            entries.
+        :param client.MetadataValueType metadata_value_type:
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is updating the metadata on the org vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        metadata = Metadata(client=self.client,
+                            resource=self.get_all_metadata())
+        return metadata.set_multiple_metadata(
+            key_value_dict=key_value_dict,
+            domain=domain,
+            visibility=visibility,
+            metadata_value_type=metadata_value_type,
+            use_admin_endpoint=True)
 
     def remove_metadata(self, key, domain=MetadataDomain.GENERAL):
         """Remove a metadata entry from the org vdc.
@@ -799,7 +833,8 @@ class VDC(object):
         :raises: AccessForbiddenException: If there is no metadata entry
             corresponding to the key provided.
         """
-        metadata = Metadata(client=self.client, resource=self.get_metadata())
+        metadata = Metadata(client=self.client,
+                            resource=self.get_all_metadata())
         return metadata.remove_metadata(key=key,
                                         domain=domain,
                                         use_admin_endpoint=True)

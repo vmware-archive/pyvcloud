@@ -30,6 +30,7 @@ from pyvcloud.vcd.client import NetworkAdapterType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.utils import metadata_to_dict
 
 
 class TestVApp(BaseTestCase):
@@ -464,14 +465,10 @@ class TestVApp(BaseTestCase):
         # retrieve metadata
         logger.debug(f'Retriving metadata with key='
                      '{TestVApp._metadata_key} from vApp:{vapp_name}.')
-        metadata_entries = list(vapp.get_metadata().MetadataEntry)
-        found_entry = False
-        for entry in metadata_entries:
-            if entry.TypedValue.Value.text == TestVApp._metadata_value:
-                found_entry = True
-                break
-        self.assertTrue(found_entry, f'Should have been able to retrieve '
-                        'metadata entry with key={TestVApp._metadata_key}.')
+        entries = metadata_to_dict(vapp.get_metadata())
+        self.assertTrue(TestVApp._metadata_key in entries, f'Should have '
+                        'been able to retrieve metadata entry with '
+                        'key={TestVApp._metadata_key}.')
 
         # update metadata value as org admin
         logger.debug(f'Updtaing metadata on vApp:{vapp_name} with key='
@@ -483,6 +480,9 @@ class TestVApp(BaseTestCase):
             key=TestVApp._metadata_key,
             value=TestVApp._metadata_new_value)
         TestVApp._client.get_task_monitor().wait_for_success(task)
+        entries = metadata_to_dict(vapp.get_metadata())
+        self.assertEqual(TestVApp._metadata_new_value,
+                         entries[TestVApp._metadata_key])
 
         # remove metadata entry
         logger.debug(f'Removing metadata with '

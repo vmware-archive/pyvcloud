@@ -183,6 +183,36 @@ class VApp(object):
             metadata_value_type=MetadataValueType(metadata_type),
             use_admin_endpoint=False)
 
+    def set_multiple_metadata(self,
+                              key_value_dict,
+                              domain=MetadataDomain.GENERAL,
+                              visibility=MetadataVisibility.READ_WRITE,
+                              metadata_value_type=MetadataValueType.STRING):
+        """Add multiple new metadata entries to the vApp.
+
+        If an entry with the same key exists, it will be updated with the new
+        value. All entries must have the same value type and will be written to
+        the same domain with identical visibility.
+
+        :param dict key_value_dict: a dict containing key-value pairs to be
+            added/updated.
+        :param client.MetadataDomain domain: domain where the new entries would
+            be put.
+        :param client.MetadataVisibility visibility: visibility of the metadata
+            entries.
+        :param client.MetadataValueType metadata_value_type:
+
+        :return: an object of type EntityType.TASK XML which represents
+             the asynchronous task that is updating the metadata on the vApp.
+        """
+        metadata = Metadata(client=self.client, resource=self.get_metadata())
+        return metadata.set_multiple_metadata(
+            key_value_dict=key_value_dict,
+            domain=MetadataDomain(domain),
+            visibility=MetadataVisibility(visibility),
+            metadata_value_type=MetadataValueType(metadata_value_type),
+            use_admin_endpoint=False)
+
     def remove_metadata(self, key, domain=MetadataDomain.GENERAL):
         """Remove a metadata entry from the vApp.
 

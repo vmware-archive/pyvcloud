@@ -16,13 +16,13 @@
 from datetime import datetime
 from datetime import timedelta
 from distutils.version import StrictVersion
+from enum import Enum
 import json
 import logging
 import sys
 import time
 import urllib
 
-from flufl.enum import Enum
 from lxml import etree
 from lxml import objectify
 import requests
@@ -298,6 +298,7 @@ class EntityType(Enum):
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'
     METADATA = 'application/vnd.vmware.vcloud.metadata+xml'
+    METADATA_VALUE = 'application/vnd.vmware.vcloud.metadata.value+xml'
     NETWORK_CONFIG_SECTION = \
         'application/vnd.vmware.vcloud.networkConfigSection+xml'
     NETWORK_CONNECTION_SECTION = \
@@ -399,6 +400,30 @@ class NetworkAdapterType(Enum):
     E1000 = 'E1000'
     E1000E = 'E1000E'
     VLANCE = 'PCNet32'
+
+
+# vCD docs are incomplete about valid Metadata Domain and Visibility values
+# Looking at vCD code the following are the only valid combinations, anything
+# else will generate a 400 or 500 response from vCD.
+# SYSTEM - PRIVATE
+# SYSTEM - READONLY
+# GENERAL - READWRITE
+class MetadataDomain(Enum):
+    GENERAL = 'GENERAL'
+    SYSTEM = 'SYSTEM'
+
+
+class MetadataVisibility(Enum):
+    PRIVATE = 'PRIVATE'
+    READONLY = 'READONLY'
+    READ_WRITE = 'READWRITE'
+
+
+class MetadataValueType(Enum):
+    STRING = 'MetadataStringValue'
+    NUMBER = 'MetadataNumberValue'
+    BOOLEAN = 'MetadataBooleanValue'
+    DATA_TIME = 'MetadataDateTimeValue'
 
 
 def _get_session_endpoints(session):

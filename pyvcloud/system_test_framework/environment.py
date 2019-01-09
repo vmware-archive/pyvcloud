@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from enum import Enum
 import logging
 import warnings
 
-from flufl.enum import Enum
 import requests
 
 from helpers.portgroup_helper import PortgroupHelper

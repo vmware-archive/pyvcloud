@@ -137,13 +137,17 @@ pipeline {
         }
         stage("find-latest-vcd-build") {
             steps {
-                script {
-                    if(env.VCD_BUILD == '') {
-                        env.VCD_BUILD = sh (script: "vcda build_latest latest -branch=sp-main -product=vcloud -buildtype=release -buildsystem=ob ", returnStdout: true).trim()
+             withEnv(["PATH+VCDA=$VCDA_BIN_PATH"], {
+                    script {
+
+                        if(env.VCD_BUILD == '') {
+                            env.VCD_BUILD = sh (script: "vcda build_latest latest -branch=sp-main -product=vcloud -buildtype=release -buildsystem=ob ", returnStdout: true).trim()
+                        }
+                        checkBuildStatus("VCD_BUILD", env.VCD_BUILD)
+
                     }
-                    checkBuildStatus("VCD_BUILD", env.VCD_BUILD)
-                }
-            }
+                 })
+             }
         }
         stage("deploy-vcd") {
             steps {
@@ -154,7 +158,7 @@ pipeline {
                        println "Before vcd setup start, checking for json URL" + testbedJsonUrl
                        if (testbedJsonUrl  == '') {
                            def result = triggerRemoteJob(
-                                auth: TokenAuth(apiToken: '5d8e9831b0132ee7eb7ed1adbfc20428', userName: 'rajeshk'),
+                                auth: TokenAuth(apiToken: '4a43d5a348427139732d61c71d030e81', userName: 'rajeshk'),
                                 job: 'Preflight-4.0-STF', maxConn: 1,
                                 parameters:
                                     """TESTBED_DESCRIPTOR_NAME=simple-testbed-postgres.json.template
@@ -168,7 +172,7 @@ pipeline {
                                     VCD_ORG_VDC=DevelopmentOrgVdc
                                     VCD_ORG_VDC_NETWORK=CassiniDirectOrgVdcNetwork
                                     DELETE_FAILED_DEPLOYMENT=true""",
-                                remoteJenkinsUrl: 'https://butler-vcd-staging.svc.eng.vmware.com/', useCrumbCache: true, useJobInfoCache: true)
+                                remoteJenkinsUrl: 'https://sp-taas-vcd-butler.svc.eng.vmware.com/', useCrumbCache: true, useJobInfoCache: true)
                            def buildUrl = result.buildUrl
                            testbedJsonUrl = buildUrl.toString() + "artifact/output/testbed.json"
                         }
@@ -196,8 +200,6 @@ pipeline {
                 script {
                     try {
                         println "Checking out PyVcloud sdk code ..."
-                        println "Git repository branch::"+OVERRIDE_GIT_TREEISH
-                        println "Git repository::"+OVERRIDE_GIT_REPOSITORY
                         if (OVERRIDE_GIT_TREEISH == '') {
                             OVERRIDE_GIT_TREEISH = 'master'
                         }
@@ -243,14 +245,21 @@ pipeline {
                     cell['deployment']['ovfProperties']['hostname']
 
                     def vc_server = props['sites'][0]['vcServers'][0]
-                    def vc_username = vc_server['credentials']['username']
+                    def vc2_server = props['sites'][0]['vcServers'][1]
+                    def vc_ip = vc_server['endPointURI'].replace('https://', "")
                     def vc_password = vc_server['credentials']['password']
+                    def vc2_ip = ''
+                    def vc2_password = ''
+                    if (vc2_server != null) {
+                        vc2_ip = vc2_server['endPointURI'].replace('https://', "")
+                        vc2_password = vc2_server['credentials']['password']
+                    }
+
                     if(vcd_password=='ca$hc0w') {
                         vcd_password = 'ca\\$hc0w'
                         println vcd_password
                     }
 
-                    println vcd_password
                     if (VCD_API_VERSION == '') {
                         VCD_API_VERSION = 32.0
                     }
@@ -261,6 +270,10 @@ pipeline {
                     VCD_ORG=System
                     VCD_USER=$vcd_username
                     VCD_PASSWORD=$vcd_password
+                    VC_IP=$vc_ip
+                    VC_PASSWORD=$vc_password
+                    VC2_IP=$vc2_ip
+                    VC2_PASSWORD=$vc2_password
                     """.stripIndent()
                 }
             }

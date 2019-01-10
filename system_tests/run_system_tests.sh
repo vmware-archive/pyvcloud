@@ -70,6 +70,10 @@ sed -e "s/<vcd ip>/${VCD_HOST}/" \
 -e "s/30.0/${VCD_API_VERSION}/" \
 -e "s/\(sys_admin_username: \'\)administrator/\1${VCD_USER}/" \
 -e "s/<root-password>/${VCD_PASSWORD}/" \
+-e "s/<vc ip>/${VC_IP}/" \
+-e "s/<vc root password>/${VC_PASSWORD}/" \
+-e "s/<vc2 ip>/${VC2_IP}/" \
+-e "s/<vc2 root password>/${VC2_PASSWORD}/" \
 < ${SRCROOT}/system_tests/base_config.yaml > ${auto_base_config}
 echo "Generated parameter file: ${auto_base_config}"
 

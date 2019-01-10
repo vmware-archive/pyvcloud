@@ -422,9 +422,14 @@ class ExternalNetwork(object):
     def _get_provider_vdc_name_for_provided_ext_nw(self, pvdc_href):
         pvdc = PVDC(self.client, href=pvdc_href)
         pvdc_resource = pvdc.get_resource()
-        pvdc_ext_nw_name = pvdc_resource.AvailableNetworks.Network.get("name")
-        if pvdc_ext_nw_name == self.name:
-            return pvdc_resource.get('name')
+        if not hasattr(pvdc_resource, "AvailableNetworks") and hasattr(
+                pvdc_resource.AvailableNetworks, "Network"):
+            return None
+        networks = pvdc_resource.AvailableNetworks.Network
+        for network in networks:
+            pvdc_ext_nw_name = network.get("name")
+            if pvdc_ext_nw_name == self.name:
+                return pvdc_resource.get('name')
         return None
 
     def __remove_ip_range_elements(self, existing_ip_ranges, ip_ranges):

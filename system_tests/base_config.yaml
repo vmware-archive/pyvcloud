@@ -69,7 +69,7 @@ vc2:
   vcenter_host_name: 'vc2'
   vcenter_host_ip: '<vc2 ip>'
   vcenter_admin_username: 'administrator@vsphere.local'
-  vcenter_admin_password: '<vc root password>'
+  vcenter_admin_password: '<vc2 root password>'
 
 nsx:
   nsx_hostname: 'nsx1'

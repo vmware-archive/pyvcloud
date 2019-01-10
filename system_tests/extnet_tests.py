@@ -64,9 +64,12 @@ class TestExtNet(BaseTestCase):
         logger = Environment.get_default_logger()
         TestExtNet._sys_admin_client = Environment.get_sys_admin_client()
         TestExtNet._config = Environment.get_config()
+        TestExtNet._common_ext_net_name = TestExtNet._config[
+            'external_network']['name']
 
         platform = Platform(TestExtNet._sys_admin_client)
         vc_name = TestExtNet._config['vc']['vcenter_host_name']
+        TestExtNet._vc2_host_ip = TestExtNet._config['vc2']['vcenter_host_ip']
         portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
         pg_name = portgrouphelper.get_available_portgroup_name(vc_name,
                                                                TestExtNet._portgroupType)
@@ -298,6 +301,8 @@ class TestExtNet(BaseTestCase):
        This test passes if the portgroup from another vCenter is added
        to external network successfully.
        """
+        if TestExtNet._vc2_host_ip is None or TestExtNet._vc2_host_ip == '':
+            return
         logger = Environment.get_default_logger()
         platform = Platform(TestExtNet._sys_admin_client)
         vc_name = TestExtNet._config['vc2']['vcenter_host_name']
@@ -332,6 +337,8 @@ class TestExtNet(BaseTestCase):
        This test passes if the portgroup from another vCenter is removed
        from external network successfully.
        """
+        if TestExtNet._vc2_host_ip is None or TestExtNet._vc2_host_ip == '':
+            return
         logger = Environment.get_default_logger()
         platform = Platform(TestExtNet._sys_admin_client)
         vc_name = TestExtNet._config['vc2']['vcenter_host_name']
@@ -361,21 +368,25 @@ class TestExtNet(BaseTestCase):
         """List available provider Vdcs.
         """
         platform = Platform(TestExtNet._sys_admin_client)
-        ext_net_resource = platform.get_external_network(self._name)
+        ext_net_resource = platform.get_external_network(
+            TestExtNet._common_ext_net_name)
         extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
                                      resource=ext_net_resource)
         pvdc_name_list = extnet_obj.list_provider_vdc()
-        self.assertTrue(len(pvdc_name_list) > 0)
+        # Not adding assert because there can be no pvdc associated with the
+        # provided external network
 
     def test_0070_list_available_pvdc_with_filter(self):
         """List available provider Vdcs.
         """
         platform = Platform(TestExtNet._sys_admin_client)
-        ext_net_resource = platform.get_external_network(self._name)
+        ext_net_resource = platform.get_external_network(
+            TestExtNet._common_ext_net_name)
         extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
                                      resource=ext_net_resource)
         pvdc_name_list = extnet_obj.list_provider_vdc('name==*')
-        self.assertTrue(len(pvdc_name_list) > 0)
+        # Not adding assert because there can be no pvdc associated with the
+        # provided external network
 
     def test_0075_list_available_gateways(self):
         """List available gateways.

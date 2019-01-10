@@ -38,6 +38,7 @@ class BaseTestCase(unittest.TestCase):
         Environment.create_org()
         Environment.create_users()
         Environment.create_ovdc()
+        Environment.create_direct_ovdc_network()
         Environment.create_gateway()
         Environment.create_ovdc_network()
         Environment.create_catalog()

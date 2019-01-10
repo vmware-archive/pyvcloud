@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
@@ -557,3 +558,25 @@ class ExternalNetwork(object):
     def __get_gateway_resource(self, gateway_href):
         gateway = Gateway(self.client, href=gateway_href)
         return gateway.get_resource()
+
+    def list_associated_direct_org_vdc_networks(self, filter=None):
+        """List associated direct org vDC networks.
+
+        :param str filter: filter to fetch the direct org vDC network,
+        e.g., connectedTo==Ext*
+        :return: list of direct org vDC networks
+        :rtype: list
+        :raises: EntityNotFoundException: if any direct org vDC network
+         cannot be found.
+        """
+        query = self.client.get_typed_query(
+            ResourceType.ORG_VDC_NETWORK.value,
+            qfilter=filter,
+            query_result_format=QueryResultFormat.RECORDS)
+        records = list(query.execute())
+
+        direct_ovdc_network_names = [record.get('name') for record in records]
+        if len(direct_ovdc_network_names) == 0:
+            raise EntityNotFoundException('No associated direct org vDC '
+                                          'networks found')
+        return direct_ovdc_network_names

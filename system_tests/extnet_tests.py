@@ -457,6 +457,18 @@ class TestExtNet(BaseTestCase):
         self.assertTrue(len(sub_allocated_ip_dict) > 0)
         self.__remove_sub_allocate_ip_pool()
 
+    def test_0100_list_associated_direct_org_vdc_networks(self):
+        """List associated direct org vDC networks
+        """
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net_resource = platform.get_external_network(
+            TestExtNet._common_ext_net_name)
+        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+                                     resource=ext_net_resource)
+        direct_ovdc_networks = extnet_obj.list_associated_direct_org_vdc_networks(
+            'connectedTo==Ext*')
+        self.assertTrue(len(direct_ovdc_networks) > 0)
+
     def __add_sub_allocate_ip_pool(self):
         gateway = Environment. \
             get_test_gateway(TestExtNet._sys_admin_client)

@@ -39,8 +39,7 @@ class TestNetwork(BaseTestCase):
     _vapp_author_client = None
 
     _isolated_orgvdc_network_name = 'isolated_orgvdc_network_' + str(uuid1())
-    _isolated_orgvdc_network_gateway = '10.0.0.1'
-    _isolated_orgvdc_network_netmask = '255.255.255.0'
+    _isolated_orgvdc_network_gateway_ip = '10.0.0.1/24'
 
     _routed_orgvdc_network_gateway_ip = '6.6.2.1/10'
     _ip_range = '6.6.2.2-6.6.2.10'
@@ -73,8 +72,7 @@ class TestNetwork(BaseTestCase):
                      TestNetwork._isolated_orgvdc_network_name)
         result = vdc.create_isolated_vdc_network(
             network_name=TestNetwork._isolated_orgvdc_network_name,
-            gateway_ip=TestNetwork._isolated_orgvdc_network_gateway,
-            netmask=TestNetwork._isolated_orgvdc_network_netmask)
+            network_cidr=TestNetwork._isolated_orgvdc_network_gateway_ip)
         TestNetwork._client.get_task_monitor().wait_for_success(
             task=result.Tasks.Task[0])
 

@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import urllib
-
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
@@ -562,15 +560,16 @@ class ExternalNetwork(object):
         gateway = Gateway(self.client, href=gateway_href)
         return gateway.get_resource()
 
-    def list_associated_direct_org_vdc_networks(self):
+    def list_associated_direct_org_vdc_networks(self, filter=None):
         """List associated direct org vDC networks.
 
+        :param str filter: filter to fetch the direct org vDC network,
+        e.g., connectedTo==Ext*
         :return: list of direct org vDC networks
         :rtype: list
         :raises: EntityNotFoundException: if any direct org vDC network
          cannot be found.
         """
-        filter = 'connectedTo==%s' % urllib.parse.quote_plus(self.name)
         query = self.client.get_typed_query(
             ResourceType.ORG_VDC_NETWORK.value,
             qfilter=filter,

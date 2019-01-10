@@ -536,14 +536,13 @@ class ExternalNetwork(object):
 
     def _get_gateway_sub_allocated_ip_for_provided_ext_nw(self,
                                                           gateway_href):
-
         gateway_sub_allocated_ip = []
+        allocation_range = ''
         gateway_resource = self.__get_gateway_resource(gateway_href)
         for gw_inf in gateway_resource.Configuration.GatewayInterfaces. \
                 GatewayInterface:
             if gw_inf.InterfaceType == "uplink" and gw_inf.Name == self.name:
                 if hasattr(gw_inf.SubnetParticipation, 'IpRanges'):
-                    allocation_range = ""
                     for ip_range in gw_inf.SubnetParticipation. \
                             IpRanges.IpRange:
                         start_address = ip_range.StartAddress

@@ -51,6 +51,7 @@ vcd:
   default_ovdc_network_name: 'test-isolated-vdc-network'
   default_ovdc_network_gateway_ip: '10.1.1.1'
   default_ovdc_network_gateway_netmask: '255.255.255.0'
+  default_direct ovdc_network_name: 'test-direct-vdc-network'
 
   default_catalog_name: 'test-cat'
   default_template_file_name: 'test_vapp_template.ova'

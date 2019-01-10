@@ -557,6 +557,42 @@ class Environment(object):
             .wait_for_success(task=result.Tasks.Task[0])
 
     @classmethod
+    def create_direct_ovdc_network(cls):
+        """Creates a direct org vdc network.
+
+        The name of the created org vdc network is specified in the
+        configuration file, skips creating one, if such a network already
+        exists.
+
+        :raises: Exception: if the class variable _ovdc_href is not populated.
+        """
+        cls._basic_check()
+        if cls._ovdc_href is None:
+            raise Exception('OrgVDC ' +
+                            cls._config['vcd']['default_ovdc_name'] +
+                            ' doesn\'t exist.')
+
+        vdc = VDC(cls._sys_admin_client, href=cls._ovdc_href)
+        expected_net_name = cls._config['vcd']['default_direct ovdc_network_name']
+        records_dict = vdc.list_orgvdc_network_records()
+
+        for net_name in records_dict.keys():
+            if net_name.lower() == expected_net_name.lower():
+                cls._logger.debug('Reusing existing direct org-vdc network ' +
+                                  expected_net_name)
+                return
+
+        cls._logger.debug('Creating direct org-vdc network ' + expected_net_name)
+        result = vdc.create_directly_connected_vdc_network(
+            network_name=expected_net_name,
+            parent_network_name=cls._config['external_network']['name'],
+            description='direct org vdc network',
+            is_shared=False)
+
+        cls._sys_admin_client.get_task_monitor()\
+            .wait_for_success(task=result.Tasks.Task[0])
+
+    @classmethod
     def create_catalog(cls):
         """Creates a catalog by the name specified in the configuration  file.
 

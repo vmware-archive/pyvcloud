@@ -177,10 +177,11 @@ class VdcNetwork(object):
             vdc_network)
 
     def get_all_metadata(self):
-        """Fetch all metadata entries of the org vdc.
+        """Fetch all metadata entries of the org vdc network.
 
         :return: an object containing EntityType.METADATA XML data which
-            represents the metadata entries associated with the org vdc.
+            represents the metadata entries associated with the org vdc
+            network.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
@@ -189,9 +190,9 @@ class VdcNetwork(object):
             self.resource, RelationType.DOWN, EntityType.METADATA.value)
 
     def get_metadata_value(self, key, domain=MetadataDomain.GENERAL):
-        """Fetch a metadata value identified by the domain and key.
+        """Fetch the metadata value identified by the domain and key.
 
-        :param str key: key of the value to be fetched.
+        :param str key: key of the metadata to be fetched.
         :param client.MetadataDomain domain: domain of the value to be fetched.
 
         :return: an object containing EntityType.METADATA_VALUE XML data which

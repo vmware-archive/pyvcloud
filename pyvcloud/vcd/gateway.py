@@ -129,13 +129,6 @@ class Gateway(object):
             is not from list compact/full/full4/x-large.
         """
         self.get_resource()
-        try:
-            GatewayBackingConfigType.__getitem__(gateway_type)
-        except ValueError:
-            raise InvalidParameterException(
-                'Provided %s is not valid. It '
-                'should be from allowed list '
-                'compact/full/full4/x-large' % gateway_type)
         gateway_form_factor = E.EdgeGatewayFormFactor()
         gateway_form_factor.append(E.gatewayType(gateway_type))
         return self.client.post_linked_resource(

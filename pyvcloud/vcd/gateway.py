@@ -13,7 +13,6 @@
 # limitations under the License.
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.client import GatewayBackingConfigType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import AlreadyExistsException

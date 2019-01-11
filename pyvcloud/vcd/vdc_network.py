@@ -14,9 +14,13 @@
 
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import MetadataDomain
+from pyvcloud.vcd.client import MetadataValueType
+from pyvcloud.vcd.client import MetadataVisibility
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
+from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.utils import get_admin_href
 
 
@@ -171,3 +175,89 @@ class VdcNetwork(object):
         return self.client.put_linked_resource(
             self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
             vdc_network)
+
+    def get_all_metadata(self):
+        """Fetch all metadata entries of the org vdc network.
+
+        :return: an object containing EntityType.METADATA XML data which
+            represents the metadata entries associated with the org vdc
+            network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.get_linked_resource(
+            self.resource, RelationType.DOWN, EntityType.METADATA.value)
+
+    def get_metadata_value(self, key, domain=MetadataDomain.GENERAL):
+        """Fetch the metadata value identified by the domain and key.
+
+        :param str key: key of the metadata to be fetched.
+        :param client.MetadataDomain domain: domain of the value to be fetched.
+
+        :return: an object containing EntityType.METADATA_VALUE XML data which
+            represents the metadata value.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        metadata = Metadata(client=self.client,
+                            resource=self.get_all_metadata())
+        return metadata.get_metadata_value(key, domain)
+
+    def set_metadata(self,
+                     key,
+                     value,
+                     domain=MetadataDomain.GENERAL,
+                     visibility=MetadataVisibility.READ_WRITE,
+                     metadata_value_type=MetadataValueType.STRING):
+        """Add a metadata entry to the org vdc network.
+
+        Only admins can perform this operation. If an entry with the same key
+        exists, it will be updated with the new value.
+
+        :param str key: an arbitrary key name. Length cannot exceed 256 UTF-8
+            characters.
+        :param str value: value of the metadata entry
+        :param client.MetadataDomain domain: domain where the new entry would
+            be put.
+        :param client.MetadataVisibility visibility: visibility of the metadata
+            entry.
+        :param client.MetadataValueType metadata_value_type:
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is updating the metadata on the org vdc
+            network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        metadata = Metadata(client=self.client,
+                            resource=self.get_all_metadata())
+        return metadata.set_metadata(key=key,
+                                     value=value,
+                                     domain=domain,
+                                     visibility=visibility,
+                                     metadata_value_type=metadata_value_type,
+                                     use_admin_endpoint=True)
+
+    def remove_metadata(self, key, domain=MetadataDomain.GENERAL):
+        """Remove a metadata entry from the org vdc network.
+
+        Only admins can perform this operation.
+
+        :param str key: key of the metadata to be removed.
+        :param client.MetadataDomain domain: domain of the entry to be removed.
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is deleting the metadata on the org vdc
+            network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: AccessForbiddenException: If there is no metadata entry
+            corresponding to the key provided.
+        """
+        metadata = Metadata(client=self.client,
+                            resource=self.get_all_metadata())
+        return metadata.remove_metadata(key=key,
+                                        domain=domain,
+                                        use_admin_endpoint=True)

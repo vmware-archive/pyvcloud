@@ -68,8 +68,8 @@ class TestExtNet(BaseTestCase):
         platform = Platform(TestExtNet._sys_admin_client)
         vc_name = TestExtNet._config['vc']['vcenter_host_name']
         portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
-        pg_name = portgrouphelper.get_available_portgroup_name(vc_name,
-                                                               TestExtNet._portgroupType)
+        pg_name = portgrouphelper.get_available_portgroup_name(
+            vc_name, TestExtNet._portgroupType)
 
         ext_net = platform.create_external_network(
             name=TestExtNet._name,
@@ -302,8 +302,8 @@ class TestExtNet(BaseTestCase):
         platform = Platform(TestExtNet._sys_admin_client)
         vc_name = TestExtNet._config['vc2']['vcenter_host_name']
         portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
-        pg_name = portgrouphelper.get_available_portgroup_name(vc_name,
-                                                               TestExtNet._portgroupType)
+        pg_name = portgrouphelper.get_available_portgroup_name(
+            vc_name, TestExtNet._portgroupType)
 
         ext_net = self._get_ext_net(platform).attach_port_group(
             vc_name,
@@ -345,7 +345,7 @@ class TestExtNet(BaseTestCase):
         TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
             task=task)
         logger.debug(
-            'Detach a portgroup from an external network' + TestExtNet._name + '.')
+            'Detach a portgroup from an external network' + TestExtNet._name)
         ext_net = platform.get_external_network(self._name)
         self.assertIsNotNone(ext_net)
         vc_record = platform.get_vcenter(vc_name)
@@ -452,8 +452,8 @@ class TestExtNet(BaseTestCase):
         gateway_obj = Gateway(TestExtNet._sys_admin_client,
                               href=gateway.get('href'))
         ext_net = TestExtNet._config['external_network']['name']
-        task = gateway_obj.add_sub_allocated_ip_pools(ext_net,
-                            [TestExtNet._gateway_sub_allocate_ip_pool_range])
+        task = gateway_obj.add_sub_allocated_ip_pools(
+            ext_net, [TestExtNet._gateway_sub_allocate_ip_pool_range])
         TestExtNet._sys_admin_client.get_task_monitor(). \
             wait_for_success(task=task)
 
@@ -463,8 +463,8 @@ class TestExtNet(BaseTestCase):
         gateway_obj = Gateway(TestExtNet._sys_admin_client,
                               href=gateway.get('href'))
         ext_net = TestExtNet._config['external_network']['name']
-        task = gateway_obj.remove_sub_allocated_ip_pools(ext_net,
-                            [TestExtNet._gateway_sub_allocate_ip_pool_range])
+        task = gateway_obj.remove_sub_allocated_ip_pools(
+            ext_net, [TestExtNet._gateway_sub_allocate_ip_pool_range])
         TestExtNet._sys_admin_client.get_task_monitor(). \
             wait_for_success(task=task)
 

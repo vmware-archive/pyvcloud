@@ -85,9 +85,9 @@ class TestNetwork(BaseTestCase):
         """
         vdc = Environment.get_test_vdc(TestNetwork._client)
         result = vdc.create_routed_vdc_network(
-            network_name = TestNetwork._routed_org_vdc_network_name,
-            gateway_name = GatewayConstants.name,
-            network_cidr = TestNetwork._routed_orgvdc_network_gateway_ip,
+            network_name=TestNetwork._routed_org_vdc_network_name,
+            gateway_name=GatewayConstants.name,
+            network_cidr=TestNetwork._routed_orgvdc_network_gateway_ip,
             description='Dummy description')
         task = TestNetwork._client.get_task_monitor().wait_for_success(
             task=result.Tasks.Task[0])
@@ -213,16 +213,16 @@ class TestNetwork(BaseTestCase):
         vdc = Environment.get_test_vdc(TestNetwork._client)
         org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
             TestNetwork._routed_org_vdc_network_name)
-        vdcNetwork = VdcNetwork(TestNetwork._client,
-                                resource=org_vdc_routed_nw)
+        vdcNetwork = VdcNetwork(
+            TestNetwork._client, resource=org_vdc_routed_nw)
         result = vdcNetwork.edit_name_description_and_shared_state(
             TestNetwork._routed_org_vdc_network_new_name, 'Test '
-                                                          'Description', True)
+            'Description', True)
 
         task = TestNetwork._client.get_task_monitor().wait_for_success(
             task=result)
         self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
-        #Resetting to original name
+        # Resetting to original name
         result = vdcNetwork.edit_name_description_and_shared_state(
             TestNetwork._routed_org_vdc_network_name, None, False)
 
@@ -234,21 +234,21 @@ class TestNetwork(BaseTestCase):
         vdc = Environment.get_test_vdc(TestNetwork._client)
         org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
             TestNetwork._routed_org_vdc_network_name)
-        vdcNetwork = VdcNetwork(TestNetwork._client,
-                                resource=org_vdc_routed_nw)
+        vdcNetwork = VdcNetwork(
+            TestNetwork._client, resource=org_vdc_routed_nw)
         result = vdcNetwork.add_static_ip_pool([TestNetwork._ip_range])
 
         task = TestNetwork._client.get_task_monitor().wait_for_success(
             task=result)
         self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
-        #Verify
+        # Verify
         vdcNetwork.reload()
         vdc_routed_nw = vdcNetwork.get_resource()
         ip_scope = vdc_routed_nw.Configuration.IpScopes.IpScope
         ip_ranges = ip_scope.IpRanges.IpRange
         match_found = False
         for ip_range in ip_ranges:
-            if (ip_range.StartAddress+'-'+ip_range.EndAddress) == \
+            if (ip_range.StartAddress + '-' + ip_range.EndAddress) == \
                     TestNetwork._ip_range:
                 match_found = True
         self.assertTrue(match_found)
@@ -257,10 +257,10 @@ class TestNetwork(BaseTestCase):
         vdc = Environment.get_test_vdc(TestNetwork._client)
         org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
             TestNetwork._routed_org_vdc_network_name)
-        vdcNetwork = VdcNetwork(TestNetwork._client,
-                                resource=org_vdc_routed_nw)
+        vdcNetwork = VdcNetwork(
+            TestNetwork._client, resource=org_vdc_routed_nw)
         result = vdcNetwork.modify_static_ip_pool(TestNetwork._ip_range,
-                                         TestNetwork._new_ip_range)
+                                                  TestNetwork._new_ip_range)
         task = TestNetwork._client.get_task_monitor().wait_for_success(
             task=result)
         self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
@@ -276,11 +276,60 @@ class TestNetwork(BaseTestCase):
                 match_found = True
         self.assertTrue(match_found)
 
-    def test_0080_delete_routed_orgvdc_networks(self):
+    def _add_routed_vdc_network_metadata(self, vdc_network, metadata_key,
+                                         metadata_value):
+        task = vdc_network.set_metadata(metadata_key, metadata_value)
+        TestNetwork._client.get_task_monitor().wait_for_success(
+            task=task)
+        vdc_network.reload()
+        self.assertEqual(
+            metadata_value,
+            vdc_network.get_metadata_value(metadata_key).TypedValue.Value)
+
+    def _update_routed_vdc_network_metadata(self, vdc_network, metadata_key,
+                                            updated_metadata_value):
+        task = vdc_network.set_metadata(metadata_key,
+                                        updated_metadata_value)
+        TestNetwork._client.get_task_monitor().wait_for_success(
+            task=task)
+        vdc_network.reload()
+        self.assertEqual(
+            updated_metadata_value,
+            vdc_network.get_metadata_value(metadata_key).TypedValue.Value)
+
+    def _delete_routed_vcd_network_metadata(self, vdc_network, metadata_key):
+        task = vdc_network.remove_metadata(metadata_key)
+        TestNetwork._client.get_task_monitor().wait_for_success(
+            task=task)
+        vdc_network.reload()
+        with self.assertRaises(AccessForbiddenException):
+            vdc_network.get_metadata_value(metadata_key)
+
+    def test_0080_routed_orgvdc_network_metadata(self):
+        vdc = Environment.get_test_vdc(TestNetwork._client)
+        org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
+            TestNetwork._routed_org_vdc_network_name)
+        vdc_network = VdcNetwork(
+            TestNetwork._client, resource=org_vdc_routed_nw)
+
+        # Test data
+        metadata_key = "test-key1"
+        metadata_value = "test-value1"
+        updated_metadata_value = "updated-" + metadata_value
+
+        # Testing add, update and delete metadata
+        TestNetwork._add_routed_vdc_network_metadata(
+            self, vdc_network, metadata_key, metadata_value)
+        TestNetwork._update_routed_vdc_network_metadata(
+            self, vdc_network, metadata_key, updated_metadata_value)
+        TestNetwork._delete_routed_vcd_network_metadata(
+            self, vdc_network, metadata_key)
+
+    def test_0100_delete_routed_orgvdc_networks(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)
 
         result = vdc.delete_routed_orgvdc_network(
-            name = TestNetwork._routed_org_vdc_network_name, force=True)
+            name=TestNetwork._routed_org_vdc_network_name, force=True)
         task = TestNetwork._client.get_task_monitor().wait_for_success(
             task=result)
         self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)

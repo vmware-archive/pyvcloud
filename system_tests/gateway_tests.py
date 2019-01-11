@@ -33,11 +33,14 @@ class TestGateway(BaseTestCase):
     """Test Gateway functionalities implemented in pyvcloud."""
     # All tests in this module should be run as System Administrator.
     _client = None
-    _name = GatewayConstants.name + str(uuid1())
+    _name = (GatewayConstants.name + str(uuid1()))[:34]
     _description = GatewayConstants.description + str(uuid1())
     _gateway = None
     _rate_limit_start = '101.0'
     _rate_limit_end = '101.0'
+
+    # Firewall Rule
+    _firewall_rule_name = 'Rule Name Test'
 
     def test_0000_setup(self):
         """Setup the gateway required for the other tests in this module.
@@ -54,13 +57,6 @@ class TestGateway(BaseTestCase):
             CommonRoles.ORGANIZATION_ADMINISTRATOR)
         TestGateway._config = Environment.get_config()
         TestGateway._api_version = TestGateway._config['vcd']['api_version']
-        TestGateway._gateway = Environment.get_test_gateway(
-            TestGateway._client)
-        if TestGateway._gateway is not None:
-            task = TestGateway._vdc.delete_gateway(self._name)
-            result = TestGateway._client.get_task_monitor().wait_for_success(
-                task=task)
-            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
         external_network = Environment.get_test_external_network(
             TestGateway._client)
@@ -471,6 +467,21 @@ class TestGateway(BaseTestCase):
                                   TestGateway._gateway.get('href'))
             tenant_syslog_server = gateway_obj.list_syslog_server_ip()
             self.assertEqual(len(tenant_syslog_server), 1)
+
+    def test_0025_add_firewall_rule(self):
+        """Add Firewall Rule's in the gateway."""
+
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        gateway_obj.add_firewall_rule(TestGateway._firewall_rule_name)
+        firewall_rule = gateway_obj.get_firewall_rules()
+        #Verify
+        matchFound = False
+        for firewallRule in firewall_rule.firewallRules.firewallRule:
+            if firewallRule['name'] == TestGateway._firewall_rule_name:
+                matchFound = True
+                break
+        self.assertTrue(matchFound)
 
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().

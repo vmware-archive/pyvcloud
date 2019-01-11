@@ -19,7 +19,9 @@ from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import AlreadyExistsException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
 from pyvcloud.vcd.platform import Platform
+from pyvcloud.vcd.utils import build_network_url_from_gateway_url
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
@@ -209,10 +211,9 @@ class Gateway(object):
                     gatewayips.append(subnetpart.Gateway.text + '/' +
                                       subnetpart.SubnetPrefixLength.text)
                 else:
-                    gatewayips.append(subnetpart.Gateway.text + '/' +
-                                      str(netmask_to_cidr_prefix_len(
-                                          subnetpart.Gateway.text,
-                                          subnetpart.Netmask.text)))
+                    gatewayips.append(subnetpart.Gateway.text + '/' + str(
+                        netmask_to_cidr_prefix_len(subnetpart.Gateway.text,
+                                                   subnetpart.Netmask.text)))
                 ips.append(subnetpart.IpAddress.text)
             out_list.append(ipconfigsettings)
         return out_list
@@ -341,10 +342,9 @@ class Gateway(object):
 
         gateway = self.get_resource()
         gateway.set('name', newname)
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.EDGE_GATEWAY.value,
-                                               gateway)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
+            gateway)
 
     def update_subnet_participation(self, subnets, subnet_participation):
         """It updates subnetparticipation of the gateway with subnets.
@@ -357,17 +357,17 @@ class Gateway(object):
         """
         subnet_found = False
         for subnetpart in subnet_participation:
-                subnet = subnets.get(subnetpart.Gateway.text + '/' + str(
-                    netmask_to_cidr_prefix_len(subnetpart.Gateway.text,
-                                               subnetpart.Netmask.text)))
-                if subnet is not None:
-                    subnet_found = True
-                    if subnet.get('enable') is not None:
-                        subnetpart.UseForDefaultRoute = E. \
-                            UseForDefaultRoute(subnet.get('enable'))
-                    if subnet.get('ip_address') is not None:
-                        subnetpart.IpAddress = E.IpAddress(
-                            subnet.get('ip_address'))
+            subnet = subnets.get(subnetpart.Gateway.text + '/' + str(
+                netmask_to_cidr_prefix_len(subnetpart.Gateway.text, subnetpart.
+                                           Netmask.text)))
+            if subnet is not None:
+                subnet_found = True
+                if subnet.get('enable') is not None:
+                    subnetpart.UseForDefaultRoute = E. \
+                        UseForDefaultRoute(subnet.get('enable'))
+                if subnet.get('ip_address') is not None:
+                    subnetpart.IpAddress = E.IpAddress(
+                        subnet.get('ip_address'))
 
         if not subnet_found:
             raise ValueError('Subnet not found')
@@ -397,16 +397,15 @@ class Gateway(object):
             if ipconfig_settings.get(gatewayinf.Name.text) is not None:
                 externalnetwork_found = True
                 subnets = ipconfig_settings.get(gatewayinf.Name.text)
-                self.update_subnet_participation(subnets, gatewayinf.
-                                                 SubnetParticipation)
+                self.update_subnet_participation(
+                    subnets, gatewayinf.SubnetParticipation)
 
         if not externalnetwork_found:
             raise ValueError('External network not found')
 
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.EDGE_GATEWAY.value,
-                                               gateway)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
+            gateway)
 
     def __update_ip_ranges(self, subnet_participation, ip_range, new_ip_range):
         """Updates existing ip range element present in the sub static pool.
@@ -430,8 +429,7 @@ class Gateway(object):
                         old_start_end_range[1] == ip_range.EndAddress:
                     ip_range.StartAddress = E.StartAddress(
                         new_start_end_range[0])
-                    ip_range.EndAddress = E.EndAddress(
-                        new_start_end_range[1])
+                    ip_range.EndAddress = E.EndAddress(new_start_end_range[1])
                     return
         raise EntityNotFoundException('IP Range \'%s\' not Found' % ip_range)
 
@@ -456,15 +454,13 @@ class Gateway(object):
         for gateway_inf in \
                 gateway.Configuration.GatewayInterfaces.GatewayInterface:
             if gateway_inf.Name == ext_network:
-                self.__update_ip_ranges(
-                    gateway_inf.SubnetParticipation, ip_range,
-                    new_ip_change)
+                self.__update_ip_ranges(gateway_inf.SubnetParticipation,
+                                        ip_range, new_ip_change)
                 break
 
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.EDGE_GATEWAY.value,
-                                               gateway)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
+            gateway)
 
     def get_sub_allocate_ip_ranges_element(self, subnet_participation):
         """Gets existing ip range present in the sub allocate pool of gateway.
@@ -522,10 +518,9 @@ class Gateway(object):
                 self.__add_ip_ranges_element(existing_ip_ranges, ip_ranges)
                 break
 
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.EDGE_GATEWAY.value,
-                                               gateway)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
+            gateway)
 
     def __remove_ip_range_elements(self, existing_ip_ranges, ip_ranges):
         """Removes the given IP ranges from existing IP ranges.
@@ -570,10 +565,9 @@ class Gateway(object):
                     subnet_participation.remove(existing_ip_ranges)
                 break
 
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.EDGE_GATEWAY.value,
-                                               gateway)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
+            gateway)
 
     def edit_rate_limits(self, rate_limit_configs):
         """Edits existing rate limit of gateway.
@@ -598,10 +592,9 @@ class Gateway(object):
                 gateway_inf.InRateLimit = E.InRateLimit(rate_limit_range[0])
                 gateway_inf.OutRateLimit = E.OutRateLimit(rate_limit_range[1])
 
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.EDGE_GATEWAY.value,
-                                               gateway)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
+            gateway)
 
     def list_syslog_server_ip(self):
         """List syslog server ip of the gateway.
@@ -623,3 +616,46 @@ class Gateway(object):
             raise EntityNotFoundException('TenantSyslogServer Ip in gateway' +
                                           self.name + 'is not set.')
         return out
+
+    def add_firewall_rule(self,
+                          name,
+                          action='accept',
+                          type='User',
+                          enabled=True,
+                          logging_enabled=False):
+        """Add firewall rule in the gateway.
+
+        param name str: name of firewall rule
+        param action str: action. Possible values accept/deny.
+        param type str: firewall rule type. Default: User
+        param enable bool: enable
+        param logging_enabled bool: logging enabled
+
+        """
+        firewall_rule_href = self._build_firewall_rule_href()
+        firewall_rules_resource = self.get_firewall_rules()
+        firewall_rules_tag = firewall_rules_resource.firewallRules
+        firewall_rule = E.firewallRule()
+        firewall_rule.append(E.name(name))
+        firewall_rule.append(E.ruleType(type))
+        firewall_rule.append(E.enabled(enabled))
+        firewall_rule.append(E.loggingEnabled(logging_enabled))
+        firewall_rule.append(E.action(action))
+
+        firewall_rules_tag.append(firewall_rule)
+        self.client.put_resource(firewall_rule_href, firewall_rules_resource,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def get_firewall_rules(self):
+        """Get firewall Rules from vCD.
+
+        Form a Firewall Rules using gateway href and fetches from vCD.
+
+        return: FirewallRule Object
+        """
+        firewall_rule_href = self._build_firewall_rule_href()
+        return self.client.get_resource(firewall_rule_href)
+
+    def _build_firewall_rule_href(self):
+        network_url = build_network_url_from_gateway_url(self.href)
+        return network_url + FIREWALL_URL_TEMPLATE

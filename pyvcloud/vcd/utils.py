@@ -786,3 +786,27 @@ def netmask_to_cidr_prefix_len(network, netmask):
     """
     subnet = network + '/' + netmask
     return IPv4Network(subnet, False).prefixlen
+
+
+def build_network_url_from_gateway_url(gateway_href):
+    """Build network URI for NSX Proxy API.
+
+    It replaces '/api/edgeGatway/' or '/api/admin/edgeGatway/' with
+    /network/EDGE_ENDPOINT and return the newly formed network URI.
+
+    param: str gateway_href: gateway URL. for ex:
+    https://x.x.x.x/api/admin/edgeGateway/uuid
+
+    return network href
+    rtype: str
+    """
+    _NETWORK_URL = '/network/edges/'
+    _GATEWAY_API_URL = '/api/edgeGateway/'
+    _GATEWAY_ADMIN_API_URL = '/api/admin/edgeGateway/'
+    network_url = gateway_href
+    if gateway_href.find(_GATEWAY_API_URL) > 0 or gateway_href.find(
+            _GATEWAY_ADMIN_API_URL) > 0:
+        network_url = network_url.replace(_GATEWAY_API_URL, _NETWORK_URL)
+        return network_url.replace(_GATEWAY_ADMIN_API_URL, _NETWORK_URL)
+
+    return None

@@ -278,6 +278,7 @@ class EntityType(Enum):
     COMPOSE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.composeVAppParams+xml'
     CONTROL_ACCESS_PARAMS = 'application/vnd.vmware.vcloud.controlAccess+xml'
+    DEFAULT_CONTENT_TYPE = 'application/*+xml'
     DEPLOY = 'application/vnd.vmware.vcloud.deployVAppParams+xml'
     DISK = 'application/vnd.vmware.vcloud.disk+xml'
     DISK_ATTACH_DETACH_PARAMS = \

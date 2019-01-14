@@ -659,3 +659,60 @@ class Gateway(object):
     def _build_firewall_rule_href(self):
         network_url = build_network_url_from_gateway_url(self.href)
         return network_url + FIREWALL_URL_TEMPLATE
+
+    def list_rate_limits(self):
+        """Lists rate limit of gateway.
+
+        :return: list of dictionary that has gateway's rate limit settings
+        for e.g.
+        [{ external_network:extNework2,
+          in_rate_limit:101.0
+          out_rate_limit:101.0
+        }]
+
+        :rtype: list
+        """
+        gateway = self.get_resource()
+        out_list = []
+        for gateway_inf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            rate_limit_setting = dict()
+            if hasattr(gateway_inf, 'InRateLimit') and \
+                    hasattr(gateway_inf, 'OutRateLimit'):
+                rate_limit_setting['external_network'] = gateway_inf.Name.text
+                rate_limit_setting['in_rate_limit'] = \
+                    gateway_inf.InRateLimit.text
+                rate_limit_setting['out_rate_limit'] = \
+                    gateway_inf.OutRateLimit.text
+
+            out_list.append(rate_limit_setting)
+
+        return out_list
+
+    def disable_rate_limits(self, ext_Networks):
+        """Disable the existing rate limit of gateway.
+
+        :param ext_Networks: List of external network
+        for e.g.
+        [extNework1, extNework2]
+
+        :return: object containing EntityType.TASK XML data
+             representing the asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        gateway = self.get_resource()
+        for gateway_inf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            ext_name = gateway_inf.Name.text
+            if ext_name in ext_Networks:
+                if hasattr(gateway_inf, 'InRateLimit') and \
+                        hasattr(gateway_inf, 'OutRateLimit'):
+                    gateway_inf.ApplyRateLimit = E.ApplyRateLimit('false')
+                    gateway_inf.remove(gateway_inf.InRateLimit)
+                    gateway_inf.remove(gateway_inf.OutRateLimit)
+
+        return self.client.put_linked_resource(self.resource,
+                                               RelationType.EDIT,
+                                               EntityType.EDGE_GATEWAY.value,
+                                               gateway)

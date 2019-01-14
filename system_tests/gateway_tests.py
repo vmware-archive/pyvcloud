@@ -468,6 +468,47 @@ class TestGateway(BaseTestCase):
             tenant_syslog_server = gateway_obj.list_syslog_server_ip()
             self.assertEqual(len(tenant_syslog_server), 1)
 
+    def test_0019_list_rate_limit(self):
+        """List rate limit of the gateway.
+
+        Invoke the list_rate_limits function of gateway.
+        """
+        for client in (TestGateway._client, TestGateway._org_client):
+            gateway_obj = Gateway(client, self._name,
+                                  TestGateway._gateway.get('href'))
+            rate_limit = gateway_obj.list_rate_limits()
+            self.assertTrue(len(rate_limit) > 0)
+
+    def __get_gateway_interface(self, gateway, ext_network):
+        for gateway_inf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            if gateway_inf.Name == ext_network:
+                return gateway_inf
+
+    def test_0020_disable_rate_limit(self):
+        """Disable rate limit of the gateway.
+
+        Invoke the disable_rate_limits function of gateway.
+        """
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        ip_allocations = gateway_obj.list_configure_ip_settings()
+        ip_allocation = ip_allocations[0]
+        ext_network = ip_allocation.get('external_network')
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        task = gateway_obj.disable_rate_limits([ext_network])
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        #verification
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        gateway_interface = self.__get_gateway_interface(
+            gateway_obj.get_resource(), ext_network)
+        """removed the InRateLimit form gateway_interface."""
+        self.assertFalse(hasattr(gateway_interface, 'InRateLimit'))
+
     def test_0025_add_firewall_rule(self):
         """Add Firewall Rule's in the gateway."""
 

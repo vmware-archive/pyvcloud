@@ -580,3 +580,29 @@ class ExternalNetwork(object):
             raise EntityNotFoundException('No associated direct org vDC '
                                           'networks found')
         return direct_ovdc_network_names
+
+    def list_vsphere_network(self, filter=None):
+        """List associated vSphere Networks.
+
+        :param str filter: filter to fetch the vSphere Networks,
+        e.g., networkName==Ext*
+        :return: list of associated provider vdcs
+        e.g.
+        [{'vCenter': 'vc1', 'Name': 'test-dvpg'}]
+        :rtype: list
+        """
+        out_list = []
+        query = self.client.get_typed_query(
+            ResourceType.PORT_GROUP.value,
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=filter)
+        records = query.execute()
+        if records is None:
+            raise EntityNotFoundException('No associated vSphere'
+                                          ' Networks found')
+        for record in records:
+            vSphere_network_list = dict()
+            vSphere_network_list['vCenter'] = record.get('vcName')
+            vSphere_network_list['Name'] = record.get('name')
+            out_list.append(vSphere_network_list)
+        return out_list

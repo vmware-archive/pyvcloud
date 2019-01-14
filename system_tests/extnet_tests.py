@@ -469,6 +469,17 @@ class TestExtNet(BaseTestCase):
             'connectedTo==Ext*')
         self.assertTrue(len(direct_ovdc_networks) > 0)
 
+    def test_0105_list_vsphere_network(self):
+        """List associated vSphere Networks.
+        """
+        platform = Platform(TestExtNet._sys_admin_client)
+        ext_net_resource = platform.get_external_network(
+            TestExtNet._name)
+        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+                                     resource=ext_net_resource)
+        vSphere_network_list = extnet_obj.list_vsphere_network('networkName==Ext*')
+        self.assertTrue(len(vSphere_network_list) > 0)
+
     def __add_sub_allocate_ip_pool(self):
         gateway = Environment. \
             get_test_gateway(TestExtNet._sys_admin_client)

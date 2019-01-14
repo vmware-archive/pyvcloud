@@ -690,7 +690,7 @@ class Gateway(object):
         return out_list
 
     def disable_rate_limits(self, ext_Networks):
-        """Disable the existing rate limit of gateway.
+        """Disable rate limit of gateway for provided external networks.
 
         :param ext_Networks: List of external network
         for e.g.

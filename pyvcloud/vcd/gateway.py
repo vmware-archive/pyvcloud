@@ -710,7 +710,7 @@ class Gateway(object):
                                                gateway)
 
     def __update_dns_relay(self, configuration, enable_dns_relay=None):
-        """updates DNS Relay gateway.
+        """Updates DNS Relay gateway.
 
         :param configuration: gateway configuration
         :param bool enable_dns_relay: flag to enable/disable DNS Relay
@@ -722,7 +722,7 @@ class Gateway(object):
 
     def __update_gateway_default_route(self, gateway_inf,
                                        enable_default_gateway=None):
-        """updates default route of gateway interface.
+        """Updates default route of gateway interface.
 
         :param gateway_inf: gateway interface.
         :param bool enable_default_gateway: flag to enable/disable default
@@ -736,7 +736,7 @@ class Gateway(object):
     def __update_subnet_participation_default_route(self, subnet, gateway_ip,
                                                     enable_default_gateway=None
                                                     ):
-        """updates default route of subnet participation of gateway.
+        """Updates default route of subnet participation of gateway.
 
         :param subnet: subnet participation of gateway.
         :param bool enable_default_gateway: flag to enable/disable default

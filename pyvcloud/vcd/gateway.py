@@ -800,8 +800,11 @@ class Gateway(object):
     def list_configure_default_gateway(self):
         """Lists the configured default gateway.
 
-        :return: object containing EntityType.TASK XML data
-             representing the asynchronous task.
+        :return: list of dictionary that has configured gateway settings
+            for e.g.
+            [{ external_network:extNework1,
+               gateway_ip:2.2.3.1
+            }]
 
         :rtype: list
         """
@@ -810,16 +813,11 @@ class Gateway(object):
         for gateway_inf in \
                 gateway.Configuration.GatewayInterfaces.GatewayInterface:
             gateway_config = dict()
-            if gateway_inf.UseForDefaultRoute is True:
+            if gateway_inf.UseForDefaultRoute:
                 gateway_config['external_network'] = gateway_inf.Name.text
                 for subnet_part in gateway_inf.SubnetParticipation:
-                    if subnet_part.UseForDefaultRoute.text is True:
+                    if subnet_part.UseForDefaultRoute:
                         gateway_config['gateway_ip'] = \
-                            subnet_part.UseForDefaultRoute.text
-
-        out_list.append(gateway_config)
-
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.EDGE_GATEWAY.value,
-                                               gateway)
+                            subnet_part.Gateway.text
+                        out_list.append(gateway_config)
+        return out_list

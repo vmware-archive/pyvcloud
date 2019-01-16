@@ -708,3 +708,118 @@ class Gateway(object):
                                                RelationType.EDIT,
                                                EntityType.EDGE_GATEWAY.value,
                                                gateway)
+
+    def __update_dns_relay(self, configuration, enable_dns_relay=None):
+        """updates DNS Relay gateway.
+
+        :param configuration: gateway configuration
+        :param bool enable_dns_relay: flag to enable/disable DNS Relay
+        """
+        if enable_dns_relay is not None and \
+                hasattr(configuration, 'UseDefaultRouteForDnsRelay'):
+            configuration.UseDefaultRouteForDnsRelay = \
+                E.UseDefaultRouteForDnsRelay(enable_dns_relay)
+
+    def __update_gateway_default_route(self, gateway_inf,
+                                       enable_default_gateway=None):
+        """updates default route of gateway interface.
+
+        :param gateway_inf: gateway interface.
+        :param bool enable_default_gateway: flag to enable/disable default
+        gateway
+        """
+        if enable_default_gateway is not None and \
+                hasattr(gateway_inf, 'UseForDefaultRoute'):
+            gateway_inf.UseForDefaultRoute = \
+                E.UseForDefaultRoute(enable_default_gateway)
+
+    def __update_subnet_participation_default_route(self, subnet, gateway_ip,
+                                                    enable_default_gateway=None
+                                                    ):
+        """updates default route of subnet participation of gateway.
+
+        :param subnet: subnet participation of gateway.
+        :param bool enable_default_gateway: flag to enable/disable default
+        gateway
+        """
+        if enable_default_gateway is not None and \
+                hasattr(subnet, 'UseForDefaultRoute') and \
+                subnet.Gateway == gateway_ip:
+            subnet.UseForDefaultRoute = \
+                E.UseForDefaultRoute(enable_default_gateway)
+
+    def configure_default_gateway(self, ext_network, ip,
+                                  enable_default_gateway):
+        """Configures gateway for provided external networks and gateway ip.
+
+        :param ext_network: External network connected to gateway
+        :param ip: default ip of the gateway
+        :param bool enable_default_gateway: flag to enable/disable default
+        gateway
+
+        :return: object containing EntityType.TASK XML data
+             representing the asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        gateway = self.get_resource()
+
+        for gateway_inf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            ext_name = gateway_inf.Name.text
+            if ext_name == ext_network:
+                subnet_participation = gateway_inf.SubnetParticipation
+                self.__update_gateway_default_route(gateway_inf,
+                                                    enable_default_gateway)
+                self.__update_subnet_participation_default_route(
+                    subnet_participation, ip, enable_default_gateway)
+
+        return self.client.put_linked_resource(self.resource,
+                                               RelationType.EDIT,
+                                               EntityType.EDGE_GATEWAY.value,
+                                               gateway)
+
+    def configure_dns_default_gateway(self, enable_dns_relay):
+        """Enables/disables the dns relay of the default gateway.
+
+        :param bool enable_dns_relay: flag to enable/disable DNS Relay
+
+        :return: object containing EntityType.TASK XML data
+             representing the asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        gateway = self.get_resource()
+        self.__update_dns_relay(gateway.Configuration, enable_dns_relay)
+
+        return self.client.put_linked_resource(self.resource,
+                                               RelationType.EDIT,
+                                               EntityType.EDGE_GATEWAY.value,
+                                               gateway)
+
+    def list_configure_default_gateway(self):
+        """Lists the configured default gateway.
+
+        :return: object containing EntityType.TASK XML data
+             representing the asynchronous task.
+
+        :rtype: list
+        """
+        gateway = self.get_resource()
+        out_list = []
+        for gateway_inf in \
+                gateway.Configuration.GatewayInterfaces.GatewayInterface:
+            gateway_config = dict()
+            if gateway_inf.UseForDefaultRoute.text == 'true':
+                gateway_config['external_network'] = gateway_inf.Name.text
+                for subnet_part in gateway_inf.SubnetParticipation:
+                    if subnet_part.UseForDefaultRoute.text == 'true':
+                        gateway_config['gateway_ip'] = \
+                            subnet_part.UseForDefaultRoute.text
+
+        out_list.append(gateway_config)
+
+        return self.client.put_linked_resource(self.resource,
+                                               RelationType.EDIT,
+                                               EntityType.EDGE_GATEWAY.value,
+                                               gateway)

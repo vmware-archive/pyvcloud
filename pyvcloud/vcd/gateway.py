@@ -710,7 +710,7 @@ class Gateway(object):
                                                gateway)
 
     def __update_dns_relay(self, configuration, enable_dns_relay=None):
-        """Updates DNS Relay gateway.
+        """Updates DNS Relay of a gateway.
 
         :param configuration: gateway configuration
         :param bool enable_dns_relay: flag to enable/disable DNS Relay
@@ -726,7 +726,7 @@ class Gateway(object):
 
         :param gateway_inf: gateway interface.
         :param bool enable_default_gateway: flag to enable/disable default
-        gateway
+            gateway
         """
         if enable_default_gateway is not None and \
                 hasattr(gateway_inf, 'UseForDefaultRoute'):
@@ -740,7 +740,7 @@ class Gateway(object):
 
         :param subnet: subnet participation of gateway.
         :param bool enable_default_gateway: flag to enable/disable default
-        gateway
+            gateway
         """
         if enable_default_gateway is not None and \
                 hasattr(subnet, 'UseForDefaultRoute') and \
@@ -750,12 +750,12 @@ class Gateway(object):
 
     def configure_default_gateway(self, ext_network, ip,
                                   enable_default_gateway):
-        """Configures gateway for provided external networks and gateway ip.
+        """Configures gateway for provided external networks and gateway IP.
 
         :param ext_network: External network connected to gateway
         :param ip: default ip of the gateway
         :param bool enable_default_gateway: flag to enable/disable default
-        gateway
+            gateway
 
         :return: object containing EntityType.TASK XML data
              representing the asynchronous task.
@@ -810,10 +810,10 @@ class Gateway(object):
         for gateway_inf in \
                 gateway.Configuration.GatewayInterfaces.GatewayInterface:
             gateway_config = dict()
-            if gateway_inf.UseForDefaultRoute.text == 'true':
+            if gateway_inf.UseForDefaultRoute is True:
                 gateway_config['external_network'] = gateway_inf.Name.text
                 for subnet_part in gateway_inf.SubnetParticipation:
-                    if subnet_part.UseForDefaultRoute.text == 'true':
+                    if subnet_part.UseForDefaultRoute.text is True:
                         gateway_config['gateway_ip'] = \
                             subnet_part.UseForDefaultRoute.text
 

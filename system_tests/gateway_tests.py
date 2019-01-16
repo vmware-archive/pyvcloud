@@ -533,7 +533,7 @@ class TestGateway(BaseTestCase):
                               TestGateway._gateway.get('href'))
         gateway_interface = self.__get_gateway_interface(
             gateway_obj.get_resource(), ext_network)
-        self.assertTrue(gateway_interface.UseForDefaultRoute.text == 'true')
+        self.assertTrue(gateway_interface.UseForDefaultRoute)
 
     def test_0022_enable_dns_relay_gateway(self):
         """enables the dns relay of the gateway.
@@ -550,7 +550,7 @@ class TestGateway(BaseTestCase):
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
         self.assertTrue(gateway_obj.get_resource().Configuration.
-                        UseDefaultRouteForDnsRelay.text == 'true')
+                        UseDefaultRouteForDnsRelay)
         task = gateway_obj.configure_dns_default_gateway('false')
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)

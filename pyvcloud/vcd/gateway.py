@@ -800,8 +800,8 @@ class Gateway(object):
     def list_configure_default_gateway(self):
         """Lists the configured default gateway.
 
-        :return: list of dictionary that has configured gateway settings
-            for e.g.
+        :return: list of dictionary that has external network and default
+            gateway ip, for e.g.
             [{ external_network:extNework1,
                gateway_ip:2.2.3.1
             }]

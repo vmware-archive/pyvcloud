@@ -15,3 +15,7 @@
 
 FIREWALL_URL_TEMPLATE = "/firewall/config"
 FIREWALL_RULES_URL_TEMPLATE = "/firewall/config/rules"
+NAT_URL_TEMPLATE = "/nat/config"
+NAT_RULES = "/rules"
+NAT_RULES_URL_TEMPLATE = "/nat/config" + NAT_RULES
+NAT_RULE_URL_TEMPLATE = NAT_RULES_URL_TEMPLATE + "/{0}"

@@ -263,8 +263,11 @@ class VdcNetwork(object):
     def list_allocated_ip_address(self):
         """List allocated ip address of org vDC network.
 
-        :return: dict allocated ip address with type and deploy status
-        :rtype: dict
+        :return: List where each entry is a dictionary containing allocated IP
+            address, deploy status and type.
+            For example: [{'IP Address': '10.20.30.1', 'Is Deployed': 'true',
+            'Type': 'vsmAllocated'}]
+        :rtype: list
         """
         allocated_ip_addresses = self.client.get_linked_resource(
             self.get_resource(), RelationType.DOWN,

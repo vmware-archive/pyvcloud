@@ -279,8 +279,7 @@ class TestNetwork(BaseTestCase):
     def _add_routed_vdc_network_metadata(self, vdc_network, metadata_key,
                                          metadata_value):
         task = vdc_network.set_metadata(metadata_key, metadata_value)
-        TestNetwork._client.get_task_monitor().wait_for_success(
-            task=task)
+        TestNetwork._client.get_task_monitor().wait_for_success(task=task)
         vdc_network.reload()
         self.assertEqual(
             metadata_value,
@@ -288,10 +287,8 @@ class TestNetwork(BaseTestCase):
 
     def _update_routed_vdc_network_metadata(self, vdc_network, metadata_key,
                                             updated_metadata_value):
-        task = vdc_network.set_metadata(metadata_key,
-                                        updated_metadata_value)
-        TestNetwork._client.get_task_monitor().wait_for_success(
-            task=task)
+        task = vdc_network.set_metadata(metadata_key, updated_metadata_value)
+        TestNetwork._client.get_task_monitor().wait_for_success(task=task)
         vdc_network.reload()
         self.assertEqual(
             updated_metadata_value,
@@ -299,13 +296,12 @@ class TestNetwork(BaseTestCase):
 
     def _delete_routed_vcd_network_metadata(self, vdc_network, metadata_key):
         task = vdc_network.remove_metadata(metadata_key)
-        TestNetwork._client.get_task_monitor().wait_for_success(
-            task=task)
+        TestNetwork._client.get_task_monitor().wait_for_success(task=task)
         vdc_network.reload()
         with self.assertRaises(AccessForbiddenException):
             vdc_network.get_metadata_value(metadata_key)
 
-    def test_0080_routed_orgvdc_network_metadata(self):
+    def test_0080_routed_vdc_network_metadata(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)
         org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
             TestNetwork._routed_org_vdc_network_name)
@@ -324,6 +320,18 @@ class TestNetwork(BaseTestCase):
             self, vdc_network, metadata_key, updated_metadata_value)
         TestNetwork._delete_routed_vcd_network_metadata(
             self, vdc_network, metadata_key)
+
+    def test_0090_list_routed_vdc_network_allocated_ip(self):
+        vdc = Environment.get_test_vdc(TestNetwork._client)
+        org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
+            TestNetwork._routed_org_vdc_network_name)
+        vdc_network = VdcNetwork(
+            TestNetwork._client, resource=org_vdc_routed_nw)
+        allocated_ip_addresses = vdc_network.list_allocated_ip_address()
+        self.assertEqual(len(allocated_ip_addresses), 1)
+        ip_address = TestNetwork._routed_orgvdc_network_gateway_ip.split(
+            '/')[0]
+        self.assertEqual(allocated_ip_addresses[0]['IP Address'], ip_address)
 
     def test_0100_delete_routed_orgvdc_networks(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)

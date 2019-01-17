@@ -129,10 +129,8 @@ class VdcNetwork(object):
                 start_address = ip_range_arr[0]
                 end_address = ip_range_arr[0]
             ip_range_tag = E.IpRange()
-            ip_range_tag.append(E.StartAddress(
-                start_address))
-            ip_range_tag.append(E.EndAddress(
-                end_address))
+            ip_range_tag.append(E.StartAddress(start_address))
+            ip_range_tag.append(E.EndAddress(end_address))
             ip_ranges_list.append(ip_range_tag)
 
         return self.client.put_linked_resource(
@@ -200,8 +198,8 @@ class VdcNetwork(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        metadata = Metadata(client=self.client,
-                            resource=self.get_all_metadata())
+        metadata = Metadata(
+            client=self.client, resource=self.get_all_metadata())
         return metadata.get_metadata_value(key, domain)
 
     def set_metadata(self,
@@ -230,14 +228,15 @@ class VdcNetwork(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        metadata = Metadata(client=self.client,
-                            resource=self.get_all_metadata())
-        return metadata.set_metadata(key=key,
-                                     value=value,
-                                     domain=domain,
-                                     visibility=visibility,
-                                     metadata_value_type=metadata_value_type,
-                                     use_admin_endpoint=True)
+        metadata = Metadata(
+            client=self.client, resource=self.get_all_metadata())
+        return metadata.set_metadata(
+            key=key,
+            value=value,
+            domain=domain,
+            visibility=visibility,
+            metadata_value_type=metadata_value_type,
+            use_admin_endpoint=True)
 
     def remove_metadata(self, key, domain=MetadataDomain.GENERAL):
         """Remove a metadata entry from the org vdc network.
@@ -256,8 +255,28 @@ class VdcNetwork(object):
         :raises: AccessForbiddenException: If there is no metadata entry
             corresponding to the key provided.
         """
-        metadata = Metadata(client=self.client,
-                            resource=self.get_all_metadata())
-        return metadata.remove_metadata(key=key,
-                                        domain=domain,
-                                        use_admin_endpoint=True)
+        metadata = Metadata(
+            client=self.client, resource=self.get_all_metadata())
+        return metadata.remove_metadata(
+            key=key, domain=domain, use_admin_endpoint=True)
+
+    def list_allocated_ip_address(self):
+        """List allocated ip address of org vDC network.
+
+        :return: List where each entry is a dictionary containing allocated IP
+            address, deploy status and type.
+            For example: [{'IP Address': '10.20.30.1', 'Is Deployed': 'true',
+            'Type': 'vsmAllocated'}]
+        :rtype: list
+        """
+        allocated_ip_addresses = self.client.get_linked_resource(
+            self.get_resource(), RelationType.DOWN,
+            EntityType.ALLOCATED_NETWORK_ADDRESS.value)
+        result = []
+        for ip_address in allocated_ip_addresses.IpAddress:
+            result.append({
+                'IP Address': ip_address.IpAddress,
+                'Is Deployed': ip_address.get('isDeployed'),
+                'Type': ip_address.get('allocationType')
+            })
+        return result

@@ -270,6 +270,8 @@ class EntityType(Enum):
     ADMIN_CATALOG = 'application/vnd.vmware.admin.catalog+xml'
     ADMIN_ORG = 'application/vnd.vmware.admin.organization+xml'
     ADMIN_SERVICE = 'application/vnd.vmware.admin.service+xml'
+    ALLOCATED_NETWORK_ADDRESS = \
+        'application/vnd.vmware.vcloud.allocatedNetworkAddress+xml'
     API_EXTENSIBILITY = 'application/vnd.vmware.vcloud.apiextensibility+xml'
     AMQP_SETTINGS = 'application/vnd.vmware.admin.amqpSettings+xml'
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'

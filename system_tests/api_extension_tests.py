@@ -39,6 +39,11 @@ class TestApiExtension(BaseTestCase):
     _service_exchange = 'exchange_' + str(uuid1())
     _service_patterns = ['/api/bogus1', '/api/bogus2', '/api/bogus3']
 
+    _right_name = 'right_' + str(uuid1())
+    _category = 'category_' + str(uuid1())
+    _description = 'description_' + str(uuid1())
+    _bundle_key = 'bundlekey_' + str(uuid1())
+
     _non_existent_service_name = '_non_existent_service_' + str(uuid1())
     _non_existent_service_namespace = '_non_existent_namespace_' + str(uuid1())
 
@@ -223,6 +228,35 @@ class TestApiExtension(BaseTestCase):
             namespace=TestApiExtension._service1_namespace,
             enabled=True)
         self.assertEqual(href, TestApiExtension._service1_href)
+
+    def test_007_register_service_right(self):
+        ''' Register a new right for existing API extension. Tests
+            APIExtension.add_service_right() method.
+
+            This test passes if service hrefs are not None.
+        '''
+        logger = Environment.get_default_logger()
+        TestApiExtension._client = Environment.get_sys_admin_client()
+        api_extension = APIExtension(TestApiExtension._client)
+
+        # Create a new right for CSE RBAC
+        logger.debug('Registering service right(name:' +
+                     TestApiExtension._right_name + ', description:' +
+                     TestApiExtension._description + ', category:' +
+                     TestApiExtension._category + ').')
+        register_right = api_extension.add_service_right(
+            name=TestApiExtension._right_name,
+            description=TestApiExtension._description,
+            category=TestApiExtension._category,
+            bundle_key=TestApiExtension._bundle_key)
+
+        ''' The returned right name contains extra string=
+            {cse}:right_name which needs to be removed before 
+            comparing.
+            eg. {cse}:right_6a78efb8-1b5a-11e9-8bfe-a0999b14d39d 
+        '''
+        registered_right_name = register_right.get('name').split(':')[1]
+        self.assertEqual(TestApiExtension._right_name, registered_right_name)
 
     @developerModeAware
     def test_9998_teardown(self):

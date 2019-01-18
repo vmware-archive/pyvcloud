@@ -1514,10 +1514,13 @@ class Org(object):
             resource_admin, RelationType.ADD, EntityType.VDCS_PARAMS.value,
             params)
 
-    def get_vdc(self, name):
+    def get_vdc(self, name, is_admin_operation=False):
         """Retrieves resource of an org vdc identified by its name.
 
         :param str name: name of the org vdc to be retrieved.
+
+        :param bool is_admin_operation: if set True, will return the admin
+            view of the org vdc resource.
 
         :return: an object containing EtityType.VDC XML data representing the
             vdc.
@@ -1534,7 +1537,11 @@ class Org(object):
             media_type=EntityType.VDC.value)
         for link in links:
             if name == link.name:
-                return self.client.get_resource(link.href)
+                if is_admin_operation:
+                    href = get_admin_href(link.href)
+                else:
+                    href = link.href
+                return self.client.get_resource(href)
         raise EntityNotFoundException('Vdc \'%s\' not found' % name)
 
     def list_vdcs(self):

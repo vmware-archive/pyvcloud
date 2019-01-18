@@ -34,7 +34,7 @@ class NatRule(object):
         :param str rule_id: nat rule id.
         :param str nat_href: nat rule href.
         :param lxml.objectify.ObjectifiedElement resource: object containing
-            EntityType.NAT XML data representing the gateway.
+            EntityType.NAT XML data representing the nat rule.
         """
         self.client = client
         self.gateway_name = gateway_name
@@ -43,18 +43,17 @@ class NatRule(object):
            rule_id is not None and \
            nat_href is None and \
            resource is None:
-            self.__get_href()
+            self.__build_self_href()
         if nat_href is None and resource is None and self.href is None:
             raise InvalidParameterException(
                 "NatRule initialization failed as arguments are either "
                 "invalid or None")
         if nat_href is not None:
             self.rule_id = self.__extract_rule_id(nat_href)
-        if self.href is None:
             self.href = nat_href
         self.resource = resource
 
-    def __get_href(self):
+    def __build_self_href(self):
         self.parent = self.get_parent_by_name()
         self.parent_href = self.parent.get('href')
         network_url = build_network_url_from_gateway_url(self.parent_href)
@@ -70,7 +69,7 @@ class NatRule(object):
         """Fetches the XML representation of the nat rule.
 
         :return: object containing EntityType.NAT_RULE XML data
-        representing the nat rule.
+        representing the Nat Rule.
         :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
@@ -92,7 +91,6 @@ class NatRule(object):
     def get_parent_by_name(self):
         """Get a gateway by name.
 
-        :param str name: name of the gateway to be fetched.​
         :return: gateway​
         :rtype: lxml.objectify.ObjectifiedElement​
         :raises: EntityNotFoundException: if the named gateway can not be
@@ -115,13 +113,6 @@ class NatRule(object):
         return records[0]
 
     def delete_nat_rule(self):
-        """Delete a nat rule from gateway.
-
-        :param str name: name of the vApp to be deleted.
-
-        :raises: EntityNotFoundException: if the named vApp can not be found.
-        :raises: MultipleRecordsException: if more than one vApp with the
-        provided name are found.
-        """
+        """Delete a nat rule from gateway."""
         self.get_resource()
         return self.client.delete_resource(self.href)

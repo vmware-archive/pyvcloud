@@ -1,5 +1,5 @@
 # VMware vCloud Director Python SDK
-# Copyright (c) 2019 VMware, Inc. All Rights Reserved.
+# Copyright (c) 2014-2019 VMware, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,10 +30,7 @@ from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 class TestNatRule(BaseTestCase):
     """Test Nat Rule functionalities implemented in pyvcloud."""
     # All tests in this module should be run as System Administrator.
-    _client = None
-    _name = (GatewayConstants.name + str(uuid1()))[:34]
-    _description = GatewayConstants.description + str(uuid1())
-    _gateway = None
+    _name = GatewayConstants.name
     _snat_action = 'snat'
     _snat_orig_addr = '2.2.3.7'
     _snat_trans_addr = '2.2.3.8'
@@ -49,71 +46,40 @@ class TestNatRule(BaseTestCase):
     _dnat2_desc = 'icmp protocol'
 
     def test_0000_setup(self):
-        """Setup the gateway required for the other tests in this module.
+        """Add the sub allocated ip pools to gateway.
 
-        Create a gateway as per the configuration stated
-        above.
+        This sub allocated ip pools required by the Nat Rule
 
-        This test passes if the gateway is created successfully.
+        Invokes the add_sub_allocated_ip_pools of the gateway.
         """
         TestNatRule._client = Environment.get_sys_admin_client()
-        TestNatRule._vdc = Environment.get_test_vdc(TestNatRule._client)
-
-        TestNatRule._org_client = Environment.get_client_in_default_org(
-            CommonRoles.ORGANIZATION_ADMINISTRATOR)
         TestNatRule._config = Environment.get_config()
-        TestNatRule._api_version = TestNatRule._config['vcd']['api_version']
+        gateway = Environment. \
+            get_test_gateway(TestNatRule._client)
+        gateway_obj = Gateway(TestNatRule._client,
+                              TestNatRule._name,
+                              href=gateway.get('href'))
+        ip_allocations = gateway_obj.list_configure_ip_settings()
+        ip_allocation = ip_allocations[0]
+        ext_network = ip_allocation.get('external_network')
+        config = TestNatRule._config['external_network']
+        gateway_sub_allocated_ip_range = \
+            config['gateway_sub_allocated_ip_range']
+        ip_range_list = [gateway_sub_allocated_ip_range]
 
-        external_network = Environment.get_test_external_network(
-            TestNatRule._client)
-
-        ext_net_resource = external_network.get_resource()
-        ip_scopes = ext_net_resource.xpath(
-            'vcloud:Configuration/vcloud:IpScopes/vcloud:IpScope',
-            namespaces=NSMAP)
-        first_ipscope = ip_scopes[0]
-        gateway_ip = first_ipscope.Gateway.text
-        prefix_len = netmask_to_cidr_prefix_len(gateway_ip,
-                                           first_ipscope.Netmask.text)
-        subnet_addr = gateway_ip + '/' + str(prefix_len)
-        ext_net_to_participated_subnet_with_ip_settings = {
-            ext_net_resource.get('name'): {
-                subnet_addr: 'Auto'
-            }
-        }
-
-        gateway_ip_arr = gateway_ip.split('.')
-        last_ip_digit = int(gateway_ip_arr[-1]) + 1
-        gateway_ip_arr[-1] = str(last_ip_digit)
-        next_ip = '.'.join(gateway_ip_arr)
-        ext_net_to_subnet_with_ip_range = {
-            ext_net_resource.get('name'): {
-                subnet_addr: [next_ip + '-' + next_ip]
-            }
-        }
-        ext_net_to_rate_limit = {ext_net_resource.get('name'): {100: 100}}
-        if float(TestNatRule._api_version) <= float(
-                ApiVersion.VERSION_30.value):
-            TestNatRule._gateway = \
-                TestNatRule._vdc.create_gateway_api_version_30(
-                    self._name, [ext_net_resource.get('name')], 'compact',
-                    None,
-                    True, ext_net_resource.get('name'), gateway_ip, True,
-                    False,
-                    False, False, True,
-                    ext_net_to_participated_subnet_with_ip_settings, True,
-                    ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
-        else:
-            TestNatRule._gateway = TestNatRule._vdc.create_gateway(
-                self._name, [ext_net_resource.get('name')], 'compact', None,
-                True, ext_net_resource.get('name'), gateway_ip, True, False,
-                False, False, True,
-                ext_net_to_participated_subnet_with_ip_settings, True,
-                ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
-
+        task = gateway_obj.add_sub_allocated_ip_pools(ext_network,
+                                                      ip_range_list)
         result = TestNatRule._client.get_task_monitor().wait_for_success(
-            task=TestNatRule._gateway.Tasks.Task)
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        gateway_obj = Gateway(TestNatRule._client,
+                              TestNatRule._name,
+                              href=gateway.get('href'))
+        subnet_participation = self.__get_subnet_participation(
+            gateway_obj.get_resource(), ext_network)
+        ip_ranges = gateway_obj.get_sub_allocate_ip_ranges_element(
+            subnet_participation)
+        self.__validate_ip_range(ip_ranges, gateway_sub_allocated_ip_range)
 
     def __get_subnet_participation(self, gateway, ext_network):
         for gatewayinf in \
@@ -130,53 +96,16 @@ class TestNatRule(BaseTestCase):
             if ip_range.StartAddress == _ip_range1_start_address:
                 self.assertEqual(ip_range.EndAddress, _ip_range1_end_address)
 
-    def test_0001_convert_to_advanced(self):
-        """Convert the legacy gateway to advance gateway.
-        Invoke the convert_to_advanced method for gateway.
-        """
-        if float(TestNatRule._api_version) >= float(
-                ApiVersion.VERSION_32.value):
-            return
-        gateway_obj = Gateway(TestNatRule._org_client, self._name,
-                              TestNatRule._gateway.get('href'))
-        task = gateway_obj.convert_to_advanced()
-        result = TestNatRule._client.get_task_monitor().wait_for_success(
-            task=task)
-        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
-
-    def test_0005_add_sub_allocated_ip_pools(self):
-        """It adds the sub allocated ip pools to gateway.
-
-        Invokes the add_sub_allocated_ip_pools of the gateway.
-        """
-        gateway_obj = Gateway(TestNatRule._client, self._name,
-                              TestNatRule._gateway.get('href'))
-        ip_allocations = gateway_obj.list_configure_ip_settings()
-        ip_allocation = ip_allocations[0]
-        ext_network = ip_allocation.get('external_network')
-        config = TestNatRule._config['external_network']
-        gateway_sub_allocated_ip_range = \
-            config['gateway_sub_allocated_ip_range']
-        ip_range_list = [gateway_sub_allocated_ip_range]
-
-        task = gateway_obj.add_sub_allocated_ip_pools(ext_network,
-                                                      ip_range_list)
-        result = TestNatRule._client.get_task_monitor().wait_for_success(
-            task=task)
-        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
-        gateway_obj = Gateway(TestNatRule._client, self._name,
-                              TestNatRule._gateway.get('href'))
-        subnet_participation = self.__get_subnet_participation(
-            gateway_obj.get_resource(), ext_network)
-        ip_ranges = gateway_obj.get_sub_allocate_ip_ranges_element(
-            subnet_participation)
-        self.__validate_ip_range(ip_ranges, gateway_sub_allocated_ip_range)
-
     def test_0010_add_nat_rule(self):
-        """Add Nat Rule's in the gateway."""
+        """Add Nat Rule in the gateway.
 
-        gateway_obj = Gateway(TestNatRule._client, self._name,
-                              TestNatRule._gateway.get('href'))
+        Invokes the add_nat_rule of the gateway.
+        """
+        gateway = Environment. \
+            get_test_gateway(TestNatRule._client)
+        gateway_obj = Gateway(TestNatRule._client,
+                              TestNatRule._name,
+                              href=gateway.get('href'))
         # Create SNAT Rule
         gateway_obj.add_nat_rule(
             action=TestNatRule._snat_action,
@@ -209,28 +138,60 @@ class TestNatRule(BaseTestCase):
         self.assertTrue(snat_count == 1)
         self.assertTrue(dnat_count == 2)
 
-    def test_0098_teardown(self):
-        """Test method to delete a nat rule and gateway.
+    def test_0090_delete_nat_rule(self):
+        """Delete Nat Rule in the gateway.
 
-        Invoke the method for the gateway created by setup.
-
-        This test passes if no errors are generated while deleting the gateway.
+        Invokes the delete_nat_rule of the NatRule.
         """
-        gateway_obj = Gateway(TestNatRule._client, self._name,
-                              TestNatRule._gateway.get('href'))
+        gateway = Environment. \
+            get_test_gateway(TestNatRule._client)
+        gateway_obj = Gateway(TestNatRule._client,
+                              TestNatRule._name,
+                              href=gateway.get('href'))
         nat_rule = gateway_obj.get_nat_rules()
-        for natRule in nat_rule.natRules.natRule:
-            rule_id = natRule.ruleId
-            break
-        nat_obj = NatRule(TestNatRule._client, self._name, rule_id)
-        # deleting single nat rule as gateway deletion will clear all
-        nat_obj.delete_nat_rule()
 
-        vdc = Environment.get_test_vdc(TestNatRule._client)
-        task = vdc.delete_gateway(TestNatRule._name)
+        nat_objects = []
+        for natRule in nat_rule.natRules.natRule:
+            nat_objects.append(
+                NatRule(TestNatRule._client, self._name, natRule.ruleId))
+
+        for nat_object in nat_objects:
+            nat_object.delete_nat_rule()
+        #Verify
+        nat_rule = gateway_obj.get_nat_rules()
+        self.assertFalse(hasattr(nat_rule.natRules, 'natRule'))
+
+    def test_0098_teardown(self):
+        """Remove the sub allocated ip pools of gateway.
+
+        Invokes the remove_sub_allocated_ip_pools of the gateway.
+        """
+        gateway = Environment. \
+            get_test_gateway(TestNatRule._client)
+        gateway_obj = Gateway(TestNatRule._client,
+                              TestNatRule._name,
+                              href=gateway.get('href'))
+        ip_allocations = gateway_obj.list_configure_ip_settings()
+        ip_allocation = ip_allocations[0]
+        ext_network = ip_allocation.get('external_network')
+        config = TestNatRule._config['external_network']
+        gateway_sub_allocated_ip_range1 = \
+            config['gateway_sub_allocated_ip_range']
+
+        task = gateway_obj.remove_sub_allocated_ip_pools(ext_network,
+                                             [gateway_sub_allocated_ip_range1])
         result = TestNatRule._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        gateway = Environment. \
+            get_test_gateway(TestNatRule._client)
+        gateway_obj = Gateway(TestNatRule._client,
+                              TestNatRule._name,
+                              href=gateway.get('href'))
+        subnet_participation = self.__get_subnet_participation(
+            gateway_obj.get_resource(), ext_network)
+        """removed the IpRanges form subnet_participation."""
+        self.assertFalse(hasattr(subnet_participation, 'IpRanges'))
 
     def test_0099_cleanup(self):
         """Release all resources held by this object for testing purposes."""

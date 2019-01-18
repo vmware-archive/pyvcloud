@@ -878,11 +878,11 @@ class Gateway(object):
                                  EntityType.DEFAULT_CONTENT_TYPE.value)
 
     def get_nat_rules(self):
-        """Get firewall Rules from vCD.
+        """Get Nat Rules from vCD.
 
-        Form a Firewall Rules using gateway href and fetches from vCD.
+        Form a Nat Rules using gateway href and fetches from vCD.
 
-        return: FirewallRule Object
+        return: NatRule Object
         """
         nat_rule_href = self._build_nat_rule_href()
         return self.client.get_resource(nat_rule_href)

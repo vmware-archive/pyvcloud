@@ -128,15 +128,17 @@ class TestNatRule(BaseTestCase):
             protocol=TestNatRule._dnat2_protocol)
         nat_rule = gateway_obj.get_nat_rules()
         #Verify
-        snat_count = 0
-        dnat_count = 0
+        snat_found = False
+        dnat_found = False
         for natRule in nat_rule.natRules.natRule:
-            if natRule.action == 'snat':
-                snat_count += 1
-            if natRule.action == 'dnat':
-                dnat_count += 1
-        self.assertTrue(snat_count == 1)
-        self.assertTrue(dnat_count == 2)
+            if natRule.action == 'snat' and \
+                natRule.originalAddress == TestNatRule._snat_orig_addr :
+                snat_found = True
+            if natRule.action == 'dnat' and \
+                natRule.originalAddress == TestNatRule._dnat1_orig_addr :
+                dnat_found = True
+        self.assertTrue(snat_found)
+        self.assertTrue(dnat_found)
 
     def test_0090_delete_nat_rule(self):
         """Delete Nat Rule in the gateway.

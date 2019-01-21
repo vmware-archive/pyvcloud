@@ -41,6 +41,7 @@ class BaseTestCase(unittest.TestCase):
         Environment.create_direct_ovdc_network()
         Environment.create_gateway()
         Environment.create_ovdc_network()
+        Environment.create_routed_orgvdc_network()
         Environment.create_catalog()
         Environment.share_catalog()
         Environment.upload_template()

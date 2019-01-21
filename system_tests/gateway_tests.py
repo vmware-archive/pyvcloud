@@ -42,6 +42,9 @@ class TestGateway(BaseTestCase):
     # Firewall Rule
     _firewall_rule_name = 'Rule Name Test'
 
+    # DHCP pool
+    _pool_ip_range = '30.20.10.110-30.20.10.112'
+
     def test_0000_setup(self):
         """Setup the gateway required for the other tests in this module.
 
@@ -109,6 +112,7 @@ class TestGateway(BaseTestCase):
             task=TestGateway._gateway.Tasks.Task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    @unittest.skip('skip')
     def test_0001_convert_to_advanced(self):
         """Convert the legacy gateway to advance gateway.
 
@@ -124,6 +128,7 @@ class TestGateway(BaseTestCase):
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    @unittest.skip('skip')
     def test_0002_enable_dr(self):
         """Enable the Distributed routing.
 
@@ -136,6 +141,7 @@ class TestGateway(BaseTestCase):
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    @unittest.skip('skip')
     def test_0003_modify_form_factor(self):
         """Modify form factor.
 
@@ -160,6 +166,7 @@ class TestGateway(BaseTestCase):
             ip_allocations = gateway_obj.list_external_network_ip_allocations()
             self.assertTrue(bool(ip_allocations))
 
+    @unittest.skip('skip')
     def test_0005_redeploy(self):
         """Redeploy the gateway.
 
@@ -173,6 +180,7 @@ class TestGateway(BaseTestCase):
                 task=task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    @unittest.skip('skip')
     def test_0006_sync_syslog_settings(self):
         """Sync syslog settings of the gateway.
 
@@ -186,6 +194,7 @@ class TestGateway(BaseTestCase):
                 task=task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    @unittest.skip('skip')
     def test_0007_list_external_network_config_ip_allocations(self):
         """List external network configure ip allocations.
 
@@ -201,6 +210,7 @@ class TestGateway(BaseTestCase):
             exnet = ip_allocations[0].get('external_network')
             self.assertEqual(external_networks[0].get('name'), exnet)
 
+    @unittest.skip('skip')
     def _create_external_network(self):
         """Creates an external network from the available portgroup."""
         vc_name = TestGateway._config['vc']['vcenter_host_name']
@@ -240,6 +250,7 @@ class TestGateway(BaseTestCase):
         TestGateway._external_network2 = ext_net
         return ext_net
 
+    @unittest.skip('skip')
     def _delete_external_network(self, network):
         logger = Environment.get_default_logger()
         platform = Platform(TestGateway._client)
@@ -247,6 +258,7 @@ class TestGateway(BaseTestCase):
         TestGateway._client.get_task_monitor().wait_for_success(task=task)
         logger.debug('Deleted external network ' + network.get('name') + '.')
 
+    @unittest.skip('skip')
     def test_0008_add_external_network(self):
         """Add an exernal netowrk to the gateway.
 
@@ -271,6 +283,7 @@ class TestGateway(BaseTestCase):
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    @unittest.skip('skip')
     def test_0009_remove_external_network(self):
         """Remove an exernal netowrk from the gateway.
 
@@ -286,6 +299,7 @@ class TestGateway(BaseTestCase):
 
         self._delete_external_network(TestGateway._external_network2)
 
+    @unittest.skip('skip')
     def test_0010_edit_gateway_name(self):
         """Edit the gateway name.
 
@@ -468,6 +482,7 @@ class TestGateway(BaseTestCase):
             tenant_syslog_server = gateway_obj.list_syslog_server_ip()
             self.assertEqual(len(tenant_syslog_server), 1)
 
+    @unittest.skip('skip')
     def test_0019_list_rate_limit(self):
         """List rate limit of the gateway.
 
@@ -485,6 +500,7 @@ class TestGateway(BaseTestCase):
             if gateway_inf.Name == ext_network:
                 return gateway_inf
 
+    @unittest.skip('skip')
     def test_0020_disable_rate_limit(self):
         """Disable rate limit of the gateway.
 
@@ -509,6 +525,7 @@ class TestGateway(BaseTestCase):
         """removed the InRateLimit form gateway_interface."""
         self.assertFalse(hasattr(gateway_interface, 'InRateLimit'))
 
+    @unittest.skip('skip')
     def test_0021_configure_gateway(self):
         """configures the gateway.
 
@@ -535,6 +552,7 @@ class TestGateway(BaseTestCase):
             gateway_obj.get_resource(), ext_network)
         self.assertTrue(gateway_interface.UseForDefaultRoute)
 
+    @unittest.skip('skip')
     def test_0022_enable_dns_relay_gateway(self):
         """enables the dns relay of the gateway.
 
@@ -556,6 +574,7 @@ class TestGateway(BaseTestCase):
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    @unittest.skip('skip')
     def test_0023_list_configure_default_gateway(self):
         """list configured default gateway.
 
@@ -566,6 +585,7 @@ class TestGateway(BaseTestCase):
         default_gateways = gateway_obj.list_configure_default_gateway()
         self.assertTrue(len(default_gateways) > 0)
 
+    @unittest.skip('skip')
     def test_0024_disable_configure_gateway(self):
         """configures the gateway.
 
@@ -592,6 +612,7 @@ class TestGateway(BaseTestCase):
             gateway_obj.get_resource(), ext_network)
         self.assertTrue(gateway_interface.UseForDefaultRoute.text == 'false')
 
+    @unittest.skip('skip')
     def test_0025_add_firewall_rule(self):
         """Add Firewall Rule's in the gateway."""
 
@@ -603,6 +624,23 @@ class TestGateway(BaseTestCase):
         matchFound = False
         for firewallRule in firewall_rule.firewallRules.firewallRule:
             if firewallRule['name'] == TestGateway._firewall_rule_name:
+                matchFound = True
+                break
+        self.assertTrue(matchFound)
+
+    def test_0026_add_dhcp_pool(self):
+        """Add DHCP pool in the gateway."""
+
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              Environment.get_test_gateway(
+                                  Environment.get_sys_admin_client())
+                              .get('href'))
+        gateway_obj.add_dhcp_pool(TestGateway._pool_ip_range)
+        dhcp_resource = gateway_obj.get_dhcp()
+        #Verify
+        matchFound = False
+        for ipPool in dhcp_resource.ipPools.ipPool:
+            if ipPool.ipRange.text == TestGateway._pool_ip_range:
                 matchFound = True
                 break
         self.assertTrue(matchFound)

@@ -1622,3 +1622,28 @@ class _TypedQuery(_AbstractQuery):
                 'Unable to locate query href for \'%s\' typed query.' %
                 self._query_type_name)
         return query_href
+
+
+def _create_element(node_name, value):
+    '''
+    Creates Objectify Element, that can be add to StringElement/BooleanElement.
+
+    creates the Objectify element with provided value and this element can be
+    easily appended with StringElement or BooleanElement, generally Objectify
+    element cannot be appended with other elements
+
+    :param node_name: name of the node
+    :param value: value of the node
+    :return: Objectify element with given value
+    :type: ObjectifyElement
+    '''
+    if isinstance(value, bool):
+        if value is True:
+            value = 'true'
+        elif value is False:
+            value = 'false'
+    if not isinstance(value, str):
+        value = str(value)
+    element = etree.Element(node_name)
+    element.text = value
+    return element

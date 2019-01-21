@@ -890,3 +890,36 @@ class Gateway(object):
     def _build_nat_rule_href(self):
         network_url = build_network_url_from_gateway_url(self.href)
         return network_url + NAT_URL_TEMPLATE
+
+    def list_nat_rules(self):
+        """List all nat rules on a gateway.
+
+        :return: list of all nat rules on a gateway.
+        e.g.
+        e.g.
+        {'ID': 196609, 'OriginalAddress': '2.2.3.7', 'OriginalPort':
+         'any', 'TranslatedAddress': '2.2.3.8', 'TranslatedPort':
+         'any', 'Action': 'snat', 'Protocol': 'any', 'Enabled': True,
+         'Logging': False, 'Description': ''}
+        """
+        out_list = []
+        nat_rules_resource = self.get_nat_rules()
+        if (hasattr(nat_rules_resource.natRules, 'natRule')):
+            for nat_rule in nat_rules_resource.natRules.natRule:
+                nat_rule_info = {}
+                nat_rule_info['ID'] = nat_rule.ruleId
+                nat_rule_info['OriginalAddress'] = nat_rule.originalAddress
+                nat_rule_info['OriginalPort'] = nat_rule.originalPort
+                nat_rule_info['TranslatedAddress'] = nat_rule.translatedAddress
+                nat_rule_info['TranslatedPort'] = nat_rule.translatedPort
+                nat_rule_info['Action'] = nat_rule.action
+                nat_rule_info['Protocol'] = nat_rule.protocol
+                nat_rule_info['Enabled'] = nat_rule.enabled
+                nat_rule_info['Logging'] = nat_rule.loggingEnabled
+                nat_rule_info['Description'] = nat_rule.description
+                out_list.append(nat_rule_info)
+        else:
+            raise \
+                InvalidParameterException("No nat rule found on"
+                                          " the gateway")
+        return out_list

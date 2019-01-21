@@ -1183,8 +1183,7 @@ class VDC(object):
 
     def create_isolated_vdc_network(self,
                                     network_name,
-                                    gateway_ip,
-                                    netmask,
+                                    network_cidr,
                                     description=None,
                                     primary_dns_ip=None,
                                     secondary_dns_ip=None,
@@ -1200,8 +1199,7 @@ class VDC(object):
         """Create a new isolated org vdc network in this vdc.
 
         :param str network_name: name of the new network.
-        :param str gateway_ip: IP address of the gateway of the new network.
-        :param str netmask: network mask.
+        :param str network_cidr: CIDR in the format of 10.2.2.1/20.
         :param str description: description of the new network.
         :param str primary_dns_ip: IP address of primary DNS server.
         :param str secondary_dns_ip: IP address of secondary DNS Server.
@@ -1227,6 +1225,8 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
+        gateway_ip, netmask = cidr_to_netmask(network_cidr)
+
         self.get_resource()
 
         request_payload = E.OrgVdcNetwork(name=network_name)

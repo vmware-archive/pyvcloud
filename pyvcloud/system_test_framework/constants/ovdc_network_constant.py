@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 class OvdcNetConstants(object):
-# DHCP Pool for routed network
-routed_net_name = 'test-routed-vdc-network'
-routed_orgvdc_network_gateway_ip = '30.20.10.1/24'
+    routed_net_name = 'test-routed-vdc-network'
+    routed_orgvdc_network_gateway_ip = '30.20.10.1/24'

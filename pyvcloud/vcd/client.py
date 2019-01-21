@@ -1624,19 +1624,19 @@ class _TypedQuery(_AbstractQuery):
         return query_href
 
 
-def _create_element(node_name, value):
-    '''
-    Creates Objectify Element, that can be add to StringElement/BooleanElement.
+def create_element(node_name, value):
+    """Creates Objectify Element, appended to StringElement/BooleanElement.
 
     creates the Objectify element with provided value and this element can be
-    easily appended with StringElement or BooleanElement, generally Objectify
+    appended with StringElement or BooleanElement, generally Objectify
     element cannot be appended with other elements
 
     :param node_name: name of the node
     :param value: value of the node
     :return: Objectify element with given value
     :type: ObjectifyElement
-    '''
+
+    """
     if isinstance(value, bool):
         if value is True:
             value = 'true'

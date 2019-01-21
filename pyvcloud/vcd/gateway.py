@@ -11,23 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from lxml import objectify
+
+from pyvcloud.vcd.client import create_element
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.client import _create_element
 from pyvcloud.vcd.exceptions import AlreadyExistsException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
-from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import DHCP_URL_TEMPLATE
+from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import build_network_url_from_gateway_url
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
-from lxml import etree
-from lxml import objectify
 
 class Gateway(object):
     def __init__(self, client, name=None, href=None, resource=None):
@@ -866,31 +866,28 @@ class Gateway(object):
         dhcp_resource = self.get_dhcp()
 
         ip_pool_tag = objectify.Element("ipPool")
-        ip_pool_tag.append(_create_element("autoConfigureDNS",
-                                           auto_config_dns))
+        ip_pool_tag.append(create_element("autoConfigureDNS", auto_config_dns))
         if default_gateway is not None:
-            ip_pool_tag.append_create_element("defaultGateway",
-                                              default_gateway)
+            ip_pool_tag.appendcreate_element("defaultGateway", default_gateway)
         if domain_name is not None:
-            ip_pool_tag.append(_create_element("domainName", domain_name))
+            ip_pool_tag.append(create_element("domainName", domain_name))
         if primary_server is not None:
-            ip_pool_tag.append(_create_element("primaryNameServer",
-                                               primary_server))
+            ip_pool_tag.append(create_element("primaryNameServer",
+                                              primary_server))
         if secondary_server is not None:
-            ip_pool_tag.append(_create_element("secondaryNameServer",
-                                               secondary_server))
+            ip_pool_tag.append(create_element("secondaryNameServer",
+                                              secondary_server))
 
         if lease_never_expires:
-            ip_pool_tag.append(_create_element("leaseTime", "infinite"))
+            ip_pool_tag.append(create_element("leaseTime", "infinite"))
         else:
-            ip_pool_tag.append(_create_element("leaseTime", lease_time))
+            ip_pool_tag.append(create_element("leaseTime", lease_time))
 
         if subnet_mask is not None:
-            ip_pool_tag.append(_create_element("subnetMask", subnet_mask))
+            ip_pool_tag.append(create_element("subnetMask", subnet_mask))
 
-        ip_pool_tag.append(_create_element("ipRange", ip_range))
+        ip_pool_tag.append(create_element("ipRange", ip_range))
         dhcp_resource.ipPools.append(ip_pool_tag)
 
         self.client.put_resource(dhcp_pool_href, dhcp_resource,
                                  EntityType.DEFAULT_CONTENT_TYPE.value)
-

@@ -159,10 +159,9 @@ class TestNatRule(BaseTestCase):
         nat_rule_info =  nat_obj.get_nat_rule_info()
         #Verify
         self.assertTrue(len(nat_rule_info) > 0)
-        self.assertTrue(nat_rule_info['Action'] == \
-            TestNatRule._snat_action)
-        self.assertTrue(nat_rule_info['OriginalAddress'] == \
-            TestNatRule._snat_orig_addr)
+        self.assertEqual(nat_rule_info['Action'], TestNatRule._snat_action)
+        self.assertEqual(nat_rule_info['OriginalAddress'],
+                         TestNatRule._snat_orig_addr)
 
     def test_0020_list_nat_rules(self):
         """List all nat rules on a gateway.

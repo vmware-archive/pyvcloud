@@ -890,3 +890,21 @@ class Gateway(object):
     def _build_nat_rule_href(self):
         network_url = build_network_url_from_gateway_url(self.href)
         return network_url + NAT_URL_TEMPLATE
+
+    def list_nat_rules(self):
+        """List all nat rules on a gateway.
+
+        :return: list of all nat rules on a gateway.
+        e.g.
+        [{'ID': 196609, 'Action': 'snat', 'Enabled': True}]
+        """
+        out_list = []
+        nat_rules_resource = self.get_nat_rules()
+        if (hasattr(nat_rules_resource.natRules, 'natRule')):
+            for nat_rule in nat_rules_resource.natRules.natRule:
+                nat_rule_info = {}
+                nat_rule_info['ID'] = nat_rule.ruleId
+                nat_rule_info['Action'] = nat_rule.action
+                nat_rule_info['Enabled'] = nat_rule.enabled
+                out_list.append(nat_rule_info)
+        return out_list

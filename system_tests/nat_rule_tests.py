@@ -140,6 +140,43 @@ class TestNatRule(BaseTestCase):
         self.assertTrue(snat_found)
         self.assertTrue(dnat_found)
 
+    def test_0015_get_nat_rule_info(self):
+        """Get the details of nat rule.
+
+        Invokes the get_nat_rule_info of the NatRule.
+        """
+        gateway = Environment. \
+            get_test_gateway(TestNatRule._client)
+        gateway_obj = Gateway(TestNatRule._client,
+                              TestNatRule._name,
+                              href=gateway.get('href'))
+        nat_rule = gateway_obj.get_nat_rules()
+        for natRule in nat_rule.natRules.natRule:
+            if natRule.action == 'snat':
+                rule_id = natRule.ruleId
+                break
+        nat_obj = NatRule(TestNatRule._client, self._name, rule_id)
+        nat_rule_info =  nat_obj.get_nat_rule_info()
+        #Verify
+        self.assertTrue(len(nat_rule_info) > 0)
+        self.assertEqual(nat_rule_info['Action'], TestNatRule._snat_action)
+        self.assertEqual(nat_rule_info['OriginalAddress'],
+                         TestNatRule._snat_orig_addr)
+
+    def test_0020_list_nat_rules(self):
+        """List all nat rules on a gateway.
+
+        Invokes the list_nat_rules of the Gateway.
+        """
+        gateway = Environment. \
+            get_test_gateway(TestNatRule._client)
+        gateway_obj = Gateway(TestNatRule._client,
+                              TestNatRule._name,
+                              href=gateway.get('href'))
+        nat_rule_list = gateway_obj.list_nat_rules()
+        #Verify
+        self.assertTrue(len(nat_rule_list) > 0)
+
     def test_0090_delete_nat_rule(self):
         """Delete Nat Rule in the gateway.
 

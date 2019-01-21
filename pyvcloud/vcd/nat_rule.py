@@ -116,3 +116,28 @@ class NatRule(object):
         """Delete a nat rule from gateway."""
         self.get_resource()
         return self.client.delete_resource(self.href)
+
+    def get_nat_rule_info(self):
+        """Get the details of nat rule.
+
+        :return: Dictionary having nat rule details.
+        e.g.
+        {'ID': 196609, 'OriginalAddress': '2.2.3.7', 'OriginalPort':
+         'any', 'TranslatedAddress': '2.2.3.8', 'TranslatedPort':
+         'any', 'Action': 'snat', 'Protocol': 'any', 'Enabled': True,
+         'Logging': False, 'Description': ''}
+        :rtype: Dictionary
+        """
+        nat_rule_info = {}
+        nat_rule = self.get_resource()
+        nat_rule_info['ID'] = nat_rule.ruleId
+        nat_rule_info['OriginalAddress'] = nat_rule.originalAddress
+        nat_rule_info['OriginalPort'] = nat_rule.originalPort
+        nat_rule_info['TranslatedAddress'] = nat_rule.translatedAddress
+        nat_rule_info['TranslatedPort'] = nat_rule.translatedPort
+        nat_rule_info['Action'] = nat_rule.action
+        nat_rule_info['Protocol'] = nat_rule.protocol
+        nat_rule_info['Enabled'] = nat_rule.enabled
+        nat_rule_info['Logging'] = nat_rule.loggingEnabled
+        nat_rule_info['Description'] = nat_rule.description
+        return nat_rule_info

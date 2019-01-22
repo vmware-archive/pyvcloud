@@ -834,7 +834,8 @@ class Gateway(object):
                      type='User',
                      icmp_type='any',
                      logging_enabled=False,
-                     enabled=True):
+                     enabled=True,
+                     vnic=0):
         """Add nat rule in the gateway.
 
         param action str: action having values snat/dnat
@@ -848,6 +849,7 @@ class Gateway(object):
         param icmp_type str: icmp type such as "Echo-request"
         param logging_enabled bool: logging enabled
         param enable bool: enable nat rule
+        param int vnic: interface of gateway
 
         """
         nat_rule_href = self._build_nat_rule_href()
@@ -861,6 +863,8 @@ class Gateway(object):
         nat_rule.append(E.loggingEnabled(logging_enabled))
         nat_rule.append(E.enabled(enabled))
         nat_rule.append(E.description(description))
+        # This field is optional
+        nat_rule.append(E.vnic(vnic))
 
         # DNAT rule requries additonal parameters
         if action == 'dnat' and protocol != 'icmp':

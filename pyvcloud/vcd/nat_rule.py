@@ -153,7 +153,8 @@ class NatRule(object):
                         translated_port=None,
                         icmp_type=None,
                         logging_enabled=None,
-                        enabled=None):
+                        enabled=None,
+                        vnic=None):
         """Update a Nat Rule.
 
         param original_address str: original IP address
@@ -165,6 +166,7 @@ class NatRule(object):
         param icmp_type str: icmp type such as "Echo-request"
         param logging_enabled bool: enable logging
         param enable bool: enable nat rule
+        param int vnic: interface of gateway
 
         """
         nat_rule = self.get_resource()
@@ -188,6 +190,8 @@ class NatRule(object):
             nat_rule.loggingEnabled = E.loggingEnabled(logging_enabled)
         if enabled is not None:
             nat_rule.enabled = E.enabled(enabled)
+        if vnic is not None:
+            nat_rule.vnic = E.vnic(vnic)
 
         return self.client.put_resource(
             self.href,

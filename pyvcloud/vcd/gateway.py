@@ -894,7 +894,7 @@ class Gateway(object):
         self.client.put_resource(dhcp_pool_href, dhcp_resource,
                                  EntityType.DEFAULT_CONTENT_TYPE.value)
 
-        def add_nat_rule(self,
+    def add_nat_rule(self,
                      action,
                      original_address,
                      translated_address,
@@ -983,4 +983,22 @@ class Gateway(object):
                 nat_rule_info['Enabled'] = nat_rule.enabled
                 out_list.append(nat_rule_info)
         return out_list
- 
+
+    def list_dhcp_pools(self):
+        """List all DHCP pools on a gateway.
+
+        :return: list of all DHCP pools on a gateway.
+        e.g.
+        [{'ID': pool-1, 'IP_range': '30.20.10.11-30.20.10.15',
+        'Auto_configure_dns': True}]
+        """
+        out_list = []
+        dhcp_resource = self.get_dhcp()
+        if hasattr(dhcp_resource.ipPools, 'ipPool'):
+            for ip_pool in dhcp_resource.ipPools.ipPool:
+                pool_info = dict()
+                pool_info['ID'] = ip_pool.poolId
+                pool_info['IP_Range'] = ip_pool.ipRange
+                pool_info['Auto_Configure_Dns'] = ip_pool.autoConfigureDNS
+                out_list.append(pool_info)
+        return out_list

@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from lxml import objectify
-
 from pyvcloud.vcd.client import create_element
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
@@ -868,7 +866,7 @@ class Gateway(object):
         dhcp_pool_href = self._build_dhcp_href()
         dhcp_resource = self.get_dhcp()
 
-        ip_pool_tag = objectify.Element("ipPool")
+        ip_pool_tag = create_element("ipPool")
         ip_pool_tag.append(create_element("autoConfigureDNS", auto_config_dns))
         if default_gateway is not None:
             ip_pool_tag.appendcreate_element("defaultGateway", default_gateway)

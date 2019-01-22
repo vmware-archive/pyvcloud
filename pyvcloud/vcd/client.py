@@ -1624,12 +1624,19 @@ class _TypedQuery(_AbstractQuery):
         return query_href
 
 
-def create_element(node_name, value):
-    """Creates Objectify Element, appended to StringElement/BooleanElement.
+def create_element(node_name, value=None):
+    """Creates Objectify Element.
 
-    creates the Objectify element with provided value and this element can be
-    appended with StringElement or BooleanElement, generally Objectify
-    element cannot be appended with other elements
+    It is useful in the use case where one wants to add ObjectifiedElement to
+    either StringElement or to the BooleanElement e.g:
+
+    <dhcp><enable>false</enable><ippools/></dhcp>
+
+    Here:<ippools/> is a StringElement, and user cannot add child element
+    <ippool> to <ippools> by using ippools.append(E.ippool(ippool))
+
+    It creates the Objectify element with provided value and this element can
+    be appended with StringElement or BooleanElement
 
     :param node_name: name of the node
     :param value: value of the node
@@ -1637,6 +1644,8 @@ def create_element(node_name, value):
     :type: ObjectifyElement
 
     """
+    if value is None:
+        return etree.Element(node_name)
     if isinstance(value, bool):
         if value is True:
             value = 'true'

@@ -663,7 +663,7 @@ class Gateway(object):
     def get_dhcp(self):
         """Get DHCP from vCD.
 
-        Form a DHCP using gateway href and fetches from vCD.
+        Form a DHCP using gateway href.
 
         return: DHCP Object
         """
@@ -860,6 +860,7 @@ class Gateway(object):
         param str lease_time: time for the expiration of lease Default : 86400
         param str subnet_mask: subnet mask of the DHCP pool
         param str primary_server: IP of the primary server
+        param str secondary_server: IP of the secondary server
 
         """
         dhcp_pool_href = self._build_dhcp_href()

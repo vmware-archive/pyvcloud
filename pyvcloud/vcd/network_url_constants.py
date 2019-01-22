@@ -16,4 +16,6 @@
 FIREWALL_URL_TEMPLATE = "/firewall/config"
 FIREWALL_RULES_URL_TEMPLATE = "/firewall/config/rules"
 DHCP_URL_TEMPLATE = "/dhcp/config"
-DHCP_POOLS_URL_TEMPLATE = "/dhcp/config/ippools"
+DHCP_POOLS = "/ippools"
+DHCP_POOLS_URL_TEMPLATE = "/dhcp/config" + DHCP_POOLS
+DHCP_POOL_URL_TEMPLATE = DHCP_POOLS_URL_TEMPLATE + "/{0}"

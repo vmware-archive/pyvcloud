@@ -611,7 +611,10 @@ class TestGateway(BaseTestCase):
         self.assertTrue(matchFound)
 
     def test_0026_add_dhcp_pool(self):
-        """Add DHCP pool in the gateway."""
+        """Add DHCP pool in the gateway.
+        
+         Invokes the add_dhcp_pool of the gateway.
+        """
 
         gateway_obj = Gateway(TestGateway._client, self._name,
                               Environment.get_test_gateway(

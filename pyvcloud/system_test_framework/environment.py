@@ -595,11 +595,11 @@ class Environment(object):
             .wait_for_success(task=result.Tasks.Task[0])
 
     @classmethod
-    def create_routed_orgvdc_network(cls):
+    def create_routed_ovdc_network(cls):
         """Creates a routed org vdc network.
 
         The name of the created org vdc network is specified in the
-        configuration file, skips creating one, if such a network already
+        ovdc_network_constant file, skips creating one, if such a network already
         exists.
 
         :raises: Exception: if the class variable _ovdc_href is not populated.
@@ -625,7 +625,7 @@ class Environment(object):
             network_name=OvdcNetConstants.routed_net_name,
             gateway_name=GatewayConstants.name,
             network_cidr=OvdcNetConstants.routed_orgvdc_network_gateway_ip,
-            description='Dummy description')
+            description='org vdc network description')
 
         cls._sys_admin_client.get_task_monitor() \
             .wait_for_success(task=result.Tasks.Task[0])

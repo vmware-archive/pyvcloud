@@ -49,6 +49,22 @@ class TestDhcp(BaseTestCase):
                 break
         self.assertTrue(matchFound)
 
+    def test_0001_list_dhcp_pools(self):
+        """List DHCP pools on the gateway.
+
+        Invokes the list_dhcp_pools of the gateway.
+        """
+        TestDhcp._client = Environment.get_sys_admin_client()
+        TestDhcp._config = Environment.get_config()
+        gateway = Environment. \
+            get_test_gateway(TestDhcp._client)
+        gateway_obj = Gateway(TestDhcp._client,
+                              TestDhcp._name,
+                              href=gateway.get('href'))
+        dhcp_pool_list = gateway_obj.list_dhcp_pools()
+        # Verify
+        self.assertTrue(len(dhcp_pool_list) > 0)
+
     def test_0098_teardown(self):
         """Remove the DHCP ip pools of gateway.
          Invokes the delete_pool of the DhcpPool.

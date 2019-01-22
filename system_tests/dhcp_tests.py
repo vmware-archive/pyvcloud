@@ -67,7 +67,7 @@ class TestDhcp(BaseTestCase):
     def test_002_get_dhcp_pool_info(self):
         """Get the details of DHCP Pool.
 
-        Invokes the get_nat_rule_info of the NatRule.
+        Invokes the get_pool_info of the DhcpPool.
         """
         gateway = Environment. \
             get_test_gateway(TestDhcp._client)

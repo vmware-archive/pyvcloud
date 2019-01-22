@@ -333,7 +333,23 @@ class TestNetwork(BaseTestCase):
             '/')[0]
         self.assertEqual(allocated_ip_addresses[0]['IP Address'], ip_address)
 
-    def test_0100_delete_routed_orgvdc_networks(self):
+    def test_0100_list_connected_vapps(self):
+        vdc = Environment.get_test_vdc(TestNetwork._client)
+        vapp_name = 'test-connected-vapp'
+        vdc.create_vapp(
+            vapp_name, network=TestNetwork._routed_org_vdc_network_name)
+        org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
+            TestNetwork._routed_org_vdc_network_name)
+        vdc_network = VdcNetwork(
+            TestNetwork._client, resource=org_vdc_routed_nw)
+        connected_vapps = vdc_network.list_connected_vapps()
+        self.assertTrue(len(connected_vapps), 1)
+        self.assertEqual(connected_vapps[0].get('name'), vapp_name)
+        # Delete test vApp after test
+        vdc.reload()
+        vdc.delete_vapp(vapp_name)
+
+    def test_1000_delete_routed_orgvdc_networks(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)
 
         result = vdc.delete_routed_orgvdc_network(

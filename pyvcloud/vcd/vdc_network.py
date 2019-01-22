@@ -17,7 +17,10 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import MetadataValueType
 from pyvcloud.vcd.client import MetadataVisibility
+from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import ResourceType
+from pyvcloud.vcd.client import VAppPowerStatus
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.metadata import Metadata
@@ -280,3 +283,28 @@ class VdcNetwork(object):
                 'Type': ip_address.get('allocationType')
             })
         return result
+
+    def list_connected_vapps(self, filter=None):
+        """List connected vApps.
+
+        :param str filter: filter to fetch the selected vApp, e.g., name==vApp*
+        :return: list of connected vApps
+        :rtype: list
+        """
+        vapp_name_list = []
+        vdc = self.client.get_linked_resource(
+            self.get_resource(), RelationType.UP, EntityType.VDC.value)
+        for entity in vdc.ResourceEntities.ResourceEntity:
+            if entity.get('type') == EntityType.VAPP.value:
+                vapp = self.client.get_resource(entity.get('href'))
+                if hasattr(vapp, 'NetworkConfigSection'):
+                    network_name = vapp.NetworkConfigSection.NetworkConfig.get(
+                        'networkName')
+                    if network_name == self.name:
+                        vapp_name_list.append({
+                            'Name':
+                            vapp.get('name'),
+                            'Status':
+                            VAppPowerStatus(vapp.get('status')).name
+                        })
+        return vapp_name_list

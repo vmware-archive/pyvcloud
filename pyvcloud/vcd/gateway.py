@@ -30,6 +30,8 @@ from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 
 class Gateway(object):
+    LEASE_TIME = '86400'
+
     def __init__(self, client, name=None, href=None, resource=None):
         """Constructor for Gateway objects.
 
@@ -846,7 +848,7 @@ class Gateway(object):
                       default_gateway=None,
                       domain_name=None,
                       lease_never_expires=False,
-                      lease_time='86400',
+                      lease_time=LEASE_TIME,
                       subnet_mask=None,
                       primary_server=None,
                       secondary_server=None):

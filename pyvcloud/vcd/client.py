@@ -491,12 +491,14 @@ class GatewayBackingConfigType(Enum):
     FULL4 = 'full4'
     XLARGE = 'x-large'
 
+
 class VAppPowerStatus(Enum):
     RUNNING = '4'
     STOPPED = '8'
     SUSPENDED = '3'
     DEPLOYED = '2'
     UNDEPLOYED = '1'
+
 
 class _TaskMonitor(object):
     _DEFAULT_POLL_SEC = 5

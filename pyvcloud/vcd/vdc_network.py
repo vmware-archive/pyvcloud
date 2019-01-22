@@ -17,9 +17,7 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import MetadataValueType
 from pyvcloud.vcd.client import MetadataVisibility
-from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
-from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.client import VAppPowerStatus
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from pyvcloud.vcd.client import create_element
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
@@ -18,6 +19,7 @@ from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import AlreadyExistsException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.network_url_constants import DHCP_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import NAT_URL_TEMPLATE
 from pyvcloud.vcd.platform import Platform
@@ -27,6 +29,8 @@ from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 
 class Gateway(object):
+    LEASE_TIME = '86400'
+
     def __init__(self, client, name=None, href=None, resource=None):
         """Constructor for Gateway objects.
 
@@ -653,6 +657,20 @@ class Gateway(object):
         network_url = build_network_url_from_gateway_url(self.href)
         return network_url + FIREWALL_URL_TEMPLATE
 
+    def _build_dhcp_href(self):
+        network_url = build_network_url_from_gateway_url(self.href)
+        return network_url + DHCP_URL_TEMPLATE
+
+    def get_dhcp(self):
+        """Get DHCP from vCD.
+
+        Form a DHCP using gateway href.
+
+        return: DHCP Object
+        """
+        dhcp_pool_href = self._build_dhcp_href()
+        return self.client.get_resource(dhcp_pool_href)
+
     def list_rate_limits(self):
         """Lists rate limit of gateway.
 
@@ -823,7 +841,60 @@ class Gateway(object):
                         out_list.append(gateway_config)
         return out_list
 
-    def add_nat_rule(self,
+    def add_dhcp_pool(self,
+                      ip_range,
+                      auto_config_dns=False,
+                      default_gateway=None,
+                      domain_name=None,
+                      lease_never_expires=False,
+                      lease_time=LEASE_TIME,
+                      subnet_mask=None,
+                      primary_server=None,
+                      secondary_server=None):
+        """Add DHCP pool in the gateway.
+
+        param str ip_range: IP range for the DHCP pools
+        param bool auto_config_dns : auto configuration of DNS Default : false
+        param str default_gateway: default gateway ip
+        param str domain_name: domain name
+        param bool lease_never_expires: lease expires Default : false
+        param str lease_time: time for the expiration of lease Default : 86400
+        param str subnet_mask: subnet mask of the DHCP pool
+        param str primary_server: IP of the primary server
+        param str secondary_server: IP of the secondary server
+
+        """
+        dhcp_pool_href = self._build_dhcp_href()
+        dhcp_resource = self.get_dhcp()
+
+        ip_pool_tag = create_element("ipPool")
+        ip_pool_tag.append(create_element("autoConfigureDNS", auto_config_dns))
+        if default_gateway is not None:
+            ip_pool_tag.appendcreate_element("defaultGateway", default_gateway)
+        if domain_name is not None:
+            ip_pool_tag.append(create_element("domainName", domain_name))
+        if primary_server is not None:
+            ip_pool_tag.append(create_element("primaryNameServer",
+                                              primary_server))
+        if secondary_server is not None:
+            ip_pool_tag.append(create_element("secondaryNameServer",
+                                              secondary_server))
+
+        if lease_never_expires:
+            ip_pool_tag.append(create_element("leaseTime", "infinite"))
+        else:
+            ip_pool_tag.append(create_element("leaseTime", lease_time))
+
+        if subnet_mask is not None:
+            ip_pool_tag.append(create_element("subnetMask", subnet_mask))
+
+        ip_pool_tag.append(create_element("ipRange", ip_range))
+        dhcp_resource.ipPools.append(ip_pool_tag)
+
+        self.client.put_resource(dhcp_pool_href, dhcp_resource,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+        def add_nat_rule(self,
                      action,
                      original_address,
                      translated_address,
@@ -912,3 +983,4 @@ class Gateway(object):
                 nat_rule_info['Enabled'] = nat_rule.enabled
                 out_list.append(nat_rule_info)
         return out_list
+ 

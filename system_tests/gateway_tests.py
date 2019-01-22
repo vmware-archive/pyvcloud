@@ -42,6 +42,9 @@ class TestGateway(BaseTestCase):
     # Firewall Rule
     _firewall_rule_name = 'Rule Name Test'
 
+    # DHCP pool
+    _pool_ip_range = '30.20.10.110-30.20.10.112'
+
     def test_0000_setup(self):
         """Setup the gateway required for the other tests in this module.
 
@@ -603,6 +606,26 @@ class TestGateway(BaseTestCase):
         matchFound = False
         for firewallRule in firewall_rule.firewallRules.firewallRule:
             if firewallRule['name'] == TestGateway._firewall_rule_name:
+                matchFound = True
+                break
+        self.assertTrue(matchFound)
+
+    def test_0026_add_dhcp_pool(self):
+        """Add DHCP pool in the gateway.
+        
+         Invokes the add_dhcp_pool of the gateway.
+        """
+
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              Environment.get_test_gateway(
+                                  Environment.get_sys_admin_client())
+                              .get('href'))
+        gateway_obj.add_dhcp_pool(TestGateway._pool_ip_range)
+        dhcp_resource = gateway_obj.get_dhcp()
+        #Verify
+        matchFound = False
+        for ipPool in dhcp_resource.ipPools.ipPool:
+            if ipPool.ipRange.text == TestGateway._pool_ip_range:
                 matchFound = True
                 break
         self.assertTrue(matchFound)

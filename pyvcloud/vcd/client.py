@@ -1622,3 +1622,37 @@ class _TypedQuery(_AbstractQuery):
                 'Unable to locate query href for \'%s\' typed query.' %
                 self._query_type_name)
         return query_href
+
+
+def create_element(node_name, value=None):
+    """Creates Objectify Element.
+
+    It is useful in the use case where one wants to add ObjectifiedElement to
+    either StringElement or to the BooleanElement e.g:
+
+    <dhcp><enable>false</enable><ippools/></dhcp>
+
+    Here:<ippools/> is a StringElement, and user cannot add child element
+    <ippool> to <ippools> by using ippools.append(E.ippool(ippool))
+
+    It creates the Objectify element with provided value and this element can
+    be appended with StringElement or BooleanElement
+
+    :param node_name: name of the node
+    :param value: value of the node
+    :return: Objectify element with given value
+    :type: ObjectifyElement
+
+    """
+    if value is None:
+        return etree.Element(node_name)
+    if isinstance(value, bool):
+        if value is True:
+            value = 'true'
+        elif value is False:
+            value = 'false'
+    if not isinstance(value, str):
+        value = str(value)
+    element = etree.Element(node_name)
+    element.text = value
+    return element

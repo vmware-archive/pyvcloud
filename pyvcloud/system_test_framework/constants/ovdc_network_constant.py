@@ -1,5 +1,5 @@
 # VMware vCloud Director Python SDK
-# Copyright (c) 2019 VMware, Inc. All Rights Reserved.
+# Copyright (c) 2014-2019 VMware, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,13 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FIREWALL_URL_TEMPLATE = "/firewall/config"
-FIREWALL_RULES_URL_TEMPLATE = "/firewall/config/rules"
-DHCP_URL_TEMPLATE = "/dhcp/config"
-DHCP_POOLS = "/ippools"
-DHCP_POOLS_URL_TEMPLATE = "/dhcp/config" + DHCP_POOLS
-DHCP_POOL_URL_TEMPLATE = DHCP_POOLS_URL_TEMPLATE + "/{0}"
-NAT_URL_TEMPLATE = "/nat/config"
-NAT_RULES = "/rules"
-NAT_RULES_URL_TEMPLATE = "/nat/config" + NAT_RULES
-NAT_RULE_URL_TEMPLATE = NAT_RULES_URL_TEMPLATE + "/{0}"
+
+class OvdcNetConstants(object):
+    routed_net_name = 'test-routed-vdc-network'
+    routed_orgvdc_network_gateway_ip = '30.20.10.1/24'

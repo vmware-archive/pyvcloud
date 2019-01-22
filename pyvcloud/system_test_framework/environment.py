@@ -22,6 +22,8 @@ import requests
 from helpers.portgroup_helper import PortgroupHelper
 from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
+from pyvcloud.system_test_framework.constants.ovdc_network_constant import \
+    OvdcNetConstants
 from pyvcloud.vcd.client import ApiVersion
 
 from pyvcloud.vcd.client import BasicLoginCredentials
@@ -590,6 +592,42 @@ class Environment(object):
             is_shared=False)
 
         cls._sys_admin_client.get_task_monitor()\
+            .wait_for_success(task=result.Tasks.Task[0])
+
+    @classmethod
+    def create_routed_ovdc_network(cls):
+        """Creates a routed org vdc network.
+
+        The name of the created org vdc network is specified in the
+        ovdc_network_constant file, skips creating one, if such a network already
+        exists.
+
+        :raises: Exception: if the class variable _ovdc_href is not populated.
+        """
+        cls._basic_check()
+        if cls._ovdc_href is None:
+            raise Exception('OrgVDC ' +
+                            cls._config['vcd']['default_ovdc_name'] +
+                            ' doesn\'t exist.')
+
+        vdc = VDC(cls._sys_admin_client, href=cls._ovdc_href)
+
+        expected_net_name = OvdcNetConstants.routed_net_name
+        records_dict = vdc.list_orgvdc_network_records()
+
+        for net_name in records_dict.keys():
+            if net_name.lower() == expected_net_name.lower():
+                cls._logger.debug('Reusing existing direct org-vdc network ' +
+                                  expected_net_name)
+                return
+
+        result = vdc.create_routed_vdc_network(
+            network_name=OvdcNetConstants.routed_net_name,
+            gateway_name=GatewayConstants.name,
+            network_cidr=OvdcNetConstants.routed_orgvdc_network_gateway_ip,
+            description='org vdc network description')
+
+        cls._sys_admin_client.get_task_monitor() \
             .wait_for_success(task=result.Tasks.Task[0])
 
     @classmethod

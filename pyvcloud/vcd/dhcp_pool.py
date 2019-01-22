@@ -42,6 +42,38 @@ class DhcpPool(GatewayServices):
                 self.resource = pool
                 break
 
+    def get_pool_info(self):
+        """Get the details of DHCP pool.
+
+        :return: Dictionary having DHCP Pool details.
+        e.g.
+        {'ID': 196609, 'IPRange': '2.2.3.7-2.2.3.10', 'DomainName':
+         'abc.com', 'DefaultGateway': '2.2.3.1', 'PrimaryNameServer':
+         '2.2.3.10', 'SecondaryNameServer': '2.2.3.12', 'LeaseTime': '8640',
+         'SubnetMask': 255.255.255.0, 'AllowHugeRange': False}
+        :rtype: Dictionary
+        """
+        pool_info = {}
+        resource = self._get_resource()
+        pool_info['ID'] = resource.poolId
+        pool_info['IPRange'] = resource.ipRange
+        if hasattr(resource, 'domainName'):
+            pool_info['DomainName'] = resource.domainName
+        if hasattr(resource, 'defaultGateway'):
+            pool_info['DefaultGateway'] = resource.defaultGateway
+        if hasattr(resource, 'primaryNameServer'):
+            pool_info['PrimaryNameServer'] = resource.primaryNameServer
+        if hasattr(resource, 'secondaryNameServer'):
+            pool_info['secondaryNameServer'] = resource.secondaryNameServer
+
+        pool_info['LeaseTime'] = resource.leaseTime
+
+        if hasattr(resource, 'subnetMask'):
+            pool_info['SubnetMask'] = resource.subnetMask
+        if hasattr(resource, 'allowHugeRange'):
+            pool_info['AllowHugeRange'] = resource.allowHugeRange
+        return pool_info
+
     def delete_pool(self):
         """Delete a DHCP Pool from gateway."""
         self._get_resource()

@@ -876,7 +876,7 @@ class Environment(object):
         return VApp(client, resource=vapp_resource)
 
     @classmethod
-    def create_gateway(cls):
+    def create_advanced_gateway(cls):
         """Creates a gateway."""
 
         cls._basic_check()
@@ -895,8 +895,10 @@ class Environment(object):
                 gateway = vdc.create_gateway_api_version_30(
                     GatewayConstants.name, [ext_config['name']])
             else:
-                gateway = vdc.create_gateway(GatewayConstants.name,
-                                             [ext_config['name']])
+                gateway = vdc.create_gateway(
+                    GatewayConstants.name,
+                    [ext_config['name']],
+                    should_create_as_advanced=True)
 
             cls._sys_admin_client.get_task_monitor().wait_for_success(task
                                                     = gateway.Tasks.Task[0])

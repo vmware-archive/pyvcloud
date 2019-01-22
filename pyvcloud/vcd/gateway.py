@@ -21,6 +21,7 @@ from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.network_url_constants import DHCP_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
+from pyvcloud.vcd.network_url_constants import NAT_URL_TEMPLATE
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import build_network_url_from_gateway_url
 from pyvcloud.vcd.utils import get_admin_href
@@ -892,3 +893,90 @@ class Gateway(object):
 
         self.client.put_resource(dhcp_pool_href, dhcp_resource,
                                  EntityType.DEFAULT_CONTENT_TYPE.value)
+
+        def add_nat_rule(self,
+                     action,
+                     original_address,
+                     translated_address,
+                     description=None,
+                     protocol='any',
+                     original_port='any',
+                     translated_port='any',
+                     type='User',
+                     icmp_type='any',
+                     logging_enabled=False,
+                     enabled=True):
+        """Add nat rule in the gateway.
+
+        param action str: action having values snat/dnat
+        param original_address str: original IP address
+        param translated_address str: translated IP address
+        param description str: nat rule description
+        param protocol str: protocol such as tcp/udp/icmp
+        param original_port: port no. such as FTP(21)
+        param translated_port: port no. such as HTTP(80)
+        param type str: nat rule type. Default: User
+        param icmp_type str: icmp type such as "Echo-request"
+        param logging_enabled bool: logging enabled
+        param enable bool: enable nat rule
+
+        """
+        nat_rule_href = self._build_nat_rule_href()
+        nat_rules_resource = self.get_nat_rules()
+        nat_rules_tag = nat_rules_resource.natRules
+        nat_rule = E.natRule()
+        nat_rule.append(E.ruleType(type))
+        nat_rule.append(E.action(action))
+        nat_rule.append(E.originalAddress(original_address))
+        nat_rule.append(E.translatedAddress(translated_address))
+        nat_rule.append(E.loggingEnabled(logging_enabled))
+        nat_rule.append(E.enabled(enabled))
+        nat_rule.append(E.description(description))
+
+        # DNAT rule requries additonal parameters
+        if action == 'dnat' and protocol != 'icmp':
+            nat_rule.append(E.protocol(protocol))
+            nat_rule.append(E.originalPort(original_port))
+            nat_rule.append(E.translatedPort(translated_port))
+
+        if action == 'dnat' and protocol == 'icmp':
+            nat_rule.append(E.translatedPort(translated_port))
+            nat_rule.append(E.protocol(protocol))
+            nat_rule.append(E.icmpType(icmp_type))
+
+        nat_rules_tag.append(nat_rule)
+        self.client.put_resource(nat_rule_href, nat_rules_resource,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def get_nat_rules(self):
+        """Get Nat Rules from vCD.
+
+        Form a Nat Rules using gateway href and fetches from vCD.
+
+        return: NatRule Object
+        """
+        nat_rule_href = self._build_nat_rule_href()
+        return self.client.get_resource(nat_rule_href)
+
+    def _build_nat_rule_href(self):
+        network_url = build_network_url_from_gateway_url(self.href)
+        return network_url + NAT_URL_TEMPLATE
+
+    def list_nat_rules(self):
+        """List all nat rules on a gateway.
+
+        :return: list of all nat rules on a gateway.
+        e.g.
+        [{'ID': 196609, 'Action': 'snat', 'Enabled': True}]
+        """
+        out_list = []
+        nat_rules_resource = self.get_nat_rules()
+        if (hasattr(nat_rules_resource.natRules, 'natRule')):
+            for nat_rule in nat_rules_resource.natRules.natRule:
+                nat_rule_info = {}
+                nat_rule_info['ID'] = nat_rule.ruleId
+                nat_rule_info['Action'] = nat_rule.action
+                nat_rule_info['Enabled'] = nat_rule.enabled
+                out_list.append(nat_rule_info)
+        return out_list
+ 

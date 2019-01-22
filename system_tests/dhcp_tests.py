@@ -64,7 +64,7 @@ class TestDhcp(BaseTestCase):
         # Verify
         self.assertTrue(len(dhcp_pool_list) > 0)
 
-    def test_0015_get_dhcp_pool_info(self):
+    def test_002_get_dhcp_pool_info(self):
         """Get the details of DHCP Pool.
 
         Invokes the get_nat_rule_info of the NatRule.

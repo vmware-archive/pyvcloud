@@ -23,6 +23,7 @@ class GatewayServices(object):
     def __init__(self, client, gateway_name=None, resource_id=None,
                  resource_href=None, resource=None):
         """Constructor for Service objects(DHCP,NAT,Firewall etc..).
+
          :param pyvcloud.vcd.client.Client client: the client that will be used
             to make REST calls to vCD.
         :param str gateway_name: name of the gateway entity.
@@ -64,6 +65,7 @@ class GatewayServices(object):
 
     def get_resource(self):
         """Fetches the XML representation of the Service.
+
          :return: object containing EntityType.Service XML data
         representing the Service.
         :rtype: lxml.objectify.ObjectifiedElement
@@ -77,6 +79,7 @@ class GatewayServices(object):
 
     def get_parent_by_name(self):
         """Get a gateway by name.
+
         :return: gateway​
         :rtype: lxml.objectify.ObjectifiedElement​
         :raises: EntityNotFoundException: if the named gateway can not be

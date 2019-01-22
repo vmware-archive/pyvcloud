@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pyvcloud.vcd.gateway_services import GatewayServices
+from pyvcloud.vcd.network_url_constants import DHCP_POOL_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import DHCP_POOLS
 from pyvcloud.vcd.network_url_constants import DHCP_POOLS_URL_TEMPLATE
-from pyvcloud.vcd.network_url_constants import DHCP_POOL_URL_TEMPLATE
 
 
 class DhcpPool(GatewayServices):
@@ -24,8 +24,8 @@ class DhcpPool(GatewayServices):
         self.href = pool_href
 
     def extract_id(self, dhcp_pool_href):
-        pool_id_index = dhcp_pool_href.index(DHCP_POOLS_URL_TEMPLATE) \
-                        + len(DHCP_POOLS_URL_TEMPLATE) + 1
+        pool_id_index = dhcp_pool_href.index(DHCP_POOLS_URL_TEMPLATE) + \
+            len(DHCP_POOLS_URL_TEMPLATE) + 1
         return dhcp_pool_href[pool_id_index:]
 
     def __config_url(self):
@@ -34,7 +34,6 @@ class DhcpPool(GatewayServices):
 
     def reload(self):
         """Reloads the resource representation of the DHCP pool."""
-
         pool_config_resource = \
             self.client.get_resource(self.__config_url())
         ip_pools = pool_config_resource.ipPools

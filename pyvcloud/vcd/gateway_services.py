@@ -30,7 +30,7 @@ class GatewayServices(object):
         :param: str resource_id: Service resource id
         :param str resource_href: Service href.
         :param lxml.objectify.ObjectifiedElement resource: object containing
-            EntityType.Service XML data representing the DHCP.
+            EntityType.Service XML data representing the Service.
         """
         self.client = client
         self.gateway_name = gateway_name
@@ -41,29 +41,29 @@ class GatewayServices(object):
                 resource is None:
             self._build_network_href()
             self.resource_id = resource_id
-            self.build_self_href(resource_id)
+            self._build_self_href(resource_id)
         if resource_href is None and resource is None and self.href is None:
             raise InvalidParameterException(
                 "Service Initialization failed as arguments are either "
                 "invalid or None")
         if resource_href is not None:
             self.resource_href = resource_href
-            self.resource_id = self.extract_id(resource_href)
+            self.resource_id = self._extract_id(resource_href)
             self.href = resource_href
         self.resource = resource
 
-    def build_self_href(self):
+    def _build_self_href(self):
         pass
 
-    def extract_id(self, self_href):
+    def _extract_id(self, self_href):
         pass
 
     def _build_network_href(self):
-        self.parent = self.get_parent_by_name()
+        self.parent = self._get_parent_by_name()
         self.parent_href = self.parent.get('href')
         self.network_url = build_network_url_from_gateway_url(self.parent_href)
 
-    def get_resource(self):
+    def _get_resource(self):
         """Fetches the XML representation of the Service.
 
          :return: object containing EntityType.Service XML data
@@ -71,13 +71,13 @@ class GatewayServices(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
-            self.reload()
+            self._reload()
         return self.resource
 
-    def reload(self):
+    def _reload(self):
         pass
 
-    def get_parent_by_name(self):
+    def _get_parent_by_name(self):
         """Get a gateway by name.
 
         :return: gateway​

@@ -19,11 +19,11 @@ from pyvcloud.vcd.network_url_constants import DHCP_POOLS_URL_TEMPLATE
 
 class DhcpPool(GatewayServices):
 
-    def build_self_href(self, pool_id):
+    def _build_self_href(self, pool_id):
         pool_href = (self.network_url + DHCP_POOL_URL_TEMPLATE).format(pool_id)
         self.href = pool_href
 
-    def extract_id(self, dhcp_pool_href):
+    def _extract_id(self, dhcp_pool_href):
         pool_id_index = dhcp_pool_href.index(DHCP_POOLS_URL_TEMPLATE) + \
             len(DHCP_POOLS_URL_TEMPLATE) + 1
         return dhcp_pool_href[pool_id_index:]
@@ -32,7 +32,7 @@ class DhcpPool(GatewayServices):
         pool_id_length = len(DHCP_POOLS + '/' + str(self.resource_id))
         return self.href[:-pool_id_length]
 
-    def reload(self):
+    def _reload(self):
         """Reloads the resource representation of the DHCP pool."""
         pool_config_resource = \
             self.client.get_resource(self.__config_url())
@@ -44,5 +44,5 @@ class DhcpPool(GatewayServices):
 
     def delete_pool(self):
         """Delete a DHCP Pool from gateway."""
-        self.get_resource()
+        self._get_resource()
         return self.client.delete_resource(self.href)

@@ -343,8 +343,8 @@ class TestNetwork(BaseTestCase):
         vdc_network = VdcNetwork(
             TestNetwork._client, resource=org_vdc_routed_nw)
         connected_vapps = vdc_network.list_connected_vapps()
-        self.assertTrue(len(connected_vapps), 1)
-        self.assertEqual(connected_vapps[0].get('name'), vapp_name)
+        self.assertEqual(len(connected_vapps), 1)
+        self.assertEqual(connected_vapps[0].get('Name'), vapp_name)
         # Delete test vApp after test
         vdc.reload()
         vdc.delete_vapp(vapp_name)

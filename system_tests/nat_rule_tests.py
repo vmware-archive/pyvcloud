@@ -34,6 +34,9 @@ class TestNatRule(BaseTestCase):
     _snat_action = 'snat'
     _snat_orig_addr = '2.2.3.7'
     _snat_trans_addr = '2.2.3.8'
+    _new_snat_orig_addr = '2.2.3.13'
+    _new_snat_trans_addr = '2.2.3.14'
+    _new_snat_desc = 'SNAT Rule Edited'
     _dnat_action = 'dnat'
     _dnat1_orig_addr = '2.2.3.10'
     _dnat1_trans_addr = '2.2.3.11-2.2.3.12'
@@ -151,10 +154,7 @@ class TestNatRule(BaseTestCase):
                               TestNatRule._name,
                               href=gateway.get('href'))
         nat_rule = gateway_obj.get_nat_rules()
-        for natRule in nat_rule.natRules.natRule:
-            if natRule.action == 'snat':
-                rule_id = natRule.ruleId
-                break
+        rule_id = self.__get_snat_rule_id(nat_rule)
         nat_obj = NatRule(TestNatRule._client, self._name, rule_id)
         nat_rule_info =  nat_obj.get_nat_rule_info()
         #Verify
@@ -176,6 +176,41 @@ class TestNatRule(BaseTestCase):
         nat_rule_list = gateway_obj.list_nat_rules()
         #Verify
         self.assertTrue(len(nat_rule_list) > 0)
+
+    def test_0030_update_nat_rule(self):
+        """Update a Nat Rule.
+
+        Invokes the update_nat_rule of the NatRule.
+        """
+        gateway = Environment. \
+            get_test_gateway(TestNatRule._client)
+        gateway_obj = Gateway(TestNatRule._client,
+                              TestNatRule._name,
+                              href=gateway.get('href'))
+        nat_rule = gateway_obj.get_nat_rules()
+        rule_id = self.__get_snat_rule_id(nat_rule)
+        nat_obj = NatRule(TestNatRule._client, self._name, rule_id)
+        nat_obj.update_nat_rule(
+            original_address=TestNatRule._new_snat_orig_addr,
+            translated_address=TestNatRule._new_snat_trans_addr,
+            description=TestNatRule._new_snat_desc)
+        #Verify
+        nat_rule = gateway_obj.get_nat_rules()
+        match_found = False
+        for natRule in nat_rule.natRules.natRule:
+            if natRule.originalAddress == TestNatRule._new_snat_orig_addr and \
+                natRule.translatedAddress == TestNatRule._new_snat_trans_addr and \
+                natRule.description == TestNatRule._new_snat_desc:
+                match_found = True
+        self.assertTrue(match_found)
+
+    def __get_snat_rule_id(self, nat_rule):
+        """ Get the ID of Nat Rule"""
+        for natRule in nat_rule.natRules.natRule:
+            if natRule.action == TestNatRule._snat_action:
+                rule_id = natRule.ruleId
+                break
+        return rule_id
 
     def test_0090_delete_nat_rule(self):
         """Delete Nat Rule in the gateway.

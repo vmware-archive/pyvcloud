@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pyvcloud.vcd.client import E
+from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
@@ -141,3 +143,57 @@ class NatRule(object):
         nat_rule_info['Logging'] = nat_rule.loggingEnabled
         nat_rule_info['Description'] = nat_rule.description
         return nat_rule_info
+
+    def update_nat_rule(self,
+                        original_address=None,
+                        translated_address=None,
+                        description=None,
+                        protocol=None,
+                        original_port=None,
+                        translated_port=None,
+                        icmp_type=None,
+                        logging_enabled=None,
+                        enabled=None,
+                        vnic=None):
+        """Update a Nat Rule.
+
+        param original_address str: original IP address
+        param translated_address str: translated IP address
+        param description str: nat rule description
+        param protocol str: protocol such as tcp/udp/icmp
+        param original_port: port no. such as FTP(21)
+        param translated_port: port no. such as HTTP(80)
+        param icmp_type str: icmp type such as "Echo-request"
+        param logging_enabled bool: enable logging
+        param enable bool: enable nat rule
+        param int vnic: interface of gateway
+
+        """
+        nat_rule = self.get_resource()
+
+        if original_address is not None:
+            nat_rule.originalAddress = E.originalAddress(original_address)
+        if translated_address is not None:
+            nat_rule.translatedAddress = \
+                E.translatedAddress(translated_address)
+        if description is not None:
+            nat_rule.description = E.description(description)
+        if protocol is not None:
+            nat_rule.protocol = E.protocol(protocol)
+        if original_port is not None:
+            nat_rule.originalPort = E.originalPort(original_port)
+        if translated_port is not None:
+            nat_rule.translatedPort = E.translatedPort(translated_port)
+        if icmp_type is not None:
+            nat_rule.icmpType = E.icmpType(icmp_type)
+        if logging_enabled is not None:
+            nat_rule.loggingEnabled = E.loggingEnabled(logging_enabled)
+        if enabled is not None:
+            nat_rule.enabled = E.enabled(enabled)
+        if vnic is not None:
+            nat_rule.vnic = E.vnic(vnic)
+
+        return self.client.put_resource(
+            self.href,
+            nat_rule,
+            EntityType.DEFAULT_CONTENT_TYPE.value)

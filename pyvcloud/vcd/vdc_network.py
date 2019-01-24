@@ -102,37 +102,81 @@ class VdcNetwork(object):
             self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
             vdc_network)
 
-    def add_static_ip_pool(self, ip_ranges_param):
-        """Add static IP pool for org vdc network.
+    def add_static_ip_pool_and_dns(self, ip_ranges_param=None,
+                                   primary_dns_ip=None,
+                                   secondary_dns_ip=None, dns_suffix=None):
+        """Add static IP pool and DNS for org vdc network.
 
         :param list ip_ranges_param: list of ip ranges.
             For ex: [2.3.3.2-2.3.3.10]
+
+        :param str primary_dns_ip: IP address of primary DNS server.
+
+        :param str secondary_dns_ip: IP address of secondary DNS Server.
+
+        :param str dns_suffix: DNS suffix.
 
         :return: object containing EntityType.TASK XML data representing the
             asynchronous task.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
+        if ip_ranges_param is None and primary_dns_ip is None and \
+                secondary_dns_ip is None and dns_suffix is None:
+            raise InvalidParameterException("All input params can't be None "
+                                            "or empty")
         vdc_network = self.get_resource()
-        ip_scope = vdc_network.Configuration.IpScopes.IpScope
-        if not hasattr(ip_scope, 'IpRanges'):
-            ip_scope.append(E.IpRanges())
+        ip_scopes = ip_scope = vdc_network.Configuration.IpScopes
+        ip_scope = ip_scopes.IpScope
+        ip_scopes.remove(ip_scope)
 
-        ip_ranges_list = ip_scope.IpRanges
-        for ip_range in ip_ranges_param:
-            ip_range_arr = ip_range.split('-')
-            if len(ip_range_arr) > 1:
-                start_address = ip_range_arr[0]
-                end_address = ip_range_arr[1]
-            elif len(ip_range_arr) == 1:
-                # if provided parameter is just start Address then it will
-                # consider endAddress as same.
-                start_address = ip_range_arr[0]
-                end_address = ip_range_arr[0]
-            ip_range_tag = E.IpRange()
-            ip_range_tag.append(E.StartAddress(start_address))
-            ip_range_tag.append(E.EndAddress(end_address))
-            ip_ranges_list.append(ip_range_tag)
+        ip_scopes.append(E.IpScope())
+        ip_scope_new = ip_scopes.IpScope
+        ip_scope_new.IsInherited = ip_scope.IsInherited
+        ip_scope_new.Gateway = ip_scope.Gateway
+        ip_scope_new.Netmask = ip_scope.Netmask
+        ip_scope_new.SubnetPrefixLength = ip_scope.SubnetPrefixLength
+
+        if primary_dns_ip is not None:
+            ip_scope_new.append(E.Dns1(primary_dns_ip))
+        elif hasattr(ip_scope, 'Dns1'):
+            ip_scope_new.append(ip_scope.Dns1)
+
+        if secondary_dns_ip is not None:
+            ip_scope_new.append(E.Dns2(secondary_dns_ip))
+        elif hasattr(ip_scope, 'Dns2'):
+            ip_scope_new.append(ip_scope.Dns2)
+
+        if dns_suffix is not None:
+            ip_scope_new.append(E.DnsSuffix(dns_suffix))
+        elif hasattr(ip_scope, 'DnsSuffix'):
+            ip_scope_new.append(ip_scope.DnsSuffix)
+
+        if hasattr(ip_scope, 'IsEnabled'):
+            ip_scope_new.append(ip_scope.IsEnabled)
+
+        if hasattr(ip_scope, 'IpRanges'):
+            ip_scope_new.append(ip_scope.IpRanges)
+
+        if ip_ranges_param is not None and len(ip_ranges_param) > 0:
+            if not hasattr(ip_scope, 'IpRanges'):
+                ip_scope_new.append(E.IpRanges())
+
+            ip_ranges_list = ip_scope_new.IpRanges
+            for ip_range in ip_ranges_param:
+                ip_range_arr = ip_range.split('-')
+                if len(ip_range_arr) > 1:
+                    start_address = ip_range_arr[0]
+                    end_address = ip_range_arr[1]
+                elif len(ip_range_arr) == 1:
+                    # if provided parameter is just start Address then it will
+                    # consider endAddress as same.
+                    start_address = ip_range_arr[0]
+                    end_address = ip_range_arr[0]
+                ip_range_tag = E.IpRange()
+                ip_range_tag.append(E.StartAddress(start_address))
+                ip_range_tag.append(E.EndAddress(end_address))
+                ip_ranges_list.append(ip_range_tag)
 
         return self.client.put_linked_resource(
             self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,

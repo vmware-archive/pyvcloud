@@ -1002,3 +1002,11 @@ class Gateway(object):
                 pool_info['Auto_Configure_Dns'] = ip_pool.autoConfigureDNS
                 out_list.append(pool_info)
         return out_list
+
+    def get_firewall_rules_list(self):
+        firewall_rules = self.get_firewall_rules()
+        firewall_rule_list = []
+        for firewall_rule in firewall_rules.iter('firewallRule'):
+            firewall_rule_list.append(dict(ID=firewall_rule.find('id').text, name=firewall_rule.find('name').text,
+                                           ruleType=firewall_rule.find('ruleType').text))
+        return firewall_rule_list

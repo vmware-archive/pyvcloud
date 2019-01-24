@@ -15,6 +15,7 @@
 
 import urllib
 
+from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
@@ -254,3 +255,39 @@ class APIExtension(object):
         """
         href = self.enable_extension(name, enabled=False, namespace=namespace)
         return self.client.delete_resource(href)
+
+    def add_service_right(self, right_name, service_name, namespace,
+                          description, category, bundle_key):
+        """Add a new right using API extension service.
+
+        :param str right_name: the name of the new right to be registered.
+        :param str service_name: the name of the extension service whose
+            record we want to retrieve.
+        :param str namespace: the namespace of the extension service.
+        :param str description: brief description about the new right.
+        :param str category: add the right in existing categories in
+            vCD Roles and Rights or specify a new category name.
+        :param str bundle_key: is used to identify the right name and change
+            its value to different languages using localization bundle.
+
+        :return: object containing EntityType.RIGHT XML data i.e. the
+            sparse representation of the Right element.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        params = E.Right({'name': right_name})
+        params.append(E.Description(description))
+        params.append(E.Category(category))
+        params.append(E.BundleKey(bundle_key))
+
+        record = self._get_extension_record(name=service_name,
+                                            namespace=namespace,
+                                            format=QueryResultFormat.RECORDS)
+        ext_service = self.client.get_resource(record.get('href'))
+        ext_rights = self.client.get_linked_resource(ext_service,
+                                                     RelationType.RIGHTS,
+                                                     EntityType.RIGHTS.value)
+        return self.client.post_linked_resource(ext_rights,
+                                                RelationType.ADD,
+                                                EntityType.RIGHT.value,
+                                                params)

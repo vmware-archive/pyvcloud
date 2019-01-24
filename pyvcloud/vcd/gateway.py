@@ -1004,9 +1004,9 @@ class Gateway(object):
         return out_list
 
     def get_firewall_rules_list(self):
-        """List all firewall rules on a gateway.
+        """List all firewall rules of a gateway.
 
-        :return: list of all firewall rules on a gateway.
+        :return: list of all firewall rules of a gateway.
         e.g.
         [{'ID': 12344, 'name': 'firewall','ruleType': 'internal_high'}]
         """

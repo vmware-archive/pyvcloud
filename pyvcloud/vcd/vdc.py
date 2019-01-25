@@ -16,8 +16,8 @@ from lxml import etree
 
 from pyvcloud.vcd.acl import Acl
 from pyvcloud.vcd.client import E
-from pyvcloud.vcd.client import EdgeGatewayType
 from pyvcloud.vcd.client import E_OVF
+from pyvcloud.vcd.client import EdgeGatewayType
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link

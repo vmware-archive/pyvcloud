@@ -17,6 +17,7 @@ from lxml import etree
 from pyvcloud.vcd.acl import Acl
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
+from pyvcloud.vcd.client import EdgeGatewayType
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
@@ -1528,7 +1529,7 @@ class VDC(object):
         return self.client.delete_resource(
             net_resource.get('href'), force=force)
 
-    def create_gateway(
+    def create_gateway_api_version_32(
             self,
             name,
             external_networks=None,
@@ -1546,7 +1547,8 @@ class VDC(object):
             is_sub_allocate_ip_pools_enabled=False,
             ext_net_to_subnet_with_ip_range=None,
             ext_net_to_rate_limit=None,
-            is_flips_mode_enabled=False):
+            is_flips_mode_enabled=False,
+            edgeGatewayType=EdgeGatewayType.NSXV_BACKED.value):
         """Request the creation of a gateway.
 
         :param str name: name of the new gateway.
@@ -1577,6 +1579,8 @@ class VDC(object):
         :param dict ext_net_to_rate_limit: external network to rate limit
         e.g., {'ext_net' : {100 : 100}}
         :param bool is_flips_mode_enabled: is flip mode enabled
+        :param str edgeGatewayType: edge gateway type. possible values will
+        be NSXV_BACKED/NSXT_BACKED/NSXT_IMPORTED
 
         :return: an object containing EntityType.GATEWAY XML data which
         represents the new gateway being created along with the the
@@ -1604,8 +1608,9 @@ class VDC(object):
                 ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
         gateway_configuration_param.append(
             E.FipsModeEnabled(is_flips_mode_enabled))
-        gateway_params.append(gateway_configuration_param)
+        gateway_configuration_param.append(E.EdgeGatewayType(edgeGatewayType))
 
+        gateway_params.append(gateway_configuration_param)
         return self.client.post_linked_resource(
             resource_admin, RelationType.ADD, EntityType.EDGE_GATEWAY.value,
             gateway_params)
@@ -1683,6 +1688,88 @@ class VDC(object):
                 ext_net_to_participated_subnet_with_ip_settings,
                 is_sub_allocate_ip_pools_enabled,
                 ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+        gateway_params.append(gateway_configuration_param)
+
+        return self.client.post_linked_resource(
+            resource_admin, RelationType.ADD, EntityType.EDGE_GATEWAY.value,
+            gateway_params)
+
+    def create_gateway_api_version_31(
+            self,
+            name,
+            external_networks=None,
+            gateway_backing_config=GatewayBackingConfigType.COMPACT.value,
+            desc=None,
+            is_default_gateway=False,
+            selected_extnw_for_default_gw=None,
+            default_gateway_ip=None,
+            is_default_gw_for_dns_relay_selected=False,
+            is_ha_enabled=False,
+            should_create_as_advanced=False,
+            is_dr_enabled=False,
+            is_ip_settings_configured=False,
+            ext_net_to_participated_subnet_with_ip_settings=None,
+            is_sub_allocate_ip_pools_enabled=False,
+            ext_net_to_subnet_with_ip_range=None,
+            ext_net_to_rate_limit=None,
+            is_flips_mode_enabled=False):
+        """Request the creation of a gateway.
+
+        :param str name: name of the new gateway.
+        :param list external_networks: list of external network's name to
+        which gateway can connect.
+        :param str gateway_backing_config: gateway backing config. Possible
+        values can be compact/full/full4/x-large.
+        :param str desc: description of the new gateway
+        :param bool is_default_gateway: should the new gateway be configured as
+         the default gateway.
+        :param str selected_extnw_for_default_gw: selected external network
+        for default gateway.
+        :param str default_gateway_ip: selected dafault gateway IP
+        :param bool is_default_gw_for_dns_relay_selected: is default gateway
+         for dns relay selected
+        :param bool is_ha_enabled: is HA enabled
+        :param bool should_create_as_advanced: create as advanced gateway
+        :param bool is_dr_enabled: is distributed routing enabled
+        :param bool is_ip_settings_configured: is ip settings configured
+        :param dict ext_net_to_participated_subnet_with_ip_settings:
+        external network to subnet ip with ip assigned in case of manual
+        else Auto e.g., {"ext_net' : {'10.3.2.1/24' : Auto/10.3.2.2}}
+        :param bool is_sub_allocate_ip_pools_enabled: is sub allocate ip
+        pools enabled
+        :param dict ext_net_to_subnet_with_ip_range: external network to sub
+        allocated ip with ip ranges e.g., {"ext_net' : {'10.3.2.1/24' : [
+        10.3.2.2-10.3.2.5, 10.3.2.12-10.3.2.15]}}
+        :param dict ext_net_to_rate_limit: external network to rate limit
+        e.g., {'ext_net' : {100 : 100}}
+        :param bool is_flips_mode_enabled: is flip mode enabled
+
+        :return: an object containing EntityType.GATEWAY XML data which
+        represents the new gateway being created along with the the
+        asynchronous task that is creating the gateway.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if external_networks is None or len(external_networks) == 0:
+            raise InvalidParameterException('external networks can not be '
+                                            'Null.')
+        resource_admin = self.client.get_resource(self.href_admin)
+
+        gateway_params = E.EdgeGateway(name=name)
+        if desc is not None:
+            gateway_params.append(E.Description(desc))
+        gateway_configuration_param = \
+            self._create_gateway_configuration_param(
+                external_networks, gateway_backing_config,
+                is_default_gateway, selected_extnw_for_default_gw,
+                default_gateway_ip, is_default_gw_for_dns_relay_selected,
+                is_ha_enabled, should_create_as_advanced, is_dr_enabled,
+                is_ip_settings_configured,
+                ext_net_to_participated_subnet_with_ip_settings,
+                is_sub_allocate_ip_pools_enabled,
+                ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+        gateway_configuration_param.append(
+            E.FipsModeEnabled(is_flips_mode_enabled))
         gateway_params.append(gateway_configuration_param)
 
         return self.client.post_linked_resource(

@@ -60,8 +60,7 @@ catalog_items:
 networks:
   isolated:
     - network_name: "isolated-network-1"
-      gateway_ip: "192.168.10.1" 
-      netmask: "255.255.255.0"
+      network_cidr: "192.168.10.1/20"
       description: "Isolated network"
       ip_range_start: "192.168.10.100"
       ip_range_end: "192.168.10.149"

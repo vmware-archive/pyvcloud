@@ -51,6 +51,9 @@ class TestNetwork(BaseTestCase):
     _routed_org_vdc_network_name = 'routed_orgvdc_network_' + str(uuid1())
     _routed_org_vdc_network_new_name = 'routed_orgvdc_network_new_' + str(
         uuid1())
+    _dns1 = '8.8.8.8'
+    _dns2 = '8.8.8.9'
+    _dns_suffix = 'example.com'
 
     def test_0000_setup(self):
         """Setup the networks required for the other tests in this module.
@@ -234,8 +237,28 @@ class TestNetwork(BaseTestCase):
             TestNetwork._routed_org_vdc_network_name)
         vdcNetwork = VdcNetwork(
             TestNetwork._client, resource=org_vdc_routed_nw)
-        result = vdcNetwork.add_static_ip_pool([TestNetwork._ip_range])
+        result = vdcNetwork.add_static_ip_pool_and_dns(
+            [TestNetwork._ip_range], TestNetwork._dns1, TestNetwork._dns2,
+            TestNetwork._dns_suffix)
 
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+
+        result = vdcNetwork.add_static_ip_pool_and_dns(None, TestNetwork._dns1,
+                                                       TestNetwork._dns2,
+                                                       TestNetwork._dns_suffix)
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+
+        result = vdcNetwork.add_static_ip_pool_and_dns(None, TestNetwork._dns1)
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+
+        result = vdcNetwork.add_static_ip_pool_and_dns(None, None, None,
+                                                       TestNetwork._dns_suffix)
         task = TestNetwork._client.get_task_monitor().wait_for_success(
             task=result)
         self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
@@ -250,6 +273,9 @@ class TestNetwork(BaseTestCase):
                     TestNetwork._ip_range:
                 match_found = True
         self.assertTrue(match_found)
+        self.assertTrue(ip_scope.Dns1, TestNetwork._dns1)
+        self.assertTrue(ip_scope.Dns2, TestNetwork._dns2)
+        self.assertTrue(ip_scope.DnsSuffix, TestNetwork._dns_suffix)
 
     def test_0077_modify_static_ip_pool(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)
@@ -316,8 +342,8 @@ class TestNetwork(BaseTestCase):
             self, vdc_network, metadata_key, metadata_value)
         TestNetwork._update_routed_vdc_network_metadata(
             self, vdc_network, metadata_key, updated_metadata_value)
-        TestNetwork._delete_routed_vcd_network_metadata(
-            self, vdc_network, metadata_key)
+        TestNetwork._delete_routed_vcd_network_metadata(self, vdc_network,
+                                                        metadata_key)
 
     def test_0090_list_routed_vdc_network_allocated_ip(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)

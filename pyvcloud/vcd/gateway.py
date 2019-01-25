@@ -1012,9 +1012,10 @@ class Gateway(object):
         """
         firewall_rules = self.get_firewall_rules()
         firewall_rule_list = []
-        for firewall_rule in firewall_rules.iter('firewallRule'):
-            firewall_rule_list.append(dict(
-                ID=firewall_rule['id'],
-                name=firewall_rule['name'],
-                ruleType=firewall_rule['ruleType']))
+        if hasattr(firewall_rules.firewallRules, 'firewallRule'):
+            for firewall_rule in firewall_rules.firewallRules.firewallRule:
+                firewall_rule_list.append(dict(
+                    ID=firewall_rule['id'],
+                    name=firewall_rule['name'],
+                    ruleType=firewall_rule['ruleType']))
         return firewall_rule_list

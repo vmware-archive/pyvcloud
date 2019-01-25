@@ -29,6 +29,7 @@ from pyvcloud.vcd.gateway import Gateway
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
+
 class TestGateway(BaseTestCase):
     """Test Gateway functionalities implemented in pyvcloud."""
     # All tests in this module should be run as System Administrator.
@@ -71,7 +72,7 @@ class TestGateway(BaseTestCase):
         first_ipscope = ip_scopes[0]
         gateway_ip = first_ipscope.Gateway.text
         prefix_len = netmask_to_cidr_prefix_len(gateway_ip,
-                                         first_ipscope.Netmask.text)
+                                                first_ipscope.Netmask.text)
         subnet_addr = gateway_ip + '/' + str(prefix_len)
         ext_net_to_participated_subnet_with_ip_settings = {
             ext_net_resource.get('name'): {
@@ -100,8 +101,19 @@ class TestGateway(BaseTestCase):
                     False, False, True,
                     ext_net_to_participated_subnet_with_ip_settings, True,
                     ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
-        else:
-            TestGateway._gateway = TestGateway._vdc.create_gateway(
+        elif float(TestGateway._api_version) == float(
+                ApiVersion.VERSION_31.value):
+            TestGateway._gateway = \
+                TestGateway._vdc.create_gateway_api_version_31(self._name,
+                [ext_net_resource.get('name')], 'compact', None, True,
+                ext_net_resource.get('name'), gateway_ip, True, False,
+                False, False, True,
+                ext_net_to_participated_subnet_with_ip_settings, True,
+                ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+        elif float(TestGateway._api_version) >= float(
+                ApiVersion.VERSION_32.value):
+            TestGateway._gateway = \
+                TestGateway._vdc.create_gateway_api_version_32(
                 self._name, [ext_net_resource.get('name')], 'compact', None,
                 True, ext_net_resource.get('name'), gateway_ip, True, False,
                 False, False, True,
@@ -302,8 +314,8 @@ class TestGateway(BaseTestCase):
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         '''resetting back to original gateway name'''
         task = gateway_obj.edit_gateway_name(TestGateway._name)
-        result = TestGateway._client.get_task_monitor().wait_for_success(task=
-                                                                         task)
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0012_edit_config_ipaddress(self):
@@ -390,9 +402,9 @@ class TestGateway(BaseTestCase):
         gateway_sub_allocated_ip_range1 = \
             config['new_gateway_sub_allocated_ip_range']
 
-        task = gateway_obj.edit_sub_allocated_ip_pools(ext_network,
-                                               gateway_sub_allocated_ip_range,
-                                               gateway_sub_allocated_ip_range1)
+        task = gateway_obj.edit_sub_allocated_ip_pools(
+            ext_network, gateway_sub_allocated_ip_range,
+            gateway_sub_allocated_ip_range1)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
@@ -418,8 +430,8 @@ class TestGateway(BaseTestCase):
         gateway_sub_allocated_ip_range1 = \
             config['new_gateway_sub_allocated_ip_range']
 
-        task = gateway_obj.remove_sub_allocated_ip_pools(ext_network,
-                                             [gateway_sub_allocated_ip_range1])
+        task = gateway_obj.remove_sub_allocated_ip_pools(
+            ext_network, [gateway_sub_allocated_ip_range1])
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
@@ -504,7 +516,7 @@ class TestGateway(BaseTestCase):
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
-        #verification
+        # verification
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
         gateway_interface = self.__get_gateway_interface(
@@ -526,8 +538,8 @@ class TestGateway(BaseTestCase):
         gateway_ip = gateway[0].split('/')
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
-        task = gateway_obj.configure_default_gateway(ext_network, gateway_ip[0]
-                                                     , 'true')
+        task = gateway_obj.configure_default_gateway(ext_network,
+                                                     gateway_ip[0], 'true')
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
@@ -552,8 +564,8 @@ class TestGateway(BaseTestCase):
         # verification
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
-        self.assertTrue(gateway_obj.get_resource().Configuration.
-                        UseDefaultRouteForDnsRelay)
+        self.assertTrue(gateway_obj.get_resource()
+                        .Configuration.UseDefaultRouteForDnsRelay)
         task = gateway_obj.configure_dns_default_gateway('false')
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
@@ -583,8 +595,8 @@ class TestGateway(BaseTestCase):
         gateway_ip = gateway[0].split('/')
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
-        task = gateway_obj.configure_default_gateway(ext_network, gateway_ip[0]
-                                                     , 'false')
+        task = gateway_obj.configure_default_gateway(ext_network,
+                                                     gateway_ip[0], 'false')
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
@@ -602,7 +614,7 @@ class TestGateway(BaseTestCase):
                               TestGateway._gateway.get('href'))
         gateway_obj.add_firewall_rule(TestGateway._firewall_rule_name)
         firewall_rule = gateway_obj.get_firewall_rules()
-        #Verify
+        # Verify
         matchFound = False
         for firewallRule in firewall_rule.firewallRules.firewallRule:
             if firewallRule['name'] == TestGateway._firewall_rule_name:
@@ -612,17 +624,16 @@ class TestGateway(BaseTestCase):
 
     def test_0026_add_dhcp_pool(self):
         """Add DHCP pool in the gateway.
-        
          Invokes the add_dhcp_pool of the gateway.
         """
 
-        gateway_obj = Gateway(TestGateway._client, self._name,
-                              Environment.get_test_gateway(
-                                  Environment.get_sys_admin_client())
-                              .get('href'))
+        gateway_obj = Gateway(
+            TestGateway._client, self._name,
+            Environment.get_test_gateway(Environment.get_sys_admin_client())
+            .get('href'))
         gateway_obj.add_dhcp_pool(TestGateway._pool_ip_range)
         dhcp_resource = gateway_obj.get_dhcp()
-        #Verify
+        # Verify
         matchFound = False
         for ipPool in dhcp_resource.ipPools.ipPool:
             if ipPool.ipRange.text == TestGateway._pool_ip_range:

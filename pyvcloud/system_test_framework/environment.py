@@ -552,8 +552,8 @@ class Environment(object):
         cls._logger.debug('Creating org-vdc network ' + expected_net_name)
         result = vdc.create_isolated_vdc_network(
             network_name=expected_net_name,
-            gateway_ip=cls._config['vcd']['default_ovdc_network_gateway_ip'],
-            netmask=cls._config['vcd']['default_ovdc_network_gateway_netmask'])
+            network_cidr=cls._config['vcd'][
+                'default_ovdc_network_network_cidr'])
 
         cls._sys_admin_client.get_task_monitor()\
             .wait_for_success(task=result.Tasks.Task[0])
@@ -894,10 +894,14 @@ class Environment(object):
                     ApiVersion.VERSION_30.value):
                 gateway = vdc.create_gateway_api_version_30(
                     GatewayConstants.name, [ext_config['name']])
-            else:
-                gateway = vdc.create_gateway(
+            elif float(api_version) == float(ApiVersion.VERSION_31.value):
+                gateway = vdc.create_gateway_api_version_31(
                     GatewayConstants.name,
                     [ext_config['name']],
+                    should_create_as_advanced=True)
+            elif float(api_version) >= float(ApiVersion.VERSION_32.value):
+                gateway = vdc.create_gateway_api_version_32(
+                    GatewayConstants.name, [ext_config['name']],
                     should_create_as_advanced=True)
 
             cls._sys_admin_client.get_task_monitor().wait_for_success(task

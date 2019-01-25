@@ -51,7 +51,7 @@ class TestStaticRoute(BaseTestCase):
                 break
         self.assertTrue(match_found)
 
-    def test_0001_list_dhcp_pools(self):
+    def test_0001_list_static_routes(self):
         """List Static Routes of the gateway.
 
         Invokes the list_static_routes of the gateway.

@@ -22,6 +22,7 @@ from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.network_url_constants import DHCP_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import NAT_URL_TEMPLATE
+from pyvcloud.vcd.network_url_constants import STATIC_ROUTE_URL_TEMPLATE
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import build_network_url_from_gateway_url
 from pyvcloud.vcd.utils import get_admin_href
@@ -1019,3 +1020,67 @@ class Gateway(object):
                     name=firewall_rule['name'],
                     ruleType=firewall_rule['ruleType']))
         return firewall_rule_list
+
+    def add_static_route(self,
+                         network,
+                         next_hop,
+                         mtu=1500,
+                         description=None,
+                         type='User',
+                         vnic=0):
+        """Add Static Route in the gateway.
+
+        param network str: vApp/Org vDC Network in CIDR format
+        e.g. 192.169.1.0/24
+        param next_hop str: IP address of next hop
+        param mtu int: Maximum Transmission Units (MTU) e.g 1500 MTU
+        param description str: static route description
+        param type str: static route type. Default: User
+        param vnic int: interface of gateway
+
+        """
+        static_route_href = self._build_static_routes_href()
+        static_routes_resource = self.get_static_routes()
+        static_route_tag = static_routes_resource.staticRoutes
+        static_route = E.route()
+        static_route.append(E.network(network))
+        static_route.append(E.nextHop(next_hop))
+        static_route.append(E.mtu(mtu))
+        static_route.append(E.type(type))
+        static_route.append(E.description(description))
+        static_route.append(E.vnic(vnic))
+        static_route_tag.append(static_route)
+        self.client.put_resource(static_route_href, static_routes_resource,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def get_static_routes(self):
+        """Get Static Routes from vCD.
+
+        Form Static Routes using gateway href and fetches from vCD.
+
+        return: staticRoutes Object
+        """
+        static_route_href = self._build_static_routes_href()
+        return self.client.get_resource(static_route_href)
+
+    def _build_static_routes_href(self):
+        network_url = build_network_url_from_gateway_url(self.href)
+        return network_url + STATIC_ROUTE_URL_TEMPLATE
+
+    def list_static_routes(self):
+        """List all Static Routes on a gateway.
+
+        :return: list of all static routes on a gateway.
+        e.g.
+        [{'Network': '192.169.1.0/24', 'Next Hop': '2.2.3.80', 'MTU': 1500}]
+        """
+        out_list = []
+        static_routes_resource = self.get_static_routes()
+        if hasattr(static_routes_resource.staticRoutes, 'route'):
+            for static_route in static_routes_resource.staticRoutes.route:
+                static_route_info = {}
+                static_route_info['Network'] = static_route.network
+                static_route_info['Next Hop'] = static_route.nextHop
+                static_route_info['MTU'] = static_route.mtu
+                out_list.append(static_route_info)
+        return out_list

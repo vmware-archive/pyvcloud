@@ -106,6 +106,13 @@ API_CURRENT_VERSIONS = [ApiVersion.VERSION_29.value,
                         ApiVersion.VERSION_31.value,
                         ApiVersion.VERSION_32.value]
 
+
+class EdgeGatewayType(Enum):
+    NSXV_BACKED = 'NSXV_BACKED'
+    NSXT_BACKED = 'NSXT_BACKED'
+    NSXT_IMPORTED = 'NSXT_IMPORTED'
+
+
 VCLOUD_STATUS_MAP = {
     -1: "Could not be created",
     0: "Unresolved",

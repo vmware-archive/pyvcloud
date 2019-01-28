@@ -92,11 +92,12 @@ class VdcNetwork(object):
             self.href = self.resource.get('href')
 
     def reload_admin(self):
-        """Reloads the admin resource representation of the org vdc network.
+        """Reloads the admin resource representation of the admin org vdc
+        network.
 
         This method should be called in between two method invocations on the
-        Org Vdc Network object, if the former call changes the representation
-        of the org vdc network in vCD.
+        Admin Org Vdc Network object, if the former call changes the
+        representation of the admin org vdc network in vCD.
         """
         self.admin_resource = self.client.get_resource(self.href_admin)
         if self.admin_resource is not None:

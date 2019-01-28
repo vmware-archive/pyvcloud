@@ -221,6 +221,30 @@ class VdcNetwork(object):
             self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
             vdc_network)
 
+    def remove_static_ip_pool(self, ip_range_param):
+        """Remove static IP pool of org vdc network.
+
+        :param str ip_range_param: ip range. For ex: 2.3.3.2-2.3.3.10
+
+        :return: object containing EntityType.TASK XML data representing the
+            asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vdc_network = self.get_resource()
+        ip_scope = vdc_network.Configuration.IpScopes.IpScope
+        if not hasattr(ip_scope, 'IpRanges'):
+            raise OperationNotSupportedException('No IP range found.')
+
+        for ip_range in ip_scope.IpRanges.IpRange:
+            if (ip_range.StartAddress + '-' +
+                    ip_range.EndAddress) == ip_range_param:
+                ip_scope.IpRanges.remove(ip_range)
+
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
+            vdc_network)
+
     def get_all_metadata(self):
         """Fetch all metadata entries of the org vdc network.
 

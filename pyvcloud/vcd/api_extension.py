@@ -175,6 +175,39 @@ class APIExtension(object):
             n += 1
         return ext
 
+    def update_extension(self, name, namespace=None, routing_key=None,
+                         exchange=None):
+        """Update properties for an existing API extension.
+
+        :param str name: name of the API extension.
+        :param str namespace: namespace of the API extension.
+        :param str routing_key: AMQP routing key to use for the extension.
+        :param str exchange: AMQP exchange to use for the extension.
+
+        :return: href of the API extension.
+
+        :rtype: str
+
+        :raises MissingRecordException: if an extension with the given name and
+            namespace couldn't be found.
+        :raise MultipleRecordsException: if more than one service with the
+            given name and namespace are found.
+        """
+        record = self._get_extension_record(name=name,
+                                            namespace=namespace,
+                                            format=QueryResultFormat.RECORDS)
+
+        params = E_VMEXT.Service({'name': name})
+        params.append(E_VMEXT.Namespace(record.get('namespace')))
+        params.append(E_VMEXT.Enabled(record.get('enabled')))
+        params.append(E_VMEXT.RoutingKey(
+            routing_key if routing_key else record.get('routingKey')))
+        params.append(E_VMEXT.Exchange(
+            exchange if exchange else record.get('exchange')))
+
+        self.client.put_resource(record.get('href'), params, None)
+        return record.get('href')
+
     def add_extension(self, name, namespace, routing_key, exchange, patterns):
         """Add an API extension service.
 

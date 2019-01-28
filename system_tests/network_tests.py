@@ -36,6 +36,7 @@ class TestNetwork(BaseTestCase):
 
     _test_runner_role = CommonRoles.ORGANIZATION_ADMINISTRATOR
     _client = None
+    _system_client = None
     _vapp_author_client = None
 
     _isolated_orgvdc_network_name = 'isolated_orgvdc_network_' + str(uuid1())
@@ -67,6 +68,7 @@ class TestNetwork(BaseTestCase):
         logger = Environment.get_default_logger()
         TestNetwork._client = Environment.get_client_in_default_org(
             TestNetwork._test_runner_role)
+        TestNetwork._system_client = Environment.get_sys_admin_client()
         TestNetwork._vapp_author_client = \
             Environment.get_client_in_default_org(CommonRoles.VAPP_AUTHOR)
         vdc = Environment.get_test_vdc(TestNetwork._client)
@@ -357,15 +359,21 @@ class TestNetwork(BaseTestCase):
             '/')[0]
         self.assertEqual(allocated_ip_addresses[0]['IP Address'], ip_address)
 
-    def test_0100_list_connected_vapps(self):
-        vdc = Environment.get_test_vdc(TestNetwork._client)
+    def test_0100_list_connected_vapps_org_admin(self):
+        TestNetwork._list_connected_vapps(self, self._client)
+
+    def test_0110_list_connected_vapps_sys_admin(self):
+        TestNetwork._list_connected_vapps(self, self._system_client)
+
+    def _list_connected_vapps(self, client):
+        vdc = Environment.get_test_vdc(client)
         vapp_name = 'test-connected-vapp'
         vdc.create_vapp(
             vapp_name, network=TestNetwork._routed_org_vdc_network_name)
         org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
             TestNetwork._routed_org_vdc_network_name)
         vdc_network = VdcNetwork(
-            TestNetwork._client, resource=org_vdc_routed_nw)
+            client, resource=org_vdc_routed_nw)
         connected_vapps = vdc_network.list_connected_vapps()
         self.assertEqual(len(connected_vapps), 1)
         self.assertEqual(connected_vapps[0].get('Name'), vapp_name)

@@ -102,9 +102,11 @@ class VdcNetwork(object):
             self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
             vdc_network)
 
-    def add_static_ip_pool_and_dns(self, ip_ranges_param=None,
+    def add_static_ip_pool_and_dns(self,
+                                   ip_ranges_param=None,
                                    primary_dns_ip=None,
-                                   secondary_dns_ip=None, dns_suffix=None):
+                                   secondary_dns_ip=None,
+                                   dns_suffix=None):
         """Add static IP pool and DNS for org vdc network.
 
         :param list ip_ranges_param: list of ip ranges.
@@ -334,8 +336,14 @@ class VdcNetwork(object):
         :rtype: list
         """
         vapp_name_list = []
-        vdc = self.client.get_linked_resource(
-            self.get_resource(), RelationType.UP, EntityType.VDC.value)
+        if (self.client.is_sysadmin()):
+            vdc = self.client.get_linked_resource(self.get_resource(),
+                                                  RelationType.UP,
+                                                  EntityType.VDC_ADMIN.value)
+        else:
+            vdc = self.client.get_linked_resource(
+                self.get_resource(), RelationType.UP, EntityType.VDC.value)
+
         for entity in vdc.ResourceEntities.ResourceEntity:
             if entity.get('type') == EntityType.VAPP.value:
                 vapp = self.client.get_resource(entity.get('href'))

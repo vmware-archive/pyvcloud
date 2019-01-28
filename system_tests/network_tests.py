@@ -81,6 +81,7 @@ class TestNetwork(BaseTestCase):
         TestNetwork._client.get_task_monitor().wait_for_success(
             task=result.Tasks.Task[0])
 
+
     def test_0005_create_routed_orgvdc_network(self):
         """Test creation of routed vdc network.
 
@@ -405,6 +406,42 @@ class TestNetwork(BaseTestCase):
         # Delete test vApp after test
         vdc.reload()
         vdc.delete_vapp(vapp_name)
+
+    def test_0120_convert_to_subinterface_org_admin(self):
+        TestNetwork.__convert_to_subinterface(self, TestNetwork._client)
+
+    def test_0125_convert_to_subinterface_sys_admin(self):
+        TestNetwork.__convert_to_subinterface(self, TestNetwork._system_client)
+
+    def __convert_to_subinterface(self, client):
+        vdc = Environment.get_test_vdc(client)
+        org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
+            TestNetwork._routed_org_vdc_network_name)
+        vdc_network = VdcNetwork(client, resource=org_vdc_routed_nw)
+
+        result = vdc_network.convert_to_sub_interface()
+
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+
+        # Verify
+        vdc_network.reload_admin()
+        reloaded_vdc_network = vdc_network.admin_resource
+        self.assertTrue(reloaded_vdc_network.Configuration.SubInterface)
+
+        # Revert to Internal Interface
+        result = vdc_network.convert_to_internal_interface()
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+
+        # Verify
+        vdc_network.reload_admin()
+        reloaded_vdc_network = vdc_network.admin_resource
+        self.assertFalse(reloaded_vdc_network.Configuration.SubInterface)
+
+
 
     def test_1000_delete_routed_orgvdc_networks(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)

@@ -41,25 +41,16 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
 SIZE_1MB = 1024 * 1024
 
 NSMAP = {
-    'ovf':
-    'http://schemas.dmtf.org/ovf/envelope/1',
-    'ovfenv':
-    'http://schemas.dmtf.org/ovf/environment/1',
-    'rasd':
-    'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/'
+    'ovf': 'http://schemas.dmtf.org/ovf/envelope/1',
+    'ovfenv': 'http://schemas.dmtf.org/ovf/environment/1',
+    'rasd': 'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/'
     '2/CIM_ResourceAllocationSettingData',
-    'vcloud':
-    'http://www.vmware.com/vcloud/v1.5',
-    've':
-    'http://www.vmware.com/schema/ovfenv',
-    'vmw':
-    'http://www.vmware.com/schema/ovf',
-    'vmext':
-    'http://www.vmware.com/vcloud/extension/v1.5',
-    'xs':
-    'http://www.w3.org/2001/XMLSchema',
-    'xsi':
-    'http://www.w3.org/2001/XMLSchema-instance'
+    'vcloud': 'http://www.vmware.com/vcloud/v1.5',
+    've': 'http://www.vmware.com/schema/ovfenv',
+    'vmw': 'http://www.vmware.com/schema/ovf',
+    'vmext': 'http://www.vmware.com/vcloud/extension/v1.5',
+    'xs': 'http://www.w3.org/2001/XMLSchema',
+    'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
 }
 
 # Convenience objects for building vCloud API XML objects
@@ -76,10 +67,8 @@ E = objectify.ElementMaker(
 E_VMEXT = objectify.ElementMaker(
     annotate=False,
     namespace=NSMAP['vmext'],
-    nsmap={
-        None: NSMAP['vcloud'],
-        'vmext': NSMAP['vmext']
-    })
+    nsmap={None: NSMAP['vcloud'],
+           'vmext': NSMAP['vmext']})
 
 E_OVF = objectify.ElementMaker(
     annotate=False, namespace=NSMAP['ovf'], nsmap={None: NSMAP['ovf']})
@@ -87,10 +76,8 @@ E_OVF = objectify.ElementMaker(
 E_RASD = objectify.ElementMaker(
     annotate=False,
     namespace=NSMAP['rasd'],
-    nsmap={
-        None: NSMAP['rasd'],
-        'vcloud': NSMAP['vcloud']
-    })
+    nsmap={None: NSMAP['rasd'],
+           'vcloud': NSMAP['vcloud']})
 
 
 class ApiVersion(Enum):
@@ -101,10 +88,10 @@ class ApiVersion(Enum):
 
 
 # Important! Values must be listed in ascending order.
-API_CURRENT_VERSIONS = [ApiVersion.VERSION_29.value,
-                        ApiVersion.VERSION_30.value,
-                        ApiVersion.VERSION_31.value,
-                        ApiVersion.VERSION_32.value]
+API_CURRENT_VERSIONS = [
+    ApiVersion.VERSION_29.value, ApiVersion.VERSION_30.value,
+    ApiVersion.VERSION_31.value, ApiVersion.VERSION_32.value
+]
 
 
 class EdgeGatewayType(Enum):
@@ -184,6 +171,9 @@ class RelationType(Enum):
     UNREGISTER = 'unregister'
     UP = 'up'
     UPDATE_RESOURCE_POOLS = 'update:resourcePools'
+    VDC_ROUTED_CONVERT_TO_SUB_INTERFACE = 'orgVdcNetwork:convertToSubInterface'
+    VDC_ROUTED_CONVERT_TO_INTERNAL_INTERFACE = \
+        'orgVdcNetwork:convertToInternalInterface'
 
 
 class ResourceType(Enum):
@@ -804,8 +794,8 @@ class Client(object):
                 if version in API_CURRENT_VERSIONS:
                     self._api_version = version
                     self._negotiate_api_version = False
-                    self._logger.debug(
-                        'API version negotiated to: %s' % self._api_version)
+                    self._logger.debug('API version negotiated to: %s' %
+                                       self._api_version)
                     break
 
             # Still need to negotiate?  That means we didn't find a
@@ -869,7 +859,8 @@ class Client(object):
         sc = response.status_code
         if sc is not 200:
             self._response_code_to_exception(
-                sc, self._get_response_request_id(response),
+                sc,
+                self._get_response_request_id(response),
                 _objectify_response(response))
 
         session = objectify.fromstring(response.content)
@@ -928,7 +919,8 @@ class Client(object):
             return _objectify_response(response, objectify_results)
 
         self._response_code_to_exception(
-            sc, self._get_response_request_id(response),
+            sc,
+            self._get_response_request_id(response),
             _objectify_response(response, objectify_results))
 
     @staticmethod
@@ -981,8 +973,8 @@ class Client(object):
                                                      response.request.url))
 
         if self._log_headers:
-            self._logger.debug(
-                'Request headers: %s' % response.request.headers)
+            self._logger.debug('Request headers: %s' %
+                               response.request.headers)
 
         if self._log_bodies and request_body is not None:
             if isinstance(request_body, str):
@@ -1051,11 +1043,10 @@ class Client(object):
         # retry efforts fail, we will fail the upload completely and return.
         for attempt in range(1, self._UPLOAD_FRAGMENT_MAX_RETRIES + 1):
             try:
-                response = self._session.put(
-                    uri,
-                    data=data,
-                    headers=headers,
-                    verify=self._verify_ssl_certs)
+                response = self._session.put(uri,
+                                             data=data,
+                                             headers=headers,
+                                             verify=self._verify_ssl_certs)
                 self._log_request_response(response)
 
                 sc = response.status_code
@@ -1066,9 +1057,9 @@ class Client(object):
             except VcdResponseException:
                 # retry if not the last attempt
                 if attempt < self._UPLOAD_FRAGMENT_MAX_RETRIES:
-                    self._logger.debug(
-                        'Failure: attempt#%s to upload data in '
-                        'range %s failed. Retrying.' % (attempt, range_str))
+                    self._logger.debug('Failure: attempt#%s to upload data in '
+                                       'range %s failed. Retrying.' %
+                                       (attempt, range_str))
                     continue
                 else:
                     self._logger.error(
@@ -1082,8 +1073,9 @@ class Client(object):
                           size=0,
                           callback=None):
 
-        response = self._session.get(
-            uri, stream=True, verify=self._verify_ssl_certs)
+        response = self._session.get(uri,
+                                     stream=True,
+                                     verify=self._verify_ssl_certs)
         self._log_request_response(response, skip_logging_response_body=True)
 
         sc = response.status_code
@@ -1313,8 +1305,8 @@ class Client(object):
         if self._query_list_map is None:
             self._query_list_map = {}
             for link in self.get_query_list().Link:
-                self._query_list_map[(link.get('type'),
-                                      link.get('name'))] = link.get('href')
+                self._query_list_map[(link.get('type'), link.get('name')
+                                      )] = link.get('href')
         return self._query_list_map
 
     def get_typed_query(self,

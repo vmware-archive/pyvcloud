@@ -483,6 +483,10 @@ class TestNetwork(BaseTestCase):
                 task=task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+        # Verify
+        gateway = Environment.get_test_gateway(client)
+        self.assertEqual(gateway.get('distributedRoutingEnabled'), 'false')
+
     def test_1000_delete_routed_orgvdc_networks(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)
 

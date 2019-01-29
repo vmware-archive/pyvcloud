@@ -48,6 +48,7 @@ class VdcNetwork(object):
             self.name = resource.get('name')
             self.href = resource.get('href')
         self.href_admin = get_admin_href(self.href)
+        self.admin_resource = None
 
     def get_resource(self):
         """Fetches the XML representation of the org vdc network from vCD.
@@ -63,6 +64,20 @@ class VdcNetwork(object):
             self.reload()
         return self.resource
 
+    def get_admin_resource(self):
+        """Fetches the XML representation of the admin org vdc network.
+
+        Will serve cached response if possible.
+
+        :return: object containing EntityType.ORG_VDC_NETWORK XML data
+        representing the org vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if self.admin_resource is None:
+            self.reload_admin()
+        return self.admin_resource
+
     def reload(self):
         """Reloads the resource representation of the org vdc network.
 
@@ -74,6 +89,17 @@ class VdcNetwork(object):
         if self.resource is not None:
             self.name = self.resource.get('name')
             self.href = self.resource.get('href')
+
+    def reload_admin(self):
+        """Reloads the admin resource representation of the org vdc network.
+
+        This method should be called in between two method invocations on the
+        Admin Org Vdc Network object, if the former call changes the
+        representation of the admin org vdc network in vCD.
+        """
+        self.admin_resource = self.client.get_resource(self.href_admin)
+        if self.admin_resource is not None:
+            self.href_admin = self.admin_resource.get('href')
 
     def edit_name_description_and_shared_state(self,
                                                name,
@@ -376,9 +402,35 @@ class VdcNetwork(object):
                         'networkName')
                     if network_name == self.name:
                         vapp_name_list.append({
-                            'Name':
-                            vapp.get('name'),
-                            'Status':
-                            VAppPowerStatus(vapp.get('status')).name
+                            'Name': vapp.get('name'),
+                            'Status': VAppPowerStatus(vapp.get('status')).name
                         })
         return vapp_name_list
+
+    def convert_to_sub_interface(self):
+        """Convert to sub interface.
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is converting to sub-interface.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_admin_resource()
+
+        return self.client.post_linked_resource(
+            self.admin_resource,
+            RelationType.VDC_ROUTED_CONVERT_TO_SUB_INTERFACE, None, None)
+
+    def convert_to_internal_interface(self):
+        """Convert to internal interface.
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is converting to sub-interface.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_admin_resource()
+
+        return self.client.post_linked_resource(
+            self.admin_resource,
+            RelationType.VDC_ROUTED_CONVERT_TO_INTERNAL_INTERFACE, None, None)

@@ -184,6 +184,9 @@ class RelationType(Enum):
     UNREGISTER = 'unregister'
     UP = 'up'
     UPDATE_RESOURCE_POOLS = 'update:resourcePools'
+    VDC_ROUTED_CONVERT_TO_SUB_INTERFACE = 'orgVdcNetwork:convertToSubInterface'
+    VDC_ROUTED_CONVERT_TO_INTERNAL_INTERFACE = \
+        'orgVdcNetwork:convertToInternalInterface'
 
 
 class ResourceType(Enum):

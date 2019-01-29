@@ -429,7 +429,6 @@ class VdcNetwork(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-
         self.get_admin_resource()
 
         return self.client.post_linked_resource(

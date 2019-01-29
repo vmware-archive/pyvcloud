@@ -65,8 +65,7 @@ class VdcNetwork(object):
         return self.resource
 
     def get_admin_resource(self):
-        """Fetches the XML representation of the admin org vdc network from
-        vCD.
+        """Fetches the XML representation of the admin org vdc network.
 
         Will serve cached response if possible.
 

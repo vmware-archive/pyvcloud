@@ -148,6 +148,8 @@ class RelationType(Enum):
     CONVERT_TO_ADVANCED_GATEWAY = 'edgeGateway:convertToAdvancedGateway'
     DEPLOY = 'deploy'
     DISABLE = 'disable'
+    DISABLE_GATEWAY_DISTRIBUTED_ROUTING = \
+        'edgeGateway:disableDistributedRouting'
     DISK_ATTACH = 'disk:attach'
     DISK_DETACH = 'disk:detach'
     DOWN = 'down'
@@ -156,6 +158,8 @@ class RelationType(Enum):
     EDGE_GATEWAYS = 'edgeGateways'
     EDIT = 'edit'
     ENABLE = 'enable'
+    ENABLE_GATEWAY_DISTRIBUTED_ROUTING =\
+        'edgeGateway:enableDistributedRouting'
     GATEWAY_REDEPLOY = 'edgeGateway:redeploy'
     GATEWAY_SYNC_SYSLOG_SETTINGS = 'edgeGateway:syncSyslogSettings'
     GATEWAY_UPDATE_PROPERTIES = 'edgeGateway:updateProperties'
@@ -184,6 +188,8 @@ class RelationType(Enum):
     UNREGISTER = 'unregister'
     UP = 'up'
     UPDATE_RESOURCE_POOLS = 'update:resourcePools'
+    VDC_ROUTED_CONVERT_TO_DISTRIBUTED_INTERFACE = \
+        'orgVdcNetwork:convertToDistributedInterface'
     VDC_ROUTED_CONVERT_TO_SUB_INTERFACE = 'orgVdcNetwork:convertToSubInterface'
     VDC_ROUTED_CONVERT_TO_INTERNAL_INTERFACE = \
         'orgVdcNetwork:convertToInternalInterface'

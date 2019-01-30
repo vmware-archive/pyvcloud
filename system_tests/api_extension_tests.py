@@ -230,14 +230,12 @@ class TestApiExtension(BaseTestCase):
         self.assertEqual(href, TestApiExtension._service1_href)
 
     def test_007_register_service_right(self):
-        ''' Register a new right for existing API extension. Tests
-            APIExtension.add_service_right() method.
+        """Test the method APIExtension.add_service_right().
 
-            This test passes if the right-name returned after execution of
-            the method matches the expected right-name.
-        '''
+        This test passes if the right-name returned after execution of the
+        method matches the expected right-name.
+        """
         logger = Environment.get_default_logger()
-        TestApiExtension._client = Environment.get_sys_admin_client()
         api_extension = APIExtension(TestApiExtension._client)
 
         # Create a new right for CSE RBAC
@@ -284,7 +282,7 @@ class TestApiExtension(BaseTestCase):
 
         ext_info = api_extension.get_extension_info(ext_name,
                                                     namespace=ext_namespace)
-        self.assertEqual(ext_info['routing_key'], test_routing_key)
+        self.assertEqual(ext_info['routingKey'], test_routing_key)
         self.assertEqual(ext_info['exchange'], test_exchange)
 
     @developerModeAware

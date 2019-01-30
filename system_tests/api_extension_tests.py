@@ -230,12 +230,11 @@ class TestApiExtension(BaseTestCase):
         self.assertEqual(href, TestApiExtension._service1_href)
 
     def test_007_register_service_right(self):
-        ''' Register a new right for existing API extension. Tests
-            APIExtension.add_service_right() method.
+        """Test the method APIExtension.add_service_right().
 
-            This test passes if the right-name returned after execution of
-            the method matches the expected right-name.
-        '''
+        This test passes if the right-name returned after execution of the
+        method matches the expected right-name.
+        """
         logger = Environment.get_default_logger()
         api_extension = APIExtension(TestApiExtension._client)
 

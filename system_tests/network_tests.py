@@ -82,7 +82,6 @@ class TestNetwork(BaseTestCase):
         TestNetwork._client.get_task_monitor().wait_for_success(
             task=result.Tasks.Task[0])
 
-
     def test_0005_create_routed_orgvdc_network(self):
         """Test creation of routed vdc network.
 
@@ -451,41 +450,39 @@ class TestNetwork(BaseTestCase):
         gateway = Environment.get_test_gateway(client)
 
         if gateway.get('distributedRoutingEnabled') == 'false':
-            gateway_obj = Gateway(client, href=gateway.get('href'))
-            task = gateway_obj.enable_distributed_routing(True)
-            result = client.get_task_monitor().wait_for_success(
-                task=task)
-            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+            self.__enable_gateway_distributed_routing(client, gateway, True)
 
         result = vdc_network.convert_to_distributed_interface()
-
-        task = TestNetwork._client.get_task_monitor().wait_for_success(
-            task=result)
-        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+        self.__wait_for_success(client, result)
 
         # Verify
         vdc_network.reload_admin()
         reloaded_vdc_network = vdc_network.admin_resource
-        self.assertTrue(reloaded_vdc_network.Configuration.DistributedInterface)
+        self.assertTrue(
+            reloaded_vdc_network.Configuration.DistributedInterface)
 
         # Revert
         result = vdc_network.convert_to_internal_interface()
-        task = TestNetwork._client.get_task_monitor().wait_for_success(
-            task=result)
-        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+        self.__wait_for_success(client, result)
 
         # Disable the distributed routing on gateway
         gateway = Environment.get_test_gateway(client)
         if gateway.get('distributedRoutingEnabled') == 'true':
-            gateway_obj = Gateway(client, resource=gateway)
-            task = gateway_obj.enable_distributed_routing(False)
-            result = client.get_task_monitor().wait_for_success(
-                task=task)
-            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+            self.__enable_gateway_distributed_routing(client, gateway, False)
 
         # Verify
         gateway = Environment.get_test_gateway(client)
         self.assertEqual(gateway.get('distributedRoutingEnabled'), 'false')
+
+    def __enable_gateway_distributed_routing(self, client, gateway, isEnable):
+        gateway_obj = Gateway(client, href=gateway.get('href'))
+        task = gateway_obj.enable_distributed_routing(isEnable)
+        self.__wait_for_success(client, task)
+
+    def __wait_for_success(self, client, task):
+        result = client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_1000_delete_routed_orgvdc_networks(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)

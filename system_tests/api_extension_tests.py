@@ -237,7 +237,6 @@ class TestApiExtension(BaseTestCase):
             the method matches the expected right-name.
         '''
         logger = Environment.get_default_logger()
-        TestApiExtension._client = Environment.get_sys_admin_client()
         api_extension = APIExtension(TestApiExtension._client)
 
         # Create a new right for CSE RBAC
@@ -284,7 +283,7 @@ class TestApiExtension(BaseTestCase):
 
         ext_info = api_extension.get_extension_info(ext_name,
                                                     namespace=ext_namespace)
-        self.assertEqual(ext_info['routing_key'], test_routing_key)
+        self.assertEqual(ext_info['routingKey'], test_routing_key)
         self.assertEqual(ext_info['exchange'], test_exchange)
 
     @developerModeAware

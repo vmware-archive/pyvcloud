@@ -283,7 +283,7 @@ class VDC(object):
 
         vm_instantiation_param = E.InstantiationParams()
 
-        if ip_allocation_mode is 'static':
+        if ip_allocation_mode == 'static':
             ip_allocation_mode = 'manual'
 
         # Configure network of the first vm

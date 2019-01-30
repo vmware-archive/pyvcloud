@@ -836,7 +836,7 @@ class Client(object):
                 auth=('%s@%s' % (creds.user, creds.org), creds.password))
 
             sc = response.status_code
-            if sc is not 200:
+            if sc != 200:
                 r = None
                 try:
                     r = _objectify_response(response)
@@ -876,7 +876,7 @@ class Client(object):
         response = self._do_request_prim('GET', self._uri + "/session",
                                          new_session)
         sc = response.status_code
-        if sc is not 200:
+        if sc != 200:
             self._response_code_to_exception(
                 sc, self._get_response_request_id(response),
                 _objectify_response(response))
@@ -1068,7 +1068,7 @@ class Client(object):
                 self._log_request_response(response)
 
                 sc = response.status_code
-                if sc is not 200:
+                if sc != 200:
                     self._response_code_to_exception(sc, None, response)
                 else:
                     return response
@@ -1096,7 +1096,7 @@ class Client(object):
         self._log_request_response(response, skip_logging_response_body=True)
 
         sc = response.status_code
-        if sc is not 200:
+        if sc != 200:
             self._response_code_to_exception(sc, None, response)
 
         bytes_written = 0

@@ -185,8 +185,8 @@ class Platform(object):
         for port_group_name in port_group_names:
             port_group_found = False
             if port_group_name in port_groups:
-                    port_group_found = True
-                    port_group_morefs.append(port_groups[port_group_name])
+                port_group_found = True
+                port_group_morefs.append(port_groups[port_group_name])
             if not port_group_found:
                 raise EntityNotFoundException(
                     'port group \'%s\' not Found' % port_group_name)
@@ -870,7 +870,7 @@ class Platform(object):
         vc_server.append(E_VMEXT.Username(vc_admin_user))
         vc_server.append(E_VMEXT.Password(vc_admin_pwd))
         vc_server_host_url = urlparse(vc_server_host)
-        if vc_server_host_url.netloc is not '':
+        if vc_server_host_url.netloc != '':
             vc_server.append(E_VMEXT.Url(vc_server_host))
         else:
             vc_server.append(E_VMEXT.Url('https://' + vc_server_host + ':443'))
@@ -883,7 +883,7 @@ class Platform(object):
             nsx_manager.append(E_VMEXT.Username(nsx_admin_user))
             nsx_manager.append(E_VMEXT.Password(nsx_admin_pwd))
             nsx_host_url = urlparse(nsx_host)
-            if nsx_host_url.netloc is not '':
+            if nsx_host_url.netloc != '':
                 nsx_manager.append(E_VMEXT.Url(nsx_host))
             else:
                 nsx_manager.append(E_VMEXT.Url('https://' + nsx_host + ':443'))

@@ -25,6 +25,7 @@ from pyvcloud.system_test_framework.constants.gateway_constants import \
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import AccessForbiddenException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.gateway import Gateway
 from pyvcloud.vcd.vdc_network import VdcNetwork
 
 
@@ -80,7 +81,6 @@ class TestNetwork(BaseTestCase):
             network_cidr=TestNetwork._isolated_orgvdc_network_gateway_ip)
         TestNetwork._client.get_task_monitor().wait_for_success(
             task=result.Tasks.Task[0])
-
 
     def test_0005_create_routed_orgvdc_network(self):
         """Test creation of routed vdc network.
@@ -441,7 +441,48 @@ class TestNetwork(BaseTestCase):
         reloaded_vdc_network = vdc_network.admin_resource
         self.assertFalse(reloaded_vdc_network.Configuration.SubInterface)
 
+    def test_0135_convert_to_distributed_interface_sys_admin(self):
+        client = TestNetwork._system_client
+        vdc = Environment.get_test_vdc(client)
+        org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
+            TestNetwork._routed_org_vdc_network_name)
+        vdc_network = VdcNetwork(client, resource=org_vdc_routed_nw)
+        gateway = Environment.get_test_gateway(client)
 
+        if gateway.get('distributedRoutingEnabled') == 'false':
+            self.__enable_gateway_distributed_routing(client, gateway, True)
+
+        result = vdc_network.convert_to_distributed_interface()
+        self.__wait_for_success(client, result)
+
+        # Verify
+        vdc_network.reload_admin()
+        reloaded_vdc_network = vdc_network.admin_resource
+        self.assertTrue(
+            reloaded_vdc_network.Configuration.DistributedInterface)
+
+        # Revert
+        result = vdc_network.convert_to_internal_interface()
+        self.__wait_for_success(client, result)
+
+        # Disable the distributed routing on gateway
+        gateway = Environment.get_test_gateway(client)
+        if gateway.get('distributedRoutingEnabled') == 'true':
+            self.__enable_gateway_distributed_routing(client, gateway, False)
+
+        # Verify
+        gateway = Environment.get_test_gateway(client)
+        self.assertEqual(gateway.get('distributedRoutingEnabled'), 'false')
+
+    def __enable_gateway_distributed_routing(self, client, gateway, isEnable):
+        gateway_obj = Gateway(client, href=gateway.get('href'))
+        task = gateway_obj.enable_distributed_routing(isEnable)
+        self.__wait_for_success(client, task)
+
+    def __wait_for_success(self, client, task):
+        result = client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_1000_delete_routed_orgvdc_networks(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)

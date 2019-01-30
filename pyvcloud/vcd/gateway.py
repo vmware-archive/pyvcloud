@@ -54,6 +54,7 @@ class Gateway(object):
             self.name = resource.get('name')
             self.href = resource.get('href')
         self.href_admin = get_admin_href(self.href)
+        self.admin_resource = None
 
     def get_resource(self):
         """Fetches the XML representation of the gateway from vCD.
@@ -81,6 +82,31 @@ class Gateway(object):
             self.name = self.resource.get('name')
             self.href = self.resource.get('href')
 
+    def get_admin_resource(self):
+        """Fetches the XML representation of the admin gateway from vCD.
+
+        Will serve cached response if possible.
+
+        :return: object containing EntityType.EDGE_GATEWAY XML data
+        representing the gateway.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if self.admin_resource is None:
+            self.reload_admin()
+        return self.admin_resource
+
+    def reload_admin(self):
+        """Reloads the admin resource representation of the gateway.
+
+        This method should be called in between two method invocations on the
+        Admin Gateway object, if the former call changes the representation
+        of the admin gateway in vCD.
+        """
+        self.admin_resource = self.client.get_resource(self.href_admin)
+        if self.admin_resource is not None:
+            self.href_admin = self.admin_resource.get('href')
+
     def convert_to_advanced(self):
         """Convert to advanced gateway.
 
@@ -106,16 +132,19 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        self.get_resource()
-        gateway = self.resource
+        self.get_admin_resource()
+        gateway = self.admin_resource
         current_dr_status = gateway.Configuration.DistributedRoutingEnabled
         if enable == current_dr_status:
             return
-        gateway.Configuration.DistributedRoutingEnabled = \
-            E.DistributedRoutingEnabled(enable)
-        return self.client.put_linked_resource(
-            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
-            gateway)
+        if enable:
+            return self.client.post_linked_resource(
+                gateway, RelationType.ENABLE_GATEWAY_DISTRIBUTED_ROUTING, None,
+                None)
+        if not enable:
+            return self.client.post_linked_resource(
+                gateway, RelationType.DISABLE_GATEWAY_DISTRIBUTED_ROUTING,
+                None, None)
 
     def modify_form_factor(self, gateway_type):
         """Modify form factor.

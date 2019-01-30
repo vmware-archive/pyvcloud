@@ -434,3 +434,18 @@ class VdcNetwork(object):
         return self.client.post_linked_resource(
             self.admin_resource,
             RelationType.VDC_ROUTED_CONVERT_TO_INTERNAL_INTERFACE, None, None)
+
+    def convert_to_distributed_interface(self):
+        """Convert to distributed interface.
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is converting to sub-interface.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_admin_resource()
+
+        return self.client.post_linked_resource(
+            self.admin_resource,
+            RelationType.VDC_ROUTED_CONVERT_TO_DISTRIBUTED_INTERFACE, None,
+            None)

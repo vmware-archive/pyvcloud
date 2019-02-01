@@ -21,6 +21,7 @@ from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.network_url_constants import DHCP_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
+from pyvcloud.vcd.network_url_constants import IPSEC_VPN_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import NAT_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import STATIC_ROUTE_URL_TEMPLATE
 from pyvcloud.vcd.platform import Platform
@@ -30,7 +31,13 @@ from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 
 class Gateway(object):
-    LEASE_TIME = '86400'
+    __LEASE_TIME = '86400'
+    __DEFAULT_ENCRYPTION_PROTOCOL = 'aes'
+    __DEFAULT_AUTHENTICATION_MODE = 'psk'
+    __DEFAULT_DH_GROUP = 'dh5'
+    __DEFAULT_MTU = '1500'
+    __DEFAULT_IP_SEC_ENABLE = True
+    __DEFAULT_ENABLE_PFS = False
 
     def __init__(self, client, name=None, href=None, resource=None):
         """Constructor for Gateway objects.
@@ -877,7 +884,7 @@ class Gateway(object):
                       default_gateway=None,
                       domain_name=None,
                       lease_never_expires=False,
-                      lease_time=LEASE_TIME,
+                      lease_time=__LEASE_TIME,
                       subnet_mask=None,
                       primary_server=None,
                       secondary_server=None):
@@ -1113,3 +1120,82 @@ class Gateway(object):
                 static_route_info['MTU'] = static_route.mtu
                 out_list.append(static_route_info)
         return out_list
+
+    def add_ipsec_vpn(self,
+                      name,
+                      peer_id,
+                      peer_ip_address,
+                      local_id,
+                      local_ip_address,
+                      local_subnet,
+                      peer_subnet,
+                      shared_secret_encrypted,
+                      encryption_protocol=__DEFAULT_ENCRYPTION_PROTOCOL,
+                      authentication_mode=__DEFAULT_AUTHENTICATION_MODE,
+                      dh_group=__DEFAULT_DH_GROUP,
+                      description=None,
+                      mtu=__DEFAULT_MTU,
+                      is_enabled=__DEFAULT_IP_SEC_ENABLE,
+                      enable_pfs=__DEFAULT_ENABLE_PFS
+                      ):
+        """Add IPsec VPN in the gateway.
+
+        param str name: name of IPSec VPN
+        param str description: description of IPSec VPN
+        param str peer_id: peer id
+        param str peer_ip_address: peer ip address
+        param str local_id: local id
+        param str local_ip_address: local ip address
+        param str local_subnet: local subnet in CIDR format
+        param str peer_subnet: peer subnet in CIDR format
+        param str shared_secret_encrypted: shared secret encrypted
+        param str encryption_protocol: encryption protocol
+        param str authentication_mode: authentication mode
+        param str dh_group: dh group
+        param str mtu: mtu
+        param bool is_enabled: enabled status Default : true
+        param bool is_operational: is operational status Default : false
+        :return: Ipsec Vpn object
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        ipsec_vpn_href = self._build_ipsec_vpn_href()
+        ipsec_vpn_resource = self.get_ipsec_vpn()
+        vpn_sites = ipsec_vpn_resource.sites
+        site = E.site()
+        site.append(E.enabled(is_enabled))
+        site.append(E.name(name))
+        site.append(E.description(description))
+        site.append(E.localId(local_id))
+        site.append(E.localIp(local_ip_address))
+        site.append(E.peerId(peer_id))
+        site.append(E.peerIp(peer_ip_address))
+        site.append(E.encryptionAlgorithm(encryption_protocol))
+        site.append(E.mtu(mtu))
+        site.append(E.enablePfs(enable_pfs))
+        local_subnets = E.localSubnets()
+        local_subnets.append(E.subnet(local_subnet))
+        peer_subnets = E.peerSubnets()
+        peer_subnets.append(E.subnet(peer_subnet))
+        site.append(local_subnets)
+        site.append(peer_subnets)
+        site.append(E.psk(shared_secret_encrypted))
+        site.append(E.authenticationMode(authentication_mode))
+        site.append(E.dhGroup(dh_group))
+        vpn_sites.append(site)
+
+        self.client.put_resource(ipsec_vpn_href, ipsec_vpn_resource,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def _build_ipsec_vpn_href(self):
+        network_url = build_network_url_from_gateway_url(self.href)
+        return network_url + IPSEC_VPN_URL_TEMPLATE
+
+    def get_ipsec_vpn(self):
+        """Get IPSec VPN from vCD.
+
+        Form a IPSec VPN using gateway href.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        ipsec_vpn_href = self._build_ipsec_vpn_href()
+        return self.client.get_resource(ipsec_vpn_href)

@@ -1985,8 +1985,7 @@ class VDC(object):
             equality_filter=name_filter)
         records = list(query.execute())
         if records is None or len(records) == 0:
-            raise EntityNotFoundException(
-                'Gateway with name \'%s\' not found.' % name)
+            return None
         elif len(records) > 1:
             raise MultipleRecordsException("Found multiple gateway named "
                                            "'%s'," % name)

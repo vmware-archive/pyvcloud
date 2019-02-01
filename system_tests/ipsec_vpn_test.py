@@ -100,7 +100,7 @@ class TestIpSecVpn(BaseTestCase):
                 return gateway_inf.SubnetParticipation.IpAddress.text
 
     def test_0098_teardown(self):
-        """Remove the added vdc, gateway and routed networks.
+        """Removes the added vdc, gateway and routed networks.
 
         """
         vdc = VDC(TestIpSecVpn._client, resource=TestIpSecVpn._vdc_resource)
@@ -130,24 +130,11 @@ class TestIpSecVpn(BaseTestCase):
             org_name = TestIpSecVpn._config['vcd']['default_org_name']
             org_resource_list = TestIpSecVpn._client.get_org_list()
 
-        pvdc_refs = system.list_provider_vdcs()
-        pvdc_name = TestIpSecVpn._pvdc_name
-
-        if pvdc_name is not '*':
-            for pvdc_ref in pvdc_refs:
-                if pvdc_ref.get('name').lower() == pvdc_name.lower():
-                    TestIpSecVpn._pvdc_href = pvdc_ref.get('href')
-                    TestIpSecVpn._pvdc_name = pvdc_name
-
         org = TestIpSecVpn._org
         ovdc_name = TestIpSecVpn._orgvdc_name
-        for vdc in org.list_vdcs():
-            if vdc.get('name').lower() == ovdc_name.lower():
-                TestIpSecVpn._ovdc_href = vdc.get('href')
-                TestIpSecVpn._vdc_resource = VDC(TestIpSecVpn._client,
-                                                 href=TestIpSecVpn._ovdc_href). \
-                    get_resource()
-                return
+
+        if self.__check_ovdc(org,ovdc_name):
+            return
 
         storage_profiles = [{
             'name':
@@ -185,6 +172,13 @@ class TestIpSecVpn(BaseTestCase):
                 TestIpSecVpn._ovdc_href = vdc.get('href')
                 TestIpSecVpn._vdc_resource = vdc_resource
 
+    def __check_ovdc(self,org,ovdc_name):
+        if org.get_vdc(ovdc_name):
+            vdc = org.get_vdc(ovdc_name)
+            TestIpSecVpn._ovdc_href = vdc.get('href')
+            TestIpSecVpn._vdc_resource = vdc
+        return True
+
     def __create_advanced_gateway(self):
         """Creates a gateway."""
 
@@ -192,16 +186,13 @@ class TestIpSecVpn(BaseTestCase):
         vdc_reource = TestIpSecVpn._vdc_resource
         api_version = TestIpSecVpn._config['vcd']['api_version']
         vdc = VDC(TestIpSecVpn._client, resource=vdc_reource)
-        for gateway in vdc.list_edge_gateways():
-            if gateway.get(
-                    'name').lower() == TestIpSecVpn._gateway_name.lower():
-                TestIpSecVpn._gateway_href = gateway.get('href')
-                TestIpSecVpn._gateway_resource = Gateway(
-                    TestIpSecVpn._client, href=TestIpSecVpn._gateway_href). \
-                    get_resource()
-                TestIpSecVpn._gateway_obj = Gateway(
+        if vdc.get_gateway(TestIpSecVpn._gateway_name):
+            gateway = vdc.get_gateway(TestIpSecVpn._gateway_name)
+            TestIpSecVpn._gateway_resource = gateway
+            TestIpSecVpn._gateway_href = gateway.get('href')
+            TestIpSecVpn._gateway_obj = Gateway(
                     TestIpSecVpn._client, href=TestIpSecVpn._gateway_href)
-                return
+            return
 
         if float(api_version) <= float(
                 ApiVersion.VERSION_30.value):

@@ -31,13 +31,13 @@ from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 
 class Gateway(object):
-    LEASE_TIME = '86400'
-    DEFAULT_ENCRYPTION_PROTOCOL = 'aes'
-    DEFAULT_AUTHENTICATION_MODE = 'psk'
-    DEFAULT_DH_GROUP = 'dh5'
-    DEFAULT_MTU = '1500'
-    DEFAULT_IP_SEC_ENABLE = True
-    DEFAULT_ENABLE_PFS = False
+    __LEASE_TIME = '86400'
+    __DEFAULT_ENCRYPTION_PROTOCOL = 'aes'
+    __DEFAULT_AUTHENTICATION_MODE = 'psk'
+    __DEFAULT_DH_GROUP = 'dh5'
+    __DEFAULT_MTU = '1500'
+    __DEFAULT_IP_SEC_ENABLE = True
+    __DEFAULT_ENABLE_PFS = False
 
     def __init__(self, client, name=None, href=None, resource=None):
         """Constructor for Gateway objects.
@@ -884,7 +884,7 @@ class Gateway(object):
                       default_gateway=None,
                       domain_name=None,
                       lease_never_expires=False,
-                      lease_time=LEASE_TIME,
+                      lease_time=__LEASE_TIME,
                       subnet_mask=None,
                       primary_server=None,
                       secondary_server=None):
@@ -1130,13 +1130,13 @@ class Gateway(object):
                       local_subnet,
                       peer_subnet,
                       shared_secret_encrypted,
-                      encryption_protocol=DEFAULT_ENCRYPTION_PROTOCOL,
-                      authentication_mode=DEFAULT_AUTHENTICATION_MODE,
-                      dh_group=DEFAULT_DH_GROUP,
+                      encryption_protocol=__DEFAULT_ENCRYPTION_PROTOCOL,
+                      authentication_mode=__DEFAULT_AUTHENTICATION_MODE,
+                      dh_group=__DEFAULT_DH_GROUP,
                       description=None,
-                      mtu=DEFAULT_MTU,
-                      is_enabled=DEFAULT_IP_SEC_ENABLE,
-                      enable_pfs=DEFAULT_ENABLE_PFS
+                      mtu=__DEFAULT_MTU,
+                      is_enabled=__DEFAULT_IP_SEC_ENABLE,
+                      enable_pfs=__DEFAULT_ENABLE_PFS
                       ):
         """Add IPsec VPN in the gateway.
 
@@ -1192,7 +1192,7 @@ class Gateway(object):
         """Get IPSec VPN from vCD.
 
         Form a IPSec VPN using gateway href.
-        return: IPSec VPN Object
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         ipsec_vpn_href = self._build_ipsec_vpn_href()
         return self.client.get_resource(ipsec_vpn_href)

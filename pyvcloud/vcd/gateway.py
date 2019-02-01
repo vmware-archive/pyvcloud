@@ -1155,6 +1155,9 @@ class Gateway(object):
         param str mtu: mtu
         param bool is_enabled: enabled status Default : true
         param bool is_operational: is operational status Default : false
+        :return: Ipsec Vpn object
+
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         ipsec_vpn_href = self._build_ipsec_vpn_href()
         ipsec_vpn_resource = self.get_ipsec_vpn()

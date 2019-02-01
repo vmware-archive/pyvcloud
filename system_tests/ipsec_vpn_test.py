@@ -167,10 +167,8 @@ class TestIpSecVpn(BaseTestCase):
         # the ovdc. vdc_resource contains the admin version of the href since
         # we created the ovdc as a sys admin.
 
-        for vdc in org.list_vdcs():
-            if vdc.get('name').lower() == ovdc_name.lower():
-                TestIpSecVpn._ovdc_href = vdc.get('href')
-                TestIpSecVpn._vdc_resource = vdc_resource
+        self.__check_ovdc(org,ovdc_name)
+
 
     def __check_ovdc(self,org,ovdc_name):
         if org.get_vdc(ovdc_name):

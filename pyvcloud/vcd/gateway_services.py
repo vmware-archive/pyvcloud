@@ -20,6 +20,7 @@ from pyvcloud.vcd.utils import build_network_url_from_gateway_url
 
 
 class GatewayServices(object):
+    # NOQA
     def __init__(self, client, gateway_name=None, resource_id=None,
                  resource_href=None, resource=None):
         """Constructor for Service objects(DHCP,NAT,Firewall etc..).

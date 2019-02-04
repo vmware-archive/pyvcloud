@@ -114,10 +114,7 @@ class TestIpSecVpn(BaseTestCase):
         ipsec_vpn_obj.delete_ipsec_vpn()
         # Verify
         ipsec_vpn_sites = ipsec_vpn_obj.get_ipsec_config_resource().sites
-        if not hasattr(ipsec_vpn_sites, "site"):
-            return True
-        else:
-            return False
+        self.assertTrue(hasattr(ipsec_vpn_sites, "site"))
 
     def test_0098_teardown(self):
         """Removes the added vdc, gateway and routed networks.

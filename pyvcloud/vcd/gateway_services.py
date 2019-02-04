@@ -52,6 +52,23 @@ class GatewayServices(object):
             self.href = resource_href
         self.resource = resource
 
+    def __init__(self, client, gateway_name, end_point):
+        """Constructor for Service objects(Ipsec Vpn..).
+
+         :param pyvcloud.vcd.client.Client client: the client that will be used
+            to make REST calls to vCD.
+        :param str gateway_name: name of the gateway entity.
+        :param str resource_name: Service resource name.
+        """
+        if end_point is None and gateway_name is None:
+            raise InvalidParameterException(
+                "Service Initialization failed as arguments are either "
+                "invalid or None")
+        else:
+            self.gateway_name = gateway_name
+            self.end_point = end_point
+            self._build_network_href()
+
     def _build_self_href(self):
         pass
 

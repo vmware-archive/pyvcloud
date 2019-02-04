@@ -20,6 +20,7 @@ from pyvcloud.vcd.utils import build_network_url_from_gateway_url
 
 
 class GatewayServices(object):
+    # NOQA
     def __init__(self, client, gateway_name=None, resource_id=None,
                  resource_href=None, resource=None):
         """Constructor for Service objects(DHCP,NAT,Firewall etc..).
@@ -41,8 +42,9 @@ class GatewayServices(object):
                 resource is None:
             self._build_network_href()
             self.resource_id = resource_id
-            self._build_self_href(resource_id)
-        if resource_href is None and resource is None and self.href is None:
+#            self._build_self_href(resource_id)
+        if resource_href is None and \
+                resource is None and resource_id is None and self.href is None:
             raise InvalidParameterException(
                 "Service Initialization failed as arguments are either "
                 "invalid or None")
@@ -51,23 +53,6 @@ class GatewayServices(object):
             self.resource_id = self._extract_id(resource_href)
             self.href = resource_href
         self.resource = resource
-
-    def __init__(self, client, gateway_name, end_point):
-        """Constructor for Service objects(Ipsec Vpn..).
-
-         :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make REST calls to vCD.
-        :param str gateway_name: name of the gateway entity.
-        :param str resource_name: Service resource name.
-        """
-        if end_point is None and gateway_name is None:
-            raise InvalidParameterException(
-                "Service Initialization failed as arguments are either "
-                "invalid or None")
-        else:
-            self.gateway_name = gateway_name
-            self.end_point = end_point
-            self._build_network_href()
 
     def _build_self_href(self):
         pass

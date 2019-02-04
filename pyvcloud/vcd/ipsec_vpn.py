@@ -28,11 +28,9 @@ class IpsecVpn(GatewayServices):
         :param lxml.objectify.ObjectifiedElement resource: object containing
             EntityType.IPSEC_VPN XML data representing the ipsec vpn rule.
         """
-
-        self.client = client
         super(IpsecVpn, self).__init__(client, gateway_name=gateway_name,
-                                       end_point=ipsec_end_point)
-
+                                       resource_id=ipsec_end_point)
+        self.end_point = ipsec_end_point
         self.resource = self.get_ipsec_config_resource()
 
     def reload(self):

@@ -17,6 +17,7 @@ from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
+from pyvcloud.vcd.firewallRule import FirewallRule
 from pyvcloud.vcd.gateway import Gateway
 
 
@@ -26,6 +27,7 @@ class TestFirewallRules(BaseTestCase):
     # Firewall Rule
     _firewall_rule_name = 'Rule Name Test'
     _name = GatewayConstants.name
+    _rule_id = None
 
     def test_0000_setup(self):
         """Add Firewall Rules in the gateway.
@@ -36,15 +38,19 @@ class TestFirewallRules(BaseTestCase):
         TestFirewallRules._config = Environment.get_config()
         gateway = Environment. \
             get_test_gateway(TestFirewallRules._client)
-        gateway_obj = Gateway(TestFirewallRules._client,
-                              TestFirewallRules._name,
-                              href=gateway.get('href'))
-        gateway_obj.add_firewall_rule(TestFirewallRules._firewall_rule_name)
-        firewall_rules_resource = gateway_obj.get_firewall_rules()
+        TestFirewallRules._gateway_obj = Gateway(TestFirewallRules._client,
+                                                 TestFirewallRules._name,
+                                                 href=gateway.get('href'))
+        TestFirewallRules._gateway_obj.add_firewall_rule(
+            TestFirewallRules._firewall_rule_name)
+        firewall_rules_resource = \
+            TestFirewallRules._gateway_obj.get_firewall_rules()
+
         # Verify
         matchFound = False
         for firewallRule in firewall_rules_resource.firewallRules.firewallRule:
             if firewallRule['name'] == TestFirewallRules._firewall_rule_name:
+                TestFirewallRules._rule_id = firewallRule.id
                 matchFound = True
                 break
         self.assertTrue(matchFound)
@@ -64,9 +70,30 @@ class TestFirewallRules(BaseTestCase):
         # Verify
         self.assertTrue(len(firewall_rules_list) > 0)
 
-    def test_0098_teardown(self):
-        pass
+    def test_0010_get_created_firewall_rule(self):
+        """Get the Firewall Rule created in setup."""
+        firewall_obj = FirewallRule(TestFirewallRules._client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        firewall_res = firewall_obj._get_resource()
+        self.assertIsNotNone(firewall_res)
 
+    def test_0098_teardown(self):
+        firewall_obj = FirewallRule(TestFirewallRules._client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        firewall_obj.delete()
+        # Verify
+        firewall_rules_resource = \
+            TestFirewallRules._gateway_obj.get_firewall_rules()
+
+        # Verify
+        matchFound = False
+        for firewallRule in firewall_rules_resource.firewallRules.firewallRule:
+            if firewallRule['name'] == TestFirewallRules._firewall_rule_name:
+                matchFound = True
+                break
+        self.assertFalse(matchFound)
 
     def test_0099_cleanup(self):
         """Release all resources held by this object for testing purposes."""

@@ -14,7 +14,8 @@
 # limitations under the License.
 
 FIREWALL_URL_TEMPLATE = "/firewall/config"
-FIREWALL_RULES_URL_TEMPLATE = "/firewall/config/rules"
+FIREWALL_RULES_URL_TEMPLATE = FIREWALL_URL_TEMPLATE + "/rules"
+FIREWALL_RULE_URL_TEMPLATE = FIREWALL_RULES_URL_TEMPLATE + "/{0}"
 DHCP_URL_TEMPLATE = "/dhcp/config"
 DHCP_POOLS = "/ippools"
 DHCP_POOLS_URL_TEMPLATE = "/dhcp/config" + DHCP_POOLS

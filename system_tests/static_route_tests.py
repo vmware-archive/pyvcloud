@@ -85,7 +85,6 @@ class TestStaticRoute(BaseTestCase):
                               TestStaticRoute._name,
                               href=gateway.get('href'))
         static_route = gateway_obj.get_static_routes()
-        #Verify
         self.assertFalse(hasattr(static_route.staticRoutes, 'route'))
 
     def test_0099_cleanup(self):

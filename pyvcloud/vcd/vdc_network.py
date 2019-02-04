@@ -48,6 +48,7 @@ class VdcNetwork(object):
             self.name = resource.get('name')
             self.href = resource.get('href')
         self.href_admin = get_admin_href(self.href)
+        self.admin_resource = None
 
     def get_resource(self):
         """Fetches the XML representation of the org vdc network from vCD.
@@ -63,6 +64,20 @@ class VdcNetwork(object):
             self.reload()
         return self.resource
 
+    def get_admin_resource(self):
+        """Fetches the XML representation of the admin org vdc network.
+
+        Will serve cached response if possible.
+
+        :return: object containing EntityType.ORG_VDC_NETWORK XML data
+        representing the org vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if self.admin_resource is None:
+            self.reload_admin()
+        return self.admin_resource
+
     def reload(self):
         """Reloads the resource representation of the org vdc network.
 
@@ -74,6 +89,17 @@ class VdcNetwork(object):
         if self.resource is not None:
             self.name = self.resource.get('name')
             self.href = self.resource.get('href')
+
+    def reload_admin(self):
+        """Reloads the admin resource representation of the org vdc network.
+
+        This method should be called in between two method invocations on the
+        Admin Org Vdc Network object, if the former call changes the
+        representation of the admin org vdc network in vCD.
+        """
+        self.admin_resource = self.client.get_resource(self.href_admin)
+        if self.admin_resource is not None:
+            self.href_admin = self.admin_resource.get('href')
 
     def edit_name_description_and_shared_state(self,
                                                name,
@@ -102,9 +128,11 @@ class VdcNetwork(object):
             self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
             vdc_network)
 
-    def add_static_ip_pool_and_dns(self, ip_ranges_param=None,
+    def add_static_ip_pool_and_dns(self,
+                                   ip_ranges_param=None,
                                    primary_dns_ip=None,
-                                   secondary_dns_ip=None, dns_suffix=None):
+                                   secondary_dns_ip=None,
+                                   dns_suffix=None):
         """Add static IP pool and DNS for org vdc network.
 
         :param list ip_ranges_param: list of ip ranges.
@@ -214,6 +242,30 @@ class VdcNetwork(object):
 
             ip_range.StartAddress = E.StartAddress(new_start_address)
             ip_range.EndAddress = E.StartAddress(new_end_address)
+
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
+            vdc_network)
+
+    def remove_static_ip_pool(self, ip_range_param):
+        """Remove static IP pool of org vdc network.
+
+        :param str ip_range_param: ip range. For ex: 2.3.3.2-2.3.3.10
+
+        :return: object containing EntityType.TASK XML data representing the
+            asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vdc_network = self.get_resource()
+        ip_scope = vdc_network.Configuration.IpScopes.IpScope
+        if not hasattr(ip_scope, 'IpRanges'):
+            raise OperationNotSupportedException('No IP range found.')
+
+        for ip_range in ip_scope.IpRanges.IpRange:
+            if (ip_range.StartAddress + '-' +
+                    ip_range.EndAddress) == ip_range_param:
+                ip_scope.IpRanges.remove(ip_range)
 
         return self.client.put_linked_resource(
             self.resource, RelationType.EDIT, EntityType.ORG_VDC_NETWORK.value,
@@ -334,8 +386,14 @@ class VdcNetwork(object):
         :rtype: list
         """
         vapp_name_list = []
-        vdc = self.client.get_linked_resource(
-            self.get_resource(), RelationType.UP, EntityType.VDC.value)
+        if (self.client.is_sysadmin()):
+            vdc = self.client.get_linked_resource(self.get_resource(),
+                                                  RelationType.UP,
+                                                  EntityType.VDC_ADMIN.value)
+        else:
+            vdc = self.client.get_linked_resource(
+                self.get_resource(), RelationType.UP, EntityType.VDC.value)
+
         for entity in vdc.ResourceEntities.ResourceEntity:
             if entity.get('type') == EntityType.VAPP.value:
                 vapp = self.client.get_resource(entity.get('href'))
@@ -344,9 +402,50 @@ class VdcNetwork(object):
                         'networkName')
                     if network_name == self.name:
                         vapp_name_list.append({
-                            'Name':
-                            vapp.get('name'),
-                            'Status':
-                            VAppPowerStatus(vapp.get('status')).name
+                            'Name': vapp.get('name'),
+                            'Status': VAppPowerStatus(vapp.get('status')).name
                         })
         return vapp_name_list
+
+    def convert_to_sub_interface(self):
+        """Convert to sub interface.
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is converting to sub-interface.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_admin_resource()
+
+        return self.client.post_linked_resource(
+            self.admin_resource,
+            RelationType.VDC_ROUTED_CONVERT_TO_SUB_INTERFACE, None, None)
+
+    def convert_to_internal_interface(self):
+        """Convert to internal interface.
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is converting to sub-interface.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_admin_resource()
+
+        return self.client.post_linked_resource(
+            self.admin_resource,
+            RelationType.VDC_ROUTED_CONVERT_TO_INTERNAL_INTERFACE, None, None)
+
+    def convert_to_distributed_interface(self):
+        """Convert to distributed interface.
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is converting to sub-interface.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_admin_resource()
+
+        return self.client.post_linked_resource(
+            self.admin_resource,
+            RelationType.VDC_ROUTED_CONVERT_TO_DISTRIBUTED_INTERFACE, None,
+            None)

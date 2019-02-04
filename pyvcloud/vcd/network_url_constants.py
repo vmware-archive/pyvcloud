@@ -23,3 +23,5 @@ NAT_URL_TEMPLATE = "/nat/config"
 NAT_RULES = "/rules"
 NAT_RULES_URL_TEMPLATE = "/nat/config" + NAT_RULES
 NAT_RULE_URL_TEMPLATE = NAT_RULES_URL_TEMPLATE + "/{0}"
+STATIC_ROUTE_URL_TEMPLATE = "/routing/config/static"
+IPSEC_VPN_URL_TEMPLATE = "/ipsec/config"

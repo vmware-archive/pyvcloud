@@ -1542,7 +1542,7 @@ class Org(object):
                 else:
                     href = link.href
                 return self.client.get_resource(href)
-        raise EntityNotFoundException('Vdc \'%s\' not found' % name)
+        return None
 
     def list_vdcs(self):
         """List all vdc that are backing the current organization.

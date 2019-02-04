@@ -230,14 +230,12 @@ class TestApiExtension(BaseTestCase):
         self.assertEqual(href, TestApiExtension._service1_href)
 
     def test_007_register_service_right(self):
-        ''' Register a new right for existing API extension. Tests
-            APIExtension.add_service_right() method.
+        """Test the method APIExtension.add_service_right().
 
-            This test passes if the right-name returned after execution of
-            the method matches the expected right-name.
-        '''
+        This test passes if the right-name returned after execution of the
+        method matches the expected right-name.
+        """
         logger = Environment.get_default_logger()
-        TestApiExtension._client = Environment.get_sys_admin_client()
         api_extension = APIExtension(TestApiExtension._client)
 
         # Create a new right for CSE RBAC
@@ -257,6 +255,35 @@ class TestApiExtension(BaseTestCase):
                               '}:' + TestApiExtension._right_name
         registered_right_name = register_right.get('name')
         self.assertEqual(expected_right_name, registered_right_name)
+
+    def test_0080_update_service(self):
+        """Test the method APIExtension.update_extension().
+
+        This test passes if the routing key and exchange after execution of the
+        method matches the respective test strings.
+        """
+        logger = Environment.get_default_logger()
+        api_extension = APIExtension(TestApiExtension._client)
+        ext_name = TestApiExtension._service_name
+        ext_namespace = TestApiExtension._service1_namespace
+
+        logger.debug('Updating service (name:' +
+                     ext_name + ', namespace:' +
+                     ext_namespace + ').')
+
+        test_routing_key = 'testroutingkey'
+        test_exchange = 'testexchange'
+        href = api_extension.update_extension(
+            name=ext_name,
+            namespace=ext_namespace,
+            routing_key=test_routing_key,
+            exchange=test_exchange)
+        self.assertEqual(href, TestApiExtension._service1_href)
+
+        ext_info = api_extension.get_extension_info(ext_name,
+                                                    namespace=ext_namespace)
+        self.assertEqual(ext_info['routingKey'], test_routing_key)
+        self.assertEqual(ext_info['exchange'], test_exchange)
 
     @developerModeAware
     def test_9998_teardown(self):

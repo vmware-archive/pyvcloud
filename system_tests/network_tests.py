@@ -25,6 +25,7 @@ from pyvcloud.system_test_framework.constants.gateway_constants import \
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import AccessForbiddenException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.gateway import Gateway
 from pyvcloud.vcd.vdc_network import VdcNetwork
 
 
@@ -36,6 +37,7 @@ class TestNetwork(BaseTestCase):
 
     _test_runner_role = CommonRoles.ORGANIZATION_ADMINISTRATOR
     _client = None
+    _system_client = None
     _vapp_author_client = None
 
     _isolated_orgvdc_network_name = 'isolated_orgvdc_network_' + str(uuid1())
@@ -67,6 +69,7 @@ class TestNetwork(BaseTestCase):
         logger = Environment.get_default_logger()
         TestNetwork._client = Environment.get_client_in_default_org(
             TestNetwork._test_runner_role)
+        TestNetwork._system_client = Environment.get_sys_admin_client()
         TestNetwork._vapp_author_client = \
             Environment.get_client_in_default_org(CommonRoles.VAPP_AUTHOR)
         vdc = Environment.get_test_vdc(TestNetwork._client)
@@ -300,6 +303,31 @@ class TestNetwork(BaseTestCase):
                 match_found = True
         self.assertTrue(match_found)
 
+    def test_0078_remove_static_ip_pool(self):
+        vdc = Environment.get_test_vdc(TestNetwork._client)
+        org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
+            TestNetwork._routed_org_vdc_network_name)
+        vdcNetwork = VdcNetwork(
+            TestNetwork._client, resource=org_vdc_routed_nw)
+        result = vdcNetwork.remove_static_ip_pool(TestNetwork._new_ip_range)
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+        # Verification
+        vdcNetwork.reload()
+        vdc_routed_nw = vdcNetwork.get_resource()
+        ip_scope = vdc_routed_nw.Configuration.IpScopes.IpScope
+        # IPRanges element will be missing if there was only one IP range
+        if not hasattr(ip_scope, 'IpRanges'):
+            return
+        ip_ranges = ip_scope.IpRanges.IpRange
+        match_found = False
+        for ip_range in ip_ranges:
+            if (ip_range.StartAddress + '-' + ip_range.EndAddress) == \
+                    TestNetwork._new_ip_range:
+                match_found = True
+        self.assertFalse(match_found)
+
     def _add_routed_vdc_network_metadata(self, vdc_network, metadata_key,
                                          metadata_value):
         task = vdc_network.set_metadata(metadata_key, metadata_value)
@@ -357,21 +385,104 @@ class TestNetwork(BaseTestCase):
             '/')[0]
         self.assertEqual(allocated_ip_addresses[0]['IP Address'], ip_address)
 
-    def test_0100_list_connected_vapps(self):
-        vdc = Environment.get_test_vdc(TestNetwork._client)
+    def test_0100_list_connected_vapps_org_admin(self):
+        TestNetwork._list_connected_vapps(self, self._client)
+
+    def test_0110_list_connected_vapps_sys_admin(self):
+        TestNetwork._list_connected_vapps(self, self._system_client)
+
+    def _list_connected_vapps(self, client):
+        vdc = Environment.get_test_vdc(client)
         vapp_name = 'test-connected-vapp'
         vdc.create_vapp(
             vapp_name, network=TestNetwork._routed_org_vdc_network_name)
         org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
             TestNetwork._routed_org_vdc_network_name)
         vdc_network = VdcNetwork(
-            TestNetwork._client, resource=org_vdc_routed_nw)
+            client, resource=org_vdc_routed_nw)
         connected_vapps = vdc_network.list_connected_vapps()
         self.assertEqual(len(connected_vapps), 1)
         self.assertEqual(connected_vapps[0].get('Name'), vapp_name)
         # Delete test vApp after test
         vdc.reload()
         vdc.delete_vapp(vapp_name)
+
+    def test_0120_convert_to_subinterface_org_admin(self):
+        TestNetwork.__convert_to_subinterface(self, TestNetwork._client)
+
+    def test_0125_convert_to_subinterface_sys_admin(self):
+        TestNetwork.__convert_to_subinterface(self, TestNetwork._system_client)
+
+    def __convert_to_subinterface(self, client):
+        vdc = Environment.get_test_vdc(client)
+        org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
+            TestNetwork._routed_org_vdc_network_name)
+        vdc_network = VdcNetwork(client, resource=org_vdc_routed_nw)
+
+        result = vdc_network.convert_to_sub_interface()
+
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+
+        # Verify
+        vdc_network.reload_admin()
+        reloaded_vdc_network = vdc_network.admin_resource
+        self.assertTrue(reloaded_vdc_network.Configuration.SubInterface)
+
+        # Revert to Internal Interface
+        result = vdc_network.convert_to_internal_interface()
+        task = TestNetwork._client.get_task_monitor().wait_for_success(
+            task=result)
+        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+
+        # Verify
+        vdc_network.reload_admin()
+        reloaded_vdc_network = vdc_network.admin_resource
+        self.assertFalse(reloaded_vdc_network.Configuration.SubInterface)
+
+    def test_0135_convert_to_distributed_interface_sys_admin(self):
+        client = TestNetwork._system_client
+        vdc = Environment.get_test_vdc(client)
+        org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
+            TestNetwork._routed_org_vdc_network_name)
+        vdc_network = VdcNetwork(client, resource=org_vdc_routed_nw)
+        gateway = Environment.get_test_gateway(client)
+
+        if gateway.get('distributedRoutingEnabled') == 'false':
+            self.__enable_gateway_distributed_routing(client, gateway, True)
+
+        result = vdc_network.convert_to_distributed_interface()
+        self.__wait_for_success(client, result)
+
+        # Verify
+        vdc_network.reload_admin()
+        reloaded_vdc_network = vdc_network.admin_resource
+        self.assertTrue(
+            reloaded_vdc_network.Configuration.DistributedInterface)
+
+        # Revert
+        result = vdc_network.convert_to_internal_interface()
+        self.__wait_for_success(client, result)
+
+        # Disable the distributed routing on gateway
+        gateway = Environment.get_test_gateway(client)
+        if gateway.get('distributedRoutingEnabled') == 'true':
+            self.__enable_gateway_distributed_routing(client, gateway, False)
+
+        # Verify
+        gateway = Environment.get_test_gateway(client)
+        self.assertEqual(gateway.get('distributedRoutingEnabled'), 'false')
+
+    def __enable_gateway_distributed_routing(self, client, gateway, isEnable):
+        gateway_obj = Gateway(client, href=gateway.get('href'))
+        task = gateway_obj.enable_distributed_routing(isEnable)
+        self.__wait_for_success(client, task)
+
+    def __wait_for_success(self, client, task):
+        result = client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_1000_delete_routed_orgvdc_networks(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)

@@ -21,7 +21,9 @@ from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.network_url_constants import DHCP_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
+from pyvcloud.vcd.network_url_constants import IPSEC_VPN_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import NAT_URL_TEMPLATE
+from pyvcloud.vcd.network_url_constants import STATIC_ROUTE_URL_TEMPLATE
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import build_network_url_from_gateway_url
 from pyvcloud.vcd.utils import get_admin_href
@@ -29,7 +31,13 @@ from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 
 class Gateway(object):
-    LEASE_TIME = '86400'
+    __LEASE_TIME = '86400'
+    __DEFAULT_ENCRYPTION_PROTOCOL = 'aes'
+    __DEFAULT_AUTHENTICATION_MODE = 'psk'
+    __DEFAULT_DH_GROUP = 'dh5'
+    __DEFAULT_MTU = '1500'
+    __DEFAULT_IP_SEC_ENABLE = True
+    __DEFAULT_ENABLE_PFS = False
 
     def __init__(self, client, name=None, href=None, resource=None):
         """Constructor for Gateway objects.
@@ -53,6 +61,7 @@ class Gateway(object):
             self.name = resource.get('name')
             self.href = resource.get('href')
         self.href_admin = get_admin_href(self.href)
+        self.admin_resource = None
 
     def get_resource(self):
         """Fetches the XML representation of the gateway from vCD.
@@ -80,6 +89,31 @@ class Gateway(object):
             self.name = self.resource.get('name')
             self.href = self.resource.get('href')
 
+    def get_admin_resource(self):
+        """Fetches the XML representation of the admin gateway from vCD.
+
+        Will serve cached response if possible.
+
+        :return: object containing EntityType.EDGE_GATEWAY XML data
+        representing the gateway.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if self.admin_resource is None:
+            self.reload_admin()
+        return self.admin_resource
+
+    def reload_admin(self):
+        """Reloads the admin resource representation of the gateway.
+
+        This method should be called in between two method invocations on the
+        Admin Gateway object, if the former call changes the representation
+        of the admin gateway in vCD.
+        """
+        self.admin_resource = self.client.get_resource(self.href_admin)
+        if self.admin_resource is not None:
+            self.href_admin = self.admin_resource.get('href')
+
     def convert_to_advanced(self):
         """Convert to advanced gateway.
 
@@ -105,16 +139,19 @@ class Gateway(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        self.get_resource()
-        gateway = self.resource
+        self.get_admin_resource()
+        gateway = self.admin_resource
         current_dr_status = gateway.Configuration.DistributedRoutingEnabled
         if enable == current_dr_status:
             return
-        gateway.Configuration.DistributedRoutingEnabled = \
-            E.DistributedRoutingEnabled(enable)
-        return self.client.put_linked_resource(
-            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
-            gateway)
+        if enable:
+            return self.client.post_linked_resource(
+                gateway, RelationType.ENABLE_GATEWAY_DISTRIBUTED_ROUTING, None,
+                None)
+        if not enable:
+            return self.client.post_linked_resource(
+                gateway, RelationType.DISABLE_GATEWAY_DISTRIBUTED_ROUTING,
+                None, None)
 
     def modify_form_factor(self, gateway_type):
         """Modify form factor.
@@ -847,7 +884,7 @@ class Gateway(object):
                       default_gateway=None,
                       domain_name=None,
                       lease_never_expires=False,
-                      lease_time=LEASE_TIME,
+                      lease_time=__LEASE_TIME,
                       subnet_mask=None,
                       primary_server=None,
                       secondary_server=None):
@@ -1019,3 +1056,146 @@ class Gateway(object):
                     name=firewall_rule['name'],
                     ruleType=firewall_rule['ruleType']))
         return firewall_rule_list
+
+    def add_static_route(self,
+                         network,
+                         next_hop,
+                         mtu=1500,
+                         description=None,
+                         type='User',
+                         vnic=0):
+        """Add Static Route in the gateway.
+
+        param network str: vApp/Org vDC Network in CIDR format
+        e.g. 192.169.1.0/24
+        param next_hop str: IP address of next hop
+        param mtu int: Maximum Transmission Units (MTU) e.g 1500 MTU
+        param description str: static route description
+        param type str: static route type. Default: User
+        param vnic int: interface of gateway
+
+        """
+        static_route_href = self._build_static_routes_href()
+        static_routes_resource = self.get_static_routes()
+        static_route_tag = static_routes_resource.staticRoutes
+        static_route = E.route()
+        static_route.append(E.network(network))
+        static_route.append(E.nextHop(next_hop))
+        static_route.append(E.mtu(mtu))
+        static_route.append(E.type(type))
+        static_route.append(E.description(description))
+        static_route.append(E.vnic(vnic))
+        static_route_tag.append(static_route)
+        self.client.put_resource(static_route_href, static_routes_resource,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def get_static_routes(self):
+        """Get Static Routes from vCD.
+
+        Form Static Routes using gateway href and fetches from vCD.
+
+        return: staticRoutes Object
+        """
+        static_route_href = self._build_static_routes_href()
+        return self.client.get_resource(static_route_href)
+
+    def _build_static_routes_href(self):
+        network_url = build_network_url_from_gateway_url(self.href)
+        return network_url + STATIC_ROUTE_URL_TEMPLATE
+
+    def list_static_routes(self):
+        """List all Static Routes on a gateway.
+
+        :return: list of all static routes on a gateway.
+        e.g.
+        [{'Network': '192.169.1.0/24', 'Next Hop': '2.2.3.80', 'MTU': 1500}]
+        """
+        out_list = []
+        static_routes_resource = self.get_static_routes()
+        if hasattr(static_routes_resource.staticRoutes, 'route'):
+            for static_route in static_routes_resource.staticRoutes.route:
+                static_route_info = {}
+                static_route_info['Network'] = static_route.network
+                static_route_info['Next Hop'] = static_route.nextHop
+                static_route_info['MTU'] = static_route.mtu
+                out_list.append(static_route_info)
+        return out_list
+
+    def add_ipsec_vpn(self,
+                      name,
+                      peer_id,
+                      peer_ip_address,
+                      local_id,
+                      local_ip_address,
+                      local_subnet,
+                      peer_subnet,
+                      shared_secret_encrypted,
+                      encryption_protocol=__DEFAULT_ENCRYPTION_PROTOCOL,
+                      authentication_mode=__DEFAULT_AUTHENTICATION_MODE,
+                      dh_group=__DEFAULT_DH_GROUP,
+                      description=None,
+                      mtu=__DEFAULT_MTU,
+                      is_enabled=__DEFAULT_IP_SEC_ENABLE,
+                      enable_pfs=__DEFAULT_ENABLE_PFS
+                      ):
+        """Add IPsec VPN in the gateway.
+
+        param str name: name of IPSec VPN
+        param str description: description of IPSec VPN
+        param str peer_id: peer id
+        param str peer_ip_address: peer ip address
+        param str local_id: local id
+        param str local_ip_address: local ip address
+        param str local_subnet: local subnet in CIDR format
+        param str peer_subnet: peer subnet in CIDR format
+        param str shared_secret_encrypted: shared secret encrypted
+        param str encryption_protocol: encryption protocol
+        param str authentication_mode: authentication mode
+        param str dh_group: dh group
+        param str mtu: mtu
+        param bool is_enabled: enabled status Default : true
+        param bool is_operational: is operational status Default : false
+        :return: Ipsec Vpn object
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        ipsec_vpn_href = self._build_ipsec_vpn_href()
+        ipsec_vpn_resource = self.get_ipsec_vpn()
+        vpn_sites = ipsec_vpn_resource.sites
+        site = E.site()
+        site.append(E.enabled(is_enabled))
+        site.append(E.name(name))
+        site.append(E.description(description))
+        site.append(E.localId(local_id))
+        site.append(E.localIp(local_ip_address))
+        site.append(E.peerId(peer_id))
+        site.append(E.peerIp(peer_ip_address))
+        site.append(E.encryptionAlgorithm(encryption_protocol))
+        site.append(E.mtu(mtu))
+        site.append(E.enablePfs(enable_pfs))
+        local_subnets = E.localSubnets()
+        local_subnets.append(E.subnet(local_subnet))
+        peer_subnets = E.peerSubnets()
+        peer_subnets.append(E.subnet(peer_subnet))
+        site.append(local_subnets)
+        site.append(peer_subnets)
+        site.append(E.psk(shared_secret_encrypted))
+        site.append(E.authenticationMode(authentication_mode))
+        site.append(E.dhGroup(dh_group))
+        vpn_sites.append(site)
+
+        self.client.put_resource(ipsec_vpn_href, ipsec_vpn_resource,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def _build_ipsec_vpn_href(self):
+        network_url = build_network_url_from_gateway_url(self.href)
+        return network_url + IPSEC_VPN_URL_TEMPLATE
+
+    def get_ipsec_vpn(self):
+        """Get IPSec VPN from vCD.
+
+        Form a IPSec VPN using gateway href.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        ipsec_vpn_href = self._build_ipsec_vpn_href()
+        return self.client.get_resource(ipsec_vpn_href)

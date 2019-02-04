@@ -148,6 +148,8 @@ class RelationType(Enum):
     CONVERT_TO_ADVANCED_GATEWAY = 'edgeGateway:convertToAdvancedGateway'
     DEPLOY = 'deploy'
     DISABLE = 'disable'
+    DISABLE_GATEWAY_DISTRIBUTED_ROUTING = \
+        'edgeGateway:disableDistributedRouting'
     DISK_ATTACH = 'disk:attach'
     DISK_DETACH = 'disk:detach'
     DOWN = 'down'
@@ -156,6 +158,8 @@ class RelationType(Enum):
     EDGE_GATEWAYS = 'edgeGateways'
     EDIT = 'edit'
     ENABLE = 'enable'
+    ENABLE_GATEWAY_DISTRIBUTED_ROUTING =\
+        'edgeGateway:enableDistributedRouting'
     GATEWAY_REDEPLOY = 'edgeGateway:redeploy'
     GATEWAY_SYNC_SYSLOG_SETTINGS = 'edgeGateway:syncSyslogSettings'
     GATEWAY_UPDATE_PROPERTIES = 'edgeGateway:updateProperties'
@@ -184,6 +188,11 @@ class RelationType(Enum):
     UNREGISTER = 'unregister'
     UP = 'up'
     UPDATE_RESOURCE_POOLS = 'update:resourcePools'
+    VDC_ROUTED_CONVERT_TO_DISTRIBUTED_INTERFACE = \
+        'orgVdcNetwork:convertToDistributedInterface'
+    VDC_ROUTED_CONVERT_TO_SUB_INTERFACE = 'orgVdcNetwork:convertToSubInterface'
+    VDC_ROUTED_CONVERT_TO_INTERNAL_INTERFACE = \
+        'orgVdcNetwork:convertToInternalInterface'
 
 
 class ResourceType(Enum):
@@ -827,7 +836,7 @@ class Client(object):
                 auth=('%s@%s' % (creds.user, creds.org), creds.password))
 
             sc = response.status_code
-            if sc is not 200:
+            if sc != 200:
                 r = None
                 try:
                     r = _objectify_response(response)
@@ -867,7 +876,7 @@ class Client(object):
         response = self._do_request_prim('GET', self._uri + "/session",
                                          new_session)
         sc = response.status_code
-        if sc is not 200:
+        if sc != 200:
             self._response_code_to_exception(
                 sc, self._get_response_request_id(response),
                 _objectify_response(response))
@@ -1059,7 +1068,7 @@ class Client(object):
                 self._log_request_response(response)
 
                 sc = response.status_code
-                if sc is not 200:
+                if sc != 200:
                     self._response_code_to_exception(sc, None, response)
                 else:
                     return response
@@ -1087,7 +1096,7 @@ class Client(object):
         self._log_request_response(response, skip_logging_response_body=True)
 
         sc = response.status_code
-        if sc is not 200:
+        if sc != 200:
             self._response_code_to_exception(sc, None, response)
 
         bytes_written = 0

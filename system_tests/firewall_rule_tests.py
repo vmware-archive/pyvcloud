@@ -17,7 +17,7 @@ from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
-from pyvcloud.vcd.firewallRule import FirewallRule
+from pyvcloud.vcd.firewall_rule import FirewallRule
 from pyvcloud.vcd.gateway import Gateway
 
 

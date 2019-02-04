@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pyvcloud.vcd.gateway_services import GatewayServices
-from pyvcloud.vcd.network_url_constants import FIREWALL_RULES_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import FIREWALL_RULE_URL_TEMPLATE
+from pyvcloud.vcd.network_url_constants import FIREWALL_RULES_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
 
 

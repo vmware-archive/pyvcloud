@@ -20,6 +20,7 @@ from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
 from pyvcloud.vcd.gateway import Gateway
+from pyvcloud.vcd.ipsec_vpn import IpsecVpn
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.vdc_network import VdcNetwork
@@ -99,6 +100,22 @@ class TestIpSecVpn(BaseTestCase):
             if gateway_inf.Name == ext_net_name:
                 return gateway_inf.SubnetParticipation.IpAddress.text
 
+    def test_0090_delete_ipsec_vpn(self):
+        """Delete Ip Sec VPn in the gateway.
+
+        Invokes the delete_ipsec_vpn of the IpsecVpn.
+        """
+        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
+                                 gateway_name=TestIpSecVpn._name,
+                                 ipsec_end_point=
+                                 TestIpSecVpn._local_ip + "-" +
+                                 TestIpSecVpn._peer_ip)
+
+        ipsec_vpn_obj.delete_ipsec_vpn()
+        # Verify
+        ipsec_vpn_sites = ipsec_vpn_obj.get_ipsec_config_resource().sites
+        self.assertTrue(hasattr(ipsec_vpn_sites, "site"))
+
     def test_0098_teardown(self):
         """Removes the added vdc, gateway and routed networks.
 
@@ -133,7 +150,7 @@ class TestIpSecVpn(BaseTestCase):
         org = TestIpSecVpn._org
         ovdc_name = TestIpSecVpn._orgvdc_name
 
-        if self.__check_ovdc(org,ovdc_name):
+        if self.__check_ovdc(org, ovdc_name):
             return
 
         storage_profiles = [{
@@ -167,15 +184,16 @@ class TestIpSecVpn(BaseTestCase):
         # the ovdc. vdc_resource contains the admin version of the href since
         # we created the ovdc as a sys admin.
 
-        self.__check_ovdc(org,ovdc_name)
+        self.__check_ovdc(org, ovdc_name)
 
-
-    def __check_ovdc(self,org,ovdc_name):
+    def __check_ovdc(self, org, ovdc_name):
         if org.get_vdc(ovdc_name):
             vdc = org.get_vdc(ovdc_name)
             TestIpSecVpn._ovdc_href = vdc.get('href')
             TestIpSecVpn._vdc_resource = vdc
-        return True
+            return True
+        else:
+            return False
 
     def __create_advanced_gateway(self):
         """Creates a gateway."""
@@ -189,7 +207,7 @@ class TestIpSecVpn(BaseTestCase):
             TestIpSecVpn._gateway_resource = gateway
             TestIpSecVpn._gateway_href = gateway.get('href')
             TestIpSecVpn._gateway_obj = Gateway(
-                    TestIpSecVpn._client, href=TestIpSecVpn._gateway_href)
+                TestIpSecVpn._client, href=TestIpSecVpn._gateway_href)
             return
 
         if float(api_version) <= float(
@@ -231,8 +249,10 @@ class TestIpSecVpn(BaseTestCase):
 
         TestIpSecVpn._routednet_href = routednet.get('href')
         TestIpSecVpn._routednet_obj = VdcNetwork(TestIpSecVpn._client,
-                                                 href=TestIpSecVpn._routednet_href)
-        TestIpSecVpn._routednet_resource = TestIpSecVpn._routednet_obj.get_resource()
+                                                 href=TestIpSecVpn.
+                                                 _routednet_href)
+        TestIpSecVpn._routednet_resource = TestIpSecVpn.\
+            _routednet_obj.get_resource()
 
     if __name__ == '__main__':
         unittest.main()

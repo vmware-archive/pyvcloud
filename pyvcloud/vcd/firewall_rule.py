@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from pyvcloud.vcd.gateway import EntityType
 from pyvcloud.vcd.gateway_services import GatewayServices
 from pyvcloud.vcd.network_url_constants import FIREWALL_RULE_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import FIREWALL_RULES_URL_TEMPLATE
@@ -18,10 +19,9 @@ from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
 
 
 class FirewallRule(GatewayServices):
-
     def _build_self_href(self, rule_id):
-        rule_href = (self.network_url + FIREWALL_RULE_URL_TEMPLATE).format(
-            rule_id)
+        rule_href = (
+            self.network_url + FIREWALL_RULE_URL_TEMPLATE).format(rule_id)
         self.href = rule_href
 
     def _extract_id(self, rule_href):
@@ -42,3 +42,21 @@ class FirewallRule(GatewayServices):
         """Delete a Firewall rule from gateway."""
         self._get_resource()
         return self.client.delete_resource(self.href)
+
+    def enabled_firewall_rules(self):
+        """Enabled firewall rule from gateway."""
+        if self._get_resource().enabled:
+            return "firewall rule is already enabled."
+        self._get_resource().enabled = True
+        self.client.put_resource(self.href, self._get_resource(),
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+        return 'Firewall rule enabled successfully.'
+
+    def disabled_firewall_rules(self):
+        """Disabled firewall rule from gateway."""
+        if not self._get_resource().enabled:
+            return "firewall rule is already disabled."
+        self._get_resource().enabled = False
+        self.client.put_resource(self.href, self._get_resource(),
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+        return 'Firewall rule disabled successfully.'

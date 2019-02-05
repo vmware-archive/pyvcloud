@@ -38,9 +38,10 @@ class TestFirewallRules(BaseTestCase):
         TestFirewallRules._config = Environment.get_config()
         gateway = Environment. \
             get_test_gateway(TestFirewallRules._client)
-        TestFirewallRules._gateway_obj = Gateway(TestFirewallRules._client,
-                                                 TestFirewallRules._name,
-                                                 href=gateway.get('href'))
+        TestFirewallRules._gateway_obj = Gateway(
+            TestFirewallRules._client,
+            TestFirewallRules._name,
+            href=gateway.get('href'))
         TestFirewallRules._gateway_obj.add_firewall_rule(
             TestFirewallRules._firewall_rule_name)
         firewall_rules_resource = \
@@ -63,9 +64,10 @@ class TestFirewallRules(BaseTestCase):
         TestFirewallRules._config = Environment.get_config()
         gateway = Environment. \
             get_test_gateway(TestFirewallRules._client)
-        gateway_obj = Gateway(TestFirewallRules._client,
-                              TestFirewallRules._name,
-                              href=gateway.get('href'))
+        gateway_obj = Gateway(
+            TestFirewallRules._client,
+            TestFirewallRules._name,
+            href=gateway.get('href'))
         firewall_rules_list = gateway_obj.get_firewall_rules_list()
         # Verify
         self.assertTrue(len(firewall_rules_list) > 0)
@@ -113,6 +115,20 @@ class TestFirewallRules(BaseTestCase):
             TestFirewallRules._gateway_obj.list_firewall_object_types('source')
         if object_res:
             self.assertTrue(len(object_res) > 0)
+
+    def test_0041_enabled_firewall_rules(self):
+        firewall_obj = FirewallRule(TestFirewallRules._client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        result = firewall_obj.enabled_firewall_rules()
+        self.assertIsNotNone(result)
+
+    def test_0042_disabled_firewall_rules(self):
+        firewall_obj = FirewallRule(TestFirewallRules._client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        result = firewall_obj.disabled_firewall_rules()
+        self.assertIsNotNone(result)
 
     def test_0098_teardown(self):
         firewall_obj = FirewallRule(TestFirewallRules._client,

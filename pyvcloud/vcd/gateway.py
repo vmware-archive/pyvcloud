@@ -1227,6 +1227,7 @@ class Gateway(object):
 
         :return: object browser url of object_type. e.g.,
         https://{0}/network/objectbrowser/edge/{1}/firewall/source
+        :rtype: str
         """
         _network_url = build_network_url_from_gateway_url(self.href)
         object_browser_url = \
@@ -1257,8 +1258,8 @@ class Gateway(object):
         return object_browser_url
 
     def __build_object_browser_response(self, type, object_type):
-        """Build object response by fetching the objects from vCD and
-        mapping into list of dict.
+        """Build object response and mapping into list of dict.
+
         param type: type. It can be source/destination.
         param object_type: object type. It can be
         gatewayinterface/virtualmachine/network/ipset/securitygroup

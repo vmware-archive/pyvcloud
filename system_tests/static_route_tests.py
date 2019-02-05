@@ -28,6 +28,9 @@ class TestStaticRoute(BaseTestCase):
     _network = '192.169.1.0/24'
     _name = GatewayConstants.name
     _network_id = None
+    _new_next_hop = '2.2.3.82'
+    _new_mtu = 1800
+    _new_desc = 'Static Route edited'
 
     def test_0000_setup(self):
         """Add Static Route in the gateway.
@@ -69,14 +72,45 @@ class TestStaticRoute(BaseTestCase):
         # Verify
         self.assertTrue(len(static_route_list) > 0)
 
+    def test_0030_update_static_routes(self):
+        """Update a static route.
+
+        Invokes the update_static_route of the StaticRoute.
+        """
+        static_object = StaticRoute(
+            TestStaticRoute._client,
+            TestStaticRoute._name,
+            TestStaticRoute._network_id)
+        static_object.update_static_route(
+            next_hop=TestStaticRoute._new_next_hop,
+            mtu=TestStaticRoute._new_mtu,
+            description=TestStaticRoute._new_desc)
+
+        gateway = Environment. \
+            get_test_gateway(TestStaticRoute._client)
+        gateway_obj = Gateway(TestStaticRoute._client,
+                              TestStaticRoute._name,
+                              href=gateway.get('href'))
+        static_route = gateway_obj.get_static_routes()
+        # Verify
+        match_found = False
+        for route in static_route.staticRoutes.route:
+            if route.nextHop == TestStaticRoute._new_next_hop and \
+               route.mtu == TestStaticRoute._new_mtu and \
+               route.description == TestStaticRoute._new_desc:
+                match_found = True
+                break
+                self.assertTrue(match_found)
+
     def test_0098_teardown(self):
         """Remove the static route from the gateway.
 
-        Invokes the delete_static_route of the gateway
+        Invokes the delete_static_route of the StaticRoute.
         """
-        static_object = StaticRoute(TestStaticRoute._client,
-                                    TestStaticRoute._name,
-                                    TestStaticRoute._network_id)
+        static_object = StaticRoute(
+            TestStaticRoute._client,
+            TestStaticRoute._name,
+            TestStaticRoute._network_id)
         static_object.delete_static_route()
         # Verify
         gateway = Environment. \

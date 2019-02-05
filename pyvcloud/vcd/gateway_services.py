@@ -42,7 +42,7 @@ class GatewayServices(object):
                 resource is None:
             self._build_network_href()
             self.resource_id = resource_id
-#            self._build_self_href(resource_id)
+            self._build_self_href(resource_id)
         if resource_href is None and \
                 resource is None and resource_id is None and self.href is None:
             raise InvalidParameterException(

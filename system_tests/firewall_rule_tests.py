@@ -78,6 +78,42 @@ class TestFirewallRules(BaseTestCase):
         firewall_res = firewall_obj._get_resource()
         self.assertIsNotNone(firewall_res)
 
+    def test_0020_list_source_objects(self):
+        object_res = TestFirewallRules._gateway_obj.list_firewall_objects(
+            'source', 'gatewayinterface')
+        if object_res:
+            self.assertTrue(len(object_res) > 0)
+
+        object_res = TestFirewallRules._gateway_obj.list_firewall_objects(
+            'source', 'virtualmachine')
+        if object_res:
+            self.assertTrue(len(object_res) > 0)
+
+        object_res = TestFirewallRules._gateway_obj.list_firewall_objects(
+            'source', 'ipset')
+
+    def test_0030_list_destination_objects(self):
+        object_res = TestFirewallRules._gateway_obj.list_firewall_objects(
+            'destination', 'gatewayinterface')
+        if object_res:
+            self.assertTrue(len(object_res) > 0)
+
+        object_res = TestFirewallRules._gateway_obj.list_firewall_objects(
+            'destination', 'virtualmachine')
+        if object_res:
+            self.assertTrue(len(object_res) > 0)
+
+    def test_0040_list_object_types(self):
+        object_res = TestFirewallRules._gateway_obj.list_firewall_object_types(
+            'destination')
+        if object_res:
+            self.assertTrue(len(object_res) > 0)
+
+        object_res = \
+            TestFirewallRules._gateway_obj.list_firewall_object_types('source')
+        if object_res:
+            self.assertTrue(len(object_res) > 0)
+
     def test_0098_teardown(self):
         firewall_obj = FirewallRule(TestFirewallRules._client,
                                     TestFirewallRules._name,
@@ -90,7 +126,7 @@ class TestFirewallRules(BaseTestCase):
         # Verify
         matchFound = False
         for firewallRule in firewall_rules_resource.firewallRules.firewallRule:
-            if firewallRule['name'] == TestFirewallRules._firewall_rule_name:
+            if firewallRule['id'] == TestFirewallRules._rule_id:
                 matchFound = True
                 break
         self.assertFalse(matchFound)

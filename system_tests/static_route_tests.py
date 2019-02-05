@@ -18,6 +18,7 @@ from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
 from pyvcloud.vcd.gateway import Gateway
+from pyvcloud.vcd.static_route import StaticRoute
 
 
 class TestStaticRoute(BaseTestCase):
@@ -26,6 +27,7 @@ class TestStaticRoute(BaseTestCase):
     _next_hop = '2.2.3.80'
     _network = '192.169.1.0/24'
     _name = GatewayConstants.name
+    _network_id = None
 
     def test_0000_setup(self):
         """Add Static Route in the gateway.
@@ -46,7 +48,8 @@ class TestStaticRoute(BaseTestCase):
         match_found = False
         for route in static_route.staticRoutes.route:
             if route.nextHop == TestStaticRoute._next_hop and \
-                route.network == TestStaticRoute._network :
+               route.network == TestStaticRoute._network:
+                TestStaticRoute._network_id = route.network
                 match_found = True
                 break
         self.assertTrue(match_found)
@@ -67,8 +70,22 @@ class TestStaticRoute(BaseTestCase):
         self.assertTrue(len(static_route_list) > 0)
 
     def test_0098_teardown(self):
-        """Remove the Static Route from the gateway."""
-        # Will add code for delete Static Route
+        """Remove the static route from the gateway.
+
+        Invokes the delete_static_route of the gateway
+        """
+        static_object = StaticRoute(TestStaticRoute._client,
+                                    TestStaticRoute._name,
+                                    TestStaticRoute._network_id)
+        static_object.delete_static_route()
+        # Verify
+        gateway = Environment. \
+            get_test_gateway(TestStaticRoute._client)
+        gateway_obj = Gateway(TestStaticRoute._client,
+                              TestStaticRoute._name,
+                              href=gateway.get('href'))
+        static_route = gateway_obj.get_static_routes()
+        self.assertFalse(hasattr(static_route.staticRoutes, 'route'))
 
     def test_0099_cleanup(self):
         """Release all resources held by this object for testing purposes."""

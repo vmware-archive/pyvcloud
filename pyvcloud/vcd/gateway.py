@@ -38,6 +38,10 @@ class Gateway(object):
     __DEFAULT_MTU = '1500'
     __DEFAULT_IP_SEC_ENABLE = True
     __DEFAULT_ENABLE_PFS = False
+    __OBJECT_BROWSER_URL_PART = '/objectbrowser/edge'
+    __FIREWALL_OBJECT_TYPE = '/firewall/{0}/{1}'
+    __OBJECT_TYPE = '/firewall/{0}'
+    __EDGES = '/edges'
 
     def __init__(self, client, name=None, href=None, resource=None):
         """Constructor for Gateway objects.
@@ -297,9 +301,8 @@ class Gateway(object):
         gateway = self.resource
         for inf in gateway.Configuration.GatewayInterfaces.GatewayInterface:
             if inf.Network.get('name') == network_name:
-                raise AlreadyExistsException('External network ' +
-                                             network_name +
-                                             'already added to the gateway.')
+                raise AlreadyExistsException('External network ' + network_name
+                                             + 'already added to the gateway.')
 
         ext_nw = self._get_external_network(network_name)
         gw_interface = self._create_gateway_interface(ext_nw, 'uplink')
@@ -392,8 +395,8 @@ class Gateway(object):
         subnet_found = False
         for subnetpart in subnet_participation:
             subnet = subnets.get(subnetpart.Gateway.text + '/' + str(
-                netmask_to_cidr_prefix_len(subnetpart.Gateway.text, subnetpart.
-                                           Netmask.text)))
+                netmask_to_cidr_prefix_len(subnetpart.Gateway.text,
+                                           subnetpart.Netmask.text)))
             if subnet is not None:
                 subnet_found = True
                 if subnet.get('enable') is not None:
@@ -760,10 +763,9 @@ class Gateway(object):
                     gateway_inf.remove(gateway_inf.InRateLimit)
                     gateway_inf.remove(gateway_inf.OutRateLimit)
 
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.EDGE_GATEWAY.value,
-                                               gateway)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
+            gateway)
 
     def __update_dns_relay(self, configuration, enable_dns_relay=None):
         """Updates DNS Relay of a gateway.
@@ -776,7 +778,8 @@ class Gateway(object):
             configuration.UseDefaultRouteForDnsRelay = \
                 E.UseDefaultRouteForDnsRelay(enable_dns_relay)
 
-    def __update_gateway_default_route(self, gateway_inf,
+    def __update_gateway_default_route(self,
+                                       gateway_inf,
                                        enable_default_gateway=None):
         """Updates default route of gateway interface.
 
@@ -789,9 +792,8 @@ class Gateway(object):
             gateway_inf.UseForDefaultRoute = \
                 E.UseForDefaultRoute(enable_default_gateway)
 
-    def __update_subnet_participation_default_route(self, subnet, gateway_ip,
-                                                    enable_default_gateway=None
-                                                    ):
+    def __update_subnet_participation_default_route(
+            self, subnet, gateway_ip, enable_default_gateway=None):
         """Updates default route of subnet participation of gateway.
 
         :param subnet: subnet participation of gateway.
@@ -830,10 +832,9 @@ class Gateway(object):
                 self.__update_subnet_participation_default_route(
                     subnet_participation, ip, enable_default_gateway)
 
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.EDGE_GATEWAY.value,
-                                               gateway)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
+            gateway)
 
     def configure_dns_default_gateway(self, enable_dns_relay):
         """Enables/disables the dns relay of the default gateway.
@@ -848,10 +849,9 @@ class Gateway(object):
         gateway = self.get_resource()
         self.__update_dns_relay(gateway.Configuration, enable_dns_relay)
 
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.EDGE_GATEWAY.value,
-                                               gateway)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
+            gateway)
 
     def list_configure_default_gateway(self):
         """Lists the configured default gateway.
@@ -911,11 +911,11 @@ class Gateway(object):
         if domain_name is not None:
             ip_pool_tag.append(create_element("domainName", domain_name))
         if primary_server is not None:
-            ip_pool_tag.append(create_element("primaryNameServer",
-                                              primary_server))
+            ip_pool_tag.append(
+                create_element("primaryNameServer", primary_server))
         if secondary_server is not None:
-            ip_pool_tag.append(create_element("secondaryNameServer",
-                                              secondary_server))
+            ip_pool_tag.append(
+                create_element("secondaryNameServer", secondary_server))
 
         if lease_never_expires:
             ip_pool_tag.append(create_element("leaseTime", "infinite"))
@@ -1051,10 +1051,11 @@ class Gateway(object):
         firewall_rule_list = []
         if hasattr(firewall_rules.firewallRules, 'firewallRule'):
             for firewall_rule in firewall_rules.firewallRules.firewallRule:
-                firewall_rule_list.append(dict(
-                    ID=firewall_rule['id'],
-                    name=firewall_rule['name'],
-                    ruleType=firewall_rule['ruleType']))
+                firewall_rule_list.append(
+                    dict(
+                        ID=firewall_rule['id'],
+                        name=firewall_rule['name'],
+                        ruleType=firewall_rule['ruleType']))
         return firewall_rule_list
 
     def add_static_route(self,
@@ -1136,8 +1137,7 @@ class Gateway(object):
                       description=None,
                       mtu=__DEFAULT_MTU,
                       is_enabled=__DEFAULT_IP_SEC_ENABLE,
-                      enable_pfs=__DEFAULT_ENABLE_PFS
-                      ):
+                      enable_pfs=__DEFAULT_ENABLE_PFS):
         """Add IPsec VPN in the gateway.
 
         param str name: name of IPSec VPN
@@ -1199,3 +1199,109 @@ class Gateway(object):
         """
         ipsec_vpn_href = self._build_ipsec_vpn_href()
         return self.client.get_resource(ipsec_vpn_href)
+
+    def list_firewall_object_types(self, type):
+        """List firewall object types for editing of rule.
+
+        :param type: Operation Type. It can source/destination
+
+        :return: list of dict
+
+        :rtype: list
+        """
+        object_type_url = self.__build_object_type_url(type)
+        object = self.client.get_resource(object_type_url)
+        response = []
+        for object_result in object.objectBrowserResult:
+            result = {}
+            result['name'] = object_result.name
+            result['object_type'] = object_result.type.text.lower()
+            result['link'] = object_result.link
+            response.append(result)
+        return response
+
+    def __build_object_type_url(self, type):
+        """Build object browser URL.
+
+        :param type: Operation Type. It can source/destination
+
+        :return: object browser url of object_type. e.g.,
+        https://{0}/network/objectbrowser/edge/{1}/firewall/source
+        :rtype: str
+        """
+        _network_url = build_network_url_from_gateway_url(self.href)
+        object_browser_url = \
+            _network_url.replace(Gateway.__EDGES,
+                                 Gateway.__OBJECT_BROWSER_URL_PART) + \
+            Gateway.__OBJECT_TYPE
+        object_browser_url = object_browser_url.format(type)
+        return object_browser_url
+
+    def __build_object_browser_url(self, type, object_type):
+        """Build object browser URL.
+
+        :param type: Operation Type. It can source/destination
+        :param object_type: Possible values:
+        gatewayinterface/virtualmachine/network/ipset/securitygroup
+        :return: object browser url of object_type. e.g.,
+        https://{0}/network/objectbrowser/edge/{1}/firewall/source/
+        gatewayinterface
+        :return: URL of object
+        :rtype: str
+        """
+        _network_url = build_network_url_from_gateway_url(self.href)
+        object_browser_url = \
+            _network_url.replace(Gateway.__EDGES,
+                                 Gateway.__OBJECT_BROWSER_URL_PART) + \
+            Gateway.__FIREWALL_OBJECT_TYPE
+        object_browser_url = object_browser_url.format(type, object_type)
+        return object_browser_url
+
+    def __build_object_browser_response(self, type, object_type):
+        """Build object response and mapping into list of dict.
+
+        param type: type. It can be source/destination.
+        param object_type: object type. It can be
+        gatewayinterface/virtualmachine/network/ipset/securitygroup
+
+        :return: list of dict
+        :rtype: list
+        """
+        object_url = self.__build_object_browser_url(type, object_type)
+        object = self.client.get_resource(object_url)
+        response = []
+        if int(object.get('total')) <= 0:
+            return response
+        for object_result in object.objectBrowserResult:
+            result = {}
+            result['type'] = object_result.type
+            result['name'] = object_result.name
+            obj_browser_props_list = []
+            if not (hasattr(object_result, 'requiredProperties') and
+                    hasattr(object_result.requiredProperties,
+                            'objectBrowserProperty')):
+                continue
+
+            for obj_browser_prop in \
+                    object_result.requiredProperties.objectBrowserProperty:
+                obj_browser_props = {}
+                obj_browser_props['name'] = obj_browser_prop.get('name')
+                obj_browser_props['value'] = obj_browser_prop.get('value')
+
+                obj_browser_props_list.append(obj_browser_props)
+
+            result['prop'] = obj_browser_props_list
+            response.append(result)
+
+        return response
+
+    def list_firewall_objects(self, type, object_type):
+        """List firewall's objects for editing firewall rule.
+
+        :param type: Operation Type. It can source/destination
+        :param object_type: Possible values:
+        gatewayinterface/virtualmachine/network/ipset/securitygroup
+        :return: list of dict
+        :rtype: list
+        """
+        return self.__build_object_browser_response(type, object_type)

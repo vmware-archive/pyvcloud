@@ -66,6 +66,14 @@ class TestVApp(BaseTestCase):
     _metadata_new_value = 'new_value_' + str(uuid1())
     _non_existent_metadata_key = 'non_existent_key_' + str(uuid1())
 
+    _vapp_network_name = 'vapp_network_' + str(uuid1())
+    _vapp_network_description = 'Test vApp network'
+    _vapp_network_cidr = '90.80.70.1/24'
+    _vapp_network_dns1 = '8.8.8.8'
+    _vapp_network_dns2 = '8.8.8.9'
+    _vapp_network_dns_suffix = 'example.com'
+    _vapp_network_ip_range = '90.80.70.2-90.80.70.100'
+
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
 
@@ -157,13 +165,15 @@ class TestVApp(BaseTestCase):
         logger.debug('Adding vm ' + target_vm_name + ' to vApp ' + vapp_name)
         # deploy and power_on are false to make sure that the subsequent
         # deletion of vm doesn't require additional power operations
-        task = vapp.add_vms(
-            [spec], deploy=False, power_on=False, all_eulas_accepted=True)
+        task = vapp.add_vms([spec],
+                            deploy=False,
+                            power_on=False,
+                            all_eulas_accepted=True)
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        logger.debug(
-            'Removing vm ' + target_vm_name + ' from vApp ' + vapp_name)
+        logger.debug('Removing vm ' + target_vm_name + ' from vApp ' +
+                     vapp_name)
         vapp.reload()
         task = vapp.delete_vms([target_vm_name])
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
@@ -339,15 +349,15 @@ class TestVApp(BaseTestCase):
         # add
         logger.debug('Adding 2 access control rule to vApp ' + vapp_name)
         vapp.reload()
-        control_access = vapp.add_access_settings(
-            access_settings_list=[{
-                'name': console_user_name,
-                'type': 'user'
-            }, {
-                'name': vapp_user_name,
-                'type': 'user',
-                'access_level': 'Change'
-            }])
+        access_settings_list = [{
+            'name': console_user_name,
+            'type': 'user'
+        }, {
+            'name': vapp_user_name,
+            'type': 'user',
+            'access_level': 'Change'
+        }]
+        control_access = vapp.add_access_settings(access_settings_list)
         self.assertEqual(len(control_access.AccessSettings.AccessSetting), 2)
 
         # get
@@ -375,8 +385,8 @@ class TestVApp(BaseTestCase):
         self.assertEqual(control_access.EveryoneAccessLevel.text, 'ReadOnly')
 
         # unshare
-        logger.debug(
-            'Un-sharing vApp ' + vapp_name + ' from everyone in the org')
+        logger.debug('Un-sharing vApp ' + vapp_name +
+                     ' from everyone in the org')
         vapp.reload()
         control_access = vapp.unshare_from_org_members()
         self.assertEqual(control_access.IsSharedToEveryone.text, 'false')
@@ -466,9 +476,10 @@ class TestVApp(BaseTestCase):
         logger.debug(f'Retriving metadata with key='
                      '{TestVApp._metadata_key} from vApp:{vapp_name}.')
         entries = metadata_to_dict(vapp.get_metadata())
-        self.assertTrue(TestVApp._metadata_key in entries, f'Should have '
-                        'been able to retrieve metadata entry with '
-                        'key={TestVApp._metadata_key}.')
+        self.assertTrue(
+            TestVApp._metadata_key in entries, f'Should have '
+            'been able to retrieve metadata entry with '
+            'key={TestVApp._metadata_key}.')
 
         # update metadata value as org admin
         logger.debug(f'Updtaing metadata on vApp:{vapp_name} with key='
@@ -490,6 +501,34 @@ class TestVApp(BaseTestCase):
         task = vapp.remove_metadata(key=TestVApp._metadata_key)
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0110_create_vapp_network(self):
+        """Test the method vapp.create_vapp_network().
+
+        This test passes if the vApp network creation is successful.
+        """
+        logger = Environment.get_default_logger()
+        vapp_name = TestVApp._customized_vapp_name
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=vapp_name)
+        logger.debug('Creating a vApp network in ' +
+                     TestVApp._customized_vapp_name)
+        task = vapp.create_vapp_network(
+            TestVApp._vapp_network_name, TestVApp._vapp_network_cidr,
+            TestVApp._vapp_network_description, TestVApp._vapp_network_dns1,
+            TestVApp._vapp_network_dns2, TestVApp._vapp_network_dns_suffix,
+            [TestVApp._vapp_network_ip_range])
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        # Verification
+        vapp.reload()
+        vapp_resource = vapp.get_resource()
+        is_network_found = False
+        for network_config in vapp_resource.NetworkConfigSection.NetworkConfig:
+            if (network_config.get('networkName') == TestVApp.
+                    _vapp_network_name):
+                is_network_found = True
+        self.assertTrue(is_network_found)
 
     @developerModeAware
     def test_9998_teardown(self):

@@ -41,6 +41,7 @@ class TestIpSecVpn(BaseTestCase):
     _peer_subnet = '10.20.10.0/24'
     _local_subnet = '30.20.10.0/24'
     _psk = 'abcd1234'
+    _changed_psk = "abcdefghijkl"
 
     def test_0000_setup(self):
         """Add one orgvdc, one gateways and one routed orgvdc networks.
@@ -100,6 +101,61 @@ class TestIpSecVpn(BaseTestCase):
             if gateway_inf.Name == ext_net_name:
                 return gateway_inf.SubnetParticipation.IpAddress.text
 
+    def test_0020_enable_activation_status(self):
+        """Enable activation status.
+        Invokes the enable_activation_status of the IpsecVpn.
+        """
+        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
+                                 gateway_name=TestIpSecVpn._name,
+                                 ipsec_end_point=
+                                 TestIpSecVpn._local_ip + "-" +
+                                 TestIpSecVpn._peer_ip)
+        ipsec_vpn_obj.enable_activation_status(True)
+        # Verify
+        activation_status = ipsec_vpn_obj.get_ipsec_config_resource().enabled
+        self.assertTrue(activation_status.text, "True")
+
+    def test_0025_info_activation_status(self):
+        """Info activation status.
+        Invokes the info_activation_status of the IpsecVpn.
+        """
+        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
+                                 gateway_name=TestIpSecVpn._name,
+                                 ipsec_end_point=
+                                 TestIpSecVpn._local_ip + "-" +
+                                 TestIpSecVpn._peer_ip)
+        status_dict = ipsec_vpn_obj.info_activation_status()
+        # Verify
+        self.assertTrue(status_dict["Activation Status"], "True")
+
+    def test_0030_enable_logging(self):
+        """Enable logging.
+        Invokes the enable_logging of the IpsecVpn.
+        """
+        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
+                                 gateway_name=TestIpSecVpn._name,
+                                 ipsec_end_point=
+                                 TestIpSecVpn._local_ip + "-" +
+                                 TestIpSecVpn._peer_ip)
+        ipsec_vpn_obj.enable_logging(True)
+        # Verify
+        logging_status = ipsec_vpn_obj.get_ipsec_config_resource().\
+            logging.enable
+        self.assertTrue(logging_status.text, "True")
+
+    def test_0035_change_shared_key(self):
+        """Change shared key.
+        Invokes the change_shared_key of the IpsecVpn.
+        """
+        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
+                                 gateway_name=TestIpSecVpn._name,
+                                 ipsec_end_point=
+                                 TestIpSecVpn._local_ip + "-" +
+                                 TestIpSecVpn._peer_ip)
+        ipsec_vpn_obj.change_shared_key(TestIpSecVpn._changed_psk)
+        #Verify
+        #verification not possible because values saved in encrypted form.
+
     def test_0090_delete_ipsec_vpn(self):
         """Delete Ip Sec VPn in the gateway.
 
@@ -114,7 +170,7 @@ class TestIpSecVpn(BaseTestCase):
         ipsec_vpn_obj.delete_ipsec_vpn()
         # Verify
         ipsec_vpn_sites = ipsec_vpn_obj.get_ipsec_config_resource().sites
-        self.assertTrue(hasattr(ipsec_vpn_sites, "site"))
+        self.assertFalse(hasattr(ipsec_vpn_sites, "site"))
 
     def test_0098_teardown(self):
         """Removes the added vdc, gateway and routed networks.

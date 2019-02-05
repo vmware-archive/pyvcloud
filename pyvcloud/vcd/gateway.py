@@ -1237,8 +1237,7 @@ class Gateway(object):
         return object_browser_url
 
     def __build_object_browser_url(self, type, object_type):
-        """
-        Build object browser URL.
+        """Build object browser URL.
 
         :param type: Operation Type. It can source/destination
         :param object_type: Possible values:

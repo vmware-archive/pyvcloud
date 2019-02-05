@@ -113,7 +113,7 @@ class TestIpSecVpn(BaseTestCase):
         ipsec_vpn_obj.enable_activation_status(True)
         # Verify
         activation_status = ipsec_vpn_obj.get_ipsec_config_resource().enabled
-        self.assertTrue(activation_status.text, "True")
+        self.assertTrue(activation_status.text)
 
     def test_0025_info_activation_status(self):
         """Info activation status.
@@ -126,7 +126,7 @@ class TestIpSecVpn(BaseTestCase):
                                  TestIpSecVpn._peer_ip)
         status_dict = ipsec_vpn_obj.info_activation_status()
         # Verify
-        self.assertTrue(status_dict["Activation Status"], "True")
+        self.assertTrue(status_dict["Activation Status"])
 
     def test_0030_enable_logging(self):
         """Enable logging.
@@ -141,7 +141,7 @@ class TestIpSecVpn(BaseTestCase):
         # Verify
         logging_status = ipsec_vpn_obj.get_ipsec_config_resource().\
             logging.enable
-        self.assertTrue(logging_status.text, "True")
+        self.assertTrue(logging_status.text)
 
     def test_0035_change_shared_key(self):
         """Change shared key.

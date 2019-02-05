@@ -83,9 +83,12 @@ class IpsecVpn(GatewayServices):
         return ipsec_vpn_activation_status
 
     def change_shared_key(self, shared_key):
-        """Changes shared key."""
+        """Changes shared key.
+
+        :param str shared_key: shared key.
+        """
         ipsec_vpn = self.resource
-        ip_sec_global = ipsec_vpn.xpath('ipsec/global', namespaces=NSMAP)
+        ip_sec_global = ipsec_vpn.xpath('global', namespaces=NSMAP)
         ip_sec_global.psk = shared_key
 
         self.client.put_resource(self.href,

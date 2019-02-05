@@ -100,7 +100,7 @@ class TestStaticRoute(BaseTestCase):
                route.description == TestStaticRoute._new_desc:
                 match_found = True
                 break
-                self.assertTrue(match_found)
+        self.assertTrue(match_found)
 
     def test_0098_teardown(self):
         """Remove the static route from the gateway.

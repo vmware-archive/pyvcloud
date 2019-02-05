@@ -1148,6 +1148,8 @@ class Platform(object):
     def enable_disable_host(self, name, enable_flag):
         """Enable or disable a host.
 
+        Deprecated since vCloud API version 31.0 (vCloud Director 9.5).
+
         :param str name: name of the host.
         :param boolean enable_flag: True means enable, False means disable.
 
@@ -1163,5 +1165,49 @@ class Platform(object):
         return self.client.post_linked_resource(
             resource=host,
             rel=(RelationType.ENABLE if enable_flag else RelationType.DISABLE),
+            media_type=None,
+            contents=None)
+
+    def prepare_host(self, name, username, password):
+        """Prepare a host.
+
+        Deprecated since vCloud API version 31.0 (vCloud Director 9.5).
+
+        :param str name: name of the host.
+        :param str username: username for preparing the host.
+        :param str password: password for preparing the host.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is preparing the host.
+
+        rtype: lxml.objectify.ObjectifiedElement'
+        """
+        host = self.get_host(name)
+        params = E_VMEXT.PrepareHostParams(
+            E_VMEXT.Username(username),
+            E_VMEXT.Password(password)
+        )
+        return self.client.post_linked_resource(
+            resource=host,
+            rel=RelationType.EDIT,
+            media_type='application/vnd.vmware.admin.prepareHostParams+xml',
+            contents=params)
+
+    def unprepare_host(self, name):
+        """Unprepare a host.
+
+        Deprecated since vCloud API version 31.0 (vCloud Director 9.5).
+
+        :param str name: name of the host.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is unpreparing the host.
+
+        rtype: lxml.objectify.ObjectifiedElement'
+        """
+        host = self.get_host(name)
+        return self.client.post_linked_resource(
+            resource=host,
+            rel=RelationType.EDIT,
             media_type=None,
             contents=None)

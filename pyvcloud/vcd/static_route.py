@@ -21,11 +21,10 @@ class StaticRoute(GatewayServices):
     """This class will be used to configure static routes on gateway."""
 
     def __init__(self, client, gateway_name=None, route_network_id=None,
-                 route_resource=None, href=None):
+                 route_resource=None):
         super(StaticRoute, self).__init__(client, gateway_name=gateway_name,
                                           resource_id=route_network_id,
-                                          resource=route_resource,
-                                          resource_href=href)
+                                          resource=route_resource)
 
     def _build_self_href(self, network):
         static_route_href = (self.network_url + STATIC_ROUTE_URL_TEMPLATE)
@@ -41,5 +40,6 @@ class StaticRoute(GatewayServices):
         for static_route in static_resource.staticRoutes.route:
             if static_route.network == self.resource_id:
                 static_resource.staticRoutes.remove(static_route)
+                break
         self.client.put_resource(self.href, static_resource,
                                  EntityType.DEFAULT_CONTENT_TYPE.value)

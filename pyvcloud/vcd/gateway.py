@@ -1174,9 +1174,19 @@ class Gateway(object):
         site.append(E.mtu(mtu))
         site.append(E.enablePfs(enable_pfs))
         local_subnets = E.localSubnets()
-        local_subnets.append(E.subnet(local_subnet))
+        if ',' in local_subnet:
+            subnet_list = local_subnet.split(",")
+            for subnet in subnet_list:
+                local_subnets.append(E.subnet(subnet))
+        else:
+            local_subnets.append(E.subnet(local_subnet))
         peer_subnets = E.peerSubnets()
-        peer_subnets.append(E.subnet(peer_subnet))
+        if ',' in peer_subnet:
+            subnet_list = peer_subnet.split(",")
+            for subnet in subnet_list:
+                peer_subnets.append(E.subnet(subnet))
+        else:
+            peer_subnets.append(E.subnet(peer_subnet))
         site.append(local_subnets)
         site.append(peer_subnets)
         site.append(E.psk(shared_secret_encrypted))

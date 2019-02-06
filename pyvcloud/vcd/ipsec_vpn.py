@@ -27,6 +27,7 @@ class IpsecVpn(GatewayServices):
             to make REST calls to vCD.
         :param str gateway_name: name of the gateway entity.
         :param str ipsec_end_point: local_end_point-peer_end_point.
+        It is a unique string to identify a ipsec vpn.
         :param lxml.objectify.ObjectifiedElement resource: object containing
             EntityType.IPSEC_VPN XML data representing the ipsec vpn rule.
         """

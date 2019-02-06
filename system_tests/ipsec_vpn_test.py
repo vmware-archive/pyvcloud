@@ -39,7 +39,7 @@ class TestIpSecVpn(BaseTestCase):
     _peer_id = 'peer_id1'
     _local_id = 'local_id1'
     _peer_subnet = '10.20.10.0/24'
-    _local_subnet = '30.20.10.0/24'
+    _local_subnet = '30.20.10.0/24,30.20.20.0/24'
     _psk = 'abcd1234'
     _changed_psk = "abcdefghijkl"
     _log_level = "warning"

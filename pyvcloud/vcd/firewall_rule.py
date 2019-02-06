@@ -109,9 +109,10 @@ class FirewallRule(GatewayServices):
             for service in services:
                 protocol = [k for k in service.keys()][0]
                 if protocol not in FirewallRule.__PROTOCOL_LIST:
+                    valid_protocols = ', '.join(FirewallRule.__PROTOCOL_LIST)
                     raise InvalidParameterException(
                         protocol + " is not valid. It should be from " +
-                        FirewallRule.__PROTOCOL_LIST)
+                        valid_protocols)
                 value = service.get(protocol)
                 source_port = [port for port in value.keys()][0]
                 destination_port = value.get(source_port)

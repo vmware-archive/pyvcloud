@@ -43,20 +43,18 @@ class FirewallRule(GatewayServices):
         self._get_resource()
         return self.client.delete_resource(self.href)
 
-    def enabled_firewall_rules(self):
-        """Enabled firewall rule from gateway."""
-        if self._get_resource().enabled:
-            return "firewall rule is already enabled."
-        self._get_resource().enabled = True
-        self.client.put_resource(self.href, self._get_resource(),
-                                 EntityType.DEFAULT_CONTENT_TYPE.value)
-        return 'Firewall rule enabled successfully.'
-
-    def disabled_firewall_rules(self):
-        """Disabled firewall rule from gateway."""
-        if not self._get_resource().enabled:
-            return "firewall rule is already disabled."
-        self._get_resource().enabled = False
-        self.client.put_resource(self.href, self._get_resource(),
-                                 EntityType.DEFAULT_CONTENT_TYPE.value)
-        return 'Firewall rule disabled successfully.'
+    def enable_disable_firewall_rules(self, is_enabled):
+        """Enabled disabled firewall rule from gateway."""
+        current_firewall_status = self._get_resource().enabled
+        if is_enabled == current_firewall_status:
+            return
+        if is_enabled:
+            self._get_resource().enabled = True
+            return self.client.put_resource(
+                self.href, self._get_resource(),
+                EntityType.DEFAULT_CONTENT_TYPE.value)
+        else:
+            self._get_resource().enabled = False
+            return self.client.put_resource(
+                self.href, self._get_resource(),
+                EntityType.DEFAULT_CONTENT_TYPE.value)

@@ -24,13 +24,14 @@ from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
 class FirewallRule(GatewayServices):
     __SOURCE = 'source'
     __DESTINATION = 'destination'
-    __GROUP_OBJECT_LIST = ['securitygroup', 'ipset', 'virtualmachine',
-                           'network']
+    __GROUP_OBJECT_LIST = [
+        'securitygroup', 'ipset', 'virtualmachine', 'network'
+    ]
     __VNIC_GROUP_LIST = ['gatewayinterface']
 
     def _build_self_href(self, rule_id):
-        rule_href = (self.network_url + FIREWALL_RULE_URL_TEMPLATE).format(
-            rule_id)
+        rule_href = (
+            self.network_url + FIREWALL_RULE_URL_TEMPLATE).format(rule_id)
         self.href = rule_href
 
     def _extract_id(self, rule_href):
@@ -67,22 +68,21 @@ class FirewallRule(GatewayServices):
 
         if source_values:
             if not hasattr(firewall_rule_temp, FirewallRule.__SOURCE):
-                firewall_rule_temp.append(create_element(
-                    FirewallRule.__SOURCE))
+                firewall_rule_temp.append(
+                    create_element(FirewallRule.__SOURCE))
             if not hasattr(firewall_rule_temp.source, 'exclude'):
-                firewall_rule_temp.source.append(create_element('exclude',
-                                                                False))
+                firewall_rule_temp.source.append(
+                    create_element('exclude', False))
             self._populate_objects_info(firewall_rule_temp, source_values,
                                         FirewallRule.__SOURCE)
         if destination_values:
             if not hasattr(firewall_rule_temp, FirewallRule.__DESTINATION):
-                firewall_rule_temp.append(create_element(
-                    FirewallRule.__DESTINATION))
+                firewall_rule_temp.append(
+                    create_element(FirewallRule.__DESTINATION))
             if not hasattr(firewall_rule_temp.destination, 'exclude'):
-                firewall_rule_temp.destination.append(create_element(
-                    'exclude', False))
-            self._populate_objects_info(firewall_rule_temp,
-                                        destination_values,
+                firewall_rule_temp.destination.append(
+                    create_element('exclude', False))
+            self._populate_objects_info(firewall_rule_temp, destination_values,
                                         FirewallRule.__DESTINATION)
 
         self.client.put_resource(self.href, firewall_rule_temp,
@@ -100,8 +100,8 @@ class FirewallRule(GatewayServices):
             object_type = values_arr[1]
             object = values_arr[0]
             if type == FirewallRule.__SOURCE:
-                firewall_rule_temp.source.append(self._get_group_element(
-                    type, object_type, object))
+                firewall_rule_temp.source.append(
+                    self._get_group_element(type, object_type, object))
             if type == FirewallRule.__DESTINATION:
                 firewall_rule_temp.destination.append(
                     self._get_group_element(type, object_type, object))
@@ -150,8 +150,10 @@ class FirewallRule(GatewayServices):
         valid.
         """
         if source_types:
-            valid_type_list = ['gatewayinterface', 'virtualmachine', 'network',
-                               'ipset', 'securitygroup', 'ip']
+            valid_type_list = [
+                'gatewayinterface', 'virtualmachine', 'network', 'ipset',
+                'securitygroup', 'ip'
+            ]
             for source_type in source_types:
                 if source_type.lower() == 'any':
                     continue
@@ -159,11 +161,27 @@ class FirewallRule(GatewayServices):
                 if len(source_type_arr) <= 1:
                     raise InvalidParameterException(
                         type + " type should be in the format of "
-                               "value:value_type. for ex: "
-                               "ExtNw:gatewayinterface")
+                        "value:value_type. for ex: "
+                        "ExtNw:gatewayinterface")
                 valid_type = source_type_arr[1]
                 if valid_type not in valid_type_list:
                     valid_type_list_str = ','.join(valid_type_list)
                     raise InvalidParameterException(
                         valid_type + " param is not valid. It should be "
-                                     "from " + valid_type_list_str)
+                        "from " + valid_type_list_str)
+
+    def enable_disable_firewall_rule(self, is_enabled):
+        """Enabled disabled firewall rule from gateway."""
+        current_firewall_status = self._get_resource().enabled
+        if is_enabled == current_firewall_status:
+            return
+        if is_enabled:
+            self._get_resource().enabled = True
+            return self.client.put_resource(
+                self.href, self._get_resource(),
+                EntityType.DEFAULT_CONTENT_TYPE.value)
+        else:
+            self._get_resource().enabled = False
+            return self.client.put_resource(
+                self.href, self._get_resource(),
+                EntityType.DEFAULT_CONTENT_TYPE.value)

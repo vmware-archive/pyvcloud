@@ -40,9 +40,10 @@ class TestFirewallRules(BaseTestCase):
         TestFirewallRules._config = Environment.get_config()
         gateway = Environment. \
             get_test_gateway(TestFirewallRules._client)
-        TestFirewallRules._gateway_obj = Gateway(TestFirewallRules._client,
-                                                 TestFirewallRules._name,
-                                                 href=gateway.get('href'))
+        TestFirewallRules._gateway_obj = Gateway(
+            TestFirewallRules._client,
+            TestFirewallRules._name,
+            href=gateway.get('href'))
         TestFirewallRules._external_network = \
             Environment.get_test_external_network(TestFirewallRules._client)
 
@@ -68,9 +69,10 @@ class TestFirewallRules(BaseTestCase):
         TestFirewallRules._config = Environment.get_config()
         gateway = Environment. \
             get_test_gateway(TestFirewallRules._client)
-        gateway_obj = Gateway(TestFirewallRules._client,
-                              TestFirewallRules._name,
-                              href=gateway.get('href'))
+        gateway_obj = Gateway(
+            TestFirewallRules._client,
+            TestFirewallRules._name,
+            href=gateway.get('href'))
         firewall_rules_list = gateway_obj.get_firewall_rules_list()
         # Verify
         self.assertTrue(len(firewall_rules_list) > 0)
@@ -124,13 +126,14 @@ class TestFirewallRules(BaseTestCase):
                                     TestFirewallRules._name,
                                     TestFirewallRules._rule_id)
         ext_net_resource = TestFirewallRules._external_network.get_resource()
-        source_object = [ext_net_resource.get('name') +':gatewayinterface',
-                         OvdcNetConstants.routed_net_name+':network',
-                         '2.3.2.2:ip']
-        destination_object = [ext_net_resource.get('name') +
-                             ':gatewayinterface',
-                         OvdcNetConstants.routed_net_name+':network',
-                              '2.3.2.2:ip']
+        source_object = [
+            ext_net_resource.get('name') + ':gatewayinterface',
+            OvdcNetConstants.routed_net_name + ':network', '2.3.2.2:ip'
+        ]
+        destination_object = [
+            ext_net_resource.get('name') + ':gatewayinterface',
+            OvdcNetConstants.routed_net_name + ':network', '2.3.2.2:ip'
+        ]
         firewall_obj.edit(source_object, destination_object)
 
         # Verify
@@ -142,6 +145,15 @@ class TestFirewallRules(BaseTestCase):
         self.assertTrue(hasattr(firewall_res.destination, 'vnicGroupId'))
         self.assertTrue(hasattr(firewall_res.destination, 'groupingObjectId'))
         self.assertTrue(hasattr(firewall_res.destination, 'ipAddress'))
+
+    def test_0041_enable_disable_firewall_rule(self):
+        firewall_obj = FirewallRule(TestFirewallRules._client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        result = firewall_obj.enable_disable_firewall_rule(False)
+        self.assertIsNone(result)
+        result = firewall_obj.enable_disable_firewall_rule(True)
+        self.assertIsNone(result)
 
     def test_0098_teardown(self):
         firewall_obj = FirewallRule(TestFirewallRules._client,

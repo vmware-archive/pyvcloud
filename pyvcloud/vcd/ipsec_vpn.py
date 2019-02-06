@@ -13,6 +13,7 @@
 # limitations under the License.
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.gateway_services import GatewayServices
 from pyvcloud.vcd.network_url_constants import IPSEC_VPN_URL_TEMPLATE
 
@@ -20,12 +21,13 @@ from pyvcloud.vcd.network_url_constants import IPSEC_VPN_URL_TEMPLATE
 class IpsecVpn(GatewayServices):
 
     def __init__(self, client, gateway_name=None, ipsec_end_point=None):
-        """Constructor for IPsec Vpn objects.
+        """Constructor for IPsec VPN objects.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
             to make REST calls to vCD.
         :param str gateway_name: name of the gateway entity.
-        :param str ipsec_name: name of the ipsec_vpn.
+        :param str ipsec_end_point: local_end_point-peer_end_point.
+        It is a unique string to identify a ipsec vpn.
         :param lxml.objectify.ObjectifiedElement resource: object containing
             EntityType.IPSEC_VPN XML data representing the ipsec vpn rule.
         """
@@ -46,7 +48,56 @@ class IpsecVpn(GatewayServices):
     def get_ipsec_config_resource(self):
         return self.client.get_resource(self.href)
 
+    def set_log_level(self, log_level):
+        """Set log level for Ipsec VPN.
+
+        :param str log_level: log level
+        """
+        log_level_set = set(
+            ["emergency", "alert", "critical", "error", "warning",
+             "notice", "info", "debug"])
+        if log_level not in log_level_set:
+            raise EntityNotFoundException('No associated log level found.')
+
+        ipsec_vpn = self.resource
+        ipsec_vpn.logging.logLevel = log_level
+        self.client.put_resource(self.href,
+                                 ipsec_vpn,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def info_logging_settings(self):
+        """Provide info for logging settings.
+
+        :return: dict: dict of info of logging settings
+        """
+        ipsec_logging_settings = {}
+        ipsec_vpn = self.resource
+        ipsec_logging_settings["Enable"] = \
+            ipsec_vpn.logging.enable.text
+        ipsec_logging_settings["Log Level"] = \
+            ipsec_vpn.logging.logLevel
+
+        return ipsec_logging_settings
+
+    def list_ipsec_vpn(self):
+        """List IPsec VPN of a gateway.
+
+        :return: list of all ipsec vpn.
+        """
+        out_list = []
+        ipsec_vpn = self.resource
+        vpn_sites = ipsec_vpn.sites
+        if hasattr(vpn_sites, "site"):
+            for site in vpn_sites.site:
+                ipsec_vpn_info = {}
+                ipsec_vpn_info["Name"] = site.name
+                ipsec_vpn_info["local_ip"] = site.localIp
+                ipsec_vpn_info["peer_ip"] = site.peerIp
+                out_list.append(ipsec_vpn_info)
+        return out_list
+
     def delete_ipsec_vpn(self):
+        """Delete IP sec Vpn."""
         end_points = self.end_point.split('-')
         local_ip = end_points[0]
         peer_ip = end_points[1]
@@ -89,7 +140,7 @@ class IpsecVpn(GatewayServices):
         """
         ipsec_vpn = self.resource
         ip_sec_global = ipsec_vpn.xpath('global', namespaces=NSMAP)
-        ip_sec_global.psk = shared_key
+        ip_sec_global[0].psk = shared_key
 
         self.client.put_resource(self.href,
                                  ipsec_vpn,

@@ -27,7 +27,7 @@ from pyvcloud.vcd.vdc_network import VdcNetwork
 
 
 class TestIpSecVpn(BaseTestCase):
-    """Test IpSec Vpn functionalities implemented in pyvcloud."""
+    """Test IpSec VPN functionalities implemented in pyvcloud."""
 
     # All tests in this module should be run as System Administrator.
     _name = GatewayConstants.name
@@ -39,9 +39,10 @@ class TestIpSecVpn(BaseTestCase):
     _peer_id = 'peer_id1'
     _local_id = 'local_id1'
     _peer_subnet = '10.20.10.0/24'
-    _local_subnet = '30.20.10.0/24'
+    _local_subnet = '30.20.10.0/24,30.20.20.0/24'
     _psk = 'abcd1234'
     _changed_psk = "abcdefghijkl"
+    _log_level = "warning"
 
     def test_0000_setup(self):
         """Add one orgvdc, one gateways and one routed orgvdc networks.
@@ -61,7 +62,7 @@ class TestIpSecVpn(BaseTestCase):
         self.__create_routed_ovdc_network()
 
     def test_0010_add_ipsec_vpn(self):
-        """Add Ip sec Vpn in the gateway.
+        """Add Ip sec VPN in the gateway.
 
         Invokes the add_ipsec_vpn of the gateway.
         """
@@ -103,6 +104,7 @@ class TestIpSecVpn(BaseTestCase):
 
     def test_0020_enable_activation_status(self):
         """Enable activation status.
+
         Invokes the enable_activation_status of the IpsecVpn.
         """
         ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
@@ -117,6 +119,7 @@ class TestIpSecVpn(BaseTestCase):
 
     def test_0025_info_activation_status(self):
         """Info activation status.
+
         Invokes the info_activation_status of the IpsecVpn.
         """
         ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
@@ -130,6 +133,7 @@ class TestIpSecVpn(BaseTestCase):
 
     def test_0030_enable_logging(self):
         """Enable logging.
+
         Invokes the enable_logging of the IpsecVpn.
         """
         ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
@@ -145,6 +149,7 @@ class TestIpSecVpn(BaseTestCase):
 
     def test_0035_change_shared_key(self):
         """Change shared key.
+
         Invokes the change_shared_key of the IpsecVpn.
         """
         ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
@@ -155,6 +160,50 @@ class TestIpSecVpn(BaseTestCase):
         ipsec_vpn_obj.change_shared_key(TestIpSecVpn._changed_psk)
         #Verify
         #verification not possible because values saved in encrypted form.
+
+    def test_0040_set_log_level(self):
+        """Set log level.
+
+        Invokes the set_log_level of the IpsecVpn.
+        """
+        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
+                                 gateway_name=TestIpSecVpn._name,
+                                 ipsec_end_point=
+                                 TestIpSecVpn._local_ip + "-" +
+                                 TestIpSecVpn._peer_ip)
+        ipsec_vpn_obj.set_log_level(TestIpSecVpn._log_level)
+        # Verify
+        log_level = ipsec_vpn_obj.get_ipsec_config_resource().\
+            logging.logLevel
+        self.assertEqual(TestIpSecVpn._log_level,log_level)
+
+    def test_0045_info_logging_settings(self):
+        """Info logging settings.
+
+        Invokes the info_logging_settings of the IpsecVpn.
+        """
+        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
+                                 gateway_name=TestIpSecVpn._name,
+                                 ipsec_end_point=
+                                 TestIpSecVpn._local_ip + "-" +
+                                 TestIpSecVpn._peer_ip)
+        logging_dict = ipsec_vpn_obj.info_logging_settings()
+        # Verify
+        self.assertTrue(logging_dict["Enable"])
+
+    def test_0050_list_ipsec_vpn(self):
+        """List Ipsec Vpn.
+
+        Invokes the list_ipsec_vpn of the IpsecVpn.
+        """
+        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
+                                 gateway_name=TestIpSecVpn._name,
+                                 ipsec_end_point=
+                                 TestIpSecVpn._local_ip + "-" +
+                                 TestIpSecVpn._peer_ip)
+        ipsec_vpn_list = ipsec_vpn_obj.list_ipsec_vpn()
+        # Verify
+        self.assertTrue(len(ipsec_vpn_list) > 0)
 
     def test_0090_delete_ipsec_vpn(self):
         """Delete Ip Sec VPn in the gateway.
@@ -251,6 +300,18 @@ class TestIpSecVpn(BaseTestCase):
         else:
             return False
 
+    def __does_exist_gateway(self, gateway_name):
+        vdc = VDC(TestIpSecVpn._client, resource=TestIpSecVpn._vdc_resource)
+        gateway = vdc.get_gateway(TestIpSecVpn._gateway_name)
+        if gateway:
+            TestIpSecVpn._gateway_resource = gateway
+            TestIpSecVpn._gateway_href = gateway.get('href')
+            TestIpSecVpn._gateway_obj = Gateway(
+                TestIpSecVpn._client, href=TestIpSecVpn._gateway_href)
+            return True
+        else:
+            return False
+
     def __create_advanced_gateway(self):
         """Creates a gateway."""
 
@@ -258,12 +319,8 @@ class TestIpSecVpn(BaseTestCase):
         vdc_reource = TestIpSecVpn._vdc_resource
         api_version = TestIpSecVpn._config['vcd']['api_version']
         vdc = VDC(TestIpSecVpn._client, resource=vdc_reource)
-        if vdc.get_gateway(TestIpSecVpn._gateway_name):
-            gateway = vdc.get_gateway(TestIpSecVpn._gateway_name)
-            TestIpSecVpn._gateway_resource = gateway
-            TestIpSecVpn._gateway_href = gateway.get('href')
-            TestIpSecVpn._gateway_obj = Gateway(
-                TestIpSecVpn._client, href=TestIpSecVpn._gateway_href)
+        gateway = vdc.get_gateway(TestIpSecVpn._gateway_name)
+        if self.__does_exist_gateway(TestIpSecVpn._gateway_name):
             return
 
         if float(api_version) <= float(

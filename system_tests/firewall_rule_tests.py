@@ -17,6 +17,8 @@ from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
+from pyvcloud.system_test_framework.constants.ovdc_network_constant import \
+    OvdcNetConstants
 from pyvcloud.vcd.firewall_rule import FirewallRule
 from pyvcloud.vcd.gateway import Gateway
 
@@ -41,6 +43,9 @@ class TestFirewallRules(BaseTestCase):
         TestFirewallRules._gateway_obj = Gateway(TestFirewallRules._client,
                                                  TestFirewallRules._name,
                                                  href=gateway.get('href'))
+        TestFirewallRules._external_network = \
+            Environment.get_test_external_network(TestFirewallRules._client)
+
         TestFirewallRules._gateway_obj.add_firewall_rule(
             TestFirewallRules._firewall_rule_name)
         firewall_rules_resource = \
@@ -113,6 +118,30 @@ class TestFirewallRules(BaseTestCase):
             TestFirewallRules._gateway_obj.list_firewall_object_types('source')
         if object_res:
             self.assertTrue(len(object_res) > 0)
+
+    def test_0050_edit(self):
+        firewall_obj = FirewallRule(TestFirewallRules._client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        ext_net_resource = TestFirewallRules._external_network.get_resource()
+        source_object = [ext_net_resource.get('name') +':gatewayinterface',
+                         OvdcNetConstants.routed_net_name+':network',
+                         '2.3.2.2:ip']
+        destination_object = [ext_net_resource.get('name') +
+                             ':gatewayinterface',
+                         OvdcNetConstants.routed_net_name+':network',
+                              '2.3.2.2:ip']
+        firewall_obj.edit(source_object, destination_object)
+
+        # Verify
+        firewall_obj._reload()
+        firewall_res = firewall_obj.resource
+        self.assertTrue(hasattr(firewall_res.source, 'vnicGroupId'))
+        self.assertTrue(hasattr(firewall_res.source, 'groupingObjectId'))
+        self.assertTrue(hasattr(firewall_res.source, 'ipAddress'))
+        self.assertTrue(hasattr(firewall_res.destination, 'vnicGroupId'))
+        self.assertTrue(hasattr(firewall_res.destination, 'groupingObjectId'))
+        self.assertTrue(hasattr(firewall_res.destination, 'ipAddress'))
 
     def test_0098_teardown(self):
         firewall_obj = FirewallRule(TestFirewallRules._client,

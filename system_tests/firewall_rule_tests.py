@@ -41,9 +41,10 @@ class TestFirewallRules(BaseTestCase):
         TestFirewallRules._config = Environment.get_config()
         gateway = Environment. \
             get_test_gateway(TestFirewallRules._client)
-        TestFirewallRules._gateway_obj = Gateway(TestFirewallRules._client,
-                                                 TestFirewallRules._name,
-                                                 href=gateway.get('href'))
+        TestFirewallRules._gateway_obj = Gateway(
+            TestFirewallRules._client,
+            TestFirewallRules._name,
+            href=gateway.get('href'))
         TestFirewallRules._external_network = \
             Environment.get_test_external_network(TestFirewallRules._client)
 
@@ -69,9 +70,10 @@ class TestFirewallRules(BaseTestCase):
         TestFirewallRules._config = Environment.get_config()
         gateway = Environment. \
             get_test_gateway(TestFirewallRules._client)
-        gateway_obj = Gateway(TestFirewallRules._client,
-                              TestFirewallRules._name,
-                              href=gateway.get('href'))
+        gateway_obj = Gateway(
+            TestFirewallRules._client,
+            TestFirewallRules._name,
+            href=gateway.get('href'))
         firewall_rules_list = gateway_obj.get_firewall_rules_list()
         # Verify
         self.assertTrue(len(firewall_rules_list) > 0)
@@ -135,7 +137,6 @@ class TestFirewallRules(BaseTestCase):
         source = [{'tcp':{'any':'any'}}, {'icmp':{'any':'any'}},
                                           {'any':{'any':'any'}}]
         firewall_obj.edit(source_object, destination_object, source)
-
         # Verify
         firewall_obj._reload()
         firewall_res = firewall_obj.resource
@@ -145,8 +146,18 @@ class TestFirewallRules(BaseTestCase):
         self.assertTrue(hasattr(firewall_res.destination, 'vnicGroupId'))
         self.assertTrue(hasattr(firewall_res.destination, 'groupingObjectId'))
         self.assertTrue(hasattr(firewall_res.destination, 'ipAddress'))
-
         self.assertTrue(hasattr(firewall_res.application, 'service'))
+
+
+    def test_0041_enable_disable_firewall_rule(self):
+        firewall_obj = FirewallRule(TestFirewallRules._client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        result = firewall_obj.enable_disable_firewall_rule(False)
+        self.assertIsNone(result)
+        result = firewall_obj.enable_disable_firewall_rule(True)
+        self.assertIsNone(result)
+
 
     def test_0098_teardown(self):
         firewall_obj = FirewallRule(TestFirewallRules._client,

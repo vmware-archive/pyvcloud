@@ -21,12 +21,12 @@ from pyvcloud.vcd.network_url_constants import IPSEC_VPN_URL_TEMPLATE
 class IpsecVpn(GatewayServices):
 
     def __init__(self, client, gateway_name=None, ipsec_end_point=None):
-        """Constructor for IPsec Vpn objects.
+        """Constructor for IPsec VPN objects.
 
         :param pyvcloud.vcd.client.Client client: the client that will be used
             to make REST calls to vCD.
         :param str gateway_name: name of the gateway entity.
-        :param str ipsec_name: name of the ipsec_vpn.
+        :param str ipsec_end_point: local_end_point-peer_end_point.
         :param lxml.objectify.ObjectifiedElement resource: object containing
             EntityType.IPSEC_VPN XML data representing the ipsec vpn rule.
         """
@@ -48,7 +48,7 @@ class IpsecVpn(GatewayServices):
         return self.client.get_resource(self.href)
 
     def set_log_level(self, log_level):
-        """Set log level for Ipsec vpn.
+        """Set log level for Ipsec VPN.
 
         :param str log_level: log level
         """
@@ -79,7 +79,7 @@ class IpsecVpn(GatewayServices):
         return ipsec_logging_settings
 
     def list_ipsec_vpn(self):
-        """List IPsec vpn of a gateway.
+        """List IPsec VPN of a gateway.
 
         :return: list of all ipsec vpn.
         """

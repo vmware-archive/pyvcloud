@@ -27,7 +27,7 @@ from pyvcloud.vcd.vdc_network import VdcNetwork
 
 
 class TestIpSecVpn(BaseTestCase):
-    """Test IpSec Vpn functionalities implemented in pyvcloud."""
+    """Test IpSec VPN functionalities implemented in pyvcloud."""
 
     # All tests in this module should be run as System Administrator.
     _name = GatewayConstants.name
@@ -62,7 +62,7 @@ class TestIpSecVpn(BaseTestCase):
         self.__create_routed_ovdc_network()
 
     def test_0010_add_ipsec_vpn(self):
-        """Add Ip sec Vpn in the gateway.
+        """Add Ip sec VPN in the gateway.
 
         Invokes the add_ipsec_vpn of the gateway.
         """
@@ -300,10 +300,10 @@ class TestIpSecVpn(BaseTestCase):
         else:
             return False
 
-    def __check_gateway(self, gateway_name):
+    def __does_exist_gateway(self, gateway_name):
         vdc = VDC(TestIpSecVpn._client, resource=TestIpSecVpn._vdc_resource)
-        if vdc.get_gateway(gateway_name):
-            gateway = vdc.get_gateway(TestIpSecVpn._gateway_name)
+        gateway = vdc.get_gateway(TestIpSecVpn._gateway_name)
+        if gateway:
             TestIpSecVpn._gateway_resource = gateway
             TestIpSecVpn._gateway_href = gateway.get('href')
             TestIpSecVpn._gateway_obj = Gateway(
@@ -320,7 +320,7 @@ class TestIpSecVpn(BaseTestCase):
         api_version = TestIpSecVpn._config['vcd']['api_version']
         vdc = VDC(TestIpSecVpn._client, resource=vdc_reource)
         gateway = vdc.get_gateway(TestIpSecVpn._gateway_name)
-        if self.__check_gateway(TestIpSecVpn._gateway_name):
+        if self.__does_exist_gateway(TestIpSecVpn._gateway_name):
             return
 
         if float(api_version) <= float(

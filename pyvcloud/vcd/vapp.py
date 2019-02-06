@@ -35,6 +35,7 @@ from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.metadata import Metadata
+from pyvcloud.vcd.utils import cidr_to_netmask
 from pyvcloud.vcd.vdc import VDC
 
 
@@ -111,8 +112,8 @@ class VApp(object):
                     for item in items:
                         connection = item.find('rasd:Connection', NSMAP)
                         if connection is not None:
-                            return connection.get(
-                                '{' + NSMAP['vcloud'] + '}ipAddress')
+                            return connection.get('{' + NSMAP['vcloud'] +
+                                                  '}ipAddress')
         raise Exception('can\'t find ip address')
 
     def get_admin_password(self, vm_name):
@@ -228,9 +229,8 @@ class VApp(object):
             corresponding to the key provided.
         """
         metadata = Metadata(client=self.client, resource=self.get_metadata())
-        return metadata.remove_metadata(key=key,
-                                        domain=domain,
-                                        use_admin_endpoint=False)
+        return metadata.remove_metadata(
+            key=key, domain=domain, use_admin_endpoint=False)
 
     def get_vm_moid(self, vm_name):
         """Fetch the moref of a named vm in the vApp.
@@ -356,7 +356,10 @@ class VApp(object):
         """
         return self.get_power_state(vapp_resource) == 2
 
-    def _perform_power_operation(self, rel, operation_name, media_type=None,
+    def _perform_power_operation(self,
+                                 rel,
+                                 operation_name,
+                                 media_type=None,
                                  contents=None):
         """Perform a power operation on the vApp.
 
@@ -383,13 +386,13 @@ class VApp(object):
         """
         vapp_resource = self.get_resource()
         try:
-            return self.client.post_linked_resource(
-                vapp_resource, rel, media_type, contents)
+            return self.client.post_linked_resource(vapp_resource, rel,
+                                                    media_type, contents)
         except OperationNotSupportedException:
             power_state = self.get_power_state(vapp_resource)
             raise OperationNotSupportedException(
-                'Can\'t {0} vApp. Current state of vApp: {1}.'
-                .format(operation_name, VCLOUD_STATUS_MAP[power_state]))
+                'Can\'t {0} vApp. Current state of vApp: {1}.'.format(
+                    operation_name, VCLOUD_STATUS_MAP[power_state]))
 
     def deploy(self, power_on=None, force_customization=None):
         """Deploys the vApp.
@@ -467,8 +470,8 @@ class VApp(object):
         :raises OperationNotSupportedException: if the vApp can't be powered
             off.
         """
-        return self._perform_power_operation(rel=RelationType.POWER_OFF,
-                                             operation_name='power off')
+        return self._perform_power_operation(
+            rel=RelationType.POWER_OFF, operation_name='power off')
 
     def power_on(self):
         """Power on the vms in the vApp.
@@ -481,8 +484,8 @@ class VApp(object):
         :raises OperationNotSupportedException: if the vApp can't be powered
             on.
         """
-        return self._perform_power_operation(rel=RelationType.POWER_ON,
-                                             operation_name='power on')
+        return self._perform_power_operation(
+            rel=RelationType.POWER_ON, operation_name='power on')
 
     def shutdown(self):
         """Shutdown the vApp.
@@ -494,8 +497,8 @@ class VApp(object):
 
         :raises OperationNotSupportedException: if the vApp can't be shutdown.
         """
-        return self._perform_power_operation(rel=RelationType.POWER_SHUTDOWN,
-                                             operation_name='shutdown')
+        return self._perform_power_operation(
+            rel=RelationType.POWER_SHUTDOWN, operation_name='shutdown')
 
     def power_reset(self):
         """Power resets the vms in the vApp.
@@ -508,8 +511,8 @@ class VApp(object):
         :raises OperationNotSupportedException: if the vApp can't be power
             reset.
         """
-        return self._perform_power_operation(rel=RelationType.POWER_RESET,
-                                             operation_name='power reset')
+        return self._perform_power_operation(
+            rel=RelationType.POWER_RESET, operation_name='power reset')
 
     def reboot(self):
         """Reboots the vms in the vApp.
@@ -521,8 +524,8 @@ class VApp(object):
 
         :raises OperationNotSupportedException: if the vApp can't be rebooted.
         """
-        return self._perform_power_operation(rel=RelationType.POWER_REBOOT,
-                                             operation_name='reboot')
+        return self._perform_power_operation(
+            rel=RelationType.POWER_REBOOT, operation_name='reboot')
 
     def connect_vm(self, mode='DHCP', reset_mac_address=False):
         self.get_resource()
@@ -961,10 +964,10 @@ class VApp(object):
         :raises: InvalidStateException: if the vApp is already connected to the
             org vdc network.
         """
-        vdc = VDC(self.client,
-                  href=find_link(self.resource,
-                                 RelationType.UP,
-                                 EntityType.VDC.value).href)
+        vdc = VDC(
+            self.client,
+            href=find_link(self.resource, RelationType.UP,
+                           EntityType.VDC.value).href)
         orgvdc_network_href = vdc.get_orgvdc_network_admin_href_by_name(
             orgvdc_network_name)
 
@@ -1047,3 +1050,70 @@ class VApp(object):
                 if network_config.get('networkName') == orgvdc_network_name:
                     return network_config
         return None
+
+    def create_vapp_network(self,
+                            name,
+                            network_cidr,
+                            description=None,
+                            primary_dns_ip=None,
+                            secondary_dns_ip=None,
+                            dns_suffix=None,
+                            ip_ranges=None,
+                            is_guest_vlan_allowed=False):
+        """Create a vApp network.
+
+        :param str network_name: name of vApp network to be created.
+        :param str network_cidr: CIDR in the format of 192.168.1.1/24.
+        :param str description: description of vApp network.
+        :param str primary_dns_ip: IP address of primary DNS server.
+        :param str secondary_dns_ip: IP address of secondary DNS Server.
+        :param str dns_suffix: DNS suffix.
+        :params list ip_ranges: list of IP ranges used for static pool
+            allocation in the network. For example, [192.168.1.2-192.168.1.49,
+            192.168.1.100-192.168.1.149].
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is creating the vApp network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        network_config_section = \
+            deepcopy(self.resource.NetworkConfigSection)
+        network_config = E.NetworkConfig(networkName=name)
+        if description is not None:
+            network_config.append(E.Description(description))
+
+        config = E.Configuration()
+        ip_scopes = E.IpScopes()
+        ip_scope = E.IpScope()
+
+        ip_scope.append(E.IsInherited(False))
+        gateway_ip, netmask = cidr_to_netmask(network_cidr)
+        ip_scope.append(E.Gateway(gateway_ip))
+        ip_scope.append(E.Netmask(netmask))
+        if primary_dns_ip is not None:
+            ip_scope.append(E.Dns1(primary_dns_ip))
+        if secondary_dns_ip is not None:
+            ip_scope.append(E.Dns2(secondary_dns_ip))
+        if dns_suffix is not None:
+            ip_scope.append(E.DnsSuffix(dns_suffix))
+
+        e_ip_ranges = E.IpRanges()
+        for ip_range in ip_ranges:
+            e_ip_range = E.IpRange()
+            ip_range_token = ip_range.split('-')
+            e_ip_range.append(E.StartAddress(ip_range_token[0]))
+            e_ip_range.append(E.EndAddress(ip_range_token[1]))
+            e_ip_ranges.append(e_ip_range)
+
+        ip_scope.append(e_ip_ranges)
+        ip_scopes.append(ip_scope)
+        config.append(ip_scopes)
+        config.append(E.FenceMode(FenceMode.ISOLATED.value))
+        config.append(E.GuestVlanAllowed(is_guest_vlan_allowed))
+        network_config.append(config)
+
+        network_config_section.append(network_config)
+        return self.client.put_linked_resource(
+            self.resource.NetworkConfigSection, RelationType.EDIT,
+            EntityType.NETWORK_CONFIG_SECTION.value, network_config_section)

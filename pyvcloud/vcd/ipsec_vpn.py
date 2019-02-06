@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.gateway_services import GatewayServices
 from pyvcloud.vcd.network_url_constants import IPSEC_VPN_URL_TEMPLATE
 
@@ -37,12 +38,12 @@ class IpsecVpn(GatewayServices):
         """Reloads the resource representation of the ipsec vpn."""
         self.resource = self.client.get_resource(self.href)
 
-    def __build_self_href(self):
+    # NOQA
+    def _build_self_href(self, resoure_id):
         ipsec_vpn_href = (self.network_url + IPSEC_VPN_URL_TEMPLATE)
         self.href = ipsec_vpn_href
 
     def get_ipsec_config_resource(self):
-        self.__build_self_href()
         return self.client.get_resource(self.href)
 
     def delete_ipsec_vpn(self):
@@ -55,6 +56,52 @@ class IpsecVpn(GatewayServices):
             if site.localIp == local_ip and site.peerIp == peer_ip:
                 vpn_sites.remove(site)
 
+        self.client.put_resource(self.href,
+                                 ipsec_vpn,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def enable_activation_status(self, is_active):
+        """Enables activation status of IPsec VPN.
+
+        :param bool is_active: flag to enable/disable activation status
+        """
+        ipsec_vpn = self.resource
+        ipsec_vpn.enabled = is_active
+        self.client.put_resource(self.href,
+                                 ipsec_vpn,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def info_activation_status(self):
+        """Info activation status.
+
+        :return: dict activation status dict
+        """
+        ipsec_vpn_activation_status = {}
+        ipsec_vpn = self.resource
+        ipsec_vpn_activation_status["Activation Status"] = \
+            ipsec_vpn.enabled.text
+        return ipsec_vpn_activation_status
+
+    def change_shared_key(self, shared_key):
+        """Changes shared key.
+
+        :param str shared_key: shared key.
+        """
+        ipsec_vpn = self.resource
+        ip_sec_global = ipsec_vpn.xpath('global', namespaces=NSMAP)
+        ip_sec_global.psk = shared_key
+
+        self.client.put_resource(self.href,
+                                 ipsec_vpn,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def enable_logging(self, is_enable):
+        """Enables logging for IPsec VPN.
+
+        :param bool is_enable: flag to enable/disable logging.
+        """
+        ipsec_vpn = self.resource
+        ipsec_vpn.logging.enable = is_enable
         self.client.put_resource(self.href,
                                  ipsec_vpn,
                                  EntityType.DEFAULT_CONTENT_TYPE.value)

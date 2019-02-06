@@ -1315,3 +1315,25 @@ class Gateway(object):
         :rtype: list
         """
         return self.__build_object_browser_response(type, object_type)
+
+    def reorder_nat_rule(self, rule_id, position):
+        """Reorder the nat rule position on gateway.
+
+        param rule_id str: id of snat/dnat rule
+        param position int: postion where nat rule will be inserted
+        """
+        nat_rule_href = self._build_nat_rule_href()
+        nat_rules_resource = self.get_nat_rules()
+        if (hasattr(nat_rules_resource.natRules, 'natRule')):
+            for nat_rule in nat_rules_resource.natRules.natRule:
+                if nat_rule.ruleId == rule_id:
+                    insert_nat_rule = nat_rule
+                    # remove the nat rule from existing position
+                    nat_rules_resource.natRules.remove(nat_rule)
+                    break
+
+        # insert the nat rule at new position
+        nat_rules_resource.natRules.insert(position,
+                                           insert_nat_rule)
+        self.client.put_resource(nat_rule_href, nat_rules_resource,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)

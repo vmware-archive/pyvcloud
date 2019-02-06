@@ -177,6 +177,25 @@ class TestNatRule(BaseTestCase):
         #Verify
         self.assertTrue(len(nat_rule_list) > 0)
 
+    def test_0025_reorder_nat_rule(self):
+        """Reorder the nat rule position on gateway.
+
+        Invokes the reorder_nat_rule of the Gateway.
+        """
+        gateway = Environment. \
+            get_test_gateway(TestNatRule._client)
+        gateway_obj = Gateway(TestNatRule._client,
+                              TestNatRule._name,
+                              href=gateway.get('href'))
+        nat_rule = gateway_obj.get_nat_rules()
+        rule_id = self.__get_snat_rule_id(nat_rule)
+        index1 = self.__get_snat_rule_index(nat_rule)
+        new_index = 2
+        gateway_obj.reorder_nat_rule(rule_id, new_index)
+        nat_rule = gateway_obj.get_nat_rules()
+        index2 = self.__get_snat_rule_index(nat_rule)
+        self.assertNotEqual(index1, index2)
+
     def test_0030_update_nat_rule(self):
         """Update a Nat Rule.
 
@@ -211,6 +230,14 @@ class TestNatRule(BaseTestCase):
                 rule_id = natRule.ruleId
                 break
         return rule_id
+
+    def __get_snat_rule_index(self, nat_rule):
+        """ Get the index of SNAT Rule"""
+        for natRule in nat_rule.natRules.natRule:
+            if natRule.action == TestNatRule._snat_action:
+                index = nat_rule.natRules.index(natRule)
+                break
+        return index
 
     def test_0090_delete_nat_rule(self):
         """Delete Nat Rule in the gateway.

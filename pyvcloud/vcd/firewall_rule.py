@@ -27,6 +27,9 @@ class FirewallRule(GatewayServices):
     __GROUP_OBJECT_LIST = ['securitygroup', 'ipset', 'virtualmachine',
                            'network']
     __VNIC_GROUP_LIST = ['gatewayinterface']
+    __APPLICATION = 'application'
+    __SERVICE = 'service'
+    __PROTOCOL_LIST = ['tcp', 'udp', 'icmp', 'any']
 
     def _build_self_href(self, rule_id):
         rule_href = (self.network_url + FIREWALL_RULE_URL_TEMPLATE).format(
@@ -52,13 +55,15 @@ class FirewallRule(GatewayServices):
         self._get_resource()
         return self.client.delete_resource(self.href)
 
-    def edit(self, source_values=None, destination_values=None):
+    def edit(self, source_values=None, destination_values=None, services=None):
         """Edit a Firewall rule.
 
         :param list source_values: list of source values. e.g.,
         [value:value_type]
         :param list destination_values: list of destination values. e.g.,
         [value:value_type]
+        :param list services: protocol to port mapping.
+         e.g., [{'tcp' : {'any' : any}}]
         """
         self._get_resource()
         self.validate_types(source_values, FirewallRule.__SOURCE)
@@ -84,9 +89,54 @@ class FirewallRule(GatewayServices):
             self._populate_objects_info(firewall_rule_temp,
                                         destination_values,
                                         FirewallRule.__DESTINATION)
+        if services:
+            if not hasattr(firewall_rule_temp, FirewallRule.__APPLICATION):
+                firewall_rule_temp.append(create_element(
+                    FirewallRule.__APPLICATION))
+            self._populate_services(firewall_rule_temp, services)
 
         self.client.put_resource(self.href, firewall_rule_temp,
                                  EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def _populate_services(self, firewall_rule_temp, services):
+        """Populates service elements.
+
+        :param firewall_rule_temp: Firewall rule
+        :param [] services: protocol to port mapping.
+         e.g., [{'tcp' : {'any' : any}}]
+        """
+        if services:
+            for service in services:
+                protocol = [k for k in service.keys()][0]
+                if protocol not in FirewallRule.__PROTOCOL_LIST:
+                    valid_protocols = ', '.join(FirewallRule.__PROTOCOL_LIST)
+                    raise InvalidParameterException(
+                        protocol + " is not valid. It should be from " +
+                        valid_protocols)
+                value = service.get(protocol)
+                source_port = [port for port in value.keys()][0]
+                destination_port = value.get(source_port)
+                self.__populate_protocol_elements(firewall_rule_temp,
+                                                  protocol, source_port,
+                                                  destination_port)
+
+    def __populate_protocol_elements(self, firewall_rule_temp, protocol,
+                                     source_port, destination_port):
+        """Populate protocol elements. It mutates the firewall rule object.
+
+        :param firewall_rule_temp: Firewall rule obj
+        :param protocol: protocol
+        :param source_port: source port
+        :param destination_port: destination port
+        """
+        application_tag = firewall_rule_temp.application
+        service_tag = create_element('service')
+        service_tag.append(create_element('protocol', protocol))
+        service_tag.append(create_element('port', destination_port))
+        service_tag.append(create_element('sourcePort', source_port))
+        if protocol == 'icmp':
+            service_tag.append(create_element('icmpType', 'any'))
+        application_tag.append(service_tag)
 
     def _populate_objects_info(self, firewall_rule_temp, values, type):
         """It will mutate firewall_rule_temp.

@@ -48,7 +48,7 @@ class IpsecVpn(GatewayServices):
         return self.client.get_resource(self.href)
 
     def set_log_level(self, log_level):
-        """ Set log level for Ipsec vpn.
+        """Set log level for Ipsec vpn.
 
         :param str log_level: log level
         """
@@ -79,7 +79,7 @@ class IpsecVpn(GatewayServices):
         return ipsec_logging_settings
 
     def list_ipsec_vpn(self):
-        """List IPsec vpn of a gateway
+        """List IPsec vpn of a gateway.
 
         :return: list of all ipsec vpn.
         """
@@ -96,9 +96,7 @@ class IpsecVpn(GatewayServices):
         return out_list
 
     def delete_ipsec_vpn(self):
-        """Delete IP sec Vpn.
-
-        """
+        """Delete IP sec Vpn."""
         end_points = self.end_point.split('-')
         local_ip = end_points[0]
         peer_ip = end_points[1]

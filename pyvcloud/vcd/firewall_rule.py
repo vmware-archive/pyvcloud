@@ -171,7 +171,10 @@ class FirewallRule(GatewayServices):
                         "from " + valid_type_list_str)
 
     def enable_disable_firewall_rule(self, is_enabled):
-        """Enabled disabled firewall rule from gateway."""
+        """Enabled disabled firewall rule from gateway.
+
+        :param bool is_enabled: flag to enable/disable the firewall rule.
+        """
         current_firewall_status = self._get_resource().enabled
         if is_enabled == current_firewall_status:
             return

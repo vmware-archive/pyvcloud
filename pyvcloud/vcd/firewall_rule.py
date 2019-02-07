@@ -91,8 +91,8 @@ class FirewallRule(GatewayServices):
                                         FirewallRule.__DESTINATION)
         if services:
             if not hasattr(firewall_rule_temp, FirewallRule.__APPLICATION):
-                firewall_rule_temp.append(create_element(
-                    FirewallRule.__APPLICATION))
+                firewall_rule_temp.append(
+                    create_element(FirewallRule.__APPLICATION))
             self._populate_services(firewall_rule_temp, services)
 
         self.client.put_resource(self.href, firewall_rule_temp,
@@ -116,8 +116,8 @@ class FirewallRule(GatewayServices):
                 value = service.get(protocol)
                 source_port = [port for port in value.keys()][0]
                 destination_port = value.get(source_port)
-                self.__populate_protocol_elements(firewall_rule_temp,
-                                                  protocol, source_port,
+                self.__populate_protocol_elements(firewall_rule_temp, protocol,
+                                                  source_port,
                                                   destination_port)
 
     def __populate_protocol_elements(self, firewall_rule_temp, protocol,
@@ -238,3 +238,22 @@ class FirewallRule(GatewayServices):
             return self.client.put_resource(
                 self.href, self._get_resource(),
                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def info_firewall_rule(self):
+        """Get the details of firewall rule.
+
+        return: Dictionary having firewall rule details.
+        e.g.
+        {'Id': 196609, 'Name': 'Test rule', 'Rule type':'user',
+        'Enabled':'True','Logging enabled':'True','Action':'Accept'}
+        :rtype: Dictionary
+        """
+        firewall_rule_info = {}
+        resource = self._get_resource()
+        firewall_rule_info['Id'] = resource.id
+        firewall_rule_info['Name'] = resource.name
+        firewall_rule_info['Rule type'] = resource.ruleType
+        firewall_rule_info['Enabled'] = resource.enabled
+        firewall_rule_info['Logging enabled'] = resource.loggingEnabled
+        firewall_rule_info['Action'] = resource.action
+        return firewall_rule_info

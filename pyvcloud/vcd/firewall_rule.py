@@ -56,7 +56,11 @@ class FirewallRule(GatewayServices):
         self._get_resource()
         return self.client.delete_resource(self.href)
 
-    def edit(self, source_values=None, destination_values=None, services=None):
+    def edit(self,
+             source_values=None,
+             destination_values=None,
+             services=None,
+             new_name=None):
         """Edit a Firewall rule.
 
         :param list source_values: list of source values. e.g.,
@@ -95,6 +99,8 @@ class FirewallRule(GatewayServices):
                     create_element(FirewallRule.__APPLICATION))
             self._populate_services(firewall_rule_temp, services)
 
+        if new_name is not None:
+            firewall_rule_temp.name = new_name
         self.client.put_resource(self.href, firewall_rule_temp,
                                  EntityType.DEFAULT_CONTENT_TYPE.value)
 

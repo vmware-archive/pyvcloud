@@ -148,6 +148,7 @@ class TestFirewallRules(BaseTestCase):
                 'any': 'any'
             }
         }]
+        name = firewall_obj._get_resource().name
         new_name = 'Rule_New_Name_Test'
         firewall_obj.edit(source_object, destination_object, source, new_name)
         # Verify
@@ -161,6 +162,8 @@ class TestFirewallRules(BaseTestCase):
         self.assertTrue(hasattr(firewall_res.destination, 'ipAddress'))
         self.assertTrue(hasattr(firewall_res.application, 'service'))
         self.assertEqual(firewall_res.name, 'Rule_New_Name_Test')
+        # revert back name change to old name
+        firewall_obj.edit(source_object, destination_object, source, name)
 
     def test_0041_enable_disable_firewall_rule(self):
         firewall_obj = FirewallRule(TestFirewallRules._client,

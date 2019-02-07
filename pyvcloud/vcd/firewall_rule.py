@@ -69,7 +69,7 @@ class FirewallRule(GatewayServices):
         [value:value_type]
         :param list services: protocol to port mapping.
          e.g., [{'tcp' : {'any' : any}}]
-        :param String new_name: new name of the firewall rule.
+        :param string new_name: new name of the firewall rule.
         """
         self._get_resource()
         self.validate_types(source_values, FirewallRule.__SOURCE)

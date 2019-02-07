@@ -19,7 +19,7 @@ import warnings
 
 import requests
 
-from system_tests.helpers.portgroup_helper import PortgroupHelper
+from helpers.portgroup_helper import PortgroupHelper
 from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
 from pyvcloud.system_test_framework.constants.ovdc_network_constant import \

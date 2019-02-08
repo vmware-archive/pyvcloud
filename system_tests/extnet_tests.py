@@ -466,9 +466,14 @@ class TestExtNet(BaseTestCase):
             TestExtNet._common_ext_net_name)
         extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
                                      resource=ext_net_resource)
-        direct_ovdc_networks = extnet_obj.list_associated_direct_org_vdc_networks(
-            'connectedTo==Ext*')
-        self.assertTrue(len(direct_ovdc_networks) > 0)
+        ovdc_network_name = 'test-direct-vdc-network'
+        filter = 'name==' + ovdc_network_name
+        direct_ovdc_networks = \
+            extnet_obj.list_associated_direct_org_vdc_networks(filter)
+        match_found = False
+        if ovdc_network_name in direct_ovdc_networks:
+            match_found = True
+        self.assertTrue(match_found)
 
     def test_0105_list_vsphere_network(self):
         """List associated vSphere Networks.
@@ -478,8 +483,14 @@ class TestExtNet(BaseTestCase):
             TestExtNet._name)
         extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
                                      resource=ext_net_resource)
-        vSphere_network_list = extnet_obj.list_vsphere_network('networkName==Ext*')
-        self.assertTrue(len(vSphere_network_list) > 0)
+        portgroup_name = 'VM Network'
+        vSphere_network_list = \
+            extnet_obj.list_vsphere_network('name==' + portgroup_name)
+        match_found = False
+        for dic in vSphere_network_list:
+            if dic['Name'] == portgroup_name:
+                match_found = True
+        self.assertTrue(match_found)
 
     def __add_sub_allocate_ip_pool(self):
         gateway = Environment. \

@@ -86,7 +86,7 @@ class NatRule(object):
             self.client.get_resource(nat_rule_config_url)
         nat_rules = nat_rules_config_resource.natRules.natRule
         for rule in nat_rules:
-            if rule.ruleId == self.rule_id:
+            if int(rule.ruleId) == int(self.rule_id):
                 self.resource = rule
                 break
 
@@ -131,7 +131,8 @@ class NatRule(object):
         :rtype: Dictionary
         """
         nat_rule_info = {}
-        nat_rule = self.get_resource()
+        self.get_resource()
+        nat_rule = self.resource
         nat_rule_info['ID'] = nat_rule.ruleId
         nat_rule_info['OriginalAddress'] = nat_rule.originalAddress
         nat_rule_info['OriginalPort'] = nat_rule.originalPort
@@ -141,7 +142,8 @@ class NatRule(object):
         nat_rule_info['Protocol'] = nat_rule.protocol
         nat_rule_info['Enabled'] = nat_rule.enabled
         nat_rule_info['Logging'] = nat_rule.loggingEnabled
-        nat_rule_info['Description'] = nat_rule.description
+        if hasattr(nat_rule, 'description'):
+            nat_rule_info['Description'] = nat_rule.description
         return nat_rule_info
 
     def update_nat_rule(self,

@@ -22,6 +22,7 @@ from pyvcloud.system_test_framework.constants.ovdc_network_constant import \
     OvdcNetConstants
 from pyvcloud.vcd.firewall_rule import FirewallRule
 from pyvcloud.vcd.gateway import Gateway
+from pyvcloud.system_test_framework.environment import CommonRoles
 
 
 class TestFirewallRules(BaseTestCase):
@@ -31,22 +32,24 @@ class TestFirewallRules(BaseTestCase):
     _firewall_rule_name = 'Rule Name Test' + str(uuid1())
     _name = GatewayConstants.name
     _rule_id = None
+    _test_runner_role = CommonRoles.ORGANIZATION_ADMINISTRATOR
 
     def test_0000_setup(self):
         """Add Firewall Rules in the gateway.
 
         Invokes the add_firewall_rule of the gateway.
         """
-        TestFirewallRules._client = Environment.get_sys_admin_client()
+        TestFirewallRules._client = Environment.get_client_in_default_org(
+            TestFirewallRules._test_runner_role)
+        TestFirewallRules._system_client = Environment.get_sys_admin_client()
         TestFirewallRules._config = Environment.get_config()
-        gateway = Environment. \
-            get_test_gateway(TestFirewallRules._client)
+        gateway = Environment.get_test_gateway(TestFirewallRules._client)
         TestFirewallRules._gateway_obj = Gateway(
             TestFirewallRules._client,
             TestFirewallRules._name,
             href=gateway.get('href'))
-        TestFirewallRules._external_network = \
-            Environment.get_test_external_network(TestFirewallRules._client)
+        TestFirewallRules._external_network = Environment. \
+            get_test_external_network(TestFirewallRules._system_client)
 
         TestFirewallRules._gateway_obj.add_firewall_rule(
             TestFirewallRules._firewall_rule_name)

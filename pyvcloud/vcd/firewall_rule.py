@@ -176,26 +176,29 @@ class FirewallRule(GatewayServices):
         """
         if object_type == 'ip':
             return create_element('ipAddress', value)
-        gateway_res = Gateway(self.client, resource=self.parent)
-        object_list = gateway_res.list_firewall_objects(type, object_type)
-        for object in object_list:
-            if object_type in FirewallRule.__GROUP_OBJECT_LIST:
-                return self.__find_element(object, value, 'groupingObjectId')
-            elif object_type in FirewallRule.__VNIC_GROUP_LIST:
-                return self.__find_element(object, value, 'vnicGroupId')
 
-    def __find_element(self, object, value, group_type):
+        if object_type in FirewallRule.__GROUP_OBJECT_LIST:
+            return self.__find_element(type, object_type, value,
+                                       'groupingObjectId')
+        elif object_type in FirewallRule.__VNIC_GROUP_LIST:
+            return self.__find_element(type, object_type, value, 'vnicGroupId')
+
+    def __find_element(self, type, object_type, value, group_type):
         """Find element in the properties using group type.
 
-        :param dict object: dict of values
+        :param str type: It can be source/destination
+        :param dict object_type: object types
         :param str value: value
         :param str group_type: group type. e.g., groupingObjectId
         """
-        if object.get('name') == value:
-            properties = object.get('prop')
-            for prop in properties:
-                if prop.get('name') == group_type:
-                    return create_element(group_type, prop.get('value'))
+        gateway_res = Gateway(self.client, resource=self.parent)
+        object_list = gateway_res.list_firewall_objects(type, object_type)
+        for object in object_list:
+            if object.get('name') == value:
+                properties = object.get('prop')
+                for prop in properties:
+                    if prop.get('name') == group_type:
+                        return create_element(group_type, prop.get('value'))
 
     def validate_types(self, source_types, type):
         """Validate input param for valid type.

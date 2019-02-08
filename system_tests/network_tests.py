@@ -444,7 +444,7 @@ class TestNetwork(BaseTestCase):
     def test_0135_convert_to_distributed_interface_sys_admin(self):
         self.__convert_to_distributed_interface(TestNetwork._system_client)
 
-    def test_0140_convert_to_distributed_interface_sys_admin(self):
+    def test_0140_convert_to_distributed_interface_org_admin(self):
         self.__convert_to_distributed_interface(TestNetwork._client)
 
     def __convert_to_distributed_interface(self, client):

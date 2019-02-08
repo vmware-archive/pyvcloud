@@ -569,9 +569,12 @@ class ExternalNetwork(object):
         :raises: EntityNotFoundException: if any direct org vDC network
          cannot be found.
         """
+        query_filter = 'connectedTo==' + self.name
+        if filter:
+            query_filter += ';' + filter
         query = self.client.get_typed_query(
             ResourceType.ORG_VDC_NETWORK.value,
-            qfilter=filter,
+            qfilter=query_filter,
             query_result_format=QueryResultFormat.RECORDS)
         records = list(query.execute())
 
@@ -586,16 +589,19 @@ class ExternalNetwork(object):
 
         :param str filter: filter to fetch the vSphere Networks,
         e.g., networkName==Ext*
-        :return: list of associated provider vdcs
+        :return: list of associated vSphere networks
         e.g.
         [{'vCenter': 'vc1', 'Name': 'test-dvpg'}]
         :rtype: list
         """
         out_list = []
+        query_filter = 'networkName==' + self.name
+        if filter:
+            query_filter += ';' + filter
         query = self.client.get_typed_query(
             ResourceType.PORT_GROUP.value,
             query_result_format=QueryResultFormat.RECORDS,
-            qfilter=filter)
+            qfilter=query_filter)
         records = query.execute()
         if records is None:
             raise EntityNotFoundException('No associated vSphere'

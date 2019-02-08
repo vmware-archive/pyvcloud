@@ -24,7 +24,7 @@ vcd:
 # Fill in the vCloud Dirctor host, sysadmin credentials and other related
 # information here. These will be required for the tests to run.
   host: '<vcd ip>'
-  api_version: '32.0'
+  api_version: '30.0'
   sys_admin_username: 'administrator'
   sys_admin_pass: '<root-password>'
   sys_org_name: 'System'

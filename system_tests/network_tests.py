@@ -442,15 +442,18 @@ class TestNetwork(BaseTestCase):
         self.assertFalse(reloaded_vdc_network.Configuration.SubInterface)
 
     def test_0135_convert_to_distributed_interface_sys_admin(self):
-        client = TestNetwork._system_client
+        self.__convert_to_distributed_interface(TestNetwork._system_client)
+
+    def test_0140_convert_to_distributed_interface_org_admin(self):
+        self.__convert_to_distributed_interface(TestNetwork._client)
+
+    def __convert_to_distributed_interface(self, client):
+        self.__convert_enable_dr_in_gateway_using_sys_client(True)
+
         vdc = Environment.get_test_vdc(client)
         org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
             TestNetwork._routed_org_vdc_network_name)
         vdc_network = VdcNetwork(client, resource=org_vdc_routed_nw)
-        gateway = Environment.get_test_gateway(client)
-
-        if gateway.get('distributedRoutingEnabled') == 'false':
-            self.__enable_gateway_distributed_routing(client, gateway, True)
 
         result = vdc_network.convert_to_distributed_interface()
         self.__wait_for_success(client, result)
@@ -466,17 +469,28 @@ class TestNetwork(BaseTestCase):
         self.__wait_for_success(client, result)
 
         # Disable the distributed routing on gateway
-        gateway = Environment.get_test_gateway(client)
-        if gateway.get('distributedRoutingEnabled') == 'true':
-            self.__enable_gateway_distributed_routing(client, gateway, False)
+        self.__convert_enable_dr_in_gateway_using_sys_client(False)
 
-        # Verify
+    def __convert_enable_dr_in_gateway_using_sys_client(self, is_enable):
+        client = TestNetwork._system_client
         gateway = Environment.get_test_gateway(client)
-        self.assertEqual(gateway.get('distributedRoutingEnabled'), 'false')
+        if is_enable is True:
+            current_state = 'false'
+            new_state = 'true'
+        else:
+            current_state = 'true'
+            new_state = 'false'
 
-    def __enable_gateway_distributed_routing(self, client, gateway, isEnable):
+        if gateway.get('distributedRoutingEnabled') == current_state:
+            self.__enable_gateway_distributed_routing(client, gateway,
+                                                      is_enable)
+            gateway = Environment.get_test_gateway(client)
+            self.assertEqual(gateway.get('distributedRoutingEnabled'),
+                             new_state)
+
+    def __enable_gateway_distributed_routing(self, client, gateway, is_enable):
         gateway_obj = Gateway(client, href=gateway.get('href'))
-        task = gateway_obj.enable_distributed_routing(isEnable)
+        task = gateway_obj.enable_distributed_routing(is_enable)
         self.__wait_for_success(client, task)
 
     def __wait_for_success(self, client, task):

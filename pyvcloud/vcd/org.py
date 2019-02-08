@@ -942,12 +942,13 @@ class Org(object):
         return self.client.post_linked_resource(
             resource_admin, RelationType.ADD, EntityType.USER.value, user)
 
-    def update_user(self, user_name, is_enabled=None):
+    def update_user(self, user_name, is_enabled=None, role_name=None):
         """Update an user.
 
         :param str user_name: username of the user.
         :param bool is_enabled: True, to enable the user, False to disable the
             user.
+        :param str role_name: name of the role being assigned to user.
 
         :return: an object containing EntityType.USER XML data describing the
             user that just got updated.
@@ -958,8 +959,15 @@ class Org(object):
         if is_enabled is not None:
             if hasattr(user, 'IsEnabled'):
                 user['IsEnabled'] = E.IsEnabled(is_enabled)
-                return self.client.put_resource(
-                    user.get('href'), user, EntityType.USER.value)
+        if role_name:
+            if hasattr(user, 'Role'):
+                role = self.get_role_record(role_name)
+                user['Role'] = E.Role(href=role.get('href'))
+
+        if is_enabled or role_name:
+            return self.client.put_resource(
+                user.get('href'), user, EntityType.USER.value)
+
         return user
 
     def get_user(self, user_name):

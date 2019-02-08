@@ -22,6 +22,7 @@ from pyvcloud.system_test_framework.constants.ovdc_network_constant import \
     OvdcNetConstants
 from pyvcloud.vcd.firewall_rule import FirewallRule
 from pyvcloud.vcd.gateway import Gateway
+from pyvcloud.system_test_framework.environment import CommonRoles
 
 
 class TestFirewallRules(BaseTestCase):
@@ -31,22 +32,24 @@ class TestFirewallRules(BaseTestCase):
     _firewall_rule_name = 'Rule Name Test' + str(uuid1())
     _name = GatewayConstants.name
     _rule_id = None
+    _test_runner_role = CommonRoles.ORGANIZATION_ADMINISTRATOR
 
     def test_0000_setup(self):
         """Add Firewall Rules in the gateway.
 
         Invokes the add_firewall_rule of the gateway.
         """
-        TestFirewallRules._client = Environment.get_sys_admin_client()
+        TestFirewallRules._org_client = Environment.get_client_in_default_org(
+            TestFirewallRules._test_runner_role)
+        TestFirewallRules._system_client = Environment.get_sys_admin_client()
         TestFirewallRules._config = Environment.get_config()
-        gateway = Environment. \
-            get_test_gateway(TestFirewallRules._client)
+        gateway = Environment.get_test_gateway(TestFirewallRules._org_client)
         TestFirewallRules._gateway_obj = Gateway(
-            TestFirewallRules._client,
+            TestFirewallRules._org_client,
             TestFirewallRules._name,
             href=gateway.get('href'))
-        TestFirewallRules._external_network = \
-            Environment.get_test_external_network(TestFirewallRules._client)
+        TestFirewallRules._external_network = Environment. \
+            get_test_external_network(TestFirewallRules._system_client)
 
         TestFirewallRules._gateway_obj.add_firewall_rule(
             TestFirewallRules._firewall_rule_name)
@@ -69,9 +72,9 @@ class TestFirewallRules(BaseTestCase):
         """
         TestFirewallRules._config = Environment.get_config()
         gateway = Environment. \
-            get_test_gateway(TestFirewallRules._client)
+            get_test_gateway(TestFirewallRules._org_client)
         gateway_obj = Gateway(
-            TestFirewallRules._client,
+            TestFirewallRules._org_client,
             TestFirewallRules._name,
             href=gateway.get('href'))
         firewall_rules_list = gateway_obj.get_firewall_rules_list()
@@ -80,7 +83,7 @@ class TestFirewallRules(BaseTestCase):
 
     def test_0010_get_created_firewall_rule(self):
         """Get the Firewall Rule created in setup."""
-        firewall_obj = FirewallRule(TestFirewallRules._client,
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name,
                                     TestFirewallRules._rule_id)
         firewall_res = firewall_obj._get_resource()
@@ -123,7 +126,7 @@ class TestFirewallRules(BaseTestCase):
             self.assertTrue(len(object_res) > 0)
 
     def test_0050_edit(self):
-        firewall_obj = FirewallRule(TestFirewallRules._client,
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name,
                                     TestFirewallRules._rule_id)
         ext_net_resource = TestFirewallRules._external_network.get_resource()
@@ -166,7 +169,7 @@ class TestFirewallRules(BaseTestCase):
                           TestFirewallRules._firewall_rule_name)
 
     def test_0041_enable_disable_firewall_rule(self):
-        firewall_obj = FirewallRule(TestFirewallRules._client,
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name,
                                     TestFirewallRules._rule_id)
         result = firewall_obj.enable_disable_firewall_rule(False)
@@ -175,7 +178,7 @@ class TestFirewallRules(BaseTestCase):
         self.assertIsNone(result)
 
     def test_0061_info_firewall_rule(self):
-        firewall_obj = FirewallRule(TestFirewallRules._client,
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name,
                                     TestFirewallRules._rule_id)
         firewall_rule_info = firewall_obj.info_firewall_rule()
@@ -184,7 +187,7 @@ class TestFirewallRules(BaseTestCase):
         self.assertEqual(firewall_rule_info['Id'], TestFirewallRules._rule_id)
 
     def test_0098_teardown(self):
-        firewall_obj = FirewallRule(TestFirewallRules._client,
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name,
                                     TestFirewallRules._rule_id)
         firewall_obj.delete()
@@ -202,7 +205,7 @@ class TestFirewallRules(BaseTestCase):
 
     def test_0099_cleanup(self):
         """Release all resources held by this object for testing purposes."""
-        TestFirewallRules._client.logout()
+        TestFirewallRules._org_client.logout()
 
 
 if __name__ == '__main__':

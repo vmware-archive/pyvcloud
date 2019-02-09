@@ -572,9 +572,6 @@ class ExternalNetwork(object):
         records = list(query.execute())
 
         direct_ovdc_network_names = [record.get('name') for record in records]
-        if len(direct_ovdc_network_names) == 0:
-            raise EntityNotFoundException('No associated direct org vDC '
-                                          'networks found')
         return direct_ovdc_network_names
 
     def list_vsphere_network(self, filter=None):
@@ -596,9 +593,7 @@ class ExternalNetwork(object):
             query_result_format=QueryResultFormat.RECORDS,
             qfilter=query_filter)
         records = query.execute()
-        if records is None:
-            raise EntityNotFoundException('No associated vSphere'
-                                          ' Networks found')
+
         for record in records:
             vSphere_network_list = dict()
             vSphere_network_list['vCenter'] = record.get('vcName')

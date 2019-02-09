@@ -125,6 +125,7 @@ class ExternalNetwork(object):
             ip_scope.append(E.Dns2(secondary_dns_ip))
         if dns_suffix is not None:
             ip_scope.append(E.DnsSuffix(dns_suffix))
+        ip_scope.append(E.IsEnabled(True))
         e_ip_ranges = E.IpRanges()
         for ip_range in ip_ranges:
             e_ip_range = E.IpRange()
@@ -307,13 +308,10 @@ class ExternalNetwork(object):
             platform.get_port_group_moref_types(vim_server_name,
                                                 port_group_name)
 
-        if hasattr(ext_net,
-                   '{' + NSMAP['vmext'] + '}VimPortGroupRef'):
+        if hasattr(ext_net, '{' + NSMAP['vmext'] + '}VimPortGroupRef'):
             vim_port_group_refs = E_VMEXT.VimPortGroupRefs()
             vim_object_ref1 = self.__create_vimobj_ref(
-                vc_href,
-                pg_moref_types[0],
-                pg_moref_types[1])
+                vc_href, pg_moref_types[0], pg_moref_types[1])
 
             # Create a new VimObjectRef using vc href, portgroup moref and type
             # from existing VimPortGroupRef. Add the VimObjectRef to
@@ -322,9 +320,7 @@ class ExternalNetwork(object):
             vim_pg_ref = ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRef']
             vc2_href = vim_pg_ref.VimServerRef.get('href')
             vim_object_ref2 = self.__create_vimobj_ref(
-                vc2_href,
-                vim_pg_ref.MoRef.text,
-                vim_pg_ref.VimObjectType.text)
+                vc2_href, vim_pg_ref.MoRef.text, vim_pg_ref.VimObjectType.text)
 
             vim_port_group_refs.append(vim_object_ref1)
             vim_port_group_refs.append(vim_object_ref2)
@@ -334,9 +330,7 @@ class ExternalNetwork(object):
             vim_port_group_refs = \
                 ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRefs']
             vim_object_ref1 = self.__create_vimobj_ref(
-                vc_href,
-                pg_moref_types[0],
-                pg_moref_types[1])
+                vc_href, pg_moref_types[0], pg_moref_types[1])
             vim_port_group_refs.append(vim_object_ref1)
 
         return self.client. \
@@ -535,8 +529,7 @@ class ExternalNetwork(object):
                     gateway_entry[1]
         return gateway_name_sub_allocated_ip_dict
 
-    def _get_gateway_sub_allocated_ip_for_provided_ext_nw(self,
-                                                          gateway_href):
+    def _get_gateway_sub_allocated_ip_for_provided_ext_nw(self, gateway_href):
         gateway_sub_allocated_ip = []
         allocation_range = ''
         gateway_resource = self.__get_gateway_resource(gateway_href)

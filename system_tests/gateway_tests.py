@@ -301,19 +301,19 @@ class TestGateway(BaseTestCase):
 
         self._delete_external_network(TestGateway._external_network2)
 
-    def test_0010_edit_gateway_name(self):
+    def test_0010_edit_gateway(self):
         """Edit the gateway name.
 
-        Invokes the edit_gateway_name of the gateway.
+        Invokes the edit_gateway of the gateway.
         """
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
-        task = gateway_obj.edit_gateway_name('gateway2')
+        task = gateway_obj.edit_gateway(newname='gateway2')
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         '''resetting back to original gateway name'''
-        task = gateway_obj.edit_gateway_name(TestGateway._name)
+        task = gateway_obj.edit_gateway(TestGateway._name)
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)

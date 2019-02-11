@@ -281,25 +281,21 @@ class FirewallRule(GatewayServices):
         :rtype: Dictionary
         """
         resource = self._get_resource()
-        # for vnicGroupId in resource.source.vnicGroupId:
-        # print(vnicGroupId)
         firewall_rule_source = {}
         if hasattr(resource, 'source'):
             if hasattr(resource.source, 'exclude'):
                 firewall_rule_source['exclude'] = resource.source.exclude
             if hasattr(resource.source, 'vnicGroupId'):
-                list = []
-                for vnicGroupId in resource.source.vnicGroupId:
-                    list.append(vnicGroupId)
-                firewall_rule_source['vnicGroupId'] = list
+                firewall_rule_source['vnicGroupId'] = [
+                    vnicGroupId for vnicGroupId in resource.source.vnicGroupId
+                ]
             if hasattr(resource.source, 'ipAddress'):
-                list = []
-                for ipAddress in resource.source.ipAddress:
-                    list.append(ipAddress)
-                firewall_rule_source['ipAddress'] = list
+                firewall_rule_source['ipAddress'] = [
+                    ipAddress for ipAddress in resource.source.ipAddress
+                ]
             if hasattr(resource.source, 'groupingObjectId'):
-                list = []
-                for groupingObjectId in resource.source.groupingObjectId:
-                    list.append(groupingObjectId)
-                firewall_rule_source['groupingObjectId'] = list
+                firewall_rule_source['groupingObjectId'] = [
+                    groupingObjectId
+                    for groupingObjectId in resource.source.groupingObjectId
+                ]
         return firewall_rule_source

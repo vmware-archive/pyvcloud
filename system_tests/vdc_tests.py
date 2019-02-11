@@ -124,9 +124,8 @@ class TestOrgVDC(BaseTestCase):
         """
         org = Environment.get_test_org(TestOrgVDC._client)
         try:
-            org.get_vdc(TestOrgVDC._non_existent_vdc_name)
-            self.fail('Should not be able to fetch vdc ' +
-                      TestOrgVDC._non_existent_vdc_name)
+            resource = org.get_vdc(TestOrgVDC._non_existent_vdc_name)
+            self.assertIsNone(resource)
         except EntityNotFoundException as e:
             pass
 

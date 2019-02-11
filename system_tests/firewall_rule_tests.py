@@ -186,6 +186,16 @@ class TestFirewallRules(BaseTestCase):
         self.assertTrue(len(firewall_rule_info) > 0)
         self.assertEqual(firewall_rule_info['Id'], TestFirewallRules._rule_id)
 
+    def test_0081_list_firewall_rule_source(self):
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        result = firewall_obj.list_firewall_rule_source()
+        self.assertTrue('vnicGroupId' in result)
+        self.assertTrue('groupingObjectId' in result)
+        self.assertTrue('ipAddress' in result)
+        self.assertTrue('exclude' in result)
+
     def test_0098_teardown(self):
         firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name,

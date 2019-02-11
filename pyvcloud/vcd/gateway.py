@@ -364,21 +364,37 @@ class Gateway(object):
             self.resource, RelationType.GATEWAY_UPDATE_PROPERTIES,
             EntityType.EDGE_GATEWAY.value, gateway)
 
-    def edit_gateway_name(self, newname=None):
+    def edit_gateway(self, newname=None, desc=None, ha=None):
         """It changes the old name of the gateway to the new name.
 
-        :param String newname: new name of the gateway
+        :param Str newname: new name of the gateway
+        :param Str desc: description of the gateway
+        :param bool ha: HA of the gateway
 
         :return: object containing EntityType.TASK XML data
             representing the asynchronous task.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if newname is None:
-            raise ValueError('Invalid input, name cannot be empty.')
+        non_empty_param = True
 
         gateway = self.get_resource()
-        gateway.set('name', newname)
+        if newname:
+            non_empty_param = False
+            gateway.set('name', newname)
+        if desc:
+            non_empty_param = False
+            if hasattr(gateway, 'Description'):
+                gateway.Description = E.Description(desc)
+            else:
+                gateway.insert(0, E.Description(desc))
+        if ha:
+            non_empty_param = False
+            gateway.Configuration.HaEnabled = E.HaEnabled(ha)
+
+        if non_empty_param is True:
+            raise ValueError('Invalid input,please provide any one parameter.')
+
         return self.client.put_linked_resource(
             self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
             gateway)

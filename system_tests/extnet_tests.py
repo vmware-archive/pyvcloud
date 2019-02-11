@@ -16,7 +16,7 @@
 import unittest
 from uuid import uuid1
 
-from system_tests.helpers.portgroup_helper import PortgroupHelper
+from helpers.portgroup_helper import PortgroupHelper
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment

@@ -271,14 +271,14 @@ class FirewallRule(GatewayServices):
     def list_firewall_rule_source(self):
         """Get the list of firewall rule source.
 
-        return: Dictionary having firewall rule source details.
+        return: dict of firewall rule's source details.
         e.g.
         {'exclude':'True','ipAddress':['10.112.12.12','10.232.1.2'],
         'vnicGroupId':['vse','external','internal','vnic-0'],
         'groupingObjectId':['1f0aab71-6d11-4567-994e-2c090fea7350:ipset',
         'urn:vcloud:network:3ed60402-904f-410d-913c-6da77b43a257:']
         }
-        :rtype: Dictionary
+        :rtype: dict
         """
         resource = self._get_resource()
         firewall_rule_source = {}

@@ -26,6 +26,7 @@ from lxml import etree
 from lxml import objectify
 
 from pyvcloud.vcd.acl import Acl
+from pyvcloud.vcd.client import ApiVersion
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
@@ -216,7 +217,19 @@ class Org(object):
         :raises: EntityNotFoundException: if the named catalog can not be
             found.
         """
-        catalog_resource = self.get_catalog(name)
+        # The link to publish catalog was moved to /api/catalog/{id}'s body in
+        # vCD 9.1 (api v30.0). In previous versions the link to share catalog
+        # was present in the /api/admin/catalog/{id}'s body.
+        # Currently the lowest supported vCD api version is 29.0, which is the
+        # only version for which we need to look in /api/admin/catalog/{id}'s
+        # body while trying to share a catalog.
+        # TODO() remove this conditional logic once we stop supporting api
+        # version 29.0.
+        if self.client.get_api_version() == ApiVersion.VERSION_29.value:
+            catalog_resource = self.get_catalog(name, is_admin_operation=True)
+        else:
+            catalog_resource = self.get_catalog(name)
+
         is_published = 'true' if share else 'false'
         params = E.PublishCatalogParams(E.IsPublished(is_published))
 

@@ -27,7 +27,6 @@ cd `dirname $0`
 SCRIPT_DIR=`pwd`
 SRCROOT=`cd ..; pwd`
 cd $SRCROOT
-mkdir system_test_output.txt
 
 # If there are tests to run use those. Otherwise use stable tests.
 STABLE_TESTS="client_tests.py \
@@ -91,4 +90,4 @@ cd system_tests
 # Run the tests with the new file. From here on out all commands are logged.
 set -x
 export VCD_TEST_BASE_CONFIG_FILE=${auto_base_config}
-python3 -m unittest $TESTS -v >system_test_output.txt
+python3 main.py $TESTS

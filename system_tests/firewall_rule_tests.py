@@ -30,6 +30,7 @@ class TestFirewallRules(BaseTestCase):
     # All tests in this module should be run as System Administrator.
     # Firewall Rule
     _firewall_rule_name = 'Rule Name Test' + str(uuid1())
+    _firewall_rule_name2 = 'Rule Name Test2' + str(uuid1())
     _name = GatewayConstants.name
     _rule_id = None
     _test_runner_role = CommonRoles.ORGANIZATION_ADMINISTRATOR
@@ -197,12 +198,13 @@ class TestFirewallRules(BaseTestCase):
         self.assertTrue('exclude' in result)
 
     def test_0091_update_firewall_rule_sequence(self):
-        TestFirewallRules._gateway_obj.add_firewall_rule('Test2')
+        TestFirewallRules._gateway_obj.add_firewall_rule(
+            TestFirewallRules._firewall_rule_name2)
         firewall_rules_resource = \
             TestFirewallRules._gateway_obj.get_firewall_rules()
         rule_id = None
         for firewallRule in firewall_rules_resource.firewallRules.firewallRule:
-            if firewallRule['name'] == 'Test2':
+            if firewallRule['name'] == TestFirewallRules._firewall_rule_name2:
                 rule_id = firewallRule.id
                 break
 
@@ -214,7 +216,7 @@ class TestFirewallRules(BaseTestCase):
         firewall_rules_resource = \
             TestFirewallRules._gateway_obj.get_firewall_rules()
         for firewallRule in firewall_rules_resource.firewallRules.firewallRule:
-            if firewallRule['name'] == 'Test2':
+            if firewallRule['name'] == TestFirewallRules._firewall_rule_name2:
                 break
             sequence_no_after += 1
         self.assertEqual(sequence_no_after, new_index)

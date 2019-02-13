@@ -306,7 +306,7 @@ class FirewallRule(GatewayServices):
     def update_firewall_rule_sequence(self, index):
         """Change firewall rule's sequence from gateway.
 
-        :param int index: new sequance index of firewall rule.
+        :param int index: new sequence index of firewall rule.
         """
         index = int(index)
         gateway_res = Gateway(self.client, resource=self.parent)

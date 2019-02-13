@@ -303,7 +303,7 @@ class FirewallRule(GatewayServices):
     def _build_firewall_rules_href(self):
         return self.network_url + FIREWALL_URL_TEMPLATE
 
-    def update_firewall_rule_sequance(self, index):
+    def update_firewall_rule_sequence(self, index):
         """Change firewall rule's sequence from gateway.
 
         :param int index: new sequance index of firewall rule.

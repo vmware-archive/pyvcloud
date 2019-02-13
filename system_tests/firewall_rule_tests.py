@@ -196,6 +196,15 @@ class TestFirewallRules(BaseTestCase):
         self.assertTrue('ipAddress' in result)
         self.assertTrue('exclude' in result)
 
+    def test_0091_update_firewall_rule_sequance(self):
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        result = firewall_obj.update_firewall_rule_sequance(True)
+        self.assertIsNone(result)
+        result = firewall_obj.update_firewall_rule_sequance(False)
+        self.assertIsNone(result)
+
     def test_0098_teardown(self):
         firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name,

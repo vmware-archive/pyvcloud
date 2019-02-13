@@ -299,3 +299,39 @@ class FirewallRule(GatewayServices):
                     for groupingObjectId in resource.source.groupingObjectId
                 ]
         return firewall_rule_source
+
+    def _build_firewall_rules_href(self):
+        return self.network_url + FIREWALL_URL_TEMPLATE
+
+    def update_firewall_rule_sequance(self, is_up):
+        """Change firewall rule's sequence from gateway.
+
+        :param bool is_up: flag to up/down the firewall rule.
+        """
+        gateway_res = Gateway(self.client, resource=self.parent)
+        firewall_rule = gateway_res.get_firewall_rules()
+        resource = self._get_resource()
+        change_required = False
+        for rule in firewall_rule.firewallRules.firewallRule:
+            if rule.id == resource.id:
+                previous = rule.getprevious()
+                next = rule.getnext()
+                if is_up and previous is not None:
+                    if previous.ruleType == 'user':
+                        index = firewall_rule.firewallRules.index(rule)
+                        firewall_rule.firewallRules.remove(rule)
+                        firewall_rule.firewallRules.insert(index - 1, rule)
+                        change_required = True
+                elif not is_up and next is not None:
+                    if next.ruleType == 'user':
+                        index = firewall_rule.firewallRules.index(rule)
+                        firewall_rule.firewallRules.remove(rule)
+                        firewall_rule.firewallRules.insert(index + 1, rule)
+                        change_required = True
+                break
+        if change_required:
+            return self.client.put_resource(
+                self._build_firewall_rules_href(), firewall_rule,
+                EntityType.DEFAULT_CONTENT_TYPE.value)
+        else:
+            return

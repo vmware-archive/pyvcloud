@@ -197,11 +197,29 @@ class TestFirewallRules(BaseTestCase):
         self.assertTrue('exclude' in result)
 
     def test_0091_update_firewall_rule_sequence(self):
+        TestFirewallRules._gateway_obj.add_firewall_rule('Test2')
+        firewall_rules_resource = \
+            TestFirewallRules._gateway_obj.get_firewall_rules()
+        rule_id = None
+        sequence_no_before = 0
+        for firewallRule in firewall_rules_resource.firewallRules.firewallRule:
+            if firewallRule['name'] == 'Test2':
+                rule_id = firewallRule.id
+                break
+            sequence_no_before += 1
+
         firewall_obj = FirewallRule(TestFirewallRules._org_client,
-                                    TestFirewallRules._name,
-                                    TestFirewallRules._rule_id)
-        result = firewall_obj.update_firewall_rule_sequence(1)
-        self.assertIsNone(result)
+                                    TestFirewallRules._name, rule_id)
+        firewall_obj.update_firewall_rule_sequence(1)
+        sequence_no_after = 0
+        firewall_rules_resource = \
+            TestFirewallRules._gateway_obj.get_firewall_rules()
+        for firewallRule in firewall_rules_resource.firewallRules.firewallRule:
+            if firewallRule['name'] == 'Test2':
+                break
+            sequence_no_after += 1
+        self.assertEqual(sequence_no_after, 1)
+        firewall_obj.delete()
 
     def test_0098_teardown(self):
         firewall_obj = FirewallRule(TestFirewallRules._org_client,

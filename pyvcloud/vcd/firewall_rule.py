@@ -304,7 +304,7 @@ class FirewallRule(GatewayServices):
         return self.network_url + FIREWALL_URL_TEMPLATE
 
     def update_firewall_rule_sequence(self, index):
-        """Change firewall rule's sequence from gateway.
+        """Change firewall rule's sequence of gateway.
 
         :param int index: new sequence index of firewall rule.
         """

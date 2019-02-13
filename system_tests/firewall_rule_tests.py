@@ -210,7 +210,8 @@ class TestFirewallRules(BaseTestCase):
 
         firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name, rule_id)
-        firewall_obj.update_firewall_rule_sequence(1)
+        new_index = 1
+        firewall_obj.update_firewall_rule_sequence(new_index)
         sequence_no_after = 0
         firewall_rules_resource = \
             TestFirewallRules._gateway_obj.get_firewall_rules()
@@ -218,7 +219,7 @@ class TestFirewallRules(BaseTestCase):
             if firewallRule['name'] == 'Test2':
                 break
             sequence_no_after += 1
-        self.assertEqual(sequence_no_after, 1)
+        self.assertEqual(sequence_no_after, new_index)
         firewall_obj.delete()
 
     def test_0098_teardown(self):

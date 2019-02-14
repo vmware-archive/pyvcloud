@@ -30,6 +30,7 @@ class TestFirewallRules(BaseTestCase):
     # All tests in this module should be run as System Administrator.
     # Firewall Rule
     _firewall_rule_name = 'Rule Name Test' + str(uuid1())
+    _firewall_rule_name2 = 'Rule Name Test2' + str(uuid1())
     _name = GatewayConstants.name
     _rule_id = None
     _test_runner_role = CommonRoles.ORGANIZATION_ADMINISTRATOR
@@ -185,6 +186,41 @@ class TestFirewallRules(BaseTestCase):
         # Verify
         self.assertTrue(len(firewall_rule_info) > 0)
         self.assertEqual(firewall_rule_info['Id'], TestFirewallRules._rule_id)
+
+    def test_0081_list_firewall_rule_source(self):
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        result = firewall_obj.list_firewall_rule_source()
+        self.assertTrue('vnicGroupId' in result)
+        self.assertTrue('groupingObjectId' in result)
+        self.assertTrue('ipAddress' in result)
+        self.assertTrue('exclude' in result)
+
+    def test_0091_update_firewall_rule_sequence(self):
+        TestFirewallRules._gateway_obj.add_firewall_rule(
+            TestFirewallRules._firewall_rule_name2)
+        firewall_rules_resource = \
+            TestFirewallRules._gateway_obj.get_firewall_rules()
+        rule_id = None
+        for firewallRule in firewall_rules_resource.firewallRules.firewallRule:
+            if firewallRule['name'] == TestFirewallRules._firewall_rule_name2:
+                rule_id = firewallRule.id
+                break
+
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
+                                    TestFirewallRules._name, rule_id)
+        new_index = 1
+        firewall_obj.update_firewall_rule_sequence(new_index)
+        sequence_no_after = 0
+        firewall_rules_resource = \
+            TestFirewallRules._gateway_obj.get_firewall_rules()
+        for firewallRule in firewall_rules_resource.firewallRules.firewallRule:
+            if firewallRule['name'] == TestFirewallRules._firewall_rule_name2:
+                break
+            sequence_no_after += 1
+        self.assertEqual(sequence_no_after, new_index)
+        firewall_obj.delete()
 
     def test_0098_teardown(self):
         firewall_obj = FirewallRule(TestFirewallRules._org_client,

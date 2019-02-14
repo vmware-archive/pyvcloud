@@ -267,3 +267,56 @@ class FirewallRule(GatewayServices):
         firewall_rule_info['Logging enabled'] = resource.loggingEnabled
         firewall_rule_info['Action'] = resource.action
         return firewall_rule_info
+
+    def list_firewall_rule_source(self):
+        """Get the list of firewall rule source.
+
+        return: dict of firewall rule's source details.
+        e.g.
+        {'exclude':'True','ipAddress':['10.112.12.12','10.232.1.2'],
+        'vnicGroupId':['vse','external','internal','vnic-0'],
+        'groupingObjectId':['1f0aab71-6d11-4567-994e-2c090fea7350:ipset',
+        'urn:vcloud:network:3ed60402-904f-410d-913c-6da77b43a257:']
+        }
+        :rtype: dict
+        """
+        resource = self._get_resource()
+        firewall_rule_source = {}
+        if hasattr(resource, 'source'):
+            if hasattr(resource.source, 'exclude'):
+                firewall_rule_source['exclude'] = resource.source.exclude
+            if hasattr(resource.source, 'vnicGroupId'):
+                firewall_rule_source['vnicGroupId'] = [
+                    vnicGroupId for vnicGroupId in resource.source.vnicGroupId
+                ]
+            if hasattr(resource.source, 'ipAddress'):
+                firewall_rule_source['ipAddress'] = [
+                    ipAddress for ipAddress in resource.source.ipAddress
+                ]
+            if hasattr(resource.source, 'groupingObjectId'):
+                firewall_rule_source['groupingObjectId'] = [
+                    groupingObjectId
+                    for groupingObjectId in resource.source.groupingObjectId
+                ]
+        return firewall_rule_source
+
+    def _build_firewall_rules_href(self):
+        return self.network_url + FIREWALL_URL_TEMPLATE
+
+    def update_firewall_rule_sequence(self, index):
+        """Change firewall rule's sequence of gateway.
+
+        :param int index: new sequence index of firewall rule.
+        """
+        index = int(index)
+        gateway_res = Gateway(self.client, resource=self.parent)
+        firewall_rule = gateway_res.get_firewall_rules()
+        resource = self._get_resource()
+        for rule in firewall_rule.firewallRules.firewallRule:
+            if rule.id == resource.id:
+                firewall_rule.firewallRules.remove(rule)
+                firewall_rule.firewallRules.insert(index, rule)
+                break
+        return self.client.put_resource(self._build_firewall_rules_href(),
+                                        firewall_rule,
+                                        EntityType.DEFAULT_CONTENT_TYPE.value)

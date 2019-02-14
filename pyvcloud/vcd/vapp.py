@@ -1119,7 +1119,7 @@ class VApp(object):
             EntityType.NETWORK_CONFIG_SECTION.value, network_config_section)
 
     def edit_name_and_description(self, name, description=None):
-        """Edit name and description and the vApp.
+        """Edit name and description of the vApp.
 
         :param str name: New name of the vApp. It is mandatory.
         :param str description: New description of the vApp.

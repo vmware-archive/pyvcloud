@@ -195,7 +195,9 @@ class TestFirewallRules(BaseTestCase):
         # deleting of object
         firewall_obj.delete_firewall_rule_source(object_to_delete)
         list_of_source = firewall_obj.list_firewall_rule_source()
-        self.assertTrue('vnicGroupId' not in list_of_source)
+        if 'vnicGroupId' in list_of_source:
+            self.assertTrue(
+                object_to_delete not in list_of_source['vnicGroupId'])
         # creating source
         ext_net_resource = TestFirewallRules._external_network.get_resource()
         source_object = [ext_net_resource.get('name') + ':gatewayinterface']

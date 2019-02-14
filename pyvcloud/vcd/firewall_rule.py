@@ -324,6 +324,7 @@ class FirewallRule(GatewayServices):
     def delete_firewall_rule_source(self, source_value):
         """Delete firewall rule's source value of gateway.
 
+        It will delete all duplicate source value.
         :param str source_value: source value to remove.
         """
         resource = self._get_resource()

@@ -320,3 +320,17 @@ class FirewallRule(GatewayServices):
         return self.client.put_resource(self._build_firewall_rules_href(),
                                         firewall_rule,
                                         EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def delete_firewall_rule_source(self, source_value):
+        """Delete firewall rule's source value of gateway.
+
+        It will delete all source value of given source_value.
+        :param str source_value: source value to remove.
+        """
+        resource = self._get_resource()
+        if hasattr(resource, 'source'):
+            for object in resource.source.iter():
+                if object == source_value:
+                    resource.source.remove(object)
+        return self.client.put_resource(self.href, resource,
+                                        EntityType.DEFAULT_CONTENT_TYPE.value)

@@ -48,7 +48,7 @@ See [tests](tests/) for a list of current unit tests written for the new SDK imp
 
 Please note that this project is under development and the interfaces might change over time.
 
-`pyvcloud` is used by [vcd-cli](https://vmware.github.io/vcd-cli), the Command Line Interface for VMware vCloud Director. It requires Python 3.
+`pyvcloud` is used by [vcd-cli](https://vmware.github.io/vcd-cli), the Command Line Interface for VMware vCloud Director. It requires Python 3.6.
 
 Previous versions and deprecated code can be found in this repository under [tag 18.2.2](https://github.com/vmware/pyvcloud/tree/18.2.2).
 

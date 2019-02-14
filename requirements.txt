@@ -3,3 +3,4 @@ lxml >= 4.2.1
 pygments >= 2.2.0
 PyYAML >= 3.11, <= 3.13
 requests >= 2.18.4
+unittest-xml-reporting >= 2.2.1

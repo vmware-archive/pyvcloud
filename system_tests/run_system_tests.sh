@@ -90,4 +90,4 @@ cd system_tests
 # Run the tests with the new file. From here on out all commands are logged.
 set -x
 export VCD_TEST_BASE_CONFIG_FILE=${auto_base_config}
-python3 -m unittest $TESTS -v
+python3 main.py $TESTS

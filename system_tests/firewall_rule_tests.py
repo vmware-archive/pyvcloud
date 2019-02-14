@@ -187,6 +187,20 @@ class TestFirewallRules(BaseTestCase):
         self.assertTrue(len(firewall_rule_info) > 0)
         self.assertEqual(firewall_rule_info['Id'], TestFirewallRules._rule_id)
 
+    def test_0071_delete_firewall_rule_source(self):
+        object_to_delete = 'vnic-0'
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        # deleting of object
+        firewall_obj.delete_firewall_rule_source(object_to_delete)
+        list_of_source = firewall_obj.list_firewall_rule_source()
+        self.assertTrue('vnicGroupId' not in list_of_source)
+        # creating source
+        ext_net_resource = TestFirewallRules._external_network.get_resource()
+        source_object = [ext_net_resource.get('name') + ':gatewayinterface']
+        firewall_obj.edit(source_object, None, None, None)
+
     def test_0081_list_firewall_rule_source(self):
         firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name,

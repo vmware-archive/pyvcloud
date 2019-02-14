@@ -2,7 +2,6 @@ import os
 import sys
 import unittest
 import xmlrunner
-from six import StringIO, BytesIO
 
 
 if __name__ == '__main__':
@@ -13,9 +12,7 @@ if __name__ == '__main__':
         if test.find('.py'):
             test = test.replace('.py', '')
         stable_tests.append(test)
-    stream = StringIO()
-    testRunner = xmlrunner.XMLTestRunner(stream=stream, output=root_dir +
-                                                     'test-reports')
+    testRunner = xmlrunner.XMLTestRunner(output=root_dir + 'test-reports')
     package = test_loader.loadTestsFromNames(names=stable_tests)
 
     try:

@@ -334,3 +334,37 @@ class FirewallRule(GatewayServices):
                     resource.source.remove(object)
         return self.client.put_resource(self.href, resource,
                                         EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def list_firewall_rule_destination(self):
+        """Get the list of firewall rule destination.
+
+        return: dict of firewall rule's destination details.
+        e.g.
+        {'exclude':'True','ipAddress':['10.112.12.12','10.232.1.2'],
+        'vnicGroupId':['vse','external','internal','vnic-0'],
+        'groupingObjectId':['1f0aab71-6d11-4567-994e-2c090fea7350:ipset',
+        'urn:vcloud:network:3ed60402-904f-410d-913c-6da77b43a257:']
+        }
+        :rtype: dict
+        """
+        resource = self._get_resource()
+        firewall_rule_destination = {}
+        if hasattr(resource, 'destination'):
+            if hasattr(resource.destination, 'exclude'):
+                firewall_rule_destination[
+                    'exclude'] = resource.destination.exclude
+            if hasattr(resource.destination, 'vnicGroupId'):
+                firewall_rule_destination['vnicGroupId'] = [
+                    vnicGroupId
+                    for vnicGroupId in resource.destination.vnicGroupId
+                ]
+            if hasattr(resource.destination, 'ipAddress'):
+                firewall_rule_destination['ipAddress'] = [
+                    ipAddress for ipAddress in resource.destination.ipAddress
+                ]
+            if hasattr(resource.destination, 'groupingObjectId'):
+                firewall_rule_destination['groupingObjectId'] = [
+                    groupingObjectId for groupingObjectId in resource.
+                    destination.groupingObjectId
+                ]
+        return firewall_rule_destination

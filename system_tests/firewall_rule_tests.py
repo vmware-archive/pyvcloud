@@ -197,6 +197,16 @@ class TestFirewallRules(BaseTestCase):
         self.assertTrue('ipAddress' in result)
         self.assertTrue('exclude' in result)
 
+    def test_0082_list_firewall_rule_destination(self):
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        result = firewall_obj.list_firewall_rule_destination()
+        self.assertTrue('vnicGroupId' in result)
+        self.assertTrue('groupingObjectId' in result)
+        self.assertTrue('ipAddress' in result)
+        self.assertTrue('exclude' in result)
+
     def test_0091_update_firewall_rule_sequence(self):
         TestFirewallRules._gateway_obj.add_firewall_rule(
             TestFirewallRules._firewall_rule_name2)

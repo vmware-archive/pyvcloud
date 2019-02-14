@@ -1117,3 +1117,28 @@ class VApp(object):
         return self.client.put_linked_resource(
             self.resource.NetworkConfigSection, RelationType.EDIT,
             EntityType.NETWORK_CONFIG_SECTION.value, network_config_section)
+
+    def edit_name_and_description(self, name, description=None):
+        """Edit name and description and the vApp.
+
+        :param str name: New name of the vApp. It is mandatory.
+        :param str description: New description of the vApp.
+
+        :return: object containing EntityType.TASK XML data
+            representing the asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        if name is None or name.isspace():
+            raise InvalidParameterException("Name can't be None or empty")
+        vapp = self.get_resource()
+        vapp.set('name', name.strip())
+        if description is not None:
+            if hasattr(vapp, 'Description'):
+                vapp.replace(vapp.Description, E.Description(description))
+            else:
+                vapp.LeaseSettingsSection.addprevious(
+                    E.Description(description))
+
+        return self.client.put_linked_resource(
+            self.resource, RelationType.EDIT, EntityType.VAPP.value, vapp)

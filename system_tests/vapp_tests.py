@@ -30,6 +30,7 @@ from pyvcloud.vcd.client import NetworkAdapterType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.utils import metadata_to_dict
 
 
@@ -124,6 +125,32 @@ class TestVApp(BaseTestCase):
         vdc = Environment.get_test_vdc(TestVApp._client)
         vapp_resource = vdc.get_vapp(TestVApp._customized_vapp_name)
         self.assertIsNotNone(vapp_resource)
+
+    def test_0011_edit_vapp_name_desc(self):
+        """Test the method vapp.edit_name_and_description().
+
+        This test passes if the name and desc of the vapp is changed.
+        """
+        vapp_resource = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        self.assertIsNotNone(vapp_resource)
+
+        self._update_vapp_name_desc(vapp_resource, 'testname1289', 'testdesc')
+
+        # reset vapp to old name
+        self._update_vapp_name_desc(vapp_resource,
+                                    TestVApp._customized_vapp_name,
+                                    TestVApp._customized_vapp_description)
+
+    def _update_vapp_name_desc(self, vapp, name, desc):
+        task = vapp.edit_name_and_description(name, desc)
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        # verify name, desc
+        vapp.reload()
+        self.assertEqual(vapp.get_resource().Description.text, desc)
+        self.assertEqual(vapp.get_resource().get('name'), name)
 
     def test_0020_get_nonexistent_vapp(self):
         """Test the method vdc.get_vapp().

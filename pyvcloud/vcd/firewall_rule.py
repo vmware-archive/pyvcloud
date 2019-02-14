@@ -327,8 +327,9 @@ class FirewallRule(GatewayServices):
         :param str source_value: source value to remove.
         """
         resource = self._get_resource()
-        for object in resource.source.iter():
-            if object == source_value:
-                resource.source.remove(object)
+        if hasattr(resource, 'source'):
+            for object in resource.source.iter():
+                if object == source_value:
+                    resource.source.remove(object)
         return self.client.put_resource(self.href, resource,
                                         EntityType.DEFAULT_CONTENT_TYPE.value)

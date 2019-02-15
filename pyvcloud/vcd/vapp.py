@@ -1118,6 +1118,47 @@ class VApp(object):
             self.resource.NetworkConfigSection, RelationType.EDIT,
             EntityType.NETWORK_CONFIG_SECTION.value, network_config_section)
 
+    def reset_vapp_network(self, network_name):
+        """resets a vApp network.
+
+        :param str network_name: name of vApp network to be reset.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is resetting the vApp network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+
+        # find the required network
+        for nw in self.resource.NetworkConfigSection.NetworkConfig:
+            if nw.get("networkName") == network_name:
+                return self.client.post_linked_resource(
+                    nw, RelationType.REPAIR, None, None)
+        raise EntityNotFoundException(
+            'Can\'t find network \'%s\'' % network_name)
+
+    def delete_vapp_network(self, network_name):
+        """deletes a vApp network.
+
+        :param str network_name: name of vApp network to be deleted.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is deleting the vApp network.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        network_config_section = deepcopy(self.resource.NetworkConfigSection)
+        # find the required network
+        for nw in network_config_section.NetworkConfig:
+            if nw.get("networkName") == network_name:
+                network_config_section.remove(nw)
+                return self.client.put_linked_resource(
+                    self.resource.NetworkConfigSection, RelationType.EDIT,
+                    EntityType.NETWORK_CONFIG_SECTION.value,
+                    network_config_section)
+        raise EntityNotFoundException(
+            'Can\'t find network \'%s\'' % network_name)
+
     def edit_name_and_description(self, name, description=None):
         """Edit name and description of the vApp.
 

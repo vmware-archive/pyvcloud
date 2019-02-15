@@ -557,6 +557,38 @@ class TestVApp(BaseTestCase):
                 is_network_found = True
         self.assertTrue(is_network_found)
 
+    def test_0120_reset_vapp_network(self):
+        """Test the method vapp.reset_vapp_network().
+
+        This test passes if reset network is successful.
+        """
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+
+        # make sure the vApp is powered on before resetting
+        task = vapp.undeploy()
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        vapp.reload()
+        task = vapp.deploy(power_on=True)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        vapp.reload()
+
+        task = vapp.reset_vapp_network(TestVApp._vapp_network_name)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        vapp.reload()
+
+    def test_0130_delete_vapp_network(self):
+        """Test the method vapp.delete_vapp_network().
+
+        This test passes if delete network is successful.
+        """
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+
+        task = vapp.delete_vapp_network(TestVApp._vapp_network_name)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        vapp.reload()
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the  method vdc.delete_vapp().

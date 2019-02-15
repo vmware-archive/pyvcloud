@@ -101,10 +101,10 @@ class ApiVersion(Enum):
 
 
 # Important! Values must be listed in ascending order.
-API_CURRENT_VERSIONS = [ApiVersion.VERSION_29.value,
-                        ApiVersion.VERSION_30.value,
-                        ApiVersion.VERSION_31.value,
-                        ApiVersion.VERSION_32.value]
+API_CURRENT_VERSIONS = [
+    ApiVersion.VERSION_29.value, ApiVersion.VERSION_30.value,
+    ApiVersion.VERSION_31.value, ApiVersion.VERSION_32.value
+]
 
 
 class EdgeGatewayType(Enum):
@@ -177,6 +177,7 @@ class RelationType(Enum):
     PUBLISH = 'publish'
     RECOMPOSE = 'recompose'
     REMOVE = 'remove'
+    REPAIR = 'repair'
     RIGHTS = 'rights'
     RESOURCE_POOL_VM_LIST = 'resourcePoolVmList'
     SNAPSHOT_CREATE = 'snapshot:create'

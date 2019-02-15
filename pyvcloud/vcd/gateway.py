@@ -1376,7 +1376,7 @@ class Gateway(object):
         param str domain_name: domain name
         param bool lease_never_expires: lease expires Default : false
         param str lease_time: time for the expiration of lease Default : 86400
-        param str subnet_mask: subnet mask of the DHCP pool
+        param str subnet_mask: subnet mask of the DHCP binding
 
         """
         dhcp_href = self._build_dhcp_href()

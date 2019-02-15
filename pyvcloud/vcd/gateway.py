@@ -1336,11 +1336,12 @@ class Gateway(object):
         param rule_id str: id of snat/dnat rule
         param position int: postion where nat rule will be inserted
         """
+        insert_nat_rule = None
         nat_rule_href = self._build_nat_rule_href()
         nat_rules_resource = self.get_nat_rules()
         if (hasattr(nat_rules_resource.natRules, 'natRule')):
             for nat_rule in nat_rules_resource.natRules.natRule:
-                if nat_rule.ruleId == rule_id:
+                if int(nat_rule.ruleId) == int(rule_id):
                     insert_nat_rule = nat_rule
                     # remove the nat rule from existing position
                     nat_rules_resource.natRules.remove(nat_rule)

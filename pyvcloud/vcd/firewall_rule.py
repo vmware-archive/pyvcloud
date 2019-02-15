@@ -268,10 +268,11 @@ class FirewallRule(GatewayServices):
         firewall_rule_info['Action'] = resource.action
         return firewall_rule_info
 
-    def list_firewall_rule_source(self):
-        """Get the list of firewall rule source.
+    def list_firewall_rule_source_destination(self, type):
+        """Get the list of firewall rule source/destination.
 
-        return: dict of firewall rule's source details.
+        :param str type: It can be source/destination
+        return: dict of firewall rule's source/destination details.
         e.g.
         {'exclude':'True','ipAddress':['10.112.12.12','10.232.1.2'],
         'vnicGroupId':['vse','external','internal','vnic-0'],
@@ -281,24 +282,25 @@ class FirewallRule(GatewayServices):
         :rtype: dict
         """
         resource = self._get_resource()
-        firewall_rule_source = {}
-        if hasattr(resource, 'source'):
-            if hasattr(resource.source, 'exclude'):
-                firewall_rule_source['exclude'] = resource.source.exclude
-            if hasattr(resource.source, 'vnicGroupId'):
-                firewall_rule_source['vnicGroupId'] = [
-                    vnicGroupId for vnicGroupId in resource.source.vnicGroupId
+        firewall_rule_source_destination = {}
+        if hasattr(resource, type):
+            if hasattr(resource[type], 'exclude'):
+                firewall_rule_source_destination['exclude'] = resource[
+                    type].exclude
+            if hasattr(resource[type], 'vnicGroupId'):
+                firewall_rule_source_destination['vnicGroupId'] = [
+                    vnicGroupId for vnicGroupId in resource[type].vnicGroupId
                 ]
-            if hasattr(resource.source, 'ipAddress'):
-                firewall_rule_source['ipAddress'] = [
-                    ipAddress for ipAddress in resource.source.ipAddress
+            if hasattr(resource[type], 'ipAddress'):
+                firewall_rule_source_destination['ipAddress'] = [
+                    ipAddress for ipAddress in resource[type].ipAddress
                 ]
-            if hasattr(resource.source, 'groupingObjectId'):
-                firewall_rule_source['groupingObjectId'] = [
+            if hasattr(resource[type], 'groupingObjectId'):
+                firewall_rule_source_destination['groupingObjectId'] = [
                     groupingObjectId
-                    for groupingObjectId in resource.source.groupingObjectId
+                    for groupingObjectId in resource[type].groupingObjectId
                 ]
-        return firewall_rule_source
+        return firewall_rule_source_destination
 
     def _build_firewall_rules_href(self):
         return self.network_url + FIREWALL_URL_TEMPLATE

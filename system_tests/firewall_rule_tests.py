@@ -239,12 +239,28 @@ class TestFirewallRules(BaseTestCase):
                                     TestFirewallRules._name,
                                     TestFirewallRules._rule_id)
         # deleting of object
-        firewall_obj.delete_firewall_rule_source(object_to_delete)
-        list_of_source = firewall_obj.list_firewall_rule_source_destination(
+        firewall_obj.delete_firewall_rule_source_destination(
+            object_to_delete, 'source')
+        list_of_values = firewall_obj.list_firewall_rule_source_destination(
             'source')
-        if 'vnicGroupId' in list_of_source:
+        if 'vnicGroupId' in list_of_values:
             self.assertTrue(
-                object_to_delete not in list_of_source['vnicGroupId'])
+                object_to_delete not in list_of_values['vnicGroupId'])
+
+    def test_0096_delete_firewall_rule_destination(self):
+        object_to_delete = 'vnic-0'
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        # deleting of object
+        firewall_obj.delete_firewall_rule_source_destination(
+            object_to_delete, 'destination')
+        list_of_values = \
+            firewall_obj.list_firewall_rule_source_destination(
+                'destination')
+        if 'vnicGroupId' in list_of_values:
+            self.assertTrue(
+                object_to_delete not in list_of_values['vnicGroupId'])
 
     def test_0098_teardown(self):
         firewall_obj = FirewallRule(TestFirewallRules._org_client,

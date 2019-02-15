@@ -1356,37 +1356,40 @@ class Gateway(object):
                          mac,
                          host_name,
                          ip_address,
-                         subnet_mask=None,
-                         domain_name=None,
-                         default_gateway=None,
                          auto_config_dns=False,
+                         primary_server=None,
+                         secondary_server=None,
+                         default_gateway=None,
+                         domain_name=None,
                          lease_never_expires=False,
                          lease_time=__LEASE_TIME,
-                         primary_server=None,
-                         secondary_server=None):
+                         subnet_mask=None):
         """Add DHCP binding in the gateway.
 
         param str mac: MAC address for the DHCP binding
         param str host_name: host name for the DHCP binding
         param str ip_address: IP address for the DHCP binding
         param bool auto_config_dns : auto configuration of DNS Default : false
+        param str primary_server: IP of the primary server
+        param str secondary_server: IP of the secondary server
         param str default_gateway: default gateway ip
         param str domain_name: domain name
         param bool lease_never_expires: lease expires Default : false
         param str lease_time: time for the expiration of lease Default : 86400
         param str subnet_mask: subnet mask of the DHCP pool
-        param str primary_server: IP of the primary server
-        param str secondary_server: IP of the secondary server
 
         """
         dhcp_href = self._build_dhcp_href()
         dhcp_resource = self.get_dhcp()
 
         static_binding = create_element("staticBinding")
+        static_binding.append(create_element("hostname", host_name))
+        static_binding.append(create_element("macAddress", mac))
+        static_binding.append(create_element("ipAddress", ip_address))
         auto_config_dns_element = create_element("autoConfigureDNS",
                                                  auto_config_dns)
         static_binding.append(auto_config_dns_element)
-        if auto_config_dns is True:
+        if auto_config_dns:
             if primary_server:
                 static_binding.append(
                     create_element("primaryNameServer", primary_server))
@@ -1400,17 +1403,13 @@ class Gateway(object):
         if domain_name:
             static_binding.append(create_element("domainName", domain_name))
 
-        if lease_never_expires is True:
+        if lease_never_expires:
             static_binding.append(create_element("leaseTime", "infinite"))
         else:
             static_binding.append(create_element("leaseTime", lease_time))
 
-        if subnet_mask is not None:
+        if subnet_mask:
             static_binding.append(create_element("subnetMask", subnet_mask))
-
-        static_binding.append(create_element("hostname", host_name))
-        static_binding.append(create_element("macAddress", mac))
-        static_binding.append(create_element("ipAddress", ip_address))
 
         dhcp_resource.staticBindings.append(static_binding)
 

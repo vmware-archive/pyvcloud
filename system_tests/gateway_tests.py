@@ -46,6 +46,11 @@ class TestGateway(BaseTestCase):
     # DHCP pool
     _pool_ip_range = '30.20.10.110-30.20.10.112'
 
+    # DHCP binding
+    _mac_address = '00:14:22:01:23:45'
+    _host_name = 'xyzName'
+    _binding_ip_address = '10.20.30.40'
+
     def test_0000_setup(self):
         """Setup the gateway required for the other tests in this module.
 
@@ -637,6 +642,27 @@ class TestGateway(BaseTestCase):
         matchFound = False
         for ipPool in dhcp_resource.ipPools.ipPool:
             if ipPool.ipRange.text == TestGateway._pool_ip_range:
+                matchFound = True
+                break
+        self.assertTrue(matchFound)
+
+    def test_0027_add_dhcp_binding(self):
+        """Add DHCP Binding in the gateway.
+
+         Invokes the add_dhcp_binding of the gateway.
+        """
+        gateway_obj = Gateway(
+            TestGateway._client, self._name,
+            Environment.get_test_gateway(Environment.get_sys_admin_client())
+                .get('href'))
+        gateway_obj.add_dhcp_binding(TestGateway._mac_address,
+                                     TestGateway._host_name,
+                                     TestGateway._binding_ip_address)
+        dhcp_resource = gateway_obj.get_dhcp()
+        # Verify
+        matchFound = False
+        for static_binding in dhcp_resource.staticBindings.staticBinding:
+            if static_binding.macAddress.text == TestGateway._mac_address:
                 matchFound = True
                 break
         self.assertTrue(matchFound)

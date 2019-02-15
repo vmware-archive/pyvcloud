@@ -191,7 +191,7 @@ class TestFirewallRules(BaseTestCase):
         firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name,
                                     TestFirewallRules._rule_id)
-        result = firewall_obj.list_firewall_rule_source()
+        result = firewall_obj.list_firewall_rule_source_destination('source')
         self.assertTrue('vnicGroupId' in result)
         self.assertTrue('groupingObjectId' in result)
         self.assertTrue('ipAddress' in result)
@@ -201,7 +201,8 @@ class TestFirewallRules(BaseTestCase):
         firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name,
                                     TestFirewallRules._rule_id)
-        result = firewall_obj.list_firewall_rule_destination()
+        result = firewall_obj.list_firewall_rule_source_destination(
+            'destination')
         self.assertTrue('vnicGroupId' in result)
         self.assertTrue('groupingObjectId' in result)
         self.assertTrue('ipAddress' in result)
@@ -239,7 +240,8 @@ class TestFirewallRules(BaseTestCase):
                                     TestFirewallRules._rule_id)
         # deleting of object
         firewall_obj.delete_firewall_rule_source(object_to_delete)
-        list_of_source = firewall_obj.list_firewall_rule_source()
+        list_of_source = firewall_obj.list_firewall_rule_source_destination(
+            'source')
         if 'vnicGroupId' in list_of_source:
             self.assertTrue(
                 object_to_delete not in list_of_source['vnicGroupId'])

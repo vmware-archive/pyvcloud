@@ -70,6 +70,7 @@ class TestIpSecVpn(BaseTestCase):
         gateway = Environment.get_test_gateway(TestIpSecVpn._client)
         gateway_obj1 = Gateway(TestIpSecVpn._client, GatewayConstants.name,
                                href=gateway.get('href'))
+        TestIpSecVpn._gateway1 = gateway_obj1
         gateway_obj2 = TestIpSecVpn._gateway_obj
         TestIpSecVpn._local_ip = self.__get_ip_address(
             gateway=gateway_obj1, ext_net_name=TestIpSecVpn._ext_net_name)
@@ -107,14 +108,10 @@ class TestIpSecVpn(BaseTestCase):
 
         Invokes the enable_activation_status of the IpsecVpn.
         """
-        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
-                                 gateway_name=TestIpSecVpn._name,
-                                 ipsec_end_point=
-                                 TestIpSecVpn._local_ip + "-" +
-                                 TestIpSecVpn._peer_ip)
-        ipsec_vpn_obj.enable_activation_status(True)
+        gateway_obj1 = TestIpSecVpn._gateway1
+        gateway_obj1.enable_activation_status_ipsec_vpn(True)
         # Verify
-        activation_status = ipsec_vpn_obj.get_ipsec_config_resource().enabled
+        activation_status = gateway_obj1.get_ipsec_vpn().enabled
         self.assertTrue(activation_status.text)
 
     def test_0025_info_activation_status(self):
@@ -122,12 +119,8 @@ class TestIpSecVpn(BaseTestCase):
 
         Invokes the info_activation_status of the IpsecVpn.
         """
-        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
-                                 gateway_name=TestIpSecVpn._name,
-                                 ipsec_end_point=
-                                 TestIpSecVpn._local_ip + "-" +
-                                 TestIpSecVpn._peer_ip)
-        status_dict = ipsec_vpn_obj.info_activation_status()
+        gateway_obj1 = TestIpSecVpn._gateway1
+        status_dict = gateway_obj1.info_activation_status_ipsec_vpn()
         # Verify
         self.assertTrue(status_dict["Activation Status"])
 
@@ -136,14 +129,10 @@ class TestIpSecVpn(BaseTestCase):
 
         Invokes the enable_logging of the IpsecVpn.
         """
-        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
-                                 gateway_name=TestIpSecVpn._name,
-                                 ipsec_end_point=
-                                 TestIpSecVpn._local_ip + "-" +
-                                 TestIpSecVpn._peer_ip)
-        ipsec_vpn_obj.enable_logging(True)
+        gateway_obj1 = TestIpSecVpn._gateway1
+        gateway_obj1.enable_logging_ipsec_vpn(True)
         # Verify
-        logging_status = ipsec_vpn_obj.get_ipsec_config_resource().\
+        logging_status = gateway_obj1.get_ipsec_vpn(). \
             logging.enable
         self.assertTrue(logging_status.text)
 
@@ -152,42 +141,30 @@ class TestIpSecVpn(BaseTestCase):
 
         Invokes the change_shared_key of the IpsecVpn.
         """
-        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
-                                 gateway_name=TestIpSecVpn._name,
-                                 ipsec_end_point=
-                                 TestIpSecVpn._local_ip + "-" +
-                                 TestIpSecVpn._peer_ip)
-        ipsec_vpn_obj.change_shared_key(TestIpSecVpn._changed_psk)
-        #Verify
-        #verification not possible because values saved in encrypted form.
+        gateway_obj1 = TestIpSecVpn._gateway1
+        gateway_obj1.change_shared_key_ipsec_vpn(TestIpSecVpn._changed_psk)
+        # Verify
+        # verification not possible because values saved in encrypted form.
 
     def test_0040_set_log_level(self):
         """Set log level.
 
         Invokes the set_log_level of the IpsecVpn.
         """
-        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
-                                 gateway_name=TestIpSecVpn._name,
-                                 ipsec_end_point=
-                                 TestIpSecVpn._local_ip + "-" +
-                                 TestIpSecVpn._peer_ip)
-        ipsec_vpn_obj.set_log_level(TestIpSecVpn._log_level)
+        gateway_obj1 = TestIpSecVpn._gateway1
+        gateway_obj1.set_log_level_ipsec_vpn(TestIpSecVpn._log_level)
         # Verify
-        log_level = ipsec_vpn_obj.get_ipsec_config_resource().\
+        log_level = gateway_obj1.get_ipsec_vpn(). \
             logging.logLevel
-        self.assertEqual(TestIpSecVpn._log_level,log_level)
+        self.assertEqual(TestIpSecVpn._log_level, log_level)
 
     def test_0045_info_logging_settings(self):
         """Info logging settings.
 
         Invokes the info_logging_settings of the IpsecVpn.
         """
-        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
-                                 gateway_name=TestIpSecVpn._name,
-                                 ipsec_end_point=
-                                 TestIpSecVpn._local_ip + "-" +
-                                 TestIpSecVpn._peer_ip)
-        logging_dict = ipsec_vpn_obj.info_logging_settings()
+        gateway_obj1 = TestIpSecVpn._gateway1
+        logging_dict = gateway_obj1.info_logging_settings_ipsec_vpn()
         # Verify
         self.assertTrue(logging_dict["Enable"])
 
@@ -196,12 +173,8 @@ class TestIpSecVpn(BaseTestCase):
 
         Invokes the list_ipsec_vpn of the IpsecVpn.
         """
-        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
-                                 gateway_name=TestIpSecVpn._name,
-                                 ipsec_end_point=
-                                 TestIpSecVpn._local_ip + "-" +
-                                 TestIpSecVpn._peer_ip)
-        ipsec_vpn_list = ipsec_vpn_obj.list_ipsec_vpn()
+        gateway_obj1 = TestIpSecVpn._gateway1
+        ipsec_vpn_list = gateway_obj1.list_ipsec_vpn()
         # Verify
         self.assertTrue(len(ipsec_vpn_list) > 0)
 
@@ -364,7 +337,7 @@ class TestIpSecVpn(BaseTestCase):
         TestIpSecVpn._routednet_obj = VdcNetwork(TestIpSecVpn._client,
                                                  href=TestIpSecVpn.
                                                  _routednet_href)
-        TestIpSecVpn._routednet_resource = TestIpSecVpn.\
+        TestIpSecVpn._routednet_resource = TestIpSecVpn. \
             _routednet_obj.get_resource()
 
     if __name__ == '__main__':

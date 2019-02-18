@@ -270,6 +270,16 @@ class TestFirewallRules(BaseTestCase):
             self.assertTrue(
                 object_to_delete not in list_of_values['vnicGroupId'])
 
+    def test_0097_delete_firewall_rule_service(self):
+        object_to_delete = 'tcp'
+        firewall_obj = FirewallRule(TestFirewallRules._org_client,
+                                    TestFirewallRules._name,
+                                    TestFirewallRules._rule_id)
+        firewall_obj.delete_firewall_rule_service(object_to_delete)
+        list_of_services = firewall_obj.list_firewall_rule_service()
+        self.assertFalse(
+            any(object_to_delete in service for service in list_of_services))
+
     def test_0098_teardown(self):
         firewall_obj = FirewallRule(TestFirewallRules._org_client,
                                     TestFirewallRules._name,

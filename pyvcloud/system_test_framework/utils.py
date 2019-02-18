@@ -28,9 +28,8 @@ def create_empty_vapp(client, vdc, name, description):
 
     :rtype: str
     """
-    vapp_sparse_resouce = vdc.create_vapp(name=name,
-                                          description=description,
-                                          accept_all_eulas=True)
+    vapp_sparse_resouce = vdc.create_vapp(
+        name=name, description=description, accept_all_eulas=True)
 
     client.get_task_monitor().wait_for_success(
         vapp_sparse_resouce.Tasks.Task[0])
@@ -38,7 +37,13 @@ def create_empty_vapp(client, vdc, name, description):
     return vapp_sparse_resouce.get('href')
 
 
-def create_vapp_from_template(client, vdc, name, catalog_name, template_name):
+def create_vapp_from_template(client,
+                              vdc,
+                              name,
+                              catalog_name,
+                              template_name,
+                              power_on=True,
+                              deploy=True):
     """Helper method to create a vApp from template.
 
     :param pyvcloud.vcd.client.Client client: a client that would be used
@@ -57,7 +62,9 @@ def create_vapp_from_template(client, vdc, name, catalog_name, template_name):
         name=name,
         catalog=catalog_name,
         template=template_name,
-        accept_all_eulas=True)
+        accept_all_eulas=True,
+        power_on=power_on,
+        deploy=deploy)
 
     client.get_task_monitor().wait_for_success(
         vapp_sparse_resouce.Tasks.Task[0])
@@ -65,10 +72,16 @@ def create_vapp_from_template(client, vdc, name, catalog_name, template_name):
     return vapp_sparse_resouce.get('href')
 
 
-def create_customized_vapp_from_template(client, vdc, name, catalog_name,
-                                         template_name, description=None,
-                                         memory_size=None, num_cpu=None,
-                                         disk_size=None, vm_name=None,
+def create_customized_vapp_from_template(client,
+                                         vdc,
+                                         name,
+                                         catalog_name,
+                                         template_name,
+                                         description=None,
+                                         memory_size=None,
+                                         num_cpu=None,
+                                         disk_size=None,
+                                         vm_name=None,
                                          vm_hostname=None,
                                          nw_adapter_type=None):
     """Helper method to create a customized vApp from template.
@@ -129,8 +142,8 @@ def create_independent_disk(client, vdc, name, size, description):
 
     :rtype: str
     """
-    disk_sparse = vdc.create_disk(name=name, size=size,
-                                  description=description)
+    disk_sparse = vdc.create_disk(
+        name=name, size=size, description=description)
     client.get_task_monitor().wait_for_success(disk_sparse.Tasks.Task[0])
     # clip 'urn:vcloud:disk:' from the id returned by vCD.
     return disk_sparse.get('id')[16:]

@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pyvcloud.vcd.client import EntityType
-from pyvcloud.vcd.client import NSMAP
-from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.gateway_services import GatewayServices
 from pyvcloud.vcd.network_url_constants import IPSEC_VPN_URL_TEMPLATE
 

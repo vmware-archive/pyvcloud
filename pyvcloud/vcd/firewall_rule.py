@@ -364,3 +364,18 @@ class FirewallRule(GatewayServices):
                         service_obj['Icmp type'] = service.icmpType
                     firewall_rule_services.append(service_obj)
         return firewall_rule_services
+
+    def delete_firewall_rule_service(self, protocol):
+        """Delete firewall rule's service from gateway.
+
+        It will delete all services of given protocol.
+        :param str protocol: protocol to remove services from application.
+        """
+        resource = self._get_resource()
+        if hasattr(resource, 'application'):
+            if hasattr(resource.application, 'service'):
+                for service in resource.application.service:
+                    if service.protocol == protocol:
+                        resource.application.remove(service)
+        return self.client.put_resource(self.href, resource,
+                                        EntityType.DEFAULT_CONTENT_TYPE.value)

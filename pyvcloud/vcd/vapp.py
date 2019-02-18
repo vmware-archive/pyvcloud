@@ -1119,7 +1119,7 @@ class VApp(object):
             EntityType.NETWORK_CONFIG_SECTION.value, network_config_section)
 
     def reset_vapp_network(self, network_name):
-        """resets a vApp network.
+        """Resets a vApp network.
 
         :param str network_name: name of vApp network to be reset.
 
@@ -1138,7 +1138,7 @@ class VApp(object):
             'Can\'t find network \'%s\'' % network_name)
 
     def delete_vapp_network(self, network_name):
-        """deletes a vApp network.
+        """Deletes a vApp network.
 
         :param str network_name: name of vApp network to be deleted.
 

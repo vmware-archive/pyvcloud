@@ -1128,7 +1128,7 @@ class VApp(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-
+        self.get_resource()
         # find the required network
         for nw in self.resource.NetworkConfigSection.NetworkConfig:
             if nw.get("networkName") == network_name:
@@ -1147,6 +1147,7 @@ class VApp(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
+        self.get_resource()
         network_config_section = deepcopy(self.resource.NetworkConfigSection)
         # find the required network
         for nw in network_config_section.NetworkConfig:

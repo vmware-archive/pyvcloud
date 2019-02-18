@@ -337,3 +337,30 @@ class FirewallRule(GatewayServices):
                     resource[type].remove(object)
         return self.client.put_resource(self.href, resource,
                                         EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def list_firewall_rule_service(self):
+        """Get the list of firewall rule's services.
+
+        return: list of firewall rule's service details.
+        e.g.
+        [{'protocol': 'tcp', 'port': 200, 'sourcePort': 100},
+         {'protocol': 'udp', 'port': 400, 'sourcePort': 300},
+         {'protocol': 'icmp', 'icmpType': 'any'}]
+        :rtype: list
+        """
+        resource = self._get_resource()
+        firewall_rule_services = []
+        if hasattr(resource, 'application'):
+            if hasattr(resource.application, 'service'):
+                for service in resource.application.service:
+                    service_obj = {}
+                    if hasattr(service, 'protocol'):
+                        service_obj['Protocol'] = service.protocol
+                    if hasattr(service, 'port'):
+                        service_obj['Port'] = service.port
+                    if hasattr(service, 'sourcePort'):
+                        service_obj['Source port'] = service.sourcePort
+                    if hasattr(service, 'icmpType'):
+                        service_obj['Icmp type'] = service.icmpType
+                    firewall_rule_services.append(service_obj)
+        return firewall_rule_services

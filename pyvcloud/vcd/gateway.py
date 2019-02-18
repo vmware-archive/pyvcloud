@@ -1224,6 +1224,100 @@ class Gateway(object):
         ipsec_vpn_href = self._build_ipsec_vpn_href()
         return self.client.get_resource(ipsec_vpn_href)
 
+    def enable_activation_status_ipsec_vpn(self, is_active):
+        """Enables activation status of IPsec VPN.
+
+        :param bool is_active: flag to enable/disable activation status
+        """
+        ipsec_vpn = self.get_ipsec_vpn()
+        ipsec_vpn.enabled = is_active
+        self.client.put_resource(self._build_ipsec_vpn_href(),
+                                 ipsec_vpn,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def info_activation_status_ipsec_vpn(self):
+        """Info activation status.
+
+        :return: dict activation status dict
+        """
+        ipsec_vpn_activation_status = {}
+        ipsec_vpn = self.get_ipsec_vpn()
+        ipsec_vpn_activation_status["Activation Status"] = \
+            ipsec_vpn.enabled.text
+        return ipsec_vpn_activation_status
+
+    def change_shared_key_ipsec_vpn(self, shared_key):
+        """Changes shared key.
+
+        :param str shared_key: shared key.
+        """
+        ipsec_vpn = self.get_ipsec_vpn()
+        ip_sec_global = ipsec_vpn.xpath('global', namespaces=NSMAP)
+        ip_sec_global[0].psk = shared_key
+
+        self.client.put_resource(self._build_ipsec_vpn_href(),
+                                 ipsec_vpn,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def enable_logging_ipsec_vpn(self, is_enable):
+        """Enables logging for IPsec VPN.
+
+        :param bool is_enable: flag to enable/disable logging.
+        """
+        ipsec_vpn = self.get_ipsec_vpn()
+        ipsec_vpn.logging.enable = is_enable
+        self.client.put_resource(self._build_ipsec_vpn_href(),
+                                 ipsec_vpn,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def set_log_level_ipsec_vpn(self, log_level):
+        """Set log level for Ipsec VPN.
+
+        :param str log_level: log level
+        """
+        log_level_set = set(
+            ["emergency", "alert", "critical", "error", "warning",
+             "notice", "info", "debug"])
+        if log_level not in log_level_set:
+            raise EntityNotFoundException('No associated log level found.')
+
+        ipsec_vpn = self.get_ipsec_vpn()
+        ipsec_vpn.logging.logLevel = log_level
+        self.client.put_resource(self._build_ipsec_vpn_href(),
+                                 ipsec_vpn,
+                                 EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def info_logging_settings_ipsec_vpn(self):
+        """Provide info for logging settings.
+
+        :return: dict: dict of info of logging settings
+        """
+        ipsec_logging_settings = {}
+        ipsec_vpn = self.get_ipsec_vpn()
+        ipsec_logging_settings["Enable"] = \
+            ipsec_vpn.logging.enable.text
+        ipsec_logging_settings["Log Level"] = \
+            ipsec_vpn.logging.logLevel
+
+        return ipsec_logging_settings
+
+    def list_ipsec_vpn(self):
+        """List IPsec VPN of a gateway.
+
+        :return: list of all ipsec vpn.
+        """
+        out_list = []
+        ipsec_vpn = self.get_ipsec_vpn()
+        vpn_sites = ipsec_vpn.sites
+        if hasattr(vpn_sites, "site"):
+            for site in vpn_sites.site:
+                ipsec_vpn_info = {}
+                ipsec_vpn_info["Name"] = site.name
+                ipsec_vpn_info["local_ip"] = site.localIp
+                ipsec_vpn_info["peer_ip"] = site.peerIp
+                out_list.append(ipsec_vpn_info)
+        return out_list
+
     def list_firewall_object_types(self, type):
         """List firewall object types for editing of rule.
 

@@ -14,6 +14,7 @@
 from pyvcloud.vcd.client import create_element
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import AlreadyExistsException
@@ -646,6 +647,31 @@ class Gateway(object):
         return self.client.put_linked_resource(
             self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,
             gateway)
+
+    def set_tenant_syslog_server_ip(self, ip):
+        """Set syslog server ip of the gateway.
+
+        This operation can be performed by System/Org Administrators.
+
+        :param: str ip: IP to be added as Syslog server IP
+        :return: object containing EntityType.TASK XML data
+             representing the asynchronous task.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        gateway = self.get_resource()
+        link = find_link(gateway,
+                         RelationType.GATEWAY_SYS_SERVER_SETTING_IP,
+                         EntityType.EDGE_GATEWAY_SYS_LOG_SERVER_IP.value)
+        syslog_server_settings = gateway.Configuration.SyslogServerSettings
+
+        if hasattr(syslog_server_settings, 'TenantSyslogServerSettings'):
+            syslog_server_settings.TenantSyslogServerSettings.append(
+                E.SyslogServerIp(ip))
+
+        return self.client.post_resource(link.href, syslog_server_settings,
+                                         EntityType
+                                         .EDGE_GATEWAY_SYS_LOG_SERVER_IP.value)
 
     def list_syslog_server_ip(self):
         """List syslog server ip of the gateway.

@@ -78,8 +78,8 @@ class IpsecVpn(GatewayServices):
                          mtu=None,
                          is_enabled=None,
                          enable_pfs=None):
-
         """Update IPsec VPN of the gateway.
+
         param str name: new name of IPSec VPN
         param str description: new description of IPSec VPN
         param str peer_id: new peer id
@@ -193,5 +193,3 @@ class IpsecVpn(GatewayServices):
                 vpn_site_info['dhGroup'] = site.dhGroup
 
         return vpn_site_info
-
-

@@ -35,5 +35,14 @@ class Extension(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         if self.resource is None:
-            self.resource = self.client.get_extension()
+            self.reload()
         return self.resource
+
+    def reload(self):
+        """Reloads the resource representation of the extension.
+
+        This method should be called in between two method invocations on the
+        Extension object, if the former call changes the representation of the
+        Extension in vCD.
+        """
+        self.resource = self.client.get_extension()

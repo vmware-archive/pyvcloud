@@ -15,11 +15,16 @@
 import unittest
 from uuid import uuid1
 from pyvcloud.vcd.client import ApiVersion
+from pyvcloud.vcd.client import E
+from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import GatewayBackingConfigType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
+from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.client import TaskStatus
+from pyvcloud.vcd.extension import Extension
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import Environment
@@ -50,6 +55,7 @@ class TestGateway(BaseTestCase):
     _mac_address = '00:14:22:01:23:45'
     _host_name = 'xyzName'
     _binding_ip_address = '10.20.30.40'
+    _syslog_server_ip1 = '10.40.40.40'
 
     def test_0000_setup(self):
         """Setup the gateway required for the other tests in this module.
@@ -109,25 +115,45 @@ class TestGateway(BaseTestCase):
         elif float(TestGateway._api_version) == float(
                 ApiVersion.VERSION_31.value):
             TestGateway._gateway = \
-                TestGateway._vdc.create_gateway_api_version_31(self._name,
-                [ext_net_resource.get('name')], 'compact', None, True,
-                ext_net_resource.get('name'), gateway_ip, True, False,
-                False, False, True,
-                ext_net_to_participated_subnet_with_ip_settings, True,
-                ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+                TestGateway._vdc.create_gateway_api_version_31(
+                    self._name, [ext_net_resource.get('name')], 'compact',
+                    None, True, ext_net_resource.get('name'), gateway_ip,
+                    True, False, False, False, True,
+                    ext_net_to_participated_subnet_with_ip_settings, True,
+                    ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
         elif float(TestGateway._api_version) >= float(
                 ApiVersion.VERSION_32.value):
             TestGateway._gateway = \
                 TestGateway._vdc.create_gateway_api_version_32(
-                self._name, [ext_net_resource.get('name')], 'compact', None,
-                True, ext_net_resource.get('name'), gateway_ip, True, False,
-                False, False, True,
-                ext_net_to_participated_subnet_with_ip_settings, True,
-                ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
+                    self._name, [ext_net_resource.get('name')], 'compact',
+                    None, True, ext_net_resource.get('name'), gateway_ip,
+                    True, False, False, False, True,
+                    ext_net_to_participated_subnet_with_ip_settings, True,
+                    ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
 
         result = TestGateway._client.get_task_monitor().wait_for_success(
             task=TestGateway._gateway.Tasks.Task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        TestGateway._extension = Extension(TestGateway._client)
+        TestGateway._extension.get_resource()
+        link = find_link(TestGateway._extension.resource, RelationType.DOWN,
+                         EntityType.SYSTEM_SETTINGS.value)
+        settings = TestGateway._client.get_resource(link.href)
+        syslog_server_settings = settings.GeneralSettings.SyslogServerSettings
+
+        if hasattr(syslog_server_settings,
+                   '{' + NSMAP['vcloud'] + '}SyslogServerIp1'):
+            return
+        syslog_server_settings.append(
+            E.SyslogServerIp1(TestGateway._syslog_server_ip1))
+        TestGateway._client.put_resource(link.href, settings,
+                                         EntityType.SYSTEM_SETTINGS.value)
+        TestGateway._extension.reload()
+        settings = TestGateway._client.get_resource(link.href)
+        self.assertTrue(
+            hasattr(syslog_server_settings, '{' + NSMAP['vcloud'] +
+                    '}SyslogServerIp1'))
 
     def test_0001_convert_to_advanced(self):
         """Convert the legacy gateway to advance gateway.
@@ -206,7 +232,20 @@ class TestGateway(BaseTestCase):
                 task=task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0007_list_external_network_config_ip_allocations(self):
+    def test_0010_set_tenant_syslog_server_ip(self):
+        """Set Tenant syslog server IP of the gateway.
+
+        Invoke the set_tenant_syslog_server_ip function of gateway.
+        """
+
+        gateway_obj = Gateway(TestGateway._client, self._name,
+                              TestGateway._gateway.get('href'))
+        task = gateway_obj.set_tenant_syslog_server_ip('192.168.5.6')
+        result = TestGateway._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0015_list_external_network_config_ip_allocations(self):
         """List external network configure ip allocations.
 
         Invoke the list_gateways_configure_ip_settings of the gateway.
@@ -267,7 +306,7 @@ class TestGateway(BaseTestCase):
         TestGateway._client.get_task_monitor().wait_for_success(task=task)
         logger.debug('Deleted external network ' + network.get('name') + '.')
 
-    def test_0008_add_external_network(self):
+    def test_0020_add_external_network(self):
         """Add an exernal netowrk to the gateway.
 
         Invoke the add_external_network function of gateway.
@@ -291,7 +330,7 @@ class TestGateway(BaseTestCase):
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0009_remove_external_network(self):
+    def test_0025_remove_external_network(self):
         """Remove an exernal netowrk from the gateway.
 
         Invoke the remove_external_network function of gateway.
@@ -306,7 +345,7 @@ class TestGateway(BaseTestCase):
 
         self._delete_external_network(TestGateway._external_network2)
 
-    def test_0010_edit_gateway(self):
+    def test_0030_edit_gateway(self):
         """Edit the gateway name.
 
         Invokes the edit_gateway of the gateway.
@@ -323,7 +362,7 @@ class TestGateway(BaseTestCase):
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0012_edit_config_ipaddress(self):
+    def test_0035_edit_config_ipaddress(self):
         """It edits the config ip settings of gateway.
         In this user can only modify Subnet participation and config Ip address
         of gateway's external network.
@@ -362,7 +401,7 @@ class TestGateway(BaseTestCase):
             if ip_range.StartAddress == _ip_range1_start_address:
                 self.assertEqual(ip_range.EndAddress, _ip_range1_end_address)
 
-    def test_0013_add_sub_allocated_ip_pools(self):
+    def test_0040_add_sub_allocated_ip_pools(self):
         """It adds the sub allocated ip pools to gateway.
 
         Invokes the add_sub_allocated_ip_pools of the gateway.
@@ -390,7 +429,7 @@ class TestGateway(BaseTestCase):
             subnet_participation)
         self.__validate_ip_range(ip_ranges, gateway_sub_allocated_ip_range)
 
-    def test_0014_edit_sub_allocated_ip_pools(self):
+    def test_0045_edit_sub_allocated_ip_pools(self):
         """It edits the sub allocated ip pools of gateway.
 
         Invokes the edit_sub_allocated_ip_pools of the gateway.
@@ -421,7 +460,7 @@ class TestGateway(BaseTestCase):
             subnet_participation)
         self.__validate_ip_range(ip_ranges, gateway_sub_allocated_ip_range)
 
-    def test_0015_remove_sub_allocated_ip_pools(self):
+    def test_0050_remove_sub_allocated_ip_pools(self):
         """Remove the sub allocated ip pools of gateway.
 
         Invokes the remove_sub_allocated_ip_pools of the gateway.
@@ -447,7 +486,7 @@ class TestGateway(BaseTestCase):
         """removed the IpRanges form subnet_participation."""
         self.assertFalse(hasattr(subnet_participation, 'IpRanges'))
 
-    def test_0016_edit_rate_limit(self):
+    def test_0055_edit_rate_limit(self):
         """Edits existing rate limit of gateway.
 
         Invokes the edit_rate_limits of the gateway.
@@ -467,17 +506,15 @@ class TestGateway(BaseTestCase):
         gateway_obj = Gateway(TestGateway._client, self._name,
                               TestGateway._gateway.get('href'))
         for gateway_inf in \
-                gateway_obj.get_resource().Configuration.GatewayInterfaces.\
-                        GatewayInterface:
+                gateway_obj.get_resource()\
+                        .Configuration.GatewayInterfaces.GatewayInterface:
             if gateway_inf.Name == ext_network:
                 self.assertEqual(self._rate_limit_start,
                                  gateway_inf.InRateLimit.text)
                 self.assertEqual(self._rate_limit_end,
                                  gateway_inf.OutRateLimit.text)
 
-    @unittest.skip("Skipping test case because set syslog server is not in "
-                   "code")
-    def test_0018_list_syslog_settings(self):
+    def test_0060_list_syslog_settings(self):
         """List Tenant syslog server of the gateway.
 
         Invoke the list_syslog_server_ip function of gateway.
@@ -486,9 +523,9 @@ class TestGateway(BaseTestCase):
             gateway_obj = Gateway(client, self._name,
                                   TestGateway._gateway.get('href'))
             tenant_syslog_server = gateway_obj.list_syslog_server_ip()
-            self.assertEqual(len(tenant_syslog_server), 1)
+            self.assertGreaterEqual(len(tenant_syslog_server), 1)
 
-    def test_0019_list_rate_limit(self):
+    def test_0065_list_rate_limit(self):
         """List rate limit of the gateway.
 
         Invoke the list_rate_limits function of gateway.
@@ -505,7 +542,7 @@ class TestGateway(BaseTestCase):
             if gateway_inf.Name == ext_network:
                 return gateway_inf
 
-    def test_0020_disable_rate_limit(self):
+    def test_0070_disable_rate_limit(self):
         """Disable rate limit of the gateway.
 
         Invoke the disable_rate_limits function of gateway.
@@ -529,7 +566,7 @@ class TestGateway(BaseTestCase):
         """removed the InRateLimit form gateway_interface."""
         self.assertFalse(hasattr(gateway_interface, 'InRateLimit'))
 
-    def test_0021_configure_gateway(self):
+    def test_0075_configure_gateway(self):
         """configures the gateway.
 
         Invoke the configure_default_gateway function of gateway.
@@ -555,7 +592,7 @@ class TestGateway(BaseTestCase):
             gateway_obj.get_resource(), ext_network)
         self.assertTrue(gateway_interface.UseForDefaultRoute)
 
-    def test_0022_enable_dns_relay_gateway(self):
+    def test_0080_enable_dns_relay_gateway(self):
         """enables the dns relay of the gateway.
 
         Invoke the configure_dns_default_gateway function of gateway.
@@ -576,7 +613,7 @@ class TestGateway(BaseTestCase):
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0023_list_configure_default_gateway(self):
+    def test_0085_list_configure_default_gateway(self):
         """list configured default gateway.
 
         Invoke the list_configure_default_gateway function of gateway.
@@ -586,7 +623,7 @@ class TestGateway(BaseTestCase):
         default_gateways = gateway_obj.list_configure_default_gateway()
         self.assertTrue(len(default_gateways) > 0)
 
-    def test_0024_disable_configure_gateway(self):
+    def test_0090_disable_configure_gateway(self):
         """configures the gateway.
 
         Invoke the configure_default_gateway function of gateway.
@@ -612,7 +649,7 @@ class TestGateway(BaseTestCase):
             gateway_obj.get_resource(), ext_network)
         self.assertTrue(gateway_interface.UseForDefaultRoute.text == 'false')
 
-    def test_0025_add_firewall_rule(self):
+    def test_0095_add_firewall_rule(self):
         """Add Firewall Rule's in the gateway."""
 
         gateway_obj = Gateway(TestGateway._client, self._name,
@@ -627,7 +664,7 @@ class TestGateway(BaseTestCase):
                 break
         self.assertTrue(matchFound)
 
-    def test_0026_add_dhcp_pool(self):
+    def test_0100_add_dhcp_pool(self):
         """Add DHCP pool in the gateway.
          Invokes the add_dhcp_pool of the gateway.
         """
@@ -646,7 +683,7 @@ class TestGateway(BaseTestCase):
                 break
         self.assertTrue(matchFound)
 
-    def test_0027_add_dhcp_binding(self):
+    def test_0105_add_dhcp_binding(self):
         """Add DHCP Binding in the gateway.
 
          Invokes the add_dhcp_binding of the gateway.
@@ -654,7 +691,7 @@ class TestGateway(BaseTestCase):
         gateway_obj = Gateway(
             TestGateway._client, self._name,
             Environment.get_test_gateway(Environment.get_sys_admin_client())
-                .get('href'))
+            .get('href'))
         gateway_obj.add_dhcp_binding(TestGateway._mac_address,
                                      TestGateway._host_name,
                                      TestGateway._binding_ip_address)
@@ -667,7 +704,7 @@ class TestGateway(BaseTestCase):
                 break
         self.assertTrue(matchFound)
 
-    def test_0098_teardown(self):
+    def test_1000_teardown(self):
         """Test the method System.delete_gateway().
 
         Invoke the method for the gateway created by setup.
@@ -680,7 +717,7 @@ class TestGateway(BaseTestCase):
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0099_cleanup(self):
+    def test_1010_cleanup(self):
         """Release all resources held by this object for testing purposes."""
         TestGateway._client.logout()
 

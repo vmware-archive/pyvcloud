@@ -162,6 +162,7 @@ class RelationType(Enum):
         'edgeGateway:enableDistributedRouting'
     GATEWAY_REDEPLOY = 'edgeGateway:redeploy'
     GATEWAY_SYNC_SYSLOG_SETTINGS = 'edgeGateway:syncSyslogSettings'
+    GATEWAY_SYS_SERVER_SETTING_IP = 'edgeGateway:configureSyslogServerSettings'
     GATEWAY_UPDATE_PROPERTIES = 'edgeGateway:updateProperties'
     LINK_TO_TEMPLATE = 'linkToTemplate'
     MIGRATE_VMS = 'migrateVms'
@@ -309,6 +310,8 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.edgeGatewayFormFactor+xml'
     EDGE_GATEWAY_SERVICE_CONFIGURATION = \
         'application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml'
+    EDGE_GATEWAY_SYS_LOG_SERVER_IP = \
+        'application/vnd.vmware.vcloud.SyslogSettings+xml'
     EXTENSION = 'application/vnd.vmware.admin.vmwExtension+xml'
     EXTENSION_SERVICES = 'application/vnd.vmware.admin.extensionServices+xml'
     EXTERNAL_NETWORK = 'application/vnd.vmware.admin.vmwexternalnet+xml'

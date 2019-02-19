@@ -1511,6 +1511,10 @@ class Gateway(object):
                                                  auto_config_dns)
         static_binding.append(auto_config_dns_element)
         if auto_config_dns:
+            static_binding.append(create_element("primaryNameServer", "Auto"))
+            static_binding.append(
+                create_element("secondaryNameServer", "Auto"))
+        else:
             if primary_server:
                 static_binding.append(
                     create_element("primaryNameServer", primary_server))
@@ -1536,3 +1540,22 @@ class Gateway(object):
 
         self.client.put_resource(dhcp_href, dhcp_resource,
                                  EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def list_dhcp_binding(self):
+        """List all DHCP bindings on a gateway.
+
+        :return: list of all DHCP bindings on a gateway.
+        e.g.
+        [{'ID': binding-1, 'MAC_Address': '00:14:22:01:23:44',
+          'IP_Address': '10.20.30.40'}]
+        """
+        out_list = []
+        dhcp_resource = self.get_dhcp()
+        if hasattr(dhcp_resource.staticBindings, 'staticBinding'):
+            for static_binding in dhcp_resource.staticBindings.staticBinding:
+                pool_info = dict()
+                pool_info['ID'] = static_binding.bindingId
+                pool_info['MAC_Address'] = static_binding.macAddress
+                pool_info['IP_Address'] = static_binding.ipAddress
+                out_list.append(pool_info)
+        return out_list

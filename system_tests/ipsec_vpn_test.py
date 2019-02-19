@@ -31,6 +31,7 @@ class TestIpSecVpn(BaseTestCase):
 
     # All tests in this module should be run as System Administrator.
     _name = GatewayConstants.name
+    _updatedName = 'updatedName'
     _orgvdc_name = 'orgvdc2'
     _gateway_name = 'test_gateway2'
     _routed_network_name = 'routednet2'
@@ -90,6 +91,25 @@ class TestIpSecVpn(BaseTestCase):
         gateway_obj1.reload()
         ipsec_vpn = gateway_obj1.get_ipsec_vpn()
         self.__validate_ip_sec_vpn(ipsec_vpn)
+
+    def test_0015_update_ipsec_vpn(self):
+        """Update Ip sec VPN in the gateway.
+
+        Invokes the update_ipsec_vpn of the gateway.
+        """
+        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
+                                 gateway_name=TestIpSecVpn._name,
+                                 ipsec_end_point=
+                                 TestIpSecVpn._local_ip + "-" +
+                                 TestIpSecVpn._peer_ip)
+
+        ipsec_vpn_obj.update_ipsec_vpn(name=TestIpSecVpn._updatedName)
+        # Verify
+        ipsec_vpn_sites = ipsec_vpn_obj.get_ipsec_config_resource().sites
+        for site in ipsec_vpn_sites.site:
+            if site.localIp == TestIpSecVpn._local_ip \
+                and site.peerIp == TestIpSecVpn._peer_ip:
+                self.assertEqual(site.name,TestIpSecVpn._updatedName)
 
     def __validate_ip_sec_vpn(self, ipsec_vpn):
         site_list = ipsec_vpn.sites.site
@@ -177,6 +197,20 @@ class TestIpSecVpn(BaseTestCase):
         ipsec_vpn_list = gateway_obj1.list_ipsec_vpn()
         # Verify
         self.assertTrue(len(ipsec_vpn_list) > 0)
+
+    def test_0055_info_ipsec_vpn_site(self):
+        """Info Ipsec Vpn site.
+
+        Invokes the get_vpn_site_info of the IpsecVpn.
+        """
+        ipsec_vpn_obj = IpsecVpn(client=TestIpSecVpn._client,
+                                 gateway_name=TestIpSecVpn._name,
+                                 ipsec_end_point=
+                                 TestIpSecVpn._local_ip + "-" +
+                                 TestIpSecVpn._peer_ip)
+        site_info = ipsec_vpn_obj.get_vpn_site_info()
+        # Verify
+        self.assertTrue(len(site_info) > 0)
 
     def test_0090_delete_ipsec_vpn(self):
         """Delete Ip Sec VPn in the gateway.

@@ -1391,10 +1391,9 @@ class Gateway(object):
                                                  auto_config_dns)
         static_binding.append(auto_config_dns_element)
         if auto_config_dns:
+            static_binding.append(create_element("primaryNameServer", "Auto"))
             static_binding.append(
-                    create_element("primaryNameServer", "Auto"))
-            static_binding.append(
-                    create_element("secondaryNameServer", "Auto"))
+                create_element("secondaryNameServer", "Auto"))
         else:
             if primary_server:
                 static_binding.append(

@@ -667,25 +667,6 @@ class TestGateway(BaseTestCase):
                 break
         self.assertTrue(matchFound)
 
-    def test_0028_list_dhcp_binding(self):
-        """List DHCP Binding in the gateway.
-
-         Invokes the list_dhcp_binding of the gateway.
-        """
-        gateway_obj = Gateway(
-            TestGateway._client, self._name,
-            Environment.get_test_gateway(Environment.get_sys_admin_client())
-                .get('href'))
-        gateway_obj.list_dhcp_binding()
-        dhcp_resource = gateway_obj.get_dhcp()
-        # Verify
-        matchFound = False
-        for static_binding in dhcp_resource.staticBindings.staticBinding:
-            if static_binding.macAddress.text == TestGateway._mac_address:
-                matchFound = True
-                break
-        self.assertTrue(matchFound)
-
     def test_0098_teardown(self):
         """Test the method System.delete_gateway().
 

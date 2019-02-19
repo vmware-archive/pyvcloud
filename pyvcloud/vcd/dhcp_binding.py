@@ -13,8 +13,6 @@
 # limitations under the License.
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.gateway_services import GatewayServices
-from pyvcloud.vcd.network_url_constants import DHCP_BINDINGS
-from pyvcloud.vcd.network_url_constants import DHCP_BINDINGS_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import DHCP_URL_TEMPLATE
 
 
@@ -30,15 +28,9 @@ class DhcpBinding(GatewayServices):
         binding_href = (self.network_url + DHCP_URL_TEMPLATE)
         self.href = binding_href
 
-    def _extract_id(self, dhcp_binding_href):
-        binding_id_index = dhcp_binding_href.index(DHCP_BINDINGS_URL_TEMPLATE)\
-                         + \
-            len(DHCP_BINDINGS_URL_TEMPLATE) + 1
-        return dhcp_binding_href[binding_id_index:]
-
     def __config_url(self):
-        binding_id_length = len(DHCP_BINDINGS + '/' + str(self.resource_id))
-        return self.href[:-binding_id_length]
+        self._build_self_href(self.resource_id)
+        return self.href
 
     def _reload(self):
         """Reloads the resource representation of the DHCP binding."""
@@ -51,6 +43,7 @@ class DhcpBinding(GatewayServices):
             for static_binding in dhcp_resource.staticBindings.staticBinding:
                 if static_binding.bindingId == self.resource_id:
                     dhcp_resource.staticBindings.remove(static_binding)
+                    break
 
         self.client.put_resource(self.href, dhcp_resource,
                                  EntityType.DEFAULT_CONTENT_TYPE.value)

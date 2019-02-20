@@ -413,8 +413,7 @@ class VM(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         # get network connection section.
-        net_conn_section = deepcopy(
-            self.get_resource().NetworkConnectionSection)
+        net_conn_section = self.get_resource().NetworkConnectionSection
         nic_index = 0
         insert_index = net_conn_section.index(
             net_conn_section['{' + NSMAP['ovf'] + '}Info']) + 1

@@ -320,7 +320,7 @@ class TestVM(BaseTestCase):
         result = TestVM._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         vm.reload()
-        self.assertTrue(vm.list_nics())
+        self.assertTrue(len(vm.list_nics()) == 2)
 
     @developerModeAware
     def test_9998_teardown(self):

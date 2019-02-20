@@ -405,6 +405,14 @@ class VM(object):
                 ip_address_mode, ip_address):
         """Adds a nic to the VM.
 
+        :param str adapter_type: nic adapter type.
+            One of NetworkAdapterType values.
+        :param bool is_primary: True, if its a primary nic of the VM.
+        :param bool is_connected: True, if the nic has to be connected.
+        :param str network_name: name of the network to be connected to.
+        :param str ip_address_mode: One of DHCP|POOL|MANUAL|NONE.
+        :param str ip_address: to be set an ip in case of MANUAL mode.
+
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task adding  a nic.
 
@@ -445,11 +453,11 @@ class VM(object):
     def list_nics(self):
         """Lists all the nics of the VM.
 
-        :return: the following properties as a dictionary.
+        :return: list of nics with the following properties as a dictionary.
             nic index, is primary, is connected, connected network,
             ip address allocation mode, ip address, network adapter type
 
-        :rtype: dict
+        :rtype: list
         """
         nics = []
         self.get_resource()

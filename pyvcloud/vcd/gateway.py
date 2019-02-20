@@ -1194,7 +1194,7 @@ class Gateway(object):
         param str dh_group: dh group
         param str mtu: MTU
         param bool is_enabled: enabled status Default : false
-        param bool enable_pfs: enable_pfs status Default : false
+        param bool enable_pfs: enable pfs status Default : false
         :return: Ipsec Vpn object
 
         :rtype: lxml.objectify.ObjectifiedElement

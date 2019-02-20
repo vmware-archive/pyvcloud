@@ -95,7 +95,7 @@ class IpsecVpn(GatewayServices):
         param str dh_group: new dh group
         param str mtu: new MTU
         param bool is_enabled: new enabled status Default : false
-        param bool enable_pfs: new enabled_pfs status Default : false
+        param bool enable_pfs: new enabled pfs status Default : false
         :return: Ipsec Vpn object
         :rtype: lxml.objectify.ObjectifiedElement
         """

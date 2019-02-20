@@ -110,6 +110,7 @@ class TestIpSecVpn(BaseTestCase):
             if site.localIp == TestIpSecVpn._local_ip \
                 and site.peerIp == TestIpSecVpn._peer_ip:
                 self.assertEqual(site.name,TestIpSecVpn._updatedName)
+                break
 
     def __validate_ip_sec_vpn(self, ipsec_vpn):
         site_list = ipsec_vpn.sites.site

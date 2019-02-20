@@ -24,13 +24,13 @@ from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
 from pyvcloud.system_test_framework.constants.ovdc_network_constant import \
     OvdcNetConstants
-from pyvcloud.vcd.client import ApiVersion
+from pyvcloud.system_test_framework.vapp_constants import VAppConstants
+from pyvcloud.system_test_framework.utils import create_vapp_from_template
 
+from pyvcloud.vcd.client import ApiVersion
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import NSMAP
-from pyvcloud.vcd.client import QueryResultFormat
-from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.external_network import ExternalNetwork
 from pyvcloud.vcd.org import Org
@@ -85,6 +85,7 @@ class Environment(object):
     _external_network_name = None
     _org_href = None
     _ovdc_href = None
+    _vapp_href = None
     _portgroupType = "DV_PORTGROUP"
 
     _user_name_for_roles = {
@@ -297,8 +298,8 @@ class Environment(object):
     def _create_external_network(cls):
         vc_name = cls._config['vc']['vcenter_host_name']
         portgrouphelper = PortgroupHelper(cls._sys_admin_client)
-        port_group = portgrouphelper.get_available_portgroup_name(vc_name,
-                                                                  Environment._portgroupType)
+        port_group = portgrouphelper.get_available_portgroup_name(
+            vc_name, Environment._portgroupType)
 
         if port_group is None:
             raise Exception(
@@ -552,8 +553,8 @@ class Environment(object):
         cls._logger.debug('Creating org-vdc network ' + expected_net_name)
         result = vdc.create_isolated_vdc_network(
             network_name=expected_net_name,
-            network_cidr=cls._config['vcd'][
-                'default_ovdc_network_network_cidr'])
+            network_cidr=cls._config['vcd']
+            ['default_ovdc_network_network_cidr'])
 
         cls._sys_admin_client.get_task_monitor()\
             .wait_for_success(task=result.Tasks.Task[0])
@@ -575,7 +576,8 @@ class Environment(object):
                             ' doesn\'t exist.')
 
         vdc = VDC(cls._sys_admin_client, href=cls._ovdc_href)
-        expected_net_name = cls._config['vcd']['default_direct ovdc_network_name']
+        expected_net_name = cls._config['vcd'][
+            'default_direct ovdc_network_name']
         records_dict = vdc.list_orgvdc_network_records()
 
         for net_name in records_dict.keys():
@@ -584,7 +586,8 @@ class Environment(object):
                                   expected_net_name)
                 return
 
-        cls._logger.debug('Creating direct org-vdc network ' + expected_net_name)
+        cls._logger.debug('Creating direct org-vdc network ' +
+                          expected_net_name)
         result = vdc.create_directly_connected_vdc_network(
             network_name=expected_net_name,
             parent_network_name=cls._config['external_network']['name'],
@@ -749,6 +752,7 @@ class Environment(object):
                 cls._external_network_name = None
                 cls._org_href = None
                 cls._ovdc_href = None
+                cls._vapp_href = None
 
     @classmethod
     def get_test_pvdc_name(cls):
@@ -802,6 +806,39 @@ class Environment(object):
         :rtype: pyvcloud.vcd.vdc.VDC
         """
         return VDC(client, href=cls._ovdc_href)
+
+    @classmethod
+    def get_test_vapp_with_network(cls, client):
+        """Gets the vapp for testing in current vDC.
+
+        :param pyvcloud.vcd.client.Client client: client which will be used to
+            create the VDC object.
+
+        :return: the vdc that is backing the organization in which all tests
+            will run.
+
+        :rtype: pyvcloud.vcd.vdc.VDC
+        """
+        if not cls._vapp_href:
+            vdc = Environment.get_test_vdc(client)
+            try:
+                vapp = vdc.get_vapp(VAppConstants.name)
+                cls._vapp_href = vapp.get('href')
+            except EntityNotFoundException:
+                cls._vapp_href = create_vapp_from_template(
+                    client,
+                    vdc,
+                    VAppConstants.name,
+                    cls._config['vcd']['default_catalog_name'],
+                    cls._config['vcd']['default_template_file_name'],
+                    power_on=False,
+                    deploy=False)
+                vapp = VApp(client, href=cls._vapp_href)
+                vapp.create_vapp_network(
+                    VAppConstants.network1_name,
+                    VAppConstants.network1_cidr,
+                    ip_ranges=VAppConstants.network1_ip_ranges)
+        return VApp(client, href=cls._vapp_href)
 
     @classmethod
     def get_username_for_role_in_test_org(cls, role_name):
@@ -890,22 +927,20 @@ class Environment(object):
             ext_config = cls._config['external_network']
             vdc = cls.get_test_vdc(cls._sys_admin_client)
             api_version = cls._config['vcd']['api_version']
-            if float(api_version) <= float(
-                    ApiVersion.VERSION_30.value):
+            if float(api_version) <= float(ApiVersion.VERSION_30.value):
                 gateway = vdc.create_gateway_api_version_30(
                     GatewayConstants.name, [ext_config['name']])
             elif float(api_version) == float(ApiVersion.VERSION_31.value):
                 gateway = vdc.create_gateway_api_version_31(
-                    GatewayConstants.name,
-                    [ext_config['name']],
+                    GatewayConstants.name, [ext_config['name']],
                     should_create_as_advanced=True)
             elif float(api_version) >= float(ApiVersion.VERSION_32.value):
                 gateway = vdc.create_gateway_api_version_32(
                     GatewayConstants.name, [ext_config['name']],
                     should_create_as_advanced=True)
 
-            cls._sys_admin_client.get_task_monitor().wait_for_success(task
-                                                    = gateway.Tasks.Task[0])
+            cls._sys_admin_client.get_task_monitor().wait_for_success(
+                task=gateway.Tasks.Task[0])
 
     @classmethod
     def get_test_gateway(cls, client):

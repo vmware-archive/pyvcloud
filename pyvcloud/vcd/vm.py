@@ -13,11 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
+
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
+from pyvcloud.vcd.client import VmNicProperties
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 
@@ -218,7 +222,10 @@ class VM(object):
         """
         return self.get_power_state(vm_resource) == 2
 
-    def _perform_power_operation(self, rel, operation_name, media_type=None,
+    def _perform_power_operation(self,
+                                 rel,
+                                 operation_name,
+                                 media_type=None,
                                  contents=None):
         """Perform a power operation on the vm.
 
@@ -245,13 +252,13 @@ class VM(object):
         """
         vm_resource = self.get_resource()
         try:
-            return self.client.post_linked_resource(
-                vm_resource, rel, media_type, contents)
+            return self.client.post_linked_resource(vm_resource, rel,
+                                                    media_type, contents)
         except OperationNotSupportedException:
             power_state = self.get_power_state(vm_resource)
             raise OperationNotSupportedException(
-                'Can\'t {0} vm. Current state of vm: {1}.'
-                .format(operation_name, VCLOUD_STATUS_MAP[power_state]))
+                'Can\'t {0} vm. Current state of vm: {1}.'.format(
+                    operation_name, VCLOUD_STATUS_MAP[power_state]))
 
     def shutdown(self):
         """Shutdown the vm.
@@ -261,8 +268,8 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        return self._perform_power_operation(rel=RelationType.POWER_SHUTDOWN,
-                                             operation_name='shutdown')
+        return self._perform_power_operation(
+            rel=RelationType.POWER_SHUTDOWN, operation_name='shutdown')
 
     def reboot(self):
         """Reboots the vm.
@@ -272,8 +279,8 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        return self._perform_power_operation(rel=RelationType.POWER_REBOOT,
-                                             operation_name='reboot')
+        return self._perform_power_operation(
+            rel=RelationType.POWER_REBOOT, operation_name='reboot')
 
     def power_on(self):
         """Powers on the vm.
@@ -283,8 +290,8 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        return self._perform_power_operation(rel=RelationType.POWER_ON,
-                                             operation_name='power on')
+        return self._perform_power_operation(
+            rel=RelationType.POWER_ON, operation_name='power on')
 
     def power_off(self):
         """Powers off the vm.
@@ -294,8 +301,8 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        return self._perform_power_operation(rel=RelationType.POWER_OFF,
-                                             operation_name='power off')
+        return self._perform_power_operation(
+            rel=RelationType.POWER_OFF, operation_name='power off')
 
     def power_reset(self):
         """Powers reset the vm.
@@ -305,8 +312,8 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        return self._perform_power_operation(rel=RelationType.POWER_RESET,
-                                             operation_name='power reset')
+        return self._perform_power_operation(
+            rel=RelationType.POWER_RESET, operation_name='power reset')
 
     def deploy(self, power_on=True, force_customization=False):
         """Deploys the vm.
@@ -395,3 +402,78 @@ class VM(object):
         self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.SNAPSHOT_REMOVE_ALL, None, None)
+
+    def add_nic(self, adapter_type, is_primary, is_connected, network_name,
+                ip_address_mode, ip_address):
+        """Adds a nic to the VM.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task adding  a nic.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        # get network connection section.
+        net_conn_section = deepcopy(
+            self.get_resource().NetworkConnectionSection)
+        nic_index = 0
+        insert_index = net_conn_section.index(
+            net_conn_section['{' + NSMAP['ovf'] + '}Info']) + 1
+        # check if any nics exists
+        if hasattr(net_conn_section, 'PrimaryNetworkConnectionIndex'):
+            # calculate nic index and create the networkconnection object.
+            indices = [None] * 10
+            insert_index = net_conn_section.index(
+                net_conn_section.PrimaryNetworkConnectionIndex) + 1
+            for nc in net_conn_section.NetworkConnection:
+                indices[int(nc.NetworkConnectionIndex.
+                            text)] = nc.NetworkConnectionIndex.text
+            nic_index = indices.index(None)
+            if is_primary:
+                net_conn_section.PrimaryNetworkConnectionIndex = \
+                    E.PrimaryNetworkConnectionIndex(nic_index)
+
+        net_conn = E.NetworkConnection(network=network_name)
+        net_conn.append(E.NetworkConnectionIndex(nic_index))
+        net_conn.append(E.IsConnected(is_connected))
+        net_conn.append(E.IpAddressAllocationMode(ip_address_mode))
+        net_conn.append(E.NetworkAdapterType(adapter_type))
+        if ip_address_mode == IpAddressMode.MANUAL:
+            net_conn.append(E.IpAddress(ip_address))
+
+        net_conn_section.insert(insert_index, net_conn)
+        return self.client.put_linked_resource(
+            net_conn_section, RelationType.EDIT,
+            EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)
+
+    def list_nics(self):
+        """Lists all the nics of the VM.
+
+        :return: the following properties as a dictionary.
+            nic index, is primary, is connected, connected network,
+            ip address allocation mode, ip address, network adapter type
+
+        :rtype: dict
+        """
+        nics = []
+        self.get_resource()
+        if hasattr(self.resource.NetworkConnectionSection,
+                   'PrimaryNetworkConnectionIndex'):
+            primary_index = self.resource.NetworkConnectionSection.\
+                PrimaryNetworkConnectionIndex.text
+
+        for nc in self.resource.NetworkConnectionSection.NetworkConnection:
+            nic = {}
+            nic[VmNicProperties.INDEX.value] = nc.NetworkConnectionIndex.text
+            nic[VmNicProperties.CONNECTED.value] = nc.IsConnected.text
+            nic[VmNicProperties.PRIMARY.value] = (
+                primary_index == nc.NetworkConnectionIndex.text)
+            nic[VmNicProperties.ADAPTER_TYPE.
+                value] = nc.NetworkAdapterType.text
+            nic[VmNicProperties.NETWORK.value] = nc.get(
+                VmNicProperties.NETWORK.value)
+            nic[VmNicProperties.IP_ADDRESS_MODE.
+                value] = nc.IpAddressAllocationMode.text
+            if hasattr(nc, 'IpAddress'):
+                nic[VmNicProperties.IP_ADDRESS.value] = nc.IpAddress.text
+            nics.append(nic)
+        return nics

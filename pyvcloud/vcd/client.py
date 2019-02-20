@@ -113,6 +113,23 @@ class EdgeGatewayType(Enum):
     NSXT_IMPORTED = 'NSXT_IMPORTED'
 
 
+class IpAddressMode(Enum):
+    DHCP = 'DHCP'
+    POOL = 'POOL'
+    MANUAL = 'MANUAL'
+    NONE = 'NONE'
+
+
+class VmNicProperties(Enum):
+    INDEX = 'index'
+    CONNECTED = 'connected'
+    PRIMARY = 'primary'
+    NETWORK = 'network'
+    IP_ADDRESS_MODE = 'ip_address_mode'
+    IP_ADDRESS = 'ip_address'
+    ADAPTER_TYPE = 'adapter_type'
+
+
 VCLOUD_STATUS_MAP = {
     -1: "Could not be created",
     0: "Unresolved",

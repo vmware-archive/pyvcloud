@@ -1077,6 +1077,7 @@ class VApp(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
+        self.get_resource()
         network_config_section = \
             deepcopy(self.resource.NetworkConfigSection)
         network_config = E.NetworkConfig(networkName=name)

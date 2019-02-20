@@ -26,6 +26,7 @@ from pyvcloud.system_test_framework.utils import \
 from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import NetworkAdapterType
 from pyvcloud.vcd.client import TaskStatus
+from pyvcloud.vcd.client import VmNicProperties
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vm import VM
@@ -321,6 +322,23 @@ class TestVM(BaseTestCase):
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         vm.reload()
         self.assertTrue(len(vm.list_nics()) == 2)
+
+    def test_0090_vm_nic_delete(self):
+        """Test the method delete_nic in vm.py
+
+        This test passes if a nic is deleted successfully.
+        """
+        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        nics = vm.list_nics()
+        self.assertTrue(len(nics) == 2)
+        nic_to_delete = next(i[VmNicProperties.INDEX.value] for i in nics
+                             if i[VmNicProperties.PRIMARY.value])
+        task = vm.delete_nic(int(nic_to_delete))
+        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        vm.reload()
+        self.assertTrue(len(vm.list_nics()) == 1)
 
     @developerModeAware
     def test_9998_teardown(self):

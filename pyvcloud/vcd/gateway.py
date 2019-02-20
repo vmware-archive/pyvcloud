@@ -1183,18 +1183,18 @@ class Gateway(object):
         param str name: name of IPSec VPN
         param str description: description of IPSec VPN
         param str peer_id: peer id
-        param str peer_ip_address: peer ip address
+        param str peer_ip_address: peer IP address
         param str local_id: local id
-        param str local_ip_address: local ip address
+        param str local_ip_address: local IP address
         param str local_subnet: local subnet in CIDR format
         param str peer_subnet: peer subnet in CIDR format
         param str shared_secret_encrypted: shared secret encrypted
         param str encryption_protocol: encryption protocol
         param str authentication_mode: authentication mode
         param str dh_group: dh group
-        param str mtu: mtu
-        param bool is_enabled: enabled status Default : true
-        param bool is_operational: is operational status Default : false
+        param str mtu: MTU
+        param bool is_enabled: enabled status Default : false
+        param bool enable_pfs: enable_pfs status Default : false
         :return: Ipsec Vpn object
 
         :rtype: lxml.objectify.ObjectifiedElement

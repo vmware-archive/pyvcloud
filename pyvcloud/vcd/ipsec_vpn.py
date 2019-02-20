@@ -57,6 +57,7 @@ class IpsecVpn(GatewayServices):
         for site in vpn_sites.site:
             if site.localIp == local_ip and site.peerIp == peer_ip:
                 vpn_sites.remove(site)
+                break
 
         self.client.put_resource(self.href,
                                  ipsec_vpn,
@@ -83,18 +84,18 @@ class IpsecVpn(GatewayServices):
         param str name: new name of IPSec VPN
         param str description: new description of IPSec VPN
         param str peer_id: new peer id
-        param str peer_ip_address: new peer ip address
+        param str peer_ip_address: new peer IP address
         param str local_id: new local id
-        param str local_ip_address: new local ip address
+        param str local_ip_address: new local IP address
         param str local_subnet: new local subnet in CIDR format
         param str peer_subnet: new peer subnet in CIDR format
         param str shared_secret_encrypted: new shared secret encrypted
         param str encryption_protocol: new encryption protocol
         param str authentication_mode: new authentication mode
         param str dh_group: new dh group
-        param str mtu: new mtu
-        param bool is_enabled: new enabled status Default : true
-        param bool is_operational: new is operational status Default : false
+        param str mtu: new MTU
+        param bool is_enabled: new enabled status Default : false
+        param bool enable_pfs: new enabled_pfs status Default : false
         :return: Ipsec Vpn object
         :rtype: lxml.objectify.ObjectifiedElement
         """
@@ -151,6 +152,7 @@ class IpsecVpn(GatewayServices):
                         E.authenticationMode(authentication_mode)
                 if dh_group is not None:
                     site.dhGroup = E.dhGroup(dh_group)
+                break
 
         self.client.put_resource(self.href, ipsec_vpn,
                                  EntityType.DEFAULT_CONTENT_TYPE.value)
@@ -191,5 +193,6 @@ class IpsecVpn(GatewayServices):
                 vpn_site_info['mtu'] = site.mtu
                 vpn_site_info['enablePfs'] = site.enablePfs
                 vpn_site_info['dhGroup'] = site.dhGroup
+                break
 
         return vpn_site_info

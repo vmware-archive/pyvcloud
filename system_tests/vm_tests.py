@@ -23,6 +23,7 @@ from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.utils import \
     create_customized_vapp_from_template
 
+from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import NetworkAdapterType
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import EntityNotFoundException
@@ -124,7 +125,7 @@ class TestVM(BaseTestCase):
             vapp.get_vm(TestVM._non_existent_vm_name)
             self.fail('Should not be able to fetch vm ' +
                       TestVM._non_existent_vm_name)
-        except EntityNotFoundException as e:
+        except EntityNotFoundException:
             return
 
     @unittest.skip("Faulty implementation.")
@@ -307,6 +308,19 @@ class TestVM(BaseTestCase):
         task = vm.snapshot_remove_all()
         result = TestVM._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0080_vm_nic_operations(self):
+        """Test the method add_nic vm.py.
+
+        This test passes if a nic is created successfully.
+        """
+        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        task = vm.add_nic(NetworkAdapterType.E1000.value, True, True, 'none',
+                          IpAddressMode.NONE.value, None)
+        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vm.reload()
+        self.assertTrue(len(vm.list_nics()) == 2)
 
     @developerModeAware
     def test_9998_teardown(self):

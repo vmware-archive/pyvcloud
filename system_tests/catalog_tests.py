@@ -446,27 +446,6 @@ class TestCatalog(BaseTestCase):
             catalog_name, remove_all=True)
         self.assertFalse(hasattr(control_access, 'AccessSettings'))
 
-    @unittest.skip('Unable to test across organizations')
-    def test_0120_catalog_sharing_accross_org(self):
-        pass
-
-    @unittest.skip('suspended due to pending To-do-s.')
-    def test_0130_catalog_sharing_via_acl(self):
-        org = Environment.get_test_org(TestCatalog._client)
-        catalog_name = TestCatalog._test_catalog_name
-
-        control_access = org.share_catalog_with_org_members(
-            catalog_name, everyone_access_level='ReadOnly')
-        self.assertEqual(control_access.IsSharedToEveryone.text, 'true')
-        self.assertEqual(control_access.EveryoneAccessLevel.text, 'ReadOnly')
-        # TODO(): Access the catalog using a vapp_user user
-
-        control_access = org.share_catalog_with_org_members(
-            catalog_name, everyone_access_level='ReadOnly')
-        self.assertEqual(control_access.IsSharedToEveryone.text, 'true')
-        self.assertEqual(control_access.EveryoneAccessLevel.text, 'ReadOnly')
-        # TODO(): Access the catalog using a vapp_user user should cause error
-
     @developerModeAware
     def test_9998_teardown(self):
         """Test the  method delete_catalog_item() and delete_catalog().

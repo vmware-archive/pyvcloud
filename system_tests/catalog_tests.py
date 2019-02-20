@@ -360,8 +360,7 @@ class TestCatalog(BaseTestCase):
         self.assertEqual(TestCatalog._test_template_name,
                          catalog_item_resource.get('name'))
 
-    @unittest.skip('Issue with vCD response. Suspending test for time being.')
-    def test_0110_catalog_access_settings(self):
+    def _0110_catalog_access_settings(self):
         """Test the access control methods for catalogs.
 
         This test passes if all the acl operations complete successfully.
@@ -446,12 +445,10 @@ class TestCatalog(BaseTestCase):
             catalog_name, remove_all=True)
         self.assertFalse(hasattr(control_access, 'AccessSettings'))
 
-    @unittest.skip('Unable to test across organizations')
-    def test_0120_catalog_sharing_accross_org(self):
+    def _0120_catalog_sharing_accross_org(self):
         pass
 
-    @unittest.skip('suspended due to pending To-do-s.')
-    def test_0130_catalog_sharing_via_acl(self):
+    def _0130_catalog_sharing_via_acl(self):
         org = Environment.get_test_org(TestCatalog._client)
         catalog_name = TestCatalog._test_catalog_name
 

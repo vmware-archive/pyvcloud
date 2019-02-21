@@ -482,3 +482,44 @@ class VM(object):
                 nic[VmNicProperties.IP_ADDRESS.value] = nc.IpAddress.text
             nics.append(nic)
         return nics
+
+    def delete_nic(self, index):
+        """Deletes a nic from the VM.
+
+        :param int index: index of the nic to be deleted.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task adding  a nic.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: InvalidParameterException: if a nic with the given index is
+            not found in the VM.
+        """
+        # get network connection section.
+        net_conn_section = self.get_resource().NetworkConnectionSection
+
+        indices = [None] * 10
+        nic_not_found = True
+        # find the nic with the given index
+        for nc in net_conn_section.NetworkConnection:
+            if int(nc.NetworkConnectionIndex.text) == index:
+                net_conn_section.remove(nc)
+                nic_not_found = False
+            else:
+                indices[int(nc.NetworkConnectionIndex.
+                            text)] = nc.NetworkConnectionIndex.text
+
+        if nic_not_found:
+            raise InvalidParameterException(
+                'Nic with index \'%s\' is not found in the VM \'%s\'' %
+                (index, self.get_resource().get('name')))
+
+        # now indices will have all existing nic indices
+        prim_nic = next((i for i in indices if i is not None), None)
+        if prim_nic:
+            net_conn_section.PrimaryNetworkConnectionIndex = \
+                E.PrimaryNetworkConnectionIndex(prim_nic)
+        return self.client.put_linked_resource(
+            net_conn_section, RelationType.EDIT,
+            EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)

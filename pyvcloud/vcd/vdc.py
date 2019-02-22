@@ -1596,6 +1596,7 @@ class VDC(object):
         gateway_params = E.EdgeGateway(name=name)
         if desc is not None:
             gateway_params.append(E.Description(desc))
+        gateway_params.append(E.EdgeGatewayType(edgeGatewayType))
         gateway_configuration_param = \
             self._create_gateway_configuration_param(
                 external_networks, gateway_backing_config,
@@ -1608,7 +1609,6 @@ class VDC(object):
                 ext_net_to_subnet_with_ip_range, ext_net_to_rate_limit)
         gateway_configuration_param.append(
             E.FipsModeEnabled(is_flips_mode_enabled))
-        gateway_configuration_param.append(E.EdgeGatewayType(edgeGatewayType))
 
         gateway_params.append(gateway_configuration_param)
         return self.client.post_linked_resource(

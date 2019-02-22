@@ -409,6 +409,81 @@ def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
     return result
 
 
+def vm_to_dict(vm):
+    """Converts a lxml.objectify.ObjectifiedElement VM object to a dict.
+
+    :param lxml.objectify.ObjectifiedElement vm: an object containing
+        EntityType.VM XML data.
+
+    :return: dictionary representation of vApp object.
+
+    :rtype: dict
+    """
+    result = {}
+    result['name'] = vm.get('name')
+    if hasattr(vm, 'Description'):
+        result['description'] = vm.Description.text
+    result['id'] = vm.get('id')
+
+    result['deployed'] = vm.get('deployed')
+    result['status'] = VCLOUD_STATUS_MAP.get(int(vm.get('status')))
+    result['needs-customization'] = vm.get('needsCustomization')
+    if hasattr(vm, 'VCloudExtension'):
+        result['moref'] = vm.VCloudExtension[
+            '{' + NSMAP['vmext'] + '}VmVimInfo'][
+                '{' + NSMAP['vmext'] + '}VmVimObjectRef']['{' + NSMAP['vmext']
+                                                          + '}MoRef'].text
+    result['computer-name'] = vm.GuestCustomizationSection.ComputerName.text
+
+    disk_instance_name_map = {}
+    nic_instance_name_map = {}
+    for item in vm['{' + NSMAP['ovf'] +
+                   '}VirtualHardwareSection']['{' + NSMAP['ovf'] + '}Item']:
+        if item['{' + NSMAP['rasd'] + '}ResourceType'].text == str(10):
+            nic_instance_name_map[item[
+                '{' + NSMAP['rasd'] + '}AddressOnParent'].text] = item[
+                    '{' + NSMAP['rasd'] + '}ElementName'].text
+        if item['{' + NSMAP['rasd'] + '}ResourceType'].text == str(17):
+            disk_instance_name_map[item['{' + NSMAP['rasd'] + '}InstanceID'].
+                                   text] = item['{' + NSMAP['rasd'] +
+                                                '}ElementName'].text
+
+    if hasattr(vm, 'NetworkConnectionSection'):
+        ncs = vm.NetworkConnectionSection
+        if hasattr(ncs, 'PrimaryNetworkConnectionIndex'):
+            idx = ncs.PrimaryNetworkConnectionIndex.text
+            result['primary-nic'] = 'nic-' + idx
+        if hasattr(ncs, 'NetworkConnection'):
+            for nc in ncs.NetworkConnection:
+                nci = nc.NetworkConnectionIndex.text
+                nic_props = {}
+                result['nic-' + nci] = nic_props
+                nic_props['name'] = nic_instance_name_map[nci]
+                nic_props['network'] = nc.get('network')
+                nic_props['mode'] = nc.IpAddressAllocationMode.text
+                nic_props['connected'] = nc.IsConnected.text
+                if hasattr(nc, 'MACAddress'):
+                    nic_props['mac'] = nc.MACAddress.text
+                if hasattr(nc, 'IpAddress'):
+                    nic_props['ip'] = nc.IpAddress.text
+
+    if hasattr(vm, 'VmSpecSection'):
+        result['vm-tools-version'] = vm.VmSpecSection.VmToolsVersion.text
+        result['os'] = vm.VmSpecSection.OsType.text
+        result['cpu'] = vm.VmSpecSection.NumCpus.text
+        result['cores-per-socket'] = vm.VmSpecSection.NumCoresPerSocket.text
+        result['memory-MB'] = vm.VmSpecSection.MemoryResourceMb.Configured.text
+        for setting in vm.VmSpecSection.DiskSection.DiskSettings:
+            disk_props = {}
+            result['disk-' + setting.DiskId.text] = disk_props
+            disk_props['name'] = disk_instance_name_map[setting.DiskId.text]
+            disk_props['size-MB'] = setting.SizeMb.text
+            disk_props['bus'] = setting.BusNumber.text
+            disk_props['unit'] = setting.UnitNumber.text
+
+    return result
+
+
 def task_to_dict(task):
     """Converts a lxml.objectify.ObjectifiedElement task object to a dict.
 

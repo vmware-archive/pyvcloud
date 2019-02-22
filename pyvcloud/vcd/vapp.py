@@ -1165,8 +1165,8 @@ class VApp(object):
         """Update a vApp network.
 
         :param str network_name: name of vApp network to be updated.
-        :param str new_net_name: new name of vApp network to be updated.
-        :param str new_net_desc: new description of vApp network to be updated.
+        :param str new_net_name: name of vApp network to be updated.
+        :param str new_net_desc: description of vApp network to be updated.
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is updating the vApp network.
         :rtype: lxml.objectify.ObjectifiedElement

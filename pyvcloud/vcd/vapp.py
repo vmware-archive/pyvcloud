@@ -1161,6 +1161,34 @@ class VApp(object):
         raise EntityNotFoundException(
             'Can\'t find network \'%s\'' % network_name)
 
+    def update_vapp_network(self, network_name, new_net_name, new_net_desc):
+        """Update a vApp network.
+
+        :param str network_name: name of vApp network to be updated.
+        :param str new_net_name: new name of vApp network to be updated.
+        :param str new_net_desc: new description of vApp network to be updated.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        # find the required network
+        for network_config in self.resource.NetworkConfigSection.NetworkConfig:
+            if network_config.get("networkName") == network_name:
+                if new_net_name:
+                    network_config.set('networkName', new_net_name)
+                if new_net_desc:
+                    if hasattr(network_config, 'Description'):
+                        network_config.Description = E.Description(
+                            new_net_desc)
+                    else:
+                        network_config.insert(0, E.Description(new_net_desc))
+                return self.client.put_linked_resource(
+                    self.resource.NetworkConfigSection, RelationType.EDIT,
+                    EntityType.NETWORK_CONFIG_SECTION.value,
+                    self.resource.NetworkConfigSection)
+        raise EntityNotFoundException(
+            'Can\'t find network \'%s\'' % network_name)
+
     def edit_name_and_description(self, name, description=None):
         """Edit name and description of the vApp.
 

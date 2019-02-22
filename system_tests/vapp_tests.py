@@ -550,11 +550,10 @@ class TestVApp(BaseTestCase):
         # Verification
         vapp.reload()
         self.assertTrue(
-            self._is_network_present(vapp.get_resource(),
-                                     TestVApp._vapp_network_name))
+            self._is_network_present(vapp, TestVApp._vapp_network_name))
 
-    def _is_network_present(vapp, network_name):
-        for network_config in vapp.NetworkConfigSection.NetworkConfig:
+    def _is_network_present(self, vapp, network_name):
+        for network_config in vapp.resource.NetworkConfigSection.NetworkConfig:
             if (network_config.get('networkName') == network_name):
                 return True
         return False
@@ -580,6 +579,27 @@ class TestVApp(BaseTestCase):
         TestVApp._client.get_task_monitor().wait_for_success(task=task)
         vapp.reload()
 
+    def test_0121_update_vapp_network(self):
+        """Test the method update_vapp_network().
+
+        This test passes if update network is successful.
+        """
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        new_name = 'new _name'
+        new_description = 'new_description'
+        task = vapp.update_vapp_network(TestVApp._vapp_network_name, new_name,
+                                        new_description)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+
+        # Verification
+        vapp.reload()
+        self.assertFalse(
+            self._is_network_present(vapp, TestVApp._vapp_network_name))
+        task = vapp.update_vapp_network(new_name, TestVApp._vapp_network_name,
+                                        None)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+
     def test_0130_delete_vapp_network(self):
         """Test the method vapp.delete_vapp_network().
 
@@ -594,8 +614,7 @@ class TestVApp(BaseTestCase):
         # Verification
         vapp.reload()
         self.assertFalse(
-            self._is_network_present(vapp.get_resource(),
-                                     TestVApp._vapp_network_name))
+            self._is_network_present(vapp, TestVApp._vapp_network_name))
 
     @developerModeAware
     def test_9998_teardown(self):

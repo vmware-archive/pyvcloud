@@ -600,6 +600,26 @@ class TestVApp(BaseTestCase):
                                         None)
         TestVApp._client.get_task_monitor().wait_for_success(task=task)
 
+    def _network_present(self, vapp, network_name):
+        for network_config in vapp.resource.NetworkConfigSection.NetworkConfig:
+            if (network_config.get('networkName') == network_name):
+                return network_config
+        return None
+
+    def test_0122_add_ip_range(self):
+        """Test the method add_ip_range().
+        """
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        start_ip = '10.100.12.1'
+        end_ip = '10.100.12.100'
+        task = vapp.add_ip_range(TestVApp._vapp_network_name, start_ip, end_ip)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        network_conf = self._network_present(vapp, TestVApp._vapp_network_name)
+        self.assertTrue(
+            hasattr(network_conf.Configuration.IpScopes.IpScope.IpRanges,
+                    'IpRange'))
+
     def test_0130_delete_vapp_network(self):
         """Test the method vapp.delete_vapp_network().
 

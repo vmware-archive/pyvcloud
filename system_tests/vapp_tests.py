@@ -74,6 +74,8 @@ class TestVApp(BaseTestCase):
     _vapp_network_dns2 = '8.8.8.9'
     _vapp_network_dns_suffix = 'example.com'
     _vapp_network_ip_range = '90.80.70.2-90.80.70.100'
+    _start_ip_vapp_network = '10.100.12.1'
+    _end_ip_vapp_network = '10.100.12.100'
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -599,6 +601,29 @@ class TestVApp(BaseTestCase):
         task = vapp.update_vapp_network(new_name, TestVApp._vapp_network_name,
                                         None)
         TestVApp._client.get_task_monitor().wait_for_success(task=task)
+
+    def _network_present(self, vapp, network_name):
+        for network_config in vapp.resource.NetworkConfigSection.NetworkConfig:
+            if (network_config.get('networkName') == network_name):
+                return network_config
+        return None
+
+    def test_0122_add_ip_range(self):
+        """Test the method add_ip_range().
+        """
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        task = vapp.add_ip_range(TestVApp._vapp_network_name,
+                                 TestVApp._start_ip_vapp_network,
+                                 TestVApp._end_ip_vapp_network)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        network_conf = self._network_present(vapp, TestVApp._vapp_network_name)
+        ip_range = network_conf.Configuration.IpScopes.IpScope.IpRanges
+        self.assertTrue(hasattr(ip_range, 'IpRange'))
+        self.assertEqual(ip_range.IpRange[1].StartAddress,
+                         TestVApp._start_ip_vapp_network)
+        self.assertEqual(ip_range.IpRange[1].EndAddress,
+                         TestVApp._end_ip_vapp_network)
 
     def test_0130_delete_vapp_network(self):
         """Test the method vapp.delete_vapp_network().

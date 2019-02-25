@@ -1190,11 +1190,11 @@ class VApp(object):
             'Can\'t find network \'%s\'' % network_name)
 
     def add_ip_range(self, network_name, start_ip, end_ip):
-        """Add ip range to vApp network.
+        """Add IP range to vApp network.
 
         :param str network_name: name of vApp network.
-        :param str start_ip: start ip of ip range.
-        :param str end_ip: last ip of ip range.
+        :param str start_ip: start IP of IP range.
+        :param str end_ip: last IP of IP range.
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is updating the vApp network.
         :rtype: lxml.objectify.ObjectifiedElement

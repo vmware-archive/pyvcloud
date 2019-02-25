@@ -295,7 +295,7 @@ class VDC(object):
 
             if clone_mode is None:
                 network_connection_param = E.NetworkConnection(
-                    E.NetworkConnectionIndex(primary_index), 
+                    E.NetworkConnectionIndex(primary_index),
                     network=network_name)
                 if ip_address is not None:
                     network_connection_param.append(E.IpAddress(ip_address))
@@ -305,7 +305,7 @@ class VDC(object):
                 if network_adapter_type is not None:
                     network_connection_param.append(
                         E.NetworkAdapterType(network_adapter_type))
-            else: 
+            else:
                 network_connection_param = (vms[0].NetworkConnectionSection.
                                             NetworkConnection)
 

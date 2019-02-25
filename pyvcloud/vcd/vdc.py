@@ -306,8 +306,8 @@ class VDC(object):
                     network_connection_param.append(
                         E.NetworkAdapterType(network_adapter_type))
             else: 
-                network_connection_param = vms[0].NetworkConnectionSection.
-                                           NetworkConnection
+                network_connection_param = (vms[0].NetworkConnectionSection.
+                                            NetworkConnection)
 
             vm_instantiation_param.append(
                 E.NetworkConnectionSection(

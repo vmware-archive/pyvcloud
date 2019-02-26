@@ -1585,9 +1585,9 @@ class Gateway(object):
         trust_object.append(E.pemEncoding(service_certificate))
         private_key = self.read_content_from_file(private_key_file_path)
         trust_object.append(E.privateKey(private_key))
-        if private_key_passphrase is not None:
+        if private_key_passphrase:
             trust_object.append(E.passphrase(private_key_passphrase))
-        if description is not None:
+        if description:
             trust_object.append(E.description(description))
 
         self.client.post_resource(post_service_certificate_href, trust_object,

@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import unittest
-from pyvcloud.vcd.client import ApiVersion
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.constants.gateway_constants import \
@@ -32,7 +31,6 @@ class TestCertificates(BaseTestCase):
 
     def test_0000_setup(self):
         TestCertificates._client = Environment.get_sys_admin_client()
-        TestCertificates._config = Environment.get_config()
 
     def test_0010_add_service_certificate(self):
         """Add service certificate in the gateway.

@@ -1217,7 +1217,7 @@ class VApp(object):
 
     def update_ip_range(self, network_name, start_ip, end_ip, new_start_ip,
                         new_end_ip):
-        """Update ip range to vApp network.
+        """Update IP range to vApp network.
 
         :param str network_name: name of vApp network.
         :param str start_ip: start IP of IP range.

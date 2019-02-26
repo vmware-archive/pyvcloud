@@ -22,8 +22,10 @@ from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.network_url_constants import DHCP_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
+from pyvcloud.vcd.network_url_constants import GET_CERTIFICATES
 from pyvcloud.vcd.network_url_constants import IPSEC_VPN_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import NAT_URL_TEMPLATE
+from pyvcloud.vcd.network_url_constants import SERVICE_CERTIFICATE_POST
 from pyvcloud.vcd.network_url_constants import STATIC_ROUTE_URL_TEMPLATE
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import build_network_url_from_gateway_url
@@ -1559,3 +1561,72 @@ class Gateway(object):
                 pool_info['IP_Address'] = static_binding.ipAddress
                 out_list.append(pool_info)
         return out_list
+
+    def add_service_certificate(self,
+                                service_certificate_file_path,
+                                private_key_file_path,
+                                private_key_passphrase=None,
+                                description=None):
+        """Add service certificate in the gateway.
+
+        param str service_certificate_file_path: Service certificate
+                 file path
+        param str private_key_file_path: private key file path
+        param str private_key_passphrase: private key passphrase
+        param str description : description
+        """
+        network_url = build_network_url_from_gateway_url(self.href)
+        post_service_certificate_href = self. \
+            _build_post_service_certificate_href(network_url)
+
+        trust_object = E.trustObject()
+        service_certificate = self. \
+            read_content_from_file(service_certificate_file_path)
+        trust_object.append(E.pemEncoding(service_certificate))
+        private_key = self.read_content_from_file(private_key_file_path)
+        trust_object.append(E.privateKey(private_key))
+        if private_key_passphrase:
+            trust_object.append(E.passphrase(private_key_passphrase))
+        if description:
+            trust_object.append(E.description(description))
+
+        self.client.post_resource(post_service_certificate_href, trust_object,
+                                  EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def get_certificates(self):
+        """Get certificates from vCD.
+
+        Form a certificate using gateway href.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        network_url = build_network_url_from_gateway_url(self.href)
+        certificates_href = self._build_get_certificates_href(network_url)
+        return self.client.get_resource(certificates_href)
+
+    def _build_post_service_certificate_href(self, network_url):
+        gateway_id = self._get_gateway_id_from_network_url(network_url)
+        removal_string = '/edges/' + gateway_id
+        network_url = self. \
+            _get_url_without_string(network_url=network_url,
+                                    removal_string=removal_string)
+        return network_url + SERVICE_CERTIFICATE_POST + gateway_id
+
+    def _build_get_certificates_href(self, network_url):
+        gateway_id = self._get_gateway_id_from_network_url(network_url)
+        removal_string = '/edges/' + gateway_id
+        network_url = self. \
+            _get_url_without_string(network_url=network_url,
+                                    removal_string=removal_string)
+        return network_url + GET_CERTIFICATES + gateway_id
+
+    def _get_gateway_id_from_network_url(self, network_url):
+        return network_url.split("/")[-1]
+
+    def _get_url_without_string(self, network_url, removal_string):
+        network_url = network_url[:-len(removal_string)]
+        return network_url
+
+    def read_content_from_file(self, file_path):
+        with open(file_path, 'r') as myfile:
+            content = myfile.read()
+        return content

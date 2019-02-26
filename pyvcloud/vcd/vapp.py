@@ -1243,6 +1243,7 @@ class VApp(object):
                                 RelationType.EDIT,
                                 EntityType.NETWORK_CONFIG_SECTION.value,
                                 self.resource.NetworkConfigSection)
+                break
         raise EntityNotFoundException(
             'Can\'t find ip range from \'%s\' to \'%s\'' % start_ip, end_ip)
 

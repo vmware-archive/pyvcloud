@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
 from pyvcloud.vcd.client import create_element
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
@@ -1570,11 +1569,11 @@ class Gateway(object):
                                 description=None):
         """Add service certificate in the gateway.
 
-                param str service_certificate_file_path: Service certificate
-                          file path
-                param str private_key_file_path: private key file path
-                param str private_key_passphrase: private key passphrase
-                param str description : description
+        param str service_certificate_file_path: Service certificate
+                 file path
+        param str private_key_file_path: private key file path
+        param str private_key_passphrase: private key passphrase
+        param str description : description
         """
         network_url = build_network_url_from_gateway_url(self.href)
         post_service_certificate_href = self. \

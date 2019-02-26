@@ -625,6 +625,27 @@ class TestVApp(BaseTestCase):
         self.assertEqual(ip_range.IpRange[1].EndAddress,
                          TestVApp._end_ip_vapp_network)
 
+    def test_0123_update_ip_range(self):
+        """Test the method update_ip_range().
+        """
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        new_start_ip = '10.42.12.11'
+        new_end_ip = '10.42.12.110'
+        task = vapp.update_ip_range(
+            TestVApp._vapp_network_name, TestVApp._start_ip_vapp_network,
+            TestVApp._end_ip_vapp_network, new_start_ip, new_end_ip)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        vapp.reload()
+        network_conf = self._network_present(vapp, TestVApp._vapp_network_name)
+        ip_range = network_conf.Configuration.IpScopes.IpScope.IpRanges
+        self.assertEqual(ip_range.IpRange[0].StartAddress, new_start_ip)
+        self.assertEqual(ip_range.IpRange[0].EndAddress, new_end_ip)
+        task = vapp.update_ip_range(
+            TestVApp._vapp_network_name, new_start_ip, new_end_ip,
+            TestVApp._start_ip_vapp_network, TestVApp._end_ip_vapp_network)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+
     def test_0130_delete_vapp_network(self):
         """Test the method vapp.delete_vapp_network().
 

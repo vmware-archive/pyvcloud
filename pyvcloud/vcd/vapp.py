@@ -1215,6 +1215,37 @@ class VApp(object):
         raise EntityNotFoundException(
             'Can\'t find network \'%s\'' % network_name)
 
+    def update_ip_range(self, network_name, start_ip, end_ip, new_start_ip,
+                        new_end_ip):
+        """Update ip range to vApp network.
+
+        :param str network_name: name of vApp network.
+        :param str start_ip: start IP of IP range.
+        :param str end_ip: last IP of IP range.
+        :param str new_start_ip: start IP of IP range to be updated.
+        :param str new_end_ip: last IP of IP range to be updated.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        for network_config in self.resource.NetworkConfigSection.NetworkConfig:
+            if network_config.get("networkName") == network_name:
+                IpScope = network_config.Configuration.IpScopes.IpScope
+                if (hasattr(IpScope, 'IpRanges')):
+                    for ip_range in IpScope.IpRanges.IpRange:
+                        if ip_range.StartAddress == start_ip \
+                                and ip_range.EndAddress == end_ip:
+                            ip_range.clear()
+                            ip_range.append(E.StartAddress(new_start_ip))
+                            ip_range.append(E.EndAddress(new_end_ip))
+                            return self.client.put_linked_resource(
+                                self.resource.NetworkConfigSection,
+                                RelationType.EDIT,
+                                EntityType.NETWORK_CONFIG_SECTION.value,
+                                self.resource.NetworkConfigSection)
+        raise EntityNotFoundException(
+            'Can\'t find ip range from \'%s\' to \'%s\'' % start_ip, end_ip)
+
     def edit_name_and_description(self, name, description=None):
         """Edit name and description of the vApp.
 

@@ -32,6 +32,7 @@ from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.utils import metadata_to_dict
+from pyvcloud.system_test_framework.depends import depends
 
 
 class TestVApp(BaseTestCase):
@@ -78,6 +79,7 @@ class TestVApp(BaseTestCase):
     _end_ip_vapp_network = '10.100.12.100'
     _new_start_ip_vapp_network = '10.42.12.11'
     _new_end_ip_vapp_network = '10.42.12.110'
+    _add_ip_range_fail = False
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -610,23 +612,35 @@ class TestVApp(BaseTestCase):
                 return network_config
         return None
 
-    def test_0122_ip_range_operation(self):
-        """Test the method add_ip_range().
-        """
+    def test_0122_add_ip_range(self):
+        try:
+            vapp = Environment.get_vapp_in_test_vdc(
+                client=TestVApp._client,
+                vapp_name=TestVApp._customized_vapp_name)
+            task = vapp.add_ip_range(TestVApp._vapp_network_name,
+                                     TestVApp._start_ip_vapp_network,
+                                     TestVApp._end_ip_vapp_network)
+            TestVApp._client.get_task_monitor().wait_for_success(task=task)
+            vapp.reload()
+            network_conf = self._network_present(vapp,
+                                                 TestVApp._vapp_network_name)
+            ip_range = network_conf.Configuration.IpScopes.IpScope.IpRanges
+            self.assertTrue(hasattr(ip_range, 'IpRange'))
+            self.assertEqual(ip_range.IpRange[0].StartAddress,
+                             TestVApp._start_ip_vapp_network)
+            self.assertEqual(ip_range.IpRange[0].EndAddress,
+                             TestVApp._end_ip_vapp_network)
+        except Exception:
+            TestVApp._add_ip_range_fail = True
+            self.assertTrue(False)
+
+    def is_add_ip_range_fail(self):
+        return TestVApp._add_ip_range_fail
+
+    @depends(is_add_ip_range_fail)
+    def test_0123_update_ip_range(self):
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
-        task = vapp.add_ip_range(TestVApp._vapp_network_name,
-                                 TestVApp._start_ip_vapp_network,
-                                 TestVApp._end_ip_vapp_network)
-        TestVApp._client.get_task_monitor().wait_for_success(task=task)
-        network_conf = self._network_present(vapp, TestVApp._vapp_network_name)
-        ip_range = network_conf.Configuration.IpScopes.IpScope.IpRanges
-        self.assertTrue(hasattr(ip_range, 'IpRange'))
-        self.assertEqual(ip_range.IpRange[1].StartAddress,
-                         TestVApp._start_ip_vapp_network)
-        self.assertEqual(ip_range.IpRange[1].EndAddress,
-                         TestVApp._end_ip_vapp_network)
-        vapp.reload()
         task = vapp.update_ip_range(
             TestVApp._vapp_network_name, TestVApp._start_ip_vapp_network,
             TestVApp._end_ip_vapp_network, TestVApp._new_start_ip_vapp_network,
@@ -639,6 +653,24 @@ class TestVApp(BaseTestCase):
                          TestVApp._new_start_ip_vapp_network)
         self.assertEqual(ip_range.IpRange[0].EndAddress,
                          TestVApp._new_end_ip_vapp_network)
+        task = vapp.update_ip_range(
+            TestVApp._vapp_network_name, TestVApp._new_start_ip_vapp_network,
+            TestVApp._new_end_ip_vapp_network, TestVApp._start_ip_vapp_network,
+            TestVApp._end_ip_vapp_network)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+
+    @depends(is_add_ip_range_fail)
+    def test_0124_delete_ip_range(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        task = vapp.delete_ip_range(TestVApp._vapp_network_name,
+                                    TestVApp._start_ip_vapp_network,
+                                    TestVApp._end_ip_vapp_network)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        vapp.reload()
+        network_conf = self._network_present(vapp, TestVApp._vapp_network_name)
+        ip_ranges = network_conf.Configuration.IpScopes.IpScope.IpRanges
+        self.assertEqual(len(ip_ranges), 1)
 
     def test_0130_delete_vapp_network(self):
         """Test the method vapp.delete_vapp_network().

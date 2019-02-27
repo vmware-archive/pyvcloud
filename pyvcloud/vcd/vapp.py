@@ -1247,6 +1247,33 @@ class VApp(object):
         raise EntityNotFoundException(
             'Can\'t find ip range from \'%s\' to \'%s\'' % start_ip, end_ip)
 
+    def delete_ip_range(self, network_name, start_ip, end_ip):
+        """Delete IP range to vApp network.
+
+        :param str network_name: name of vApp network.
+        :param str start_ip: start IP of IP range.
+        :param str end_ip: last IP of IP range.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        for network_config in self.resource.NetworkConfigSection.NetworkConfig:
+            if network_config.get("networkName") == network_name:
+                IpScope = network_config.Configuration.IpScopes.IpScope
+                if (hasattr(IpScope, 'IpRanges')):
+                    for ip_range in IpScope.IpRanges.IpRange:
+                        if ip_range.StartAddress == start_ip \
+                                and ip_range.EndAddress == end_ip:
+                            IpScope.IpRanges.remove(ip_range)
+                            return self.client.put_linked_resource(
+                                self.resource.NetworkConfigSection,
+                                RelationType.EDIT,
+                                EntityType.NETWORK_CONFIG_SECTION.value,
+                                self.resource.NetworkConfigSection)
+                break
+        raise EntityNotFoundException(
+            'Can\'t find IP range from \'%s\' to \'%s\'' % start_ip, end_ip)
+
     def edit_name_and_description(self, name, description=None):
         """Edit name and description of the vApp.
 

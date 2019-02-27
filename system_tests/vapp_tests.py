@@ -79,7 +79,7 @@ class TestVApp(BaseTestCase):
     _end_ip_vapp_network = '10.100.12.100'
     _new_start_ip_vapp_network = '10.42.12.11'
     _new_end_ip_vapp_network = '10.42.12.110'
-    _add_ip_range_fail = False
+    _add_ip_range_success = True
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -631,13 +631,13 @@ class TestVApp(BaseTestCase):
             self.assertEqual(ip_range.IpRange[0].EndAddress,
                              TestVApp._end_ip_vapp_network)
         except Exception:
-            TestVApp._add_ip_range_fail = True
+            TestVApp._add_ip_range_success = False
             self.assertTrue(False)
 
-    def is_add_ip_range_fail(self):
-        return TestVApp._add_ip_range_fail
+    def is_add_ip_range_success(self):
+        return TestVApp._add_ip_range_success
 
-    @depends(is_add_ip_range_fail)
+    @depends(is_add_ip_range_success)
     def test_0123_update_ip_range(self):
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
@@ -659,7 +659,7 @@ class TestVApp(BaseTestCase):
             TestVApp._end_ip_vapp_network)
         TestVApp._client.get_task_monitor().wait_for_success(task=task)
 
-    @depends(is_add_ip_range_fail)
+    @depends(is_add_ip_range_success)
     def test_0124_delete_ip_range(self):
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)

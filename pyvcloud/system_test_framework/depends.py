@@ -2,14 +2,14 @@ from pyvcloud.system_test_framework.environment import Environment
 
 
 def depends(*args):
-    """Decorator function to run unit test with depandancy.
+    """Decorator run a function with dependency.
 
-    :param list args: list of dependent function that return True
-        If depandancy failed Else return False.
+    The decorator either execute or skip the function on the basis of
+        dependent function.
+    It will skip the function if any of dependent function return False.
 
-    :return: a function that either executes the decorated function or skips
-        it, based on the value of a is_skip param.
-
+    :param list args: list of dependent function.
+    :return: a wrapper function that execute or skip the function.
     :rtype: function
     """
 
@@ -17,7 +17,7 @@ def depends(*args):
         def wrapped_f(self):
             is_execute_func = True
             for func in args:
-                if func(self):
+                if not func(self):
                     is_execute_func = False
                     break
             if is_execute_func:

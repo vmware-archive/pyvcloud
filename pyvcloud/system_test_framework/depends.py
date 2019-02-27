@@ -8,7 +8,7 @@ def depends(*args):
         dependent function.
     It will skip the function if any of dependent function return False.
 
-    :param list args: list of dependent function.
+    :param list args: list of dependent functions.
     :return: a wrapper function that execute or skip the function.
     :rtype: function
     """

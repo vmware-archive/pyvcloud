@@ -24,7 +24,6 @@ class Certificate(GatewayServices):
             to make REST calls to vCD.
         :param str gateway_name: name of the gateway entity.
         :param str certificate_object_id: certificate object id.
-        :param lxml.objectify.ObjectifiedElement resource: object containing
             EntityType.certificate XML data representing the certificate.
         """
         super(Certificate, self).__init__(client, gateway_name=gateway_name,

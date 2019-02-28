@@ -18,6 +18,7 @@ from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
+from pyvcloud.vcd.certificate import Certificate
 from pyvcloud.vcd.gateway import Gateway
 
 
@@ -37,14 +38,14 @@ class TestCertificates(BaseTestCase):
 
         Invokes the add_service_certificate of the gateway.
         """
-
         gateway = Environment.get_test_gateway(TestCertificates._client)
         gateway_obj1 = Gateway(TestCertificates._client, GatewayConstants.name,
                                href=gateway.get('href'))
         TestCertificates._gateway1 = gateway_obj1
 
         gateway_obj1.add_service_certificate(
-            service_certificate_file_path=TestCertificates._service_certificate_file_path,
+            service_certificate_file_path=TestCertificates.
+                _service_certificate_file_path,
             private_key_file_path=TestCertificates._private_key_file_path)
         gateway_obj1.reload()
         certificates = gateway_obj1.get_certificates()
@@ -53,6 +54,38 @@ class TestCertificates(BaseTestCase):
     def __validate_service_certificate(self, certificates):
         certificate_list = certificates.certificate
         self.assertTrue(len(certificate_list) > 0)
+
+    def test_0015_list_service_certificate(self):
+        """List all certificates of a gateway
+
+        Invokes the list_all_certificates of the gateway.
+        """
+        gateway_obj1 = TestCertificates._gateway1
+        certificate_list = gateway_obj1.list_all_certificates()
+        certificate = certificate_list[0]
+        object_id = certificate["Object_Id"]
+        TestCertificates._object_id = object_id
+
+        # Verify
+        self.assertTrue(len(certificate_list) > 0)
+
+    def test_0020_delete_service_certificate(self):
+        """Delete service certificate in the gateway.
+
+        Invokes the delete_certificate of the Certificate.
+        """
+        certificate_obj = Certificate(client=TestCertificates._client,
+                                      gateway_name=TestCertificates._name,
+                                      certificate_object_id=
+                                      TestCertificates._object_id)
+
+        certificate_obj.delete_certificate()
+
+        #Verify
+        gateway_obj1 = TestCertificates._gateway1
+        certificate_list = gateway_obj1.list_all_certificates()
+        self.assertTrue(len(certificate_list) == 0)
+
 
     def test_0098_teardown(self):
         return

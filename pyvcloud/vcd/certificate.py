@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pyvcloud.vcd.client import E
-from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.gateway_services import GatewayServices
 from pyvcloud.vcd.network_url_constants import SERVICE_CERTIFICATE_POST
 
@@ -44,8 +42,9 @@ class Certificate(GatewayServices):
         gateway_id = network_url.split("/")[-1]
         removal_string = '/edges/' + gateway_id
         network_url = network_url[:-len(removal_string)]
-        certificate_href = network_url + SERVICE_CERTIFICATE_POST + gateway_id \
-                           + ':' + resoure_id
+        certificate_href = \
+            network_url + SERVICE_CERTIFICATE_POST + gateway_id + ':'\
+            + resoure_id
         self.href = certificate_href
 
     def get_certificate_resource(self):

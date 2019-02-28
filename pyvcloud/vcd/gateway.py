@@ -1593,6 +1593,22 @@ class Gateway(object):
         self.client.post_resource(post_service_certificate_href, trust_object,
                                   EntityType.DEFAULT_CONTENT_TYPE.value)
 
+    def list_all_certificates(self):
+        """List certificates of a gateway.
+
+        :return: list of all certificates.
+        """
+        out_list = []
+        certificates = self.get_certificates()
+        if hasattr(certificates, "certificate"):
+            for certificate in certificates.certificate:
+                certificate_info = {}
+                certificate_info["Name"] = certificate.name
+                object_id = certificate.objectId.text
+                certificate_info["Object_Id"] = object_id.split(':')[-1]
+                out_list.append(certificate_info)
+        return out_list
+
     def get_certificates(self):
         """Get certificates from vCD.
 

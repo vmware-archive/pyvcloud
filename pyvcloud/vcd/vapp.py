@@ -1274,6 +1274,49 @@ class VApp(object):
         raise EntityNotFoundException(
             'Can\'t find IP range from \'%s\' to \'%s\'' % start_ip, end_ip)
 
+    def add_update_dns_vapp_network(self,
+                                    network_name,
+                                    primary_dns_ip=None,
+                                    secondary_dns_ip=None,
+                                    dns_suffix=None):
+        """Add DNS details to vApp network.
+
+        :param str network_name: name of vApp network.
+        :param str primary_dns_ip: primary DNS IP.
+        :param str secondary_dns_ip: secondary DNS IP.
+        :param str dns_suffix: DNS suffix.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        for network_config in self.resource.NetworkConfigSection.NetworkConfig:
+            if network_config.get('networkName') == network_name:
+                IpScope = network_config.Configuration.IpScopes.IpScope
+                if primary_dns_ip:
+                    dns1 = etree.Element('Dns1')
+                    dns1.text = primary_dns_ip
+                    if hasattr(IpScope, 'Dns1'):
+                        IpScope.remove(IpScope.Dns1)
+                    IpScope.insert(IpScope.index(IpScope.IsEnabled), dns1)
+                if secondary_dns_ip:
+                    dns2 = etree.Element('Dns2')
+                    dns2.text = secondary_dns_ip
+                    if hasattr(IpScope, 'Dns2'):
+                        IpScope.remove(IpScope.Dns2)
+                    IpScope.insert(IpScope.index(IpScope.IsEnabled), dns2)
+                if dns_suffix:
+                    dns_suff = etree.Element('DnsSuffix')
+                    dns_suff.text = dns_suffix
+                    if hasattr(IpScope, 'DnsSuffix'):
+                        IpScope.remove(IpScope.DnsSuffix)
+                    IpScope.insert(IpScope.index(IpScope.IsEnabled), dns_suff)
+                return self.client.put_linked_resource(
+                    self.resource.NetworkConfigSection, RelationType.EDIT,
+                    EntityType.NETWORK_CONFIG_SECTION.value,
+                    self.resource.NetworkConfigSection)
+        raise EntityNotFoundException(
+            'Can\'t find network \'%s\'' % network_name)
+
     def edit_name_and_description(self, name, description=None):
         """Edit name and description of the vApp.
 

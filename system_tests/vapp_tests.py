@@ -80,6 +80,9 @@ class TestVApp(BaseTestCase):
     _new_start_ip_vapp_network = '10.42.12.11'
     _new_end_ip_vapp_network = '10.42.12.110'
     _add_ip_range_success = True
+    _new_vapp_network_dns1 = '8.8.8.10'
+    _new_vapp_network_dns2 = '8.8.8.11'
+    _new_vapp_network_dns_suffix = 'newexample.com'
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -671,6 +674,26 @@ class TestVApp(BaseTestCase):
         network_conf = self._network_present(vapp, TestVApp._vapp_network_name)
         ip_ranges = network_conf.Configuration.IpScopes.IpScope.IpRanges
         self.assertEqual(len(ip_ranges), 1)
+
+    def test_0125_update_dns_vapp_network(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        task = vapp.update_dns_vapp_network(
+            TestVApp._vapp_network_name, TestVApp._new_vapp_network_dns1,
+            TestVApp._new_vapp_network_dns2,
+            TestVApp._new_vapp_network_dns_suffix)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        vapp.reload()
+        network_conf = self._network_present(vapp, TestVApp._vapp_network_name)
+        IpScope = network_conf.Configuration.IpScopes.IpScope
+        self.assertEqual(IpScope.Dns1, TestVApp._new_vapp_network_dns1)
+        self.assertEqual(IpScope.Dns2, TestVApp._new_vapp_network_dns2)
+        self.assertEqual(IpScope.DnsSuffix,
+                         TestVApp._new_vapp_network_dns_suffix)
+        task = vapp.update_dns_vapp_network(
+            TestVApp._vapp_network_name, TestVApp._vapp_network_dns1,
+            TestVApp._vapp_network_dns2, TestVApp._vapp_network_dns_suffix)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
 
     def test_0130_delete_vapp_network(self):
         """Test the method vapp.delete_vapp_network().

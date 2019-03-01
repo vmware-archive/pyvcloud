@@ -1274,6 +1274,13 @@ class VApp(object):
         raise EntityNotFoundException(
             'Can\'t find IP range from \'%s\' to \'%s\'' % start_ip, end_ip)
 
+    def update_dns_detail(self, IpScope, type, value):
+        element = etree.Element(type)
+        element.text = value
+        if hasattr(IpScope, type):
+            IpScope.remove(IpScope[type])
+        IpScope.insert(IpScope.index(IpScope.IsEnabled), element)
+
     def add_update_dns_vapp_network(self,
                                     network_name,
                                     primary_dns_ip=None,
@@ -1293,23 +1300,11 @@ class VApp(object):
             if network_config.get('networkName') == network_name:
                 IpScope = network_config.Configuration.IpScopes.IpScope
                 if primary_dns_ip:
-                    dns1 = etree.Element('Dns1')
-                    dns1.text = primary_dns_ip
-                    if hasattr(IpScope, 'Dns1'):
-                        IpScope.remove(IpScope.Dns1)
-                    IpScope.insert(IpScope.index(IpScope.IsEnabled), dns1)
+                    self.update_dns_detail(IpScope, 'Dns1', primary_dns_ip)
                 if secondary_dns_ip:
-                    dns2 = etree.Element('Dns2')
-                    dns2.text = secondary_dns_ip
-                    if hasattr(IpScope, 'Dns2'):
-                        IpScope.remove(IpScope.Dns2)
-                    IpScope.insert(IpScope.index(IpScope.IsEnabled), dns2)
+                    self.update_dns_detail(IpScope, 'Dns2', secondary_dns_ip)
                 if dns_suffix:
-                    dns_suff = etree.Element('DnsSuffix')
-                    dns_suff.text = dns_suffix
-                    if hasattr(IpScope, 'DnsSuffix'):
-                        IpScope.remove(IpScope.DnsSuffix)
-                    IpScope.insert(IpScope.index(IpScope.IsEnabled), dns_suff)
+                    self.update_dns_detail(IpScope, 'DnsSuffix', dns_suffix)
                 return self.client.put_linked_resource(
                     self.resource.NetworkConfigSection, RelationType.EDIT,
                     EntityType.NETWORK_CONFIG_SECTION.value,

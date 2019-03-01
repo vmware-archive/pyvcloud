@@ -1274,7 +1274,7 @@ class VApp(object):
         raise EntityNotFoundException(
             'Can\'t find IP range from \'%s\' to \'%s\'' % start_ip, end_ip)
 
-    def _update_dns_detail(self, IpScope, type, value):
+    def update_dns_detail(self, ip_scope, type, value):
         """Update DNS details to IpScope.
 
         :param Element IpScope: parent element.
@@ -1285,15 +1285,15 @@ class VApp(object):
             return
         element = etree.Element(type)
         element.text = value
-        if hasattr(IpScope, type):
-            IpScope.remove(IpScope[type])
-        IpScope.insert(IpScope.index(IpScope.IsEnabled), element)
+        if hasattr(ip_scope, type):
+            ip_scope.remove(ip_scope[type])
+        ip_scope.insert(ip_scope.index(ip_scope.IsEnabled), element)
 
-    def add_update_dns_vapp_network(self,
-                                    network_name,
-                                    primary_dns_ip=None,
-                                    secondary_dns_ip=None,
-                                    dns_suffix=None):
+    def update_dns_vapp_network(self,
+                                network_name,
+                                primary_dns_ip=None,
+                                secondary_dns_ip=None,
+                                dns_suffix=None):
         """Add DNS details to vApp network.
 
         :param str network_name: name of vApp network.
@@ -1306,10 +1306,10 @@ class VApp(object):
         """
         for network_config in self.resource.NetworkConfigSection.NetworkConfig:
             if network_config.get('networkName') == network_name:
-                IpScope = network_config.Configuration.IpScopes.IpScope
-                self.update_dns_detail(IpScope, 'Dns1', primary_dns_ip)
-                self.update_dns_detail(IpScope, 'Dns2', secondary_dns_ip)
-                self.update_dns_detail(IpScope, 'DnsSuffix', dns_suffix)
+                ip_scope = network_config.Configuration.IpScopes.IpScope
+                self.update_dns_detail(ip_scope, 'Dns1', primary_dns_ip)
+                self.update_dns_detail(ip_scope, 'Dns2', secondary_dns_ip)
+                self.update_dns_detail(ip_scope, 'DnsSuffix', dns_suffix)
                 return self.client.put_linked_resource(
                     self.resource.NetworkConfigSection, RelationType.EDIT,
                     EntityType.NETWORK_CONFIG_SECTION.value,

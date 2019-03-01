@@ -675,10 +675,10 @@ class TestVApp(BaseTestCase):
         ip_ranges = network_conf.Configuration.IpScopes.IpScope.IpRanges
         self.assertEqual(len(ip_ranges), 1)
 
-    def test_0125_add_update_dns_vapp_network(self):
+    def test_0125_update_dns_vapp_network(self):
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
-        task = vapp.add_update_dns_vapp_network(
+        task = vapp.update_dns_vapp_network(
             TestVApp._vapp_network_name, TestVApp._new_vapp_network_dns1,
             TestVApp._new_vapp_network_dns2,
             TestVApp._new_vapp_network_dns_suffix)
@@ -690,7 +690,7 @@ class TestVApp(BaseTestCase):
         self.assertEqual(IpScope.Dns2, TestVApp._new_vapp_network_dns2)
         self.assertEqual(IpScope.DnsSuffix,
                          TestVApp._new_vapp_network_dns_suffix)
-        task = vapp.add_update_dns_vapp_network(
+        task = vapp.update_dns_vapp_network(
             TestVApp._vapp_network_name, TestVApp._vapp_network_dns1,
             TestVApp._vapp_network_dns2, TestVApp._vapp_network_dns_suffix)
         TestVApp._client.get_task_monitor().wait_for_success(task=task)

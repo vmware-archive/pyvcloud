@@ -1135,7 +1135,8 @@ class Client(object):
                     self._logger.debug('Downloaded bytes : %s' % bytes_written)
         return bytes_written
 
-    def put_resource(self, uri, contents, media_type, params=None, objectify_results=True):
+    def put_resource(self, uri, contents, media_type, params=None,
+                     objectify_results=True):
         """Puts the specified contents to the specified resource.
 
         This method does an HTTP PUT.
@@ -1165,7 +1166,8 @@ class Client(object):
         except MissingLinkException as e:
             raise OperationNotSupportedException from e
 
-    def post_resource(self, uri, contents, media_type, params=None, objectify_results=True):
+    def post_resource(self, uri, contents, media_type, params=None,
+                      objectify_results=True):
         """Posts to a resource link.
 
         Posts the specified contents to the specified resource. (Does an HTTP

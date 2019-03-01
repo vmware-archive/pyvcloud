@@ -8,6 +8,8 @@ vcd:
   template: 'ubuntu-16.04-server-cloudimg-amd64.ova'
   vm: 'ubuntu-xenial-16.04-cloudimg-20171011'
   local_template: '/Users/vmware/sw/photon-custom-hw10-1.0-62c543d.ova'
+  org_name: 'UnitTestOrgnistaion01'
+  org_full_name: 'Unit test organization - 01'
   org_to_use: org1
   vdc: vdc1
   new_vdc: v2

@@ -43,7 +43,8 @@ class TestOrg(TestCase):
         self.assertFalse(updated_org['IsEnabled'])
 
     def test_04_delete_org(self):
-        system = System(self.client)
+        sys_admin = self.client.get_admin()
+        system = System(self.client, admin_resource=sys_admin)
         system.delete_org(self.config['vcd']['org_name'], True, True)
 
 

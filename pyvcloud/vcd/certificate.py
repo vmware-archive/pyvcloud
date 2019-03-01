@@ -42,7 +42,7 @@ class Certificate(GatewayServices):
         removal_string = '/edges/' + gateway_id
         network_url = network_url[:-len(removal_string)]
         certificate_href = \
-            network_url + SERVICE_CERTIFICATE_POST + gateway_id + ':'\
+            network_url + SERVICE_CERTIFICATE_POST + gateway_id + ':' \
             + resoure_id
         self.href = certificate_href
 
@@ -52,3 +52,6 @@ class Certificate(GatewayServices):
     def delete_certificate(self):
         """Delete certificate."""
         self.client.delete_resource(self.href)
+
+    def delete_ca_certificate(self):
+        self.delete_certificate()

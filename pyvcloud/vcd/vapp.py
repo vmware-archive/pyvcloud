@@ -1274,7 +1274,15 @@ class VApp(object):
         raise EntityNotFoundException(
             'Can\'t find IP range from \'%s\' to \'%s\'' % start_ip, end_ip)
 
-    def update_dns_detail(self, IpScope, type, value):
+    def _update_dns_detail(self, IpScope, type, value):
+        """Update DNS details to IpScope.
+
+        :param Element IpScope: parent element.
+        :param str type: type is tag.
+        :param str value: value of tag.
+        """
+        if value is None:
+            return
         element = etree.Element(type)
         element.text = value
         if hasattr(IpScope, type):
@@ -1299,12 +1307,9 @@ class VApp(object):
         for network_config in self.resource.NetworkConfigSection.NetworkConfig:
             if network_config.get('networkName') == network_name:
                 IpScope = network_config.Configuration.IpScopes.IpScope
-                if primary_dns_ip:
-                    self.update_dns_detail(IpScope, 'Dns1', primary_dns_ip)
-                if secondary_dns_ip:
-                    self.update_dns_detail(IpScope, 'Dns2', secondary_dns_ip)
-                if dns_suffix:
-                    self.update_dns_detail(IpScope, 'DnsSuffix', dns_suffix)
+                self.update_dns_detail(IpScope, 'Dns1', primary_dns_ip)
+                self.update_dns_detail(IpScope, 'Dns2', secondary_dns_ip)
+                self.update_dns_detail(IpScope, 'DnsSuffix', dns_suffix)
                 return self.client.put_linked_resource(
                     self.resource.NetworkConfigSection, RelationType.EDIT,
                     EntityType.NETWORK_CONFIG_SECTION.value,

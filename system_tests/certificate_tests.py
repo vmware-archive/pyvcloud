@@ -18,6 +18,7 @@ from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
 from pyvcloud.vcd.certificate import Certificate
+from pyvcloud.vcd.crl import Crl
 from pyvcloud.vcd.gateway import Gateway
 
 
@@ -54,11 +55,11 @@ class TestCertificates(BaseTestCase):
         self.assertTrue(len(certificate_list) > 0)
 
     def test_0015_list_service_certificate(self):
-        """List all certificates of a gateway
-        Invokes the list_all_certificates of the gateway.
+        """List all service certificates of a gateway
+        Invokes the list_service_certificates of the gateway.
         """
         gateway_obj1 = TestCertificates._gateway1
-        certificate_list = gateway_obj1.list_all_certificates()
+        certificate_list = gateway_obj1.list_service_certificates()
         certificate = certificate_list[0]
         object_id = certificate["Object_Id"]
         TestCertificates._object_id = object_id
@@ -71,12 +72,11 @@ class TestCertificates(BaseTestCase):
         """
         certificate_obj = Certificate(client=TestCertificates._client,
                                       gateway_name=TestCertificates._name,
-                                      certificate_object_id=
-                                      TestCertificates._object_id)
+                                      resource_id=TestCertificates._object_id)
         certificate_obj.delete_certificate()
         # Verify
         gateway_obj1 = TestCertificates._gateway1
-        certificate_list = gateway_obj1.list_all_certificates()
+        certificate_list = gateway_obj1.list_service_certificates()
         self.assertTrue(len(certificate_list) == 0)
 
     def test_0025_add_ca_certificate(self):
@@ -94,21 +94,30 @@ class TestCertificates(BaseTestCase):
         certificates = gateway_obj1.get_certificates()
         self.__validate_certificate(certificates)
 
+    def test_0026_list_ca_certificate(self):
+        """List CA certificates of a gateway
+        Invokes the list_ca_certificates of the gateway.
+        """
+        gateway_obj1 = TestCertificates._gateway1
+        certificate_list = gateway_obj1.list_ca_certificates()
+        # Verify
+        self.assertTrue(len(certificate_list) > 0)
+
     def test_0030_delete_ca_certificate(self):
         """Delete CA certificate in the gateway.
         Invokes the delete_ca_certificate of the Certificate.
         """
         gateway_obj1 = TestCertificates._gateway1
-        certificate_list = gateway_obj1.list_all_certificates()
+        certificate_list = gateway_obj1.list_ca_certificates()
         certificate = certificate_list[0]
         object_id = certificate["Object_Id"]
         certificate_obj = Certificate(client=TestCertificates._client,
                                       gateway_name=TestCertificates._name,
-                                      certificate_object_id=object_id)
+                                      resource_id=object_id)
         certificate_obj.delete_ca_certificate()
         # Verify
         gateway_obj1 = TestCertificates._gateway1
-        certificate_list = gateway_obj1.list_all_certificates()
+        certificate_list = gateway_obj1.list_ca_certificates()
         self.assertTrue(len(certificate_list) == 0)
 
     def test_0035_add_crl_certificate(self):
@@ -141,6 +150,23 @@ class TestCertificates(BaseTestCase):
         TestCertificates._crl_object_id = crl_object_id
         # Verify
         self.assertTrue(len(certificate_list) > 0)
+
+    def test_0045_delete_crl_certificate(self):
+        """Delete CRL certificate in the gateway.
+        Invokes the delete_crl_certificate of the Certificate.
+        """
+        gateway_obj1 = TestCertificates._gateway1
+        certificate_list = gateway_obj1.list_crl_certificates()
+        certificate = certificate_list[0]
+        object_id = certificate["Object_Id"]
+        crl_obj = Crl(client=TestCertificates._client,
+                      gateway_name=TestCertificates._name,
+                      resource_id=object_id)
+        crl_obj.delete_certificate()
+        # Verify
+        gateway_obj1 = TestCertificates._gateway1
+        certificate_list = gateway_obj1.list_crl_certificates()
+        self.assertTrue(len(certificate_list) == 0)
 
     def test_0098_teardown(self):
         return

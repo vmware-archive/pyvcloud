@@ -1595,8 +1595,8 @@ class Gateway(object):
         self.client.post_resource(post_service_certificate_href, trust_object,
                                   EntityType.DEFAULT_CONTENT_TYPE.value)
 
-    def list_all_certificates(self):
-        """List certificates of a gateway.
+    def list_service_certificates(self):
+        """List service certificates of a gateway.
 
         :return: list of all certificates.
         """
@@ -1638,6 +1638,23 @@ class Gateway(object):
             trust_object.append(E.description(description))
         self.client.post_resource(post_ca_certificate_href, trust_object,
                                   EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def list_ca_certificates(self):
+        """List CA certificates of a gateway.
+
+        :return: list of CA certificates.
+        """
+        out_list = []
+        certificates = self.get_certificates()
+        if hasattr(certificates, "certificate"):
+            for certificate in certificates.certificate:
+                if certificate.certificateType == "certificate_ca":
+                    certificate_info = {}
+                    certificate_info["Name"] = certificate.name
+                    object_id = certificate.objectId.text
+                    certificate_info["Object_Id"] = object_id.split(':')[-1]
+                    out_list.append(certificate_info)
+        return out_list
 
     def add_crl_certificate(self, crl_certificate_file_path, description=None):
         """Add CRL certificate in the gateway.

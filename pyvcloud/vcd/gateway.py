@@ -20,9 +20,11 @@ from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.exceptions import AlreadyExistsException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.network_url_constants import CRL_CERTIFICATE_POST
 from pyvcloud.vcd.network_url_constants import DHCP_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import FIREWALL_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import GET_CERTIFICATES
+from pyvcloud.vcd.network_url_constants import GET_CRL_CERTIFICATES
 from pyvcloud.vcd.network_url_constants import IPSEC_VPN_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import NAT_URL_TEMPLATE
 from pyvcloud.vcd.network_url_constants import SERVICE_CERTIFICATE_POST
@@ -687,7 +689,7 @@ class Gateway(object):
         """
         gateway = self.get_resource()
         out = {}
-        syslogserver_settings = gateway.Configuration.SyslogServerSettings.\
+        syslogserver_settings = gateway.Configuration.SyslogServerSettings. \
             TenantSyslogServerSettings
         if hasattr(syslogserver_settings, 'SyslogServerIp'):
             out["Tenant Syslog server"] = syslogserver_settings.SyslogServerIp
@@ -1619,6 +1621,68 @@ class Gateway(object):
         certificates_href = self._build_get_certificates_href(network_url)
         return self.client.get_resource(certificates_href)
 
+    def add_ca_certificate(self, ca_certificate_file_path, description=None):
+        """Add CA certificate in the gateway.
+
+        param str ca_certificate_file_path: CA certificate file path
+        param str description : description
+        """
+        network_url = build_network_url_from_gateway_url(self.href)
+        post_ca_certificate_href = self. \
+            _build_post_service_certificate_href(network_url)
+        trust_object = E.trustObject()
+        ca_certificate = self. \
+            read_content_from_file(ca_certificate_file_path)
+        trust_object.append(E.pemEncoding(ca_certificate))
+        if description:
+            trust_object.append(E.description(description))
+        self.client.post_resource(post_ca_certificate_href, trust_object,
+                                  EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def add_crl_certificate(self, crl_certificate_file_path, description=None):
+        """Add CRL certificate in the gateway.
+
+        param str crl_certificate_file_path: CRL certificate file path
+        param str description : description
+        """
+        network_url = build_network_url_from_gateway_url(self.href)
+        post_crl_certificate_href = self. \
+            _build_post_crl_certificate_href(network_url)
+        trust_object = E.trustObject()
+        crl_certificate = self. \
+            read_content_from_file(crl_certificate_file_path)
+        trust_object.append(E.pemEncoding(crl_certificate))
+        if description:
+            trust_object.append(E.description(description))
+        self.client.post_resource(post_crl_certificate_href, trust_object,
+                                  EntityType.DEFAULT_CONTENT_TYPE.value)
+
+    def list_crl_certificates(self):
+        """List certificates of a gateway.
+
+        :return: list of all certificates.
+        """
+        out_list = []
+        certificates = self.get_crl_certificates()
+        if hasattr(certificates, "crl"):
+            for crl in certificates.crl:
+                certificate_info = {}
+                certificate_info["Name"] = crl.name
+                object_id = crl.objectId.text
+                certificate_info["Object_Id"] = object_id.split(':')[-1]
+                out_list.append(certificate_info)
+        return out_list
+
+    def get_crl_certificates(self):
+        """Get CRL certificates from vCD.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        network_url = build_network_url_from_gateway_url(self.href)
+        crl_certificates_href = self. \
+            _build_get_crl_certificates_href(network_url)
+        return self.client.get_resource(crl_certificates_href)
+
     def _build_post_service_certificate_href(self, network_url):
         gateway_id = self._get_gateway_id_from_network_url(network_url)
         removal_string = '/edges/' + gateway_id
@@ -1634,6 +1698,22 @@ class Gateway(object):
             _get_url_without_string(network_url=network_url,
                                     removal_string=removal_string)
         return network_url + GET_CERTIFICATES + gateway_id
+
+    def _build_post_crl_certificate_href(self, network_url):
+        gateway_id = self._get_gateway_id_from_network_url(network_url)
+        removal_string = '/edges/' + gateway_id
+        network_url = self. \
+            _get_url_without_string(network_url=network_url,
+                                    removal_string=removal_string)
+        return network_url + CRL_CERTIFICATE_POST + gateway_id
+
+    def _build_get_crl_certificates_href(self, network_url):
+        gateway_id = self._get_gateway_id_from_network_url(network_url)
+        removal_string = '/edges/' + gateway_id
+        network_url = self. \
+            _get_url_without_string(network_url=network_url,
+                                    removal_string=removal_string)
+        return network_url + GET_CRL_CERTIFICATES + gateway_id
 
     def _get_gateway_id_from_network_url(self, network_url):
         return network_url.split("/")[-1]

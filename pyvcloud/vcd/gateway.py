@@ -1676,7 +1676,6 @@ class Gateway(object):
     def get_crl_certificates(self):
         """Get CRL certificates from vCD.
 
-        Form a certificate using gateway href.
         :rtype: lxml.objectify.ObjectifiedElement
         """
         network_url = build_network_url_from_gateway_url(self.href)

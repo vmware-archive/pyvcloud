@@ -19,6 +19,8 @@ from pyvcloud.system_test_framework.constants.gateway_constants import \
     GatewayConstants
 from pyvcloud.vcd.certificate import Certificate
 from pyvcloud.vcd.gateway import Gateway
+
+
 class TestCertificates(BaseTestCase):
     """Test gateway certificates functionalities implemented in pyvcloud."""
     # All tests in this module should be run as System Administrator.
@@ -27,8 +29,10 @@ class TestCertificates(BaseTestCase):
     _ca_certificate_file_path = "certificate.pem"
     _crl_certificate_file_path = "crl.pem"
     _private_key_file_path = "private_key.pem"
+
     def test_0000_setup(self):
         TestCertificates._client = Environment.get_sys_admin_client()
+
     def test_0010_add_service_certificate(self):
         """Add service certificate in the gateway.
         Invokes the add_service_certificate of the gateway.
@@ -44,9 +48,11 @@ class TestCertificates(BaseTestCase):
         gateway_obj1.reload()
         certificates = gateway_obj1.get_certificates()
         self.__validate_certificate(certificates)
+
     def __validate_certificate(self, certificates):
         certificate_list = certificates.certificate
         self.assertTrue(len(certificate_list) > 0)
+
     def test_0015_list_service_certificate(self):
         """List all certificates of a gateway
         Invokes the list_all_certificates of the gateway.
@@ -58,6 +64,7 @@ class TestCertificates(BaseTestCase):
         TestCertificates._object_id = object_id
         # Verify
         self.assertTrue(len(certificate_list) > 0)
+
     def test_0020_delete_service_certificate(self):
         """Delete service certificate in the gateway.
         Invokes the delete_certificate of the Certificate.
@@ -67,10 +74,11 @@ class TestCertificates(BaseTestCase):
                                       certificate_object_id=
                                       TestCertificates._object_id)
         certificate_obj.delete_certificate()
-        #Verify
+        # Verify
         gateway_obj1 = TestCertificates._gateway1
         certificate_list = gateway_obj1.list_all_certificates()
         self.assertTrue(len(certificate_list) == 0)
+
     def test_0025_add_ca_certificate(self):
         """Add CA certificate in the gateway.
         Invokes the add_ca_certificate of the gateway.
@@ -85,6 +93,7 @@ class TestCertificates(BaseTestCase):
         gateway_obj1.reload()
         certificates = gateway_obj1.get_certificates()
         self.__validate_certificate(certificates)
+
     def test_0030_delete_ca_certificate(self):
         """Delete CA certificate in the gateway.
         Invokes the delete_ca_certificate of the Certificate.
@@ -97,10 +106,11 @@ class TestCertificates(BaseTestCase):
                                       gateway_name=TestCertificates._name,
                                       certificate_object_id=object_id)
         certificate_obj.delete_ca_certificate()
-        #Verify
+        # Verify
         gateway_obj1 = TestCertificates._gateway1
         certificate_list = gateway_obj1.list_all_certificates()
         self.assertTrue(len(certificate_list) == 0)
+
     def test_0035_add_crl_certificate(self):
         """Add CRL certificate in the gateway.
         Invokes the add_crl_certificate of the gateway.
@@ -115,9 +125,11 @@ class TestCertificates(BaseTestCase):
         gateway_obj1.reload()
         certificates = gateway_obj1.get_crl_certificates()
         self.__validate_crl_certificate(certificates)
+
     def __validate_crl_certificate(self, crls):
         certificate_list = crls.crl
         self.assertTrue(len(certificate_list) > 0)
+
     def test_0040_list_crl_certificate(self):
         """List crl certificates of a gateway
         Invokes the list_crl_certificates of the gateway.
@@ -129,10 +141,13 @@ class TestCertificates(BaseTestCase):
         TestCertificates._crl_object_id = crl_object_id
         # Verify
         self.assertTrue(len(certificate_list) > 0)
+
     def test_0098_teardown(self):
         return
+
     def test_0099_cleanup(self):
         """Release all resources held by this object for testing purposes."""
         TestCertificates._client.logout()
+
     if __name__ == '__main__':
         unittest.main()

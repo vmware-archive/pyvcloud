@@ -17,25 +17,10 @@ from pyvcloud.vcd.network_url_constants import SERVICE_CERTIFICATE_POST
 
 class Certificate(GatewayServices):
 
-    def __init__(self, client, gateway_name=None, certificate_object_id=None):
-        """Constructor for Certificate objects.
-
-        :param pyvcloud.vcd.client.Client client: the client that will be used
-            to make REST calls to vCD.
-        :param str gateway_name: name of the gateway entity.
-        :param str certificate_object_id: certificate object id.
-            EntityType.certificate XML data representing the certificate.
-        """
-        super(Certificate, self).__init__(client, gateway_name=gateway_name,
-                                          resource_id=certificate_object_id)
-        self.object_id = certificate_object_id
-        self.resource = self.get_certificate_resource()
-
-    def reload(self):
-        """Reloads the resource representation of the ipsec vpn."""
+    def _reload(self):
+        """Reloads the resource representation of the certificate."""
         self.resource = self.client.get_resource(self.href)
 
-    # NOQA
     def _build_self_href(self, resoure_id):
         network_url = self.network_url
         gateway_id = network_url.split("/")[-1]
@@ -45,9 +30,6 @@ class Certificate(GatewayServices):
             network_url + SERVICE_CERTIFICATE_POST + gateway_id + ':' \
             + resoure_id
         self.href = certificate_href
-
-    def get_certificate_resource(self):
-        return self.client.get_resource(self.href)
 
     def delete_certificate(self):
         """Delete certificate."""

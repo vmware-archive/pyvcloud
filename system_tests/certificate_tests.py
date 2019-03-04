@@ -72,8 +72,7 @@ class TestCertificates(BaseTestCase):
         """
         certificate_obj = Certificate(client=TestCertificates._client,
                                       gateway_name=TestCertificates._name,
-                                      certificate_object_id=
-                                      TestCertificates._object_id)
+                                      resource_id=TestCertificates._object_id)
         certificate_obj.delete_certificate()
         # Verify
         gateway_obj1 = TestCertificates._gateway1
@@ -114,7 +113,7 @@ class TestCertificates(BaseTestCase):
         object_id = certificate["Object_Id"]
         certificate_obj = Certificate(client=TestCertificates._client,
                                       gateway_name=TestCertificates._name,
-                                      certificate_object_id=object_id)
+                                      resource_id=object_id)
         certificate_obj.delete_ca_certificate()
         # Verify
         gateway_obj1 = TestCertificates._gateway1
@@ -162,7 +161,7 @@ class TestCertificates(BaseTestCase):
         object_id = certificate["Object_Id"]
         crl_obj = Crl(client=TestCertificates._client,
                       gateway_name=TestCertificates._name,
-                      crl_object_id=object_id)
+                      resource_id=object_id)
         crl_obj.delete_certificate()
         # Verify
         gateway_obj1 = TestCertificates._gateway1

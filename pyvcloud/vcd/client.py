@@ -945,13 +945,15 @@ class Client(object):
                     uri,
                     contents=None,
                     media_type=None,
-                    objectify_results=True):
+                    objectify_results=True,
+                    params=None):
         response = self._do_request_prim(
             method,
             uri,
             self._session,
             contents=contents,
-            media_type=media_type)
+            media_type=media_type,
+            params=params)
 
         sc = response.status_code
         if 200 <= sc <= 299:
@@ -1041,7 +1043,8 @@ class Client(object):
                          contents=None,
                          media_type=None,
                          accept_type=None,
-                         auth=None):
+                         auth=None,
+                         params=None):
         headers = {}
         if media_type is not None:
             headers[self._HEADER_CONTENT_TYPE_NAME] = media_type
@@ -1060,6 +1063,7 @@ class Client(object):
         response = session.request(
             method,
             uri,
+            params=params,
             data=data,
             headers=headers,
             auth=auth,
@@ -1131,7 +1135,8 @@ class Client(object):
                     self._logger.debug('Downloaded bytes : %s' % bytes_written)
         return bytes_written
 
-    def put_resource(self, uri, contents, media_type, objectify_results=True):
+    def put_resource(self, uri, contents, media_type, params=None,
+                     objectify_results=True):
         """Puts the specified contents to the specified resource.
 
         This method does an HTTP PUT.
@@ -1141,7 +1146,7 @@ class Client(object):
             uri,
             contents=contents,
             media_type=media_type,
-            objectify_results=objectify_results)
+            objectify_results=objectify_results, params=params)
 
     def put_linked_resource(self, resource, rel, media_type, contents):
         """Puts to a resource link.
@@ -1161,7 +1166,8 @@ class Client(object):
         except MissingLinkException as e:
             raise OperationNotSupportedException from e
 
-    def post_resource(self, uri, contents, media_type, objectify_results=True):
+    def post_resource(self, uri, contents, media_type, params=None,
+                      objectify_results=True):
         """Posts to a resource link.
 
         Posts the specified contents to the specified resource. (Does an HTTP
@@ -1172,7 +1178,7 @@ class Client(object):
             uri,
             contents=contents,
             media_type=media_type,
-            objectify_results=objectify_results)
+            objectify_results=objectify_results, params=params)
 
     def post_linked_resource(self, resource, rel, media_type, contents):
         """Posts to a resource link.
@@ -1193,13 +1199,13 @@ class Client(object):
             raise OperationNotSupportedException(
                 "Operation is not supported").with_traceback(e.__traceback__)
 
-    def get_resource(self, uri, objectify_results=True):
+    def get_resource(self, uri, params=None, objectify_results=True):
         """Gets the specified contents to the specified resource.
 
         This method does an HTTP GET.
         """
         return self._do_request(
-            'GET', uri, objectify_results=objectify_results)
+            'GET', uri, objectify_results=objectify_results, params=params)
 
     def get_linked_resource(self, resource, rel, media_type):
         """Gets the content of the resource link.
@@ -1221,9 +1227,9 @@ class Client(object):
             raise OperationNotSupportedException(
                 "Operation is not supported").with_traceback(e.__traceback__)
 
-    def delete_resource(self, uri, force=False, recursive=False):
+    def delete_resource(self, uri, params=None, force=False, recursive=False):
         full_uri = '%s?force=%s&recursive=%s' % (uri, force, recursive)
-        return self._do_request('DELETE', full_uri)
+        return self._do_request('DELETE', full_uri, params=params)
 
     def delete_linked_resource(self, resource, rel, media_type):
         """Deletes the resource referenced by the link.

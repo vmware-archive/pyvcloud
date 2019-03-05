@@ -83,6 +83,11 @@ class TestVApp(BaseTestCase):
     _new_vapp_network_dns1 = '8.8.8.10'
     _new_vapp_network_dns2 = '8.8.8.11'
     _new_vapp_network_dns_suffix = 'newexample.com'
+    _vapp_network_dhcp_ip_range = '90.80.70.101-90.80.70.120'
+    _vapp_network_start_dhcp_ip = '90.80.70.101'
+    _vapp_network_end_dhcp_ip = '90.80.70.120'
+    _vapp_network_dhcp_default_lease_time = 3600
+    _vapp_network_dhcp_max_lease_time = 7200
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -694,6 +699,33 @@ class TestVApp(BaseTestCase):
             TestVApp._vapp_network_name, TestVApp._vapp_network_dns1,
             TestVApp._vapp_network_dns2, TestVApp._vapp_network_dns_suffix)
         TestVApp._client.get_task_monitor().wait_for_success(task=task)
+
+    def test_0126_enable_dhcp_vapp_network(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        task = vapp.enable_dhcp_vapp_network(
+            TestVApp._vapp_network_name, TestVApp._vapp_network_dhcp_ip_range,
+            TestVApp._vapp_network_dhcp_default_lease_time,
+            TestVApp._vapp_network_dhcp_max_lease_time)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        vapp.reload()
+        network_conf = self._network_present(vapp, TestVApp._vapp_network_name)
+        dhcp_service = network_conf.Configuration.Features.DhcpService
+        self.assertTrue(dhcp_service.IsEnabled)
+        self.assertEqual(dhcp_service.IpRange.StartAddress,
+                         TestVApp._vapp_network_start_dhcp_ip)
+        self.assertEqual(dhcp_service.IpRange.EndAddress,
+                         TestVApp._vapp_network_end_dhcp_ip)
+
+    def test_0127_disable_dhcp_vapp_network(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        task = vapp.disable_dhcp_vapp_network(TestVApp._vapp_network_name)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        vapp.reload()
+        network_conf = self._network_present(vapp, TestVApp._vapp_network_name)
+        dhcp_service = network_conf.Configuration.Features.DhcpService
+        self.assertFalse(dhcp_service.IsEnabled)
 
     def test_0130_delete_vapp_network(self):
         """Test the method vapp.delete_vapp_network().

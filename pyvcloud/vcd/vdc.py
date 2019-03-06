@@ -1853,7 +1853,7 @@ class VDC(object):
                             if len(subnet_arr) < 2:
                                 continue
                             if subnet_arr[0] == ip_scope.Gateway.text and \
-                                    subnet_arr[1] == prefix_len:
+                                    int(subnet_arr[1]) == prefix_len:
                                 ip_assigned = \
                                     subnet_with_ip_settings.get(subnet)
                                 if len(ip_assigned) > 0:

@@ -403,6 +403,7 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.vmwPvdcStorageProfile+xml'
     VMW_STORAGE_PROFILES = \
         'application/vnd.vmware.admin.vmwStorageProfiles+xml'
+    vApp_Network = 'application/vnd.vmware.vcloud.vAppNetwork+xml'
 
 
 class QueryResultFormat(Enum):
@@ -1135,7 +1136,11 @@ class Client(object):
                     self._logger.debug('Downloaded bytes : %s' % bytes_written)
         return bytes_written
 
-    def put_resource(self, uri, contents, media_type, params=None,
+    def put_resource(self,
+                     uri,
+                     contents,
+                     media_type,
+                     params=None,
                      objectify_results=True):
         """Puts the specified contents to the specified resource.
 
@@ -1146,7 +1151,8 @@ class Client(object):
             uri,
             contents=contents,
             media_type=media_type,
-            objectify_results=objectify_results, params=params)
+            objectify_results=objectify_results,
+            params=params)
 
     def put_linked_resource(self, resource, rel, media_type, contents):
         """Puts to a resource link.
@@ -1166,7 +1172,11 @@ class Client(object):
         except MissingLinkException as e:
             raise OperationNotSupportedException from e
 
-    def post_resource(self, uri, contents, media_type, params=None,
+    def post_resource(self,
+                      uri,
+                      contents,
+                      media_type,
+                      params=None,
                       objectify_results=True):
         """Posts to a resource link.
 
@@ -1178,7 +1188,8 @@ class Client(object):
             uri,
             contents=contents,
             media_type=media_type,
-            objectify_results=objectify_results, params=params)
+            objectify_results=objectify_results,
+            params=params)
 
     def post_linked_resource(self, resource, rel, media_type, contents):
         """Posts to a resource link.
@@ -1415,6 +1426,42 @@ class Client(object):
             raise ClientException(
                 'The current user does not have access to the resource (%s).' %
                 str(wk_type).split('.')[-1])
+
+
+def find_link_by_name(resource, rel, media_type, name, fail_if_absent=True):
+    """Returns the link of the specified rel, type and name in the resource.
+
+    :param lxml.objectify.ObjectifiedElement resource: the resource with the
+        link.
+    :param ResourceType rel: the rel of the desired link.
+    :param str media_type: media type of content.
+    :param str name: name of link.
+    :param bool fail_if_absent: if True raise an exception if there's
+        not exactly one link of the specified rel and media type.
+
+    :return: an object containing Link XML element representing the desired
+        link or None if no such link is present and fail_if_absent is False.
+
+    :rtype: lxml.objectify.ObjectifiedElement
+
+    :raises MissingLinkException: if no link of the specified rel and media
+        type is found
+    :raises MultipleLinksException: if multiple links of the specified rel
+        and media type are found
+    """
+    links = get_links(resource, rel, media_type)
+    num_links = len(links)
+    if num_links == 0:
+        if fail_if_absent:
+            raise MissingLinkException(resource.get('href'), rel, media_type)
+        else:
+            return None
+    else:
+        for link in links:
+            if name == link.name:
+                return link.href
+    raise EntityNotFoundException('Entity not found (or)'
+                                  ' Access to resource is forbidden')
 
 
 def find_link(resource, rel, media_type, fail_if_absent=True):

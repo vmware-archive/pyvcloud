@@ -27,8 +27,10 @@ from pygments import highlight
 from pygments import lexers
 
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import find_link_by_name
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
 
 
@@ -885,3 +887,15 @@ def build_network_url_from_gateway_url(gateway_href):
         return network_url.replace(_GATEWAY_ADMIN_API_URL, _NETWORK_URL)
 
     return None
+
+
+def build_network_url_from_vapp_url(vapp_resource, network_name):
+    """Build network URI for NSX Proxy API.
+
+    param: str vapp_resource: vapp resource.
+    param: str network_name: network name.
+    return network href
+    rtype: str
+    """
+    return find_link_by_name(vapp_resource, RelationType.DOWN,
+                             EntityType.vApp_Network.value, network_name)

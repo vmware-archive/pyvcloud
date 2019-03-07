@@ -32,6 +32,8 @@ class TestVappDhcp(BaseTestCase):
     _vapp_network_end_dhcp_ip = '90.80.70.120'
     _vapp_network_dhcp_default_lease_time = 3600
     _vapp_network_dhcp_max_lease_time = 7200
+    _enable = True
+    _disable = False
 
     def test_0000_setup(self):
         TestVappDhcp._vapp_name = VAppConstants.name
@@ -58,12 +60,18 @@ class TestVappDhcp(BaseTestCase):
         self.assertEqual(dhcp_service.IpRange.EndAddress,
                          TestVappDhcp._vapp_network_end_dhcp_ip)
 
-    def test_0012_disable_dhcp_vapp_network(self):
+    def test_0012_enable_disable_dhcp_vapp_network(self):
         vapp_dhcp = VappDhcp(
             TestVappDhcp._client,
             vapp_name=TestVappDhcp._vapp_name,
             network_name=TestVappDhcp._vapp_network_name)
-        task = vapp_dhcp.disable_dhcp_vapp_network()
+        task = vapp_dhcp.enable_disable_dhcp_vapp_network(TestVappDhcp._enable)
+        TestVappDhcp._client.get_task_monitor().wait_for_success(task=task)
+        vapp_dhcp._reload()
+        dhcp_service = vapp_dhcp.resource.Configuration.Features.DhcpService
+        self.assertTrue(dhcp_service.IsEnabled)
+        task = vapp_dhcp.enable_disable_dhcp_vapp_network(
+            TestVappDhcp._disable)
         TestVappDhcp._client.get_task_monitor().wait_for_success(task=task)
         vapp_dhcp._reload()
         dhcp_service = vapp_dhcp.resource.Configuration.Features.DhcpService

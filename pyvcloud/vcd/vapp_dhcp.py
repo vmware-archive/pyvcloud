@@ -28,7 +28,7 @@ class VappDhcp(VappServices):
 
     def set_dhcp_vapp_network(self, ip_range, default_lease_time,
                               max_lease_time):
-        """Enable DHCP to vApp network.
+        """Set DHCP to vApp network.
 
         :param str ip_range: IP range in StartAddress-EndAddress format.
         :param str default_lease_time: default lease time.
@@ -69,16 +69,20 @@ class VappDhcp(VappServices):
             self.resource, RelationType.EDIT, EntityType.vApp_Network.value,
             self.resource)
 
-    def disable_dhcp_vapp_network(self):
-        """Enable DHCP to vApp network.
+    def enable_disable_dhcp_vapp_network(self, isEnable):
+        """Enable disable DHCP to vApp network.
 
+        :param bool isEnable: True for enable and False for Disable.
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is updating the vApp network.
         :rtype: lxml.objectify.ObjectifiedElement
         """
         self._get_resource()
         dhcp = self.resource.Configuration.Features.DhcpService
-        dhcp.IsEnabled = E.IsEnabled(False)
+        if isEnable:
+            dhcp.IsEnabled = E.IsEnabled(True)
+        else:
+            dhcp.IsEnabled = E.IsEnabled(False)
         return self.client.put_linked_resource(
             self.resource, RelationType.EDIT, EntityType.vApp_Network.value,
             self.resource)

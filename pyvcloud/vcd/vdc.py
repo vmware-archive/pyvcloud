@@ -1574,8 +1574,8 @@ class VDC(object):
         :param bool is_sub_allocate_ip_pools_enabled: is sub allocate ip
         pools enabled
         :param dict ext_net_to_subnet_with_ip_range: external network to sub
-        allocated ip with ip ranges e.g., {"ext_net' : {'10.3.2.1/24' : [
-        10.3.2.2-10.3.2.5, 10.3.2.12-10.3.2.15]}}
+        allocated ip with ip ranges e.g., {'ext_net' : {'10.3.2.1/24' : [
+        '10.3.2.2-10.3.2.5', '10.3.2.12-10.3.2.15']}}
         :param dict ext_net_to_rate_limit: external network to rate limit
         e.g., {'ext_net' : {100 : 100}}
         :param bool is_flips_mode_enabled: is flip mode enabled
@@ -1658,8 +1658,8 @@ class VDC(object):
         :param bool is_sub_allocate_ip_pools_enabled: is sub allocate ip
         pools enabled
         :param dict ext_net_to_subnet_with_ip_range: external network to sub
-        allocated ip with ip ranges e.g., {"ext_net' : {'10.3.2.1/24' : [
-        10.3.2.2-10.3.2.5, 10.3.2.12-10.3.2.15]}}
+        allocated ip with ip ranges e.g., {'ext_net' : {'10.3.2.1/24' : [
+        '10.3.2.2-10.3.2.5', '10.3.2.12-10.3.2.15']}}
         :param dict ext_net_to_rate_limit: external network to rate limit
         e.g., {'ext_net' : {100 : 100}}
 
@@ -1738,8 +1738,8 @@ class VDC(object):
         :param bool is_sub_allocate_ip_pools_enabled: is sub allocate ip
         pools enabled
         :param dict ext_net_to_subnet_with_ip_range: external network to sub
-        allocated ip with ip ranges e.g., {"ext_net' : {'10.3.2.1/24' : [
-        10.3.2.2-10.3.2.5, 10.3.2.12-10.3.2.15]}}
+        allocated ip with ip ranges e.g., {'ext_net' : {'10.3.2.1/24' : [
+        '10.3.2.2-10.3.2.5', '10.3.2.12-10.3.2.15']}}
         :param dict ext_net_to_rate_limit: external network to rate limit
         e.g., {'ext_net' : {100 : 100}}
         :param bool is_flips_mode_enabled: is flip mode enabled
@@ -1853,7 +1853,7 @@ class VDC(object):
                             if len(subnet_arr) < 2:
                                 continue
                             if subnet_arr[0] == ip_scope.Gateway.text and \
-                                    subnet_arr[1] == prefix_len:
+                                    int(subnet_arr[1]) == prefix_len:
                                 ip_assigned = \
                                     subnet_with_ip_settings.get(subnet)
                                 if len(ip_assigned) > 0:
@@ -1880,7 +1880,7 @@ class VDC(object):
                             if len(subnet_arr) < 2:
                                 continue
                             if subnet_arr[0] == ip_scope.Gateway.text and \
-                                    subnet_arr[1] == prefix_len:
+                                    int(subnet_arr[1]) == prefix_len:
                                 ip_ranges = subnet_with_ip_ranges.get(subnet)
                                 if is_default_gw_configured is False and \
                                         is_ip_scope_participating is False:

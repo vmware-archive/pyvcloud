@@ -34,7 +34,6 @@ class VappServices(object):
             to make REST calls to vCD.
         :param str vapp_name: name of the vapp entity.
         :param str network_name: name of the vapp network entity.
-        :param: str resource_id: Service resource id
         :param str resource_href: Service href.
         :param lxml.objectify.ObjectifiedElement resource: object containing
             EntityType.Service XML data representing the Service.

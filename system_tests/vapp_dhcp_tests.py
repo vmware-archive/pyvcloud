@@ -26,7 +26,6 @@ class TestVappDhcp(BaseTestCase):
     """Test vapp dhcp functionalities implemented in pyvcloud."""
     _vapp_name = VAppConstants.name
     _vapp_network_name = VAppConstants.network1_name
-    _client = None
     _vapp_network_dhcp_ip_range = '90.80.70.101-90.80.70.120'
     _vapp_network_start_dhcp_ip = '90.80.70.101'
     _vapp_network_end_dhcp_ip = '90.80.70.120'

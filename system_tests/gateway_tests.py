@@ -56,6 +56,7 @@ class TestGateway(BaseTestCase):
     _host_name = 'xyzName'
     _binding_ip_address = '10.20.30.40'
     _syslog_server_ip1 = '10.40.40.40'
+    _ip_address_for_config_ip_setting = '2.2.3.3'
 
     def test_0000_setup(self):
         """Setup the gateway required for the other tests in this module.
@@ -87,7 +88,7 @@ class TestGateway(BaseTestCase):
         subnet_addr = gateway_ip + '/' + str(prefix_len)
         ext_net_to_participated_subnet_with_ip_settings = {
             ext_net_resource.get('name'): {
-                subnet_addr: 'Auto'
+                subnet_addr: self._ip_address_for_config_ip_setting
             }
         }
 

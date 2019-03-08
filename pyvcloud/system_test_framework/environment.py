@@ -834,10 +834,11 @@ class Environment(object):
                     power_on=False,
                     deploy=False)
                 vapp = VApp(client, href=cls._vapp_href)
-                vapp.create_vapp_network(
+                task = vapp.create_vapp_network(
                     VAppConstants.network1_name,
                     VAppConstants.network1_cidr,
                     ip_ranges=VAppConstants.network1_ip_ranges)
+                client.get_task_monitor().wait_for_success(task=task)
         return VApp(client, href=cls._vapp_href)
 
     @classmethod

@@ -11,12 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import QueryResultFormat
+from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
-from pyvcloud.vcd.utils import build_network_url_from_vapp_url
 
 
 class VappServices(object):
@@ -36,35 +38,36 @@ class VappServices(object):
         :param str resource_href: Service href.
         :param lxml.objectify.ObjectifiedElement resource: object containing
             EntityType.Service XML data representing the Service.
+        :raises: InvalidParameterException: Service Initialization failed as
+            arguments are either invalid or None.
         """
         self.client = client
         self.vapp_name = vapp_name
         if vapp_name is not None and network_name is not None and\
                 resource_href is None and resource is None:
             self.network_name = network_name
-            self._build_network_href()
             self._build_self_href()
-        if resource_href is None and resource is None and \
-                network_name is None and self.href is None:
+        if resource_href is None and resource is None and self.href is None:
             raise InvalidParameterException(
                 "Service Initialization failed as arguments are either "
                 "invalid or None")
         if resource_href is not None:
             self.resource_href = resource_href
             self.href = resource_href
+            self._get_resource()
+            self.parent_href = find_link(self.resource, RelationType.UP,
+                                         EntityType.VAPP).href
+            self.parent = self.client.get_resource(self.parent_href)
         self.resource = resource
 
     def _build_self_href(self):
-        pass
-
-    def _extract_id(self, self_href):
-        pass
-
-    def _build_network_href(self):
         self.parent = self._get_parent_by_name()
         self.parent_href = self.parent.get('href')
-        self.network_url = build_network_url_from_vapp_url(
-            self.client.get_resource(self.parent_href), self.network_name)
+        self.href = find_link(
+            self.client.get_resource(self.parent_href),
+            RelationType.DOWN,
+            EntityType.vApp_Network.value,
+            name=self.network_name).href
 
     def _get_resource(self):
         """Fetches the XML representation of the Service.
@@ -78,7 +81,8 @@ class VappServices(object):
         return self.resource
 
     def _reload(self):
-        pass
+        """Reloads the resource representation of the Vapp network."""
+        self.resource = self.client.get_resource(self.href)
 
     def _get_parent_by_name(self):
         """Get a vapp by name.

@@ -24,8 +24,8 @@ from pyvcloud.vcd.client import TaskStatus
 
 class TestVappDhcp(BaseTestCase):
     """Test vapp dhcp functionalities implemented in pyvcloud."""
-    _vapp_name = None
-    _vapp_network_name = None
+    _vapp_name = VAppConstants.name
+    _vapp_network_name = VAppConstants.network1_name
     _client = None
     _vapp_network_dhcp_ip_range = '90.80.70.101-90.80.70.120'
     _vapp_network_start_dhcp_ip = '90.80.70.101'
@@ -36,18 +36,16 @@ class TestVappDhcp(BaseTestCase):
     _disable = False
 
     def test_0000_setup(self):
-        TestVappDhcp._vapp_name = VAppConstants.name
-        TestVappDhcp._vapp_network_name = VAppConstants.network1_name
         TestVappDhcp._client = Environment.get_sys_admin_client()
         vapp = Environment.get_test_vapp_with_network(TestVappDhcp._client)
         self.assertIsNotNone(vapp)
 
-    def test_0011_set_dhcp_vapp_network(self):
+    def test_0011_set_dhcp_service(self):
         vapp_dhcp = VappDhcp(
             client=TestVappDhcp._client,
             vapp_name=TestVappDhcp._vapp_name,
             network_name=TestVappDhcp._vapp_network_name)
-        task = vapp_dhcp.set_dhcp_vapp_network(
+        task = vapp_dhcp.set_dhcp_service(
             TestVappDhcp._vapp_network_dhcp_ip_range,
             TestVappDhcp._vapp_network_dhcp_default_lease_time,
             TestVappDhcp._vapp_network_dhcp_max_lease_time)
@@ -60,18 +58,17 @@ class TestVappDhcp(BaseTestCase):
         self.assertEqual(dhcp_service.IpRange.EndAddress,
                          TestVappDhcp._vapp_network_end_dhcp_ip)
 
-    def test_0012_enable_disable_dhcp_vapp_network(self):
+    def test_0012_enable_dhcp_service(self):
         vapp_dhcp = VappDhcp(
             TestVappDhcp._client,
             vapp_name=TestVappDhcp._vapp_name,
             network_name=TestVappDhcp._vapp_network_name)
-        task = vapp_dhcp.enable_disable_dhcp_vapp_network(TestVappDhcp._enable)
+        task = vapp_dhcp.enable_dhcp_service(TestVappDhcp._enable)
         TestVappDhcp._client.get_task_monitor().wait_for_success(task=task)
         vapp_dhcp._reload()
         dhcp_service = vapp_dhcp.resource.Configuration.Features.DhcpService
         self.assertTrue(dhcp_service.IsEnabled)
-        task = vapp_dhcp.enable_disable_dhcp_vapp_network(
-            TestVappDhcp._disable)
+        task = vapp_dhcp.enable_dhcp_service(TestVappDhcp._disable)
         TestVappDhcp._client.get_task_monitor().wait_for_success(task=task)
         vapp_dhcp._reload()
         dhcp_service = vapp_dhcp.resource.Configuration.Features.DhcpService

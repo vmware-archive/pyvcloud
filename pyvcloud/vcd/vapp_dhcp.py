@@ -15,19 +15,12 @@
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.vapp_services import VappServices
 
 
 class VappDhcp(VappServices):
-    def _build_self_href(self):
-        self.href = self.network_url
-
-    def _reload(self):
-        """Reloads the resource representation of the Vapp network."""
-        self.resource = self.client.get_resource(self.href)
-
-    def set_dhcp_vapp_network(self, ip_range, default_lease_time,
-                              max_lease_time):
+    def set_dhcp_service(self, ip_range, default_lease_time, max_lease_time):
         """Set DHCP to vApp network.
 
         :param str ip_range: IP range in StartAddress-EndAddress format.
@@ -36,8 +29,14 @@ class VappDhcp(VappServices):
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is updating the vApp network.
         :rtype: lxml.objectify.ObjectifiedElement
+        :raises: InvalidParameterException: Set DHCP service failed as given
+            network's connection is Direct
         """
         self._get_resource()
+        if self.resource.Configuration.FenceMode == 'bridged':
+            raise InvalidParameterException(
+                "Set DHCP service failed as given network's connection is "
+                "Direct")
         ip_ranges = ip_range.split('-')
         if not hasattr(self.resource.Configuration, 'Features'):
             index = self.resource.Configuration.index(
@@ -69,8 +68,8 @@ class VappDhcp(VappServices):
             self.resource, RelationType.EDIT, EntityType.vApp_Network.value,
             self.resource)
 
-    def enable_disable_dhcp_vapp_network(self, isEnable):
-        """Enable disable DHCP to vApp network.
+    def enable_dhcp_service(self, isEnable):
+        """Enable DHCP to vApp network.
 
         :param bool isEnable: True for enable and False for Disable.
         :return: an object containing EntityType.TASK XML data which represents

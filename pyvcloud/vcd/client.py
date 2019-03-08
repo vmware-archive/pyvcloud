@@ -1428,48 +1428,12 @@ class Client(object):
                 str(wk_type).split('.')[-1])
 
 
-def find_link_by_name(resource, rel, media_type, name, fail_if_absent=True):
-    """Returns the link of the specified rel, type and name in the resource.
-
-    :param lxml.objectify.ObjectifiedElement resource: the resource with the
-        link.
-    :param ResourceType rel: the rel of the desired link.
-    :param str media_type: media type of content.
-    :param str name: name of link.
-    :param bool fail_if_absent: if True raise an exception if there's
-        not exactly one link of the specified rel and media type.
-
-    :return: an object containing Link XML element representing the desired
-        link or None if no such link is present and fail_if_absent is False.
-
-    :rtype: lxml.objectify.ObjectifiedElement
-
-    :raises MissingLinkException: if no link of the specified rel and media
-        type is found
-    :raises MultipleLinksException: if multiple links of the specified rel
-        and media type are found
-    """
-    links = get_links(resource, rel, media_type)
-    num_links = len(links)
-    if num_links == 0:
-        if fail_if_absent:
-            raise MissingLinkException(resource.get('href'), rel, media_type)
-        else:
-            return None
-    else:
-        for link in links:
-            if name == link.name:
-                return link.href
-    raise EntityNotFoundException('Entity not found (or)'
-                                  ' Access to resource is forbidden')
-
-
-def find_link(resource, rel, media_type, fail_if_absent=True):
+def find_link(resource, rel, media_type, fail_if_absent=True, name=None):
     """Returns the link of the specified rel and type in the resource.
 
     :param lxml.objectify.ObjectifiedElement resource: the resource with the
         link.
-    :param ResourceType rel: the rel of the desired link.
+    :param RelationType rel: the rel of the desired link.
     :param str media_type: media type of content.
     :param bool fail_if_absent: if True raise an exception if there's
         not exactly one link of the specified rel and media type.
@@ -1484,7 +1448,7 @@ def find_link(resource, rel, media_type, fail_if_absent=True):
     :raises MultipleLinksException: if multiple links of the specified rel
         and media type are found
     """
-    links = get_links(resource, rel, media_type)
+    links = get_links(resource, rel, media_type, name)
     num_links = len(links)
     if num_links == 0:
         if fail_if_absent:
@@ -1497,7 +1461,7 @@ def find_link(resource, rel, media_type, fail_if_absent=True):
         raise MultipleLinksException(resource.get('href'), rel, media_type)
 
 
-def get_links(resource, rel=RelationType.DOWN, media_type=None):
+def get_links(resource, rel=RelationType.DOWN, media_type=None, name=None):
     """Returns all the links of the specified rel and type in the resource.
 
     :param lxml.objectify.ObjectifiedElement resource: the resource with the
@@ -1514,6 +1478,9 @@ def get_links(resource, rel=RelationType.DOWN, media_type=None):
     for link in resource.findall('{http://www.vmware.com/vcloud/v1.5}Link'):
         link_rel = link.get('rel')
         link_media_type = link.get('type')
+        link_name = link.get('name')
+        if name is not None and link_name != name:
+            continue
         if link_rel == rel.value:
             if media_type is None and link_media_type is None:
                 links.append(Link(link))

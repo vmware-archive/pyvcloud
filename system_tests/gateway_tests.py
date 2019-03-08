@@ -57,6 +57,7 @@ class TestGateway(BaseTestCase):
     _binding_ip_address = '10.20.30.40'
     _syslog_server_ip1 = '10.40.40.40'
     _ip_address_for_config_ip_setting = '2.2.3.3'
+    _ip_address_for_ip_range = '2.2.3.4-2.2.3.4'
 
     def test_0000_setup(self):
         """Setup the gateway required for the other tests in this module.
@@ -92,13 +93,9 @@ class TestGateway(BaseTestCase):
             }
         }
 
-        gateway_ip_arr = gateway_ip.split('.')
-        last_ip_digit = int(gateway_ip_arr[-1]) + 1
-        gateway_ip_arr[-1] = str(last_ip_digit)
-        next_ip = '.'.join(gateway_ip_arr)
         ext_net_to_subnet_with_ip_range = {
             ext_net_resource.get('name'): {
-                subnet_addr: [next_ip + '-' + next_ip]
+                subnet_addr: [self._ip_address_for_ip_range]
             }
         }
         ext_net_to_rate_limit = {ext_net_resource.get('name'): {100: 100}}
@@ -485,7 +482,15 @@ class TestGateway(BaseTestCase):
         subnet_participation = self.__get_subnet_participation(
             gateway_obj.get_resource(), ext_network)
         """removed the IpRanges form subnet_participation."""
-        self.assertFalse(hasattr(subnet_participation, 'IpRanges'))
+        is_ip_range_found = False
+        if hasattr(subnet_participation, 'IpRanges'):
+            for ip_range in subnet_participation.IpRanges.IpRange:
+                if gateway_sub_allocated_ip_range1 == \
+                        ip_range.StartAddress.text+'-'+ip_range.EndAddress\
+                        .text:
+                    is_ip_range_found = True
+                    break
+        self.assertFalse(is_ip_range_found)
 
     def test_0055_edit_rate_limit(self):
         """Edits existing rate limit of gateway.

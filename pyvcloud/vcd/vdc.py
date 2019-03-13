@@ -149,7 +149,7 @@ class VDC(object):
             provided name are found.
         """
         href = self.get_resource_href(name)
-        return self.client.delete_resource(href, force)
+        return self.client.delete_resource(href, force=force)
 
     # NOQA refer to http://pubs.vmware.com/vcd-820/index.jsp?topic=%2Fcom.vmware.vcloud.api.sp.doc_27_0%2FGUID-BF9B790D-512E-4EA1-99E8-6826D4B8E6DC.html
     def instantiate_vapp(self,

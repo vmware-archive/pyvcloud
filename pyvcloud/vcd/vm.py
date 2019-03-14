@@ -439,12 +439,11 @@ class VM(object):
 
         net_conn = E.NetworkConnection(network=network_name)
         net_conn.append(E.NetworkConnectionIndex(nic_index))
+        if ip_address_mode == IpAddressMode.MANUAL.value:
+            net_conn.append(E.IpAddress(ip_address))
         net_conn.append(E.IsConnected(is_connected))
         net_conn.append(E.IpAddressAllocationMode(ip_address_mode))
         net_conn.append(E.NetworkAdapterType(adapter_type))
-        if ip_address_mode == IpAddressMode.MANUAL:
-            net_conn.append(E.IpAddress(ip_address))
-
         net_conn_section.insert(insert_index, net_conn)
         return self.client.put_linked_resource(
             net_conn_section, RelationType.EDIT,

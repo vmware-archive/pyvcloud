@@ -19,7 +19,7 @@ from pyvcloud.vcd.vapp_services import VappServices
 
 class VappNwAddress(VappServices):
     def list_ip_allocations(self):
-        """List all alocated ip of vApp network.
+        """List all allocated ip of vApp network.
 
         :param str network_name: name of vApp network.
         :return: list of IP allocation details.

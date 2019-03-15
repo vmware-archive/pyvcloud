@@ -1349,7 +1349,7 @@ class VApp(object):
                 if hasattr(ip_address, 'IpAddress'):
                     dict['Ip_address'] = ip_address.IpAddress
                 list_allocated_ip.append(dict)
-            return list_allocated_ip
+        return list_allocated_ip
 
     def edit_name_and_description(self, name, description=None):
         """Edit name and description of the vApp.

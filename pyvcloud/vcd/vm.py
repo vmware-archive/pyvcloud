@@ -522,3 +522,28 @@ class VM(object):
         return self.client.put_linked_resource(
             net_conn_section, RelationType.EDIT,
             EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)
+
+    def suspend(self):
+        """Suspend the vm.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is suspending the VM.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self._perform_power_operation(
+            rel=RelationType.POWER_SUSPEND, operation_name='suspend')
+
+    def discard_suspended_state(self):
+        """Discard suspended state of the vm.
+
+        :return: an object containing EntityType.TASK XML data which represents
+                    the asynchronous task that is discarding suspended state
+                    of VM.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.DISCARD_SUSPENDED_STATE, None, None)

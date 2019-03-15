@@ -254,6 +254,24 @@ class TestVM(BaseTestCase):
         result = TestVM._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+        logger.debug('Suspend a vm ' + vm_name)
+        vm.reload()
+        task = vm.suspend()
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        logger.debug('Discard suspended state of a vm ' + vm_name)
+        vm.reload()
+        task = vm.discard_suspended_state()
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        logger.debug('Powering back on vm ' + vm_name)
+        vm.reload()
+        task = vm.power_on()
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
         # We will need to skip the next two operations, because the vm in
         # question doesn't have vmware tools installed.
         # TODO() : Use a vApp template in which vmware tools are installed

@@ -1317,6 +1317,40 @@ class VApp(object):
         raise EntityNotFoundException(
             'Can\'t find network \'%s\'' % network_name)
 
+    def list_ip_allocations(self, network_name):
+        """List all allocated ip of vApp network.
+
+        :param str network_name: name of vApp network.
+        :return: list of IP allocation details.
+        e.g.
+        [{'Allocation_type':'vsmAllocated','Is_deployed':True,
+         'Ip_address':'10.1.2.1'},
+         {'Allocation_type':'vmAllocated','Is_deployed': True,
+         'Ip_address':'10.1.2.12'}]
+        :rtype: list.
+        """
+        self.get_resource()
+        vapp_network_resource_href = find_link(
+            self.resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.vApp_Network.value,
+            name=network_name).href
+        vapp_network_resource = self.client.get_resource(
+            vapp_network_resource_href)
+        obj = self.client.get_linked_resource(
+            vapp_network_resource, RelationType.DOWN,
+            EntityType.ALLOCATED_NETWORK_ADDRESS.value)
+        list_allocated_ip = []
+        if hasattr(obj, 'IpAddress'):
+            for ip_address in obj.IpAddress:
+                dict = {}
+                dict['Allocation_type'] = ip_address.get('allocationType')
+                dict['Is_deployed'] = ip_address.get('isDeployed')
+                if hasattr(ip_address, 'IpAddress'):
+                    dict['Ip_address'] = ip_address.IpAddress
+                list_allocated_ip.append(dict)
+            return list_allocated_ip
+
     def edit_name_and_description(self, name, description=None):
         """Edit name and description of the vApp.
 

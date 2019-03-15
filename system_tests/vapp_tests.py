@@ -24,6 +24,7 @@ from pyvcloud.system_test_framework.utils import \
     create_customized_vapp_from_template
 from pyvcloud.system_test_framework.utils import create_empty_vapp
 
+from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import MetadataVisibility
 from pyvcloud.vcd.client import NetworkAdapterType
@@ -31,6 +32,7 @@ from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.vapp import VApp
+from pyvcloud.vcd.vm import VM
 from pyvcloud.vcd.utils import metadata_to_dict
 from pyvcloud.system_test_framework.depends import depends
 
@@ -83,6 +85,7 @@ class TestVApp(BaseTestCase):
     _new_vapp_network_dns1 = '8.8.8.10'
     _new_vapp_network_dns2 = '8.8.8.11'
     _new_vapp_network_dns_suffix = 'newexample.com'
+    _allocate_ip_address = '90.80.70.10'
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -694,6 +697,24 @@ class TestVApp(BaseTestCase):
             TestVApp._vapp_network_name, TestVApp._vapp_network_dns1,
             TestVApp._vapp_network_dns2, TestVApp._vapp_network_dns_suffix)
         TestVApp._client.get_task_monitor().wait_for_success(task=task)
+
+    def _allocate_vm_ip(self, vapp):
+        vm_resource = vapp.get_vm(TestVApp._customized_vapp_vm_name)
+        href = vm_resource.get('href')
+        vm = VM(TestVApp._client, href=href)
+        task = vm.add_nic(NetworkAdapterType.E1000.value, True, True,
+                          TestVApp._vapp_network_name,
+                          IpAddressMode.MANUAL.value,
+                          TestVApp._allocate_ip_address)
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0126_list_ip_allocations(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        self._allocate_vm_ip(vapp)
+        list_ip_address = vapp.list_ip_allocations(TestVApp._vapp_network_name)
+        self.assertTrue(len(list_ip_address) > 0)
 
     def test_0130_delete_vapp_network(self):
         """Test the method vapp.delete_vapp_network().

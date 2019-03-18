@@ -1183,11 +1183,16 @@ class Org(object):
                 org_admin_resource.RightReferences.get('href'))
             if hasattr(org_rights_resource, 'RightReference'):
                 for right in rights:
+                    is_spurious = True
                     for right_reference in \
                             list(org_rights_resource.RightReference):
                         if right_reference.get('name') == right:
                             org_rights_resource.remove(right_reference)
+                            is_spurious = False
                             break
+                    if is_spurious:
+                        raise EntityNotFoundException(
+                            'Right reference \'%s\' does not exist.' % right)
                 return self.client.put_linked_resource(
                     org_admin_resource.RightReferences, RelationType.EDIT,
                     EntityType.ORG_RIGHTS.value, org_rights_resource)

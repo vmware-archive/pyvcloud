@@ -370,8 +370,8 @@ class TestNetwork(BaseTestCase):
             self, vdc_network, metadata_key, metadata_value)
         TestNetwork._update_routed_vdc_network_metadata(
             self, vdc_network, metadata_key, updated_metadata_value)
-        TestNetwork._delete_routed_vcd_network_metadata(self, vdc_network,
-                                                        metadata_key)
+        TestNetwork._delete_routed_vcd_network_metadata(
+            self, vdc_network, metadata_key)
 
     def test_0090_list_routed_vdc_network_allocated_ip(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)
@@ -393,13 +393,12 @@ class TestNetwork(BaseTestCase):
 
     def _list_connected_vapps(self, client):
         vdc = Environment.get_test_vdc(client)
-        vapp_name = 'test-connected-vapp'
+        vapp_name = 'test-connected-vapp' + str(uuid1())
         vdc.create_vapp(
             vapp_name, network=TestNetwork._routed_org_vdc_network_name)
         org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
             TestNetwork._routed_org_vdc_network_name)
-        vdc_network = VdcNetwork(
-            client, resource=org_vdc_routed_nw)
+        vdc_network = VdcNetwork(client, resource=org_vdc_routed_nw)
         connected_vapps = vdc_network.list_connected_vapps()
         self.assertEqual(len(connected_vapps), 1)
         self.assertEqual(connected_vapps[0].get('Name'), vapp_name)
@@ -485,8 +484,8 @@ class TestNetwork(BaseTestCase):
             self.__enable_gateway_distributed_routing(client, gateway,
                                                       is_enable)
             gateway = Environment.get_test_gateway(client)
-            self.assertEqual(gateway.get('distributedRoutingEnabled'),
-                             new_state)
+            self.assertEqual(
+                gateway.get('distributedRoutingEnabled'), new_state)
 
     def __enable_gateway_distributed_routing(self, client, gateway, is_enable):
         gateway_obj = Gateway(client, href=gateway.get('href'))
@@ -494,8 +493,7 @@ class TestNetwork(BaseTestCase):
         self.__wait_for_success(client, task)
 
     def __wait_for_success(self, client, task):
-        result = client.get_task_monitor().wait_for_success(
-            task=task)
+        result = client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_1000_delete_routed_orgvdc_networks(self):

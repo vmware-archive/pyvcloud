@@ -19,6 +19,7 @@ from distutils.version import StrictVersion
 from enum import Enum
 import json
 import logging
+import logging.handlers as handlers
 from pathlib import Path
 import sys
 import time
@@ -1743,3 +1744,15 @@ def create_element(node_name, value=None):
     element = etree.Element(node_name)
     element.text = value
     return element
+
+
+def get_logger(file_name="vcd_sdk.log",
+               log_level=logging.DEBUG,
+               max_bytes=10000000,
+               backup_count=10):
+    LOGGER = logging.getLogger(file_name)
+    logHandler = handlers.RotatingFileHandler(
+        filename=file_name, maxBytes=max_bytes, backupCount=backup_count)
+    logHandler.setLevel(log_level)
+    LOGGER.addHandler(logHandler)
+    return LOGGER

@@ -19,6 +19,7 @@ from distutils.version import StrictVersion
 from enum import Enum
 import json
 import logging
+from pathlib import Path
 import sys
 import time
 import urllib
@@ -37,6 +38,7 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     TaskTimeoutException, UnauthorizedException, UnknownApiException, \
     UnsupportedMediaTypeException, VcdException, VcdResponseException, \
     VcdTaskException  # NOQA
+
 
 SIZE_1MB = 1024 * 1024
 
@@ -650,6 +652,10 @@ class Client(object):
 
     _HEADER_CONNECTION_VALUE_CLOSE = 'close'
 
+    _HEADERS_TO_REDACT = ['Authorization',
+                          'x-vcloud-authorization',
+                          'X-VMWARE-VCLOUD-ACCESS-TOKEN']
+
     _UPLOAD_FRAGMENT_MAX_RETRIES = 5
 
     def __init__(self,
@@ -687,12 +693,15 @@ class Client(object):
         self._task_monitor = None
         self._verify_ssl_certs = verify_ssl_certs
 
-        self._logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger(log_file)
         self._logger.setLevel(logging.DEBUG)
         # This makes sure that we don't append a new handler to the logger
         # every time we create a new client.
         if not self._logger.handlers:
             if log_file is not None:
+                # make sure the path to the log file is valid, create missing
+                # folders if required
+                Path(log_file).parent.mkdir(parents=True, exist_ok=True)
                 handler = logging.FileHandler(log_file)
             else:
                 handler = logging.NullHandler()
@@ -1004,6 +1013,15 @@ class Client(object):
 
         raise UnknownApiException(sc, request_id, objectify_response)
 
+    def _redact_headers(self, headers):
+        redacted_headers = {}
+        for key, value in headers.items():
+            if key not in self._HEADERS_TO_REDACT:
+                redacted_headers[key] = value
+            else:
+                redacted_headers[key] = "[REDACTED]"
+        return redacted_headers
+
     def _log_request_response(self,
                               response,
                               request_body=None,
@@ -1015,8 +1033,8 @@ class Client(object):
                                                      response.request.url))
 
         if self._log_headers:
-            self._logger.debug(
-                'Request headers: %s' % response.request.headers)
+            self._logger.debug('Request headers: %s' % self._redact_headers(
+                response.request.headers))
 
         if self._log_bodies and request_body is not None:
             if isinstance(request_body, str):
@@ -1028,7 +1046,8 @@ class Client(object):
         self._logger.debug('Response status code: %s' % response.status_code)
 
         if self._log_headers:
-            self._logger.debug('Response headers: %s' % response.headers)
+            self._logger.debug('Response headers: %s' % self._redact_headers(
+                response.headers))
 
         if self._log_bodies and not skip_logging_response_body and \
            _response_has_content(response):

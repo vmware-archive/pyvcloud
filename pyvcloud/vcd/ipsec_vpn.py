@@ -173,7 +173,8 @@ class IpsecVpn(GatewayServices):
         for site in vpn_sites.site:
             if site.localIp == local_ip and site.peerIp == peer_ip:
                 vpn_site_info['Name'] = site.name
-                vpn_site_info['description'] = site.description
+                if hasattr(site, 'description'):
+                    vpn_site_info['description'] = site.description
                 vpn_site_info['localId'] = site.localId
                 vpn_site_info['localIp'] = site.localIp
                 vpn_site_info['peerId'] = site.peerId

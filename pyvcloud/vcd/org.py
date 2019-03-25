@@ -1220,15 +1220,14 @@ class Org(object):
 
         :rtype: dict
         """
-        right_record = self.list_rights_available_in_system(('name',
-                                                             right_name))
+        right_record = self.list_rights_available_in_vcd(('name', right_name))
         if len(right_record) < 1:
             raise EntityNotFoundException(
                 'Right \'%s\' does not exist.' % right_name)
         return right_record[0]
 
-    def list_rights_available_in_system(self, name_filter=None):
-        """Retrieves all rights available in the System organization.
+    def list_rights_available_in_vcd(self, name_filter=None):
+        """Retrieves all rights available in the vcd.
 
         :param tuple name_filter: (tuple): filter rights by name. The first
             item in the tuple must be the string 'name' and the second item

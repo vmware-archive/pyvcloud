@@ -40,7 +40,6 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     UnsupportedMediaTypeException, VcdException, VcdResponseException, \
     VcdTaskException  # NOQA
 
-
 SIZE_1MB = 1024 * 1024
 
 NSMAP = {
@@ -440,6 +439,12 @@ class FenceMode(Enum):
     NAT_ROUTED = 'natRouted'
 
 
+class LogicalNetworkLinkType(Enum):
+    BRIDGED = 0
+    INDEPENDENT = 1
+    DLR_UPLINK = 2
+
+
 class NetworkAdapterType(Enum):
     VMXNET = 'VMXNET'
     VMXNET2 = 'VMXNET2'
@@ -653,9 +658,10 @@ class Client(object):
 
     _HEADER_CONNECTION_VALUE_CLOSE = 'close'
 
-    _HEADERS_TO_REDACT = ['Authorization',
-                          'x-vcloud-authorization',
-                          'X-VMWARE-VCLOUD-ACCESS-TOKEN']
+    _HEADERS_TO_REDACT = [
+        'Authorization', 'x-vcloud-authorization',
+        'X-VMWARE-VCLOUD-ACCESS-TOKEN'
+    ]
 
     _UPLOAD_FRAGMENT_MAX_RETRIES = 5
 

@@ -1227,6 +1227,8 @@ class Org(object):
     def list_rights_available_in_system(self, name_filter=None):
         """Retrieves all rights available in the System org.
 
+        :Warning: This method is deprecated. use list_rights_available_in_vcd
+            method instead of this method.
         :param tuple name_filter: (tuple): filter rights by name. The first
             item in the tuple must be the string 'name' and the second item
             should be value of the filter as a str.
@@ -1235,24 +1237,8 @@ class Org(object):
             contains information about a single right.
 
         :rtype: list
-        :Warning: the method id deprecated use list_rights_available_in_vcd
-            method instead of this.
         """
-        if self.resource is None:
-            self.reload()
-
-        resource_type = ResourceType.RIGHT.value
-        query = self.client.get_typed_query(
-            resource_type,
-            query_result_format=QueryResultFormat.RECORDS,
-            equality_filter=name_filter)
-        records = list(query.execute())
-        result = []
-        if len(records) > 0:
-            for r in records:
-                result.append(
-                    to_dict(r, resource_type=resource_type, exclude=[]))
-        return result
+        return self.list_rights_available_in_vcd(self, name_filter)
 
     def list_rights_available_in_vcd(self, name_filter=None):
         """Retrieves all rights available in the vcd.

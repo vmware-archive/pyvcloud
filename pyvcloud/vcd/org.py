@@ -1226,6 +1226,36 @@ class Org(object):
                 'Right \'%s\' does not exist.' % right_name)
         return right_record[0]
 
+    def list_rights_available_in_system(self, name_filter=None):
+        """Retrieves all rights available in the System organization.
+
+        :param tuple name_filter: (tuple): filter rights by name. The first
+            item in the tuple must be the string 'name' and the second item
+            should be value of the filter as a str.
+
+        :return: rights as a list of dictionaries, where each dictionary
+            contains information about a single right.
+
+        :rtype: list
+        :Warning: the method id deprecated use list_rights_available_in_vcd
+            method instead of this.
+        """
+        if self.resource is None:
+            self.reload()
+
+        resource_type = ResourceType.RIGHT.value
+        query = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.RECORDS,
+            equality_filter=name_filter)
+        records = list(query.execute())
+        result = []
+        if len(records) > 0:
+            for r in records:
+                result.append(
+                    to_dict(r, resource_type=resource_type, exclude=[]))
+        return result
+
     def list_rights_available_in_vcd(self, name_filter=None):
         """Retrieves all rights available in the vcd.
 
@@ -1505,10 +1535,8 @@ class Org(object):
             pvdc_sp = system.get_provider_vdc_storage_profile(sp['name'])
             params.append(
                 E.VdcStorageProfile(
-                    E.Enabled(sp['enabled']),
-                    E.Units(sp['units']),
-                    E.Limit(sp['limit']),
-                    E.Default(sp['default']),
+                    E.Enabled(sp['enabled']), E.Units(sp['units']),
+                    E.Limit(sp['limit']), E.Default(sp['default']),
                     E.ProviderVdcStorageProfile(href=pvdc_sp.get('href'))))
         if resource_guaranteed_memory is not None:
             params.append(

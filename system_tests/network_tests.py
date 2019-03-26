@@ -193,9 +193,10 @@ class TestNetwork(BaseTestCase):
         present in the retrieved list of networks.
         """
         vdc = Environment.get_test_vdc(TestNetwork._vapp_author_client)
-        records_dict = vdc.list_orgvdc_network_records()
-        for net_name in records_dict.keys():
-            if net_name == TestNetwork._isolated_orgvdc_network_name:
+        records_list = vdc.list_orgvdc_network_records()
+        for network_record in records_list:
+            if network_record[
+                    'name'] == TestNetwork._isolated_orgvdc_network_name:
                 return
 
         self.fail('Retrieved list of orgvdc network records doesn\'t ' +

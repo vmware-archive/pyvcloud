@@ -748,8 +748,8 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        metadata = Metadata(client=self.client,
-                            resource=self.get_all_metadata())
+        metadata = Metadata(
+            client=self.client, resource=self.get_all_metadata())
         return metadata.get_metadata_value(key, domain)
 
     def set_metadata(self,
@@ -777,14 +777,15 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        metadata = Metadata(client=self.client,
-                            resource=self.get_all_metadata())
-        return metadata.set_metadata(key=key,
-                                     value=value,
-                                     domain=domain,
-                                     visibility=visibility,
-                                     metadata_value_type=metadata_value_type,
-                                     use_admin_endpoint=True)
+        metadata = Metadata(
+            client=self.client, resource=self.get_all_metadata())
+        return metadata.set_metadata(
+            key=key,
+            value=value,
+            domain=domain,
+            visibility=visibility,
+            metadata_value_type=metadata_value_type,
+            use_admin_endpoint=True)
 
     def set_multiple_metadata(self,
                               key_value_dict,
@@ -809,8 +810,8 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        metadata = Metadata(client=self.client,
-                            resource=self.get_all_metadata())
+        metadata = Metadata(
+            client=self.client, resource=self.get_all_metadata())
         return metadata.set_multiple_metadata(
             key_value_dict=key_value_dict,
             domain=domain,
@@ -834,11 +835,10 @@ class VDC(object):
         :raises: AccessForbiddenException: If there is no metadata entry
             corresponding to the key provided.
         """
-        metadata = Metadata(client=self.client,
-                            resource=self.get_all_metadata())
-        return metadata.remove_metadata(key=key,
-                                        domain=domain,
-                                        use_admin_endpoint=True)
+        metadata = Metadata(
+            client=self.client, resource=self.get_all_metadata())
+        return metadata.remove_metadata(
+            key=key, domain=domain, use_admin_endpoint=True)
 
     def get_storage_profile(self, profile_name):
         """Fetch a specific Storage Profile within an org vdc.
@@ -1121,8 +1121,7 @@ class VDC(object):
                 E.RetainNetInfoAcrossDeployments(
                     retain_net_info_across_deployments))
         if sub_interface is not None:
-            vdc_network_configuration.append(
-                E.SubInterface(sub_interface))
+            vdc_network_configuration.append(E.SubInterface(sub_interface))
         if distributed_interface is not None:
             vdc_network_configuration.append(
                 E.DistributedInterface(distributed_interface))
@@ -1307,17 +1306,27 @@ class VDC(object):
             equality_filter=vdc_filter)
         records = query.execute()
 
-        result = {}
+        result = []
         for record in records:
+            dict = {}
             if use_hack:
                 # If the record contains OrgNetworkRecord the href of the
                 # network will be non admin one, so we need to change it to
                 # its admin version. OrgVdcNetworkRecord contains the admin
                 # version of the network href by default.
-                result[record.get('name')] = get_admin_href(record.get('href'))
+                dict['href'] = get_admin_href(record.get('href'))
             else:
-                result[record.get('name')] = record.get('href')
-
+                dict['href'] = record.get('href')
+            dict['name'] = record.get('name')
+            dict['connectedTo'] = record.get('connectedTo')
+            link_type = record.get('linkType')
+            if link_type == '0':
+                dict['linkType'] = 'BRIDGED'
+            elif link_type == '1':
+                dict['linkType'] = 'INDEPENDENT'
+            elif link_type == '2':
+                dict['linkType'] = 'DLR_UPLINK'
+            result.append(dict)
         return result
 
     def get_orgvdc_network_admin_href_by_name(self, orgvdc_network_name):
@@ -1330,13 +1339,13 @@ class VDC(object):
         :raises: EntityNotFoundException: if the named org vdc network cannot
             be located.
         """
-        records_dict = self.list_orgvdc_network_records()
+        records_list = self.list_orgvdc_network_records()
 
         # dictionary key presence checks are case sensitive so we need to
         # iterate over the keys and manually check each one of them.
-        for net_name in records_dict.keys():
-            if orgvdc_network_name.lower() == net_name.lower():
-                return records_dict.get(net_name)
+        for network_record in records_list:
+            if orgvdc_network_name.lower() == network_record['name'].lower():
+                return network_record['href']
 
         raise EntityNotFoundException(
             "Org vdc network \'%s\' does not exist in vdc \'%s\'" %
@@ -1355,10 +1364,11 @@ class VDC(object):
 
         :rtype: list
         """
-        records_dict = self.list_orgvdc_network_records()
+        records_list = self.list_orgvdc_network_records()
         result = []
-        for net_name, net_href in records_dict.items():
-            orgvdc_network_resource = self.client.get_resource(net_href)
+        for network_record in records_list:
+            orgvdc_network_resource = self.client.get_resource(
+                network_record['href'])
             if type is not None:
                 if hasattr(orgvdc_network_resource, 'Configuration') and \
                    hasattr(orgvdc_network_resource.Configuration, 'FenceMode'):

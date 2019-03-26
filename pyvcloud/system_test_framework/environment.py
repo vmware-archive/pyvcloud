@@ -542,10 +542,10 @@ class Environment(object):
 
         vdc = VDC(cls._sys_admin_client, href=cls._ovdc_href)
         expected_net_name = cls._config['vcd']['default_ovdc_network_name']
-        records_dict = vdc.list_orgvdc_network_records()
+        records_list = vdc.list_orgvdc_network_records()
 
-        for net_name in records_dict.keys():
-            if net_name.lower() == expected_net_name.lower():
+        for network_record in records_list:
+            if network_record['name'].lower() == expected_net_name.lower():
                 cls._logger.debug('Reusing existing org-vdc network ' +
                                   expected_net_name)
                 return
@@ -578,10 +578,10 @@ class Environment(object):
         vdc = VDC(cls._sys_admin_client, href=cls._ovdc_href)
         expected_net_name = cls._config['vcd'][
             'default_direct ovdc_network_name']
-        records_dict = vdc.list_orgvdc_network_records()
+        records_list = vdc.list_orgvdc_network_records()
 
-        for net_name in records_dict.keys():
-            if net_name.lower() == expected_net_name.lower():
+        for network_record in records_list:
+            if network_record['name'].lower() == expected_net_name.lower():
                 cls._logger.debug('Reusing existing direct org-vdc network ' +
                                   expected_net_name)
                 return
@@ -616,10 +616,10 @@ class Environment(object):
         vdc = VDC(cls._sys_admin_client, href=cls._ovdc_href)
 
         expected_net_name = OvdcNetConstants.routed_net_name
-        records_dict = vdc.list_orgvdc_network_records()
+        records_list = vdc.list_orgvdc_network_records()
 
-        for net_name in records_dict.keys():
-            if net_name.lower() == expected_net_name.lower():
+        for network_record in records_list:
+            if network_record['name'].lower() == expected_net_name.lower():
                 cls._logger.debug('Reusing existing direct org-vdc network ' +
                                   expected_net_name)
                 return

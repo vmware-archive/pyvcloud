@@ -22,6 +22,7 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import GatewayBackingConfigType
+from pyvcloud.vcd.client import LogicalNetworkLinkType
 from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import MetadataValueType
 from pyvcloud.vcd.client import MetadataVisibility
@@ -1320,12 +1321,8 @@ class VDC(object):
             dict['name'] = record.get('name')
             dict['connectedTo'] = record.get('connectedTo')
             link_type = record.get('linkType')
-            if link_type == '0':
-                dict['linkType'] = 'BRIDGED'
-            elif link_type == '1':
-                dict['linkType'] = 'INDEPENDENT'
-            elif link_type == '2':
-                dict['linkType'] = 'DLR_UPLINK'
+            link_enum = LogicalNetworkLinkType(int(link_type))
+            dict['linkType'] = link_enum.name
             result.append(dict)
         return result
 

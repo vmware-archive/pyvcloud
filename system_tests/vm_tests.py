@@ -61,6 +61,7 @@ class TestVM(BaseTestCase):
         logger = Environment.get_default_logger()
         TestVM._client = Environment.get_client_in_default_org(
             TestVM._test_runner_role)
+        TestVM._sys_admin_client = Environment.get_sys_admin_client()
         vdc = Environment.get_test_vdc(TestVM._client)
 
         logger.debug('Creating vApp ' + TestVM._test_vapp_name + '.')
@@ -129,14 +130,13 @@ class TestVM(BaseTestCase):
         except EntityNotFoundException:
             return
 
-    @unittest.skip("Faulty implementation.")
     def test_0040_get_vc(self):
         """Test the method VM.get_vc().
 
         This test passes if the retrieved vc name matches with the expected
         vc name.
         """
-        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
         retrieved_vc_name = vm.get_vc()
 
         expected_vc_name = Environment.get_config()['vc']['vcenter_host_name']

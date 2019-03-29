@@ -179,6 +179,8 @@ class RelationType(Enum):
     ENABLE = 'enable'
     ENABLE_GATEWAY_DISTRIBUTED_ROUTING =\
         'edgeGateway:enableDistributedRouting'
+    ENTER_MAINTENANCE_MODE = 'enterMaintenanceMode'
+    EXIT_MAINTENANCE_MODE = 'exitMaintenanceMode'
     GATEWAY_REDEPLOY = 'edgeGateway:redeploy'
     GATEWAY_SYNC_SYSLOG_SETTINGS = 'edgeGateway:syncSyslogSettings'
     GATEWAY_SYS_SERVER_SETTING_IP = 'edgeGateway:configureSyslogServerSettings'

@@ -1375,3 +1375,40 @@ class VApp(object):
 
         return self.client.put_linked_resource(
             self.resource, RelationType.EDIT, EntityType.VAPP.value, vapp)
+
+    def suspend_vapp(self):
+        """Suspend a vApp.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is suspending the vApp.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.POWER_SUSPEND, None, None)
+
+    def discard_suspended_state_vapp(self):
+        """Discard suspended state of the vApp.
+
+        :return: an object containing EntityType.TASK XML data which represents
+                    the asynchronous task that is discarding suspended state
+                    of vApp.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.DISCARD_SUSPENDED_STATE, None, None)
+
+    def enter_maintenance_mode(self):
+        """Enter maintenance mode a vApp."""
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.ENTER_MAINTENANCE_MODE, None, None)
+
+    def exit_maintenance_mode(self):
+        """Exit maintenance mode a vApp."""
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.EXIT_MAINTENANCE_MODE, None, None)

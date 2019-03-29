@@ -97,6 +97,7 @@ class TestVApp(BaseTestCase):
         logger = Environment.get_default_logger()
         TestVApp._client = Environment.get_client_in_default_org(
             TestVApp._test_runner_role)
+        TestVApp._sys_admin_client = Environment.get_sys_admin_client()
         vdc = Environment.get_test_vdc(TestVApp._client)
 
         logger.debug('Creating empty vApp.')
@@ -337,6 +338,48 @@ class TestVApp(BaseTestCase):
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         # end state of vApp is deployed and partially powered on.
+
+    def test_0052_suspend_vapp(self):
+        logger = Environment.get_default_logger()
+        vapp_name = TestVApp._customized_vapp_name
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=vapp_name)
+        logger.debug('Suspending vApp ' + vapp_name)
+        vapp.reload()
+        task = vapp.suspend_vapp()
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0053_discard_suspended_state_vapp(self):
+        logger = Environment.get_default_logger()
+        vapp_name = TestVApp._customized_vapp_name
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=vapp_name)
+        logger.debug('Discarding suspended state of vApp ' + vapp_name)
+        vapp.reload()
+        task = vapp.discard_suspended_state_vapp()
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0054_enter_maintenance_mode(self):
+        logger = Environment.get_default_logger()
+        vapp_name = TestVApp._customized_vapp_name
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client, vapp_name=vapp_name)
+        logger.debug('Entering maintenance mode of vApp ' + vapp_name)
+        vapp.reload()
+        result = vapp.enter_maintenance_mode()
+        self.assertEqual(result, None)
+
+    def test_0055_exit_maintenance_mode(self):
+        logger = Environment.get_default_logger()
+        vapp_name = TestVApp._customized_vapp_name
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client, vapp_name=vapp_name)
+        logger.debug('Exiting maintenance mode of vApp ' + vapp_name)
+        vapp.reload()
+        result = vapp.exit_maintenance_mode()
+        self.assertEqual(result, None)
 
     def test_0060_vapp_network_connection(self):
         """Test vapp.connect/disconnect_org_vdc_network().

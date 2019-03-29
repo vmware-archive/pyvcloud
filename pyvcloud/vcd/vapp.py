@@ -1383,18 +1383,10 @@ class VApp(object):
             the asynchronous task that is suspending the vApp.
 
         :rtype: lxml.objectify.ObjectifiedElement
-
-        :raises OperationNotSupportedException: if the vApp can't be suspend.
         """
         self.get_resource()
-        try:
-            return self.client.post_linked_resource(
-                self.resource, RelationType.POWER_SUSPEND, None, None)
-        except OperationNotSupportedException:
-            power_state = self.get_power_state(self.resource)
-            raise OperationNotSupportedException(
-                'Can\'t {0} vApp. Current state of vApp: {1}.'.format(
-                    'suspend', VCLOUD_STATUS_MAP[power_state]))
+        return self.client.post_linked_resource(
+            self.resource, RelationType.POWER_SUSPEND, None, None)
 
     def discard_suspended_state_vapp(self):
         """Discard suspended state of the vApp.
@@ -1404,19 +1396,10 @@ class VApp(object):
                     of vApp.
 
         :rtype: lxml.objectify.ObjectifiedElement
-        :raises OperationNotSupportedException: if the vApp can't be discard
-            suspended state.
         """
         self.get_resource()
-        try:
-            return self.client.post_linked_resource(
-                self.resource, RelationType.DISCARD_SUSPENDED_STATE, None,
-                None)
-        except OperationNotSupportedException:
-            power_state = self.get_power_state(self.resource)
-            raise OperationNotSupportedException(
-                'Can\'t {0} vApp. Current state of vApp: {1}.'.format(
-                    'discard suspend state', VCLOUD_STATUS_MAP[power_state]))
+        return self.client.post_linked_resource(
+            self.resource, RelationType.DISCARD_SUSPENDED_STATE, None, None)
 
     def enter_maintenance_mode(self):
         """Enter maintenance mode a vApp."""

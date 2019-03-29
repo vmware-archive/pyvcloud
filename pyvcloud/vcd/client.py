@@ -215,6 +215,8 @@ class RelationType(Enum):
     VDC_ROUTED_CONVERT_TO_SUB_INTERFACE = 'orgVdcNetwork:convertToSubInterface'
     VDC_ROUTED_CONVERT_TO_INTERNAL_INTERFACE = \
         'orgVdcNetwork:convertToInternalInterface'
+    ENTER_MAINTENANCE_MODE = 'enterMaintenanceMode'
+    EXIT_MAINTENANCE_MODE = 'exitMaintenanceMode'
 
 
 class ResourceType(Enum):

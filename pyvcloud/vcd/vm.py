@@ -550,8 +550,10 @@ class VM(object):
 
     def install_vmware_tools(self):
         """Install vmware tools in the vm.
+
         :return: an object containing EntityType.TASK XML data which represents
                     the asynchronous task that is installing vmware tools in VM
+
         :rtype: lxml.objectify.ObjectifiedElement
         """
         self.get_resource()

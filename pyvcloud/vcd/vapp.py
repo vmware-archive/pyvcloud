@@ -38,6 +38,8 @@ from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.utils import cidr_to_netmask
 from pyvcloud.vcd.vdc import VDC
 
+DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024
+
 
 class VApp(object):
     def __init__(self, client, name=None, href=None, resource=None):
@@ -1412,3 +1414,32 @@ class VApp(object):
         self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.EXIT_MAINTENANCE_MODE, None, None)
+
+    def enable_download(self):
+        """Helper method to enable an entity for download.
+
+        Behind the scene it involves vCD copying the template/media file
+        from ESX hosts to spool area (transfer folder).
+        """
+        self.get_resource()
+        task = self.client.post_linked_resource(
+            self.resource, RelationType.ENABLE, None, None)
+        self.client.get_task_monitor().wait_for_success(task, 60, 1)
+
+    def download_ova(self, file_name, chunk_size=DEFAULT_CHUNK_SIZE):
+        """Downloads a vapp into a local file.
+
+        :param str file_name: name of the target file on local disk where the
+            contents of the vapp will be downloaded to.
+        :param int chunk_size: size of chunks in which the vapp will
+            be downloaded and written to the disk.
+
+        :return: number of bytes written to file.
+        :rtype: int
+        """
+        self.enable_download()
+        self.resource = None
+        self.get_resource()
+        ova_uri = find_link(self.resource, RelationType.DOWNLOAD_OVA_DEFAULT,
+                            EntityType.APPLICATION_BINARY.value).href
+        return self.client.download_from_uri(ova_uri, file_name, chunk_size)

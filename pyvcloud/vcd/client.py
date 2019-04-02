@@ -174,6 +174,7 @@ class RelationType(Enum):
     DOWN = 'down'
     DOWN_EXTENSIBILITY = 'down:extensibility'
     DOWNLOAD_DEFAULT = 'download:default'
+    DOWNLOAD_OVA_DEFAULT = 'download:ovaDefault'
     EDGE_GATEWAYS = 'edgeGateways'
     EDIT = 'edit'
     ENABLE = 'enable'
@@ -313,8 +314,9 @@ class EntityType(Enum):
     ADMIN_SERVICE = 'application/vnd.vmware.admin.service+xml'
     ALLOCATED_NETWORK_ADDRESS = \
         'application/vnd.vmware.vcloud.allocatedNetworkAddress+xml'
-    API_EXTENSIBILITY = 'application/vnd.vmware.vcloud.apiextensibility+xml'
     AMQP_SETTINGS = 'application/vnd.vmware.admin.amqpSettings+xml'
+    API_EXTENSIBILITY = 'application/vnd.vmware.vcloud.apiextensibility+xml'
+    APPLICATION_BINARY = 'application/binary'
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
     CAPTURE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.captureVAppParams+xml'

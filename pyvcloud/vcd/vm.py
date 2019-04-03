@@ -547,3 +547,15 @@ class VM(object):
         self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.DISCARD_SUSPENDED_STATE, None, None)
+
+    def install_vmware_tools(self):
+        """Install vmware tools in the vm.
+
+        :return: an object containing EntityType.TASK XML data which represents
+                    the asynchronous task that is installing vmware tools in VM
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.INSTALL_VMWARE_TOOLS, None, None)

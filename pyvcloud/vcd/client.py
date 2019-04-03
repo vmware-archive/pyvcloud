@@ -169,6 +169,7 @@ class RelationType(Enum):
     DISABLE = 'disable'
     DISABLE_GATEWAY_DISTRIBUTED_ROUTING = \
         'edgeGateway:disableDistributedRouting'
+    DISCARD_SUSPENDED_STATE = 'discardState'
     DISK_ATTACH = 'disk:attach'
     DISK_DETACH = 'disk:detach'
     DOWN = 'down'
@@ -186,6 +187,7 @@ class RelationType(Enum):
     GATEWAY_SYNC_SYSLOG_SETTINGS = 'edgeGateway:syncSyslogSettings'
     GATEWAY_SYS_SERVER_SETTING_IP = 'edgeGateway:configureSyslogServerSettings'
     GATEWAY_UPDATE_PROPERTIES = 'edgeGateway:updateProperties'
+    INSTALL_VMWARE_TOOLS = 'installVmwareTools'
     LINK_TO_TEMPLATE = 'linkToTemplate'
     MIGRATE_VMS = 'migrateVms'
     MODIFY_FORM_FACTOR = 'edgeGateway:modifyFormFactor'
@@ -197,7 +199,6 @@ class RelationType(Enum):
     POWER_RESET = 'power:reset'
     POWER_SHUTDOWN = 'power:shutdown'
     POWER_SUSPEND = 'power:suspend'
-    DISCARD_SUSPENDED_STATE = 'discardState'
     PUBLISH = 'publish'
     RECOMPOSE = 'recompose'
     REMOVE = 'remove'

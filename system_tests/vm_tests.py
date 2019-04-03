@@ -262,15 +262,17 @@ class TestVM(BaseTestCase):
 
         logger.debug('Discard suspended state of a vm ' + vm_name)
         vm.reload()
-        task = vm.discard_suspended_state()
-        result = TestVM._client.get_task_monitor().wait_for_success(task)
-        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        if vm.is_suspended():
+            task = vm.discard_suspended_state()
+            result = TestVM._client.get_task_monitor().wait_for_success(task)
+            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
         logger.debug('Powering back on vm ' + vm_name)
         vm.reload()
-        task = vm.power_on()
-        result = TestVM._client.get_task_monitor().wait_for_success(task)
-        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        if not vm.is_powered_on():
+            task = vm.power_on()
+            result = TestVM._client.get_task_monitor().wait_for_success(task)
+            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
         # We will need to skip the next two operations, because the vm in
         # question doesn't have vmware tools installed.
@@ -298,6 +300,19 @@ class TestVM(BaseTestCase):
         # self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
         # end state of vm is deployed and powered on.
+
+    def test_0061_install_vmware_tools(self):
+        """Test the method related to install vmware tools in vm.py.
+        This test passes if install vmware tools operation is successful.
+        """
+        logger = Environment.get_default_logger()
+        vm_name = TestVM._test_vapp_first_vm_name
+        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        # VM.snapshot_create()
+        logger.debug('Installing Vmware Tools in VM:  ' + vm_name)
+        task = vm.install_vmware_tools()
+        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0070_vm_snapshot_operations(self):
         """Test the method related to snapshot operations in vm.py.

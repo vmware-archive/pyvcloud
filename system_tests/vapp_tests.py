@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import unittest
 from uuid import uuid1
 
@@ -393,7 +395,24 @@ class TestVApp(BaseTestCase):
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-        logger.debug('downloading a vApp ' + vapp_name)
+        logger.debug('Downloading a vApp ' + vapp_name)
+        vapp.reload()
+        bytes_written = vapp.download_ova(TestVApp._ova_file_name)
+        self.assertNotEqual(bytes_written, 0)
+
+        logger.debug('Remove downloaded ' + TestVApp._ova_file_name)
+        os.remove(TestVApp._ova_file_name)
+
+    def test_0057_download_ova(self):
+        logger = Environment.get_default_logger()
+        vapp_name = TestVApp._customized_vapp_name
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client, vapp_name=vapp_name)
+
+        logger.debug('Enable download a vApp ' + vapp_name)
+        vapp.enable_download()
+
+        logger.debug('Downloading a vApp ' + vapp_name)
         vapp.reload()
         bytes_written = vapp.download_ova(TestVApp._ova_file_name)
         self.assertNotEqual(bytes_written, 0)
@@ -403,6 +422,9 @@ class TestVApp(BaseTestCase):
         task = vapp.deploy(power_on=False)
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        logger.debug('Remove downloaded ' + TestVApp._ova_file_name)
+        os.remove(TestVApp._ova_file_name)
 
     def test_0060_vapp_network_connection(self):
         """Test vapp.connect/disconnect_org_vdc_network().

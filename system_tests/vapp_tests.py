@@ -403,7 +403,7 @@ class TestVApp(BaseTestCase):
         logger.debug('Remove downloaded ' + TestVApp._ova_file_name)
         os.remove(TestVApp._ova_file_name)
 
-    def test_0057_download_ova(self):
+    def test_0057_enable_and_download_ova(self):
         logger = Environment.get_default_logger()
         vapp_name = TestVApp._customized_vapp_name
         vapp = Environment.get_vapp_in_test_vdc(

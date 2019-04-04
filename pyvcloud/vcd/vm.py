@@ -559,3 +559,49 @@ class VM(object):
         self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.INSTALL_VMWARE_TOOLS, None, None)
+
+    def insert_cd_from_catalog(self, media_href):
+        """Insert CD from catalog to the vm.
+
+        :param: media href to insert to VM
+
+        :return: an object containing EntityType.TASK XML data which represents
+                    the asynchronous task that is inserting CD to VM.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vm_resource = self.get_resource()
+        media_insert_params = E.MediaInsertOrEjectParams(
+            E.Media(href=media_href))
+        return self.client.post_linked_resource(
+            vm_resource, RelationType.INSERT_MEDIA,
+            EntityType.MEDIA_INSERT_OR_EJECT_PARAMS.value, media_insert_params)
+
+    def eject_cd(self, media_href):
+        """Insert CD from catalog to the vm.
+
+        :param: media href to eject from VM
+
+        :return: an object containing EntityType.TASK XML data which represents
+                    the asynchronous task that is inserting CD to VM.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vm_resource = self.get_resource()
+        media_eject_params = E.MediaInsertOrEjectParams(
+            E.Media(href=media_href))
+        return self.client.post_linked_resource(
+            vm_resource, RelationType.EJECT_MEDIA,
+            EntityType.MEDIA_INSERT_OR_EJECT_PARAMS.value, media_eject_params)
+
+    def upgrade_virtual_hardware(self):
+        """Upgrade virtual hardware of vm.
+
+        :return: an object containing EntityType.TASK XML data which represents
+                    the asynchronous task that is installing vmware tools in VM
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.UPGRADE, None, None)

@@ -45,6 +45,7 @@ class BaseTestCase(unittest.TestCase):
         Environment.create_catalog()
         Environment.share_catalog()
         Environment.upload_template()
+        Environment.upload_media()
 
     @classmethod
     def tearDownClass(cls):

@@ -86,6 +86,7 @@ class Environment(object):
     _org_href = None
     _ovdc_href = None
     _vapp_href = None
+    _media_resource = None
     _portgroupType = "DV_PORTGROUP"
 
     _user_name_for_roles = {
@@ -739,6 +740,51 @@ class Environment(object):
             catalog_author_client.logout()
 
     @classmethod
+    def upload_media(cls):
+        """Uploads the test media to the test catalog.
+
+        If media already exists in the catalog then skips uploading it.
+
+        :raises: Exception: if the class variable _org_href is not populated.
+        """
+        cls._basic_check()
+        if cls._org_href is None:
+            raise Exception('Org ' + cls._config['vcd']['default_org_name'] +
+                            ' doesn\'t exist.')
+
+        try:
+            catalog_author_client = Environment.get_client_in_default_org(
+                CommonRoles.CATALOG_AUTHOR)
+            org = Org(catalog_author_client, href=cls._org_href)
+
+            catalog_name = cls._config['vcd']['default_catalog_name']
+            catalog_items = org.list_catalog_items(catalog_name)
+            media_name = cls._config['vcd']['default_media_name']
+            for item in catalog_items:
+                if item.get('name').lower() == media_name.lower():
+                    cls._logger.debug('Reusing existing media ' +
+                                      media_name)
+                    cls._media_resource = org.get_catalog_item(catalog_name,media_name)
+                    return
+
+            cls._logger.debug('Uploading media ' + media_name +
+                              ' to catalog ' + catalog_name + '.')
+            org.upload_media(catalog_name=catalog_name, file_name=media_name)
+
+            # wait for the template import to finish in vCD.
+            catalog_item = org.get_catalog_item(
+                name=catalog_name, item_name=media_name)
+            media = catalog_author_client.get_resource(
+                catalog_item.Entity.get('href'))
+            catalog_author_client.get_task_monitor().wait_for_success(
+                task=media.Tasks.Task[0])
+
+            cls._media_resource = org.get_catalog_item(catalog_name,media_name)
+
+        finally:
+            catalog_author_client.logout()
+
+    @classmethod
     def cleanup(cls):
         """Cleans up the various class variables."""
         if cls._sys_admin_client is not None:
@@ -956,3 +1002,16 @@ class Environment(object):
         """
         vdc = cls.get_test_vdc(client)
         return vdc.get_gateway(GatewayConstants.name)
+
+    @classmethod
+    def get_test_media_resource(cls):
+        """Gets the media used for testing.
+
+        :param pyvcloud.vcd.client.Client client: client which will be used to
+            create the Org object.
+
+        :return: the media which will be used.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        return cls._media_resource

@@ -59,6 +59,7 @@ vcd:
 
   default_vapp_name: 'test_vapp'
   default_vm_name: 'testvm1'
+  default_media_name: 'pb1.iso'
 
 # vCenter and NSX that must be attached to vCD prior to running tests
 vc:

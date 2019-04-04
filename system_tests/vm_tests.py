@@ -63,6 +63,7 @@ class TestVM(BaseTestCase):
             TestVM._test_runner_role)
         TestVM._sys_admin_client = Environment.get_sys_admin_client()
         vdc = Environment.get_test_vdc(TestVM._client)
+        TestVM._media_resource = Environment.get_test_media_resource()
 
         logger.debug('Creating vApp ' + TestVM._test_vapp_name + '.')
         TestVM._test_vapp_href = create_customized_vapp_from_template(
@@ -308,9 +309,35 @@ class TestVM(BaseTestCase):
         logger = Environment.get_default_logger()
         vm_name = TestVM._test_vapp_first_vm_name
         vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
-        # VM.snapshot_create()
+
         logger.debug('Installing Vmware Tools in VM:  ' + vm_name)
         task = vm.install_vmware_tools()
+        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0062_insert_cd(self):
+        """Test the method related to insert CD in vm.py.
+        This test passes if insert CD operation is successful.
+        """
+        logger = Environment.get_default_logger()
+        vm_name = TestVM._test_vapp_first_vm_name
+        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        media_href = TestVM._media_resource.Entity.get('href')
+        logger.debug('Inserting CD in VM:  ' + vm_name)
+        task = vm.insert_cd_from_catalog(media_href)
+        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0063_eject_cd(self):
+        """Test the method related to eject CD in vm.py.
+        This test passes if eject CD operation is successful.
+        """
+        logger = Environment.get_default_logger()
+        vm_name = TestVM._test_vapp_first_vm_name
+        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        media_href = TestVM._media_resource.Entity.get('href')
+        logger.debug('Ejecting CD from VM:  ' + vm_name)
+        task = vm.eject_cd(media_href)
         result = TestVM._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
@@ -372,6 +399,12 @@ class TestVM(BaseTestCase):
 
         vm.reload()
         self.assertTrue(len(vm.list_nics()) == 1)
+
+    def def_0100_upgrade_virtual_hardware(self):
+        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        task = vm.upgrade_virtual_hardware()
+        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     @developerModeAware
     def test_9998_teardown(self):

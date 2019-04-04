@@ -178,6 +178,7 @@ class RelationType(Enum):
     DOWNLOAD_OVA_DEFAULT = 'download:ovaDefault'
     EDGE_GATEWAYS = 'edgeGateways'
     EDIT = 'edit'
+    EJECT_MEDIA = 'media:ejectMedia'
     ENABLE = 'enable'
     ENABLE_GATEWAY_DISTRIBUTED_ROUTING =\
         'edgeGateway:enableDistributedRouting'
@@ -187,6 +188,7 @@ class RelationType(Enum):
     GATEWAY_SYNC_SYSLOG_SETTINGS = 'edgeGateway:syncSyslogSettings'
     GATEWAY_SYS_SERVER_SETTING_IP = 'edgeGateway:configureSyslogServerSettings'
     GATEWAY_UPDATE_PROPERTIES = 'edgeGateway:updateProperties'
+    INSERT_MEDIA = 'media:insertMedia'
     INSTALL_VMWARE_TOOLS = 'installVmwareTools'
     LINK_TO_TEMPLATE = 'linkToTemplate'
     MIGRATE_VMS = 'migrateVms'
@@ -214,6 +216,7 @@ class RelationType(Enum):
     UNREGISTER = 'unregister'
     UP = 'up'
     UPDATE_RESOURCE_POOLS = 'update:resourcePools'
+    UPGRADE = 'upgrade'
     VDC_ROUTED_CONVERT_TO_DISTRIBUTED_INTERFACE = \
         'orgVdcNetwork:convertToDistributedInterface'
     VDC_ROUTED_CONVERT_TO_SUB_INTERFACE = 'orgVdcNetwork:convertToSubInterface'
@@ -346,6 +349,8 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'
+    MEDIA_INSERT_OR_EJECT_PARAMS = \
+        'application/vnd.vmware.vcloud.mediaInsertOrEjectParams+xml'
     METADATA = 'application/vnd.vmware.vcloud.metadata+xml'
     METADATA_VALUE = 'application/vnd.vmware.vcloud.metadata.value+xml'
     NETWORK_CONFIG_SECTION = \

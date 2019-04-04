@@ -1998,8 +1998,8 @@ class VDC(object):
                                            "'%s'," % name)
         return records[0]
 
+    def list_vapp_details(self, filter=None):
 
-    def list_vapp_details(self, filter = None):
         """List vApp details.
 
         :param str filter: filter to fetch the vApp Details based on filter,
@@ -2015,25 +2015,25 @@ class VDC(object):
         :rtype: list
         """
         out_list = []
-        records = []
 
-        if(filter.__contains__("status")):
-            resource_type=ResourceType.ADMIN_VM.value
+        if "status" in filter:
+            resource_type = ResourceType.ADMIN_VM.value
         else:
-            resource_type=ResourceType.ADMIN_VAPP.value
+            resource_type = ResourceType.ADMIN_VAPP.value
 
         query = self.client.get_typed_query(
-                resource_type,
-                query_result_format=QueryResultFormat.RECORDS,
-                qfilter=filter)
+            resource_type,
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=filter)
 
         records = query.execute()
         for record in records:
-            vApp_info_list = dict()
-            vApp_info_list['containerName'] = record.get('name')
-            vApp_info_list['ownerName'] = record.get('ownerName')
-            vApp_info_list['numberOfVMs'] = record.get('numberOfVMs')
-            vApp_info_list['status'] = record.get('status')
-            vApp_info_list['vdcName'] = record.get('vdcName')
-            out_list.append(vApp_info_list)
+            vapp_info_list = dict()
+            vapp_info_list['containerName'] = record.get('name')
+            vapp_info_list['ownerName'] = record.get('ownerName')
+            vapp_info_list['numberOfVMs'] = record.get('numberOfVMs')
+            vapp_info_list['status'] = record.get('status')
+            vapp_info_list['vdcName'] = record.get('vdcName')
+            out_list.append(vapp_info_list)
+
         return out_list

@@ -820,6 +820,22 @@ class TestVApp(BaseTestCase):
         self.assertFalse(
             self._is_network_present(vapp, TestVApp._vapp_network_name))
 
+    def test_0140_upgrade_virtual_hardware(self):
+        logger = Environment.get_default_logger()
+        vapp_name = TestVApp._customized_vapp_name
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client, vapp_name=vapp_name)
+
+        logger.debug('Un-deploying vApp ' + vapp_name)
+        task = vapp.undeploy()
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        logger.debug('Upgrading virtual hardware of vApp ' + vapp_name)
+        no_of_vm_upgraded = vapp.upgrade_virtual_hardware()
+        self.assertEqual(no_of_vm_upgraded, len(vapp.get_all_vms()))
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the  method vdc.delete_vapp().

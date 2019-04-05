@@ -834,7 +834,7 @@ class TestVApp(BaseTestCase):
 
         logger.debug('Upgrading virtual hardware of vApp ' + vapp_name)
         no_of_vm_upgraded = vapp.upgrade_virtual_hardware()
-        self.assertNotEqual(no_of_vm_upgraded, 0)
+        self.assertEqual(no_of_vm_upgraded, len(vapp.get_all_vms()))
 
     @developerModeAware
     def test_9998_teardown(self):

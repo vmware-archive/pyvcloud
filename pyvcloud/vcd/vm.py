@@ -605,3 +605,15 @@ class VM(object):
         self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.UPGRADE, None, None)
+
+    def consolidate(self):
+        """Consolidate vm.
+
+        :return: an object containing EntityType.TASK XML data which represents
+                    the asynchronous task that is consolidating VM
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.CONSOLIDATE, None, None)

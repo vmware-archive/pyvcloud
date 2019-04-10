@@ -607,7 +607,7 @@ class VM(object):
             self.resource, RelationType.UPGRADE, None, None)
 
     def consolidate(self):
-        """Consolidate vm.
+        """Consolidate VM.
 
         :return: an object containing EntityType.TASK XML data which represents
                     the asynchronous task that is consolidating VM

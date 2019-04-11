@@ -98,10 +98,10 @@ class VDC(object):
         self.get_resource()
         result = []
         if hasattr(self.resource, 'ResourceEntities') and \
-           hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
+                hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
             for vapp in self.resource.ResourceEntities.ResourceEntity:
                 if entity_type is None or \
-                   entity_type.value == vapp.get('type'):
+                        entity_type.value == vapp.get('type'):
                     if vapp.get('name') == name:
                         result.append(vapp.get('href'))
         if len(result) == 0:
@@ -240,7 +240,7 @@ class VDC(object):
         network_href = network_name = None
         if network is not None:
             if hasattr(self.resource, 'AvailableNetworks') and \
-               hasattr(self.resource.AvailableNetworks, 'Network'):
+                    hasattr(self.resource.AvailableNetworks, 'Network'):
                 for n in self.resource.AvailableNetworks.Network:
                     if network == n.get('name'):
                         network_href = n.get('href')
@@ -346,7 +346,7 @@ class VDC(object):
 
         # Configure guest customization for the vm
         if password is not None or cust_script is not None or \
-           hostname is not None:
+                hostname is not None:
             guest_customization_param = E.GuestCustomizationSection(
                 E_OVF.Info('Specifies Guest OS Customization Settings'),
                 E.Enabled('true'),
@@ -382,9 +382,9 @@ class VDC(object):
 
         # TODO(check if it needs customization if network, cpu or memory...)
         if disk_size is None and \
-           password is None and \
-           cust_script is None and \
-           hostname is None:
+                password is None and \
+                cust_script is None and \
+                hostname is None:
             needs_customization = 'false'
         else:
             needs_customization = 'true'
@@ -443,10 +443,10 @@ class VDC(object):
         self.get_resource()
         result = []
         if hasattr(self.resource, 'ResourceEntities') and \
-           hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
+                hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
             for resource in self.resource.ResourceEntities.ResourceEntity:
                 if entity_type is None or \
-                   entity_type.value == resource.get('type'):
+                        entity_type.value == resource.get('type'):
                     result.append({
                         'name': resource.get('name'),
                         'type': resource.get('type')
@@ -623,7 +623,7 @@ class VDC(object):
 
         disks = []
         if hasattr(self.resource, 'ResourceEntities') and \
-           hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
+                hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
             for resourceEntity in \
                     self.resource.ResourceEntities.ResourceEntity:
 
@@ -720,7 +720,7 @@ class VDC(object):
         self.get_resource()
 
         if hasattr(self.resource, 'VdcStorageProfiles') and \
-           hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
+                hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
             for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
                 profile_list.append(profile)
             return profile_list
@@ -854,7 +854,7 @@ class VDC(object):
         self.get_resource()
 
         if hasattr(self.resource, 'VdcStorageProfiles') and \
-           hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
+                hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
             for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
                 if profile.get('name') == profile_name:
                     return profile
@@ -1006,7 +1006,7 @@ class VDC(object):
         network_href = network_name = None
         if network is not None:
             if hasattr(self.resource, 'AvailableNetworks') and \
-               hasattr(self.resource.AvailableNetworks, 'Network'):
+                    hasattr(self.resource.AvailableNetworks, 'Network'):
                 for n in self.resource.AvailableNetworks.Network:
                     if network == n.get('name'):
                         network_href = n.get('href')
@@ -1287,8 +1287,8 @@ class VDC(object):
         # query instead of OrgVdcNetwork typed query because for vCD api
         # v29.0 and lower the link for the former is missing from /api/query
         use_hack = False
-        if not self.client.is_sysadmin() and\
-           float(self.client.get_api_version()) <= 29.0:
+        if not self.client.is_sysadmin() and \
+                float(self.client.get_api_version()) <= 29.0:
             use_hack = True
 
         if use_hack:
@@ -1368,7 +1368,7 @@ class VDC(object):
                 network_record['href'])
             if type is not None:
                 if hasattr(orgvdc_network_resource, 'Configuration') and \
-                   hasattr(orgvdc_network_resource.Configuration, 'FenceMode'):
+                        hasattr(orgvdc_network_resource.Configuration, 'FenceMode'):
                     fence_mode = str(
                         orgvdc_network_resource.Configuration.FenceMode)
                     if fence_mode.lower() != type.lower():
@@ -1848,7 +1848,7 @@ class VDC(object):
                 if is_ip_settings_configured is True and \
                         ext_net_to_participated_subnet_with_ip_settings is \
                         not None and len(
-                        ext_net_to_participated_subnet_with_ip_settings) > 0:
+                    ext_net_to_participated_subnet_with_ip_settings) > 0:
                     subnet_with_ip_settings = \
                         ext_net_to_participated_subnet_with_ip_settings.get(
                             ext_net.get('name'))
@@ -1877,7 +1877,7 @@ class VDC(object):
                 # Configure Sub Allocated Ips
                 if is_sub_allocate_ip_pools_enabled is True and \
                         ext_net_to_subnet_with_ip_range is not None and len(
-                        ext_net_to_subnet_with_ip_range) > 0:
+                    ext_net_to_subnet_with_ip_range) > 0:
                     subnet_with_ip_ranges = ext_net_to_subnet_with_ip_range \
                         .get(ext_net.get('name'))
                     if subnet_with_ip_ranges is not None and len(
@@ -1998,7 +1998,7 @@ class VDC(object):
                                            "'%s'," % name)
         return records[0]
 
-    def list_vapp_details(self, filter=None):
+    def list_vapp_details(self, resource_type, filter=None):
 
         """List vApp details.
 
@@ -2009,31 +2009,18 @@ class VDC(object):
         ownerName==<ownername>
         numberOfVMs==<number>
         vdcName==<vdcname>
+        ownerName==<ownername>;vdcName==<vdcname>
+
         :return: list of vApp based on ownername
         e.g.
         [{'containerName': 'vapp1', 'ownerName': 'system' , 'numberOfVMs':'7','status':'POWERED_ON','vdcName':'Ovdc1'}]
         :rtype: list
+
         """
         out_list = []
-
-        if "status" in filter:
-            resource_type = ResourceType.ADMIN_VM.value
-        else:
-            resource_type = ResourceType.ADMIN_VAPP.value
-
         query = self.client.get_typed_query(
-            resource_type,
-            query_result_format=QueryResultFormat.RECORDS,
-            qfilter=filter)
-
-        records = query.execute()
-        for record in records:
-            vapp_info_list = dict()
-            vapp_info_list['containerName'] = record.get('name')
-            vapp_info_list['ownerName'] = record.get('ownerName')
-            vapp_info_list['numberOfVMs'] = record.get('numberOfVMs')
-            vapp_info_list['status'] = record.get('status')
-            vapp_info_list['vdcName'] = record.get('vdcName')
-            out_list.append(vapp_info_list)
-
+                        resource_type,
+                        query_result_format=QueryResultFormat.RECORDS,
+                        qfilter=filter)
+        out_list = list(query.execute())
         return out_list

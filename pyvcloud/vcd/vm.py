@@ -17,10 +17,15 @@ from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
 from pyvcloud.vcd.client import VmNicProperties
+from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.exceptions import InvalidStateException
+from pyvcloud.vcd.exceptions import MultipleRecordsException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 
 
@@ -617,3 +622,65 @@ class VM(object):
         self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.CONSOLIDATE, None, None)
+
+    def copy_to(self, source_vapp_name, target_vapp_name, target_vm_name):
+        """Copy VM from one vApp to another.
+
+        :param: source vApp name
+        :param: target vApp name
+        :param: target VM name
+
+        :return: an object containing EntityType.TASK XML data which represents
+                    the asynchronous task that is copying VM
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        from pyvcloud.vcd.vapp import VApp
+        vm_resource = self.get_resource()
+        resource_type = ResourceType.VAPP.value
+        if self.is_powered_off(vm_resource):
+            name_filter = ('name', source_vapp_name)
+            q1 = self.client.get_typed_query(
+                resource_type,
+                query_result_format=QueryResultFormat.REFERENCES,
+                equality_filter=name_filter)
+            records1 = list(q1.execute())
+            if records1 is None or len(records1) == 0:
+                raise EntityNotFoundException(
+                    'Vapp with name \'%s\' not found.' % source_vapp_name)
+            elif len(records1) > 1:
+                raise MultipleRecordsException("Found multiple vapp named "
+                                               "'%s'," % source_vapp_name)
+            for r in records1:
+                source_vapp_href = r.get('href')
+
+            name_filter = ('name', target_vapp_name)
+            q2 = self.client.get_typed_query(
+                resource_type,
+                query_result_format=QueryResultFormat.REFERENCES,
+                equality_filter=name_filter)
+            records2 = list(q2.execute())
+            if records2 is None or len(records2) == 0:
+                raise EntityNotFoundException(
+                    'Vapp with name \'%s\' not found.' % target_vapp_name)
+            elif len(records2) > 1:
+                raise MultipleRecordsException("Found multiple vapp named "
+                                               "'%s'," % target_vapp_name)
+            for r in records2:
+                target_vapp_href = r.get('href')
+
+            source_vapp = VApp(self.client, href=source_vapp_href)
+            target_vapp = VApp(self.client, href=target_vapp_href)
+            target_vapp.reload()
+            spec = {
+                'vapp': source_vapp.get_resource(),
+                'source_vm_name': self.get_resource().get('name'),
+                'target_vm_name': target_vm_name
+            }
+            return target_vapp.add_vms([spec],
+                                       deploy=False,
+                                       power_on=False,
+                                       all_eulas_accepted=True
+                                       )
+        else:
+            raise InvalidStateException("VM Must be powered off.")

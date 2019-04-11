@@ -22,6 +22,7 @@ from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.utils import \
     create_customized_vapp_from_template
+from pyvcloud.system_test_framework.utils import create_empty_vapp
 
 from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import NetworkAdapterType
@@ -50,6 +51,15 @@ class TestVM(BaseTestCase):
     _test_vapp_first_vm_href = None
 
     _non_existent_vm_name = 'non_existent_vm_' + str(uuid1())
+
+    _empty_vapp_name = 'empty_vApp_' + str(uuid1())
+    _empty_vapp_description = 'empty vApp description'
+    _empty_vapp_runtime_lease = 86400  # in seconds
+    _empty_vapp_storage_lease = 86400  # in seconds
+    _empty_vapp_owner_name = None
+    _empty_vapp_href = None
+
+    _target_vm_name = 'targetvm'
 
     def test_0000_setup(self):
         """Setup the vms required for the other tests in this module.
@@ -85,6 +95,15 @@ class TestVM(BaseTestCase):
         TestVM._test_vapp_first_vm_href = vm_resource.get('href')
 
         self.assertIsNotNone(TestVM._test_vapp_first_vm_href)
+
+        logger.debug('Creating empty vApp.')
+        TestVM._empty_vapp_href = \
+            create_empty_vapp(client=TestVM._client,
+                              vdc=vdc,
+                              name=TestVM._empty_vapp_name,
+                              description=TestVM._empty_vapp_description)
+        TestVM._empty_vapp_owner_name = Environment. \
+            get_username_for_role_in_test_org(TestVM._test_runner_role)
 
     def test_0010_list_vms(self):
         """Test the method VApp.get_all_vms().
@@ -390,6 +409,21 @@ class TestVM(BaseTestCase):
             get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def test_0072_copy_to(self):
+        """Test the method related to copy VM from one vapp to another.
+        This test passes if copy VM operation is successful.
+        """
+        target_vapp_name = TestVM._empty_vapp_name
+
+        source_vapp_name = TestVM._test_vapp_name
+        target_vm_name = TestVM._target_vm_name
+        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        task = vm.copy_to(source_vapp_name=source_vapp_name,
+                   target_vapp_name=target_vapp_name,
+                   target_vm_name=target_vm_name)
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
     def test_0080_vm_nic_operations(self):
         """Test the method add_nic vm.py.
 
@@ -435,6 +469,9 @@ class TestVM(BaseTestCase):
         vapps_to_delete = []
         if TestVM._test_vapp_href is not None:
             vapps_to_delete.append(TestVM._test_vapp_name)
+
+        if TestVM._empty_vapp_href is not None:
+            vapps_to_delete.append(TestVM._empty_vapp_name)
 
         vdc = Environment.get_test_vdc(TestVM._client)
 

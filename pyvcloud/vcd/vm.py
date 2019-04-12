@@ -626,9 +626,9 @@ class VM(object):
     def copy_to(self, source_vapp_name, target_vapp_name, target_vm_name):
         """Copy VM from one vApp to another.
 
-        :param: source vApp name
-        :param: target vApp name
-        :param: target VM name
+        :param: str source vApp name
+        :param: str target vApp name
+        :param: str target VM name
 
         :return: an object containing EntityType.TASK XML data which represents
                     the asynchronous task that is copying VM
@@ -645,12 +645,9 @@ class VM(object):
                 query_result_format=QueryResultFormat.REFERENCES,
                 equality_filter=name_filter)
             records1 = list(q1.execute())
-            if records1 is None or len(records1) == 0:
-                raise EntityNotFoundException(
-                    'Vapp with name \'%s\' not found.' % source_vapp_name)
-            elif len(records1) > 1:
-                raise MultipleRecordsException("Found multiple vapp named "
-                                               "'%s'," % source_vapp_name)
+            self.___validate_vapp_records(records=records1,
+                                          vapp_name=source_vapp_name)
+
             for r in records1:
                 source_vapp_href = r.get('href')
 
@@ -660,12 +657,8 @@ class VM(object):
                 query_result_format=QueryResultFormat.REFERENCES,
                 equality_filter=name_filter)
             records2 = list(q2.execute())
-            if records2 is None or len(records2) == 0:
-                raise EntityNotFoundException(
-                    'Vapp with name \'%s\' not found.' % target_vapp_name)
-            elif len(records2) > 1:
-                raise MultipleRecordsException("Found multiple vapp named "
-                                               "'%s'," % target_vapp_name)
+            self.___validate_vapp_records(records=records2,
+                                          vapp_name=target_vapp_name)
             for r in records2:
                 target_vapp_href = r.get('href')
 
@@ -684,3 +677,11 @@ class VM(object):
                                        )
         else:
             raise InvalidStateException("VM Must be powered off.")
+
+    def ___validate_vapp_records(self, records, vapp_name):
+        if records is None or len(records) == 0:
+            raise EntityNotFoundException(
+                'Vapp with name \'%s\' not found.' % vapp_name)
+        elif len(records) > 1:
+            raise MultipleRecordsException("Found multiple vapp named "
+                                           "'%s'," % vapp_name)

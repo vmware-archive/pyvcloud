@@ -639,26 +639,15 @@ class VM(object):
         vm_resource = self.get_resource()
         resource_type = ResourceType.VAPP.value
         if self.is_powered_off(vm_resource):
-            name_filter = ('name', source_vapp_name)
-            q1 = self.client.get_typed_query(
-                resource_type,
-                query_result_format=QueryResultFormat.REFERENCES,
-                equality_filter=name_filter)
-            records1 = list(q1.execute())
-            self.___validate_vapp_records(records=records1,
-                                          vapp_name=source_vapp_name)
+            records1 = self.___validate_vapp_records(
+                vapp_name=source_vapp_name, resource_type = resource_type)
 
             for r in records1:
                 source_vapp_href = r.get('href')
 
-            name_filter = ('name', target_vapp_name)
-            q2 = self.client.get_typed_query(
-                resource_type,
-                query_result_format=QueryResultFormat.REFERENCES,
-                equality_filter=name_filter)
-            records2 = list(q2.execute())
-            self.___validate_vapp_records(records=records2,
-                                          vapp_name=target_vapp_name)
+            records2 = self.___validate_vapp_records(
+                vapp_name=target_vapp_name, resource_type=resource_type)
+
             for r in records2:
                 target_vapp_href = r.get('href')
 
@@ -678,10 +667,18 @@ class VM(object):
         else:
             raise InvalidStateException("VM Must be powered off.")
 
-    def ___validate_vapp_records(self, records, vapp_name):
+    def ___validate_vapp_records(self, vapp_name, resource_type):
+        name_filter = ('name', vapp_name)
+        q1 = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.REFERENCES,
+            equality_filter=name_filter)
+        records = list(q1.execute())
         if records is None or len(records) == 0:
             raise EntityNotFoundException(
                 'Vapp with name \'%s\' not found.' % vapp_name)
         elif len(records) > 1:
             raise MultipleRecordsException("Found multiple vapp named "
                                            "'%s'," % vapp_name)
+
+        return records

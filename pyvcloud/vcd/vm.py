@@ -640,16 +640,14 @@ class VM(object):
         resource_type = ResourceType.VAPP.value
         if self.is_powered_off(vm_resource):
             records1 = self.___validate_vapp_records(
-                vapp_name=source_vapp_name, resource_type = resource_type)
+                vapp_name=source_vapp_name, resource_type=resource_type)
 
-            for r in records1:
-                source_vapp_href = r.get('href')
+            source_vapp_href = records1[0].get('href')
 
             records2 = self.___validate_vapp_records(
                 vapp_name=target_vapp_name, resource_type=resource_type)
 
-            for r in records2:
-                target_vapp_href = r.get('href')
+            target_vapp_href = records2[0].get('href')
 
             source_vapp = VApp(self.client, href=source_vapp_href)
             target_vapp = VApp(self.client, href=target_vapp_href)

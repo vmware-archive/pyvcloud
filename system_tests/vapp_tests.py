@@ -109,7 +109,7 @@ class TestVApp(BaseTestCase):
                               vdc=vdc,
                               name=TestVApp._empty_vapp_name,
                               description=TestVApp._empty_vapp_description)
-        TestVApp._empty_vapp_owner_name = Environment.\
+        TestVApp._empty_vapp_owner_name = Environment. \
             get_username_for_role_in_test_org(TestVApp._test_runner_role)
 
         logger.debug('Creating customized vApp.')
@@ -126,7 +126,7 @@ class TestVApp(BaseTestCase):
             vm_name=TestVApp._customized_vapp_vm_name,
             vm_hostname=TestVApp._customized_vapp_vm_hostname,
             nw_adapter_type=TestVApp._customized_vapp_vm_network_adapter_type)
-        TestVApp._customized_vapp_owner_name = Environment.\
+        TestVApp._customized_vapp_owner_name = Environment. \
             get_username_for_role_in_test_org(TestVApp._test_runner_role)
 
         self.assertIsNotNone(TestVApp._empty_vapp_href)
@@ -535,7 +535,7 @@ class TestVApp(BaseTestCase):
         task = vapp.set_lease(
             deployment_lease=TestVApp._empty_vapp_runtime_lease,
             storage_lease=TestVApp._empty_vapp_storage_lease)
-        result = TestVApp._client.get_task_monitor().\
+        result = TestVApp._client.get_task_monitor(). \
             wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
@@ -819,6 +819,42 @@ class TestVApp(BaseTestCase):
         vapp.reload()
         self.assertFalse(
             self._is_network_present(vapp, TestVApp._vapp_network_name))
+
+    def test_0131_list_vapp_details(self):
+        """Test the method list_vapp_details().
+
+        This test passes if the expected vApp list can be successfully retrieved.
+        """
+        org_vdc = Environment.get_test_vdc(TestVApp._sys_admin_client)
+        resource_type = 'adminVApp'
+
+        vapp_filter = None
+        vapp_list = org_vdc.list_vapp_details(resource_type, vapp_filter)
+        self.assertTrue(len(vapp_list) > 0)
+
+        vapp_filter = 'name==' + TestVApp._customized_vapp_name
+        vapp_list = org_vdc.list_vapp_details(resource_type, vapp_filter)
+        self.assertTrue(len(vapp_list) > 0)
+
+        vapp_filter = 'ownerName==' + TestVApp._customized_vapp_owner_name
+        vapp_list = org_vdc.list_vapp_details(resource_type, vapp_filter)
+        self.assertTrue(len(vapp_list) > 0)
+
+    def test_0140_upgrade_virtual_hardware(self):
+        logger = Environment.get_default_logger()
+        vapp_name = TestVApp._customized_vapp_name
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client, vapp_name=vapp_name)
+
+        logger.debug('Un-deploying vApp ' + vapp_name)
+        task = vapp.undeploy()
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        logger.debug('Upgrading virtual hardware of vApp ' + vapp_name)
+        no_of_vm_upgraded = vapp.upgrade_virtual_hardware()
+        self.assertEqual(no_of_vm_upgraded, len(vapp.get_all_vms()))
 
     @developerModeAware
     def test_9998_teardown(self):

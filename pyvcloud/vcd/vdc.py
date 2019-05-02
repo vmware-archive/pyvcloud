@@ -2023,4 +2023,3 @@ class VDC(object):
         out_list = list(query.execute())
 
         return out_list
-

@@ -24,6 +24,7 @@ from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
+from pyvcloud.vcd.client import get_logger
 from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import MetadataValueType
 from pyvcloud.vcd.client import MetadataVisibility
@@ -37,8 +38,10 @@ from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.utils import cidr_to_netmask
 from pyvcloud.vcd.vdc import VDC
+from pyvcloud.vcd.vm import VM
 
 DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024
+LOGGER = get_logger()
 
 
 class VApp(object):
@@ -1443,3 +1446,26 @@ class VApp(object):
         ova_uri = find_link(self.resource, RelationType.DOWNLOAD_OVA_DEFAULT,
                             EntityType.APPLICATION_BINARY.value).href
         return self.client.download_from_uri(ova_uri, file_name, chunk_size)
+
+    def upgrade_virtual_hardware(self):
+        """Upgrade virtual hardware of vapp.
+
+        Behind the scene it upgrades virtual hardware of all the vm belongs to
+            vapp.
+
+        :return: no of vm upgraded.
+        :rtype: int
+        """
+        self.resource = None
+        self.get_resource()
+        no_of_vm_upgraded = 0
+        for vm in self.get_all_vms():
+            vm_obj = VM(self.client, resource=vm)
+            try:
+                task = vm_obj.upgrade_virtual_hardware()
+                self.client.get_task_monitor().wait_for_success(task)
+                no_of_vm_upgraded += 1
+            except OperationNotSupportedException:
+                LOGGER.error('Operation not supported  for vm ' +
+                             vm.get('name'))
+        return no_of_vm_upgraded

@@ -163,6 +163,7 @@ class BasicLoginCredentials(object):
 class RelationType(Enum):
     ADD = 'add'
     ALTERNATE = 'alternate'
+    CONSOLIDATE = 'consolidate'
     CONTROL_ACCESS = 'controlAccess'
     CONVERT_TO_ADVANCED_GATEWAY = 'edgeGateway:convertToAdvancedGateway'
     DEPLOY = 'deploy'

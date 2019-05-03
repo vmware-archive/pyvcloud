@@ -1997,3 +1997,29 @@ class VDC(object):
             raise MultipleRecordsException("Found multiple gateway named "
                                            "'%s'," % name)
         return records[0]
+
+    def list_vapp_details(self, resource_type, filter=None):
+        """List vApp details.
+
+        :param str filter: filter to fetch the vApp Details based on filter,
+        e.g.,
+        ownerName==<owner-name*>
+        name==<vapp-name>
+        numberOfVMs==<number>
+        vdcName==<vdcname>
+
+        :return: list of vApp based on filter
+        e.g.
+        [{'containerName': 'vapp1', 'ownerName': 'system' ,
+         'numberOfVMs':'7','status':'POWERED_ON','vdcName':'Ovdc1'}]
+        :rtype: list
+
+        """
+        out_list = []
+        query = self.client.get_typed_query(
+            resource_type,
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=filter)
+        out_list = list(query.execute())
+
+        return out_list

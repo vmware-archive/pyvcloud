@@ -820,6 +820,26 @@ class TestVApp(BaseTestCase):
         self.assertFalse(
             self._is_network_present(vapp, TestVApp._vapp_network_name))
 
+    def test_0131_list_vapp_details(self):
+        """Test the method list_vapp_details().
+
+        This test passes if the expected vApp list can be successfully retrieved.
+        """
+        org_vdc = Environment.get_test_vdc(TestVApp._sys_admin_client)
+        resource_type = 'adminVApp'
+
+        vapp_filter = None
+        vapp_list = org_vdc.list_vapp_details(resource_type, vapp_filter)
+        self.assertTrue(len(vapp_list) > 0)
+
+        vapp_filter = 'name==' + TestVApp._customized_vapp_name
+        vapp_list = org_vdc.list_vapp_details(resource_type, vapp_filter)
+        self.assertTrue(len(vapp_list) > 0)
+
+        vapp_filter = 'ownerName==' + TestVApp._customized_vapp_owner_name
+        vapp_list = org_vdc.list_vapp_details(resource_type, vapp_filter)
+        self.assertTrue(len(vapp_list) > 0)
+
     def test_0140_upgrade_virtual_hardware(self):
         logger = Environment.get_default_logger()
         vapp_name = TestVApp._customized_vapp_name

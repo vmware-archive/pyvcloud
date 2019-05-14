@@ -1581,6 +1581,33 @@ class Org(object):
                 return self.client.get_resource(href)
         return None
 
+    def get_vdc_by_id(self, id, is_admin_operation=False):
+        """Retrieves resource of an org vdc identified by its name.
+
+        :param str id: ID of the org vdc to be retrieved.
+
+        :param bool is_admin_operation: if set True, will return the admin
+            view of the org vdc resource.
+
+        :return: an object containing EtityType.VDC XML data representing the
+            vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if the named vdc can not be found.
+        """
+        # TODO Add is_admin_operation using
+        if self.resource is None:
+            self.reload()
+        links = get_links(
+            self.resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.VDC.value)
+        for link in links:
+            if link.href.endswith(f'/api/vdc/{id}'):
+                return self.client.get_resource(link.href)
+        return None
+
     def list_vdcs(self):
         """List all vdc that are backing the current organization.
 

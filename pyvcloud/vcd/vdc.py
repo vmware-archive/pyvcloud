@@ -112,6 +112,39 @@ class VDC(object):
                 use the vapp-id to identify." % name)
         return result[0]
 
+    def get_resource_href_by_id(self, id, entity_type=EntityType.VAPP):
+        """Fetches href of a vApp in the org vdc from vCD.
+
+        :param str id: ID of the vApp.
+        :param pyvcloud.vcd.client.EntityType entity_type: type of entity we
+            want to retrieve. *Please note that this function is incapable of
+            returning anything other than vApps at this point.*
+
+        :return: href of the vApp identified by its name.
+
+        :rtype: str
+
+        :raises: EntityNotFoundException: if the named vApp can not be found.
+        :raises: MultipleRecordsException: if more than one vApp with the
+            provided name are found.
+        """
+        self.get_resource()
+        result = []
+        if hasattr(self.resource, 'ResourceEntities') and \
+           hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
+            for vapp in self.resource.ResourceEntities.ResourceEntity:
+                if entity_type is None or \
+                   entity_type.value == vapp.get('type'):
+                    if vapp.get('id') == id:
+                        result.append(vapp.get('href'))
+        if len(result) == 0:
+            raise EntityNotFoundException('vApp with id \'%s\' not found' % id)
+
+        elif len(result) > 1:
+            raise MultipleRecordsException("Found multiple vApps named '%s', \
+                use the vapp-id to identify." % name)
+        return result[0]
+
     def reload(self):
         """Reloads the resource representation of the org vdc.
 
@@ -139,6 +172,9 @@ class VDC(object):
             provided name are found.
         """
         return self.client.get_resource(self.get_resource_href(name))
+
+    def get_vapp_by_id(self, id):
+        return self.client.get_resource(self.get_resource_href_by_id(id))
 
     def delete_vapp(self, name, force=False):
         """Delete a vApp in the current org vdc.

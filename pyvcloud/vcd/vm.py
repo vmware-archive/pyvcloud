@@ -683,6 +683,7 @@ class VM(object):
 
     def delete(self):
         """Delete the VM.
+
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is deleting the VM.
         :rtype: lxml.objectify.ObjectifiedElement

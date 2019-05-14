@@ -141,8 +141,7 @@ class VDC(object):
             raise EntityNotFoundException('vApp with id \'%s\' not found' % id)
 
         elif len(result) > 1:
-            raise MultipleRecordsException("Found multiple vApps named '%s', \
-                use the vapp-id to identify." % name)
+            raise MultipleRecordsException("Found multiple vApps named '%s'." % id)
         return result[0]
 
     def reload(self):

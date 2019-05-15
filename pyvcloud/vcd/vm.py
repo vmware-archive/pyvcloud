@@ -680,3 +680,14 @@ class VM(object):
                                            "'%s'," % vapp_name)
 
         return records
+
+    def delete(self):
+        """Delete the VM.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is deleting the VM.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.delete_linked_resource(self.resource,
+                                                  RelationType.REMOVE, None)

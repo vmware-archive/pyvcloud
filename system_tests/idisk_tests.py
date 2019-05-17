@@ -36,20 +36,18 @@ class TestDisk(BaseTestCase):
     _client = None
 
     _idisk1_name = 'test_idisk_' + str(uuid1())
-    _idisk1_size = '10'
+    _idisk1_size = '2097152'
     _idisk1_description = 'First disk'
     _idisk1_id = None
     _idisk1_new_name = 'test_idisk_new_name_' + str(uuid1())
-    _idisk1_new_size = '20'
+    _idisk1_new_size = '2097152'
     _idisk1_new_description = 'New description of first disk'
-
     _idisk2_name = 'test_idisk_' + str(uuid1())
-    _idisk2_size = '20'
+    _idisk2_size = '2097152'
     _idisk2_description = 'Second disk'
     _idisk2_id = None
-
     _idisk3_name = _idisk2_name
-    _idisk3_size = '30'
+    _idisk3_size = '2097152'
     _idisk3_description = 'Third disk, namesake of second disk'
     _idisk3_id = None
 

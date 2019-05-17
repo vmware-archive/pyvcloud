@@ -26,6 +26,7 @@ import yaml
 # Private utility functions.
 from tenantlib import handle_task
 
+from pyvcloud.vcd.client import API_CURRENT_VERSIONS
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import FenceMode
@@ -85,7 +86,9 @@ requests.packages.urllib3.disable_warnings()
 # Login. SSL certificate verification is turned off to allow self-signed
 # certificates.  You should only do this in trusted environments.
 print("Logging in...")
+api_version = API_CURRENT_VERSIONS[-1]
 client = Client(cfg.vcd_host, verify_ssl_certs=False,
+                api_version=api_version,
                 log_file='pyvcloud.log',
                 log_requests=True,
                 log_headers=True,

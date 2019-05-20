@@ -89,6 +89,7 @@ class TestVApp(BaseTestCase):
     _new_vapp_network_dns_suffix = 'newexample.com'
     _allocate_ip_address = '90.80.70.10'
     _ova_file_name = 'test.ova'
+    _vapp_copy_name = 'customized_vApp_copy_' + str(uuid1())
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -855,6 +856,23 @@ class TestVApp(BaseTestCase):
         logger.debug('Upgrading virtual hardware of vApp ' + vapp_name)
         no_of_vm_upgraded = vapp.upgrade_virtual_hardware()
         self.assertEqual(no_of_vm_upgraded, len(vapp.get_all_vms()))
+
+    def test_0150_copy_to(self):
+        logger = Environment.get_default_logger()
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+        vdc = Environment.get_test_vdc(TestVApp._client)
+        logger.debug('Copy vApp ' + TestVApp._customized_vapp_name)
+        task = vapp.copy_to(vdc.href, TestVApp._vapp_copy_name, None)
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vdc = Environment.get_test_vdc(TestVApp._sys_admin_client)
+        task = vdc.delete_vapp(name=TestVApp._vapp_copy_name, force=True)
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     @developerModeAware
     def test_9998_teardown(self):

@@ -325,6 +325,7 @@ class EntityType(Enum):
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
     CAPTURE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.captureVAppParams+xml'
+    CLONE_VAPP_PARAMS = 'application/vnd.vmware.vcloud.cloneVAppParams+xml'
     COMPOSE_VAPP_PARAMS = \
         'application/vnd.vmware.vcloud.composeVAppParams+xml'
     CONTROL_ACCESS_PARAMS = 'application/vnd.vmware.vcloud.controlAccess+xml'

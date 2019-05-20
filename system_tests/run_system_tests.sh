@@ -29,31 +29,31 @@ SRCROOT=`cd ..; pwd`
 cd $SRCROOT
 
 # If there are tests to run use those. Otherwise use stable tests.
-STABLE_TESTS="client_tests.py \
-api_extension_tests.py \
+STABLE_TESTS="api_extension_tests.py \
 catalog_tests \
-extnet_tests.py \
-gateway_tests.py \
-idisk_tests.py \
-network_tests.py \
 certificate_tests.py \
+client_tests.py \
 dhcp_binding_tests.py \
 dhcp_tests.py \
+extnet_tests.py \
 firewall_rule_tests.py \
+gateway_tests.py \
+idisk_tests.py \
 ipsec_vpn_tests.py \
+network_tests.py \
 nat_rule_tests.py \
-static_route_tests.py \
 nsx_tests.py \
 org_tests.py \
 pvdc_tests.py \
 search_tests.py \
+static_route_tests.py \
 vapp_tests.py \
 vapp_dhcp_tests.py \
 vapp_firewall_tests.py \
-vdc_tests.py \
+vc_tests.py \
 vcd_user.py \
-vm_tests.py \
-vc_tests.py"
+vdc_tests.py \
+vm_tests.py"
 
 if [ $# == 0 ]; then
   echo "No tests provided, will run stable list: ${STABLE_TESTS}"

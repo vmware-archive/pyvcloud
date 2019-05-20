@@ -42,14 +42,14 @@ idisk_tests.py \
 ipsec_vpn_tests.py \
 network_tests.py \
 nat_rule_tests.py \
-nsx_tests.py \
+nsxt_tests.py \
 org_tests.py \
 pvdc_tests.py \
 search_tests.py \
 static_route_tests.py \
-vapp_tests.py \
 vapp_dhcp_tests.py \
 vapp_firewall_tests.py \
+vapp_tests.py \
 vc_tests.py \
 vcd_user.py \
 vdc_tests.py \

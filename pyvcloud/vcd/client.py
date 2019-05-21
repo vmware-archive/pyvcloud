@@ -901,8 +901,7 @@ class Client(object):
             raise
 
     def get_latest_api_version(self):
-        """Get latest VCD api version supported by pysdk.
-        """
+        """Get latest VCD api version supported by pysdk."""
         self._logger.debug("Negotiating API version")
         active_versions = self.get_supported_versions_list()
         self._logger.debug('API versions supported: %s' % active_versions)

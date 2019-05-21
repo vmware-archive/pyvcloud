@@ -855,18 +855,8 @@ class Client(object):
         # If we need to negotiate the server API level find the highest
         # server version that pyvcloud supports.
         if self._negotiate_api_version:
-            self._logger.debug("Negotiating API version")
             active_versions = self.get_supported_versions_list()
-            self._logger.debug('API versions supported: %s' % active_versions)
-            # Versions are strings sorted in ascending order, so we can work
-            # backwards to find a match.
-            for version in reversed(active_versions):
-                if version in API_CURRENT_VERSIONS:
-                    self._api_version = version
-                    self._negotiate_api_version = False
-                    self._logger.debug(
-                        'API version negotiated to: %s' % self._api_version)
-                    break
+            self.get_latest_api_version()
 
             # Still need to negotiate?  That means we didn't find a
             # suitable version.
@@ -911,6 +901,9 @@ class Client(object):
             raise
 
     def get_latest_api_version(self):
+        """Get latest spported pysdk api version. It negotiate the server API
+           level find the highest server version that pyvcloud supports.
+        """
         self._logger.debug("Negotiating API version")
         active_versions = self.get_supported_versions_list()
         self._logger.debug('API versions supported: %s' % active_versions)

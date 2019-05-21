@@ -910,6 +910,21 @@ class Client(object):
             new_session.close()
             raise
 
+    def get_latest_api_version(self):
+        self._logger.debug("Negotiating API version")
+        active_versions = self.get_supported_versions_list()
+        self._logger.debug('API versions supported: %s' % active_versions)
+        # Versions are strings sorted in ascending order, so we can work
+        # backwards to find a match.
+        for version in reversed(active_versions):
+            if version in API_CURRENT_VERSIONS:
+                self._api_version = version
+                self._negotiate_api_version = False
+                self._logger.debug(
+                    'API version negotiated to: %s' % self._api_version)
+                break
+        return self._api_version
+
     def rehydrate(self, state):
         self._session = requests.Session()
         self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \

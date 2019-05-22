@@ -28,32 +28,18 @@ SCRIPT_DIR=`pwd`
 SRCROOT=`cd ..; pwd`
 cd $SRCROOT
 
-# If there are tests to run use those. Otherwise use stable tests.
-STABLE_TESTS="api_extension_tests.py \
-catalog_tests \
-certificate_tests.py \
-client_tests.py \
-dhcp_binding_tests.py \
-dhcp_tests.py \
-extnet_tests.py \
-firewall_rule_tests.py \
-gateway_tests.py \
-idisk_tests.py \
-ipsec_vpn_tests.py \
-network_tests.py \
-nat_rule_tests.py \
-nsxt_tests.py \
-org_tests.py \
-pvdc_tests.py \
-search_tests.py \
-static_route_tests.py \
-vapp_dhcp_tests.py \
-vapp_firewall_tests.py \
-vapp_tests.py \
-vc_tests.py \
-vcd_user.py \
-vdc_tests.py \
-vm_tests.py"
+cd system_tests
+STABLE_TESTS=`find . -name "*.py" | sed -e "s/^\.\///" | sort`
+STABLE_TESTS=`echo $STABLE_TESTS | tr -d '\n'`
+UNSTABLE_TESTS="helpers/portgroup_helper.py main.py nsxt_tests.py pvdc_tests.py vc_tests.py cleanup_test.py __init__.py"
+array_unstable_tests=(${UNSTABLE_TESTS// / })
+#Remove unstable tests from stable tests.
+for i in "${array_unstable_tests[@]}"
+do
+    STABLE_TESTS=${STABLE_TESTS//"$i "/}
+done
+#Going back to $SRCROOT directory
+cd ..
 
 if [ $# == 0 ]; then
   echo "No tests provided, will run stable list: ${STABLE_TESTS}"
@@ -61,7 +47,6 @@ if [ $# == 0 ]; then
 else
   TESTS=$*
 fi
-
 # Get connection information.
 if [ -z "$VCD_CONNECTION" ]; then
   VCD_CONNECTION=$HOME/vcd_connection

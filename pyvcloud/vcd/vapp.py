@@ -1500,7 +1500,7 @@ class VApp(object):
         return result.Tasks.Task[0]
 
     def move_to(self, vdc_href):
-        """Move a vapp to vdc.
+        """Move a vapp to another vdc.
 
         :param str vdc_href: link of vdc where vapp is going to move.
 

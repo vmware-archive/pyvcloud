@@ -1498,3 +1498,28 @@ class VApp(object):
             vdc_resource, RelationType.ADD, EntityType.CLONE_VAPP_PARAMS.value,
             resource)
         return result.Tasks.Task[0]
+
+    def move_to(self, vdc_href):
+        """Move a vapp to vdc.
+
+        :param str vdc_href: link of vdc where vapp is going to move.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is moving the vApp.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        resource = E.CloneVAppParams(name=self.resource.get('name'))
+        resource.append(E.Source(href=self.resource.get('href')))
+        resource.append(E.IsSourceDelete(True))
+        for vm in self.get_all_vms():
+            sourced_vm_instantiation_params = E.SourcedVmInstantiationParams()
+            sourced_vm_instantiation_params.append(
+                E.Source(href=vm.get('href')))
+            sourced_vm_instantiation_params.append(
+                E.StorageProfile(href=vm.StorageProfile.get('href')))
+            resource.append(sourced_vm_instantiation_params)
+        vdc_resource = self.client.get_resource(vdc_href)
+        result = self.client.post_linked_resource(
+            vdc_resource, RelationType.ADD, EntityType.CLONE_VAPP_PARAMS.value,
+            resource)
+        return result.Tasks.Task[0]

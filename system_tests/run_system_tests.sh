@@ -31,7 +31,15 @@ cd $SRCROOT
 cd system_tests
 STABLE_TESTS=`find . -name "*.py" | sed -e "s/^\.\///" | sort`
 STABLE_TESTS=`echo $STABLE_TESTS | tr -d '\n'`
-UNSTABLE_TESTS="helpers/portgroup_helper.py main.py nsxt_tests.py pvdc_tests.py vc_tests.py cleanup_test.py __init__.py"
+UNSTABLE_TESTS="helpers/portgroup_helper.py \
+main.py \
+nsxt_tests.py \
+pvdc_tests.py \
+vc_tests.py \
+cleanup_test.py \
+__init__.py"
+UNSTABLE_TESTS=`echo $UNSTABLE_TESTS | tr -d '\n'`
+
 array_unstable_tests=(${UNSTABLE_TESTS// / })
 #Remove unstable tests from stable tests.
 for i in "${array_unstable_tests[@]}"

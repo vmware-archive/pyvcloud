@@ -1470,22 +1470,26 @@ class VApp(object):
                              vm.get('name'))
         return no_of_vm_upgraded
 
-    def copy_to(self, vdc_href, vapp_new_name, description):
+    def vapp_clone(self, vdc_href, vapp_name, description, source_delete):
         """Copy a vapp to vdc with given name.
 
         :param str vdc_href: link of vdc where vapp is going to copy.
-        :param str vapp_new_name: name of vapp.
+        :param str vapp_name: name of vapp.
         :param str description: description of vapp.
-
+        :param bool source_delete: if source_delete is true it will delete
+            source vapp.
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is copying the vApp.
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        resource = E.CloneVAppParams(name=vapp_new_name)
+        resource = E.CloneVAppParams(name=vapp_name)
         if description is not None:
             resource.append(E.Description(description))
         resource.append(E.Source(href=self.resource.get('href')))
-        resource.append(E.IsSourceDelete(False))
+        if source_delete:
+            resource.append(E.IsSourceDelete(True))
+        else:
+            resource.append(E.IsSourceDelete(False))
         for vm in self.get_all_vms():
             sourced_vm_instantiation_params = E.SourcedVmInstantiationParams()
             sourced_vm_instantiation_params.append(
@@ -1498,3 +1502,28 @@ class VApp(object):
             vdc_resource, RelationType.ADD, EntityType.CLONE_VAPP_PARAMS.value,
             resource)
         return result.Tasks.Task[0]
+
+    def copy_to(self, vdc_href, vapp_new_name, description):
+        """Copy a vapp to vdc with given name.
+
+        :param str vdc_href: link of vdc where vapp is going to copy.
+        :param str vapp_new_name: name of vapp.
+        :param str description: description of vapp.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is copying the vApp.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        return self.vapp_clone(vdc_href, vapp_new_name, description, False)
+
+    def move_to(self, vdc_href):
+        """Move a vapp to another vdc.
+
+        :param str vdc_href: link of vdc where vapp is going to move.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is moving the vApp.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vapp_name = self.resource.get('name')
+        return self.vapp_clone(vdc_href, vapp_name, None, True)

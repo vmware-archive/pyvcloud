@@ -896,7 +896,8 @@ class VApp(object):
                 specs,
                 deploy=True,
                 power_on=True,
-                all_eulas_accepted=None):
+                all_eulas_accepted=None,
+                source_delete=False):
         """Recompose the vApp and add vms.
 
         :param dict specs: vm specifications, see `to_sourced_item()` method
@@ -916,8 +917,11 @@ class VApp(object):
         params = E.RecomposeVAppParams(
             deploy='true' if deploy else 'false',
             powerOn='true' if power_on else 'false')
+
         for spec in specs:
             params.append(self.to_sourced_item(spec))
+        if source_delete:
+            params.SourcedItem.set('sourceDelete', 'true')
         if all_eulas_accepted is not None:
             params.append(E.AllEULAsAccepted(all_eulas_accepted))
         return self.client.post_linked_resource(
@@ -1301,7 +1305,7 @@ class VApp(object):
                                 dns_suffix=None):
         """Add DNS details to vApp network.
 
-        :param str network_name: name of vApp network.
+        :param str network_name: name of App network.
         :param str primary_dns_ip: primary DNS IP.
         :param str secondary_dns_ip: secondary DNS IP.
         :param str dns_suffix: DNS suffix.

@@ -635,10 +635,46 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
+        return self._clone(source_vapp_name=source_vapp_name,
+                    target_vapp_name=target_vapp_name,
+                    target_vm_name=target_vm_name,
+                    source_delete=False)
+
+    def move_to(self, source_vapp_name, target_vapp_name, target_vm_name):
+        """Move VM from one vApp to another.
+
+        :param: str source vApp name
+        :param: str target vApp name
+        :param: str target VM name
+
+        :return: an object containing EntityType.TASK XML data which represents
+                    the asynchronous task that is moving VM
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        return self._clone(source_vapp_name=source_vapp_name,
+                    target_vapp_name=target_vapp_name,
+                    target_vm_name=target_vm_name,
+                    source_delete=True)
+
+    def _clone(self, source_vapp_name, target_vapp_name, target_vm_name,
+              source_delete):
+        """Clone VM from one vApp to another.
+
+        :param: str source vApp name
+        :param: str target vApp name
+        :param: str target VM name
+        :param: bool source delete option
+
+        :return: an object containing EntityType.TASK XML data which represents
+                 the asynchronous task that is copying VM
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         from pyvcloud.vcd.vapp import VApp
         vm_resource = self.get_resource()
         resource_type = ResourceType.VAPP.value
-        if self.is_powered_off(vm_resource):
+        if self.is_powered_off(vm_resource) or source_delete:
             records1 = self.___validate_vapp_records(
                 vapp_name=source_vapp_name, resource_type=resource_type)
 
@@ -660,7 +696,8 @@ class VM(object):
             return target_vapp.add_vms([spec],
                                        deploy=False,
                                        power_on=False,
-                                       all_eulas_accepted=True
+                                       all_eulas_accepted=True,
+                                       source_delete=source_delete
                                        )
         else:
             raise InvalidStateException("VM Must be powered off.")

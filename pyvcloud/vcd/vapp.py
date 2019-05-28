@@ -896,7 +896,8 @@ class VApp(object):
                 specs,
                 deploy=True,
                 power_on=True,
-                all_eulas_accepted=None):
+                all_eulas_accepted=None,
+                source_delete=False):
         """Recompose the vApp and add vms.
 
         :param dict specs: vm specifications, see `to_sourced_item()` method
@@ -916,8 +917,11 @@ class VApp(object):
         params = E.RecomposeVAppParams(
             deploy='true' if deploy else 'false',
             powerOn='true' if power_on else 'false')
+
         for spec in specs:
             params.append(self.to_sourced_item(spec))
+        if source_delete:
+            params.SourcedItem.set('sourceDelete','true')
         if all_eulas_accepted is not None:
             params.append(E.AllEULAsAccepted(all_eulas_accepted))
         return self.client.post_linked_resource(
@@ -1498,3 +1502,35 @@ class VApp(object):
             vdc_resource, RelationType.ADD, EntityType.CLONE_VAPP_PARAMS.value,
             resource)
         return result.Tasks.Task[0]
+
+    def move_vm(self,
+                specs,
+                deploy=True,
+                power_on=True,
+                all_eulas_accepted=None):
+        """Recompose the vApp and move vm.
+
+        :param dict specs: vm specifications, see `to_sourced_item()` method
+            for specification details.
+        :param bool deploy: True, if the vApp should be deployed at
+            instantiation.
+        :param power_on: (bool): True if the vApp should be powered-on at
+            instantiation
+        :param bool all_eulas_accepted: True confirms acceptance of all
+            EULAs in the vApp.
+
+        :return: an object containing EntityType.VAPP XML data representing the
+            updated vApp.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        params = E.RecomposeVAppParams(
+            deploy='true' if deploy else 'false',
+            powerOn='true' if power_on else 'false')
+        for spec in specs:
+            params.append(self.to_sourced_item(spec))
+        if all_eulas_accepted is not None:
+            params.append(E.AllEULAsAccepted(all_eulas_accepted))
+        return self.client.post_linked_resource(
+            self.resource, RelationType.RECOMPOSE,
+            EntityType.RECOMPOSE_VAPP_PARAMS.value, params)

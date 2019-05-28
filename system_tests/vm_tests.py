@@ -424,14 +424,34 @@ class TestVM(BaseTestCase):
         result = TestVM._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def test_0073_move_to(self):
+        """Test the method related to move VM from one vapp to another.
+        This test passes if move VM operation is successful.
+        """
+        target_vapp_name = TestVM._test_vapp_name
+
+        source_vapp_name = TestVM._empty_vapp_name
+        target_vm_name = TestVM._target_vm_name
+
+        vapp = VApp(TestVM._client, href=TestVM._empty_vapp_href)
+        vm_resource = vapp.get_vm(TestVM._target_vm_name)
+        TestVM._target_vm_href = vm_resource.get('href')
+
+        vm = VM(TestVM._client, href=TestVM._target_vm_href)
+        task = vm.move_to(source_vapp_name=source_vapp_name,
+                   target_vapp_name=target_vapp_name,
+                   target_vm_name=target_vm_name)
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
     def test_0074_delete_vm(self):
         """Test the method related to delete VM.
         This test passes if delete VM operation is successful.
         """
-        target_vapp = VApp(TestVM._client, href=TestVM._empty_vapp_href)
-        vm_resource = target_vapp.get_vm(TestVM._target_vm_name)
-        TestVM._test_vapp_target_vm_href = vm_resource.get('href')
-        vm = VM(TestVM._client, href=TestVM._test_vapp_target_vm_href)
+        vapp = VApp(TestVM._client, href=TestVM._test_vapp_href)
+        vm_resource = vapp.get_vm(TestVM._target_vm_name)
+        TestVM._target_vm_href = vm_resource.get('href')
+        vm = VM(TestVM._client, href=TestVM._target_vm_href)
         task = vm.delete()
         result = TestVM._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)

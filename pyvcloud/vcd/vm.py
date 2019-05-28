@@ -636,9 +636,9 @@ class VM(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         return self._clone(source_vapp_name=source_vapp_name,
-                    target_vapp_name=target_vapp_name,
-                    target_vm_name=target_vm_name,
-                    source_delete=False)
+                           target_vapp_name=target_vapp_name,
+                           target_vm_name=target_vm_name,
+                           source_delete=False)
 
     def move_to(self, source_vapp_name, target_vapp_name, target_vm_name):
         """Move VM from one vApp to another.
@@ -653,12 +653,12 @@ class VM(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         return self._clone(source_vapp_name=source_vapp_name,
-                    target_vapp_name=target_vapp_name,
-                    target_vm_name=target_vm_name,
-                    source_delete=True)
+                           target_vapp_name=target_vapp_name,
+                           target_vm_name=target_vm_name,
+                           source_delete=True)
 
     def _clone(self, source_vapp_name, target_vapp_name, target_vm_name,
-              source_delete):
+               source_delete):
         """Clone VM from one vApp to another.
 
         :param: str source vApp name

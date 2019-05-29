@@ -1531,3 +1531,23 @@ class VApp(object):
         """
         vapp_name = self.resource.get('name')
         return self.vapp_clone(vdc_href, vapp_name, None, True)
+
+    def create_snapshot(self, memory=False, quiesce=False):
+        """Create snapshot of vapp.
+
+        :param bool memory: True, if the snapshot should include the virtual
+            machine's memory.
+        :param bool quiesce: True, if the file system of the virtual machine
+            should be quiesced before the snapshot is created. Requires VMware
+            tools to be installed on the vm.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is moving the vApp.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        snapshot_vapp_params = E.CreateSnapshotParams()
+        snapshot_vapp_params.set('memory', str(memory).lower())
+        snapshot_vapp_params.set('quiesce', str(quiesce).lower())
+        return self.client.post_linked_resource(
+            self.resource, RelationType.SNAPSHOT_CREATE,
+            EntityType.SNAPSHOT_CREATE.value, snapshot_vapp_params)

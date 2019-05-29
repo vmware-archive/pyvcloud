@@ -925,14 +925,23 @@ class TestVApp(BaseTestCase):
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
         target_vdc = org.get_vdc(TestVApp._ovdc_name)
-        target_vdc_obj = VDC(TestVApp._sys_admin_client,
-                             href=target_vdc.get('href'))
+        target_vdc_obj = VDC(
+            TestVApp._sys_admin_client, href=target_vdc.get('href'))
         vapp_resource = target_vdc_obj.get_vapp(TestVApp._customized_vapp_name)
         vapp = VApp(TestVApp._sys_admin_client, resource=vapp_resource)
 
         target_vdc = Environment.get_test_vdc(TestVApp._client)
         logger.debug('Move back vApp ' + TestVApp._customized_vapp_name)
         task = vapp.move_to(target_vdc.href)
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0170_create_snapshot(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+        task = vapp.create_snapshot()
         result = TestVApp._sys_admin_client.get_task_monitor(
         ).wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)

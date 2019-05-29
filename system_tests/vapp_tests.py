@@ -939,11 +939,9 @@ class TestVApp(BaseTestCase):
 
     def test_0170_create_snapshot(self):
         vapp = Environment.get_vapp_in_test_vdc(
-            client=TestVApp._sys_admin_client,
-            vapp_name=TestVApp._customized_vapp_name)
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
         task = vapp.create_snapshot()
-        result = TestVApp._sys_admin_client.get_task_monitor(
-        ).wait_for_success(task)
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     @developerModeAware

@@ -947,20 +947,14 @@ class TestVApp(BaseTestCase):
     def test_0180_snapshot_revert_to_current(self):
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
-        task = vapp.create_snapshot()
-        result = TestVApp._client.get_task_monitor().wait_for_success(task)
-        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         task = vapp.snapshot_revert_to_current()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0190_snapshot_remove_all(self):
+    def test_0190_snapshot_remove(self):
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
-        task = vapp.create_snapshot()
-        result = TestVApp._client.get_task_monitor().wait_for_success(task)
-        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
-        task = vapp.snapshot_remove_all()
+        task = vapp.snapshot_remove()
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 

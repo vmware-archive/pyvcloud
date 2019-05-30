@@ -1564,8 +1564,8 @@ class VApp(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.SNAPSHOT_REVERT_TO_CURRENT, None, None)
 
-    def snapshot_remove_all(self):
-        """Removes all user created snapshots of a vapp.
+    def snapshot_remove(self):
+        """Remove snapshots of a vapp.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task removing the snapshots.

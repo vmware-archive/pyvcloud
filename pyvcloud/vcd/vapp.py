@@ -1551,3 +1551,27 @@ class VApp(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.SNAPSHOT_CREATE,
             EntityType.SNAPSHOT_CREATE.value, snapshot_vapp_params)
+
+    def snapshot_revert_to_current(self):
+        """Reverts a vapp to the current snapshot, if any.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is reverting the snapshot.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.SNAPSHOT_REVERT_TO_CURRENT, None, None)
+
+    def snapshot_remove(self):
+        """Remove snapshots of a vapp.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task removing the snapshots.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.SNAPSHOT_REMOVE_ALL, None, None)

@@ -525,6 +525,9 @@ class TestVM(BaseTestCase):
         if TestVM._empty_vapp_href is not None:
             vapps_to_delete.append(TestVM._empty_vapp_name)
 
+        vdc = Environment.get_test_vdc(TestVM._sys_admin_client)
+        vdc.delete_disk(name=self._idisk_name)
+
         vdc = Environment.get_test_vdc(TestVM._client)
 
         for vapp_name in vapps_to_delete:

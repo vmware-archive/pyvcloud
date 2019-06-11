@@ -512,6 +512,15 @@ class TestVM(BaseTestCase):
         result = TestVM._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def test_0120_detach_independent_disk(self):
+        vdc = Environment.get_test_vdc(TestVM._client)
+        idisk = vdc.get_disk(name=TestVM._idisk_name)
+        task = TestVM._test_vapp. \
+            detach_disk_from_vm(disk_href=idisk.get('href'),
+                                vm_name=TestVM._test_vapp_first_vm_name)
+        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Delete the vApp created during setup.

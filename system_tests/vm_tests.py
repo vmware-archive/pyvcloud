@@ -61,6 +61,11 @@ class TestVM(BaseTestCase):
 
     _target_vm_name = 'targetvm'
 
+    _idisk_name = 'SCSI'
+    _idisk_size = '5000'
+    _idisk_description = '5Mb SCSI disk'
+
+
     def test_0000_setup(self):
         """Setup the vms required for the other tests in this module.
 
@@ -91,6 +96,7 @@ class TestVM(BaseTestCase):
         self.assertIsNotNone(TestVM._test_vapp_href)
 
         vapp = VApp(TestVM._client, href=TestVM._test_vapp_href)
+        TestVM._test_vapp = vapp
         vm_resource = vapp.get_vm(TestVM._test_vapp_first_vm_name)
         TestVM._test_vapp_first_vm_href = vm_resource.get('href')
 
@@ -104,6 +110,11 @@ class TestVM(BaseTestCase):
                               description=TestVM._empty_vapp_description)
         TestVM._empty_vapp_owner_name = Environment. \
             get_username_for_role_in_test_org(TestVM._test_runner_role)
+
+        #Create independent disk
+        TestVM._idisk = vdc.create_disk(name=self._idisk_name,
+                                 size=self._idisk_size,
+                                 description=self._idisk_description)
 
     def test_0010_list_vms(self):
         """Test the method VApp.get_all_vms().
@@ -486,9 +497,18 @@ class TestVM(BaseTestCase):
         vm.reload()
         self.assertTrue(len(vm.list_nics()) == 1)
 
-    def def_0100_upgrade_virtual_hardware(self):
+    def test_0100_upgrade_virtual_hardware(self):
         vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
         task = vm.upgrade_virtual_hardware()
+        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0110_attach_independent_disk(self):
+        vdc = Environment.get_test_vdc(TestVM._client)
+        idisk = vdc.get_disk(name=TestVM._idisk_name)
+        task = TestVM._test_vapp.\
+            attach_disk_to_vm(disk_href=idisk.get('href'),
+                              vm_name=TestVM._test_vapp_first_vm_name)
         result = TestVM._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
@@ -504,6 +524,9 @@ class TestVM(BaseTestCase):
 
         if TestVM._empty_vapp_href is not None:
             vapps_to_delete.append(TestVM._empty_vapp_name)
+
+        vdc = Environment.get_test_vdc(TestVM._sys_admin_client)
+        vdc.delete_disk(name=self._idisk_name)
 
         vdc = Environment.get_test_vdc(TestVM._client)
 

@@ -1575,3 +1575,20 @@ class VApp(object):
         self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.SNAPSHOT_REMOVE_ALL, None, None)
+
+    def get_vapp_network_list(self):
+        """Returns the list of vapp network defined in the vApp.
+
+        :return: list of the vapp network name.
+
+        :rtype: list
+        """
+        self.get_resource()
+        vapp_network_list = []
+        for network_config in self.resource.NetworkConfigSection.NetworkConfig:
+            if network_config.get('networkName') != 'none':
+                vapp_network_list.append({
+                    'name':
+                    network_config.get('networkName')
+                })
+        return vapp_network_list

@@ -43,7 +43,11 @@ class System(object):
         if admin_resource is not None:
             self.admin_href = self.client.get_admin().get('href')
 
-    def create_org(self, org_name, full_org_name, is_enabled=False):
+    def create_org(self,
+                   org_name,
+                   full_org_name,
+                   is_enabled=False,
+                   settings=None):
         """Create new organization.
 
         :param str org_name: name of the organization.
@@ -60,8 +64,14 @@ class System(object):
         org_params = E.AdminOrg(
             E.FullName(full_org_name),
             E.IsEnabled(is_enabled),
-            E.Settings,
             name=org_name)
+
+        # Append setting if provided
+        if settings is None:
+            org_params.append(E.Settings())
+        else:
+            org_params.append(settings.get_settings())
+
         return self.client.post_linked_resource(
             self.admin_resource, RelationType.ADD, EntityType.ADMIN_ORG.value,
             org_params)

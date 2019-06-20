@@ -1,8 +1,8 @@
 vcd:
-  host: bos1-vcd-sp-static-202-34.eng.vmware.com
+  host: HOST
   org: System
-  user: administrator
-  password: '********'
+  user: USERNAME
+  password: 'PASSWORD'
   api_version: '29.0'
   catalog: 'cse'
   template: 'ubuntu-16.04-server-cloudimg-amd64.ova'

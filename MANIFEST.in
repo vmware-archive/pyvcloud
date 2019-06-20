@@ -3,4 +3,4 @@ include LICENSE.txt
 include README.md
 include requirements.txt
 include open_source_license_pyvCloud_20.0.0_GA.txt
-recursive-include cloudesire_pyvcloud *.py
+recursive-include pyvcloud *.py

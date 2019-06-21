@@ -813,6 +813,12 @@ class TestVApp(BaseTestCase):
         list_ip_address = vapp.list_ip_allocations(TestVApp._vapp_network_name)
         self.assertTrue(len(list_ip_address) > 0)
 
+    def test_0129_get_vapp_network_list(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        list_of_vapp_net = vapp.get_vapp_network_list()
+        self.assertNotEqual(len(list_of_vapp_net), 0)
+
     def test_0130_delete_vapp_network(self):
         """Test the method vapp.delete_vapp_network().
 

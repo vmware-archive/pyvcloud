@@ -67,17 +67,22 @@ def org_to_dict(org):
     result['id'] = extract_id(org.get('id'))
     result['full_name'] = str('%s' % org.FullName)
     result['description'] = str('%s' % org.Description)
-    result['vdcs'] = [
-        str(n.name) for n in get_links(org, media_type=EntityType.VDC.value)
-    ]
+    if org.client.get_api_version() < '33.0':
+        vdc_links = get_links(org, media_type=EntityType.VDC.value)
+    else:
+        vdc_links = org.client.get_links_33(
+            org, media_type=EntityType.RECORDS.value, type='vdc')
+    result['vdcs'] = [str(n.name) for n in vdc_links]
     result['org_networks'] = [
         str(n.name)
         for n in get_links(org, media_type=EntityType.ORG_NETWORK.value)
     ]
-    result['catalogs'] = [
-        str(n.name)
-        for n in get_links(org, media_type=EntityType.CATALOG.value)
-    ]
+    if org.client.get_api_version() < '33.0':
+        catalog_links = get_links(org, media_type=EntityType.CATALOG.value)
+    else:
+        catalog_links = org.client.get_links_33(
+            org, media_type=EntityType.RECORDS.value, type='catalog')
+    result['catalogs'] = [str(n.name) for n in catalog_links]
     return result
 
 

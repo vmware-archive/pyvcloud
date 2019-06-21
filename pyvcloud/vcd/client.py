@@ -100,12 +100,14 @@ class ApiVersion(Enum):
     VERSION_30 = '30.0'
     VERSION_31 = '31.0'
     VERSION_32 = '32.0'
+    VERSION_33 = '33.0'
 
 
 # Important! Values must be listed in ascending order.
 API_CURRENT_VERSIONS = [
     ApiVersion.VERSION_29.value, ApiVersion.VERSION_30.value,
-    ApiVersion.VERSION_31.value, ApiVersion.VERSION_32.value
+    ApiVersion.VERSION_31.value, ApiVersion.VERSION_32.value,
+    ApiVersion.VERSION_33.value
 ]
 
 
@@ -1471,6 +1473,41 @@ class Client(object):
             raise ClientException(
                 'The current user does not have access to the resource (%s).' %
                 str(wk_type).split('.')[-1])
+
+    def get_links_33(self,
+                     resource,
+                     rel=RelationType.DOWN,
+                     media_type=None,
+                     type=None):
+        """Returns all the links of the specified rel and type in the resource.
+
+        :param lxml.objectify.ObjectifiedElement resource: the resource with
+            the links.
+        :param RelationType rel: the rel of the desired link.
+        :param str media_type: media type of content.
+        :param str type: type of query.
+        :return: list of lxml.objectify.ObjectifiedElement objects, where each
+            object contains a Link XML element. Result could include an empty
+            list.
+        :rtype: list
+        """
+        links = get_links(resource=resource, media_type=media_type)
+        for query_link in links:
+            link_href = query_link.href
+            list_of_links = []
+            if type in link_href.lower():
+                link_part = link_href.split('&')
+                if len(link_part) == 2:
+                    link_href = link_part[0] + '&;' + link_part[1]
+                record_resource = self.get_resource(link_href)
+                for record in record_resource.getchildren():
+                    if record.tag != '{http://www.vmware.com/vcloud/v1.5}Link':
+                        link = E.Link()
+                        link.set('name', record.get('name'))
+                        link.set('href', record.get('href'))
+                        link.set('rel', rel.value)
+                        list_of_links.append(Link(link))
+                return list_of_links
 
 
 def find_link(resource, rel, media_type, fail_if_absent=True, name=None):

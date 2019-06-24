@@ -164,13 +164,13 @@ class Org(object):
         """
         if self.resource is None:
             self.reload()
-        if self.client.get_api_version() < '33.0':
+        if self.client.get_api_version() < ApiVersion.VERSION_33.value:
             links = get_links(
                 self.resource,
                 rel=RelationType.DOWN,
                 media_type=EntityType.CATALOG.value)
         else:
-            links = self.client.get_links_33(
+            links = self.client.get_resource_link_from_query_object(
                 self.resource,
                 media_type=EntityType.RECORDS.value,
                 type='catalog')
@@ -1574,13 +1574,13 @@ class Org(object):
         """
         if self.resource is None:
             self.reload()
-        if self.client.get_api_version() < '33.0':
+        if self.client.get_api_version() < ApiVersion.VERSION_33.value:
             links = get_links(
                 self.resource,
                 rel=RelationType.DOWN,
                 media_type=EntityType.VDC.value)
         else:
-            links = self.client.get_links_33(
+            links = self.client.get_resource_link_from_query_object(
                 self.resource, media_type=EntityType.RECORDS.value, type='vdc')
         for link in links:
             if name == link.name:
@@ -1603,10 +1603,10 @@ class Org(object):
             self.reload()
         result = []
         links = []
-        if self.client.get_api_version() < '33.0':
+        if self.client.get_api_version() < ApiVersion.VERSION_33.value:
             links = get_links(self.resource, media_type=EntityType.VDC.value)
         else:
-            links = self.client.get_links_33(
+            links = self.client.get_resource_link_from_query_object(
                 self.resource, media_type=EntityType.RECORDS.value, type='vdc')
         for v in links:
             result.append({'name': v.name, 'href': v.href})

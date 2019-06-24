@@ -26,6 +26,7 @@ from pygments import formatters
 from pygments import highlight
 from pygments import lexers
 
+from pyvcloud.vcd.client import ApiVersion
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
@@ -67,23 +68,25 @@ def org_to_dict(org):
     result['id'] = extract_id(org.get('id'))
     result['full_name'] = str('%s' % org.FullName)
     result['description'] = str('%s' % org.Description)
-    if org.client.get_api_version() < '33.0':
-        vdc_links = get_links(org, media_type=EntityType.VDC.value)
-    else:
-        vdc_links = org.client.get_links_33(
-            org, media_type=EntityType.RECORDS.value, type='vdc')
-    result['vdcs'] = [str(n.name) for n in vdc_links]
     result['org_networks'] = [
         str(n.name)
         for n in get_links(org, media_type=EntityType.ORG_NETWORK.value)
     ]
-    if org.client.get_api_version() < '33.0':
+    org_to_dict_vdc_catalog(org, result=result)
+    return result
+
+
+def org_to_dict_vdc_catalog(org, result):
+    if org.client.get_api_version() < ApiVersion.VERSION_33.value:
+        vdc_links = get_links(org, media_type=EntityType.VDC.value)
         catalog_links = get_links(org, media_type=EntityType.CATALOG.value)
     else:
-        catalog_links = org.client.get_links_33(
+        vdc_links = org.client.get_resource_link_from_query_object(
+            org, media_type=EntityType.RECORDS.value, type='vdc')
+        catalog_links = org.client.get_resource_link_from_query_object(
             org, media_type=EntityType.RECORDS.value, type='catalog')
+    result['vdcs'] = [str(n.name) for n in vdc_links]
     result['catalogs'] = [str(n.name) for n in catalog_links]
-    return result
 
 
 def vdc_to_dict(vdc, access_control_settings=None):

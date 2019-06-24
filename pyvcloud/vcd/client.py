@@ -1474,12 +1474,20 @@ class Client(object):
                 'The current user does not have access to the resource (%s).' %
                 str(wk_type).split('.')[-1])
 
-    def get_links_33(self,
-                     resource,
-                     rel=RelationType.DOWN,
-                     media_type=None,
-                     type=None):
+    def get_resource_link_from_query_object(self,
+                                            resource,
+                                            rel=RelationType.DOWN,
+                                            media_type=None,
+                                            type=None):
         """Returns all the links of the specified rel and type in the resource.
+
+        This method take resource and find the qury link of type in resources.
+        It processed query link and get query result records.
+        It search href and name of non link type from query result records.
+        Makes list of link and return.
+        Ex: In API 33 org contain vdc qury link.
+        It take org rsources and find the qury link for vdc.
+        Process the quey link and fetch all vdc link and make a list of link.
 
         :param lxml.objectify.ObjectifiedElement resource: the resource with
             the links.

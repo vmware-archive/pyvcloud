@@ -164,10 +164,16 @@ class Org(object):
         """
         if self.resource is None:
             self.reload()
-        links = get_links(
-            self.resource,
-            rel=RelationType.DOWN,
-            media_type=EntityType.CATALOG.value)
+        if self.client.get_api_version() < ApiVersion.VERSION_33.value:
+            links = get_links(
+                self.resource,
+                rel=RelationType.DOWN,
+                media_type=EntityType.CATALOG.value)
+        else:
+            links = self.client.get_resource_link_from_query_object(
+                self.resource,
+                media_type=EntityType.RECORDS.value,
+                type='catalog')
         for link in links:
             if name == link.name:
                 if is_admin_operation:
@@ -1568,10 +1574,14 @@ class Org(object):
         """
         if self.resource is None:
             self.reload()
-        links = get_links(
-            self.resource,
-            rel=RelationType.DOWN,
-            media_type=EntityType.VDC.value)
+        if self.client.get_api_version() < ApiVersion.VERSION_33.value:
+            links = get_links(
+                self.resource,
+                rel=RelationType.DOWN,
+                media_type=EntityType.VDC.value)
+        else:
+            links = self.client.get_resource_link_from_query_object(
+                self.resource, media_type=EntityType.RECORDS.value, type='vdc')
         for link in links:
             if name == link.name:
                 if is_admin_operation:
@@ -1592,6 +1602,12 @@ class Org(object):
         if self.resource is None:
             self.reload()
         result = []
-        for v in get_links(self.resource, media_type=EntityType.VDC.value):
+        links = []
+        if self.client.get_api_version() < ApiVersion.VERSION_33.value:
+            links = get_links(self.resource, media_type=EntityType.VDC.value)
+        else:
+            links = self.client.get_resource_link_from_query_object(
+                self.resource, media_type=EntityType.RECORDS.value, type='vdc')
+        for v in links:
             result.append({'name': v.name, 'href': v.href})
         return result

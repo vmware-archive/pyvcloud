@@ -1481,13 +1481,13 @@ class Client(object):
                                             type=None):
         """Returns all the links of the specified rel and type in the resource.
 
-        This method take resource and find the qury link of type in resources.
+        This method take resource and find the query link of type in resources.
         It processed query link and get query result records.
         It search href and name of non link type from query result records.
         Makes list of link and return.
-        Ex: In API 33 org contain vdc qury link.
-        It take org rsources and find the qury link for vdc.
-        Process the quey link and fetch all vdc link and make a list of link.
+        Ex: In API 33 org contain vdc query link.
+        It take org resources and find the query link for vdc.
+        Process the query link and fetch all vdc link and make a list of link.
 
         :param lxml.objectify.ObjectifiedElement resource: the resource with
             the links.

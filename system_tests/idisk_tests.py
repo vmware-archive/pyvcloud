@@ -40,7 +40,7 @@ class TestDisk(BaseTestCase):
     _idisk1_description = 'First disk'
     _idisk1_id = None
     _idisk1_new_name = 'test_idisk_new_name_' + str(uuid1())
-    _idisk1_new_size = '2097152'
+    _idisk1_new_size = '3145728'
     _idisk1_new_description = 'New description of first disk'
     _idisk2_name = 'test_idisk_' + str(uuid1())
     _idisk2_size = '2097152'

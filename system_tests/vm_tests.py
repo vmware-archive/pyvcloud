@@ -62,7 +62,7 @@ class TestVM(BaseTestCase):
     _target_vm_name = 'targetvm'
 
     _idisk_name = 'SCSI'
-    _idisk_size = '5000'
+    _idisk_size = '5242880'
     _idisk_description = '5Mb SCSI disk'
 
 

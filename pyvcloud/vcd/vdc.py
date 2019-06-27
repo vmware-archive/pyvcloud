@@ -15,6 +15,7 @@
 from lxml import etree
 
 from pyvcloud.vcd.acl import Acl
+from pyvcloud.vcd.client import ApiVersion
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EdgeGatewayType
@@ -30,6 +31,7 @@ from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
+from pyvcloud.vcd.client import SIZE_1MB
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
@@ -500,8 +502,12 @@ class VDC(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         self.get_resource()
-
-        disk_params = E.DiskCreateParams(E.Disk(name=name, size=str(size)))
+        if self.client.get_api_version() < ApiVersion.VERSION_33.value:
+            disk = E.Disk(name=name, size=str(size))
+        else:
+            size = int(int(size) / SIZE_1MB)
+            disk = E.Disk(name=name, sizeMb=str(size))
+        disk_params = E.DiskCreateParams(disk)
         if iops is not None:
             disk_params.Disk.set('iops', iops)
 
@@ -564,9 +570,14 @@ class VDC(object):
             disk_params.set('name', disk.get('name'))
 
         if new_size is not None:
-            disk_params.set('size', str(new_size))
+            size = str(new_size)
         else:
-            disk_params.set('size', disk.get('size'))
+            size = disk.get('size')
+        if self.client.get_api_version() < ApiVersion.VERSION_33.value:
+            disk_params.set('size', size)
+        else:
+            size = int(int(size) / SIZE_1MB)
+            disk_params.set('sizeMb', str(size))
 
         if new_description is not None:
             disk_params.append(E.Description(new_description))

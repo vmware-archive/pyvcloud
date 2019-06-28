@@ -770,7 +770,7 @@ def get_admin_href(href):
 
 
 def is_admin(href):
-    """Returns True is provided href has /api/admin into it.
+    """Returns True if provided href has /api/admin into it.
 
     :param str href: href
 

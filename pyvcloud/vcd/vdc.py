@@ -40,6 +40,7 @@ from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import cidr_to_netmask
 from pyvcloud.vcd.utils import get_admin_href
+from pyvcloud.vcd.utils import is_admin
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 
@@ -62,9 +63,11 @@ class VDC(object):
                 "or None")
         self.href = href
         self.resource = resource
+
         if resource is not None:
             self.name = resource.get('name')
             self.href = resource.get('href')
+        self.is_admin = is_admin(self.href)
         self.href_admin = get_admin_href(self.href)
 
     def get_resource(self):
@@ -219,8 +222,11 @@ class VDC(object):
         self.get_resource()
 
         # Get hold of the template
+        media_type = EntityType.ORG.value
+        if self.is_admin:
+            media_type = EntityType.ADMIN_ORG.value
         org_href = find_link(self.resource, RelationType.UP,
-                             EntityType.ORG.value).href
+                             media_type).href
         org = Org(self.client, href=org_href)
         catalog_item = org.get_catalog_item(catalog, template)
         template_resource = self.client.get_resource(
@@ -423,9 +429,16 @@ class VDC(object):
         vapp_template_params.append(sourced_item)
 
         vapp_template_params.append(E.AllEULAsAccepted(all_eulas_accepted))
+        non_admin_resource = self.resource
+        if self.is_admin:
+            alternate_href = find_link(self.resource,
+                                       rel=RelationType.ALTERNATE,
+                                       media_type=EntityType.VDC.value).href
+            non_admin_resource = self.client.get_resource(
+                alternate_href)
 
         return self.client.post_linked_resource(
-            self.resource, RelationType.ADD,
+            non_admin_resource, RelationType.ADD,
             EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value,
             vapp_template_params)
 

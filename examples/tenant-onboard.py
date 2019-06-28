@@ -67,10 +67,10 @@ def _fill_in_netpool_default(client, vdc_kwargs):
             raise Exception("Unable to find default netpool")
 
 # Collect arguments.
-if len(sys.argv) != 2:
-    print("Usage: python3 {0} config_file".format(sys.argv[0]))
-    sys.exit(1)
-config_yaml = sys.argv[1]
+#if len(sys.argv) != 2:Catalog does not exist
+    #print("Usage: python3 {0} config_file".format(sys.argv[0]))
+    #sys.exit(1)
+config_yaml = 'tenant.yaml'
 
 # Load the YAML configuration and convert to an object with properties for
 # top-level entries.  Values are either scalar variables, dictionaries,
@@ -158,9 +158,9 @@ except Exception:
 # permissions.  As with VDC's we reload the org if we create a catalog
 # so that it's visible in future calls.
 try:
-    catalog_resource = org.get_catalog_resource(cfg.catalog['name'])
+    catalog_resource = org.get_catalog(cfg.catalog['name'])
     print("Catalog already exists: {0}".format(cfg.catalog['name']))
-except Exception:
+except Exception as e:
     print("Catalog does not exist, creating: {0}".format(cfg.catalog['name']))
     catalog_kwargs = cfg.catalog
     catalog_resource = org.create_catalog(**catalog_kwargs)

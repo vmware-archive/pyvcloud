@@ -769,6 +769,23 @@ def get_admin_href(href):
         return href.replace('/api/', '/api/admin/')
 
 
+def is_admin(href):
+    """Returns True is provided href has /api/admin into it.
+
+    :param str href: href
+
+    :return: True if admin else False
+
+    :rtype: Boolean
+    """
+    if '/api/admin/extension/' in href:
+        return False
+    elif '/api/admin/' in href:
+        return True
+    else:
+        return False
+
+
 def get_admin_extension_href(href):
     """Returns sys admin version of a given vCD url.
 

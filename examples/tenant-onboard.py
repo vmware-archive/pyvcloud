@@ -67,10 +67,10 @@ def _fill_in_netpool_default(client, vdc_kwargs):
             raise Exception("Unable to find default netpool")
 
 # Collect arguments.
-#if len(sys.argv) != 2:Catalog does not exist
-    #print("Usage: python3 {0} config_file".format(sys.argv[0]))
-    #sys.exit(1)
-config_yaml = 'tenant.yaml'
+if len(sys.argv) != 2:
+    print("Usage: python3 {0} config_file".format(sys.argv[0]))
+    sys.exit(1)
+config_yaml = sys.argv[1]
 
 # Load the YAML configuration and convert to an object with properties for
 # top-level entries.  Values are either scalar variables, dictionaries,

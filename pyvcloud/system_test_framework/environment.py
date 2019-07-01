@@ -781,8 +781,9 @@ class Environment(object):
                 name=catalog_name, item_name=media_name)
             media = catalog_author_client.get_resource(
                 catalog_item.Entity.get('href'))
-            catalog_author_client.get_task_monitor().wait_for_success(
-                task=media.Tasks.Task[0])
+            if hasattr(media, "Tasks"):
+                catalog_author_client.get_task_monitor().wait_for_success(
+                    task=media.Tasks.Task[0])
 
             cls._media_resource = org.get_catalog_item(catalog_name,
                                                        media_name)

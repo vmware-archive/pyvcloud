@@ -182,13 +182,14 @@ class Org(object):
                     self.resource,
                     media_type=EntityType.RECORDS.value,
                     type='catalog')
-                for link in links:
-                    if name == link.name:
-                        if is_admin_operation:
-                            href = get_admin_href(link.href)
-                        else:
-                            href = link.href
-                        return self.client.get_resource(href)
+        if links:
+            for link in links:
+                if name == link.name:
+                    if is_admin_operation:
+                        href = get_admin_href(link.href)
+                    else:
+                        href = link.href
+                    return self.client.get_resource(href)
         raise EntityNotFoundException('Catalog not found (or)'
                                       ' Access to resource is forbidden')
 

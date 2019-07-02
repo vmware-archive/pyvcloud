@@ -512,6 +512,11 @@ class TestVM(BaseTestCase):
         result = TestVM._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def test_0120_general_setting_detail(self):
+        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        result = vm.general_setting_detail()
+        self.assertNotEqual(len(result), 0)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Delete the vApp created during setup.

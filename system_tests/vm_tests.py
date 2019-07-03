@@ -517,6 +517,11 @@ class TestVM(BaseTestCase):
         result = vm.general_setting_detail()
         self.assertNotEqual(len(result), 0)
 
+    def test_0130_list_storage_profile(self):
+        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        result = vm.list_storage_profile()
+        self.assertNotEqual(len(result), 0)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Delete the vApp created during setup.

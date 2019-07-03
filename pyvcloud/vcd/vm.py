@@ -757,3 +757,25 @@ class VM(object):
         general_setting['Storage Policy'] = self.resource.StorageProfile.get(
             'name')
         return general_setting
+
+    def list_storage_profile(self):
+        """Get the list of storage profile in VM.
+
+        :return: list of stotage profile name of storage profile.
+        e.g.
+        [{'name': 'diskpolicy1'}, {'name': 'diskpolicy2'}]
+        :rtype: list
+        """
+        storage_profile = []
+        self.get_resource()
+        if hasattr(self.resource.VmSpecSection, 'DiskSection'):
+            if hasattr(self.resource.VmSpecSection.DiskSection,
+                       'DiskSettings'):
+                for disk_setting in \
+                        self.resource.VmSpecSection.DiskSection.DiskSettings:
+                    if hasattr(disk_setting, 'StorageProfile'):
+                        storage_profile.append({
+                            'name':
+                            disk_setting.StorageProfile.get('name')
+                        })
+        return storage_profile

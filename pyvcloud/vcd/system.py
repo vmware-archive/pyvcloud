@@ -79,7 +79,9 @@ class System(object):
         """
         org_resource = self.client.get_org_by_name(org_name)
         org_admin_href = get_admin_href(org_resource.get('href'))
-        return self.client.delete_resource(org_admin_href, force, recursive)
+        return self.client.delete_resource(org_admin_href,
+                                           force=force,
+                                           recursive=recursive)
 
     def list_provider_vdcs(self):
         """List provider vdcs in the system organization.

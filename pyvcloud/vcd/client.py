@@ -714,7 +714,8 @@ class Client(object):
         self._task_monitor = None
         self._verify_ssl_certs = verify_ssl_certs
 
-        self._logger = logging.getLogger(log_file)
+        self._logger = None
+        self._get_defaut_logger(file_name=log_file)
         self._logger.setLevel(logging.DEBUG)
         # This makes sure that we don't append a new handler to the logger
         # every time we create a new client.
@@ -742,6 +743,14 @@ class Client(object):
         self.fsencoding = sys.getfilesystemencoding()
 
         self._is_sysadmin = False
+
+    def _get_defaut_logger(self, file_name, log_level=logging.DEBUG,
+                           max_bytes=30000000, backup_count=30):
+        self._logger = logging.getLogger(file_name)
+        default_log_handler = handlers.RotatingFileHandler(
+            filename=file_name, maxBytes=max_bytes, backupCount=backup_count)
+        default_log_handler.setLevel(log_level)
+        self._logger.addHandler(default_log_handler)
 
     def _get_response_request_id(self, response):
         """Extract request id of a request to vCD from the response.

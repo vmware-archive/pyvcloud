@@ -16,6 +16,8 @@
 import unittest
 from uuid import uuid1
 
+from lxml import etree
+from lxml import objectify
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import developerModeAware
@@ -26,6 +28,7 @@ from pyvcloud.system_test_framework.utils import create_empty_vapp
 
 from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import NetworkAdapterType
+from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.client import VmNicProperties
 from pyvcloud.vcd.exceptions import EntityNotFoundException
@@ -512,15 +515,45 @@ class TestVM(BaseTestCase):
         result = TestVM._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0120_general_setting_detail(self):
+        is_disk_attached = self.__validate_is_attached_disk(is_disk_attached=False)
+        self.assertTrue(is_disk_attached)
+
+    def test_0120_detach_independent_disk(self):
+        vdc = Environment.get_test_vdc(TestVM._client)
+        idisk = vdc.get_disk(name=TestVM._idisk_name)
+        task = TestVM._test_vapp. \
+            detach_disk_from_vm(disk_href=idisk.get('href'),
+                                vm_name=TestVM._test_vapp_first_vm_name)
+        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        is_disk_attached = self.__validate_is_attached_disk(is_disk_attached=False)
+        self.assertFalse(is_disk_attached)
+
+    def test_0130_general_setting_detail(self):
         vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
         result = vm.general_setting_detail()
         self.assertNotEqual(len(result), 0)
 
-    def test_0130_list_storage_profile(self):
+    def test_0140_list_storage_profile(self):
         vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
         result = vm.list_storage_profile()
         self.assertNotEqual(len(result), 0)
+
+    def __validate_is_attached_disk(self,is_disk_attached=False):
+        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        vm.reload()
+        vm_resource = vm.get_resource()
+        disk_list = TestVM._client.get_resource(
+            vm_resource.get('href') + '/virtualHardwareSection/disks')
+        for disk in disk_list.Item:
+            if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':
+                if disk.xpath('rasd:HostResource', namespaces=NSMAP)[
+                    0].attrib.get('{' + NSMAP['vcloud'] + '}disk'):
+                    is_disk_attached = True
+                    break
+
+        return is_disk_attached
 
     @developerModeAware
     def test_9998_teardown(self):

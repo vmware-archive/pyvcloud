@@ -26,6 +26,7 @@ from pygments import formatters
 from pygments import highlight
 from pygments import lexers
 
+from pyvcloud.vcd.client import ApiVersion
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
@@ -67,18 +68,25 @@ def org_to_dict(org):
     result['id'] = extract_id(org.get('id'))
     result['full_name'] = str('%s' % org.FullName)
     result['description'] = str('%s' % org.Description)
-    result['vdcs'] = [
-        str(n.name) for n in get_links(org, media_type=EntityType.VDC.value)
-    ]
     result['org_networks'] = [
         str(n.name)
         for n in get_links(org, media_type=EntityType.ORG_NETWORK.value)
     ]
-    result['catalogs'] = [
-        str(n.name)
-        for n in get_links(org, media_type=EntityType.CATALOG.value)
-    ]
+    org_to_dict_vdc_catalog(org, result=result)
     return result
+
+
+def org_to_dict_vdc_catalog(org, result):
+    if org.client.get_api_version() < ApiVersion.VERSION_33.value:
+        vdc_links = get_links(org, media_type=EntityType.VDC.value)
+        catalog_links = get_links(org, media_type=EntityType.CATALOG.value)
+    else:
+        vdc_links = org.client.get_resource_link_from_query_object(
+            org, media_type=EntityType.RECORDS.value, type='vdc')
+        catalog_links = org.client.get_resource_link_from_query_object(
+            org, media_type=EntityType.RECORDS.value, type='catalog')
+    result['vdcs'] = [str(n.name) for n in vdc_links]
+    result['catalogs'] = [str(n.name) for n in catalog_links]
 
 
 def vdc_to_dict(vdc, access_control_settings=None):
@@ -759,6 +767,23 @@ def get_admin_href(href):
         return href
     else:
         return href.replace('/api/', '/api/admin/')
+
+
+def is_admin(href):
+    """Returns True if provided href has /api/admin into it.
+
+    :param str href: href
+
+    :return: True if admin else False
+
+    :rtype: Boolean
+    """
+    if '/api/admin/extension/' in href:
+        return False
+    elif '/api/admin/' in href:
+        return True
+    else:
+        return False
 
 
 def get_admin_extension_href(href):

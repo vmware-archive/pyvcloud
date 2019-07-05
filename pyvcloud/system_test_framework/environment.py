@@ -79,6 +79,7 @@ class Environment(object):
     _logger = None
 
     _sys_admin_client = None
+    _org_admin_client = None
     _pvdc_href = None
     _pvdc_name = None
     _external_network_href = None
@@ -450,7 +451,10 @@ class Environment(object):
             raise Exception('pVDC ' + cls._config['vcd']['default_pvdc_name'] +
                             ' doesn\'t exist.')
 
-        org = Org(cls._sys_admin_client, href=cls._org_href)
+        if cls._org_admin_client is None:
+            cls._org_admin_client = cls.get_client_in_default_org(
+                CommonRoles.ORGANIZATION_ADMINISTRATOR)
+        org = Org(cls._org_admin_client, href=cls._org_href)
         ovdc_name = cls._config['vcd']['default_ovdc_name']
         for vdc in org.list_vdcs():
             if vdc.get('name').lower() == ovdc_name.lower():
@@ -458,6 +462,7 @@ class Environment(object):
                 cls._ovdc_href = vdc.get('href')
                 return
 
+        org = Org(cls._sys_admin_client, href=cls._org_href)
         storage_profiles = [{
             'name':
             cls._config['vcd']['default_storage_profile_name'],
@@ -489,7 +494,7 @@ class Environment(object):
         cls._sys_admin_client.get_task_monitor().wait_for_success(
             task=vdc_resource.Tasks.Task[0])
 
-        org.reload()
+        org = Org(cls._org_admin_client, href=cls._org_href)
         # The following contraption is required to get the non admin href of
         # the ovdc. vdc_resource contains the admin version of the href since
         # we created the ovdc as a sys admin.
@@ -762,9 +767,9 @@ class Environment(object):
             media_name = cls._config['vcd']['default_media_name']
             for item in catalog_items:
                 if item.get('name').lower() == media_name.lower():
-                    cls._logger.debug('Reusing existing media ' +
-                                      media_name)
-                    cls._media_resource = org.get_catalog_item(catalog_name,media_name)
+                    cls._logger.debug('Reusing existing media ' + media_name)
+                    cls._media_resource = org.get_catalog_item(
+                        catalog_name, media_name)
                     return
 
             cls._logger.debug('Uploading media ' + media_name +
@@ -776,10 +781,12 @@ class Environment(object):
                 name=catalog_name, item_name=media_name)
             media = catalog_author_client.get_resource(
                 catalog_item.Entity.get('href'))
-            catalog_author_client.get_task_monitor().wait_for_success(
-                task=media.Tasks.Task[0])
+            if hasattr(media, "Tasks"):
+                catalog_author_client.get_task_monitor().wait_for_success(
+                    task=media.Tasks.Task[0])
 
-            cls._media_resource = org.get_catalog_item(catalog_name,media_name)
+            cls._media_resource = org.get_catalog_item(catalog_name,
+                                                       media_name)
 
         finally:
             catalog_author_client.logout()

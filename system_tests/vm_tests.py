@@ -65,7 +65,7 @@ class TestVM(BaseTestCase):
     _target_vm_name = 'targetvm'
 
     _idisk_name = 'SCSI'
-    _idisk_size = '5000'
+    _idisk_size = '5242880'
     _idisk_description = '5Mb SCSI disk'
 
 
@@ -517,7 +517,6 @@ class TestVM(BaseTestCase):
 
         is_disk_attached = self.__validate_is_attached_disk(is_disk_attached=False)
         self.assertTrue(is_disk_attached)
-
 
     def test_0120_detach_independent_disk(self):
         vdc = Environment.get_test_vdc(TestVM._client)

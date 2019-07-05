@@ -1326,6 +1326,30 @@ class VApp(object):
         raise EntityNotFoundException(
             'Can\'t find network \'%s\'' % network_name)
 
+    def dns_detail_of_vapp_network(self, network_name):
+        """DNS details of vApp network.
+
+        :param str network_name: name of App network.
+        :return:  Dictionary having Dns1, Dns2 and DnsSuffix.
+        e.g.
+        {'Dns1': '10.1.1.1', 'Dns2': '10.1.1.2', 'DnsSuffix':'example.com'}
+        :rtype: dict
+        :raises: Exception: if the network can't be found.
+        """
+        for network_config in self.resource.NetworkConfigSection.NetworkConfig:
+            if network_config.get('networkName') == network_name:
+                ip_scope = network_config.Configuration.IpScopes.IpScope
+                dns_details = {}
+                if hasattr(ip_scope, 'Dns1'):
+                    dns_details['Dns1'] = ip_scope.Dns1
+                if hasattr(ip_scope, 'Dns2'):
+                    dns_details['Dns2'] = ip_scope.Dns2
+                if hasattr(ip_scope, 'DnsSuffix'):
+                    dns_details['DnsSuffix'] = ip_scope.DnsSuffix
+                return dns_details
+        raise EntityNotFoundException(
+            'Can\'t find network \'%s\'' % network_name)
+
     def list_ip_allocations(self, network_name):
         """List all allocated ip of vApp network.
 
@@ -1575,3 +1599,20 @@ class VApp(object):
         self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.SNAPSHOT_REMOVE_ALL, None, None)
+
+    def get_vapp_network_list(self):
+        """Returns the list of vapp network defined in the vApp.
+
+        :return: list of the vapp network name.
+
+        :rtype: list
+        """
+        self.get_resource()
+        vapp_network_list = []
+        for network_config in self.resource.NetworkConfigSection.NetworkConfig:
+            if network_config.get('networkName') != 'none':
+                vapp_network_list.append({
+                    'name':
+                    network_config.get('networkName')
+                })
+        return vapp_network_list

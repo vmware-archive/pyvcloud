@@ -728,3 +728,54 @@ class VM(object):
         self.get_resource()
         return self.client.delete_linked_resource(self.resource,
                                                   RelationType.REMOVE, None)
+
+    def general_setting_detail(self):
+        """Get the details of VM general setting.
+
+        :return: Dictionary having VM general setting details.
+        e.g.
+        {'Name': 'testvm', 'Computer Name': 'testvm1', 'Storage Policy' : '*',
+        'OS': 'Microsoft Windows Server 2016 (64-bit)', 'Boot Delay': 0,
+        'OS Family': 'windows9Server64Guest', 'Enter BIOS Setup': False}
+        :rtype: dict
+        """
+        general_setting = {}
+        self.get_resource()
+        general_setting['Name'] = self.resource.get('name')
+        general_setting['Computer Name'] = \
+            self.resource.GuestCustomizationSection.ComputerName
+        if hasattr(self.resource, 'Description'):
+            general_setting['Description'] = self.resource.Description
+        general_setting['OS Family'] = self.resource[
+            '{' + NSMAP['ovf'] +
+            '}OperatingSystemSection'].get('{' + NSMAP['vmw'] + '}osType')
+        general_setting['OS'] = self.resource[
+            '{' + NSMAP['ovf'] + '}OperatingSystemSection'].Description
+        general_setting['Boot Delay'] = self.resource.BootOptions.BootDelay
+        general_setting[
+            'Enter BIOS Setup'] = self.resource.BootOptions.EnterBIOSSetup
+        general_setting['Storage Policy'] = self.resource.StorageProfile.get(
+            'name')
+        return general_setting
+
+    def list_storage_profile(self):
+        """Get the list of storage profile in VM.
+
+        :return: list of stotage profile name of storage profile.
+        e.g.
+        [{'name': 'diskpolicy1'}, {'name': 'diskpolicy2'}]
+        :rtype: list
+        """
+        storage_profile = []
+        self.get_resource()
+        if hasattr(self.resource.VmSpecSection, 'DiskSection'):
+            if hasattr(self.resource.VmSpecSection.DiskSection,
+                       'DiskSettings'):
+                for disk_setting in \
+                        self.resource.VmSpecSection.DiskSection.DiskSettings:
+                    if hasattr(disk_setting, 'StorageProfile'):
+                        storage_profile.append({
+                            'name':
+                            disk_setting.StorageProfile.get('name')
+                        })
+        return storage_profile

@@ -100,12 +100,14 @@ class ApiVersion(Enum):
     VERSION_30 = '30.0'
     VERSION_31 = '31.0'
     VERSION_32 = '32.0'
+    VERSION_33 = '33.0'
 
 
 # Important! Values must be listed in ascending order.
 API_CURRENT_VERSIONS = [
     ApiVersion.VERSION_29.value, ApiVersion.VERSION_30.value,
-    ApiVersion.VERSION_31.value, ApiVersion.VERSION_32.value
+    ApiVersion.VERSION_31.value, ApiVersion.VERSION_32.value,
+    ApiVersion.VERSION_33.value
 ]
 
 
@@ -712,7 +714,8 @@ class Client(object):
         self._task_monitor = None
         self._verify_ssl_certs = verify_ssl_certs
 
-        self._logger = logging.getLogger(log_file)
+        self._logger = None
+        self._get_defaut_logger(file_name=log_file)
         self._logger.setLevel(logging.DEBUG)
         # This makes sure that we don't append a new handler to the logger
         # every time we create a new client.
@@ -740,6 +743,40 @@ class Client(object):
         self.fsencoding = sys.getfilesystemencoding()
 
         self._is_sysadmin = False
+
+    def _get_defaut_logger(self, file_name="vcd_pysdk.log",
+                           log_level=logging.DEBUG,
+                           max_bytes=30000000, backup_count=30):
+        """This will set the default logger with Rotating FileHandler.
+
+        Open the specified file and use it as the stream for logging.
+        By default, the file grows indefinitely. You can specify particular
+        values of maxBytes and backupCount to allow the file to rollover at
+        a predetermined size.
+        Rollover occurs whenever the current log file is nearly maxBytes in
+        length. If backupCount is >= 1, the system will successively create
+        new files with the same pathname as the base file, but with extensions
+        ".1", ".2" etc. appended to it. For example, with a backupCount of 5
+        and a base file name of "app.log", you would get "app.log",
+        "app.log.1", "app.log.2", ... through to "app.log.5". The file being
+        written to is always "app.log" - when it gets filled up, it is closed
+        and renamed to "app.log.1", and if files "app.log.1", "app.log.2" etc.
+        exist, then they are renamed to "app.log.2", "app.log.3" etc.
+        respectively.
+
+        :param file_name: name of the log file.
+        :param log_level: log level.
+        :param max_bytes: max size of log file in bytes.
+        :param backup_count: no of backup count.
+        """
+        if file_name is None:
+            file_name = "vcd_pysdk.log"
+        self._logger = logging.getLogger(file_name)
+        Path(file_name).parent.mkdir(parents=True, exist_ok=True)
+        default_log_handler = handlers.RotatingFileHandler(
+            filename=file_name, maxBytes=max_bytes, backupCount=backup_count)
+        default_log_handler.setLevel(log_level)
+        self._logger.addHandler(default_log_handler)
 
     def _get_response_request_id(self, response):
         """Extract request id of a request to vCD from the response.
@@ -1471,6 +1508,50 @@ class Client(object):
             raise ClientException(
                 'The current user does not have access to the resource (%s).' %
                 str(wk_type).split('.')[-1])
+
+    def get_resource_link_from_query_object(self,
+                                            resource,
+                                            rel=RelationType.DOWN,
+                                            media_type=None,
+                                            type=None):
+        """Returns all the links of the specified rel and type in the resource.
+
+        This method take resource and find the query link of provided type.
+        It processes query link and get query result records.
+        It search href and name of non link type from query result records and
+            makes list of links and return.
+        Ex: In API version 33 org contain vdc query link.
+        It take org resources and find the query link for vdc.
+        Process the query link and fetch all vdc links and make a list of
+            links.
+
+        :param lxml.objectify.ObjectifiedElement resource: the resource with
+            the links.
+        :param RelationType rel: the rel of the desired link.
+        :param str media_type: media type of content.
+        :param str type: type of query.
+        :return: list of lxml.objectify.ObjectifiedElement objects, where each
+            object contains a Link XML element. Result could include an empty
+            list.
+        :rtype: list
+        """
+        links = get_links(resource=resource, media_type=media_type)
+        for query_link in links:
+            link_href = query_link.href
+            list_of_links = []
+            if type in link_href.lower():
+                link_part = link_href.split('&')
+                if len(link_part) == 2:
+                    link_href = link_part[0] + '&;' + link_part[1]
+                record_resource = self.get_resource(link_href)
+                for record in record_resource.getchildren():
+                    if record.tag != '{http://www.vmware.com/vcloud/v1.5}Link':
+                        link = E.Link()
+                        link.set('name', record.get('name'))
+                        link.set('href', record.get('href'))
+                        link.set('rel', rel.value)
+                        list_of_links.append(Link(link))
+                return list_of_links
 
 
 def find_link(resource, rel, media_type, fail_if_absent=True, name=None):

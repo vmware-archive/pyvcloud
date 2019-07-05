@@ -15,6 +15,7 @@
 from lxml import etree
 
 from pyvcloud.vcd.acl import Acl
+from pyvcloud.vcd.client import ApiVersion
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EdgeGatewayType
@@ -30,6 +31,7 @@ from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
+from pyvcloud.vcd.client import SIZE_1MB
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
@@ -38,6 +40,7 @@ from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import cidr_to_netmask
 from pyvcloud.vcd.utils import get_admin_href
+from pyvcloud.vcd.utils import is_admin
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
 
@@ -60,9 +63,11 @@ class VDC(object):
                 "or None")
         self.href = href
         self.resource = resource
+
         if resource is not None:
             self.name = resource.get('name')
             self.href = resource.get('href')
+        self.is_admin = is_admin(self.href)
         self.href_admin = get_admin_href(self.href)
 
     def get_resource(self):
@@ -217,8 +222,11 @@ class VDC(object):
         self.get_resource()
 
         # Get hold of the template
+        media_type = EntityType.ORG.value
+        if self.is_admin:
+            media_type = EntityType.ADMIN_ORG.value
         org_href = find_link(self.resource, RelationType.UP,
-                             EntityType.ORG.value).href
+                             media_type).href
         org = Org(self.client, href=org_href)
         catalog_item = org.get_catalog_item(catalog, template)
         template_resource = self.client.get_resource(
@@ -421,9 +429,16 @@ class VDC(object):
         vapp_template_params.append(sourced_item)
 
         vapp_template_params.append(E.AllEULAsAccepted(all_eulas_accepted))
+        non_admin_resource = self.resource
+        if self.is_admin:
+            alternate_href = find_link(self.resource,
+                                       rel=RelationType.ALTERNATE,
+                                       media_type=EntityType.VDC.value).href
+            non_admin_resource = self.client.get_resource(
+                alternate_href)
 
         return self.client.post_linked_resource(
-            self.resource, RelationType.ADD,
+            non_admin_resource, RelationType.ADD,
             EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value,
             vapp_template_params)
 
@@ -500,8 +515,12 @@ class VDC(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         self.get_resource()
-
-        disk_params = E.DiskCreateParams(E.Disk(name=name, size=str(size)))
+        if self.client.get_api_version() < ApiVersion.VERSION_33.value:
+            disk = E.Disk(name=name, size=str(size))
+        else:
+            size = int(int(size) / SIZE_1MB)
+            disk = E.Disk(name=name, sizeMb=str(size))
+        disk_params = E.DiskCreateParams(disk)
         if iops is not None:
             disk_params.Disk.set('iops', iops)
 
@@ -564,9 +583,14 @@ class VDC(object):
             disk_params.set('name', disk.get('name'))
 
         if new_size is not None:
-            disk_params.set('size', str(new_size))
+            size = str(new_size)
         else:
-            disk_params.set('size', disk.get('size'))
+            size = disk.get('size')
+        if self.client.get_api_version() < ApiVersion.VERSION_33.value:
+            disk_params.set('size', size)
+        else:
+            size = int(int(size) / SIZE_1MB)
+            disk_params.set('sizeMb', str(size))
 
         if new_description is not None:
             disk_params.append(E.Description(new_description))

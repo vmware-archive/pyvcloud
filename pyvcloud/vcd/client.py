@@ -744,7 +744,8 @@ class Client(object):
 
         self._is_sysadmin = False
 
-    def _get_defaut_logger(self, file_name, log_level=logging.DEBUG,
+    def _get_defaut_logger(self, file_name="vcd_pysdk.log",
+                           log_level=logging.DEBUG,
                            max_bytes=30000000, backup_count=30):
         """This will set the default logger with Rotating FileHandler.
 
@@ -768,7 +769,10 @@ class Client(object):
         :param max_bytes: max size of log file in bytes.
         :param backup_count: no of backup count.
         """
+        if file_name is None:
+            file_name = "vcd_pysdk.log"
         self._logger = logging.getLogger(file_name)
+        Path(file_name).parent.mkdir(parents=True, exist_ok=True)
         default_log_handler = handlers.RotatingFileHandler(
             filename=file_name, maxBytes=max_bytes, backupCount=backup_count)
         default_log_handler.setLevel(log_level)

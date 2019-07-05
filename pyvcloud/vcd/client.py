@@ -689,7 +689,11 @@ def _objectify_response(response, as_object=True):
     """
     if _response_has_content(response):
         if as_object:
-            return objectify.fromstring(response.content)
+            patched_content = response.content\
+                .decode('utf-8')\
+                .replace('<index>', '<_index>')\
+                .replace('</index>', '</_index>')
+            return objectify.fromstring(patched_content.encode('utf-8'))
         else:
             return etree.fromstring(response.content)
     else:

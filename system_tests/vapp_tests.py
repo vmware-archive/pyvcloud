@@ -813,6 +813,15 @@ class TestVApp(BaseTestCase):
         list_ip_address = vapp.list_ip_allocations(TestVApp._vapp_network_name)
         self.assertTrue(len(list_ip_address) > 0)
 
+    def test_0127_dns_detail_of_vapp_network(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        result = vapp.dns_detail_of_vapp_network(TestVApp._vapp_network_name)
+        self.assertEqual(result['Dns1'], TestVApp._vapp_network_dns1)
+        self.assertEqual(result['Dns2'], TestVApp._vapp_network_dns2)
+        self.assertEqual(result['DnsSuffix'],
+                         TestVApp._vapp_network_dns_suffix)
+
     def test_0129_get_vapp_network_list(self):
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)

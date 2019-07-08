@@ -779,3 +779,15 @@ class VM(object):
                             disk_setting.StorageProfile.get('name')
                         })
         return storage_profile
+
+    def reload_from_vc(self):
+        """Reload a VM from VC.
+
+        :return: an object containing EntityType.TASK XML data which represents
+                    the asynchronous task that is reloading VM from VC
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.RELOAD_FROM_VC, None, None)

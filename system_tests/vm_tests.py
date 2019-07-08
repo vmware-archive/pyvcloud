@@ -16,8 +16,6 @@
 import unittest
 from uuid import uuid1
 
-from lxml import etree
-from lxml import objectify
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import developerModeAware
@@ -554,6 +552,20 @@ class TestVM(BaseTestCase):
                     break
 
         return is_disk_attached
+
+    def test_0150_reload_from_vc(self):
+        """Test the method related to reload_from_vc in vm.py.
+        This test passes if reload from VC operation is successful.
+        """
+        logger = Environment.get_default_logger()
+        vm_name = TestVM._test_vapp_first_vm_name
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm.reload()
+        logger.debug('Reloading VM:  ' + vm_name + ' from VC.')
+        task = vm.reload_from_vc()
+        result = TestVM._sys_admin_client.\
+            get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     @developerModeAware
     def test_9998_teardown(self):

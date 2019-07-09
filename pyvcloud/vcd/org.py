@@ -1629,8 +1629,7 @@ class Org(object):
                                            item_name):
         """Fetch all metadata entries for the given catalog item.
 
-        :param str catalog_name: name of the catalog that contains the item
-        with item_name.
+        :param str catalog_name: name of the catalog that contains the item.
         :param str item_name: name of the catalog item whose metadata needs
         to be retrieved.
 
@@ -1648,15 +1647,14 @@ class Org(object):
                                              domain=MetadataDomain.GENERAL):
         """Fetch metadata value identified by the key and domain.
 
-        :param str catalog_name: name of the catalog that contains the item
-        of item_name.
-        :param str item_name: name of the catalog item where metadata value
+        :param str catalog_name: name of the catalog that contains the item.
+        :param str item_name: name of the catalog item whose metadata value
         of the given key needs to be retrieved.
         :param str key: key of the value to be fetched.
         :param client.MetadataDomain domain: domain of the value to be fetched.
 
         :return: an object containing EntityType.METADATA_VALUE XML data which
-            represents the metadata value.
+        represents the metadata value.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
@@ -1676,22 +1674,22 @@ class Org(object):
                                      STRING):
         """Add metadata entry to the catalog item.
 
-        :param str catalog_name: name of the catalog that contains the item
-        of item_name.
+        :param str catalog_name: name of the catalog whose item needs add
+        or update of metadata.
         :param str item_name: name of the catalog item whose metadata value
         of the given key needs to be retrieved.
         :param str key: an arbitrary key name. Length cannot exceed 256 UTF-8
-            characters.
+        characters.
         :param str value: value of the metadata entry
         :param client.MetadataDomain domain: domain where the new entry would
             be put.
         :param client.MetadataVisibility visibility: visibility of the metadata
-            entry.
+        entry.
         :param client.MetadataValueType metadata_value_type: type of the value
 
         :return: an object of type EntityType.TASK XML which represents
-            the asynchronous task that is updating the metadata on the catalog
-            item.
+        the asynchronous task that is updating the metadata on the catalog
+        item.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
@@ -1705,3 +1703,70 @@ class Org(object):
             visibility=visibility,
             metadata_value_type=metadata_value_type,
             use_admin_endpoint=False)
+
+    def set_multiple_metadata_on_catalog_item(
+            self,
+            catalog_name,
+            item_name,
+            key_value_dict,
+            domain=MetadataDomain.GENERAL,
+            visibility=MetadataVisibility.READ_WRITE,
+            metadata_value_type=MetadataValueType.STRING):
+        """Add multiple metadata entries to the catalog item.
+
+        :param str catalog_name: name of the catalog whose item needs add
+        or update of metadata.
+        :param str item_name: name of the catalog item whose metadata needs
+        to be added/updated.
+        :param dict key_value_dict: a dict containing key-value pairs to be
+        added/updated.
+        :param client.MetadataDomain domain: domain where the new entry would
+        be put.
+        :param client.MetadataVisibility visibility: visibility of the metadata
+        entry.
+        :param client.MetadataValueType metadata_value_type: type of the value
+
+        :return: an object of type EntityType.TASK XML which represents
+        the asynchronous task that is updating the metadata on the catalog
+        item.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        pass
+
+        metadata = Metadata(client=self.client,
+                            resource=self.get_all_metadata_from_catalog_item(
+                                catalog_name, item_name))
+        return metadata.set_multiple_metadata(
+            key_value_dict=key_value_dict,
+            domain=domain,
+            visibility=visibility,
+            metadata_value_type=metadata_value_type,
+            use_admin_endpoint=False)
+
+    def remove_metadata_from_catalog_item(self,
+                                          catalog_name,
+                                          item_name,
+                                          key,
+                                          domain=MetadataDomain.GENERAL):
+        """Remove a metadata entry from the catalog item.
+
+        :param str catalog_name: name of the catalog whose item needs removal
+        of metadata entry.
+        :param str item_name: name of the catalog item whose metadata needs
+        to be removed.
+        :param str key: key of the metadata to be removed
+        :param client.MetadataDomain domain: domain of the entry to be removed.
+
+        :return: an object of type EntityType.TASK XML which represents
+        the asynchronous task that is deleting the metadata on the catalog
+        item.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        metadata = Metadata(
+            client=self.client,
+            resource=self.get_all_metadata_from_catalog_item(
+                catalog_name, item_name))
+        return metadata.remove_metadata(key=key, domain=domain,
+                                        use_admin_endpoint=False)

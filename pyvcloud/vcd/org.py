@@ -32,6 +32,7 @@ from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import get_links
+from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
@@ -40,6 +41,7 @@ from pyvcloud.vcd.exceptions import DownloadException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import UploadException
+from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import get_safe_members_in_tar_file
@@ -1620,3 +1622,43 @@ class Org(object):
         for v in links:
             result.append({'name': v.name, 'href': v.href})
         return result
+
+    def get_all_metadata_from_catalog_item(self, catalog_name,
+                                           item_name):
+        """Fetch all metadata entries for the given catalog item.
+
+        :param str catalog_name: name of the catalog that contains the item
+        with item_name.
+        :param str item_name: name of the catalog item whose metadata needs
+        to be retrieved.
+
+        :return: object containing Metadata Entries
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        catalog_item = self.get_catalog_item(catalog_name, item_name)
+        return self.client.get_linked_resource(
+            catalog_item, rel=RelationType.DOWN,
+            media_type=EntityType.METADATA.value)
+
+    def get_metadata_value_from_catalog_item(self, catalog_name,
+                                             item_name, key,
+                                             domain=MetadataDomain.GENERAL):
+        """Fetch metadata value identified by the key and domain.
+
+        :param str catalog_name: name of the catalog that contains the item
+        with item_name.
+        :param str item_name: name of the catalog item where metadata value
+        of the given key needs to be retrieved.
+        :param str key: key of the value to be fetched.
+        :param client.MetadataDomain domain: domain of the value to be fetched.
+
+        :return: an object containing EntityType.METADATA_VALUE XML data which
+            represents the metadata value.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        metadata = Metadata(client=self.client,
+                            resource=self.get_all_metadata_from_catalog_item(
+                                catalog_name, item_name))
+        return metadata.get_metadata_value(key, domain)

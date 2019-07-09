@@ -93,6 +93,7 @@ class TestVApp(BaseTestCase):
     _ova_file_name = 'test.ova'
     _vapp_copy_name = 'customized_vApp_copy_' + str(uuid1())
     _ovdc_name = 'test_vdc2_ ' + str(uuid1())
+    _ovdc_network_name = 'test-direct-vdc-network'
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -673,9 +674,8 @@ class TestVApp(BaseTestCase):
             vapp_name=TestVApp._customized_vapp_name)
 
         # connect vapp network to org vdc network
-        ovdc_network_name = Environment.get_default_orgvdc_network_name()
         task = vapp.connect_vapp_network_to_ovdc_network(
-            TestVApp._vapp_network_name, ovdc_network_name)
+            TestVApp._vapp_network_name, TestVApp._ovdc_network_name)
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 

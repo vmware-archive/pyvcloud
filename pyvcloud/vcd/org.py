@@ -33,6 +33,8 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import MetadataDomain
+from pyvcloud.vcd.client import MetadataValueType
+from pyvcloud.vcd.client import MetadataVisibility
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
@@ -1647,7 +1649,7 @@ class Org(object):
         """Fetch metadata value identified by the key and domain.
 
         :param str catalog_name: name of the catalog that contains the item
-        with item_name.
+        of item_name.
         :param str item_name: name of the catalog item where metadata value
         of the given key needs to be retrieved.
         :param str key: key of the value to be fetched.
@@ -1662,3 +1664,44 @@ class Org(object):
                             resource=self.get_all_metadata_from_catalog_item(
                                 catalog_name, item_name))
         return metadata.get_metadata_value(key, domain)
+
+    def set_metadata_on_catalog_item(self,
+                                     catalog_name,
+                                     item_name,
+                                     key,
+                                     value,
+                                     domain=MetadataDomain.GENERAL,
+                                     visibility=MetadataVisibility.READ_WRITE,
+                                     metadata_value_type=MetadataValueType.
+                                     STRING):
+        """Add metadata entry to the catalog item.
+
+        :param str catalog_name: name of the catalog that contains the item
+        of item_name.
+        :param str item_name: name of the catalog item whose metadata value
+        of the given key needs to be retrieved.
+        :param str key: an arbitrary key name. Length cannot exceed 256 UTF-8
+            characters.
+        :param str value: value of the metadata entry
+        :param client.MetadataDomain domain: domain where the new entry would
+            be put.
+        :param client.MetadataVisibility visibility: visibility of the metadata
+            entry.
+        :param client.MetadataValueType metadata_value_type: type of the value
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is updating the metadata on the catalog
+            item.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        metadata = Metadata(client=self.client,
+                            resource=self.get_all_metadata_from_catalog_item(
+                                catalog_name, item_name))
+        return metadata.set_metadata(
+            key=key,
+            value=value,
+            domain=domain,
+            visibility=visibility,
+            metadata_value_type=metadata_value_type,
+            use_admin_endpoint=False)

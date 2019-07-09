@@ -169,6 +169,7 @@ class RelationType(Enum):
     CONSOLIDATE = 'consolidate'
     CONTROL_ACCESS = 'controlAccess'
     CONVERT_TO_ADVANCED_GATEWAY = 'edgeGateway:convertToAdvancedGateway'
+    CUSTOMIZE_AT_NEXT_POWERON = 'customizeAtNextPowerOn'
     DEPLOY = 'deploy'
     DISABLE = 'disable'
     DISABLE_GATEWAY_DISTRIBUTED_ROUTING = \

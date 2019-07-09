@@ -567,6 +567,20 @@ class TestVM(BaseTestCase):
             get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def test_0160_check_compliance(self):
+        """Test the method related to check_compliance in vm.py.
+        This test passes if check compliance operation is successful.
+        """
+        logger = Environment.get_default_logger()
+        vm_name = TestVM._test_vapp_first_vm_name
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm.reload()
+        logger.debug('Checking compliance of VM:  ' + vm_name)
+        task = vm.check_compliance()
+        result = TestVM._sys_admin_client.\
+            get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Delete the vApp created during setup.

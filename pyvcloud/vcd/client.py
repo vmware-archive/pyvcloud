@@ -215,6 +215,7 @@ class RelationType(Enum):
     SNAPSHOT_CREATE = 'snapshot:create'
     SNAPSHOT_REVERT_TO_CURRENT = 'snapshot:revertToCurrent'
     SNAPSHOT_REMOVE_ALL = 'snapshot:removeAll'
+    SYNC_SYSLOG_SETTINGS = 'syncSyslogSettings'
     TASK_CANCEL = 'task:cancel'
     UNDEPLOY = 'undeploy'
     UNLINK_FROM_TEMPLATE = 'unlinkFromTemplate'

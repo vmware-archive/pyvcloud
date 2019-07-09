@@ -828,7 +828,36 @@ class TestVApp(BaseTestCase):
         list_of_vapp_net = vapp.get_vapp_network_list()
         self.assertNotEqual(len(list_of_vapp_net), 0)
 
-    def test_0130_delete_vapp_network(self):
+    def test_0130_connect_vapp_network_to_ovdc_network(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+
+        # undeploy a vapp
+        task = vapp.undeploy()
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        vapp.reload()
+
+        # connect vapp network to org vdc network
+        ovdc_network_name = Environment.get_default_orgvdc_network_name()
+        task = vapp.connect_vapp_network_to_ovdc_network(
+            TestVApp._vapp_network_name, ovdc_network_name)
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        # deploy a vapp
+        task = vapp.deploy(power_on=True)
+        TestVApp._client.get_task_monitor().wait_for_success(task=task)
+        vapp.reload()
+
+    def test_0131_sync_syslog_settings(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        task = vapp.sync_syslog_settings(TestVApp._vapp_network_name)
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0132_delete_vapp_network(self):
         """Test the method vapp.delete_vapp_network().
 
         This test passes if delete network is successful.
@@ -844,7 +873,7 @@ class TestVApp(BaseTestCase):
         self.assertFalse(
             self._is_network_present(vapp, TestVApp._vapp_network_name))
 
-    def test_0131_list_vapp_details(self):
+    def test_0135_list_vapp_details(self):
         """Test the method list_vapp_details().
 
         This test passes if the expected vApp list can be successfully retrieved.

@@ -803,3 +803,14 @@ class VM(object):
         self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.CHECK_COMPLIANCE, None, None)
+
+    def customize_at_next_power_on(self):
+        """Customize VM at next power on.
+
+        :return: returns 204 No content
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.post_linked_resource(
+            self.resource, RelationType.CUSTOMIZE_AT_NEXT_POWERON, None, None)

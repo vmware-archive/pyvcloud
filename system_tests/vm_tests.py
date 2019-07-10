@@ -581,6 +581,16 @@ class TestVM(BaseTestCase):
             get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def test_0170_customize_at_next_poer_on(self):
+        """Test the method related to customize_at_next_power_on in vm.py.
+        This test passes if customize at next power on operation is successful.
+        """
+        logger = Environment.get_default_logger()
+        vm_name = TestVM._test_vapp_first_vm_name
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm.reload()
+        vm.customize_at_next_power_on()
+
     @developerModeAware
     def test_9998_teardown(self):
         """Delete the vApp created during setup.

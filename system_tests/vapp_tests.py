@@ -26,11 +26,14 @@ from pyvcloud.system_test_framework.utils import \
     create_customized_vapp_from_template
 from pyvcloud.system_test_framework.utils import create_empty_vapp
 
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import MetadataVisibility
 from pyvcloud.vcd.client import NetworkAdapterType
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.system import System
@@ -678,6 +681,15 @@ class TestVApp(BaseTestCase):
             TestVApp._vapp_network_name, TestVApp._ovdc_network_name)
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp_network_href = find_link(
+            resource=vapp.resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.vApp_Network.value,
+            name=TestVApp._vapp_network_name).href
+        vapp_net_res = TestVApp._client.get_resource(vapp_network_href)
+        self.assertEqual(
+            vapp_net_res.Configuration.ParentNetwork.get('name'),
+            TestVApp._ovdc_network_name)
 
     def test_0112_sync_syslog_settings(self):
         vapp = Environment.get_vapp_in_test_vdc(

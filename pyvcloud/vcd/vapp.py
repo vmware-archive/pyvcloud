@@ -1616,3 +1616,59 @@ class VApp(object):
                     network_config.get('networkName')
                 })
         return vapp_network_list
+
+    def sync_syslog_settings(self, network_name):
+        """Sync syslog settings of vApp network.
+
+        :param str network_name: name of App network.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        :raises: Exception: if the network can't be found.
+        """
+        for network_config in self.resource.NetworkConfigSection.NetworkConfig:
+            if network_config.get('networkName') == network_name:
+                return self.client.post_linked_resource(
+                    resource=network_config,
+                    rel=RelationType.SYNC_SYSLOG_SETTINGS,
+                    media_type=EntityType.TASK.value,
+                    contents=None)
+        raise EntityNotFoundException(
+            'Can\'t find network \'%s\'' % network_name)
+
+    def connect_vapp_network_to_ovdc_network(self, network_name,
+                                             orgvdc_network_name):
+        """Connect vapp network to org vdc network.
+
+        :param str network_name: name of App network.
+        :param str orgvdc_network_name: org vdc network name.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vdc = VDC(
+            self.client,
+            href=find_link(self.resource, RelationType.UP,
+                           EntityType.VDC.value).href)
+        orgvdc_network_href = vdc.get_orgvdc_network_admin_href_by_name(
+            orgvdc_network_name)
+        ovdc_net_res = self.client.get_resource(orgvdc_network_href)
+        vapp_network_href = find_link(
+            resource=self.resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.vApp_Network.value,
+            name=network_name).href
+        vapp_net_res = self.client.get_resource(vapp_network_href)
+        parent_network = E.ParentNetwork()
+        parent_network.set('href', orgvdc_network_href)
+        parent_network.set('id', ovdc_net_res.get('id'))
+        parent_network.set('name', ovdc_net_res.get('name'))
+        vapp_net_res.Configuration.FenceMode.addprevious(parent_network)
+        vapp_net_res.Configuration.remove(vapp_net_res.Configuration.FenceMode)
+        vapp_net_res.Configuration.ParentNetwork.addnext(
+            E.FenceMode(FenceMode.NAT_ROUTED.value))
+        return self.client.put_linked_resource(
+            resource=vapp_net_res,
+            rel=RelationType.EDIT,
+            media_type=EntityType.vApp_Network.value,
+            contents=vapp_net_res)

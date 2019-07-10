@@ -26,11 +26,14 @@ from pyvcloud.system_test_framework.utils import \
     create_customized_vapp_from_template
 from pyvcloud.system_test_framework.utils import create_empty_vapp
 
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import MetadataVisibility
 from pyvcloud.vcd.client import NetworkAdapterType
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.system import System
@@ -93,6 +96,7 @@ class TestVApp(BaseTestCase):
     _ova_file_name = 'test.ova'
     _vapp_copy_name = 'customized_vApp_copy_' + str(uuid1())
     _ovdc_name = 'test_vdc2_ ' + str(uuid1())
+    _ovdc_network_name = 'test-direct-vdc-network'
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -666,6 +670,33 @@ class TestVApp(BaseTestCase):
             if (network_config.get('networkName') == network_name):
                 return True
         return False
+
+    def test_0111_connect_vapp_network_to_ovdc_network(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+
+        # connect vapp network to org vdc network
+        task = vapp.connect_vapp_network_to_ovdc_network(
+            TestVApp._vapp_network_name, TestVApp._ovdc_network_name)
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp_network_href = find_link(
+            resource=vapp.resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.vApp_Network.value,
+            name=TestVApp._vapp_network_name).href
+        vapp_net_res = TestVApp._client.get_resource(vapp_network_href)
+        self.assertEqual(
+            vapp_net_res.Configuration.ParentNetwork.get('name'),
+            TestVApp._ovdc_network_name)
+
+    def test_0112_sync_syslog_settings(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=TestVApp._customized_vapp_name)
+        task = vapp.sync_syslog_settings(TestVApp._vapp_network_name)
+        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0120_reset_vapp_network(self):
         """Test the method vapp.reset_vapp_network().

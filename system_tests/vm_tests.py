@@ -66,6 +66,15 @@ class TestVM(BaseTestCase):
     _idisk_size = '5242880'
     _idisk_description = '5Mb SCSI disk'
 
+    _computer_name = 'testvm1'
+    _boot_delay = 0
+    _enter_bios_setup = False
+    _description = ''
+    _vm_name_update = 'VMupdatedname'
+    _description_update = 'Description after update'
+    _computer_name_update = 'mycom'
+    _boot_delay_update = 60
+    _enter_bios_setup_update = True
 
     def test_0000_setup(self):
         """Setup the vms required for the other tests in this module.
@@ -590,6 +599,42 @@ class TestVM(BaseTestCase):
         vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
         vm.reload()
         vm.customize_at_next_power_on()
+
+    def test_0180_update_general_setting(self):
+        """Test the method related to update general setting in vm.py.
+        This test passes if general setting update successful.
+        """
+        vm_name = TestVM._test_vapp_first_vm_name
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm.reload()
+        # Updating general setting of vm
+        task = vm.update_general_setting(
+            name=TestVM._vm_name_update,
+            description=TestVM._description_update,
+            computer_name=TestVM._computer_name_update,
+            boot_delay=TestVM._boot_delay_update,
+            enter_bios_setup=TestVM._enter_bios_setup_update)
+        result = TestVM._sys_admin_client.\
+            get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vm.reload()
+        result = vm.general_setting_detail()
+        self.assertEqual(result['Name'], TestVM._vm_name_update)
+        self.assertEqual(result['Description'], TestVM._description_update)
+        self.assertEqual(result['Computer Name'], TestVM._computer_name_update)
+        self.assertEqual(result['Boot Delay'], TestVM._boot_delay_update)
+        self.assertEqual(result['Enter BIOS Setup'],
+                         TestVM._enter_bios_setup_update)
+        # Reverting back general setting of vm
+        task = vm.update_general_setting(
+            name=TestVM._test_vapp_first_vm_name,
+            description=TestVM._description,
+            computer_name=TestVM._computer_name,
+            boot_delay=TestVM._boot_delay,
+            enter_bios_setup=TestVM._enter_bios_setup)
+        result = TestVM._sys_admin_client.\
+            get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     @developerModeAware
     def test_9998_teardown(self):

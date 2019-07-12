@@ -208,6 +208,7 @@ class RelationType(Enum):
     POWER_SUSPEND = 'power:suspend'
     PUBLISH = 'publish'
     RECOMPOSE = 'recompose'
+    RECONFIGURE_VM = 'reconfigureVm'
     RELOAD_FROM_VC = 'reloadFromVc'
     REMOVE = 'remove'
     REPAIR = 'repair'

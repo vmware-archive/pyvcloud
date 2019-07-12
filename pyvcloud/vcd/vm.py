@@ -814,3 +814,59 @@ class VM(object):
         self.get_resource()
         return self.client.post_linked_resource(
             self.resource, RelationType.CUSTOMIZE_AT_NEXT_POWERON, None, None)
+
+    def update_general_setting(self,
+                               name=None,
+                               description=None,
+                               computer_name=None,
+                               boot_delay=None,
+                               enter_bios_setup=None,
+                               storage_policy_href=None):
+        """Update general settings of VM .
+
+        :param str name: name of VM.
+        :param str description: description of VM.
+        :param str computer_name: computer name of VM.
+        :param int boot_delay: boot delay of VM.
+        :param bool enter_bios_setup: enter bios setup of VM.
+        :param str storage_policy_href: storage policy href.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating general setting of VM.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        if name is not None:
+            self.resource.set('name', name)
+        guest_customization = self.resource.GuestCustomizationSection
+        if computer_name is not None:
+            guest_customization.remove(guest_customization.ComputerName)
+            cn = E.ComputerName(computer_name)
+            guest_customization.ResetPasswordRequired.addnext(cn)
+        if description is not None:
+            if hasattr(self.resource, 'Description'):
+                self.resource.remove(self.resource.Description)
+            desc = E.Description(description)
+            self.resource.VmSpecSection.addprevious(desc)
+        if boot_delay is not None:
+            if hasattr(self.resource.BootOptions, 'BootDelay'):
+                self.resource.BootOptions.remove(
+                    self.resource.BootOptions.BootDelay)
+            bd = E.BootDelay(boot_delay)
+            self.resource.BootOptions.EnterBIOSSetup.addprevious(bd)
+        if enter_bios_setup is not None:
+            if hasattr(self.resource.BootOptions, 'EnterBIOSSetup'):
+                self.resource.BootOptions.remove(
+                    self.resource.BootOptions.EnterBIOSSetup)
+            ebs = E.EnterBIOSSetup(enter_bios_setup)
+            self.resource.BootOptions.BootDelay.addnext(ebs)
+        if storage_policy_href is not None:
+            storage_policy_res = self.client.get_resource(storage_policy_href)
+            print(storage_policy_href)
+            self.resource.StorageProfile.set('href', storage_policy_href)
+            self.resource.StorageProfile.set('id',
+                                             storage_policy_res.get('id'))
+            self.resource.StorageProfile.set('name',
+                                             storage_policy_res.get('name'))
+        return self.client.post_linked_resource(
+            self.resource, RelationType.RECONFIGURE_VM, EntityType.VM.value,
+            self.resource)

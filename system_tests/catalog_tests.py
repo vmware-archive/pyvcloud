@@ -24,7 +24,10 @@ from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
 
+from pyvcloud.vcd.client import TaskStatus
+from pyvcloud.vcd.exceptions import AccessForbiddenException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.utils import extract_metadata_value
 
 
 class TestCatalog(BaseTestCase):
@@ -48,6 +51,11 @@ class TestCatalog(BaseTestCase):
     _test_template_with_chunk_size_name = 'template_with_custom_chunk_size'
     _test_template_with_chunk_size_file_name = \
         'template_with_custom_chunk_size.ova'
+
+    _test_metadata_key = 'key_' + str(uuid1())
+    _test_metadata_value = 'value_' + str(uuid1())
+    _test_metadata_new_value = 'new_value_' + str(uuid1())
+    _test_non_existent_metadata_key = 'non_existent_key_' + str(uuid1())
 
     def test_0000_setup(self):
         """Setup a catalog for the tests in this module.
@@ -359,6 +367,96 @@ class TestCatalog(BaseTestCase):
 
         self.assertEqual(TestCatalog._test_template_name,
                          catalog_item_resource.get('name'))
+
+    def test_0110_catalog_item_metadata(self):
+        """Test the methods related to metadata manipulation in catalog item.
+
+        This test passes if all the metadata operations are successful.
+        """
+        print("Executing CatalogItem metadata ")
+
+        sys_admin_client = None
+
+        try:
+            logger = Environment.get_default_logger()
+            sys_admin_client = Environment.get_sys_admin_client()
+            org_sys_admin = Environment.get_test_org(sys_admin_client)
+
+            # add new metadata as sys admin
+            logger.debug(f'Adding metadata '
+                         f'[key={TestCatalog._test_metadata_key},'
+                         f'value={TestCatalog._test_metadata_value}]) '
+                         f'as Sys admin.')
+            task = org_sys_admin.set_metadata_on_catalog_item(
+                TestCatalog._test_catalog_name,
+                TestCatalog._test_template_name,
+                key=TestCatalog._test_metadata_key,
+                value=TestCatalog._test_metadata_value)
+            result = sys_admin_client.get_task_monitor().wait_for_success(task)
+            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+            # retrieve existing metadata as sys admin
+            logger.debug(f'Retrieving metadata '
+                         f'[key={TestCatalog._test_metadata_key},'
+                         f'value={TestCatalog._test_metadata_value}]) '
+                         f'as Sys admin.')
+            metadata_value = org_sys_admin.\
+                get_metadata_value_from_catalog_item(
+                    TestCatalog._test_catalog_name,
+                    TestCatalog._test_template_name,
+                    key=TestCatalog._test_metadata_key)
+            self.assertEqual(extract_metadata_value(metadata_value),
+                             TestCatalog._test_metadata_value)
+
+            # retrieve non-existing metadata as sys admin
+            try:
+                logger.debug(f'Retrieving metadata '
+                             f'[invalid key={TestCatalog._test_metadata_key},'
+                             f'value={TestCatalog._test_metadata_value}]) '
+                             f'as Sys admin.')
+                metadata_value = org_sys_admin.\
+                    get_metadata_value_from_catalog_item(
+                        TestCatalog._test_catalog_name,
+                        TestCatalog._test_template_name,
+                        key=TestCatalog._test_non_existent_metadata_key)
+                self.assertFail('Shouldn\'t have been able to retrieve'
+                                ' metadata entry with bad key.')
+            except AccessForbiddenException:
+                pass
+
+            # update existing metadata as sys admin with new value
+            logger.debug(f'Update metadata '
+                         f'[key={TestCatalog._test_metadata_key},'
+                         f'value={TestCatalog._test_metadata_new_value}]) '
+                         f'as Sys admin.')
+            task = org_sys_admin.set_metadata_on_catalog_item(
+                TestCatalog._test_catalog_name,
+                TestCatalog._test_template_name,
+                key=TestCatalog._test_metadata_key,
+                value=TestCatalog._test_metadata_new_value)
+            sys_admin_client.get_task_monitor().wait_for_success(task)
+            metadata_value = org_sys_admin.\
+                get_metadata_value_from_catalog_item(
+                    TestCatalog._test_catalog_name,
+                    TestCatalog._test_template_name,
+                    key=TestCatalog._test_metadata_key)
+            self.assertEqual(extract_metadata_value(metadata_value),
+                             TestCatalog._test_metadata_new_value)
+
+            # Remove existing metadata as sys admin
+            logger.debug(f'Remove metadata '
+                         f'[key={TestCatalog._test_metadata_key},'
+                         f'value={TestCatalog._test_metadata_new_value}]) '
+                         f'as Sys admin.')
+            task = org_sys_admin.remove_metadata_from_catalog_item(
+                TestCatalog._test_catalog_name,
+                TestCatalog._test_template_name,
+                key=TestCatalog._test_metadata_key)
+            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+        finally:
+            if sys_admin_client is not None:
+                sys_admin_client.logout()
 
     def _0110_catalog_access_settings(self):
         """Test the access control methods for catalogs.

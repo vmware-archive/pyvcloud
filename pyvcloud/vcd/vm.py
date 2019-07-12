@@ -873,16 +873,20 @@ class VM(object):
 
     def power_on_and_force_recustomization(self):
         """Recustomize VM at power on.
+
         :return: an object containing EntityType.TASK XML data which represents
                     the asynchronous task that is force recustomize VM on
                     power on operation
+
         :rtype: lxml.objectify.ObjectifiedElement
         """
         return self.deploy(power_on=True, force_customization=True)
 
     def get_guest_customization_status(self):
-        """Get guest customization status
+        """Get guest customization status.
+
         :return: returns status of GC.
+
         :rtype: String
         """
         self.get_resource()
@@ -891,10 +895,12 @@ class VM(object):
         return gc_status_resource.GuestCustStatus
 
     def get_guest_customization_section(self):
-        """Get guest customization section
+        """Get guest customization section.
+
         :return: returns lxml.objectify.ObjectifiedElement resource: object
             containing EntityType.GUESTCUSTOMIZATIONSECTION XML data
             representing the guestcustomizationsection.
+
         :rtype: lxml.objectify.ObjectifiedElement
         """
         self.get_resource()
@@ -902,12 +908,15 @@ class VM(object):
         return self.client.get_resource(uri)
 
     def enable_guest_customization(self, is_enabled=False):
-        """Enable guest customization
+        """Enable guest customization.
+
         :param: bool is_enabled: if True, it will enable guest customization.
             If False, it will disable guest customization
+
         :return: returns lxml.objectify.ObjectifiedElement resource: object
             containing EntityType.GUESTCUSTOMIZATIONSECTION XML data
             representing the guestcustomizationsection.
+
         :rtype: lxml.objectify.ObjectifiedElement
         """
         self.get_resource()
@@ -915,5 +924,6 @@ class VM(object):
         if hasattr(gc_section, 'Enabled'):
             gc_section.Enabled = E.Enabled(is_enabled)
         uri = self.href + '/guestCustomizationSection/'
-        return self.client.put_resource(uri, gc_section,
-                                        EntityType.GUEST_CUSTOMIZATION_SECTION.value)
+        return self.client.\
+            put_resource(uri, gc_section,
+                         EntityType.GUEST_CUSTOMIZATION_SECTION.value)

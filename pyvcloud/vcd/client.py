@@ -193,6 +193,7 @@ class RelationType(Enum):
     GATEWAY_SYNC_SYSLOG_SETTINGS = 'edgeGateway:syncSyslogSettings'
     GATEWAY_SYS_SERVER_SETTING_IP = 'edgeGateway:configureSyslogServerSettings'
     GATEWAY_UPDATE_PROPERTIES = 'edgeGateway:updateProperties'
+    GUEST_CUSTOMIZATION_SECTION = 'guestCustomizationSection'
     INSERT_MEDIA = 'media:insertMedia'
     INSTALL_VMWARE_TOOLS = 'installVmwareTools'
     LINK_TO_TEMPLATE = 'linkToTemplate'

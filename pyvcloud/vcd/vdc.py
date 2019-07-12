@@ -237,12 +237,12 @@ class VDC(object):
         template_networks = template_resource.xpath(
             '//ovf:NetworkSection/ovf:Network',
             namespaces={'ovf': NSMAP['ovf']})
-        assert len(template_networks) > 0
-        network_name_from_template = template_networks[0].get(
-            '{' + NSMAP['ovf'] + '}name')
-        if ((network is None) and (network_name_from_template != 'none')):
-            network = network_name_from_template
-
+        #        assert len(template_networks) > 0
+        if len(template_networks) > 0:
+            network_name_from_template = template_networks[0].get(
+                '{' + NSMAP['ovf'] + '}name')
+            if ((network is None) and (network_name_from_template != 'none')):
+                network = network_name_from_template
         # Find the network in vdc referred to by user, using
         # name of the network
         network_href = network_name = None

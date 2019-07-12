@@ -56,7 +56,7 @@ vcd:
 
   default_catalog_name: 'test-cat'
   default_template_file_name: 'test_vapp_template.ova'
-
+  default_template_vmtools_file_name: 'yVM_OS_with_VMTools.ova'
   default_vapp_name: 'test_vapp'
   default_vm_name: 'testvm1'
   default_media_name: 'pb1.iso'

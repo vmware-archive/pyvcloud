@@ -193,6 +193,7 @@ class RelationType(Enum):
     GATEWAY_SYNC_SYSLOG_SETTINGS = 'edgeGateway:syncSyslogSettings'
     GATEWAY_SYS_SERVER_SETTING_IP = 'edgeGateway:configureSyslogServerSettings'
     GATEWAY_UPDATE_PROPERTIES = 'edgeGateway:updateProperties'
+    GUEST_CUSTOMIZATION_SECTION = 'guestCustomizationSection'
     INSERT_MEDIA = 'media:insertMedia'
     INSTALL_VMWARE_TOOLS = 'installVmwareTools'
     LINK_TO_TEMPLATE = 'linkToTemplate'
@@ -356,6 +357,8 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.vmwExternalNetworkReferences+xml'
     INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
         'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
+    GUEST_CUSTOMIZATION_SECTION = \
+        'application/vnd.vmware.vcloud.guestCustomizationSection+xml'
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'
     MEDIA_INSERT_OR_EJECT_PARAMS = \

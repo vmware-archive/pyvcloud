@@ -723,9 +723,11 @@ class TestVM(BaseTestCase):
         """
         vm = VM(TestVM._sys_admin_client,
                 href=TestVM._test_vapp_vmtools_vm_href)
-        task = vm.power_off()
-        TestVM._sys_admin_client. \
-            get_task_monitor().wait_for_success(task=task)
+
+        if vm.is_powered_on():
+            task = vm.power_off()
+            TestVM._sys_admin_client. \
+                get_task_monitor().wait_for_success(task=task)
         task = vm.undeploy()
         TestVM._sys_admin_client. \
             get_task_monitor().wait_for_success(task=task)
@@ -746,14 +748,23 @@ class TestVM(BaseTestCase):
             vapps_to_delete.append(TestVM._test_vapp_name)
             vapp = VApp(TestVM._client, href=TestVM._test_vapp_href)
             if vapp.is_powered_on():
-                vapp.power_off()
+                task = vapp.power_off()
+                TestVM._client.get_task_monitor().wait_for_success(task)
+                task = vapp.undeploy()
+                TestVM._client.get_task_monitor().wait_for_success(task)
+
         if TestVM._empty_vapp_href is not None:
             vapps_to_delete.append(TestVM._empty_vapp_name)
+
         if TestVM._test_vapp_vmtools_href is not None:
             vapps_to_delete.append(TestVM._test_vapp_vmtools_name)
             vapp = VApp(TestVM._client, href=TestVM._test_vapp_vmtools_href)
             if vapp.is_powered_on():
-                vapp.power_off()
+                task = vapp.power_off()
+                TestVM._client.get_task_monitor().wait_for_success(task)
+                task = vapp.undeploy()
+                TestVM._client.get_task_monitor().wait_for_success(task)
+
         vdc = Environment.get_test_vdc(TestVM._sys_admin_client)
         vdc.delete_disk(name=self._idisk_name)
         vdc = Environment.get_test_vdc(TestVM._client)

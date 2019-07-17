@@ -2047,3 +2047,87 @@ class VDC(object):
         out_list = list(query.execute())
 
         return out_list
+
+    def _fetch_compute_policies(self):
+        """Fetch References vDC compute policies.
+
+        :return: an object containing VdcComputePolicyReferences XML element
+        that refers to individual VdcComputePolicies.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.get_linked_resource(
+            self.resource, rel=RelationType.DOWN,
+            media_type=EntityType.VDC_COMPUTE_POLICY_REFERENCES.value)
+
+    def list_compute_policies(self):
+        """List VdcComputePolicy references.
+
+        :return: list of VdcComputePolicyReference XML elements each of which
+        refers to VcdComputePolicy.
+
+        :rtype: list of lxml.objectify.StringElement
+        """
+        policy_references = self._fetch_compute_policies()
+        policy_list = []
+        for policy_reference in policy_references.VdcComputePolicyReference:
+            policy_list.append(policy_reference)
+        return policy_reference
+
+    def add_compute_policy(self, href):
+        """Add a VdcComputePolicy.
+
+        :param str href: URI of the compute policy
+
+        :return: an object containing VdcComputePolicyReferences XML element
+        that refers to individual VdcComputePolicies.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        policy_references = self._fetch_compute_policies()
+        policy_id = self._retrieve_compute_policy_id_from_href(href)
+        policy_reference_element = E.VdcComputePolicyReference()
+        policy_reference_element.set('href', href)
+        policy_reference_element.set('id', policy_id)
+        policy_references.append(policy_reference_element)
+        return self.client.put_linked_resource(
+            self.resource, RelationType.DOWN,
+            EntityType.VDC_COMPUTE_POLICY_REFERENCES.value,
+            policy_references)
+
+    def remove_compute_policy(self, href):
+        """Delete a VdcComputePolicy.
+
+        :param str href: URI of the compute policy to be deleted
+
+        :return: an object containing VdcComputePolicyReferences XML element
+        that refers to individual VdcComputePolicies.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if the VdcComputePolicy cannot
+            be located.
+        """
+        policy_references = self._fetch_compute_policies()
+        policy_id = self._retrieve_compute_policy_id_from_href(href)
+        for policy_reference in policy_references.VdcComputePolicyReference:
+            if policy_id == policy_reference.get('id'):
+                policy_references.remove(policy_reference)
+                return self.client.put_linked_resource(
+                    self.resource, RelationType.DOWN,
+                    EntityType.VDC_COMPUTE_POLICY_REFERENCES.value,
+                    policy_references)
+        raise EntityNotFoundException(f"VdcComputePolicyReference "
+                                      f"with href '{href}' not found")
+
+    def _retrieve_compute_policy_id_from_href(self, href):
+        """Extract compute policy id from href.
+
+        :param str href: URI of the compute policy
+
+        :return: compute policy id
+
+        :rtype: str
+        """
+        return href.split('/')[-1]

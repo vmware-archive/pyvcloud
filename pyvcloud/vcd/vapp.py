@@ -1457,6 +1457,12 @@ class VApp(object):
             self.resource, RelationType.ENABLE, None, None)
         self.client.get_task_monitor().wait_for_success(task, 60, 1)
 
+    def disable_download(self):
+        """Method to disbale an entity for download."""
+        self.get_resource()
+        self.client.post_linked_resource(self.resource, RelationType.DISABLE,
+                                         None, None)
+
     def download_ova(self, file_name, chunk_size=DEFAULT_CHUNK_SIZE):
         """Downloads a vapp into a local file.
 
@@ -1672,3 +1678,95 @@ class VApp(object):
             rel=RelationType.EDIT,
             media_type=EntityType.vApp_Network.value,
             contents=vapp_net_res)
+
+    def create_vapp_network_from_ovdc_network(self, orgvdc_network_name):
+        """Create vapp network from org vdc network.
+
+        :param str orgvdc_network_name: org vdc network name.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vdc = VDC(
+            self.client,
+            href=find_link(self.resource, RelationType.UP,
+                           EntityType.VDC.value).href)
+        orgvdc_network_href = vdc.get_orgvdc_network_admin_href_by_name(
+            orgvdc_network_name)
+        ovdc_net_res = self.client.get_resource(orgvdc_network_href)
+        res_ip_scope = ovdc_net_res.Configuration.IpScopes.IpScope
+
+        self.get_resource()
+        network_config_section = \
+            deepcopy(self.resource.NetworkConfigSection)
+        network_config = E.NetworkConfig(networkName=orgvdc_network_name)
+
+        config = E.Configuration()
+        ip_scopes = E.IpScopes()
+        ip_scope = E.IpScope()
+
+        ip_scope.append(E.IsInherited(True))
+        ip_scope.append(res_ip_scope.Gateway)
+        ip_scope.append(res_ip_scope.SubnetPrefixLength)
+        if hasattr(res_ip_scope, 'Dns1'):
+            ip_scope.append(res_ip_scope.Dns1)
+        if hasattr(res_ip_scope, 'Dns2'):
+            ip_scope.append(res_ip_scope.Dns2)
+        if hasattr(res_ip_scope, 'DnsSuffix'):
+            ip_scope.append(res_ip_scope.DnsSuffix)
+        if hasattr(res_ip_scope, 'IsEnabled'):
+            ip_scope.append(res_ip_scope.IsEnabled)
+        ip_scopes.append(ip_scope)
+        config.append(ip_scopes)
+        parent_network = E.ParentNetwork()
+        parent_network.set('href', orgvdc_network_href)
+        parent_network.set('id', ovdc_net_res.get('id'))
+        parent_network.set('name', ovdc_net_res.get('name'))
+        config.append(parent_network)
+        config.append(E.FenceMode(FenceMode.BRIDGED.value))
+        config.append(E.AdvancedNetworkingEnabled(True))
+        network_config.append(config)
+        network_config.append(E.IsDeployed(False))
+        network_config_section.append(network_config)
+        return self.client.put_linked_resource(
+            self.resource.NetworkConfigSection, RelationType.EDIT,
+            EntityType.NETWORK_CONFIG_SECTION.value, network_config_section)
+
+    def enable_fence_mode(self):
+        """Enable fence mode of vapp network.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        network_config_section = deepcopy(self.resource.NetworkConfigSection)
+        for network_config in network_config_section.NetworkConfig:
+            if network_config.Configuration.IpScopes.IpScope.IsInherited:
+                network_config.Configuration.remove(
+                    network_config.Configuration.FenceMode)
+                network_config.Configuration.ParentNetwork.addnext(
+                    E.FenceMode(FenceMode.NAT_ROUTED.value))
+                features = E.Features()
+                firewall_services = E.FirewallService()
+                firewall_services.append(E.IsEnabled(True))
+                firewall_services.append(E.DefaultAction('drop'))
+                firewall_services.append(E.LogDefaultAction(False))
+                firewall_rule = E.FirewallRule()
+                firewall_rule.append(E.IsEnabled(True))
+                firewall_rule.append(
+                    E.Description('Allow all outgoing traffic'))
+                firewall_rule.append(E.Policy('allow'))
+                protocol = E.Protocols()
+                protocol.append(E.Any(True))
+                firewall_rule.append(protocol)
+                firewall_rule.append(E.DestinationPortRange('Any'))
+                firewall_rule.append(E.DestinationIp('external'))
+                firewall_rule.append(E.SourcePortRange('Any'))
+                firewall_rule.append(E.SourceIp('internal'))
+                firewall_rule.append(E.EnableLogging(False))
+                firewall_services.append(firewall_rule)
+                features.append(firewall_services)
+        return self.client.put_linked_resource(
+            self.resource.NetworkConfigSection, RelationType.EDIT,
+            EntityType.NETWORK_CONFIG_SECTION.value, network_config_section)

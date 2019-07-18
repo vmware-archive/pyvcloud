@@ -295,7 +295,7 @@ class VApp(object):
         if hasattr(lease_setting, 'StorageLeaseInSeconds'):
             result['StorageLeaseInSeconds'] = \
                 lease_setting.StorageLeaseInSeconds
-        if hasattr(lease_setting, 'DeploymentLeaseInSeconds'):
+        if hasattr(lease_setting, 'StorageLeaseExpiration'):
             result['StorageLeaseExpiration'] = \
                 lease_setting.StorageLeaseExpiration
         return result

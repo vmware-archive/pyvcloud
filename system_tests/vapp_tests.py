@@ -559,7 +559,7 @@ class TestVApp(BaseTestCase):
         result = vapp.get_lease()
         self.assertEqual(result['DeploymentLeaseInSeconds'],
                          TestVApp._empty_vapp_runtime_lease)
-        self.assertEqual(result['DeploymentLeaseInSeconds'],
+        self.assertEqual(result['StorageLeaseInSeconds'],
                          TestVApp._empty_vapp_storage_lease)
 
     def test_0090_change_vapp_owner(self):

@@ -47,6 +47,7 @@ from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import get_safe_members_in_tar_file
+from pyvcloud.vcd.utils import retrieve_compute_policy_id_from_href
 from pyvcloud.vcd.utils import to_dict
 
 # Uptil pyvcloud v20.0.0 1 MB was the default chunk size,
@@ -1770,3 +1771,98 @@ class Org(object):
                 catalog_name, item_name))
         return metadata.remove_metadata(key=key, domain=domain,
                                         use_admin_endpoint=False)
+
+    def get_vapp_template_href(self, catalog_name, template_name):
+        """Get href of the template resource.
+
+        :param str catalog_name: name of the catalog that has the template
+        :param template_name: name of the template whose href is required
+
+        :return: href of the the vapp template resource
+
+        :rtype: str
+        """
+        catalog_item = self.get_catalog_item(catalog_name, template_name)
+        return catalog_item.Entity.get('href')
+
+    def add_compute_policy_to_vapp_template_vms(self,
+                                                catalog_name,
+                                                template_name,
+                                                href):
+        """Add compute policy identified by href to all vms of vapp template.
+
+        :param str catalog_name: catalog name that contains vapp template
+        :param str template_name: name of the template
+        :param str href: href of the compute policy
+
+        :return: an object of type EntityType.TASK XML which represents
+        the asynchronous task that is deleting the metadata on the catalog
+        item.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if the vm cannot be located.
+        """
+        policy_id = retrieve_compute_policy_id_from_href(href)
+        template_resource_href = self.get_vapp_template_href(catalog_name,
+                                                             template_name)
+        template_resource = self.client.get_resource(template_resource_href)
+        if hasattr(template_resource, 'Children') and \
+                hasattr(template_resource.Children, 'Vm'):
+            vms = template_resource.Children.Vm
+            for vm in vms:
+                date_created_node = vm.\
+                    find('{http://www.vmware.com/vcloud/v1.5}DateCreated')
+                policy_element = E.VdcComputePolicy()
+                policy_element.set('href', href)
+                policy_element.set('id', policy_id)
+                date_created_node.addprevious(policy_element)
+
+            return self.client.put_resource(
+                template_resource_href,
+                template_resource,
+                media_type=EntityType.VAPP_TEMPLATE.value)
+
+        raise EntityNotFoundException(f"Vm element not found")
+
+    def remove_compute_policy_from_vapp_template_vms(self,
+                                                     catalog_name,
+                                                     template_name,
+                                                     href):
+        """Remove compute policy from all vms of the vapp template.
+
+        :param str catalog_name: catalog name that contains vapp template
+        :param str template_name: name of the template
+        :param str href: href of the compute policy
+
+        :return: an object of type EntityType.TASK XML which represents
+        the asynchronous task that is deleting the metadata on the catalog
+        item.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: if the compute policy not found
+        """
+        policy_id = retrieve_compute_policy_id_from_href(href)
+        template_resource_href = self.get_vapp_template_href(catalog_name,
+                                                             template_name)
+        template_resource = self.client.get_resource(template_resource_href)
+        is_template_updated = False
+        if hasattr(template_resource, 'Children') and \
+                hasattr(template_resource.Children, 'Vm'):
+            vms = template_resource.Children.Vm
+            for vm in vms:
+                if hasattr(vm, 'VdcComputePolicy'):
+                    for policy in vm.VdcComputePolicy:
+                        if policy_id == policy.get('id'):
+                            vm.remove(policy)
+                            is_template_updated = True
+                            break
+        if is_template_updated:
+            return self.client.put_resource(
+                template_resource_href,
+                template_resource,
+                media_type=EntityType.VAPP_TEMPLATE.value)
+
+        raise EntityNotFoundException(f"VdcComputePolicy "
+                                      f"with href '{href}' not found")

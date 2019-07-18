@@ -42,6 +42,7 @@ from pyvcloud.vcd.utils import cidr_to_netmask
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import is_admin
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
+from pyvcloud.vcd.utils import retrieve_compute_policy_id_from_href
 
 
 class VDC(object):
@@ -2086,7 +2087,7 @@ class VDC(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         policy_references = self._fetch_compute_policies()
-        policy_id = self._retrieve_compute_policy_id_from_href(href)
+        policy_id = retrieve_compute_policy_id_from_href(href)
         policy_reference_element = E.VdcComputePolicyReference()
         policy_reference_element.set('href', href)
         policy_reference_element.set('id', policy_id)
@@ -2110,7 +2111,7 @@ class VDC(object):
             be located.
         """
         policy_references = self._fetch_compute_policies()
-        policy_id = self._retrieve_compute_policy_id_from_href(href)
+        policy_id = retrieve_compute_policy_id_from_href(href)
         for policy_reference in policy_references.VdcComputePolicyReference:
             if policy_id == policy_reference.get('id'):
                 policy_references.remove(policy_reference)
@@ -2120,14 +2121,3 @@ class VDC(object):
                     policy_references)
         raise EntityNotFoundException(f"VdcComputePolicyReference "
                                       f"with href '{href}' not found")
-
-    def _retrieve_compute_policy_id_from_href(self, href):
-        """Extract compute policy id from href.
-
-        :param str href: URI of the compute policy
-
-        :return: compute policy id
-
-        :rtype: str
-        """
-        return href.split('/')[-1]

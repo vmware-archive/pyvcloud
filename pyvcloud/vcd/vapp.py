@@ -279,6 +279,27 @@ class VApp(object):
             self.resource.get('href') + '/leaseSettingsSection/', new_section,
             EntityType.LEASE_SETTINGS.value)
 
+    def get_lease(self):
+        """Fetch lease settings data of the vApp.
+
+        :return: an dictionary containing LEASE_SETTINGS Data of the vApp.
+
+        :rtype: dict
+        """
+        self.get_resource()
+        lease_setting = self.resource.LeaseSettingsSection
+        result = {}
+        if hasattr(lease_setting, 'DeploymentLeaseInSeconds'):
+            result['DeploymentLeaseInSeconds'] = \
+                lease_setting.DeploymentLeaseInSeconds
+        if hasattr(lease_setting, 'StorageLeaseInSeconds'):
+            result['StorageLeaseInSeconds'] = \
+                lease_setting.StorageLeaseInSeconds
+        if hasattr(lease_setting, 'DeploymentLeaseInSeconds'):
+            result['StorageLeaseExpiration'] = \
+                lease_setting.StorageLeaseExpiration
+        return result
+
     def change_owner(self, href):
         """Change the ownership of vApp to a given user.
 

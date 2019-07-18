@@ -552,6 +552,16 @@ class TestVApp(BaseTestCase):
             wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def test_0081_get_lease(self):
+        vapp_name = TestVApp._empty_vapp_name
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._client, vapp_name=vapp_name)
+        result = vapp.get_lease()
+        self.assertEqual(result['DeploymentLeaseInSeconds'],
+                         TestVApp._empty_vapp_runtime_lease)
+        self.assertEqual(result['StorageLeaseInSeconds'],
+                         TestVApp._empty_vapp_storage_lease)
+
     def test_0090_change_vapp_owner(self):
         """Test the method vapp.change_owner().
 

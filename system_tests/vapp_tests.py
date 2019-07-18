@@ -1004,6 +1004,37 @@ class TestVApp(BaseTestCase):
         result = TestVApp._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def test_0200_create_vapp_network_from_ovdc_network(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+        task = vapp.create_vapp_network_from_ovdc_network(
+            TestVApp._ovdc_network_name)
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp.reload()
+        vapp_network_href = find_link(
+            resource=vapp.resource,
+            rel=RelationType.DOWN,
+            media_type=EntityType.vApp_Network.value,
+            name=TestVApp._ovdc_network_name).href
+        self.assertIsNotNone(vapp_network_href)
+
+    def test_0201_enable_fence_mode(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+        task = vapp.enable_fence_mode()
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp.reload()
+        task = vapp.delete_vapp_network(TestVApp._ovdc_network_name)
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the  method vdc.delete_vapp().

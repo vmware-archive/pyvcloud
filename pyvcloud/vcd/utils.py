@@ -910,3 +910,15 @@ def build_network_url_from_gateway_url(gateway_href):
         return network_url.replace(_GATEWAY_ADMIN_API_URL, _NETWORK_URL)
 
     return None
+
+
+def retrieve_compute_policy_id_from_href(href):
+    """Extract compute policy id from href.
+
+    :param str href: URI of the compute policy
+
+    :return: compute policy id
+
+    :rtype: str
+    """
+    return href.split('/')[-1]

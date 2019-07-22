@@ -1791,3 +1791,48 @@ class VApp(object):
         return self.client.put_linked_resource(
             self.resource.NetworkConfigSection, RelationType.EDIT,
             EntityType.NETWORK_CONFIG_SECTION.value, network_config_section)
+
+    def update_startup_section(self,
+                               vm_name,
+                               order=None,
+                               start_action=None,
+                               start_delay=None,
+                               stop_action=None,
+                               stop_delay=None):
+        """Update startup section of vapp.
+
+        :param str vm_name: name of VM in App.
+        :param int order: start order of vm.
+        :param str start_action: action on VM on start of App.
+        :param int start_delay: start delay of vm.
+        :param str stop_action: action on VM on stop of App.
+        :param int stop_delay: stop delay of vm.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp startup section.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        startup_section = self.resource.xpath(
+            'ovf:StartupSection', namespaces=NSMAP)
+        startup_section_href = startup_section[0].get('{' + NSMAP['ns10'] +
+                                                      '}href')
+        startup_section_res = self.client.get_resource(startup_section_href)
+        items = startup_section_res.xpath('ovf:Item', namespaces=NSMAP)
+        for item in items:
+            if item.get('{' + NSMAP['ovf'] + '}id') == vm_name:
+                if order is not None:
+                    item.set('{' + NSMAP['ovf'] + '}order', str(order))
+                if start_action is not None:
+                    item.set('{' + NSMAP['ovf'] + '}startAction', start_action)
+                if start_delay is not None:
+                    item.set('{' + NSMAP['ovf'] + '}startDelay',
+                             str(start_delay))
+                if stop_action is not None:
+                    item.set('{' + NSMAP['ovf'] + '}stopAction', stop_action)
+                if stop_delay is not None:
+                    item.set('{' + NSMAP['ovf'] + '}stopDelay',
+                             str(stop_delay))
+        return self.client.put_linked_resource(
+            startup_section_res,
+            rel=RelationType.EDIT,
+            media_type=EntityType.STARTUP_SECTION.value,
+            contents=startup_section_res)

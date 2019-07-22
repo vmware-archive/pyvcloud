@@ -43,6 +43,8 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
 SIZE_1MB = 1024 * 1024
 
 NSMAP = {
+    'ns10':
+    'http://www.vmware.com/vcloud/v1.5',
     'ovf':
     'http://schemas.dmtf.org/ovf/envelope/1',
     'ovfenv':
@@ -400,6 +402,7 @@ class EntityType(Enum):
     RIGHT = 'application/vnd.vmware.admin.right+xml'
     RIGHTS = 'application/vnd.vmware.admin.rights+xml'
     SNAPSHOT_CREATE = 'application/vnd.vmware.vcloud.createSnapshotParams+xml'
+    STARTUP_SECTION = 'application/vnd.vmware.vcloud.startupSection+xml'
     SYSTEM_SETTINGS = 'application/vnd.vmware.admin.systemSettings+xml'
     TASK = 'application/vnd.vmware.vcloud.task+xml'
     TASKS_LIST = 'application/vnd.vmware.vcloud.tasksList+xml'

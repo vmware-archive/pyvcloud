@@ -1036,3 +1036,16 @@ class VM(object):
                     ncard_count = ncard_count + 1
 
         return vhs_info
+
+    def get_compliance_result(self):
+        """Get compliance result of a VM.
+
+        :return: an object containing EntityType.ComplianceResult XML data
+                     which contains compliance status of VM
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client. \
+            get_linked_resource(self.resource, rel=RelationType.DOWN,
+                                media_type=EntityType.COMPLIANCE_RESULT.value)

@@ -688,8 +688,13 @@ class TestVM(BaseTestCase):
     def test_0220_list_virtual_harware_section(self):
         vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
         dict = vm.list_virtual_hardware_section(is_disk=True, is_media=True,
-                                                  is_networkCards=True)
+                                                is_networkCards=True)
         self.assertTrue(len(dict) > 0)
+
+    def test_0230_get_compliance_result(self):
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        result = vm.get_compliance_result()
+        self.assertEqual(result.ComplianceStatus,'UNKNOWN')
 
     @developerModeAware
     def test_9998_teardown(self):

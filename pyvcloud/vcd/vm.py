@@ -940,9 +940,9 @@ class VM(object):
         :param: bool is_networkCards: if True, it will provide network card
                                       information
 
-        :return: Dictionary having virtual hardware section details.
+        :return: dict having virtual hardware section details.
 
-        :rtype: Dictionary
+        :rtype: dict
         """
         vhs_info = {}
         self.get_resource()

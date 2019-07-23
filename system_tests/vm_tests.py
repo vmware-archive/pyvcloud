@@ -690,7 +690,6 @@ class TestVM(BaseTestCase):
         dict = vm.list_virtual_hardware_section(is_disk=True, is_media=True,
                                                   is_networkCards=True)
         self.assertTrue(len(dict) > 0)
-        self.assertEqual(dict['cpuVirtualQuantity'], 2)
 
     @developerModeAware
     def test_9998_teardown(self):

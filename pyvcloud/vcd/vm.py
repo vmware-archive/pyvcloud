@@ -927,3 +927,112 @@ class VM(object):
         return self.client.\
             put_resource(uri, gc_section,
                          EntityType.GUEST_CUSTOMIZATION_SECTION.value)
+
+    def list_virtual_hardware_section(self, is_cpu=True, is_memory=True,
+                                      is_disk=False, is_media=False,
+                                      is_networkCards=False):
+        """Get virtual hardware section.
+
+        :param: bool is_cpu: if True, it will provide CPU information
+        :param: bool is_memory: if True, it will provide memory information
+        :param: bool is_disk: if True, it will provide disk information
+        :param: bool is_media: if True, it will provide media information
+        :param: bool is_networkCards: if True, it will provide network card
+                                      information
+
+        :return: dict having virtual hardware section details.
+
+        :rtype: dict
+        """
+        vhs_info = {}
+        self.get_resource()
+        if is_cpu:
+            uri = self.href + '/virtualHardwareSection/cpu'
+            cpu_resource = self.client.get_resource(uri)
+            vhs_info['cpuVirtualQuantity'] = cpu_resource[
+                '{' + NSMAP['rasd'] + '}VirtualQuantity']
+            vhs_info['cpuCoresPerSocket'] = cpu_resource[
+                '{' + NSMAP['vmw'] + '}CoresPerSocket']
+
+        if is_memory:
+            uri = self.href + '/virtualHardwareSection/memory'
+            memory_resource = self.client.get_resource(uri)
+            vhs_info['memoryVirtualQuantityInMb'] = memory_resource[
+                '{' + NSMAP['rasd'] + '}VirtualQuantity']
+
+        if is_disk:
+            uri = self.href + '/virtualHardwareSection/disks'
+            disk_list = self.client.get_resource(uri)
+            disk_count = 0
+            for disk in disk_list.Item:
+                if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':
+                    vhs_info['diskElementName' + str(disk_count)] = disk[
+                        '{' + NSMAP['rasd'] + '}ElementName']
+                    vhs_info['diskVirtualQuantityInBytes' + str(disk_count)] \
+                        = disk[
+                        '{' + NSMAP['rasd'] + '}VirtualQuantity']
+                    disk_count = disk_count + 1
+
+        if is_media:
+            uri = self.href + '/virtualHardwareSection/media'
+            media_list = self.client.get_resource(uri)
+            media_count = 0
+            for media in media_list.Item:
+                if media['{' +
+                         NSMAP['rasd'] + '}Description'] == 'CD/DVD Drive':
+                    if media['{' +
+                             NSMAP['rasd'] + '}HostResource'].text is not None:
+                        vhs_info['mediaCdElementName' + str(media_count)] = \
+                            media['{' + NSMAP['rasd'] + '}ElementName']
+                        vhs_info['mediaCdHostResource' + str(media_count)] = \
+                            media['{' + NSMAP['rasd'] + '}HostResource']
+                        media_count = media_count + 1
+                        continue
+                if media['{' +
+                         NSMAP['rasd'] + '}Description'] == 'Floppy Drive':
+                    if media['{' +
+                             NSMAP['rasd'] + '}HostResource'].text is not None:
+                        vhs_info['mediaFloppyElementName' +
+                                 str(media_count)] = \
+                            media['{' + NSMAP['rasd'] + '}ElementName']
+                        vhs_info['mediaFloppyHostResource'
+                                 + str(media_count)] = \
+                            media['{' + NSMAP['rasd'] + '}HostResource']
+                        media_count = media_count + 1
+                        continue
+
+        if is_networkCards:
+            uri = self.href + '/virtualHardwareSection/networkCards'
+            ncards_list = self.client.get_resource(uri)
+            ncard_count = 0
+            for ncard in ncards_list.Item:
+                if ncard['{' + NSMAP['rasd'] + '}Connection'] is not None:
+                    vhs_info['ncardElementName' + str(ncard_count)] = ncard[
+                        '{' + NSMAP['rasd'] + '}ElementName']
+                    vhs_info['nCardConnection' + str(ncard_count)] = ncard[
+                        '{' + NSMAP['rasd'] + '}Connection']
+                    vhs_info['nCardIpAddressingMode' + str(ncard_count)] = \
+                        ncard.xpath('rasd:Connection', namespaces=NSMAP)[
+                            0].attrib.get(
+                            '{' + NSMAP['vcloud'] + '}ipAddressingMode')
+                    vhs_info['nCardIpAddress' + str(ncard_count)] = \
+                        ncard.xpath('rasd:Connection', namespaces=NSMAP)[
+                            0].attrib.get('{' + NSMAP['vcloud'] + '}ipAddress')
+                    vhs_info[
+                        'nCardPrimaryNetworkConnection' + str(ncard_count)] = \
+                        ncard.xpath('rasd:Connection', namespaces=NSMAP)[
+                            0].attrib.get(
+                            '{' + NSMAP['vcloud'] +
+                            '}primaryNetworkConnection')
+                    vhs_info['nCardAddress' + str(ncard_count)] = ncard[
+                        '{' + NSMAP['rasd'] + '}Address']
+                    vhs_info['nCardAddressOnParent' + str(ncard_count)] = \
+                        ncard[
+                        '{' + NSMAP['rasd'] + '}AddressOnParent']
+                    vhs_info['nCardAutomaticAllocation' + str(ncard_count)] = \
+                        ncard['{' + NSMAP['rasd'] + '}AutomaticAllocation']
+                    vhs_info['nCardResourceSubType' + str(ncard_count)] = \
+                        ncard['{' + NSMAP['rasd'] + '}ResourceSubType']
+                    ncard_count = ncard_count + 1
+
+        return vhs_info

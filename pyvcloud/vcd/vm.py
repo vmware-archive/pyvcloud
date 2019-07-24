@@ -1122,3 +1122,30 @@ class VM(object):
                 'unit')
             metric_count = metric_count + 1
         return metrics_info
+
+    def list_sample_historic_metric_data(self, metric_name=None):
+        """List historic metrics of a VM based on metric name.
+
+        :return: dict which contains sample historic data of given metric
+
+        :rtype: dict
+        """
+        metrics_info = {}
+        self.get_resource()
+        historic_usage_spec = E.HistoricUsageSpec(
+            E.MetricPattern(metric_name))
+
+        metrics_list = self.client. \
+            post_linked_resource(self.resource, rel=RelationType.METRICS,
+                                 media_type=EntityType.HISTORIC_USAGE.value,
+                                 contents=historic_usage_spec)
+
+        for metric in metrics_list.MetricSeries:
+            metric_count = 0
+            for sample in metric.Sample:
+                metrics_info['Timestamp' + str(metric_count)] = sample. \
+                    get('timestamp')
+                metrics_info['Value' + str(metric_count)] = sample. \
+                    get('value')
+                metric_count = metric_count + 1
+        return metrics_info

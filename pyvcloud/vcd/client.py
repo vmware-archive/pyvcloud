@@ -199,6 +199,7 @@ class RelationType(Enum):
     INSERT_MEDIA = 'media:insertMedia'
     INSTALL_VMWARE_TOOLS = 'installVmwareTools'
     LINK_TO_TEMPLATE = 'linkToTemplate'
+    METRICS = 'metrics'
     MIGRATE_VMS = 'migrateVms'
     MODIFY_FORM_FACTOR = 'edgeGateway:modifyFormFactor'
     NEXT_PAGE = 'nextPage'
@@ -340,6 +341,8 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.composeVAppParams+xml'
     COMPLIANCE_RESULT = 'application/vnd.vmware.vm.complianceResult+xml'
     CONTROL_ACCESS_PARAMS = 'application/vnd.vmware.vcloud.controlAccess+xml'
+    CURRENT_USAGE = \
+        'application/vnd.vmware.vcloud.metrics.currentUsageSpec+xml'
     DEFAULT_CONTENT_TYPE = 'application/*+xml'
     DEPLOY = 'application/vnd.vmware.vcloud.deployVAppParams+xml'
     DISK = 'application/vnd.vmware.vcloud.disk+xml'
@@ -362,6 +365,8 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
     GUEST_CUSTOMIZATION_SECTION = \
         'application/vnd.vmware.vcloud.guestCustomizationSection+xml'
+    HISTORIC_USAGE = \
+        'application/vnd.vmware.vcloud.metrics.historicUsageSpec+xml'
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'
     MEDIA_INSERT_OR_EJECT_PARAMS = \

@@ -696,6 +696,16 @@ class TestVM(BaseTestCase):
         result = vm.get_compliance_result()
         self.assertEqual(result.ComplianceStatus,'UNKNOWN')
 
+    def test_0240_list_all_current_metrics(self):
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        dict = vm.list_all_current_metrics()
+        self.assertTrue(len(dict) > 0)
+
+    def test_0250_list_subset_current_metrics(self):
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        dict = vm.list_current_metrics_subset(metric_pattern='*.average')
+        self.assertTrue(len(dict) > 0)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Delete the vApp created during setup.

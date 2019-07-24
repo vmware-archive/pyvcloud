@@ -1049,3 +1049,76 @@ class VM(object):
         return self.client. \
             get_linked_resource(self.resource, rel=RelationType.DOWN,
                                 media_type=EntityType.COMPLIANCE_RESULT.value)
+
+    def list_all_current_metrics(self):
+        """List current metrics of a VM.
+
+        :return: dict which contains current metrics of VM
+
+        :rtype: dict
+        """
+        metrics_info = {}
+        self.get_resource()
+        metrics_list = self.client. \
+            get_linked_resource(self.resource, rel=RelationType.DOWN,
+                                media_type=EntityType.CURRENT_USAGE.value)
+        metric_count = 0
+        for metric in metrics_list.Metric:
+            metrics_info['metric_name' + str(metric_count)] = metric. \
+                get('name')
+            metrics_info['metric_unit' + str(metric_count)] = metric. \
+                get('unit')
+            metrics_info['metric_value' + str(metric_count)] = metric.get(
+                'value')
+            metric_count = metric_count + 1
+        return metrics_info
+
+    def list_current_metrics_subset(self, metric_pattern=None):
+        """List current metrics subset of a VM.
+
+        :return: dict which contains current metrics subset of VM
+
+        :rtype: dict
+        """
+        metrics_info = {}
+        self.get_resource()
+        current_usage_spec = E.CurrentUsageSpec(
+            E.MetricPattern(metric_pattern))
+        metrics_list = self.client. \
+            post_linked_resource(self.resource, rel=RelationType.METRICS,
+                                 media_type=EntityType.CURRENT_USAGE.value,
+                                 contents=current_usage_spec)
+
+        metric_count = 0
+        for metric in metrics_list.Metric:
+            metrics_info['metric_name' + str(metric_count)] = metric. \
+                get('name')
+            metrics_info['metric_unit' + str(metric_count)] = metric. \
+                get('unit')
+            metrics_info['metric_value' + str(metric_count)] = metric.get(
+                'value')
+            metric_count = metric_count + 1
+        return metrics_info
+
+    def list_all_historic_metrics(self):
+        """List historic metrics of a VM.
+
+        :return: dict which contains historic metrics of VM
+
+        :rtype: dict
+        """
+        metrics_info = {}
+        self.get_resource()
+        metrics_list = self.client. \
+            get_linked_resource(self.resource, rel=RelationType.DOWN,
+                                media_type=EntityType.HISTORIC_USAGE.value)
+        metric_count = 0
+        for metric in metrics_list.MetricSeries:
+            metrics_info['metric_name' + str(metric_count)] = metric. \
+                get('name')
+            metrics_info['expected_interval' + str(metric_count)] = metric. \
+                get('expectedInterval')
+            metrics_info['metric_unit' + str(metric_count)] = metric.get(
+                'unit')
+            metric_count = metric_count + 1
+        return metrics_info

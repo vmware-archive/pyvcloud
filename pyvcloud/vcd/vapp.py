@@ -1836,3 +1836,135 @@ class VApp(object):
             rel=RelationType.EDIT,
             media_type=EntityType.STARTUP_SECTION.value,
             contents=startup_section_res)
+
+    def get_startup_section(self):
+        """Get startup section data of vapp.
+
+        :return: a list of dictionary containing startup sections Data of the
+            vApp.
+
+        :rtype: list
+        """
+        startup_section = self.resource.xpath(
+            'ovf:StartupSection', namespaces=NSMAP)
+        items = startup_section[0].xpath('ovf:Item', namespaces=NSMAP)
+        startup_section_info = []
+        for item in items:
+            item_detail = {}
+            item_detail['Id'] = item.get('{' + NSMAP['ovf'] + '}id')
+            item_detail['order'] = item.get('{' + NSMAP['ovf'] + '}order')
+            item_detail['startAction'] = item.get('{' + NSMAP['ovf'] +
+                                                  '}startAction')
+            item_detail['startDelay'] = item.get('{' + NSMAP['ovf'] +
+                                                 '}startDelay')
+            item_detail['stopAction'] = item.get('{' + NSMAP['ovf'] +
+                                                 '}stopAction')
+            item_detail['stopDelay'] = item.get('{' + NSMAP['ovf'] +
+                                                '}stopDelay')
+            startup_section_info.append(item_detail)
+        return startup_section_info
+
+    def get_product_sections(self):
+        """Get product sections data of vapp.
+
+        :return: a list containing dictionary of product sections Data of the
+            vApp.
+
+        :rtype: list
+        """
+        self.get_resource()
+        product_sections_res = self.client.get_linked_resource(
+            self.resource, RelationType.DOWN,
+            EntityType.PRODUCT_SECTIONS.value)
+        product_sections = product_sections_res.xpath(
+            'ovf:ProductSection', namespaces=NSMAP)
+        product_sections_info = []
+        for product_section in product_sections:
+            product_section_info = {}
+            product_section_info['info'] = product_section.Info
+            properties = product_section.xpath(
+                'ovf:Property', namespaces=NSMAP)
+            for property in properties:
+                product_section_info[property.get(
+                    '{' + NSMAP['ovf'] +
+                    '}key')] = property.get('{' + NSMAP['ovf'] + '}value')
+            product_sections_info.append(product_section_info)
+        return product_sections_info
+
+    def update_product_section(self,
+                               key,
+                               type='string',
+                               class_name='',
+                               instance_name='',
+                               value='',
+                               label=None,
+                               is_password=False,
+                               user_configurable=False):
+        """Update product section of vapp.
+
+        :param str key: key for property in product section of App.
+        :param str type: value type for property in product section of App.
+        :param str class_name: class name for product section of vapp.
+        :param str instance_name: instance name for product section of vapp.
+        :param str value: value for property in product section of App.
+        :param str label: label for property in product section of App.
+        :param str is_password: value for property is password or not in
+            product section of App.
+        :param str user_configurable: value for property is user configurable
+            or not in product section of App.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp product section.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        property = E_OVF.Property()
+        property.set('{' + NSMAP['ovf'] + '}key', key)
+        if is_password:
+            property.set('{' + NSMAP['ovf'] + '}password', 'true')
+        else:
+            property.set('{' + NSMAP['ovf'] + '}password', 'false')
+        property.set('{' + NSMAP['ovf'] + '}type', type)
+        if user_configurable:
+            property.set('{' + NSMAP['ovf'] + '}userConfigurable', 'true')
+        else:
+            property.set('{' + NSMAP['ovf'] + '}userConfigurable', 'false')
+        property.set('{' + NSMAP['ovf'] + '}value', str(value))
+        if label is not None:
+            property.append(E_OVF.Label(label))
+        self.get_resource()
+        product_sections_res = self.client.get_linked_resource(
+            self.resource, RelationType.DOWN,
+            EntityType.PRODUCT_SECTIONS.value)
+        product_sections = product_sections_res.xpath(
+            'ovf:ProductSection', namespaces=NSMAP)
+        is_updated = False
+        for product_section in product_sections:
+            class_val = product_section.get('{' + NSMAP['ovf'] + '}class')
+            instance_val = product_section.get('{' + NSMAP['ovf'] +
+                                               '}instance')
+            if class_name == class_val and instance_name == instance_val:
+                properties = product_section.xpath(
+                    'ovf:Property', namespaces=NSMAP)
+                for prop in properties:
+                    id = prop.get('{' + NSMAP['ovf'] + '}key')
+                    if key == id:
+                        prop.getparent().remove(prop)
+                product_section.append(property)
+                is_updated = True
+                break
+        if not is_updated:
+            product_section = E_OVF.ProductSection()
+            if class_name is not None:
+                product_section.set('{' + NSMAP['ovf'] + '}class', class_name)
+            if instance_name is not None:
+                product_section.set('{' + NSMAP['ovf'] + '}instance',
+                                    instance_name)
+            info = E_OVF.Info()
+            product_section.append(info)
+            product_section.append(property)
+            product_sections_res.append(product_section)
+        return self.client.put_linked_resource(
+            product_sections_res,
+            rel=RelationType.EDIT,
+            media_type=EntityType.PRODUCT_SECTIONS.value,
+            contents=product_sections_res)

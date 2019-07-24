@@ -381,6 +381,7 @@ class EntityType(Enum):
     ORG_RIGHTS = 'application/vnd.vmware.admin.org.rights+xml'
     ORG_VDC_NETWORK = 'application/vnd.vmware.vcloud.orgVdcNetwork+xml'
     OWNER = 'application/vnd.vmware.vcloud.owner+xml'
+    PRODUCT_SECTIONS = 'application/vnd.vmware.vcloud.productSections+xml'
     PROVIDER_VDC = 'application/vnd.vmware.admin.providervdc+xml'
     PROVIDER_VDC_PARAMS = \
         'application/vnd.vmware.admin.createProviderVdcParams+xml'

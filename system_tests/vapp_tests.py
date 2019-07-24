@@ -1055,6 +1055,30 @@ class TestVApp(BaseTestCase):
         ).wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def test_0220_get_startup_section(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+        result = vapp.get_startup_section()
+        self.assertNotEqual(len(result), 0)
+        self.assertEqual(result[0]['Id'], TestVApp._customized_vapp_vm_name)
+
+    def test_0230_update_product_section(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+        task = vapp.update_product_section(key='admin', value='admin')
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0240_get_product_sections(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+        result = vapp.get_product_sections()
+        self.assertNotEqual(len(result), 0)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the  method vdc.delete_vapp().

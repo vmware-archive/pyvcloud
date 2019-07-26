@@ -214,6 +214,7 @@ class RelationType(Enum):
     RECOMPOSE = 'recompose'
     RECONFIGURE_VM = 'reconfigureVm'
     RELOAD_FROM_VC = 'reloadFromVc'
+    RELOCATE = 'relocate'
     REMOVE = 'remove'
     REPAIR = 'repair'
     RIGHTS = 'rights'
@@ -343,6 +344,7 @@ class EntityType(Enum):
     CONTROL_ACCESS_PARAMS = 'application/vnd.vmware.vcloud.controlAccess+xml'
     CURRENT_USAGE = \
         'application/vnd.vmware.vcloud.metrics.currentUsageSpec+xml'
+    DATASTORE_REFERENCES = 'application/vnd.vmware.admin.datastoreList+xml'
     DEFAULT_CONTENT_TYPE = 'application/*+xml'
     DEPLOY = 'application/vnd.vmware.vcloud.deployVAppParams+xml'
     DISK = 'application/vnd.vmware.vcloud.disk+xml'
@@ -401,6 +403,7 @@ class EntityType(Enum):
     RECORDS = 'application/vnd.vmware.vcloud.query.records+xml'
     REGISTER_VC_SERVER_PARAMS = \
         'application/vnd.vmware.admin.registerVimServerParams+xml'
+    RELOCATE_PARAMS = 'application/vnd.vmware.vcloud.relocateVmParams+xml'
     RESOURCE_POOL_LIST = \
         'application/vnd.vmware.admin.resourcePoolList+xml'
     RES_POOL_SET_UPDATE_PARAMS = \

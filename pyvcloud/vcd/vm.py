@@ -1149,3 +1149,20 @@ class VM(object):
                     get('value')
                 metric_count = metric_count + 1
         return metrics_info
+
+    def relocate(self, datastore_href):
+        """Relocate VM to other datastore.
+
+        :param: datastore href for VM relocation
+
+        :return: an object containing EntityType.TASK XML data which represents
+                    the asynchronous task that is relocating VM.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vm_resource = self.get_resource()
+        relocate_params = E.RelocateParams(E.Datastore(href=datastore_href))
+        return self.client. \
+            post_linked_resource(vm_resource, RelationType.RELOCATE,
+                                 EntityType.RELOCATE_PARAMS.value,
+                                 relocate_params)

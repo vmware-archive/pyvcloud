@@ -28,16 +28,19 @@ class TestVappFirewall(BaseTestCase):
     _network_name = VAppConstants.network1_name
     _enable = True
     _disable = False
+    _drop = 'drop'
+    _allow = 'allow'
+    _test_firewall_rule_name = 'test_firewall_rule'
+    _org_vdc_network_name = 'test-direct-vdc-network'
+    _update_firewall_rule_name = 'updated_firewall_rule'
 
     def test_0000_setup(self):
         TestVappFirewall._client = Environment.get_sys_admin_client()
         vapp = Environment.get_test_vapp_with_network(TestVappFirewall._client)
         vapp.reload()
-        TestVappFirewall._network_name = \
-            Environment.get_default_orgvdc_network_name()
-        task = vapp.connect_org_vdc_network(
-            TestVappFirewall._network_name,
-            fence_mode=FenceMode.NAT_ROUTED.value)
+        task = vapp.connect_vapp_network_to_ovdc_network(
+            network_name=TestVappFirewall._network_name,
+            orgvdc_network_name=TestVappFirewall._org_vdc_network_name)
         result = TestVappFirewall._client.get_task_monitor().wait_for_success(
             task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
@@ -49,7 +52,9 @@ class TestVappFirewall(BaseTestCase):
             network_name=TestVappFirewall._network_name)
         # disable firewall service
         task = vapp_firewall.enable_firewall_service(TestVappFirewall._disable)
-        TestVappFirewall._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVappFirewall._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         vapp_firewall._reload()
         firewall_service = \
             vapp_firewall.resource.Configuration.Features.FirewallService
@@ -61,6 +66,93 @@ class TestVappFirewall(BaseTestCase):
         firewall_service = \
             vapp_firewall.resource.Configuration.Features.FirewallService
         self.assertTrue(firewall_service.IsEnabled)
+
+    def test_0020_set_default_action(self):
+        vapp_firewall = VappFirewall(
+            TestVappFirewall._client,
+            vapp_name=TestVappFirewall._vapp_name,
+            network_name=TestVappFirewall._network_name)
+        # set allow as default action and True log of firewall service
+        task = vapp_firewall.set_default_action(TestVappFirewall._allow,
+                                                TestVappFirewall._enable)
+        result = TestVappFirewall._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp_firewall._reload()
+        firewall_service = \
+            vapp_firewall.resource.Configuration.Features.FirewallService
+        self.assertEqual(TestVappFirewall._allow,
+                         firewall_service.DefaultAction)
+        self.assertTrue(firewall_service.LogDefaultAction)
+
+    def test_0030_add_firewall_rule(self):
+        vapp_firewall = VappFirewall(
+            TestVappFirewall._client,
+            vapp_name=TestVappFirewall._vapp_name,
+            network_name=TestVappFirewall._network_name)
+        task = vapp_firewall.add_firewall_rule(
+            name=TestVappFirewall._test_firewall_rule_name)
+        result = TestVappFirewall._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp_firewall._reload()
+        firewall_service = \
+            vapp_firewall.resource.Configuration.Features.FirewallService
+        self.assertTrue(hasattr(firewall_service, 'FirewallRule'))
+        self.assertEqual(TestVappFirewall._test_firewall_rule_name,
+                         firewall_service.FirewallRule[1].Description)
+
+    def test_0040_list_firewall_rule(self):
+        vapp_firewall = VappFirewall(
+            TestVappFirewall._client,
+            vapp_name=TestVappFirewall._vapp_name,
+            network_name=TestVappFirewall._network_name)
+        result = vapp_firewall.list_firewall_rule()
+        self.assertNotEqual(len(result), 0)
+        self.assertTrue(any(
+            d['Name'] == TestVappFirewall._test_firewall_rule_name for d in
+            result))
+
+    def test_0050_update_firewall_rule(self):
+        vapp_firewall = VappFirewall(
+            TestVappFirewall._client,
+            vapp_name=TestVappFirewall._vapp_name,
+            network_name=TestVappFirewall._network_name)
+        task = vapp_firewall.update_firewall_rule(
+            name=TestVappFirewall._test_firewall_rule_name,
+            new_name=TestVappFirewall._update_firewall_rule_name)
+        result = TestVappFirewall._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp_firewall._reload()
+        firewall_service = \
+            vapp_firewall.resource.Configuration.Features.FirewallService
+        self.assertTrue(hasattr(firewall_service, 'FirewallRule'))
+        self.assertEqual(TestVappFirewall._update_firewall_rule_name,
+                         firewall_service.FirewallRule[1].Description)
+
+        task = vapp_firewall.update_firewall_rule(
+            name=TestVappFirewall._update_firewall_rule_name,
+            new_name=TestVappFirewall._test_firewall_rule_name)
+        result = TestVappFirewall._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0060_delete_firewall_rule(self):
+        vapp_firewall = VappFirewall(
+            TestVappFirewall._client,
+            vapp_name=TestVappFirewall._vapp_name,
+            network_name=TestVappFirewall._network_name)
+        task = vapp_firewall.delete_firewall_rule(
+            TestVappFirewall._test_firewall_rule_name)
+        result = TestVappFirewall._client.get_task_monitor().wait_for_success(
+            task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp_firewall._reload()
+        result = vapp_firewall.list_firewall_rule()
+        self.assertFalse(any(
+            d['Name'] == TestVappFirewall._test_firewall_rule_name for d in
+            result))
 
     @developerModeAware
     def test_9998_teardown(self):

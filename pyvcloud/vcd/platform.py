@@ -43,6 +43,8 @@ class Platform(object):
 
     """
 
+    DATASTORE_ID_PREFIX = "urn:vcloud:datastore"
+
     def __init__(self, client):
         """Constructor for Platform object.
 
@@ -1054,3 +1056,56 @@ class Platform(object):
         if not port_group_names:
             raise EntityNotFoundException('No port group name found')
         return port_group_names
+
+    def get_datastores(self):
+        """Returns the object of datastore references.
+
+        :return: object containing EntityType.DatastoreReferences XML data
+            representing the datastores.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        return self.client.get_linked_resource(
+            self.extension.get_resource(),
+            RelationType.DOWN,
+            EntityType.DATASTORE_REFERENCES.value)
+
+    def list_datastores(self):
+        """Returns the list of datastores with name and id.
+
+        :return: list of datastores
+
+        :rtype: list
+        """
+        result = self.get_datastores()
+        datastore_list = []
+        if hasattr(result, '{' + NSMAP['vcloud'] + '}Reference'):
+            for reference in result['{' + NSMAP['vcloud'] + '}Reference']:
+                datastore_info = {}
+                datastore_info['name'] = reference.get('name')
+                datastore_full_id = reference.get('id')
+                datastore_info['Id'] = datastore_full_id.split(':')[3]
+                datastore_list.append(datastore_info)
+
+        return datastore_list
+
+    def get_datastore_href_by_id(self, id):
+        """Retrieve datastore href by id.
+
+        :param str id: datastore id.
+
+        :return: str href of datastore.
+
+        :rtype: str
+
+        :raises: EntityNotFoundException: if datastore with the provided
+            id couldn't be found.
+        """
+        result = self.get_datastores()
+        datastore_id = self.DATASTORE_ID_PREFIX + id
+
+        if hasattr(result, '{' + NSMAP['vcloud'] + '}Reference'):
+            for reference in result['{' + NSMAP['vcloud'] + '}Reference']:
+                if reference.get('id') == datastore_id:
+                    return reference.get('href')
+        raise EntityNotFoundException('Datastore id  \'%s\' not found' % id)

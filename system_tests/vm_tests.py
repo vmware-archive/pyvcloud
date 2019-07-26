@@ -24,9 +24,11 @@ from pyvcloud.system_test_framework.utils import \
     create_customized_vapp_from_template
 from pyvcloud.system_test_framework.utils import create_empty_vapp
 
+from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import NetworkAdapterType
 from pyvcloud.vcd.client import NSMAP
+from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.client import VmNicProperties
 from pyvcloud.vcd.exceptions import EntityNotFoundException
@@ -171,6 +173,15 @@ class TestVM(BaseTestCase):
         vm_resource = vapp.get_vm(TestVM._test_vapp_vmtools_vm_name)
         TestVM._test_vapp_vmtools_vm_href = vm_resource.get('href')
         self.assertIsNotNone(TestVM._test_vapp_vmtools_vm_href)
+
+        resource = TestVM._sys_admin_client.get_extension()
+        result = TestVM._sys_admin_client.get_linked_resource(
+            resource, RelationType.DOWN,
+            EntityType.DATASTORE_REFERENCES.value)
+        if hasattr(result, '{' + NSMAP['vcloud'] + '}Reference'):
+            for reference in result['{' + NSMAP['vcloud'] + '}Reference']:
+                TestVM._datastore_href = reference.get('href')
+                break
 
     def test_0010_list_vms(self):
         """Test the method VApp.get_all_vms().
@@ -694,7 +705,7 @@ class TestVM(BaseTestCase):
     def test_0230_get_compliance_result(self):
         vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
         result = vm.get_compliance_result()
-        self.assertEqual(result.ComplianceStatus,'UNKNOWN')
+        self.assertEqual(result.ComplianceStatus, 'UNKNOWN')
 
     def test_0240_list_all_current_metrics(self):
         vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
@@ -705,6 +716,13 @@ class TestVM(BaseTestCase):
         vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
         dict = vm.list_current_metrics_subset(metric_pattern='*.average')
         self.assertTrue(len(dict) > 0)
+
+    def test_0260_relocate(self):
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        task = vm.relocate(datastore_href=TestVM._datastore_href)
+        result = TestVM._sys_admin_client. \
+            get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     @developerModeAware
     def test_9998_teardown(self):

@@ -82,31 +82,3 @@ class VappNat(VappServices):
                                                RelationType.EDIT,
                                                EntityType.vApp_Network.value,
                                                self.resource)
-
-    def add_nat_rule(self, nat_type='ipTranslation', policy='allowTrafficIn'):
-        """Update NAT type to vApp network.
-
-        :param str nat_type: NAT type (portForwarding/ipTranslation).
-        :param str policy: policy type(allowTrafficIn/allowTraffic).
-        :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task that is updating the vApp network.
-        :rtype: lxml.objectify.ObjectifiedElement
-        :raises: InvalidParameterException: Enable NAT service failed as
-            given network's connection is not routed
-        """
-        self._get_resource()
-        fence_mode = self.resource.Configuration.FenceMode
-        if fence_mode != 'natRouted':
-            raise InvalidParameterException(
-                "Enable NAT service failed as given network's connection "
-                "is not routed")
-        features = self.resource.Configuration.Features
-        if not hasattr(features, 'NatService'):
-            VappNat._makeNatServiceAttr(features)
-        nat_service = features.NatService
-        nat_service.NatType = E.NatType(nat_type)
-        nat_service.Policy = E.Policy(policy)
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.vApp_Network.value,
-                                               self.resource)

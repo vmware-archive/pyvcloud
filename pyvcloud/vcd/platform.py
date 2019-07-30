@@ -43,7 +43,7 @@ class Platform(object):
 
     """
 
-    DATASTORE_ID_PREFIX = "urn:vcloud:datastore"
+    DATASTORE_ID_PREFIX = "urn:vcloud:datastore:"
 
     def __init__(self, client):
         """Constructor for Platform object.

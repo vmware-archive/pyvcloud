@@ -469,6 +469,27 @@ class VDC(object):
                     })
         return result
 
+    def list_media_id(self):
+        """Fetch information about all media in the current org vdc.
+
+        :return: a list of dictionaries
+
+        :rtype: list
+        """
+        self.get_resource()
+        result = []
+        if hasattr(self.resource, 'ResourceEntities') and \
+           hasattr(self.resource.ResourceEntities, 'ResourceEntity'):
+            for resource in self.resource.ResourceEntities.ResourceEntity:
+                if resource.get('type') == EntityType.MEDIA.value:
+                    id = resource.get('id')
+                    id = id.split(':')[3]
+                    result.append({
+                        'name': resource.get('name'),
+                        'Id': id
+                    })
+        return result
+
     def list_edge_gateways(self):
         """Fetch a list of edge gateways defined in a vdc.
 

@@ -27,6 +27,7 @@ from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
+from pyvcloud.vcd.utils import uri_to_api_uri
 
 
 class VM(object):
@@ -443,16 +444,21 @@ class VM(object):
                     E.PrimaryNetworkConnectionIndex(nic_index)
 
         net_conn = E.NetworkConnection(network=network_name)
+        net_conn.set('needsCustomization', 'true')
         net_conn.append(E.NetworkConnectionIndex(nic_index))
         if ip_address_mode == IpAddressMode.MANUAL.value:
             net_conn.append(E.IpAddress(ip_address))
+        else:
+            net_conn.append(E.IpAddress())
         net_conn.append(E.IsConnected(is_connected))
         net_conn.append(E.IpAddressAllocationMode(ip_address_mode))
         net_conn.append(E.NetworkAdapterType(adapter_type))
         net_conn_section.insert(insert_index, net_conn)
-        return self.client.put_linked_resource(
-            net_conn_section, RelationType.EDIT,
-            EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)
+        vm_resource = self.get_resource()
+        vm_resource.NetworkConnectionSection = net_conn_section
+        return self.client.post_linked_resource(
+            vm_resource, RelationType.RECONFIGURE_VM, EntityType.VM.value,
+            vm_resource)
 
     def list_nics(self):
         """Lists all the nics of the VM.
@@ -565,10 +571,10 @@ class VM(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.INSTALL_VMWARE_TOOLS, None, None)
 
-    def insert_cd_from_catalog(self, media_href):
+    def insert_cd_from_catalog(self, media_id):
         """Insert CD from catalog to the vm.
 
-        :param: media href to insert to VM
+        :param: media id to insert to VM
 
         :return: an object containing EntityType.TASK XML data which represents
                     the asynchronous task that is inserting CD to VM.
@@ -576,16 +582,19 @@ class VM(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         vm_resource = self.get_resource()
+        vm_href = vm_resource.get('href')
+        uri_api = uri_to_api_uri(vm_href)
+        media_href = uri_api + "/media/" + media_id
         media_insert_params = E.MediaInsertOrEjectParams(
             E.Media(href=media_href))
         return self.client.post_linked_resource(
             vm_resource, RelationType.INSERT_MEDIA,
             EntityType.MEDIA_INSERT_OR_EJECT_PARAMS.value, media_insert_params)
 
-    def eject_cd(self, media_href):
+    def eject_cd(self, media_id):
         """Insert CD from catalog to the vm.
 
-        :param: media href to eject from VM
+        :param: media id to eject from VM
 
         :return: an object containing EntityType.TASK XML data which represents
                     the asynchronous task that is inserting CD to VM.
@@ -593,6 +602,9 @@ class VM(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         vm_resource = self.get_resource()
+        vm_href = vm_resource.get('href')
+        uri_api = uri_to_api_uri(vm_href)
+        media_href = uri_api + "/media/" + media_id
         media_eject_params = E.MediaInsertOrEjectParams(
             E.Media(href=media_href))
         return self.client.post_linked_resource(
@@ -1166,3 +1178,51 @@ class VM(object):
             post_linked_resource(vm_resource, RelationType.RELOCATE,
                                  EntityType.RELOCATE_PARAMS.value,
                                  relocate_params)
+
+    def update_nic(self, network_name,
+                   is_connected=False,
+                   is_primary=False,
+                   ip_address_mode=None,
+                   ip_address=None,
+                   adapter_type=None):
+        """Updates a nic of the VM.
+
+        :param str network_name: name of the network to be modified.
+        :param bool is_connected: True, if the nic has to be connected.
+        :param bool is_primary: True, if its a primary nic of the VM.
+        :param str ip_address_mode: One of DHCP|POOL|MANUAL|NONE.
+        :param str ip_address: to be set an ip in case of MANUAL mode.
+        :param str adapter_type: nic adapter type.One of NetworkAdapterType
+                                 values.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task adding  a nic.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        # get network connection section.
+        net_conn_section = self.get_resource().NetworkConnectionSection
+        nic_index = 0
+        # check if any nics exists
+        for network in net_conn_section.NetworkConnection:
+            if network.get('network') == network_name:
+                if ip_address is not None:
+                    network.IpAddress = E.IpAddress(ip_address)
+                network.IsConnected = E.IsConnected(is_connected)
+                if ip_address_mode is not None:
+                    network.IpAddressAllocationMode = E.IpAddressAllocationMode(
+                        ip_address_mode)
+                if adapter_type is not None:
+                    network.NetworkAdapterType = E.NetworkAdapterType(
+                        adapter_type)
+                if is_primary:
+                    nic_index = network.NetworkConnectionIndex
+                break
+
+        if is_primary:
+            net_conn_section.PrimaryNetworkConnectionIndex = E.PrimaryNetworkConnectionIndex(
+                nic_index)
+
+        return self.client.put_linked_resource(
+            net_conn_section, RelationType.EDIT,
+            EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)

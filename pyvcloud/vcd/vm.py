@@ -1210,8 +1210,8 @@ class VM(object):
                     network.IpAddress = E.IpAddress(ip_address)
                 network.IsConnected = E.IsConnected(is_connected)
                 if ip_address_mode is not None:
-                    network.IpAddressAllocationMode = E.IpAddressAllocationMode(
-                        ip_address_mode)
+                    network.IpAddressAllocationMode = \
+                        E.IpAddressAllocationMode(ip_address_mode)
                 if adapter_type is not None:
                     network.NetworkAdapterType = E.NetworkAdapterType(
                         adapter_type)
@@ -1220,8 +1220,8 @@ class VM(object):
                 break
 
         if is_primary:
-            net_conn_section.PrimaryNetworkConnectionIndex = E.PrimaryNetworkConnectionIndex(
-                nic_index)
+            net_conn_section.PrimaryNetworkConnectionIndex = \
+                E.PrimaryNetworkConnectionIndex(nic_index)
 
         return self.client.put_linked_resource(
             net_conn_section, RelationType.EDIT,

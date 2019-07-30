@@ -928,17 +928,13 @@ def uri_to_api_uri(uri):
     """Convert any uri to api uri.
 
     Provided uri as
-     https://10.150.198.98/api/vdc/93b5fa47-d571-4d71-9caf-7af6ed4fab1f will be
-      converted to
-      https://10.150.198.98/api
+    https://10.150.198.98/api/vdc/93b5fa47-d571-4d71-9caf-7af6ed4fab1f will be
+    converted to https://10.150.198.98/api.
 
     :param uri
-
     :return api_uri
-
     :rtype str
     """
-
     uri_components = uri.split('/')
     api_uri = '/'.join(uri_components[:4])
     return api_uri

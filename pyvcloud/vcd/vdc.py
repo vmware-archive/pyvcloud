@@ -35,6 +35,7 @@ from pyvcloud.vcd.client import SIZE_1MB
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
+from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
@@ -2085,7 +2086,14 @@ class VDC(object):
         that refers to individual VdcComputePolicies.
 
         :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: OperationNotSupportedException: if the api version is not
+        supported.
         """
+        if float(self.client.get_api_version()) < \
+                float(ApiVersion.VERSION_32.value):
+            raise OperationNotSupportedException("Unsupported API version")
+
         policy_references = self._fetch_compute_policies()
         policy_id = retrieve_compute_policy_id_from_href(href)
         policy_reference_element = E.VdcComputePolicyReference()
@@ -2107,9 +2115,15 @@ class VDC(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
 
+        :raises: OperationNotSupportedException: if the api version is not
+        supported.
         :raises: EntityNotFoundException: if the VdcComputePolicy cannot
             be located.
         """
+        if float(self.client.get_api_version()) < \
+                float(ApiVersion.VERSION_32.value):
+            raise OperationNotSupportedException("Unsupported API version")
+
         policy_references = self._fetch_compute_policies()
         policy_id = retrieve_compute_policy_id_from_href(href)
         for policy_reference in policy_references.VdcComputePolicyReference:

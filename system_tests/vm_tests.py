@@ -731,9 +731,9 @@ class TestVM(BaseTestCase):
 
     def test_0220_list_virtual_harware_section(self):
         vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
-        dict = vm.list_virtual_hardware_section(is_disk=True, is_media=True,
+        list = vm.list_virtual_hardware_section(is_disk=True, is_media=True,
                                                 is_networkCards=True)
-        self.assertTrue(len(dict) > 0)
+        self.assertTrue(len(list) > 0)
 
     def test_0230_get_compliance_result(self):
         vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
@@ -742,19 +742,30 @@ class TestVM(BaseTestCase):
 
     def test_0240_list_all_current_metrics(self):
         vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
-        dict = vm.list_all_current_metrics()
-        self.assertTrue(len(dict) > 0)
+        list = vm.list_all_current_metrics()
+        self.assertTrue(len(list) > 0)
 
     def test_0250_list_subset_current_metrics(self):
         vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
-        dict = vm.list_current_metrics_subset(metric_pattern='*.average')
-        self.assertTrue(len(dict) > 0)
+        list = vm.list_current_metrics_subset(metric_pattern='*.average')
+        self.assertTrue(len(list) > 0)
 
     def test_0260_relocate(self):
         vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
         task = vm.relocate(datastore_href=TestVM._datastore_href)
         result = TestVM._sys_admin_client. \
             get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0270_list_os_info(self):
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        dict = vm.list_os_section()
+        self.assertTrue(len(dict) > 0)
+
+    def test_0280_update_os_section(self):
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        task = vm.update_operating_system_section(ovf_info="new os")
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     @developerModeAware

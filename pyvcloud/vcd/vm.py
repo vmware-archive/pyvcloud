@@ -952,102 +952,105 @@ class VM(object):
         :param: bool is_networkCards: if True, it will provide network card
                                       information
 
-        :return: dict having virtual hardware section details.
+        :return: list having virtual hardware section details.
 
-        :rtype: dict
+        :rtype: list
         """
-        vhs_info = {}
+        result = []
         self.get_resource()
         if is_cpu:
             uri = self.href + '/virtualHardwareSection/cpu'
             cpu_resource = self.client.get_resource(uri)
-            vhs_info['cpuVirtualQuantity'] = cpu_resource[
+            vhs_cpu_info = {}
+            vhs_cpu_info['cpuVirtualQuantity'] = cpu_resource[
                 '{' + NSMAP['rasd'] + '}VirtualQuantity']
-            vhs_info['cpuCoresPerSocket'] = cpu_resource[
+            vhs_cpu_info['cpuCoresPerSocket'] = cpu_resource[
                 '{' + NSMAP['vmw'] + '}CoresPerSocket']
+            result.append(vhs_cpu_info)
 
         if is_memory:
             uri = self.href + '/virtualHardwareSection/memory'
             memory_resource = self.client.get_resource(uri)
-            vhs_info['memoryVirtualQuantityInMb'] = memory_resource[
+            vhs_memory_info = {}
+            vhs_memory_info['memoryVirtualQuantityInMb'] = memory_resource[
                 '{' + NSMAP['rasd'] + '}VirtualQuantity']
+            result.append(vhs_memory_info)
 
         if is_disk:
             uri = self.href + '/virtualHardwareSection/disks'
             disk_list = self.client.get_resource(uri)
-            disk_count = 0
+            vhs_disk_info = {}
             for disk in disk_list.Item:
                 if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':
-                    vhs_info['diskElementName' + str(disk_count)] = disk[
+                    vhs_disk_info['diskElementName'] = disk[
                         '{' + NSMAP['rasd'] + '}ElementName']
-                    vhs_info['diskVirtualQuantityInBytes' + str(disk_count)] \
+                    vhs_disk_info['diskVirtualQuantityInBytes'] \
                         = disk[
                         '{' + NSMAP['rasd'] + '}VirtualQuantity']
-                    disk_count = disk_count + 1
+
+            result.append(vhs_disk_info)
 
         if is_media:
             uri = self.href + '/virtualHardwareSection/media'
             media_list = self.client.get_resource(uri)
-            media_count = 0
+            vhs_media_info = {}
             for media in media_list.Item:
                 if media['{' +
                          NSMAP['rasd'] + '}Description'] == 'CD/DVD Drive':
                     if media['{' +
                              NSMAP['rasd'] + '}HostResource'].text is not None:
-                        vhs_info['mediaCdElementName' + str(media_count)] = \
+                        vhs_media_info['mediaCdElementName'] = \
                             media['{' + NSMAP['rasd'] + '}ElementName']
-                        vhs_info['mediaCdHostResource' + str(media_count)] = \
+                        vhs_media_info['mediaCdHostResource'] = \
                             media['{' + NSMAP['rasd'] + '}HostResource']
-                        media_count = media_count + 1
                         continue
                 if media['{' +
                          NSMAP['rasd'] + '}Description'] == 'Floppy Drive':
                     if media['{' +
                              NSMAP['rasd'] + '}HostResource'].text is not None:
-                        vhs_info['mediaFloppyElementName' +
-                                 str(media_count)] = \
+                        vhs_media_info['mediaFloppyElementName'] = \
                             media['{' + NSMAP['rasd'] + '}ElementName']
-                        vhs_info['mediaFloppyHostResource'
-                                 + str(media_count)] = \
+                        vhs_media_info['mediaFloppyHostResource'] = \
                             media['{' + NSMAP['rasd'] + '}HostResource']
-                        media_count = media_count + 1
                         continue
+            result.append(vhs_media_info)
 
         if is_networkCards:
             uri = self.href + '/virtualHardwareSection/networkCards'
             ncards_list = self.client.get_resource(uri)
-            ncard_count = 0
+            vhs_network_info = {}
             for ncard in ncards_list.Item:
                 if ncard['{' + NSMAP['rasd'] + '}Connection'] is not None:
-                    vhs_info['ncardElementName' + str(ncard_count)] = ncard[
+                    vhs_network_info['ncardElementName'] = ncard[
                         '{' + NSMAP['rasd'] + '}ElementName']
-                    vhs_info['nCardConnection' + str(ncard_count)] = ncard[
+                    vhs_network_info['nCardConnection'] = ncard[
                         '{' + NSMAP['rasd'] + '}Connection']
-                    vhs_info['nCardIpAddressingMode' + str(ncard_count)] = \
+                    vhs_network_info['nCardIpAddressingMode'] = \
                         ncard.xpath('rasd:Connection', namespaces=NSMAP)[
                             0].attrib.get(
                             '{' + NSMAP['vcloud'] + '}ipAddressingMode')
-                    vhs_info['nCardIpAddress' + str(ncard_count)] = \
+                    vhs_network_info['nCardIpAddress'] = \
                         ncard.xpath('rasd:Connection', namespaces=NSMAP)[
                             0].attrib.get('{' + NSMAP['vcloud'] + '}ipAddress')
-                    vhs_info[
-                        'nCardPrimaryNetworkConnection' + str(ncard_count)] = \
+                    vhs_network_info[
+                        'nCardPrimaryNetworkConnection'] = \
                         ncard.xpath('rasd:Connection', namespaces=NSMAP)[
                             0].attrib.get(
                             '{' + NSMAP['vcloud'] +
                             '}primaryNetworkConnection')
-                    vhs_info['nCardAddress' + str(ncard_count)] = ncard[
+                    vhs_network_info['nCardAddress'] = ncard[
                         '{' + NSMAP['rasd'] + '}Address']
-                    vhs_info['nCardAddressOnParent' + str(ncard_count)] = \
+                    vhs_network_info['nCardAddressOnParent'] = \
                         ncard[
                         '{' + NSMAP['rasd'] + '}AddressOnParent']
-                    vhs_info['nCardAutomaticAllocation' + str(ncard_count)] = \
+                    vhs_network_info['nCardAutomaticAllocation'] = \
                         ncard['{' + NSMAP['rasd'] + '}AutomaticAllocation']
-                    vhs_info['nCardResourceSubType' + str(ncard_count)] = \
+                    vhs_network_info['nCardResourceSubType'] = \
                         ncard['{' + NSMAP['rasd'] + '}ResourceSubType']
-                    ncard_count = ncard_count + 1
 
-        return vhs_info
+            result.append(vhs_network_info)
+
+        return result
 
     def get_compliance_result(self):
         """Get compliance result of a VM.
@@ -1065,34 +1068,32 @@ class VM(object):
     def list_all_current_metrics(self):
         """List current metrics of a VM.
 
-        :return: dict which contains current metrics of VM
+        :return: list which contains current metrics of VM
 
-        :rtype: dict
+        :rtype: list
         """
-        metrics_info = {}
+        result = []
         self.get_resource()
         metrics_list = self.client. \
             get_linked_resource(self.resource, rel=RelationType.DOWN,
                                 media_type=EntityType.CURRENT_USAGE.value)
         metric_count = 0
         for metric in metrics_list.Metric:
-            metrics_info['metric_name' + str(metric_count)] = metric. \
-                get('name')
-            metrics_info['metric_unit' + str(metric_count)] = metric. \
-                get('unit')
-            metrics_info['metric_value' + str(metric_count)] = metric.get(
-                'value')
-            metric_count = metric_count + 1
-        return metrics_info
+            metrics_info = {}
+            metrics_info['metric_name'] = metric.get('name')
+            metrics_info['metric_unit'] = metric.get('unit')
+            metrics_info['metric_value'] = metric.get('value')
+            result.append(metrics_info)
+        return result
 
     def list_current_metrics_subset(self, metric_pattern=None):
         """List current metrics subset of a VM.
 
-        :return: dict which contains current metrics subset of VM
+        :return: list which contains current metrics subset of VM
 
-        :rtype: dict
+        :rtype: list
         """
-        metrics_info = {}
+        result = []
         self.get_resource()
         current_usage_spec = E.CurrentUsageSpec(
             E.MetricPattern(metric_pattern))
@@ -1101,48 +1102,43 @@ class VM(object):
                                  media_type=EntityType.CURRENT_USAGE.value,
                                  contents=current_usage_spec)
 
-        metric_count = 0
         for metric in metrics_list.Metric:
-            metrics_info['metric_name' + str(metric_count)] = metric. \
-                get('name')
-            metrics_info['metric_unit' + str(metric_count)] = metric. \
-                get('unit')
-            metrics_info['metric_value' + str(metric_count)] = metric.get(
-                'value')
-            metric_count = metric_count + 1
-        return metrics_info
+            metrics_info = {}
+            metrics_info['metric_name'] = metric.get('name')
+            metrics_info['metric_unit'] = metric.get('unit')
+            metrics_info['metric_value'] = metric.get('value')
+            result.append(metrics_info)
+        return result
 
     def list_all_historic_metrics(self):
         """List historic metrics of a VM.
 
-        :return: dict which contains historic metrics of VM
+        :return: list which contains historic metrics of VM
 
-        :rtype: dict
+        :rtype: list
         """
-        metrics_info = {}
+        result = []
+
         self.get_resource()
         metrics_list = self.client. \
             get_linked_resource(self.resource, rel=RelationType.DOWN,
                                 media_type=EntityType.HISTORIC_USAGE.value)
-        metric_count = 0
         for metric in metrics_list.MetricSeries:
-            metrics_info['metric_name' + str(metric_count)] = metric. \
-                get('name')
-            metrics_info['expected_interval' + str(metric_count)] = metric. \
-                get('expectedInterval')
-            metrics_info['metric_unit' + str(metric_count)] = metric.get(
-                'unit')
-            metric_count = metric_count + 1
-        return metrics_info
+            metrics_info = {}
+            metrics_info['metric_name'] = metric.get('name')
+            metrics_info['expected_interval'] = metric.get('expectedInterval')
+            metrics_info['metric_unit'] = metric.get('unit')
+            result.append(metrics_info)
+        return result
 
     def list_sample_historic_metric_data(self, metric_name=None):
         """List historic metrics of a VM based on metric name.
 
-        :return: dict which contains sample historic data of given metric
+        :return: list which contains sample historic data of given metric
 
-        :rtype: dict
+        :rtype: list
         """
-        metrics_info = {}
+        result = []
         self.get_resource()
         historic_usage_spec = E.HistoricUsageSpec(
             E.MetricPattern(metric_name))
@@ -1153,14 +1149,12 @@ class VM(object):
                                  contents=historic_usage_spec)
 
         for metric in metrics_list.MetricSeries:
-            metric_count = 0
             for sample in metric.Sample:
-                metrics_info['Timestamp' + str(metric_count)] = sample. \
-                    get('timestamp')
-                metrics_info['Value' + str(metric_count)] = sample. \
-                    get('value')
-                metric_count = metric_count + 1
-        return metrics_info
+                metrics_info = {}
+                metrics_info['Timestamp'] = sample.get('timestamp')
+                metrics_info['Value'] = sample.get('value')
+                result.append(metrics_info)
+        return result
 
     def relocate(self, datastore_href):
         """Relocate VM to other datastore.
@@ -1231,3 +1225,52 @@ class VM(object):
         return self.client.put_linked_resource(
             net_conn_section, RelationType.EDIT,
             EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)
+
+    def get_operating_system_section(self):
+        """Get operating system section of VM .
+
+        :return: an object containing EntityType.OperatingSystemSection
+                  XML data which contains operating system section of VM
+
+        :rtype: lxml.objectify.ObjectifiedElement
+         """
+        uri = self.href + '/operatingSystemSection/'
+
+        return self.client.get_resource(uri)
+
+    def list_os_section(self):
+        """List operating system section of VM .
+
+        :return: dict which contains os section info
+
+        :rtype: dict
+        """
+        os_section = self.get_operating_system_section()
+        result = {}
+        result['Info'] = os_section.Info
+        result['Description'] = os_section.Description
+
+        return result
+
+    def update_operating_system_section(self, ovf_info=None,
+                                        description=None):
+        """Update operating system section of VM .
+
+        :param str ovf_info
+        :param str description
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task adding  a nic.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+         """
+        uri = self.href + '/operatingSystemSection/'
+        os_section = self.get_operating_system_section()
+        if ovf_info is not None:
+            os_section.Info = ovf_info
+        if description is not None:
+            os_section.Description = description
+
+        return self.client.\
+            put_resource(uri, os_section,
+                         EntityType.OPERATING_SYSTEM_SECTION.value)

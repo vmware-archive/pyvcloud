@@ -81,6 +81,16 @@ class TestVM(BaseTestCase):
     _test_vapp_vmtools_name = 'test_vApp_vmtools_' + str(uuid1())
     _test_vapp_vmtools_vm_name = 'yVM'
 
+    _vapp_network_name = 'vapp_network_' + str(uuid1())
+    _vapp_network_description = 'Test vApp network'
+    _vapp_network_cidr = '90.80.70.1/24'
+    _vapp_network_dns1 = '8.8.8.8'
+    _vapp_network_dns2 = '8.8.8.9'
+    _vapp_network_dns_suffix = 'example.com'
+    _vapp_network_ip_range = '90.80.70.2-90.80.70.100'
+    _start_ip_vapp_network = '10.100.12.1'
+    _end_ip_vapp_network = '10.100.12.100'
+
     def test_0000_setup(self):
         """Setup the vms required for the other tests in this module.
 
@@ -182,6 +192,19 @@ class TestVM(BaseTestCase):
             for reference in result['{' + NSMAP['vcloud'] + '}Reference']:
                 TestVM._datastore_href = reference.get('href')
                 break
+
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVM._client, vapp_name=TestVM._test_vapp_name)
+        logger.debug('Creating a vApp network in ' +
+                     TestVM._test_vapp_name)
+        task = vapp.create_vapp_network(
+            TestVM._vapp_network_name, TestVM._vapp_network_cidr,
+            TestVM._vapp_network_description, TestVM._vapp_network_dns1,
+            TestVM._vapp_network_dns2, TestVM._vapp_network_dns_suffix,
+            [TestVM._vapp_network_ip_range])
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp.reload()
 
     def test_0010_list_vms(self):
         """Test the method VApp.get_all_vms().
@@ -380,10 +403,11 @@ class TestVM(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         vm_name = TestVM._test_vapp_first_vm_name
-        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
-        media_href = TestVM._media_resource.Entity.get('href')
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        media_id = TestVM._media_resource.Entity.get('id')
         logger.debug('Inserting CD in VM:  ' + vm_name)
-        task = vm.insert_cd_from_catalog(media_href)
+        id = media_id.split(':')[3]
+        task = vm.insert_cd_from_catalog(media_id=id)
         result = TestVM._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
@@ -393,10 +417,11 @@ class TestVM(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         vm_name = TestVM._test_vapp_first_vm_name
-        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
-        media_href = TestVM._media_resource.Entity.get('href')
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        media_id = TestVM._media_resource.Entity.get('id')
         logger.debug('Ejecting CD from VM:  ' + vm_name)
-        task = vm.eject_cd(media_href)
+        id = media_id.split(':')[3]
+        task = vm.eject_cd(media_id=id)
         result = TestVM._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
@@ -489,16 +514,24 @@ class TestVM(BaseTestCase):
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0080_vm_nic_operations(self):
-        """Test the method add_nic vm.py.
+        """Test the method add_nic and list_nics vm.py.
         This test passes if a nic is created successfully.
         """
         vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
-        task = vm.add_nic(NetworkAdapterType.E1000.value, True, True, 'none',
-                          IpAddressMode.NONE.value, None)
+        task = vm.add_nic(NetworkAdapterType.E1000.value, True, True,
+                          TestVM._vapp_network_name,
+                          IpAddressMode.POOL.value, None)
         result = TestVM._client.get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         vm.reload()
         self.assertTrue(len(vm.list_nics()) == 2)
+
+    def test_0085_vm_nic_update(self):
+        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        task = vm.update_nic(network_name=TestVM._vapp_network_name,
+                             is_connected=False)
+        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0090_vm_nic_delete(self):
         """Test the method delete_nic in vm.py

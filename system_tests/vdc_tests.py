@@ -88,37 +88,31 @@ class TestOrgVDC(BaseTestCase):
 
     def test_0010_list_vdc(self):
         """Test the method VDC.list_vdcs().
-
         This test passes if the vdc created during setup can be found in the
         list of vdcs retrieved.
         """
         org = Environment.get_test_org(TestOrgVDC._client)
         vdc_list = org.list_vdcs()
-
         retrieved_vdc_names = []
         retrieved_vdc_hrefs = []
         for vdc in vdc_list:
             retrieved_vdc_names.append(vdc['name'])
             retrieved_vdc_hrefs.append(vdc['href'])
-
         self.assertIn(TestOrgVDC._new_vdc_name, retrieved_vdc_names)
         self.assertIn(TestOrgVDC._new_vdc_href, retrieved_vdc_hrefs)
 
     def test_0020_get_vdc(self):
         """Test the method VDC.get_vdc().
-
         This test passes if the expected vdc can be successfully retrieved by
         name.
         """
         org = Environment.get_test_org(TestOrgVDC._client)
         vdc = org.get_vdc(TestOrgVDC._new_vdc_name)
-
         self.assertEqual(TestOrgVDC._new_vdc_name, vdc.get('name'))
         self.assertEqual(TestOrgVDC._new_vdc_href, vdc.get('href'))
 
     def test_0030_get_non_existent_vdc(self):
         """Test the method VDC.get_vdc().
-
         This test passes if the non-existent vdc can't be successfully
         retrieved by name.
         """
@@ -131,18 +125,15 @@ class TestOrgVDC(BaseTestCase):
 
     def test_0040_enable_disable_vdc(self):
         """Test the method VDC.enable_vdc().
-
         First disable the vdc, try to re-disable it (which should fail). Next,
         enable the vdc back, and then try to re-enable the vdc (which should
         fail).
-
         This test passes if the state of vdc matches our expectation after each
         operation.
         """
         logger = Environment.get_default_logger()
         vdc = VDC(TestOrgVDC._client, href=TestOrgVDC._new_vdc_href)
         # vdc should be in enabled state after the previous tests.
-
         vdc.enable_vdc(enable=False)
         logger.debug('Disabled vdc ' + TestOrgVDC._new_vdc_name + '.')
         try:
@@ -153,7 +144,6 @@ class TestOrgVDC(BaseTestCase):
                       TestOrgVDC._new_vdc_href)
         except OperationNotSupportedException as e:
             pass
-
         vdc.enable_vdc(enable=True)
         logger.debug('Enabled vdc ' + TestOrgVDC._new_vdc_name + '.')
         try:
@@ -167,23 +157,19 @@ class TestOrgVDC(BaseTestCase):
 
     def test_0050_vdc_acl(self):
         """Test the methods related to access control list in vdc.py.
-
         This test passes if all the acl operations are successful.
         """
         logger = Environment.get_default_logger()
         vdc = VDC(TestOrgVDC._client, href=TestOrgVDC._new_vdc_href)
         vdc_name = TestOrgVDC._new_vdc_name
-
         vapp_user_name = Environment.get_username_for_role_in_test_org(
             CommonRoles.VAPP_USER)
         console_user_name = Environment.get_username_for_role_in_test_org(
             CommonRoles.CONSOLE_ACCESS_ONLY)
-
         # remove all
         logger.debug('Removing all access control from vdc ' + vdc_name)
         control_access = vdc.remove_access_settings(remove_all=True)
         self.assertFalse(hasattr(control_access, 'AccessSettings'))
-
         # add
         logger.debug('Adding 2 access control rule to vdc ' + vdc_name)
         vdc.reload()
@@ -197,13 +183,11 @@ class TestOrgVDC(BaseTestCase):
                 'access_level': 'ReadOnly'
             }])
         self.assertEqual(len(control_access.AccessSettings.AccessSetting), 2)
-
         # get
         logger.debug('Fetching access control rules for vdc ' + vdc_name)
         vdc.reload()
         control_access = vdc.get_access_settings()
         self.assertEqual(len(control_access.AccessSettings.AccessSetting), 2)
-
         # remove
         logger.debug('Removing 1 access control rule for vdc ' + vdc_name)
         control_access = vdc.remove_access_settings(
@@ -212,21 +196,18 @@ class TestOrgVDC(BaseTestCase):
                 'type': 'user'
             }])
         self.assertEqual(len(control_access.AccessSettings.AccessSetting), 1)
-
         # share
         logger.debug('Sharing vdc ' + vdc_name + ' with everyone in the org')
         vdc.reload()
         control_access = vdc.share_with_org_members()
         self.assertEqual(control_access.IsSharedToEveryone.text, 'true')
         self.assertEqual(control_access.EveryoneAccessLevel.text, 'ReadOnly')
-
         # unshare
         logger.debug(
             'Un-sharing vdc ' + vdc_name + ' from everyone in the org')
         vdc.reload()
         control_access = vdc.unshare_from_org_members()
         self.assertEqual(control_access.IsSharedToEveryone.text, 'false')
-
         # re-share, before performing any other ACL operation to avoid
         # running into https://github.com/vmware/pyvcloud/issues/279
         logger.debug('Re-sharing vdc ' + vdc_name + ' with everyone in the ' +
@@ -235,7 +216,6 @@ class TestOrgVDC(BaseTestCase):
         control_access = vdc.share_with_org_members()
         self.assertEqual(control_access.IsSharedToEveryone.text, 'true')
         self.assertEqual(control_access.EveryoneAccessLevel.text, 'ReadOnly')
-
         # remove the last access setting
         logger.debug('Removing the last remaining access control from'
                      ' vdc ' + vdc_name)
@@ -245,23 +225,19 @@ class TestOrgVDC(BaseTestCase):
 
     def test_0060_vdc_metadata(self):
         """Test the methods related to metadata manipulation in vdc.py.
-
         This test passes if all the metadata operations are successful.
         """
         vapp_author_client = None
         sys_admin_client = None
         try:
             logger = Environment.get_default_logger()
-
             vapp_author_client = Environment.get_client_in_default_org(
                 CommonRoles.VAPP_AUTHOR)
             vdc_vapp_author_view = VDC(client=vapp_author_client,
                                        href=TestOrgVDC._new_vdc_href)
-
             sys_admin_client = Environment.get_sys_admin_client()
             vdc_sys_admin_view = VDC(client=sys_admin_client,
                                      href=TestOrgVDC._new_vdc_href)
-
             # try to add new metadata as vapp author
             try:
                 logger.debug(f'Adding metadata [key={TestOrgVDC._metadata_key}'
@@ -274,7 +250,6 @@ class TestOrgVDC(BaseTestCase):
                                 'add new metadta entry.')
             except OperationNotSupportedException as e:
                 pass
-
             # add new metadata as sys admin
             logger.debug(f'Adding metadata [key={TestOrgVDC._metadata_key},'
                          'value={TestOrgVDC._metadata_value}]) as Sys admin.')
@@ -283,7 +258,6 @@ class TestOrgVDC(BaseTestCase):
                 value=TestOrgVDC._metadata_value)
             result = sys_admin_client.get_task_monitor().wait_for_success(task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
-
             # retrieve metadata as vapp author
             logger.debug(f'Retriving metadata with key='
                          '{TestOrgVDC._metadata_key} as vApp author.')
@@ -291,7 +265,6 @@ class TestOrgVDC(BaseTestCase):
                 key=TestOrgVDC._metadata_key)
             self.assertEqual(extract_metadata_value(metadata_value),
                              TestOrgVDC._metadata_value)
-
             # try to retrieve non existent metadata entry
             try:
                 logger.debug(f'Retriving metadata with invalid key='
@@ -303,7 +276,6 @@ class TestOrgVDC(BaseTestCase):
                                 ' entry with bad key.')
             except AccessForbiddenException as e:
                 pass
-
             # try to update metadata value as vapp author
             try:
                 logger.debug(f'Trying to update metadata with key='
@@ -317,7 +289,6 @@ class TestOrgVDC(BaseTestCase):
                                 ' entry as vApp author.')
             except OperationNotSupportedException as e:
                 pass
-
             # update metadata value as sys admin
             logger.debug(f'Updtaing metadata with key='
                          '{TestOrgVDC._metadata_key} to value='
@@ -330,7 +301,6 @@ class TestOrgVDC(BaseTestCase):
                 key=TestOrgVDC._metadata_key)
             self.assertEqual(extract_metadata_value(metadata_value),
                              TestOrgVDC._metadata_new_value)
-
             # try to remove metadata as vapp author
             try:
                 logger.debug(f'Trying to remove metadata with key='
@@ -341,7 +311,6 @@ class TestOrgVDC(BaseTestCase):
                                 'entry as vApp author.')
             except OperationNotSupportedException as e:
                 pass
-
             # remove metadata entry as sys admin
             logger.debug(f'Removing metadata with '
                          'key={TestOrgVDC._metadata_key},as Sys Admin.')
@@ -354,6 +323,21 @@ class TestOrgVDC(BaseTestCase):
                 sys_admin_client.logout()
             if vapp_author_client is not None:
                 vapp_author_client.logout()
+
+    def test_0070_list_media(self):
+        """Test the method VDC.list_media_id().
+
+        This test passes if it lists vdc medias and its id.
+        """
+        logger = Environment.get_default_logger()
+        vdc = Environment.get_test_vdc(TestOrgVDC._client)
+        vdc.reload()
+        vdc_resource = vdc.get_resource()
+        vdc = VDC(TestOrgVDC._client, href=vdc_resource.get('href'))
+
+        media_list = vdc.list_media_id()
+
+        self.assertTrue(len(media_list) > 0)
 
     @developerModeAware
     def test_9998_teardown(self):

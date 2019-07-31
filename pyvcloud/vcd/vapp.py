@@ -1968,3 +1968,32 @@ class VApp(object):
             rel=RelationType.EDIT,
             media_type=EntityType.PRODUCT_SECTIONS.value,
             contents=product_sections_res)
+
+    def list_vm_interface(self, network_name):
+        """List vm interfaces of network.
+
+        :param str network_name: name of network.
+
+        :return: a list of dictionary that contain list of interfaces.
+        :rtype: list
+        """
+        self.get_resource()
+        result = []
+        if hasattr(self.resource, 'Children') and \
+                hasattr(self.resource.Children, 'Vm'):
+            for vm in self.resource.Children.Vm:
+                local_id = vm.VAppScopedLocalId
+                vm_interface_data = {}
+                if hasattr(vm, 'NetworkConnectionSection'):
+                    net_con_section = vm.NetworkConnectionSection
+                    if hasattr(net_con_section, 'NetworkConnection'):
+                        net_con = net_con_section.NetworkConnection
+                        for network_connection in net_con:
+                            if network_connection.get(
+                                    'network') == network_name:
+                                vm_interface_data['Name'] = network_name
+                                vm_interface_data['Local_id'] = local_id
+                                vm_interface_data['VmNicId'] = \
+                                    network_connection.NetworkConnectionIndex
+                                result.append(vm_interface_data)
+        return result

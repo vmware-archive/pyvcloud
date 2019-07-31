@@ -1203,9 +1203,10 @@ class VM(object):
         # get network connection section.
         net_conn_section = self.get_resource().NetworkConnectionSection
         nic_index = 0
-        # check if any nics exists
+        nic_found = False
         for network in net_conn_section.NetworkConnection:
             if network.get('network') == network_name:
+                nic_found = True
                 if ip_address is not None:
                     network.IpAddress = E.IpAddress(ip_address)
                 network.IsConnected = E.IsConnected(is_connected)
@@ -1218,6 +1219,10 @@ class VM(object):
                 if is_primary:
                     nic_index = network.NetworkConnectionIndex
                 break
+
+        if nic_found is False:
+            raise EntityNotFoundException(
+                'Vapp with name \'%s\' not found.' % network_name)
 
         if is_primary:
             net_conn_section.PrimaryNetworkConnectionIndex = \

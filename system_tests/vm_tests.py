@@ -403,7 +403,7 @@ class TestVM(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         vm_name = TestVM._test_vapp_first_vm_name
-        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
         media_id = TestVM._media_resource.Entity.get('id')
         logger.debug('Inserting CD in VM:  ' + vm_name)
         id = media_id.split(':')[3]
@@ -417,7 +417,7 @@ class TestVM(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         vm_name = TestVM._test_vapp_first_vm_name
-        vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
         media_id = TestVM._media_resource.Entity.get('id')
         logger.debug('Ejecting CD from VM:  ' + vm_name)
         id = media_id.split(':')[3]
@@ -514,7 +514,7 @@ class TestVM(BaseTestCase):
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0080_vm_nic_operations(self):
-        """Test the method add_nic, update_nic and list_nics vm.py.
+        """Test the method add_nic and list_nics vm.py.
         This test passes if a nic is created successfully.
         """
         vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)

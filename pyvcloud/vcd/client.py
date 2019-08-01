@@ -383,6 +383,8 @@ class EntityType(Enum):
     NETWORK_POOL_REFERENCES = \
         'application/vnd.vmware.admin.vmwNetworkPoolReferences+xml'
     NSXT_MANAGER = 'application/vnd.vmware.admin.nsxTmanager+xml'
+    OPERATING_SYSTEM_SECTION = \
+        'application/vnd.vmware.vcloud.operatingSystemSection+xml'
     ORG = 'application/vnd.vmware.vcloud.org+xml'
     ORG_NETWORK = 'application/vnd.vmware.vcloud.orgNetwork+xml'
     ORG_LIST = 'application/vnd.vmware.vcloud.orgList+xml'

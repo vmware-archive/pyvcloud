@@ -738,7 +738,7 @@ class TestVM(BaseTestCase):
     def test_0230_get_compliance_result(self):
         vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
         result = vm.get_compliance_result()
-        self.assertEqual(result.ComplianceStatus, 'UNKNOWN')
+        self.assertEqual(result.ComplianceStatus, 'COMPLIANT')
 
     def test_0240_list_all_current_metrics(self):
         vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)

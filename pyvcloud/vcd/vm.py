@@ -1077,7 +1077,7 @@ class VM(object):
         metrics_list = self.client. \
             get_linked_resource(self.resource, rel=RelationType.DOWN,
                                 media_type=EntityType.CURRENT_USAGE.value)
-        metric_count = 0
+
         for metric in metrics_list.Metric:
             metrics_info = {}
             metrics_info['metric_name'] = metric.get('name')
@@ -1227,22 +1227,19 @@ class VM(object):
             EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)
 
     def get_operating_system_section(self):
-        """Get operating system section of VM .
+        """Get operating system section of VM.
 
-        :return: an object containing EntityType.OperatingSystemSection
-                  XML data which contains operating system section of VM
-
+        :return: an object containing EntityType.OperatingSystemSection XML
+                 data which contains operating system section of VM
         :rtype: lxml.objectify.ObjectifiedElement
-         """
+        """
         uri = self.href + '/operatingSystemSection/'
-
         return self.client.get_resource(uri)
 
     def list_os_section(self):
-        """List operating system section of VM .
+        """List operating system section of VM.
 
         :return: dict which contains os section info
-
         :rtype: dict
         """
         os_section = self.get_operating_system_section()
@@ -1252,18 +1249,16 @@ class VM(object):
 
         return result
 
-    def update_operating_system_section(self, ovf_info=None,
-                                        description=None):
-        """Update operating system section of VM .
+    def update_operating_system_section(self, ovf_info=None, description=None):
+        """Update operating system section of VM.
 
         :param str ovf_info
         :param str description
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task adding  a nic.
-
         :rtype: lxml.objectify.ObjectifiedElement
-         """
+        """
         uri = self.href + '/operatingSystemSection/'
         os_section = self.get_operating_system_section()
         if ovf_info is not None:
@@ -1271,6 +1266,6 @@ class VM(object):
         if description is not None:
             os_section.Description = description
 
-        return self.client.\
+        return self.client. \
             put_resource(uri, os_section,
                          EntityType.OPERATING_SYSTEM_SECTION.value)

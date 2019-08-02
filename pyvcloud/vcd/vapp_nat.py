@@ -134,8 +134,6 @@ class VappNat(VappServices):
             VappNat._delete_all_nat_rule(nat_service)
             nat_service.NatType = E.NatType(nat_type)
         nat_rule = E.NatRule()
-        # rule_id =
-        # nat_rule.append(E.Id(rule_id))
         if nat_type == 'ipTranslation':
             one_to_vm_rule = E.OneToOneVmRule()
             one_to_vm_rule.append(E.MappingMode(mapping_mode))

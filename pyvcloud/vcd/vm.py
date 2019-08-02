@@ -1443,7 +1443,7 @@ class VM(object):
 
     def update_vm_capabilities_section(self, memory_hot_add_enabled=None,
                                        cpu_hot_add_enabled=None):
-        """Update operating system section of VM.
+        """Update vm capabilities section of VM.
 
         :param bool memory_hot_add_enabled
         :param bool cpu_hot_add_enabled

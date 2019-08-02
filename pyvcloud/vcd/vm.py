@@ -1269,3 +1269,148 @@ class VM(object):
         return self.client. \
             put_resource(uri, os_section,
                          EntityType.OPERATING_SYSTEM_SECTION.value)
+
+    def list_gc_section(self):
+        """List guest customization section of VM.
+
+        :return: dict which contains gc section info
+        :rtype: dict
+        """
+        gc_section = self.get_guest_customization_section()
+        result = {}
+
+        if hasattr(gc_section, 'Enabled'):
+            result['Enabled'] = gc_section.Enabled
+        if hasattr(gc_section, 'ChangeSid'):
+            result['ChangeSid'] = gc_section.ChangeSid
+        if hasattr(gc_section, 'JoinDomainEnabled'):
+            result['JoinDomainEnabled'] = gc_section.JoinDomainEnabled
+        if hasattr(gc_section, 'UseOrgSettings'):
+            result['UseOrgSettings'] = gc_section.UseOrgSettings
+        if hasattr(gc_section, 'DomainName'):
+            result['DomainName'] = gc_section.DomainName
+        if hasattr(gc_section, 'DomainUserName'):
+            result['DomainUserName'] = gc_section.DomainUserName
+        if hasattr(gc_section, 'AdminPasswordEnabled'):
+            result['AdminPasswordEnabled'] = gc_section.AdminPasswordEnabled
+        if hasattr(gc_section, 'AdminPasswordAuto'):
+            result['AdminPasswordAuto'] = gc_section.AdminPasswordAuto
+        if hasattr(gc_section, 'AdminAutoLogonEnabled'):
+            result['AdminAutoLogonEnabled'] = gc_section.AdminAutoLogonEnabled
+        if hasattr(gc_section, 'AdminAutoLogonCount'):
+            result['AdminAutoLogonCount'] = gc_section.AdminAutoLogonCount
+        if hasattr(gc_section, 'ResetPasswordRequired'):
+            result['ResetPasswordRequired'] = gc_section.ResetPasswordRequired
+        if hasattr(gc_section, 'VirtualMachineId'):
+            result['VirtualMachineId'] = gc_section.VirtualMachineId
+        if hasattr(gc_section, 'ComputerName'):
+            result['ComputerName'] = gc_section.ComputerName
+        if hasattr(gc_section, 'CustomizationScript'):
+            result['CustomizationScript'] = gc_section.CustomizationScript
+
+        return result
+
+    def update_guest_customization_section(self, enabled=None,
+                                           change_sid=None,
+                                           join_domain_enabled=None,
+                                           use_org_settings=None,
+                                           domain_name=None,
+                                           domain_user_name=None,
+                                           domain_user_password=None,
+                                           admin_password_enabled=None,
+                                           admin_password_auto=None,
+                                           admin_password=None,
+                                           admin_auto_logon_enabled=None,
+                                           admin_auto_logon_count=0,
+                                           reset_password_required=None,
+                                           customization_script=None):
+        """Update guest customization section of VM.
+
+        :param bool enabled
+        :param bool change_sid
+        :param bool join_domain_enabled
+        :param bool use_org_settings
+        :param str domain_name
+        :param str domain_user_name
+        :param str domain_user_password
+        :param bool admin_password_enabled
+        :param bool admin_password_auto
+        :param str admin_password
+        :param bool admin_auto_logon_enabled
+        :param int admin_auto_logon_count
+        :param bool reset_password_required
+        :param str customization_script
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task updating guest customization section.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        uri = self.href + '/guestCustomizationSection/'
+        gc_section = self.get_guest_customization_section()
+        if enabled is not None:
+            gc_section.Enabled = E.Enabled(enabled)
+        if change_sid is not None:
+            gc_section.ChangeSid = E.ChangeSid(change_sid)
+        if join_domain_enabled is not None:
+            gc_section.JoinDomainEnabled = E. \
+                JoinDomainEnabled(join_domain_enabled)
+        if use_org_settings is not None:
+            gc_section.UseOrgSettings = E.UseOrgSettings(use_org_settings)
+        if domain_name is not None:
+            gc_section.DomainName = E.DomainName(domain_name)
+        if domain_user_name is not None:
+            gc_section.DomainUserName = E.DomainUserName(domain_user_name)
+        if domain_user_password is not None:
+            gc_section.DomainUserPassword = E. \
+                DomainUserPassword(domain_user_password)
+        if admin_password_enabled is not None:
+            gc_section.AdminPasswordEnabled = E. \
+                AdminPasswordEnabled(admin_password_enabled)
+        if admin_password_auto is not None:
+            gc_section.AdminPasswordAuto = E.AdminPasswordAuto(
+                admin_password_auto)
+        if admin_password is not None:
+            gc_section.AdminPassword = E.AdminPassword(admin_password)
+        if admin_auto_logon_enabled is not None:
+            gc_section.AdminAutoLogonEnabled = E.AdminAutoLogonEnabled(
+                admin_auto_logon_enabled)
+        if admin_auto_logon_count != 0:
+            gc_section.AdminAutoLogonCount = E.AdminAutoLogonCount(
+                admin_auto_logon_count)
+        if reset_password_required is not None:
+            gc_section.ResetPasswordRequired = E.ResetPasswordRequired(
+                reset_password_required)
+        if customization_script is not None:
+            gc_section.CustomizationScript = E.CustomizationScript(
+                customization_script)
+
+        return self.client. \
+            put_resource(uri, gc_section,
+                         EntityType.GUEST_CUSTOMIZATION_SECTION.value)
+
+    def get_check_post_customization_section(self):
+        """Get check post customization section.
+
+        :return: returns lxml.objectify.ObjectifiedElement resource: object
+            containing EntityType.CheckPostGuestCustomizationSection XML data
+            representing the CheckPostGuestCustomizationSection.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.reload()
+        uri = self.href + '/checkpostcustomizationscript/'
+        return self.client.get_resource(uri)
+
+    def list_check_post_gc_status(self):
+        """List check post gc status.
+
+        :return: dict status
+
+        :rtype: dict
+        """
+        result = {}
+        check_post_gc_section = self.get_check_post_customization_section()
+        result['CheckPostGCStatus'] = check_post_gc_section.CheckPostGCStatus
+
+        return result

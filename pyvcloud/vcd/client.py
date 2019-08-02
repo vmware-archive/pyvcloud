@@ -439,6 +439,8 @@ class EntityType(Enum):
     VIM_SERVER_REFS = 'application/vnd.vmware.admin.vmwVimServerReferences+xml'
     VIRTUAL_CENTER = 'application/vnd.vmware.admin.vmwvirtualcenter+xml'
     VM = 'application/vnd.vmware.vcloud.vm+xml'
+    VM_CAPABILITIES_SECTION = \
+        'application/vnd.vmware.vcloud.vmCapabilitiesSection+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'
     VMW_PROVIDER_VDC_RESOURCE_POOL = \
         'application/vnd.vmware.admin.vmwProviderVdcResourcePool+xml'

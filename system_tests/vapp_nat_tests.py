@@ -20,12 +20,16 @@ from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.client import FenceMode
+from pyvcloud.vcd.client import IpAddressMode
+from pyvcloud.vcd.client import NetworkAdapterType
+from pyvcloud.vcd.vm import VM
 
 
 class TestVappNat(BaseTestCase):
     """Test vapp dhcp functionalities implemented in pyvcloud."""
     _vapp_name = VAppConstants.name
     _network_name = VAppConstants.network1_name
+    _vm_name = VAppConstants.vm1_name
     _org_vdc_network_name = 'test-direct-vdc-network'
     _enable = True
     _disable = False
@@ -33,6 +37,7 @@ class TestVappNat(BaseTestCase):
     _nat_type_port_forwarding = 'portForwarding'
     _policy_traffic = 'allowTraffic'
     _policy_traffic_in = 'allowTrafficIn'
+    _allocate_ip_address = '90.80.70.10'
 
     def test_0000_setup(self):
         TestVappNat._client = Environment.get_sys_admin_client()
@@ -43,6 +48,18 @@ class TestVappNat(BaseTestCase):
             orgvdc_network_name=TestVappNat._org_vdc_network_name)
         result = TestVappNat._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vm_resource = vapp.get_vm(TestVappNat._vm_name)
+        vm = VM(TestVappNat._client, resource=vm_resource)
+        task = vm.add_nic(NetworkAdapterType.E1000.value, True, True,
+                          TestVappNat._network_name,
+                          IpAddressMode.MANUAL.value,
+                          TestVappNat._allocate_ip_address)
+        result = TestVappNat._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        list_vm_interface = vapp.list_vm_interface(TestVappNat._network_name)
+        for vm_interface in list_vm_interface:
+            TestVappNat._vm_id = str(vm_interface['Local_id'])
+            TestVappNat._vm_nic_id = str(vm_interface['VmNicId'])
 
     def test_0010_enable_nat_service(self):
         vapp_nat = VappNat(TestVappNat._client,
@@ -85,6 +102,27 @@ class TestVappNat(BaseTestCase):
         self.assertEqual(nat_service.NatType,
                          TestVappNat._nat_type_ip_translation)
         self.assertEqual(nat_service.Policy, TestVappNat._policy_traffic_in)
+
+    def test_0030_add_nat_rule(self):
+        vapp_nat = VappNat(TestVappNat._client,
+                           vapp_name=TestVappNat._vapp_name,
+                           network_name=TestVappNat._network_name)
+        task = vapp_nat.add_nat_rule(TestVappNat._nat_type_port_forwarding,
+                                     vapp_scoped_vm_id=TestVappNat._vm_id,
+                                     vm_nic_id=TestVappNat._vm_nic_id)
+        result = TestVappNat._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp_nat._reload()
+        nat_service = vapp_nat.resource.Configuration.Features.NatService
+        self.assertTrue(hasattr(nat_service.NatRule, 'VmRule'))
+        task = vapp_nat.add_nat_rule(TestVappNat._nat_type_ip_translation,
+                                     vapp_scoped_vm_id=TestVappNat._vm_id,
+                                     vm_nic_id=TestVappNat._vm_nic_id)
+        result = TestVappNat._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp_nat._reload()
+        nat_service = vapp_nat.resource.Configuration.Features.NatService
+        self.assertTrue(hasattr(nat_service.NatRule, 'OneToOneVmRule'))
 
     @developerModeAware
     def test_9998_teardown(self):

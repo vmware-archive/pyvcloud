@@ -874,12 +874,13 @@ class TestVApp(BaseTestCase):
             client=TestVApp._sys_admin_client,
             vapp_name=TestVApp._customized_vapp_name)
         vm_resource = vapp.get_vm(TestVApp._customized_vapp_vm_name)
-        vm = VM(TestVApp._client, resource=vm_resource)
+        vm = VM(TestVApp._sys_admin_client, resource=vm_resource)
         task = vm.add_nic(NetworkAdapterType.E1000.value, True, True,
                           TestVApp._vapp_network_name,
                           IpAddressMode.MANUAL.value,
                           TestVApp._allocate_ip_address)
-        result = TestVApp._client.get_task_monitor().wait_for_success(task)
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         result = vapp.list_vm_interface(TestVApp._vapp_network_name)
         self.assertNotEqual(len(result), 0)

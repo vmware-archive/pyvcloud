@@ -15,6 +15,7 @@
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.vapp_services import VappServices
 
@@ -155,3 +156,128 @@ class VappNat(VappServices):
                                                RelationType.EDIT,
                                                EntityType.vApp_Network.value,
                                                self.resource)
+
+    def get_nat_type(self):
+        """Get NAT type to vApp network.
+
+        :return: dictionary contain nat type and policy.
+        :rtype: dict
+        :raises: InvalidParameterException: Enable NAT service failed as
+            given network's connection is not routed
+        """
+        self._get_resource()
+        fence_mode = self.resource.Configuration.FenceMode
+        if fence_mode != 'natRouted':
+            raise InvalidParameterException(
+                "Enable NAT service failed as given network's connection "
+                "is not routed")
+        features = self.resource.Configuration.Features
+        if not hasattr(features, 'NatService'):
+            VappNat._makeNatServiceAttr(features)
+        nat_service = features.NatService
+        nat_detail = {}
+        nat_detail['NatType'] = nat_service.NatType
+        nat_detail['Policy'] = nat_service.Policy
+        return nat_detail
+
+    def get_list_of_nat_rule(self):
+        """List NAT rules of vApp network.
+
+        :return: list of dictionary contain detail of NAT rule.
+        :rtype: list
+        :raises: InvalidParameterException: Enable NAT service failed as
+            given network's connection is not routed
+        """
+        list_of_nat_rules = []
+        self._get_resource()
+        fence_mode = self.resource.Configuration.FenceMode
+        if fence_mode != 'natRouted':
+            return list_of_nat_rules
+        features = self.resource.Configuration.Features
+        if not hasattr(features, 'NatService'):
+            return list_of_nat_rules
+        nat_service = features.NatService
+        if hasattr(nat_service, 'NatRule'):
+            if nat_service.NatType == 'ipTranslation':
+                list_of_nat_rules = VappNat._get_ip_translation_nat_rule(
+                    nat_service)
+            elif nat_service.NatType == 'portForwarding':
+                list_of_nat_rules = VappNat._get_port_forwarding_nat_rule(
+                    nat_service)
+        return list_of_nat_rules
+
+    def _get_ip_translation_nat_rule(nat_service):
+        """Get list of IP translation NAT rules of vApp network.
+
+        :return: list of dictionary contain detail of NAT rule.
+        :rtype: list
+        """
+        list_of_nat_rules = []
+        for nat_rule in nat_service.NatRule:
+            rule_detail = {}
+            rule_detail['Id'] = nat_rule.Id
+            if hasattr(nat_rule, 'OneToOneVmRule'):
+                one_to_one_rule = nat_rule.OneToOneVmRule
+                rule_detail['MappingMode'] = one_to_one_rule.MappingMode
+                rule_detail['VAppScopedVmId'] = one_to_one_rule.VAppScopedVmId
+                rule_detail['VmNicId'] = one_to_one_rule.VmNicId
+                if hasattr(one_to_one_rule, 'ExternalIpAddress'):
+                    rule_detail['ExternalIpAddress'] = \
+                        one_to_one_rule.ExternalIpAddress
+            list_of_nat_rules.append(rule_detail)
+        return list_of_nat_rules
+
+    def _get_port_forwarding_nat_rule(nat_service):
+        """Get list of port forwarding NAT rules of vApp network.
+
+        :return: list of dictionary contain detail of NAT rule.
+        :rtype: list
+        """
+        list_of_nat_rules = []
+        for nat_rule in nat_service.NatRule:
+            rule_detail = {}
+            rule_detail['Id'] = nat_rule.Id
+            if hasattr(nat_rule, 'VmRule'):
+                vm_rule = nat_rule.VmRule
+                rule_detail['VAppScopedVmId'] = vm_rule.VAppScopedVmId
+                rule_detail['VmNicId'] = vm_rule.VmNicId
+                rule_detail['ExternalPort'] = vm_rule.ExternalPort
+                rule_detail['InternalPort'] = vm_rule.InternalPort
+                rule_detail['Protocol'] = vm_rule.Protocol
+            list_of_nat_rules.append(rule_detail)
+        return list_of_nat_rules
+
+    def delete_nat_rule(self, id):
+        """Delete NAT rules from vApp network.
+
+        :param str id: id of NAT rule.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        :raises: InvalidParameterException: Enable NAT service failed as
+            given network's connection is not routed
+        :raises: EntityNotFoundException: if the NAT rule not exist of give id.
+        """
+        list_of_nat_rules = []
+        self._get_resource()
+        fence_mode = self.resource.Configuration.FenceMode
+        if fence_mode != 'natRouted':
+            raise InvalidParameterException(
+                "Enable NAT service failed as given network's connection "
+                "is not routed")
+        features = self.resource.Configuration.Features
+        if not hasattr(features, 'NatService'):
+            return list_of_nat_rules
+        nat_service = features.NatService
+        is_deleted = False
+        for nat_rule in nat_service.NatRule:
+            if nat_rule.Id == int(id):
+                nat_service.remove(nat_rule)
+                is_deleted = True
+        if not is_deleted:
+            raise EntityNotFoundException('NAT rule ' + id +
+                                          ' doesn\'t exist.')
+        else:
+            return self.client.put_linked_resource(
+                self.resource, RelationType.EDIT,
+                EntityType.vApp_Network.value, self.resource)

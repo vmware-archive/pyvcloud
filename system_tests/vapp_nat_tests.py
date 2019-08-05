@@ -124,6 +124,36 @@ class TestVappNat(BaseTestCase):
         nat_service = vapp_nat.resource.Configuration.Features.NatService
         self.assertTrue(hasattr(nat_service.NatRule, 'OneToOneVmRule'))
 
+    def test_0040_get_nat_type(self):
+        vapp_nat = VappNat(TestVappNat._client,
+                           vapp_name=TestVappNat._vapp_name,
+                           network_name=TestVappNat._network_name)
+        result = vapp_nat.get_nat_type()
+        self.assertEqual(result['NatType'],
+                         TestVappNat._nat_type_ip_translation)
+        self.assertEqual(result['Policy'], TestVappNat._policy_traffic_in)
+
+    def test_0050_get_list_of_nat_rule(self):
+        vapp_nat = VappNat(TestVappNat._client,
+                           vapp_name=TestVappNat._vapp_name,
+                           network_name=TestVappNat._network_name)
+        result = vapp_nat.get_list_of_nat_rule()
+        self.assertEqual(result[0]['VAppScopedVmId'], TestVappNat._vm_id)
+        self.assertEqual(str(result[0]['VmNicId']), TestVappNat._vm_nic_id)
+
+    def test_0090_delete_nat_rule(self):
+        vapp_nat = VappNat(TestVappNat._client,
+                           vapp_name=TestVappNat._vapp_name,
+                           network_name=TestVappNat._network_name)
+        vapp_nat._get_resource()
+        id = vapp_nat.resource.Configuration.Features.NatService.NatRule.Id
+        task = vapp_nat.delete_nat_rule(id)
+        result = TestVappNat._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp_nat._reload()
+        nat_service = vapp_nat.resource.Configuration.Features.NatService
+        self.assertFalse(hasattr(nat_service, 'NatRule'))
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the  method vdc.delete_vapp().

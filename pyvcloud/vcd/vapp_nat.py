@@ -15,6 +15,7 @@
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.vapp_services import VappServices
 
@@ -191,9 +192,7 @@ class VappNat(VappServices):
         self._get_resource()
         fence_mode = self.resource.Configuration.FenceMode
         if fence_mode != 'natRouted':
-            raise InvalidParameterException(
-                "Enable NAT service failed as given network's connection "
-                "is not routed")
+            return list_of_nat_rules
         features = self.resource.Configuration.Features
         if not hasattr(features, 'NatService'):
             return list_of_nat_rules
@@ -257,6 +256,7 @@ class VappNat(VappServices):
         :rtype: lxml.objectify.ObjectifiedElement
         :raises: InvalidParameterException: Enable NAT service failed as
             given network's connection is not routed
+        :raises: EntityNotFoundException: if the NAT rule not exist of give id.
         """
         list_of_nat_rules = []
         self._get_resource()
@@ -269,10 +269,14 @@ class VappNat(VappServices):
         if not hasattr(features, 'NatService'):
             return list_of_nat_rules
         nat_service = features.NatService
+        is_deleted = False
         for nat_rule in nat_service.NatRule:
             if nat_rule.Id == id:
                 nat_service.remove(nat_rule)
-        return self.client.put_linked_resource(self.resource,
-                                               RelationType.EDIT,
-                                               EntityType.vApp_Network.value,
-                                               self.resource)
+                is_deleted = True
+        if not is_deleted:
+            raise EntityNotFoundException('NAT rule ' + id + 'doesn\'t exist.')
+        else:
+            return self.client.put_linked_resource(
+                self.resource, RelationType.EDIT,
+                EntityType.vApp_Network.value, self.resource)

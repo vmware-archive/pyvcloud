@@ -789,6 +789,21 @@ class TestVM(BaseTestCase):
         dict = vm.list_check_post_gc_status()
         self.assertTrue(len(dict) > 0)
 
+    def test_0320_list_vm_capabilties(self):
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_vmtools_vm_href)
+        dict = vm.list_vm_capabilities()
+        self.assertTrue(len(dict) > 0)
+
+    def test_0330_update_vm_capabilities(self):
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_vmtools_vm_href)
+        task = vm.update_vm_capabilities_section(memory_hot_add_enabled=False)
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vm_capabilities_section = vm.get_vm_capabilities_section()
+        self.assertFalse(vm_capabilities_section.MemoryHotAddEnabled)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Delete the vApp created during setup.

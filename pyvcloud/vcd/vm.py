@@ -1414,3 +1414,53 @@ class VM(object):
         result['CheckPostGCStatus'] = check_post_gc_section.CheckPostGCStatus
 
         return result
+
+    def get_vm_capabilities_section(self):
+        """Get VM capabilities section of VM.
+
+        :return: an object containing EntityType.VmCapabiltiesSection XML
+                 data which contains VM capabilties section of VM
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/vmCapabilities/'
+        return self.client.get_resource(uri)
+
+    def list_vm_capabilities(self):
+        """List VM capabilties section.
+
+        :return: dict which contains VM capabilties section
+
+        :rtype: dict
+        """
+        result = {}
+        vm_capabilities_section = self.get_vm_capabilities_section()
+        result['MemoryHotAddEnabled'] = \
+            vm_capabilities_section.MemoryHotAddEnabled
+        result['CpuHotAddEnabled'] = \
+            vm_capabilities_section.CpuHotAddEnabled
+
+        return result
+
+    def update_vm_capabilities_section(self, memory_hot_add_enabled=None,
+                                       cpu_hot_add_enabled=None):
+        """Update vm capabilities section of VM.
+
+        :param bool memory_hot_add_enabled
+        :param bool cpu_hot_add_enabled
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task adding  a nic.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/vmCapabilities/'
+        vm_capabilities_section = self.get_vm_capabilities_section()
+        if memory_hot_add_enabled is not None:
+            vm_capabilities_section.MemoryHotAddEnabled = E.\
+                MemoryHotAddEnabled(memory_hot_add_enabled)
+        if cpu_hot_add_enabled is not None:
+            vm_capabilities_section.CpuHotAddEnabled = E.CpuHotAddEnabled(
+                cpu_hot_add_enabled)
+
+        return self.client. \
+            put_resource(uri, vm_capabilities_section,
+                         EntityType.VM_CAPABILITIES_SECTION.value)

@@ -42,6 +42,7 @@ from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import DownloadException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
+from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.exceptions import UploadException
 from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.system import System
@@ -1800,8 +1801,14 @@ class Org(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
 
+        :raises: OperationNotSupportedException: if the api version is not
+        supported.
         :raises: EntityNotFoundException: if the vm cannot be located.
         """
+        if float(self.client.get_api_version()) < \
+                float(ApiVersion.VERSION_32.value):
+            raise OperationNotSupportedException("Unsupported API version")
+
         policy_id = retrieve_compute_policy_id_from_href(compute_policy_href)
         template_resource_href = self.get_vapp_template_href(catalog_name,
                                                              catalog_item_name)
@@ -1846,8 +1853,14 @@ class Org(object):
 
         :rtype: lxml.objectify.ObjectifiedElement.
 
+        :raises: OperationNotSupportedException: if the api version is not
+        supported.
         :raises: EntityNotFoundException: if the compute policy not found
         """
+        if float(self.client.get_api_version()) < \
+                float(ApiVersion.VERSION_32.value):
+            raise OperationNotSupportedException("Unsupported API version")
+
         policy_id = retrieve_compute_policy_id_from_href(compute_policy_href)
         template_resource_href = self.get_vapp_template_href(catalog_name,
                                                              catalog_item_name)

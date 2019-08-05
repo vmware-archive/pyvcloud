@@ -271,11 +271,12 @@ class VappNat(VappServices):
         nat_service = features.NatService
         is_deleted = False
         for nat_rule in nat_service.NatRule:
-            if nat_rule.Id == id:
+            if nat_rule.Id == int(id):
                 nat_service.remove(nat_rule)
                 is_deleted = True
         if not is_deleted:
-            raise EntityNotFoundException('NAT rule ' + id + 'doesn\'t exist.')
+            raise EntityNotFoundException('NAT rule ' + id +
+                                          ' doesn\'t exist.')
         else:
             return self.client.put_linked_resource(
                 self.resource, RelationType.EDIT,

@@ -1256,7 +1256,7 @@ class VM(object):
         :param str description
 
         :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task adding  a nic.
+            the asynchronous task updating OS section.
         :rtype: lxml.objectify.ObjectifiedElement
         """
         uri = self.href + '/operatingSystemSection/'
@@ -1449,7 +1449,7 @@ class VM(object):
         :param bool cpu_hot_add_enabled
 
         :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task adding  a nic.
+            the asynchronous task updating VM capabilities.
         :rtype: lxml.objectify.ObjectifiedElement
         """
         uri = self.href + '/vmCapabilities/'
@@ -1464,3 +1464,93 @@ class VM(object):
         return self.client. \
             put_resource(uri, vm_capabilities_section,
                          EntityType.VM_CAPABILITIES_SECTION.value)
+
+    def get_boot_options(self):
+        """Get boot options of VM.
+
+        :return: an object containing EntityType.BootOptions XML
+                 data which contains boot options of VM
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/bootOptions/'
+        return self.client.get_resource(uri)
+
+    def list_boot_options(self):
+        """List boot options of VM.
+
+        :return: dict which contains boot options of VM
+
+        :rtype: dict
+        """
+        result = {}
+        boot_options = self.get_boot_options()
+        result['BootDelay'] = \
+            boot_options.BootDelay
+        result['EnterBIOSSetup'] = \
+            boot_options.EnterBIOSSetup
+
+        return result
+
+    def update_boot_options(self, boot_delay=None,
+                            enter_bios_setup=None):
+        """Update vm capabilities section of VM.
+
+        :param int boot_delay
+        :param bool enter_bios_setup
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task updating boot options.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/action/bootOptions/'
+        boot_options = self.get_boot_options()
+        if boot_delay is not None:
+            boot_options.BootDelay = E. \
+                BootDelay(boot_delay)
+        if enter_bios_setup is not None:
+            boot_options.EnterBIOSSetup = E.EnterBIOSSetup(
+                enter_bios_setup)
+
+        return self.client.post_resource(uri, boot_options,
+                                         EntityType.VM_BOOT_OPTIONS.value)
+
+    def get_run_time_info(self):
+        """Get run time info of VM.
+
+        :return: an object containing EntityType.BootOptions XML
+                 data which contains boot options of VM
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/runtimeInfoSection/'
+        return self.client.get_resource(uri)
+
+    def list_boot_options(self):
+        """List boot options of VM.
+
+        :return: dict which contains boot options of VM
+
+        :rtype: dict
+        """
+        result = {}
+        boot_options = self.get_boot_options()
+        result['BootDelay'] = \
+            boot_options.BootDelay
+        result['EnterBIOSSetup'] = \
+            boot_options.EnterBIOSSetup
+
+        return result
+
+    def list_run_time_info(self):
+        """List runtime info of VM.
+
+        :return: dict which contains runtime info of VM
+
+        :rtype: dict
+        """
+        result = {}
+        runtime_info = self.get_run_time_info()
+        if hasattr(runtime_info, 'VMWareTools'):
+            result['vmware_tools_version'] = runtime_info.VMWareTools.get(
+                'version')
+
+        return result

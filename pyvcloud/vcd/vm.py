@@ -1524,22 +1524,6 @@ class VM(object):
         uri = self.href + '/runtimeInfoSection/'
         return self.client.get_resource(uri)
 
-    def list_boot_options(self):
-        """List boot options of VM.
-
-        :return: dict which contains boot options of VM
-
-        :rtype: dict
-        """
-        result = {}
-        boot_options = self.get_boot_options()
-        result['BootDelay'] = \
-            boot_options.BootDelay
-        result['EnterBIOSSetup'] = \
-            boot_options.EnterBIOSSetup
-
-        return result
-
     def list_run_time_info(self):
         """List runtime info of VM.
 

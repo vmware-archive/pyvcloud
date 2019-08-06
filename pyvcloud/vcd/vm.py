@@ -1493,7 +1493,7 @@ class VM(object):
 
     def update_boot_options(self, boot_delay=None,
                             enter_bios_setup=None):
-        """Update vm capabilities section of VM.
+        """Update boot options of VM.
 
         :param int boot_delay
         :param bool enter_bios_setup

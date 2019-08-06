@@ -281,3 +281,129 @@ class VappNat(VappServices):
             return self.client.put_linked_resource(
                 self.resource, RelationType.EDIT,
                 EntityType.vApp_Network.value, self.resource)
+
+    def update_nat_rule(self,
+                        rule_id,
+                        vapp_scoped_vm_id=None,
+                        vm_nic_id=None,
+                        mapping_mode=None,
+                        external_ip_address=None,
+                        external_port=None,
+                        internal_port=None,
+                        protocol=None):
+        """Update NAT rule of vApp network.
+
+        :param str rule_id: id of NAT rule.
+        :param str vapp_scoped_vm_id: vapp network scoped vm id.
+        :param str vm_nic_id: vapp network scoped vm nic id.
+        :param str mapping_mode: NAT rule mapping mode (automatic/manual) if
+            nat_type is ipTranslation.
+        :param str external_ip_address: external ip address if mapping mode is
+            manual.
+        :param int external_port: external port of NAT rule if nat_type is
+            portForwarding.
+        :param int internal_port: internal port of NAT rule if nat_type is
+            portForwarding.
+        :param str protocol: protocol of NAT rule if nat_type is
+            portForwarding.
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is updating the vApp network.
+        :rtype: lxml.objectify.ObjectifiedElement
+        :raises: InvalidParameterException: Enable NAT service failed as
+            given network's connection is not routed
+        :raises: EntityNotFoundException: if the NAT rule not exist of give id.
+        """
+        self._get_resource()
+        fence_mode = self.resource.Configuration.FenceMode
+        if fence_mode != 'natRouted':
+            raise InvalidParameterException(
+                "Enable NAT service failed as given network's connection "
+                "is not routed")
+        if not hasattr(self.resource.Configuration.Features, 'NatService'):
+            raise EntityNotFoundException('NAT rule ' + id +
+                                          ' doesn\'t exist.')
+        nat_service = self.resource.Configuration.Features.NatService
+        is_updated = False
+        for nat_rule in nat_service.NatRule:
+            if nat_rule.Id == int(rule_id):
+                if nat_service.NatType == 'ipTranslation':
+                    VappNat._update_ip_translation_nat_rule(
+                        nat_rule=nat_rule,
+                        vapp_scoped_vm_id=vapp_scoped_vm_id,
+                        vm_nic_id=vm_nic_id,
+                        mapping_mode=mapping_mode,
+                        ext_ip_address=external_ip_address)
+                elif nat_service.NatType == 'portForwarding':
+                    VappNat._update_port_forwarding_nat_rule(
+                        nat_rule=nat_rule,
+                        vapp_scoped_vm_id=vapp_scoped_vm_id,
+                        vm_nic_id=vm_nic_id,
+                        external_port=external_port,
+                        internal_port=internal_port,
+                        protocol=protocol)
+                is_updated = True
+        if not is_updated:
+            raise EntityNotFoundException('NAT rule ' + id +
+                                          ' doesn\'t exist.')
+        else:
+            return self.client.put_linked_resource(
+                self.resource, RelationType.EDIT,
+                EntityType.vApp_Network.value, self.resource)
+
+    def _update_ip_translation_nat_rule(nat_rule,
+                                        vapp_scoped_vm_id=None,
+                                        vm_nic_id=None,
+                                        mapping_mode=None,
+                                        ext_ip_address=None):
+        """Update IP translation NAT rule of vApp network.
+
+        :param str vapp_scoped_vm_id: vapp network scoped vm id.
+        :param str vm_nic_id: vapp network scoped vm nic id.
+        :param str mapping_mode: NAT rule mapping mode (automatic/manual) if
+            nat_type is ipTranslation.
+        :param str external_ip_address: external ip address if mapping mode is
+            manual.
+        """
+        one_to_one_rule = nat_rule.OneToOneVmRule
+        if vapp_scoped_vm_id is not None:
+            one_to_one_rule.VAppScopedVmId = E.VAppScopedVmId(
+                vapp_scoped_vm_id)
+        if vm_nic_id is not None:
+            one_to_one_rule.VmNicId = E.VmNicId(vm_nic_id)
+        if mapping_mode is not None:
+            one_to_one_rule.MappingMode = E.MappingMode(mapping_mode)
+        if ext_ip_address is not None:
+            ext_ip_node = E.ExternalIpAddress(ext_ip_address)
+            if one_to_one_rule.MappingMode == 'manual' and hasattr(
+                    one_to_one_rule, 'ExternalIpAddress'):
+                one_to_one_rule.ExternalIpAddress = ext_ip_node
+            elif one_to_one_rule.MappingMode == 'manual':
+                one_to_one_rule.MappingMode.addnext(ext_ip_node)
+
+    def _update_port_forwarding_nat_rule(nat_rule,
+                                         vapp_scoped_vm_id=None,
+                                         vm_nic_id=None,
+                                         external_port=None,
+                                         internal_port=None,
+                                         protocol=None):
+        """Update port forwarding NAT rule of vApp network.
+
+        :param str vapp_scoped_vm_id: vapp network scoped vm id.
+        :param str vm_nic_id: vapp network scoped vm nic id.
+        :param int external_port: external port of NAT rule if nat_type is
+            portForwarding.
+        :param int internal_port: internal port of NAT rule if nat_type is
+            portForwarding.
+        :param str protocol: protocol of NAT rule if nat_type.
+        """
+        vm_rule = nat_rule.VmRule
+        if vapp_scoped_vm_id is not None:
+            vm_rule.VAppScopedVmId = E.VAppScopedVmId(vapp_scoped_vm_id)
+        if vm_nic_id is not None:
+            vm_rule.VmNicId = E.VmNicId(vm_nic_id)
+        if external_port is not None:
+            vm_rule.ExternalPort = E.ExternalPort(external_port)
+        if internal_port is not None:
+            vm_rule.InternalPort = E.InternalPort(internal_port)
+        if protocol is not None:
+            vm_rule.Protocol = E.Protocol(protocol)

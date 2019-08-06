@@ -1983,12 +1983,12 @@ class VApp(object):
                 hasattr(self.resource.Children, 'Vm'):
             for vm in self.resource.Children.Vm:
                 local_id = vm.VAppScopedLocalId
-                vm_interface_data = {}
                 if hasattr(vm, 'NetworkConnectionSection'):
                     net_con_section = vm.NetworkConnectionSection
                     if hasattr(net_con_section, 'NetworkConnection'):
                         net_con = net_con_section.NetworkConnection
                         for network_connection in net_con:
+                            vm_interface_data = {}
                             if network_connection.get(
                                     'network') == network_name:
                                 vm_interface_data['Name'] = network_name

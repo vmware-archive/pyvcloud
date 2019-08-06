@@ -804,6 +804,27 @@ class TestVM(BaseTestCase):
         vm_capabilities_section = vm.get_vm_capabilities_section()
         self.assertFalse(vm_capabilities_section.MemoryHotAddEnabled)
 
+    def test_0340_list_boot_options(self):
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_vmtools_vm_href)
+        dict = vm.list_boot_options()
+        self.assertTrue(len(dict) > 0)
+
+    def test_0350_update_boot_options(self):
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_vmtools_vm_href)
+        task = vm.update_boot_options(enter_bios_setup=False)
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        boot_options = vm.get_boot_options()
+        self.assertFalse(boot_options.EnterBIOSSetup)
+
+    def test_0360_list_runtime_info(self):
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_vmtools_vm_href)
+        dict = vm.list_run_time_info()
+        self.assertTrue(len(dict) > 0)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Delete the vApp created during setup.

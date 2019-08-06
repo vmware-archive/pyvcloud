@@ -439,6 +439,7 @@ class EntityType(Enum):
     VIM_SERVER_REFS = 'application/vnd.vmware.admin.vmwVimServerReferences+xml'
     VIRTUAL_CENTER = 'application/vnd.vmware.admin.vmwvirtualcenter+xml'
     VM = 'application/vnd.vmware.vcloud.vm+xml'
+    VM_BOOT_OPTIONS = 'application/vnd.vmware.vcloud.bootOptionsSection+xml'
     VM_CAPABILITIES_SECTION = \
         'application/vnd.vmware.vcloud.vmCapabilitiesSection+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'

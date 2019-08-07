@@ -134,6 +134,7 @@ class VmNicProperties(Enum):
     IP_ADDRESS_MODE = 'ip_address_mode'
     IP_ADDRESS = 'ip_address'
     ADAPTER_TYPE = 'adapter_type'
+    MAC_ADDRESS = 'mac_address'
 
 
 VCLOUD_STATUS_MAP = {

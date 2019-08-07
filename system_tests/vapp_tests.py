@@ -355,6 +355,7 @@ class TestVApp(BaseTestCase):
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         # end state of vApp is deployed and partially powered on.
 
+    # Inconsistent behavior with CI CD and locally working fine.
     # def test_0052_suspend_vapp(self):
     #     logger = Environment.get_default_logger()
     #     vapp_name = TestVApp._customized_vapp_name

@@ -16,6 +16,9 @@
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import IpAddressMode
+from pyvcloud.vcd.client import MetadataDomain
+from pyvcloud.vcd.client import MetadataValueType
+from pyvcloud.vcd.client import MetadataVisibility
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
@@ -27,6 +30,7 @@ from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
+from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.utils import uri_to_api_uri
 
 
@@ -1540,3 +1544,97 @@ class VM(object):
                 'version')
 
         return result
+
+    def get_metadata(self):
+        """Fetch metadata of the VM.
+
+        :return: an object containing EntityType.METADATA XML data which
+            represents the metadata associated with the VM.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+        return self.client.get_linked_resource(
+            self.resource, RelationType.DOWN, EntityType.METADATA.value)
+
+    def set_metadata(self,
+                     domain,
+                     visibility,
+                     key,
+                     value,
+                     metadata_type=MetadataValueType.STRING.value):
+        """Add a new metadata entry to the VM.
+
+        If an entry with the same key exists, it will be updated with the new
+        value.
+
+        :param str domain: a value of SYSTEM places this MetadataEntry in the
+            SYSTEM domain. Omit or leave empty to place this MetadataEntry in
+            the GENERAL domain.
+        :param str visibility: must be one of the values specified in
+            MetadataVisibility enum.
+        :param str key: an arbitrary key name. Length cannot exceed 256 UTF-8
+            characters.
+        :param str value: value of the metadata entry.
+        :param str metadata_type: one of the types specified in
+            client.MetadataValueType enum.
+
+        :return: an object of type EntityType.TASK XML which represents
+             the asynchronous task that is updating the metadata on the VM.
+        """
+        metadata = Metadata(client=self.client, resource=self.get_metadata())
+        return metadata.set_metadata(
+            key=key,
+            value=value,
+            domain=MetadataDomain(domain),
+            visibility=MetadataVisibility(visibility),
+            metadata_value_type=MetadataValueType(metadata_type),
+            use_admin_endpoint=False)
+
+    def set_multiple_metadata(self,
+                              key_value_dict,
+                              domain=MetadataDomain.GENERAL,
+                              visibility=MetadataVisibility.READ_WRITE,
+                              metadata_value_type=MetadataValueType.STRING):
+        """Add multiple new metadata entries to the VM.
+
+        If an entry with the same key exists, it will be updated with the new
+        value. All entries must have the same value type and will be written to
+        the same domain with identical visibility.
+
+        :param dict key_value_dict: a dict containing key-value pairs to be
+            added/updated.
+        :param client.MetadataDomain domain: domain where the new entries would
+            be put.
+        :param client.MetadataVisibility visibility: visibility of the metadata
+            entries.
+        :param client.MetadataValueType metadata_value_type:
+
+        :return: an object of type EntityType.TASK XML which represents
+             the asynchronous task that is updating the metadata on the VM.
+        """
+        metadata = Metadata(client=self.client, resource=self.get_metadata())
+        return metadata.set_multiple_metadata(
+            key_value_dict=key_value_dict,
+            domain=MetadataDomain(domain),
+            visibility=MetadataVisibility(visibility),
+            metadata_value_type=MetadataValueType(metadata_value_type),
+            use_admin_endpoint=False)
+
+    def remove_metadata(self, key, domain=MetadataDomain.GENERAL):
+        """Remove a metadata entry from the VM.
+
+        :param str key: key of the metadata to be removed.
+        :param client.MetadataDomain domain: domain of the entry to be removed.
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is deleting the metadata on the VM.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: AccessForbiddenException: If there is no metadata entry
+            corresponding to the key provided.
+        """
+        metadata = Metadata(client=self.client, resource=self.get_metadata())
+        return metadata.remove_metadata(
+            key=key, domain=domain, use_admin_endpoint=False)

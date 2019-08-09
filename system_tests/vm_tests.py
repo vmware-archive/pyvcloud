@@ -26,12 +26,15 @@ from pyvcloud.system_test_framework.utils import create_empty_vapp
 
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import IpAddressMode
+from pyvcloud.vcd.client import MetadataDomain
+from pyvcloud.vcd.client import MetadataVisibility
 from pyvcloud.vcd.client import NetworkAdapterType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.client import VmNicProperties
 from pyvcloud.vcd.exceptions import EntityNotFoundException
+from pyvcloud.vcd.utils import metadata_to_dict
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vm import VM
 
@@ -90,6 +93,10 @@ class TestVM(BaseTestCase):
     _vapp_network_ip_range = '90.80.70.2-90.80.70.100'
     _start_ip_vapp_network = '10.100.12.1'
     _end_ip_vapp_network = '10.100.12.100'
+    _metadata_key = 'key_' + str(uuid1())
+    _metadata_value = 'value_' + str(uuid1())
+    _metadata_new_value = 'new_value_' + str(uuid1())
+    _non_existent_metadata_key = 'non_existent_key_' + str(uuid1())
 
     def test_0000_setup(self):
         """Setup the vms required for the other tests in this module.
@@ -824,6 +831,47 @@ class TestVM(BaseTestCase):
                 href=TestVM._test_vapp_vmtools_vm_href)
         dict = vm.list_run_time_info()
         self.assertTrue(len(dict) > 0)
+
+    def test_0370_set_meadata(self):
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
+
+        task = vm.set_metadata(
+            domain=MetadataDomain.GENERAL.value,
+            visibility=MetadataVisibility.READ_WRITE,
+            key=TestVM._metadata_key,
+            value=TestVM._metadata_value)
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0380_get_meadata(self):
+        # retrieve metadata
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
+        entries = metadata_to_dict(vm.get_metadata())
+        self.assertTrue(len(entries) > 0)
+
+    def test_0390_update_metadata(self):
+        # update metadata value as org admin
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
+        task = vm.set_metadata(
+            domain=MetadataDomain.GENERAL.value,
+            visibility=MetadataVisibility.READ_WRITE,
+            key=TestVM._metadata_key,
+            value=TestVM._metadata_new_value)
+        TestVM._client.get_task_monitor().wait_for_success(task)
+        entries = metadata_to_dict(vm.get_metadata())
+        self.assertEqual(TestVM._metadata_new_value,
+                         entries[TestVM._metadata_key])
+
+    def test_0400_remove_metadata(self):
+        # remove metadata entry
+        vm = VM(TestVM._sys_admin_client,
+                    href=TestVM._test_vapp_first_vm_href)
+        task = vm.remove_metadata(key=TestVM._metadata_key)
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     @developerModeAware
     def test_9998_teardown(self):

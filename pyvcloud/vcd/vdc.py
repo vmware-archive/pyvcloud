@@ -606,14 +606,18 @@ class VDC(object):
             disk_params.set('name', disk.get('name'))
 
         if new_size is not None:
-            size = str(new_size)
+            if self.client.get_api_version() < ApiVersion.VERSION_33.value:
+                disk_params.set('size', new_size)
+            else:
+                size = int(int(new_size) / SIZE_1MB)
+                disk_params.set('sizeMb', str(size))
         else:
-            size = disk.get('size')
-        if self.client.get_api_version() < ApiVersion.VERSION_33.value:
-            disk_params.set('size', size)
-        else:
-            size = int(int(size) / SIZE_1MB)
-            disk_params.set('sizeMb', str(size))
+            if self.client.get_api_version() < ApiVersion.VERSION_33.value:
+                size = disk.get('size')
+                disk_params.set('size', size)
+            else:
+                size = disk.get('sizeMb')
+                disk_params.set('sizeMb', str(size))
 
         if new_description is not None:
             disk_params.append(E.Description(new_description))

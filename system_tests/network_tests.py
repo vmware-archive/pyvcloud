@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import unittest
 from uuid import uuid1
 
 from pyvcloud.system_test_framework.base_test import BaseTestCase
@@ -149,43 +150,6 @@ class TestNetwork(BaseTestCase):
         result = vdc.list_orgvdc_routed_networks()
         assert len(result) > 0
 
-    def test_0040_list_isolated_orgvdc_networks_as_non_admin_user(self):
-        """Test the method vdc.list_orgvdc_isolated_networks().
-
-        Tries to fetches all isolated orgvdc networks in the current
-        organization as a non admin user.
-
-        This test passes if the operation fails with an
-        AccessForbiddenException.
-        """
-        vdc = Environment.get_test_vdc(TestNetwork._vapp_author_client)
-        try:
-            result = vdc.list_orgvdc_isolated_networks()
-            if len(result) > 0:
-                self.fail('Should not have been able to list isolated orgvdc'
-                          'networks as non admin user.')
-        except AccessForbiddenException as e:
-            return
-
-    def test_0050_get_isolated_orgvdc_network_as_non_admin_user(self):
-        """Test the method vdc.get_isolated_orgvdc_network().
-
-        Tries to retrieve the isolated orgvdc network created during setup as a
-        non admin user.
-
-        This test passes if the operation fails with an
-        AccessForbiddenException.
-        """
-        vdc = Environment.get_test_vdc(TestNetwork._vapp_author_client)
-        try:
-            vdc.get_isolated_orgvdc_network(
-                TestNetwork._isolated_orgvdc_network_name)
-            self.fail('Should not be able to fetch isolated orgvdc network ' +
-                      TestNetwork._isolated_orgvdc_network_name + ' as a non' +
-                      'admin user.')
-        except AccessForbiddenException as e:
-            return
-
     def test_0060_list_orgvdc_network_records_as_non_admin_user(self):
         """Test the method vdc.list_orgvdc_network_records().
 
@@ -304,6 +268,7 @@ class TestNetwork(BaseTestCase):
                 match_found = True
         self.assertTrue(match_found)
 
+    @unittest.skip("Waiting for PR 2399911 fix")
     def test_0078_remove_static_ip_pool(self):
         vdc = Environment.get_test_vdc(TestNetwork._client)
         org_vdc_routed_nw = vdc.get_routed_orgvdc_network(

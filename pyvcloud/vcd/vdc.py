@@ -802,25 +802,6 @@ class VDC(object):
         return self.client.put_resource(
             disk.get('href') + '/owner/', new_owner, EntityType.OWNER.value)
 
-    def get_storage_profiles(self):
-        """Fetch a list of the Storage Profiles defined in a vdc.
-
-        :return: a list of lxml.objectify.ObjectifiedElement objects, where
-            each object contains VdcStorageProfile XML element representing an
-            existing storage profile.
-
-        :rtype: list
-        """
-        profile_list = []
-        self.get_resource()
-
-        if hasattr(self.resource, 'VdcStorageProfiles') and \
-           hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
-            for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
-                profile_list.append(profile)
-            return profile_list
-        return None
-
     def get_all_metadata(self):
         """Fetch all metadata entries of the org vdc.
 
@@ -935,6 +916,25 @@ class VDC(object):
             client=self.client, resource=self.get_all_metadata())
         return metadata.remove_metadata(
             key=key, domain=domain, use_admin_endpoint=True)
+
+    def get_storage_profiles(self):
+        """Fetch a list of the Storage Profiles defined in a vdc.
+
+        :return: a list of lxml.objectify.ObjectifiedElement objects, where
+            each object contains VdcStorageProfile XML element representing an
+            existing storage profile.
+
+        :rtype: list
+        """
+        profile_list = []
+        self.get_resource()
+
+        if hasattr(self.resource, 'VdcStorageProfiles') and \
+           hasattr(self.resource.VdcStorageProfiles, 'VdcStorageProfile'):
+            for profile in self.resource.VdcStorageProfiles.VdcStorageProfile:
+                profile_list.append(profile)
+            return profile_list
+        return None
 
     def get_storage_profile(self, profile_name):
         """Fetch a specific Storage Profile within an org vdc.

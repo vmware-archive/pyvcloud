@@ -19,10 +19,6 @@ from pyvcloud.system_test_framework.vapp_constants import VAppConstants
 from pyvcloud.system_test_framework.environment import Environment
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.vcd.client import TaskStatus
-from pyvcloud.vcd.client import FenceMode
-from pyvcloud.vcd.client import IpAddressMode
-from pyvcloud.vcd.client import NetworkAdapterType
-from pyvcloud.vcd.vm import VM
 
 
 class TestVappStaticRoute(BaseTestCase):

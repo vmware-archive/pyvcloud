@@ -51,7 +51,7 @@ class TestVappStaticRoute(BaseTestCase):
         ).wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
-    def test_0010_enable_nat_service(self):
+    def test_0010_enable_service(self):
         vapp_route = VappStaticRoute(
             TestVappStaticRoute._client,
             vapp_name=TestVappStaticRoute._vapp_name,

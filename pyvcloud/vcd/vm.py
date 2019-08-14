@@ -1673,10 +1673,10 @@ class VM(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         uri = self.href + '/screen/action/acquireMksTicket'
-        return self.client. \
-            post_resource(uri=uri, contents=None,
-                          media_type= \
-                              EntityType.VM_SCREEN_ACQUIRE_MKSTICKET.value)
+        return self.client.post_resource(
+            uri=uri,
+            contents=None,
+            media_type=EntityType.VM_SCREEN_ACQUIRE_MKSTICKET.value)
 
     def list_mks_ticket(self):
         """List mks ticket of VM.
@@ -1729,8 +1729,8 @@ class VM(object):
         result = []
         product_sections = self.get_product_section()
         if hasattr(product_sections, '{' + NSMAP['ovf'] + '}ProductSection'):
-            for product in product_sections[
-                '{' + NSMAP['ovf'] + '}ProductSection']:
+            for product in product_sections['{' + NSMAP['ovf'] +
+                                            '}' 'ProductSection']:
                 section = {}
                 if hasattr(product, 'Info'):
                     section['Info'] = product.Info

@@ -19,12 +19,12 @@ from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
-
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import AccessForbiddenException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.utils import extract_metadata_value
+from pyvcloud.vcd.utils import get_non_admin_href
 from pyvcloud.vcd.vdc import VDC
 
 
@@ -160,7 +160,8 @@ class TestOrgVDC(BaseTestCase):
         This test passes if all the acl operations are successful.
         """
         logger = Environment.get_default_logger()
-        vdc = VDC(TestOrgVDC._client, href=TestOrgVDC._new_vdc_href)
+        vdc = VDC(TestOrgVDC._client,
+                  href=get_non_admin_href(TestOrgVDC._new_vdc_href))
         vdc_name = TestOrgVDC._new_vdc_name
         vapp_user_name = Environment.get_username_for_role_in_test_org(
             CommonRoles.VAPP_USER)
@@ -234,7 +235,8 @@ class TestOrgVDC(BaseTestCase):
             vapp_author_client = Environment.get_client_in_default_org(
                 CommonRoles.VAPP_AUTHOR)
             vdc_vapp_author_view = VDC(client=vapp_author_client,
-                                       href=TestOrgVDC._new_vdc_href)
+                                       href=get_non_admin_href(
+                                           TestOrgVDC._new_vdc_href))
             sys_admin_client = Environment.get_sys_admin_client()
             vdc_sys_admin_view = VDC(client=sys_admin_client,
                                      href=TestOrgVDC._new_vdc_href)

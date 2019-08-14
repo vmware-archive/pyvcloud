@@ -770,6 +770,26 @@ def get_admin_href(href):
         return href.replace('/api/', '/api/admin/')
 
 
+def get_non_admin_href(href):
+    """Returns non admin version of a given vCD url.
+
+    This function is idempotent, which also means that if input href is already
+    a non admin href no further action would be taken.
+
+    :param str href: the admin href whose non admin href version we need.
+
+    :return: non admin version of the href.
+
+    :rtype: str
+    """
+    if '/api/admin/extension/' in href:
+        return href.replace('/api/admin/extension', '/api/')
+    elif '/api/admin/' in href:
+        return href.replace('/api/admin/', '/api/')
+    else:
+        return href
+
+
 def is_admin(href):
     """Returns True if provided href has /api/admin into it.
 

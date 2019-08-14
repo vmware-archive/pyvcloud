@@ -143,10 +143,10 @@ class TestVM(BaseTestCase):
         TestVM._empty_vapp_owner_name = Environment. \
             get_username_for_role_in_test_org(TestVM._test_runner_role)
 
-        #Create independent disk
+        # Create independent disk
         TestVM._idisk = vdc.create_disk(name=self._idisk_name,
-                                 size=self._idisk_size,
-                                 description=self._idisk_description)
+                                        size=self._idisk_size,
+                                        description=self._idisk_description)
 
         # Upload template with vm tools.
         catalog_author_client = Environment.get_client_in_default_org(
@@ -221,8 +221,10 @@ class TestVM(BaseTestCase):
         vapp = VApp(TestVM._client, href=TestVM._test_vapp_href)
         vm_resources = vapp.get_vm(TestVM._test_vapp_first_vm_name)
         for vm_resource in vm_resources:
-            if vm_resource.get('name') == TestVM._test_vapp_first_vm_name and \
-                    vm_resource.get('href') == TestVM._test_vapp_first_vm_href:
+            if vm_resource.get(
+                    'name') == TestVM._test_vapp_first_vm_name and \
+                    vm_resource.get(
+                        'href') == TestVM._test_vapp_first_vm_href:
                 return
         self.fail('Retrieved vm list doesn\'t contain vm ' +
                   TestVM._test_vapp_first_vm_name)
@@ -257,14 +259,17 @@ class TestVM(BaseTestCase):
         This test passes if the retrieved vc name matches with the expected
         vc name.
         """
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         retrieved_vc_name = vm.get_vc()
-        expected_vc_name = Environment.get_config()['vc']['vcenter_host_name']
+        expected_vc_name = Environment.get_config()['vc'][
+            'vcenter_host_name']
         self.assertEqual(retrieved_vc_name, expected_vc_name)
 
-    # TODO(): Test VApp.connect_vm, VApp.get_vm_moid, VApp.get_primary_ip,
-    # VApp.get_admin_password, VApp.add_disk_to_vm once we have more info on
-    # how to test these functions.
+        # TODO(): Test VApp.connect_vm, VApp.get_vm_moid, VApp.get_primary_ip,
+        # VApp.get_admin_password, VApp.add_disk_to_vm once we have more info on
+        # how to test these functions.
+
     def test_0050_customize_vm(self):
         """Test the methods to update and retrieve memory and cpu of a vm.
         The test passes if the update operations are successful and the values
@@ -353,25 +358,26 @@ class TestVM(BaseTestCase):
         task = vm.power_on()
         result = TestVM._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
-#       discard suspend state sometime show inconsistent behavior and puts
-#       VM in partially suspended state. Commenting theis scenerio to avoid
-#       this failure.
-#        logger.debug('Suspend a vm ' + vm_name)
-#        vm.reload()
-#        task = vm.suspend()
-#       result = TestVM._client.get_task_monitor().wait_for_success(task)
-#        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
-#        logger.debug('Discard suspended state of a vm ' + vm_name)
-#        vm.reload()
-#        if vm.is_suspended():
-#            task = vm.discard_suspended_state()
-#            result = TestVM._client.get_task_monitor().wait_for_success(task)
-#            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
-#        logger.debug('Powering back on vm ' + vm_name)
+        #       discard suspend state sometime show inconsistent behavior and puts
+        #       VM in partially suspended state. Commenting theis scenerio to avoid
+        #       this failure.
+        #        logger.debug('Suspend a vm ' + vm_name)
+        #        vm.reload()
+        #        task = vm.suspend()
+        #       result = TestVM._client.get_task_monitor().wait_for_success(task)
+        #        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        #        logger.debug('Discard suspended state of a vm ' + vm_name)
+        #        vm.reload()
+        #        if vm.is_suspended():
+        #            task = vm.discard_suspended_state()
+        #            result = TestVM._client.get_task_monitor().wait_for_success(task)
+        #            self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        #        logger.debug('Powering back on vm ' + vm_name)
         vm.reload()
         if not vm.is_powered_on():
             task = vm.power_on()
-            result = TestVM._client.get_task_monitor().wait_for_success(task)
+            result = TestVM._client.get_task_monitor().wait_for_success(
+                task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         # We will need to skip the next two operations, because the vm in
         # question doesn't have vmware tools installed.
@@ -404,7 +410,8 @@ class TestVM(BaseTestCase):
         vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
         logger.debug('Installing Vmware Tools in VM:  ' + vm_name)
         task = vm.install_vmware_tools()
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0062_insert_cd(self):
@@ -413,12 +420,14 @@ class TestVM(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         vm_name = TestVM._test_vapp_first_vm_name
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         media_id = TestVM._media_resource.Entity.get('id')
         logger.debug('Inserting CD in VM:  ' + vm_name)
         id = media_id.split(':')[3]
         task = vm.insert_cd_from_catalog(media_id=id)
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0063_eject_cd(self):
@@ -427,12 +436,14 @@ class TestVM(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         vm_name = TestVM._test_vapp_first_vm_name
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         media_id = TestVM._media_resource.Entity.get('id')
         logger.debug('Ejecting CD from VM:  ' + vm_name)
         id = media_id.split(':')[3]
         task = vm.eject_cd(media_id=id)
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0070_vm_snapshot_operations(self):
@@ -445,19 +456,22 @@ class TestVM(BaseTestCase):
         # VM.snapshot_create()
         logger.debug('Creating snapshot of vm ' + vm_name)
         task = vm.snapshot_create(memory=False, quiesce=False)
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         # VM.snapshot_revert_to_current
         logger.debug('Reverting vm ' + vm_name + ' to it\'s snapshot.')
         vm.reload()
         task = vm.snapshot_revert_to_current()
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         # VM.snapshot_remove_all()
         logger.debug('Removing all snapshots of vm ' + vm_name)
         vm.reload()
         task = vm.snapshot_remove_all()
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0071_consolidate(self):
@@ -466,7 +480,8 @@ class TestVM(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         vm_name = TestVM._test_vapp_first_vm_name
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         vm.reload()
         if vm.is_powered_on():
             task = vm.power_off()
@@ -531,7 +546,8 @@ class TestVM(BaseTestCase):
         task = vm.add_nic(NetworkAdapterType.E1000.value, True, True,
                           TestVM._vapp_network_name,
                           IpAddressMode.POOL.value, None)
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         vm.reload()
         self.assertTrue(len(vm.list_nics()) == 2)
@@ -540,7 +556,8 @@ class TestVM(BaseTestCase):
         vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
         task = vm.update_nic(network_name=TestVM._vapp_network_name,
                              is_connected=False)
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0090_vm_nic_delete(self):
@@ -553,7 +570,8 @@ class TestVM(BaseTestCase):
         nic_to_delete = next(i[VmNicProperties.INDEX.value] for i in nics
                              if i[VmNicProperties.PRIMARY.value])
         task = vm.delete_nic(int(nic_to_delete))
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         vm.reload()
         self.assertTrue(len(vm.list_nics()) == 1)
@@ -561,7 +579,8 @@ class TestVM(BaseTestCase):
     def test_0100_upgrade_virtual_hardware(self):
         vm = VM(TestVM._client, href=TestVM._test_vapp_first_vm_href)
         task = vm.upgrade_virtual_hardware()
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0110_attach_independent_disk(self):
@@ -570,7 +589,8 @@ class TestVM(BaseTestCase):
         task = TestVM._test_vapp. \
             attach_disk_to_vm(disk_href=idisk.get('href'),
                               vm_name=TestVM._test_vapp_first_vm_name)
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         is_disk_attached = self.__validate_is_attached_disk(
             is_disk_attached=False)
@@ -582,7 +602,8 @@ class TestVM(BaseTestCase):
         task = TestVM._test_vapp. \
             detach_disk_from_vm(disk_href=idisk.get('href'),
                                 vm_name=TestVM._test_vapp_first_vm_name)
-        result = TestVM._client.get_task_monitor().wait_for_success(task=task)
+        result = TestVM._client.get_task_monitor().wait_for_success(
+            task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         is_disk_attached = self.__validate_is_attached_disk(
             is_disk_attached=False)
@@ -618,7 +639,8 @@ class TestVM(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         vm_name = TestVM._test_vapp_first_vm_name
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         vm.reload()
         logger.debug('Reloading VM:  ' + vm_name + ' from VC.')
         task = vm.reload_from_vc()
@@ -632,7 +654,8 @@ class TestVM(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         vm_name = TestVM._test_vapp_first_vm_name
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         vm.reload()
         logger.debug('Checking compliance of VM:  ' + vm_name)
         task = vm.check_compliance()
@@ -646,7 +669,8 @@ class TestVM(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         vm_name = TestVM._test_vapp_first_vm_name
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         vm.reload()
         vm.customize_at_next_power_on()
         task = vm.power_on()
@@ -660,7 +684,8 @@ class TestVM(BaseTestCase):
         This test passes if general setting update successful.
         """
         vm_name = TestVM._test_vapp_first_vm_name
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         vm.reload()
         # Updating general setting of vm
         task = vm.update_general_setting(
@@ -676,7 +701,8 @@ class TestVM(BaseTestCase):
         result = vm.general_setting_detail()
         self.assertEqual(result['Name'], TestVM._vm_name_update)
         self.assertEqual(result['Description'], TestVM._description_update)
-        self.assertEqual(result['Computer Name'], TestVM._computer_name_update)
+        self.assertEqual(result['Computer Name'],
+                         TestVM._computer_name_update)
         self.assertEqual(result['Boot Delay'], TestVM._boot_delay_update)
         self.assertEqual(result['Enter BIOS Setup'],
                          TestVM._enter_bios_setup_update)
@@ -746,34 +772,40 @@ class TestVM(BaseTestCase):
         self.assertTrue(len(list) > 0)
 
     def test_0230_get_compliance_result(self):
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         result = vm.get_compliance_result()
         self.assertEqual(result.ComplianceStatus, 'COMPLIANT')
 
     def test_0240_list_all_current_metrics(self):
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         list = vm.list_all_current_metrics()
         self.assertTrue(len(list) > 0)
 
     def test_0250_list_subset_current_metrics(self):
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         list = vm.list_current_metrics_subset(metric_pattern='*.average')
         self.assertTrue(len(list) > 0)
 
     def test_0260_relocate(self):
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         task = vm.relocate(datastore_href=TestVM._datastore_href)
         result = TestVM._sys_admin_client. \
             get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
     def test_0270_list_os_info(self):
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         dict = vm.list_os_section()
         self.assertTrue(len(dict) > 0)
 
     def test_0280_update_os_section(self):
-        vm = VM(TestVM._sys_admin_client, href=TestVM._test_vapp_first_vm_href)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
         task = vm.update_operating_system_section(ovf_info="new os")
         result = TestVM._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
@@ -808,7 +840,8 @@ class TestVM(BaseTestCase):
     def test_0330_update_vm_capabilities(self):
         vm = VM(TestVM._sys_admin_client,
                 href=TestVM._test_vapp_vmtools_vm_href)
-        task = vm.update_vm_capabilities_section(memory_hot_add_enabled=False)
+        task = vm.update_vm_capabilities_section(
+            memory_hot_add_enabled=False)
         result = TestVM._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
         vm_capabilities_section = vm.get_vm_capabilities_section()
@@ -838,7 +871,6 @@ class TestVM(BaseTestCase):
     def test_0370_set_meadata(self):
         vm = VM(TestVM._sys_admin_client,
                 href=TestVM._test_vapp_first_vm_href)
-
         task = vm.set_metadata(
             domain=MetadataDomain.GENERAL.value,
             visibility=MetadataVisibility.READ_WRITE,
@@ -871,10 +903,31 @@ class TestVM(BaseTestCase):
     def test_0400_remove_metadata(self):
         # remove metadata entry
         vm = VM(TestVM._sys_admin_client,
-                    href=TestVM._test_vapp_first_vm_href)
+                href=TestVM._test_vapp_first_vm_href)
         task = vm.remove_metadata(key=TestVM._metadata_key)
         result = TestVM._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0410_list_screen_ticket(self):
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_vmtools_vm_href)
+        if vm.is_powered_off():
+            task = vm.deploy(power_on=True)
+            TestVM._client.get_task_monitor().wait_for_success(task)
+        dict = vm.list_screen_ticket()
+        self.assertTrue(len(dict) > 0)
+
+    def test_0420_list_mks_ticket(self):
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_vmtools_vm_href)
+        dict = vm.list_mks_ticket()
+        self.assertTrue(len(dict) > 0)
+
+    def test_0430_list_product_sections(self):
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_vmtools_vm_href)
+        list = vm.list_product_sections()
+        self.assertTrue(len(list) > 0)
 
     @developerModeAware
     def test_9998_teardown(self):

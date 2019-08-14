@@ -1638,3 +1638,116 @@ class VM(object):
         metadata = Metadata(client=self.client, resource=self.get_metadata())
         return metadata.remove_metadata(
             key=key, domain=domain, use_admin_endpoint=False)
+
+    def post_acquire_ticket(self):
+        """POST action acquire ticket.
+
+        :return: an object containing EntityType.ScreenTicketType XML
+                 data which contains screen ticket of VM
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/screen/action/acquireTicket'
+        return self.client. \
+            post_resource(uri=uri, contents=None,
+                          media_type=EntityType.VM_SCREEN_ACQUIRE_TICKET.value)
+
+    def list_screen_ticket(self):
+        """List screen ticket of VM.
+
+        :return: dict which contains screen ticket of VM
+
+        :rtype: dict
+        """
+        result = {}
+        screen_ticket = self.post_acquire_ticket()
+        result['ScreenTicket'] = \
+            screen_ticket.text
+
+        return result
+
+    def post_acquire_mksticket(self):
+        """POST action acquire mksticket.
+
+        :return: an object containing EntityType.MksTicketType XML
+                 data which contains mks ticket of VM
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/screen/action/acquireMksTicket'
+        return self.client. \
+            post_resource(uri=uri, contents=None,
+                          media_type= \
+                              EntityType.VM_SCREEN_ACQUIRE_MKSTICKET.value)
+
+    def list_mks_ticket(self):
+        """List mks ticket of VM.
+
+        :return: dict which contains mks ticket of VM
+
+        :rtype: dict
+        """
+        result = {}
+        mks_ticket = self.post_acquire_mksticket()
+        if hasattr(mks_ticket, 'Host'):
+            result['Host'] = mks_ticket.Host
+        if hasattr(mks_ticket, 'Vmx'):
+            result['Vmx'] = mks_ticket.Vmx
+        if hasattr(mks_ticket, 'Ticket'):
+            result['Ticket'] = mks_ticket.Ticket
+        if hasattr(mks_ticket, 'Port'):
+            result['Port'] = mks_ticket.Port
+
+        return result
+
+    def post_thumbnail(self):
+        """POST screen api.
+
+        :return: an object containing javax.ws.rs.core.Response XML
+                 data
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/screen/'
+        return self.client. \
+            post_resource(uri=uri, contents=None, media_type=None)
+
+    def get_product_section(self):
+        """POST action acquire ticket.
+
+        :return: an object containing EntityType.ScreenTicketType XML
+                 data which contains screen ticket of VM
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/productSections/'
+        return self.client.get_resource(uri=uri)
+
+    def list_product_sections(self):
+        """List product sections of VM.
+
+        :return: list which contains product sections of VM
+
+        :rtype: list
+        """
+        result = []
+        product_sections = self.get_product_section()
+        if hasattr(product_sections, '{' + NSMAP['ovf'] + '}ProductSection'):
+            for product in product_sections[
+                '{' + NSMAP['ovf'] + '}ProductSection']:
+                section = {}
+                if hasattr(product, 'Info'):
+                    section['Info'] = product.Info
+                if hasattr(product, 'Product'):
+                    section['Product'] = product.Product
+                if hasattr(product, 'Vendor'):
+                    section['Vendor'] = product.Vendor
+                if hasattr(product, 'Version'):
+                    section['Version'] = product.Version
+                if hasattr(product, 'FullVersion'):
+                    section['FullVersion'] = product.FullVersion
+                if hasattr(product, 'VendorUrl'):
+                    section['VendorUrl'] = product.VendorUrl
+                if hasattr(product, 'AppUrl'):
+                    section['AppUrl'] = product.AppUrl
+                if hasattr(product, 'Category'):
+                    section['Category'] = product.Category
+                result.append(section)
+
+        return result

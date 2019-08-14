@@ -444,6 +444,10 @@ class EntityType(Enum):
     VM_CAPABILITIES_SECTION = \
         'application/vnd.vmware.vcloud.vmCapabilitiesSection+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'
+    VM_SCREEN_ACQUIRE_TICKET = \
+        'application/vnd.vmware.vcloud.screenTicket+xml'
+    VM_SCREEN_ACQUIRE_MKSTICKET = \
+        'application/vnd.vmware.vcloud.mksTicket+xml'
     VMW_PROVIDER_VDC_RESOURCE_POOL = \
         'application/vnd.vmware.admin.vmwProviderVdcResourcePool+xml'
     VMW_PROVIDER_VDC_RESOURCE_POOL_SET = \

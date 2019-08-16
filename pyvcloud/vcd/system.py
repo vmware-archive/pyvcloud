@@ -37,11 +37,12 @@ class System(object):
         if admin_href is None and admin_resource is None:
             raise InvalidParameterException(
                 "System initialization failed as arguments are either "
-                "invalid or None")
+                "invalid or None"
+            )
         self.admin_href = admin_href
         self.admin_resource = admin_resource
         if admin_resource is not None:
-            self.admin_href = self.client.get_admin().get('href')
+            self.admin_href = self.client.get_admin().get("href")
 
     def create_org(self, org_name, full_org_name, is_enabled=False, org_settings={}):
         """Create new organization.
@@ -56,7 +57,7 @@ class System(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
 
-        '''
+        """
         org_settings is a dictionary made of other dictionaries with the following key value pairs
         Dictionary org_general_settings:
             can_publish_catalogs: allow publishing catalogs
@@ -90,7 +91,7 @@ class System(object):
         Dictionary org_federation_settings:
             saml_metadata: XML content with the SAML Metdata
             enabled: boolean that specifies if the SAML authentication is enabled or not
-        '''
+        """
 
         # default_settings is a helper dictionary that containes the API defaults when creating an org
         default_settings = {
@@ -112,9 +113,7 @@ class System(object):
                 "delete_template_on_storage_lease_expiration": False,
                 "storage_template_lease_seconds": 2592000,
             },
-            "org_ldap_settings": {
-                "OrgLdapMode": "NONE",
-            },
+            "org_ldap_settings": {"OrgLdapMode": "NONE"},
             "org_email_settings": {
                 "is_default_smtp_server": True,
                 "is_default_org_email": True,
@@ -122,10 +121,7 @@ class System(object):
                 "default_subject_prefix": " ",
                 "is_alert_to_all_admin": True,
             },
-            "org_federation_settings": {
-                "saml_metadata": "",
-                "enabled": False,
-            },
+            "org_federation_settings": {"saml_metadata": "", "enabled": False},
         }
         # create the org_settings dict for the API consumption if none is provided or the one provided is not complete
         for key1 in default_settings:
@@ -140,115 +136,266 @@ class System(object):
             self.admin_resource = self.client.get_resource(self.admin_href)
 
         org_params = E.AdminOrg(
-            E.FullName(full_org_name),
-            E.IsEnabled(is_enabled),
-            name=org_name)
+            E.FullName(full_org_name), E.IsEnabled(is_enabled), name=org_name
+        )
         # Build the org_params_settings object
         org_params_settings = E.Settings()
         org_params_settings.OrgGeneralSettings = E.OrgGeneralSettings(
-            E.CanPublishCatalogs(org_settings.get("org_general_settings").get("can_publish_catalogs")),
-            E.CanPublishExternally(org_settings.get("org_general_settings").get("can_publish_externally")),
-            E.CanSubscribe(org_settings.get("org_general_settings").get("can_subscribe")),
-            E.DeployedVMQuota(org_settings.get("org_general_settings").get("deployed_vmquota")),
-            E.StoredVmQuota(org_settings.get("org_general_settings").get("stored_vmquota")),
-            E.UseServerBootSequence(org_settings.get("org_general_settings").get("use_server_boot_sequence")),
+            E.CanPublishCatalogs(
+                org_settings.get("org_general_settings").get("can_publish_catalogs")
+            ),
+            E.CanPublishExternally(
+                org_settings.get("org_general_settings").get("can_publish_externally")
+            ),
+            E.CanSubscribe(
+                org_settings.get("org_general_settings").get("can_subscribe")
+            ),
+            E.DeployedVMQuota(
+                org_settings.get("org_general_settings").get("deployed_vmquota")
+            ),
+            E.StoredVmQuota(
+                org_settings.get("org_general_settings").get("stored_vmquota")
+            ),
+            E.UseServerBootSequence(
+                org_settings.get("org_general_settings").get("use_server_boot_sequence")
+            ),
             E.DelayAfterPowerOnSeconds(
-                org_settings.get("org_general_settings").get("delay_after_power_on_seconds"))
+                org_settings.get("org_general_settings").get(
+                    "delay_after_power_on_seconds"
+                )
+            ),
         )
         org_params_settings.VAppLeaseSettings = E.VAppLeaseSettings(
             E.DeleteOnStorageLeaseExpiration(
-                org_settings.get("vapp_lease_settings").get("delete_on_storage_lease_expiration")),
-            E.DeploymentLeaseSeconds(org_settings.get("vapp_lease_settings").get("deployment_lease_seconds")),
-            E.StorageLeaseSeconds(org_settings.get("vapp_lease_settings").get("storage_lease_seconds"))
+                org_settings.get("vapp_lease_settings").get(
+                    "delete_on_storage_lease_expiration"
+                )
+            ),
+            E.DeploymentLeaseSeconds(
+                org_settings.get("vapp_lease_settings").get("deployment_lease_seconds")
+            ),
+            E.StorageLeaseSeconds(
+                org_settings.get("vapp_lease_settings").get("storage_lease_seconds")
+            ),
         )
         org_params_settings.VAppTemplateLeaseSettings = E.VAppTemplateLeaseSettings(
-            E.DeleteOnStorageLeaseExpiration(org_settings.get("vapp_template_lease_settings").get(
-                "delete_template_on_storage_lease_expiration")),
+            E.DeleteOnStorageLeaseExpiration(
+                org_settings.get("vapp_template_lease_settings").get(
+                    "delete_template_on_storage_lease_expiration"
+                )
+            ),
             E.StorageLeaseSeconds(
-                org_settings.get("vapp_template_lease_settings").get("storage_template_lease_seconds"))
+                org_settings.get("vapp_template_lease_settings").get(
+                    "storage_template_lease_seconds"
+                )
+            ),
         )
-        if org_settings.get("org_ldap_settings").get("org_ldap_mode") != 'NONE':
+        if org_settings.get("org_ldap_settings").get("org_ldap_mode") != "NONE":
             org_params_settings.OrgLdapSettings = E.OrgLdapSettings(
-            E.OrgLdapMode(org_settings.get("org_ldap_settings").get("org_ldap_mode")),
-            E.CustomOrgLdapSettings(
-                E.HostName(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get("hostname")),
-                E.Port(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get("port")),
-                E.IsSsl(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get("is_ssl")),
-                E.IsSslAcceptAll(
-                    org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get("is_ssl_accept_all")),
-                E.Realm(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get("realm")),
-                E.SearchBase(
-                    org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get("search_base")),
-                E.UserName(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get("username")),
-                E.Password(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get("password")),
-                E.AuthenticationMechanism(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                    "authentication_mechanism")),
-                E.GroupSearchBase(
-                    org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get("group_search_base")),
-                E.IsGroupSearchBaseEnabled(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                    "is_group_search_base_enabled")),
-                E.ConnectorType(
-                    org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get("connector_type")),
-                E.UserAttributes(
-                    E.ObjectClass(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "user_attributes").get("object_class")),
-                    E.ObjectIdentifier(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "user_attributes").get("object_identifier")),
-                    E.UserName(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "user_attributes").get("username")),
-                    E.Email(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "user_attributes").get("email")),
-                    E.FullName(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "user_attributes").get("fullname")),
-                    E.GivenName(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "user_attributes").get("given_name")),
-                    E.Surname(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "user_attributes").get("surname")),
-                    E.Telephone(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "user_attributes").get("telephone")),
-                    E.GroupMembershipIdentifier(
-                        org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                            "user_attributes").get("group_membership_identifier")),
-                    E.GroupBackLinkIdentifier(
-                        org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                            "user_attributes").get("group_back_link_identifier"))
+                E.OrgLdapMode(
+                    org_settings.get("org_ldap_settings").get("org_ldap_mode")
                 ),
-                E.GroupAttributes(
-                    E.ObjectClass(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "group_attributes").get("object_class")),
-                    E.ObjectIdentifier(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "group_attributes").get("object_identifier")),
-                    E.GroupName(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "group_attributes").get("group_name")),
-                    E.Membership(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "group_attributes").get("membership")),
-                    E.MembershipIdentifier(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "group_attributes").get("membership_identifier")),
-                    E.BackLinkIdentifier(org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get(
-                        "group_attributes").get("backLink_identifier"))
+                E.CustomOrgLdapSettings(
+                    E.HostName(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("hostname")
+                    ),
+                    E.Port(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("port")
+                    ),
+                    E.IsSsl(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("is_ssl")
+                    ),
+                    E.IsSslAcceptAll(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("is_ssl_accept_all")
+                    ),
+                    E.Realm(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("realm")
+                    ),
+                    E.SearchBase(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("search_base")
+                    ),
+                    E.UserName(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("username")
+                    ),
+                    E.Password(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("password")
+                    ),
+                    E.AuthenticationMechanism(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("authentication_mechanism")
+                    ),
+                    E.GroupSearchBase(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("group_search_base")
+                    ),
+                    E.IsGroupSearchBaseEnabled(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("is_group_search_base_enabled")
+                    ),
+                    E.ConnectorType(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("connector_type")
+                    ),
+                    E.UserAttributes(
+                        E.ObjectClass(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("user_attributes")
+                            .get("object_class")
+                        ),
+                        E.ObjectIdentifier(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("user_attributes")
+                            .get("object_identifier")
+                        ),
+                        E.UserName(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("user_attributes")
+                            .get("username")
+                        ),
+                        E.Email(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("user_attributes")
+                            .get("email")
+                        ),
+                        E.FullName(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("user_attributes")
+                            .get("fullname")
+                        ),
+                        E.GivenName(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("user_attributes")
+                            .get("given_name")
+                        ),
+                        E.Surname(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("user_attributes")
+                            .get("surname")
+                        ),
+                        E.Telephone(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("user_attributes")
+                            .get("telephone")
+                        ),
+                        E.GroupMembershipIdentifier(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("user_attributes")
+                            .get("group_membership_identifier")
+                        ),
+                        E.GroupBackLinkIdentifier(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("user_attributes")
+                            .get("group_back_link_identifier")
+                        ),
+                    ),
+                    E.GroupAttributes(
+                        E.ObjectClass(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("group_attributes")
+                            .get("object_class")
+                        ),
+                        E.ObjectIdentifier(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("group_attributes")
+                            .get("object_identifier")
+                        ),
+                        E.GroupName(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("group_attributes")
+                            .get("group_name")
+                        ),
+                        E.Membership(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("group_attributes")
+                            .get("membership")
+                        ),
+                        E.MembershipIdentifier(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("group_attributes")
+                            .get("membership_identifier")
+                        ),
+                        E.BackLinkIdentifier(
+                            org_settings.get("org_ldap_settings")
+                            .get("custom_org_ldap_settings")
+                            .get("group_attributes")
+                            .get("backLink_identifier")
+                        ),
+                    ),
+                    E.UseExternalKerberos(
+                        org_settings.get("org_ldap_settings")
+                        .get("custom_org_ldap_settings")
+                        .get("use_external_kerberos")
+                    ),
                 ),
-                E.UseExternalKerberos(
-                    org_settings.get("org_ldap_settings").get("custom_org_ldap_settings").get("use_external_kerberos"))
             )
-        )
         org_params_settings.OrgEmailSettings = E.OrgEmailSettings(
-            E.IsDefaultSmtpServer(org_settings.get("org_email_settings").get("is_default_smtp_server")),
-            E.IsDefaultOrgEmail(org_settings.get("org_email_settings").get("is_default_org_email")),
-            E.FromEmailAddress(org_settings.get("org_email_settings").get("from_email_address")),
-            E.DefaultSubjectPrefix(org_settings.get("org_email_settings").get("default_subject_prefix")),
-            E.IsAlertEmailToAllAdmins(org_settings.get("org_email_settings").get("is_alert_to_all_admin"))
+            E.IsDefaultSmtpServer(
+                org_settings.get("org_email_settings").get("is_default_smtp_server")
+            ),
+            E.IsDefaultOrgEmail(
+                org_settings.get("org_email_settings").get("is_default_org_email")
+            ),
+            E.FromEmailAddress(
+                org_settings.get("org_email_settings").get("from_email_address")
+            ),
+            E.DefaultSubjectPrefix(
+                org_settings.get("org_email_settings").get("default_subject_prefix")
+            ),
+            E.IsAlertEmailToAllAdmins(
+                org_settings.get("org_email_settings").get("is_alert_to_all_admin")
+            ),
         )
 
         org_params_settings.OrgFederationSettings = E.OrgFederationSettings(
-            E.SAMLMetadata(org_settings.get("org_federation_settings").get("saml_metadata")),
-            E.Enabled(org_settings.get("org_federation_settings").get("enabled"))
+            E.SAMLMetadata(
+                org_settings.get("org_federation_settings").get("saml_metadata")
+            ),
+            E.Enabled(org_settings.get("org_federation_settings").get("enabled")),
         )
 
         # Build the org_params object
         org_params.Settings = org_params_settings
         return self.client.post_linked_resource(
-            self.admin_resource, RelationType.ADD, EntityType.ADMIN_ORG.value,
-            org_params)
+            self.admin_resource,
+            RelationType.ADD,
+            EntityType.ADMIN_ORG.value,
+            org_params,
+        )
 
     def delete_org(self, org_name, force=None, recursive=None):
         """Delete an organization.
@@ -262,7 +409,7 @@ class System(object):
             allows removal.
         """
         org_resource = self.client.get_org_by_name(org_name)
-        org_admin_href = get_admin_href(org_resource.get('href'))
+        org_admin_href = get_admin_href(org_resource.get("href"))
         return self.client.delete_resource(org_admin_href, force, recursive)
 
     def list_provider_vdcs(self):
@@ -274,11 +421,10 @@ class System(object):
         """
         if self.admin_resource is None:
             self.admin_resource = self.client.get_resource(self.admin_href)
-        if hasattr(self.admin_resource, 'ProviderVdcReferences') and \
-           hasattr(self.admin_resource.ProviderVdcReferences,
-                   'ProviderVdcReference'):
-            return self.admin_resource.ProviderVdcReferences.\
-                ProviderVdcReference
+        if hasattr(self.admin_resource, "ProviderVdcReferences") and hasattr(
+            self.admin_resource.ProviderVdcReferences, "ProviderVdcReference"
+        ):
+            return self.admin_resource.ProviderVdcReferences.ProviderVdcReference
         else:
             return []
 
@@ -294,10 +440,11 @@ class System(object):
             found.
         """
         for pvdc in self.list_provider_vdcs():
-            if pvdc.get('name') == name:
+            if pvdc.get("name") == name:
                 return pvdc
-        raise EntityNotFoundException('Provider VDC \'%s\' not found or '
-                                      'access to resource is forbidden' % name)
+        raise EntityNotFoundException(
+            "Provider VDC '%s' not found or " "access to resource is forbidden" % name
+        )
 
     def list_provider_vdc_storage_profiles(self, name=None):
         """List provider VDC storage profiles in the system organization.
@@ -308,12 +455,13 @@ class System(object):
         """
         name_filter = None
         if name is not None:
-            name_filter = ('name', name)
+            name_filter = ("name", name)
 
         q = self.client.get_typed_query(
-            'providerVdcStorageProfile',
+            "providerVdcStorageProfile",
             query_result_format=QueryResultFormat.RECORDS,
-            equality_filter=name_filter)
+            equality_filter=name_filter,
+        )
 
         return list(q.execute())
 
@@ -326,11 +474,12 @@ class System(object):
             found.
         """
         for profile in self.list_provider_vdc_storage_profiles(name):
-            if profile.get('name') == name:
+            if profile.get("name") == name:
                 return profile
-        raise EntityNotFoundException('Storage profile \'%s\' not found or '
-                                      'access to resource is forbidden.' %
-                                      name)
+        raise EntityNotFoundException(
+            "Storage profile '%s' not found or "
+            "access to resource is forbidden." % name
+        )
 
     def list_network_pools(self):
         """List network pools in the system organization.
@@ -342,9 +491,9 @@ class System(object):
         """
         resource = self.client.get_extension()
         result = self.client.get_linked_resource(
-            resource, RelationType.DOWN,
-            EntityType.NETWORK_POOL_REFERENCES.value)
-        if hasattr(result, '{' + NSMAP['vmext'] + '}NetworkPoolReference'):
+            resource, RelationType.DOWN, EntityType.NETWORK_POOL_REFERENCES.value
+        )
+        if hasattr(result, "{" + NSMAP["vmext"] + "}NetworkPoolReference"):
             return result.NetworkPoolReference
         else:
             return []
@@ -360,8 +509,8 @@ class System(object):
             found.
         """
         for item in self.list_network_pools():
-            if item.get('name') == name:
+            if item.get("name") == name:
                 return item
-        raise EntityNotFoundException('Network pool \'%s\' not found or '
-                                      'access to resource is forbidden' % name)
-
+        raise EntityNotFoundException(
+            "Network pool '%s' not found or " "access to resource is forbidden" % name
+        )

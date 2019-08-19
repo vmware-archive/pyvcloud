@@ -197,8 +197,9 @@ class TestVM(BaseTestCase):
             EntityType.DATASTORE_REFERENCES.value)
         if hasattr(result, '{' + NSMAP['vcloud'] + '}Reference'):
             for reference in result['{' + NSMAP['vcloud'] + '}Reference']:
-                TestVM._datastore_href = reference.get('href')
-                break
+                if reference.get('name') == 'shared-disk-2':
+                    TestVM._datastore_href = reference.get('href')
+                    break
 
         vapp = Environment.get_vapp_in_test_vdc(
             client=TestVM._client, vapp_name=TestVM._test_vapp_name)

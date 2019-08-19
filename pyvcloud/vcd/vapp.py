@@ -1997,3 +1997,100 @@ class VApp(object):
                                     network_connection.NetworkConnectionIndex
                                 result.append(vm_interface_data)
         return result
+
+    def add_vm_from_scratch(self,
+                            specs,
+                            deploy=True,
+                            power_on=True,
+                            all_eulas_accepted=True):
+        """Recompose the vApp and add vm.
+
+        :param dict specs: vm specifications, see `to_vm_item()` method
+            for specification details.
+        :param bool deploy: True, if the vApp should be deployed at
+            instantiation.
+        :param power_on: (bool): True if the vApp should be powered-on at
+            instantiation
+        :param bool all_eulas_accepted: True confirms acceptance of all
+            EULAs in the vApp.
+
+        :return: an object containing EntityType.VAPP XML data representing the
+            updated vApp.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        params = E.RecomposeVAppParams(deploy='true' if deploy else 'false',
+                                       powerOn='true' if power_on else 'false')
+        params.append(self.to_vm_item(specs))
+        params.append(E.AllEULAsAccepted(all_eulas_accepted))
+        return self.client.post_linked_resource(
+            self.resource, RelationType.RECOMPOSE,
+            EntityType.RECOMPOSE_VAPP_PARAMS.value, params)
+
+    def to_vm_item(self, specs):
+        """Creates a vm CreateItem from a vm specification.
+
+        :param dict specs: a dictionary containing
+            - vm_name: (str): (required) vm name.
+            - comp_name: (str): (required) computer name.
+            - description: (str): (optional) description of the vm.
+            - os_type: (str): (required) operating system type of vm.
+            - virtual_cpu: (int): (optional) boot image name of os.
+            - core_per_socket: (int):(optional) core per socket in cpu.
+            - cpu_resource_mhz: (int):(optional) cpu resource frequency in Mhz
+            - memory: (int):(optional) memory in Mb.
+            - media_href: (str): (optional) boot image of os href.
+            - media_id: (str): (optional) c boot image of os id.
+            - media_name: (str): (optional)  boot image of os name.
+
+        :return: an object containing CreateItem XML element.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        create_item = E.CreateItem()
+        create_item.set('name', specs['vm_name'])
+        desc = E.Description()
+        if 'description' in specs:
+            desc = E.Description(specs['description'])
+        create_item.append(desc)
+        guest_customization_param = E.GuestCustomizationSection()
+        guest_customization_param.append(
+            E_OVF.Info('Specifies Guest OS Customization Settings'))
+        guest_customization_param.append(E.ComputerName(specs['comp_name']))
+        create_item.append(guest_customization_param)
+        vm_spec_section = E.VmSpecSection()
+        vm_spec_section.set('Modified', 'true')
+        vm_spec_section.append(E_OVF.Info('Virtual Machine specification'))
+        vm_spec_section.append(E.OsType(specs['os_type']))
+        if 'virtual_cpu' in specs:
+            vm_spec_section.append(E.NumCpus(specs['virtual_cpu']))
+        else:
+            vm_spec_section.append(E.NumCpus(1))
+        if 'core_per_socket' in specs:
+            vm_spec_section.append(
+                E.NumCoresPerSocket(specs['core_per_socket']))
+        else:
+            vm_spec_section.append(E.NumCoresPerSocket(1))
+        cpu_resource_mhz = E.CpuResourceMhz()
+        if 'cpu_resource_mhz' in specs:
+            cpu_resource_mhz.append(E.Configured(specs['cpu_resource_mhz']))
+        else:
+            cpu_resource_mhz.append(E.Configured(0))
+        vm_spec_section.append(cpu_resource_mhz)
+        memory_resource_mb = E.MemoryResourceMb()
+        if 'memory' in specs:
+            memory_resource_mb.append(E.Configured(specs['memory']))
+        else:
+            memory_resource_mb.append(E.Configured(512))
+        vm_spec_section.append(memory_resource_mb)
+        vm_spec_section.append(E.DiskSection())
+        vm_spec_section.append(E.HardwareVersion('vmx-14'))
+        vm_spec_section.append(E.VirtualCpuType('VM64'))
+        create_item.append(vm_spec_section)
+        if 'media_href' in specs and 'media_id' in specs and 'media_name' in \
+                specs:
+            media = E.Media()
+            media.set('href', specs['media_href'])
+            media.set('id', specs['media_id'])
+            media.set('name', specs['media_name'])
+            create_item.append(media)
+        return create_item

@@ -97,6 +97,7 @@ class TestVApp(BaseTestCase):
     _vapp_copy_name = 'customized_vApp_copy_' + str(uuid1())
     _ovdc_name = 'test_vdc2_ ' + str(uuid1())
     _ovdc_network_name = 'test-direct-vdc-network'
+    _vm_name_scartch = 'vm_from_scratch'
 
     def test_0000_setup(self):
         """Setup the vApps required for the other tests in this module.
@@ -974,7 +975,7 @@ class TestVApp(BaseTestCase):
             TestVApp._sys_admin_client,
             admin_resource=TestVApp._sys_admin_client.get_admin())
         netpool_to_use = Environment._get_netpool_name_to_use(system)
-        org.create_org_vdc(
+        task = org.create_org_vdc(
             TestVApp._ovdc_name,
             TestVApp._pvdc_name,
             network_pool_name=netpool_to_use,
@@ -982,6 +983,19 @@ class TestVApp(BaseTestCase):
             storage_profiles=storage_profiles,
             uses_fast_provisioning=True,
             is_thin_provision=True)
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task.Tasks.Task[0])
+        org.reload()
+        TestVApp._check_ovdc(org, TestVApp._ovdc_name)
+
+    def _check_ovdc(org, ovdc_name):
+        if org.get_vdc(ovdc_name):
+            vdc = org.get_vdc(ovdc_name)
+            TestVApp._ovdc_href = vdc.get('href')
+            TestVApp._vdc_resource = vdc
+            return True
+        else:
+            return False
 
     def test_0160_move_to(self):
         org = Environment.get_test_org(TestVApp._client)
@@ -1096,6 +1110,28 @@ class TestVApp(BaseTestCase):
         result = vapp.get_product_sections()
         self.assertNotEqual(len(result), 0)
 
+    def test_0250_add_vm_from_scratch(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+        specs = {
+            'vm_name': TestVApp._vm_name_scartch,
+            'comp_name': 'vmFromScratch',
+            'os_type': 'centos8_64Guest',
+            'description': 'description',
+            'virtual_cpu': 2,
+            'core_per_socket': 2,
+            'cpu_resource_mhz': 10,
+            'memory': 100
+        }
+        task = vapp.add_vm_from_scratch(specs)
+        result = TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vapp.reload()
+        vm = vapp.get_vm(TestVApp._vm_name_scartch)
+        self.assertNotEqual(vm, None)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the  method vdc.delete_vapp().
@@ -1116,6 +1152,9 @@ class TestVApp(BaseTestCase):
             task = vdc.delete_vapp(name=vapp_name, force=True)
             result = TestVApp._client.get_task_monitor().wait_for_success(task)
             self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+        vdc1 = VDC(TestVApp._sys_admin_client, resource=TestVApp._vdc_resource)
+        vdc1.enable_vdc(enable=False)
+        vdc1.delete_vdc()
 
     def test_9999_cleanup(self):
         """Release all resources held by this object for testing purposes."""

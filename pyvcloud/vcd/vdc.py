@@ -487,7 +487,8 @@ class VDC(object):
                     id = id.split(':')[3]
                     result.append({
                         'name': resource.get('name'),
-                        'Id': id
+                        'Id': id,
+                        'href': resource.get('href')
                     })
         return result
 

@@ -2035,7 +2035,7 @@ class VApp(object):
             - comp_name: (str): (required) computer name.
             - description: (str): (optional) description of the vm.
             - os_type: (str): (required) operating system type of vm.
-            - virtual_cpu: (int): (optional) boot image name of os.
+            - virtual_cpu: (int): (optional) no of virtual cpu.
             - core_per_socket: (int):(optional) core per socket in cpu.
             - cpu_resource_mhz: (int):(optional) cpu resource frequency in Mhz
             - memory: (int):(optional) memory in Mb.

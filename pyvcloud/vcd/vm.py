@@ -1751,3 +1751,46 @@ class VM(object):
                 result.append(section)
 
         return result
+
+    def update_vhs_disks(self, element_name,
+                         virtual_quatntity_in_bytes=None):
+        """Update virtual hardware disk section of VM.
+
+        :param str element_name
+        :param int  virtual_quatntity_in_bytes
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task updating virtual hardware section disk.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/virtualHardwareSection/disks'
+        disk_list = self.client.get_resource(uri)
+
+        for disk in disk_list.Item:
+            if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk' and \
+                    disk['{' + NSMAP['rasd'] + '}ElementName'] == element_name:
+                disk['{' + NSMAP['rasd'] + '}VirtualQuantity'] = \
+                    virtual_quatntity_in_bytes
+
+        return self.client.put_resource(uri, disk_list,
+                                        EntityType.RASD_ITEMS_LIST.value)
+
+    def update_vhs_media(self, element_name,
+                         host_resource=None):
+        """Update virtual hardware media section of VM.
+
+        :param str element_name
+        :param str  host_resource
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task updating virtual hardware section media.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/virtualHardwareSection/media'
+        media_list = self.client.get_resource(uri)
+        for media in media_list.Item:
+            if media['{' + NSMAP['rasd'] + '}ElementName'] == element_name:
+                media['{' + NSMAP['rasd'] + '}HostResource'] = host_resource
+
+        return self.client.put_resource(uri, media_list,
+                                        EntityType.RASD_ITEMS_LIST.value)

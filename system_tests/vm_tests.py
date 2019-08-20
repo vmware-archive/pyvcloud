@@ -932,6 +932,22 @@ class TestVM(BaseTestCase):
         list = vm.list_product_sections()
         self.assertTrue(len(list) > 0)
 
+    def test_0440_update_vhs_disk(self):
+        # update vhs disk
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
+        disk_list = vm.list_virtual_hardware_section(is_cpu=False,
+                                                     is_memory=False,
+                                                     is_disk=True)
+        for disk in disk_list:
+            element_name = disk['diskElementName']
+            virtual_quantity = disk['diskVirtualQuantityInBytes']
+            break
+        task = vm.update_vhs_disks(element_name=element_name,
+                                   virtual_quatntity_in_bytes=virtual_quantity)
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Delete the vApp created during setup.

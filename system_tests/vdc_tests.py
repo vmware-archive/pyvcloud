@@ -19,6 +19,7 @@ from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import developerModeAware
 from pyvcloud.system_test_framework.environment import Environment
+from pyvcloud.system_test_framework.utils import create_independent_disk
 from pyvcloud.vcd.client import TaskStatus
 from pyvcloud.vcd.exceptions import AccessForbiddenException
 from pyvcloud.vcd.exceptions import EntityNotFoundException
@@ -42,6 +43,10 @@ class TestOrgVDC(BaseTestCase):
     _metadata_value = 'value_' + str(uuid1())
     _metadata_new_value = 'new_value_' + str(uuid1())
     _non_existent_metadata_key = 'non_existent_key_' + str(uuid1())
+
+    _idisk_name = 'vdcSCSI'
+    _idisk_size = '5242880'
+    _idisk_description = '5Mb SCSI disk'
 
     def test_0000_setup(self):
         """Setup the org vdc required for the other tests in this module.
@@ -83,8 +88,18 @@ class TestOrgVDC(BaseTestCase):
         for vdc in org.list_vdcs():
             if vdc.get('name').lower() == vdc_name.lower():
                 TestOrgVDC._new_vdc_href = vdc.get('href')
+        TestOrgVDC._vdc1 = VDC(TestOrgVDC._client,
+                              href=TestOrgVDC._new_vdc_href)
 
         self.assertIsNotNone(TestOrgVDC._new_vdc_href)
+        #Create Independent disk
+        TestOrgVDC._idisk_id = \
+            create_independent_disk(client=TestOrgVDC._client,
+                                    vdc=TestOrgVDC._vdc1,
+                                    name=self._idisk_name,
+                                    size=self._idisk_size,
+                                    description=self._idisk_description)
+        self.assertIsNotNone(TestOrgVDC._idisk_id)
 
     def test_0010_list_vdc(self):
         """Test the method VDC.list_vdcs().
@@ -341,6 +356,17 @@ class TestOrgVDC(BaseTestCase):
 
         self.assertTrue(len(media_list) > 0)
 
+    def test_0080_list_idisk(self):
+        """Test the method VDC.list_idisk().
+
+        This test passes if it lists vdc idisk and its id.
+        """
+        vdc = VDC(TestOrgVDC._client, href=TestOrgVDC._new_vdc_href)
+
+        idisk_list = vdc.list_idisk()
+
+        self.assertTrue(len(idisk_list) > 0)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the method VDC.delete_vdc().
@@ -351,6 +377,8 @@ class TestOrgVDC(BaseTestCase):
         """
         logger = Environment.get_default_logger()
         vdc = VDC(TestOrgVDC._client, href=TestOrgVDC._new_vdc_href)
+        task = vdc.delete_disk(name=self._idisk_name)
+        TestOrgVDC._client.get_task_monitor().wait_for_success(task=task)
         # Disable the org vdc before deleting it. In case the org vdc is
         # already disabled, we don't want the exception to leak out.
         try:

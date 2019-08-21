@@ -198,7 +198,7 @@ class TestVM(BaseTestCase):
         if hasattr(result, '{' + NSMAP['vcloud'] + '}Reference'):
             for reference in result['{' + NSMAP['vcloud'] + '}Reference']:
                 if reference.get('name') == 'shared-disk-2':
-                    TestVM._datastore_href = reference.get('href')
+                    TestVM._datastore_id = reference.get('id')
                     break
 
         vapp = Environment.get_vapp_in_test_vdc(
@@ -793,7 +793,9 @@ class TestVM(BaseTestCase):
     def test_0260_relocate(self):
         vm = VM(TestVM._sys_admin_client,
                 href=TestVM._test_vapp_first_vm_href)
-        task = vm.relocate(datastore_href=TestVM._datastore_href)
+        datastore_id = TestVM._datastore_id
+        id = datastore_id.split(':')[3]
+        task = vm.relocate(datastore_id=id)
         result = TestVM._sys_admin_client. \
             get_task_monitor().wait_for_success(task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
@@ -948,6 +950,22 @@ class TestVM(BaseTestCase):
         result = TestVM._client.get_task_monitor().wait_for_success(task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
 
+    def test_0450_enable_nested_hypervisor(self):
+        vapp = VApp(TestVM._client, href=TestVM._test_vapp_href)
+        self._power_off_and_undeploy(vapp=vapp)
+        vm = VM(TestVM._sys_admin_client,
+                href=TestVM._test_vapp_first_vm_href)
+        task = vm.enable_nested_hypervisor()
+        result = TestVM._client.get_task_monitor().wait_for_success(task)
+        self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
+
+    def _power_off_and_undeploy(self, vapp):
+        if vapp.is_powered_on():
+            task = vapp.power_off()
+            TestVM._client.get_task_monitor().wait_for_success(task)
+            task = vapp.undeploy()
+            TestVM._client.get_task_monitor().wait_for_success(task)
+
     @developerModeAware
     def test_9998_teardown(self):
         """Delete the vApp created during setup.
@@ -957,11 +975,7 @@ class TestVM(BaseTestCase):
         if TestVM._test_vapp_href is not None:
             vapps_to_delete.append(TestVM._test_vapp_name)
             vapp = VApp(TestVM._client, href=TestVM._test_vapp_href)
-            if vapp.is_powered_on():
-                task = vapp.power_off()
-                TestVM._client.get_task_monitor().wait_for_success(task)
-                task = vapp.undeploy()
-                TestVM._client.get_task_monitor().wait_for_success(task)
+            self._power_off_and_undeploy(vapp=vapp)
 
         if TestVM._empty_vapp_href is not None:
             vapps_to_delete.append(TestVM._empty_vapp_name)
@@ -969,11 +983,7 @@ class TestVM(BaseTestCase):
         if TestVM._test_vapp_vmtools_href is not None:
             vapps_to_delete.append(TestVM._test_vapp_vmtools_name)
             vapp = VApp(TestVM._client, href=TestVM._test_vapp_vmtools_href)
-            if vapp.is_powered_on():
-                task = vapp.power_off()
-                TestVM._client.get_task_monitor().wait_for_success(task)
-                task = vapp.undeploy()
-                TestVM._client.get_task_monitor().wait_for_success(task)
+            self._power_off_and_undeploy(vapp=vapp)
 
         vdc = Environment.get_test_vdc(TestVM._sys_admin_client)
         vdc.delete_disk(name=self._idisk_name)

@@ -1176,8 +1176,7 @@ class VM(object):
 
         vm_href = vm_resource.get('href')
         uri_api = uri_to_api_uri(vm_href)
-        datastore_href = uri_api + "/admin/extension/datastore/" +\
-                         datastore_id
+        datastore_href = uri_api + "/admin/extension/datastore/" + datastore_id
 
         relocate_params = E.RelocateParams(E.Datastore(href=datastore_href))
         return self.client. \

@@ -1162,10 +1162,10 @@ class VM(object):
                 result.append(metrics_info)
         return result
 
-    def relocate(self, datastore_href):
+    def relocate(self, datastore_id):
         """Relocate VM to other datastore.
 
-        :param: datastore href for VM relocation
+        :param: datastore id for VM relocation
 
         :return: an object containing EntityType.TASK XML data which represents
                     the asynchronous task that is relocating VM.
@@ -1173,6 +1173,12 @@ class VM(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         vm_resource = self.get_resource()
+
+        vm_href = vm_resource.get('href')
+        uri_api = uri_to_api_uri(vm_href)
+        datastore_href = uri_api + "/admin/extension/datastore/" +\
+                         datastore_id
+
         relocate_params = E.RelocateParams(E.Datastore(href=datastore_href))
         return self.client. \
             post_linked_resource(vm_resource, RelationType.RELOCATE,
@@ -1794,3 +1800,14 @@ class VM(object):
 
         return self.client.put_resource(uri, media_list,
                                         EntityType.RASD_ITEMS_LIST.value)
+
+    def enable_nested_hypervisor(self):
+        """Enable nested hypervisor.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task enabling nested hypervisor.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/action/enableNestedHypervisor'
+        return self.client. \
+            post_resource(uri=uri, contents=None, media_type=None)

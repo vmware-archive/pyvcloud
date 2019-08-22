@@ -808,11 +808,15 @@ class Client(object):
         if file_name is None:
             file_name = "vcd_pysdk.log"
         self._logger = logging.getLogger(file_name)
-        Path(file_name).parent.mkdir(parents=True, exist_ok=True)
-        default_log_handler = handlers.RotatingFileHandler(
-            filename=file_name, maxBytes=max_bytes, backupCount=backup_count)
-        default_log_handler.setLevel(log_level)
-        self._logger.addHandler(default_log_handler)
+        file = Path(file_name)
+        if not file.exists():
+            file.parent.mkdir(parents=True, exist_ok=True)
+        if not self._logger.handlers:
+            default_log_handler = handlers.RotatingFileHandler(
+                filename=file_name, maxBytes=max_bytes,
+                backupCount=backup_count)
+            default_log_handler.setLevel(log_level)
+            self._logger.addHandler(default_log_handler)
 
     def _get_response_request_id(self, response):
         """Extract request id of a request to vCD from the response.

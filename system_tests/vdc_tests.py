@@ -12,9 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from uuid import uuid1
-
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import CommonRoles
 from pyvcloud.system_test_framework.environment import developerModeAware
@@ -27,39 +25,32 @@ from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.utils import extract_metadata_value
 from pyvcloud.vcd.utils import get_non_admin_href
 from pyvcloud.vcd.vdc import VDC
-
-
 class TestOrgVDC(BaseTestCase):
     """Test OrgVDC functionalities implemented in pyvcloud."""
-
     # All tests in this module should run as System Administrator.
     _client = None
-
     _new_vdc_name = 'org_vdc_' + str(uuid1())
     _new_vdc_href = None
     _non_existent_vdc_name = 'non_existent_org_vdc_' + str(uuid1())
-
     _metadata_key = 'key_' + str(uuid1())
     _metadata_value = 'value_' + str(uuid1())
     _metadata_new_value = 'new_value_' + str(uuid1())
     _non_existent_metadata_key = 'non_existent_key_' + str(uuid1())
-
     _idisk_name = 'vdcSCSI'
     _idisk_size = '5242880'
     _idisk_description = '5Mb SCSI disk'
 
     def test_0000_setup(self):
         """Setup the org vdc required for the other tests in this module.
-
         Create one org vdc as per the configuration stated above. Test the
         method Org.create_org_vdc().
-
         This test passes if the vdc href is not None.
         """
         logger = Environment.get_default_logger()
         TestOrgVDC._client = Environment.get_sys_admin_client()
+        TestOrgVDC._org_admin_client = Environment.get_client_in_default_org(
+            CommonRoles.ORGANIZATION_ADMINISTRATOR)
         org = Environment.get_test_org(TestOrgVDC._client)
-
         vdc_name = TestOrgVDC._new_vdc_name
         pvdc_name = Environment.get_test_pvdc_name()
         storage_profiles = [{
@@ -69,7 +60,6 @@ class TestOrgVDC(BaseTestCase):
             'limit': 0,
             'default': True
         }]
-
         vdc_resource = org.create_org_vdc(
             vdc_name,
             pvdc_name,
@@ -78,27 +68,23 @@ class TestOrgVDC(BaseTestCase):
             is_thin_provision=True)
         TestOrgVDC._client.get_task_monitor().wait_for_success(
             task=vdc_resource.Tasks.Task[0])
-
         logger.debug('Created ovdc ' + vdc_name + '.')
-
         # The following contraption is required to get the non admin href of
         # the ovdc. vdc_resource contains the admin version of the href since
         # we created the ovdc as a sys admin.
+        org = Environment.get_test_org(TestOrgVDC._org_admin_client)
         org.reload()
         for vdc in org.list_vdcs():
             if vdc.get('name').lower() == vdc_name.lower():
                 TestOrgVDC._new_vdc_href = vdc.get('href')
-        TestOrgVDC._vdc1 = VDC(TestOrgVDC._client,
+        TestOrgVDC._vdc1 = VDC(TestOrgVDC._org_admin_client,
                               href=TestOrgVDC._new_vdc_href)
-
         self.assertIsNotNone(TestOrgVDC._new_vdc_href)
         #Create Independent disk
-        TestOrgVDC._idisk_id = \
-            create_independent_disk(client=TestOrgVDC._client,
-                                    vdc=TestOrgVDC._vdc1,
-                                    name=self._idisk_name,
-                                    size=self._idisk_size,
-                                    description=self._idisk_description)
+        TestOrgVDC._idisk_id = TestOrgVDC._vdc1.\
+            create_disk(name=self._idisk_name,
+                        size=self._idisk_size,
+                        description=self._idisk_description).get('id')[16:]
         self.assertIsNotNone(TestOrgVDC._idisk_id)
 
     def test_0010_list_vdc(self):
@@ -106,7 +92,7 @@ class TestOrgVDC(BaseTestCase):
         This test passes if the vdc created during setup can be found in the
         list of vdcs retrieved.
         """
-        org = Environment.get_test_org(TestOrgVDC._client)
+        org = Environment.get_test_org(TestOrgVDC._org_admin_client)
         vdc_list = org.list_vdcs()
         retrieved_vdc_names = []
         retrieved_vdc_hrefs = []
@@ -121,7 +107,7 @@ class TestOrgVDC(BaseTestCase):
         This test passes if the expected vdc can be successfully retrieved by
         name.
         """
-        org = Environment.get_test_org(TestOrgVDC._client)
+        org = Environment.get_test_org(TestOrgVDC._org_admin_client)
         vdc = org.get_vdc(TestOrgVDC._new_vdc_name)
         self.assertEqual(TestOrgVDC._new_vdc_name, vdc.get('name'))
         self.assertEqual(TestOrgVDC._new_vdc_href, vdc.get('href'))
@@ -343,7 +329,6 @@ class TestOrgVDC(BaseTestCase):
 
     def test_0070_list_media(self):
         """Test the method VDC.list_media_id().
-
         This test passes if it lists vdc medias and its id.
         """
         logger = Environment.get_default_logger()
@@ -351,28 +336,21 @@ class TestOrgVDC(BaseTestCase):
         vdc.reload()
         vdc_resource = vdc.get_resource()
         vdc = VDC(TestOrgVDC._client, href=vdc_resource.get('href'))
-
         media_list = vdc.list_media_id()
-
         self.assertTrue(len(media_list) > 0)
 
     def test_0080_list_idisk(self):
         """Test the method VDC.list_idisk().
-
         This test passes if it lists vdc idisk and its id.
         """
         vdc = VDC(TestOrgVDC._client, href=TestOrgVDC._new_vdc_href)
-
         idisk_list = vdc.list_idisk()
-
         self.assertTrue(len(idisk_list) > 0)
 
     @developerModeAware
     def test_9998_teardown(self):
         """Test the method VDC.delete_vdc().
-
         Invoke the method for the vdc created by setup.
-
         This test passes if the task for deleting the vdc succeeds.
         """
         logger = Environment.get_default_logger()

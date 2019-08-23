@@ -1865,19 +1865,59 @@ class Org(object):
         template_resource_href = self.get_vapp_template_href(catalog_name,
                                                              catalog_item_name)
         template_resource = self.client.get_resource(template_resource_href)
-        is_template_updated = False
+        template_update_required = False
         if hasattr(template_resource, 'Children') and \
                 hasattr(template_resource.Children, 'Vm'):
-            vms = template_resource.Children.Vm
-            for vm in vms:
+            for vm in template_resource.Children.Vm:
                 if hasattr(vm, 'VdcComputePolicy'):
                     vm_compute_policy_id = vm.VdcComputePolicy.get('id')
                     if policy_id == vm_compute_policy_id:
                         vm.remove(vm.VdcComputePolicy)
-                        is_template_updated = True
+                        template_update_required = True
 
-        if is_template_updated:
+        if template_update_required:
             return self.client.put_resource(
                 template_resource_href,
+                template_resource,
+                media_type=EntityType.VAPP_TEMPLATE.value)
+
+    def remove_all_compute_policies_from_vapp_template_vms(self,
+                                                           catalog_name, 
+                                                           catalog_item_name):
+        """Remove all compute policies from all vms of a vapp template.
+
+        :param str catalog_name: name of the catalog that contains the
+            vapp template.
+        :param str catalog_item_name: name of the catalog item (vapp template)
+
+        :return: an object of type EntityType.TASK XML which represents
+            the asynchronous task that is updating vapp template.
+            If no updatation is required None will be returned.
+
+        :rtype: lxml.objectify.ObjectifiedElement.
+
+        :raises: OperationNotSupportedException: if the specified client api
+            version does not support compute policies.
+        :raises: EntityNotFoundException: if the vapp template is not found in
+            the catalog.
+        """
+        if float(self.client.get_api_version()) < \
+                float(ApiVersion.VERSION_32.value):
+            raise OperationNotSupportedException("Unsupported API version")
+
+        template_href = \
+            self.get_vapp_template_href(catalog_name, catalog_item_name)
+        template_resource = self.client.get_resource(template_href)
+        template_update_required = False
+        if hasattr(template_resource, 'Children') and \
+                hasattr(template_resource.Children, 'Vm'):
+            for vm in template_resource.Children.Vm:
+                if hasattr(vm, 'VdcComputePolicy'):
+                    vm.remove(vm.VdcComputePolicy)
+                    template_update_required = True
+
+        if template_update_required:
+            return self.client.put_resource(
+                template_href,
                 template_resource,
                 media_type=EntityType.VAPP_TEMPLATE.value)

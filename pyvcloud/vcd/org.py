@@ -1882,7 +1882,7 @@ class Org(object):
                 media_type=EntityType.VAPP_TEMPLATE.value)
 
     def remove_all_compute_policies_from_vapp_template_vms(self,
-                                                           catalog_name, 
+                                                           catalog_name,
                                                            catalog_item_name):
         """Remove all compute policies from all vms of a vapp template.
 

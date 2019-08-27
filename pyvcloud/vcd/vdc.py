@@ -41,6 +41,7 @@ from pyvcloud.vcd.org import Org
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import cidr_to_netmask
 from pyvcloud.vcd.utils import get_admin_href
+from pyvcloud.vcd.utils import get_non_admin_href
 from pyvcloud.vcd.utils import is_admin
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 from pyvcloud.vcd.utils import retrieve_compute_policy_id_from_href
@@ -1076,7 +1077,9 @@ class VDC(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         self.get_resource()
-
+        if is_admin(self.resource.get('href')):
+            non_admin_href = get_non_admin_href(self.resource.get('href'))
+            self.resource = self.client.get_resource(non_admin_href)
         network_href = network_name = None
         if network is not None:
             if hasattr(self.resource, 'AvailableNetworks') and \

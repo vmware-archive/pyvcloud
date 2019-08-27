@@ -268,31 +268,31 @@ class TestNetwork(BaseTestCase):
                 match_found = True
         self.assertTrue(match_found)
 
-    @unittest.skip("Waiting for PR 2399911 fix")
-    def test_0078_remove_static_ip_pool(self):
-        vdc = Environment.get_test_vdc(TestNetwork._client)
-        org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
-            TestNetwork._routed_org_vdc_network_name)
-        vdcNetwork = VdcNetwork(
-            TestNetwork._client, resource=org_vdc_routed_nw)
-        result = vdcNetwork.remove_static_ip_pool(TestNetwork._new_ip_range)
-        task = TestNetwork._client.get_task_monitor().wait_for_success(
-            task=result)
-        self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
-        # Verification
-        vdcNetwork.reload()
-        vdc_routed_nw = vdcNetwork.get_resource()
-        ip_scope = vdc_routed_nw.Configuration.IpScopes.IpScope
-        # IPRanges element will be missing if there was only one IP range
-        if not hasattr(ip_scope, 'IpRanges'):
-            return
-        ip_ranges = ip_scope.IpRanges.IpRange
-        match_found = False
-        for ip_range in ip_ranges:
-            if (ip_range.StartAddress + '-' + ip_range.EndAddress) == \
-                    TestNetwork._new_ip_range:
-                match_found = True
-        self.assertFalse(match_found)
+    # @unittest.skip("Waiting for PR 2399911 fix")
+    # def test_0078_remove_static_ip_pool(self):
+    #     vdc = Environment.get_test_vdc(TestNetwork._client)
+    #     org_vdc_routed_nw = vdc.get_routed_orgvdc_network(
+    #         TestNetwork._routed_org_vdc_network_name)
+    #     vdcNetwork = VdcNetwork(
+    #         TestNetwork._client, resource=org_vdc_routed_nw)
+    #     result = vdcNetwork.remove_static_ip_pool(TestNetwork._new_ip_range)
+    #     task = TestNetwork._client.get_task_monitor().wait_for_success(
+    #         task=result)
+    #     self.assertEqual(task.get('status'), TaskStatus.SUCCESS.value)
+    #     # Verification
+    #     vdcNetwork.reload()
+    #     vdc_routed_nw = vdcNetwork.get_resource()
+    #     ip_scope = vdc_routed_nw.Configuration.IpScopes.IpScope
+    #     # IPRanges element will be missing if there was only one IP range
+    #     if not hasattr(ip_scope, 'IpRanges'):
+    #         return
+    #     ip_ranges = ip_scope.IpRanges.IpRange
+    #     match_found = False
+    #     for ip_range in ip_ranges:
+    #         if (ip_range.StartAddress + '-' + ip_range.EndAddress) == \
+    #                 TestNetwork._new_ip_range:
+    #             match_found = True
+    #     self.assertFalse(match_found)
 
     def _add_routed_vdc_network_metadata(self, vdc_network, metadata_key,
                                          metadata_value):

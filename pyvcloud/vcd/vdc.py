@@ -2129,7 +2129,7 @@ class VDC(object):
         policy_list = []
         for policy_reference in policy_references.VdcComputePolicyReference:
             policy_list.append(policy_reference)
-        return policy_reference
+        return policy_list
 
     def add_compute_policy(self, href):
         """Add a VdcComputePolicy.

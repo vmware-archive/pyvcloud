@@ -92,278 +92,278 @@ class TestExtNet(BaseTestCase):
 
         logger.debug('Created external network ' + TestExtNet._name + '.')
 
-    @unittest.skip("Due to PR:2399981")
-    def test_0010_update(self):
-        """Test the method Platform.update_external_network()
-
-        Update name and description of the external network created by setup.
-        Verifies name and description after update completes. Reset the name
-        and description to original.
-
-        This test passes if name and description are updated successfully.
-        """
-        logger = Environment.get_default_logger()
-        platform = Platform(TestExtNet._sys_admin_client)
-        new_name = 'updated_' + TestExtNet._name
-        new_description = 'Updated ' + TestExtNet._description
-
-        ext_net = platform.update_external_network(TestExtNet._name, new_name,
-                                                   new_description)
-
-        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
-        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
-            task=task)
-        logger.debug('Updated external network ' + TestExtNet._name + '.')
-
-        ext_net = platform.get_external_network(new_name)
-        self.assertIsNotNone(ext_net)
-        self.assertEqual(new_description,
-                         ext_net['{' + NSMAP['vcloud'] + '}Description'].text)
-
-        # Reset the name and description to original
-        ext_net = platform.update_external_network(new_name, self._name,
-                                                   self._description)
-        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
-        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
-            task=task)
-
-    def test_0020_add_subnet(self):
-        """Test the method externalNetwork.add_subnet()
-
-        Add subnet to the existing external network
-
-        This test passes if subnet is added successfully.
-        """
-        logger = Environment.get_default_logger()
-        platform = Platform(TestExtNet._sys_admin_client)
-        ext_net_resource = platform.get_external_network(self._name)
-        extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
-                                     resource=ext_net_resource)
-
-        ext_net = extnet_obj.add_subnet(self._name,
-                                        TestExtNet._gateway2,
-                                        TestExtNet._netmask,
-                                        [TestExtNet._ip_range2],
-                                        TestExtNet._dns1,
-                                        TestExtNet._dns2,
-                                        TestExtNet._dns_suffix)
-
-        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
-        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
-            task=task)
-        logger.debug(
-            'Added subnet to external network ' + TestExtNet._name + '.')
-
-        ext_net = platform.get_external_network(self._name)
-        self.assertIsNotNone(ext_net)
-        config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
-        new_subnet = config.IpScopes.IpScope[-1]
-        self.assertEqual(TestExtNet._gateway2, new_subnet.Gateway.text)
-        self.assertEqual(TestExtNet._netmask, new_subnet.Netmask.text)
-
-    def test_0030_enable_subnet(self):
-        """Test the method externalNetwork.enable_subnet()
-
-        Enable subnet of external network
-
-        This test passes if subnet is enabled successfully.
-        """
-        logger = Environment.get_default_logger()
-        platform = Platform(TestExtNet._sys_admin_client)
-
-        ext_net = self._get_ext_net(platform).enable_subnet(
-            TestExtNet._gateway2, True)
-
-        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
-        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
-            task=task)
-        logger.debug(
-            'Enabled subnet of external network ' + TestExtNet._name + '.')
-
-        ext_net = platform.get_external_network(self._name)
-        self.assertIsNotNone(ext_net)
-        config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
-        ip_scope = config.IpScopes.IpScope
-        for scope in ip_scope:
-            if scope.Gateway == TestExtNet._gateway2:
-                ip_scope = scope
-                break
-        self.assertIsNotNone(ip_scope)
-        self.assertEqual(ip_scope.IsEnabled, True)
-
-    def test_0040_add_ip_range(self):
-        """Test the method externalNetwork.add_ip_range()
-
-        Add ip range to a subnet of external network
-
-        This test passes if ip range is added successfully for a subnet.
-        """
-        logger = Environment.get_default_logger()
-        platform = Platform(TestExtNet._sys_admin_client)
-        ext_net = self._get_ext_net(platform).add_ip_range(
-            TestExtNet._gateway2,
-            [TestExtNet._ip_range3])
-
-        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
-        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
-            task=task)
-        logger.debug(
-            'Added new ip-range to a subnet of external network '
-            + TestExtNet._name + '.')
-
-        ext_net = platform.get_external_network(self._name)
-        self.assertIsNotNone(ext_net)
-        config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
-        ip_scope = config.IpScopes.IpScope
-        for scope in ip_scope:
-            if scope.Gateway == TestExtNet._gateway2:
-                ip_scope = scope
-                break
-        self.assertIsNotNone(ip_scope)
-        self.assertTrue(self.__validate_ip_range(ip_scope,
-                                                 TestExtNet._ip_range3))
-
-    def test_0050_modify_ip_range(self):
-        """Test the method externalNetwork.modify_ip_range()
-       Modify ip range of a subnet in external network
-       This test passes if the ip range for a subnet is
-       modified successfully.
-       """
-        logger = Environment.get_default_logger()
-        platform = Platform(TestExtNet._sys_admin_client)
-        ext_net = self._get_ext_net(platform).modify_ip_range(
-            TestExtNet._gateway2,
-            TestExtNet._ip_range2,
-            TestExtNet._ip_range4)
-
-        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
-        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
-            task=task)
-        logger.debug(
-            'Modify ip-range of a subnet in external network'
-            + TestExtNet._name + '.')
-
-        ext_net = platform.get_external_network(self._name)
-        self.assertIsNotNone(ext_net)
-        config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
-        ip_scope = config.IpScopes.IpScope
-        for scope in ip_scope:
-            if scope.Gateway == TestExtNet._gateway2:
-                ip_scope = scope
-                break
-        self.assertIsNotNone(ip_scope)
-        self.assertTrue(self.__validate_ip_range(ip_scope,
-                                                 TestExtNet._ip_range4))
-
-    def test_0055_delete_ip_range(self):
-        """Test the method externalNetwork.delete_ip_range()
-       Delete ip range of a subnet in external network
-       This test passes if the ip range for a subnet is
-       deleted successfully.
-       """
-        logger = Environment.get_default_logger()
-        platform = Platform(TestExtNet._sys_admin_client)
-        ext_net = self._get_ext_net(platform).delete_ip_range(
-            TestExtNet._gateway2,
-            [TestExtNet._ip_range4])
-
-        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
-        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
-            task=task)
-        logger.debug(
-            'Deleted ip-range of a subnet in external network'
-            + TestExtNet._name + '.')
-
-        ext_net = platform.get_external_network(self._name)
-        self.assertIsNotNone(ext_net)
-        config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
-        ip_scope = config.IpScopes.IpScope
-        for scope in ip_scope:
-            if scope.Gateway == TestExtNet._gateway2:
-                ip_scope = scope
-                break
-        self.assertIsNotNone(ip_scope)
-        self.assertFalse(self.__validate_ip_range(ip_scope,
-                                                  TestExtNet._ip_range4))
-
-    def __validate_ip_range(self, ip_scope, _ip_range1):
-        """ Validate if the ip range present in the existing ip ranges """
-        _ip_ranges = _ip_range1.split('-')
-        _ip_range1_start_address = _ip_ranges[0]
-        _ip_range1_end_address = _ip_ranges[1]
-        for ip_range in ip_scope.IpRanges.IpRange:
-            if ip_range.StartAddress == _ip_range1_start_address and \
-                    ip_range.EndAddress == _ip_range1_end_address:
-                return True
-        return False
-
-    def test_0060_attach_port_group(self):
-        """Attach a portgroup to an external network
-       This test passes if the portgroup from another vCenter is added
-       to external network successfully.
-       """
-        if TestExtNet._vc2_host_ip is None or TestExtNet._vc2_host_ip == '':
-            return
-        logger = Environment.get_default_logger()
-        platform = Platform(TestExtNet._sys_admin_client)
-        vc_name = TestExtNet._config['vc2']['vcenter_host_name']
-        portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
-        pg_name = portgrouphelper.get_available_portgroup_name(
-            vc_name, TestExtNet._portgroupType)
-
-        ext_net = self._get_ext_net(platform).attach_port_group(
-            vc_name,
-            pg_name)
-        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
-        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
-            task=task)
-        logger.debug(
-            'Attach a portgroup to an external network'
-            + TestExtNet._name + '.')
-        ext_net = platform.get_external_network(self._name)
-        self.assertIsNotNone(ext_net)
-        vc_record = platform.get_vcenter(vc_name)
-        vc_href = vc_record.get('href')
-        vim_port_group_refs = \
-            ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRefs']
-        vc_href_found = False
-        for vim_obj_ref in vim_port_group_refs.VimObjectRef:
-            if vim_obj_ref.VimServerRef.get('href') == vc_href:
-                vc_href_found = True
-                break
-        self.assertTrue(vc_href_found)
-
-    def test_0061_detach_port_group(self):
-        """Detach a portgroup from an external network
-       This test passes if the portgroup from another vCenter is removed
-       from external network successfully.
-       """
-        if TestExtNet._vc2_host_ip is None or TestExtNet._vc2_host_ip == '':
-            return
-        logger = Environment.get_default_logger()
-        platform = Platform(TestExtNet._sys_admin_client)
-        vc_name = TestExtNet._config['vc2']['vcenter_host_name']
-        port_group_helper = PortgroupHelper(TestExtNet._sys_admin_client)
-        pg_name = port_group_helper.get_ext_net_portgroup_name(vc_name,
-                                                               self._name)
-
-        ext_net = self._get_ext_net(platform).detach_port_group(vc_name,
-                                                                pg_name)
-        task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
-        TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
-            task=task)
-        logger.debug(
-            'Detach a portgroup from an external network' + TestExtNet._name)
-        ext_net = platform.get_external_network(self._name)
-        self.assertIsNotNone(ext_net)
-        vc_record = platform.get_vcenter(vc_name)
-        vc_href = vc_record.get('href')
-        vim_port_group_ref = ext_net.VimPortGroupRef
-        vc_href_found = False
-
-        if vim_port_group_ref.VimServerRef.get('href') == vc_href:
-            vc_href_found = True
-        self.assertFalse(vc_href_found)
+    # @unittest.skip("Due to PR:2399981")
+    # def test_0010_update(self):
+    #     """Test the method Platform.update_external_network()
+    #
+    #     Update name and description of the external network created by setup.
+    #     Verifies name and description after update completes. Reset the name
+    #     and description to original.
+    #
+    #     This test passes if name and description are updated successfully.
+    #     """
+    #     logger = Environment.get_default_logger()
+    #     platform = Platform(TestExtNet._sys_admin_client)
+    #     new_name = 'updated_' + TestExtNet._name
+    #     new_description = 'Updated ' + TestExtNet._description
+    #
+    #     ext_net = platform.update_external_network(TestExtNet._name, new_name,
+    #                                                new_description)
+    #
+    #     task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+    #     TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+    #         task=task)
+    #     logger.debug('Updated external network ' + TestExtNet._name + '.')
+    #
+    #     ext_net = platform.get_external_network(new_name)
+    #     self.assertIsNotNone(ext_net)
+    #     self.assertEqual(new_description,
+    #                      ext_net['{' + NSMAP['vcloud'] + '}Description'].text)
+    #
+    #     # Reset the name and description to original
+    #     ext_net = platform.update_external_network(new_name, self._name,
+    #                                                self._description)
+    #     task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+    #     TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+    #         task=task)
+    #
+    # def test_0020_add_subnet(self):
+    #     """Test the method externalNetwork.add_subnet()
+    #
+    #     Add subnet to the existing external network
+    #
+    #     This test passes if subnet is added successfully.
+    #     """
+    #     logger = Environment.get_default_logger()
+    #     platform = Platform(TestExtNet._sys_admin_client)
+    #     ext_net_resource = platform.get_external_network(self._name)
+    #     extnet_obj = ExternalNetwork(TestExtNet._sys_admin_client,
+    #                                  resource=ext_net_resource)
+    #
+    #     ext_net = extnet_obj.add_subnet(self._name,
+    #                                     TestExtNet._gateway2,
+    #                                     TestExtNet._netmask,
+    #                                     [TestExtNet._ip_range2],
+    #                                     TestExtNet._dns1,
+    #                                     TestExtNet._dns2,
+    #                                     TestExtNet._dns_suffix)
+    #
+    #     task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+    #     TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+    #         task=task)
+    #     logger.debug(
+    #         'Added subnet to external network ' + TestExtNet._name + '.')
+    #
+    #     ext_net = platform.get_external_network(self._name)
+    #     self.assertIsNotNone(ext_net)
+    #     config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
+    #     new_subnet = config.IpScopes.IpScope[-1]
+    #     self.assertEqual(TestExtNet._gateway2, new_subnet.Gateway.text)
+    #     self.assertEqual(TestExtNet._netmask, new_subnet.Netmask.text)
+    #
+    # def test_0030_enable_subnet(self):
+    #     """Test the method externalNetwork.enable_subnet()
+    #
+    #     Enable subnet of external network
+    #
+    #     This test passes if subnet is enabled successfully.
+    #     """
+    #     logger = Environment.get_default_logger()
+    #     platform = Platform(TestExtNet._sys_admin_client)
+    #
+    #     ext_net = self._get_ext_net(platform).enable_subnet(
+    #         TestExtNet._gateway2, True)
+    #
+    #     task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+    #     TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+    #         task=task)
+    #     logger.debug(
+    #         'Enabled subnet of external network ' + TestExtNet._name + '.')
+    #
+    #     ext_net = platform.get_external_network(self._name)
+    #     self.assertIsNotNone(ext_net)
+    #     config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
+    #     ip_scope = config.IpScopes.IpScope
+    #     for scope in ip_scope:
+    #         if scope.Gateway == TestExtNet._gateway2:
+    #             ip_scope = scope
+    #             break
+    #     self.assertIsNotNone(ip_scope)
+    #     self.assertEqual(ip_scope.IsEnabled, True)
+    #
+    # def test_0040_add_ip_range(self):
+    #     """Test the method externalNetwork.add_ip_range()
+    #
+    #     Add ip range to a subnet of external network
+    #
+    #     This test passes if ip range is added successfully for a subnet.
+    #     """
+    #     logger = Environment.get_default_logger()
+    #     platform = Platform(TestExtNet._sys_admin_client)
+    #     ext_net = self._get_ext_net(platform).add_ip_range(
+    #         TestExtNet._gateway2,
+    #         [TestExtNet._ip_range3])
+    #
+    #     task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+    #     TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+    #         task=task)
+    #     logger.debug(
+    #         'Added new ip-range to a subnet of external network '
+    #         + TestExtNet._name + '.')
+    #
+    #     ext_net = platform.get_external_network(self._name)
+    #     self.assertIsNotNone(ext_net)
+    #     config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
+    #     ip_scope = config.IpScopes.IpScope
+    #     for scope in ip_scope:
+    #         if scope.Gateway == TestExtNet._gateway2:
+    #             ip_scope = scope
+    #             break
+    #     self.assertIsNotNone(ip_scope)
+    #     self.assertTrue(self.__validate_ip_range(ip_scope,
+    #                                              TestExtNet._ip_range3))
+    #
+    # def test_0050_modify_ip_range(self):
+    #     """Test the method externalNetwork.modify_ip_range()
+    #    Modify ip range of a subnet in external network
+    #    This test passes if the ip range for a subnet is
+    #    modified successfully.
+    #    """
+    #     logger = Environment.get_default_logger()
+    #     platform = Platform(TestExtNet._sys_admin_client)
+    #     ext_net = self._get_ext_net(platform).modify_ip_range(
+    #         TestExtNet._gateway2,
+    #         TestExtNet._ip_range2,
+    #         TestExtNet._ip_range4)
+    #
+    #     task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+    #     TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+    #         task=task)
+    #     logger.debug(
+    #         'Modify ip-range of a subnet in external network'
+    #         + TestExtNet._name + '.')
+    #
+    #     ext_net = platform.get_external_network(self._name)
+    #     self.assertIsNotNone(ext_net)
+    #     config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
+    #     ip_scope = config.IpScopes.IpScope
+    #     for scope in ip_scope:
+    #         if scope.Gateway == TestExtNet._gateway2:
+    #             ip_scope = scope
+    #             break
+    #     self.assertIsNotNone(ip_scope)
+    #     self.assertTrue(self.__validate_ip_range(ip_scope,
+    #                                              TestExtNet._ip_range4))
+    #
+    # def test_0055_delete_ip_range(self):
+    #     """Test the method externalNetwork.delete_ip_range()
+    #    Delete ip range of a subnet in external network
+    #    This test passes if the ip range for a subnet is
+    #    deleted successfully.
+    #    """
+    #     logger = Environment.get_default_logger()
+    #     platform = Platform(TestExtNet._sys_admin_client)
+    #     ext_net = self._get_ext_net(platform).delete_ip_range(
+    #         TestExtNet._gateway2,
+    #         [TestExtNet._ip_range4])
+    #
+    #     task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+    #     TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+    #         task=task)
+    #     logger.debug(
+    #         'Deleted ip-range of a subnet in external network'
+    #         + TestExtNet._name + '.')
+    #
+    #     ext_net = platform.get_external_network(self._name)
+    #     self.assertIsNotNone(ext_net)
+    #     config = ext_net['{' + NSMAP['vcloud'] + '}Configuration']
+    #     ip_scope = config.IpScopes.IpScope
+    #     for scope in ip_scope:
+    #         if scope.Gateway == TestExtNet._gateway2:
+    #             ip_scope = scope
+    #             break
+    #     self.assertIsNotNone(ip_scope)
+    #     self.assertFalse(self.__validate_ip_range(ip_scope,
+    #                                               TestExtNet._ip_range4))
+    #
+    # def __validate_ip_range(self, ip_scope, _ip_range1):
+    #     """ Validate if the ip range present in the existing ip ranges """
+    #     _ip_ranges = _ip_range1.split('-')
+    #     _ip_range1_start_address = _ip_ranges[0]
+    #     _ip_range1_end_address = _ip_ranges[1]
+    #     for ip_range in ip_scope.IpRanges.IpRange:
+    #         if ip_range.StartAddress == _ip_range1_start_address and \
+    #                 ip_range.EndAddress == _ip_range1_end_address:
+    #             return True
+    #     return False
+    #
+    # def test_0060_attach_port_group(self):
+    #     """Attach a portgroup to an external network
+    #    This test passes if the portgroup from another vCenter is added
+    #    to external network successfully.
+    #    """
+    #     if TestExtNet._vc2_host_ip is None or TestExtNet._vc2_host_ip == '':
+    #         return
+    #     logger = Environment.get_default_logger()
+    #     platform = Platform(TestExtNet._sys_admin_client)
+    #     vc_name = TestExtNet._config['vc2']['vcenter_host_name']
+    #     portgrouphelper = PortgroupHelper(TestExtNet._sys_admin_client)
+    #     pg_name = portgrouphelper.get_available_portgroup_name(
+    #         vc_name, TestExtNet._portgroupType)
+    #
+    #     ext_net = self._get_ext_net(platform).attach_port_group(
+    #         vc_name,
+    #         pg_name)
+    #     task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+    #     TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+    #         task=task)
+    #     logger.debug(
+    #         'Attach a portgroup to an external network'
+    #         + TestExtNet._name + '.')
+    #     ext_net = platform.get_external_network(self._name)
+    #     self.assertIsNotNone(ext_net)
+    #     vc_record = platform.get_vcenter(vc_name)
+    #     vc_href = vc_record.get('href')
+    #     vim_port_group_refs = \
+    #         ext_net['{' + NSMAP['vmext'] + '}VimPortGroupRefs']
+    #     vc_href_found = False
+    #     for vim_obj_ref in vim_port_group_refs.VimObjectRef:
+    #         if vim_obj_ref.VimServerRef.get('href') == vc_href:
+    #             vc_href_found = True
+    #             break
+    #     self.assertTrue(vc_href_found)
+    #
+    # def test_0061_detach_port_group(self):
+    #     """Detach a portgroup from an external network
+    #    This test passes if the portgroup from another vCenter is removed
+    #    from external network successfully.
+    #    """
+    #     if TestExtNet._vc2_host_ip is None or TestExtNet._vc2_host_ip == '':
+    #         return
+    #     logger = Environment.get_default_logger()
+    #     platform = Platform(TestExtNet._sys_admin_client)
+    #     vc_name = TestExtNet._config['vc2']['vcenter_host_name']
+    #     port_group_helper = PortgroupHelper(TestExtNet._sys_admin_client)
+    #     pg_name = port_group_helper.get_ext_net_portgroup_name(vc_name,
+    #                                                            self._name)
+    #
+    #     ext_net = self._get_ext_net(platform).detach_port_group(vc_name,
+    #                                                             pg_name)
+    #     task = ext_net['{' + NSMAP['vcloud'] + '}Tasks'].Task[0]
+    #     TestExtNet._sys_admin_client.get_task_monitor().wait_for_success(
+    #         task=task)
+    #     logger.debug(
+    #         'Detach a portgroup from an external network' + TestExtNet._name)
+    #     ext_net = platform.get_external_network(self._name)
+    #     self.assertIsNotNone(ext_net)
+    #     vc_record = platform.get_vcenter(vc_name)
+    #     vc_href = vc_record.get('href')
+    #     vim_port_group_ref = ext_net.VimPortGroupRef
+    #     vc_href_found = False
+    #
+    #     if vim_port_group_ref.VimServerRef.get('href') == vc_href:
+    #         vc_href_found = True
+    #     self.assertFalse(vc_href_found)
 
     def test_0065_list_available_pvdc(self):
         """List available provider Vdcs.

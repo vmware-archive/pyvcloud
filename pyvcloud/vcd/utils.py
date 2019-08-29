@@ -150,6 +150,10 @@ def vdc_to_dict(vdc, access_control_settings=None):
         result['allocation_model'] = str(vdc.AllocationModel)
     if hasattr(vdc, 'VmQuota'):
         result['vm_quota'] = int(vdc.VmQuota)
+    if hasattr(vdc, 'NicQuota'):
+        result['nic_quota'] = int(vdc.NicQuota)
+    if hasattr(vdc, 'NetworkQuota'):
+        result['network_quota'] = int(vdc.NetworkQuota)
     if hasattr(vdc, 'Capabilities') and \
             hasattr(vdc.Capabilities, 'SupportedHardwareVersions') and \
             hasattr(vdc.Capabilities.SupportedHardwareVersions,

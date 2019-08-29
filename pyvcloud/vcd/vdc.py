@@ -1212,6 +1212,61 @@ class VDC(object):
             '{' + NSMAP['vmext'] + '}VimObjectRef'][
                 '{' + NSMAP['vmext'] + '}VimServerRef']
 
+    def update_quota(self,
+                     cpu_allocated=None,
+                     cpu_limit=None,
+                     mem_allocated=None,
+                     mem_limit=None,
+                     nic_quota=None,
+                     network_quota=None,
+                     vm_quota=None):
+        """Update an Organization VDC.
+
+        :param int cpu_allocated: capacity that is committed to be available.
+        :param int cpu_limit: capacity limit relative to the value specified
+            for allocation.
+        :param int mem_allocated: memory capacity that is committed to be
+            available.
+        :param int mem_limit: memory capacity limit relative to the value
+            specified for allocation.
+        :param int nic_quota: maximum number of virtual NICs allowed in this
+            vdc. Defaults to 0, which specifies an unlimited number.
+        :param int network_quota: maximum number of network objects that can be
+            deployed in this vdc. Defaults to 0, which means no networks can be
+            deployed.
+        :param int vm_quota: maximum number of VMs that can be created in this
+            vdc. Defaults to 0, which specifies an unlimited number.
+
+        :return: an object containing EntityType.VDC XML data describing the
+            new VDC.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vdc = self.client.get_resource(self.href_admin)
+
+        if cpu_allocated is not None:
+            vdc['ComputeCapacity']['Cpu']['Allocated'] = E.Allocated(cpu_allocated)
+
+        if cpu_limit is not None:
+            vdc['ComputeCapacity']['Cpu']['Limit'] = E.Limit(cpu_limit)
+
+        if mem_allocated is not None:
+            vdc['ComputeCapacity']['Memory']['Allocated'] = E.Allocated(mem_allocated)
+
+        if mem_allocated is not None:
+            vdc['ComputeCapacity']['Memory']['Limit'] = E.Limit(mem_limit)
+
+        if network_quota is not None:
+            vdc['NetworkQuota'] = E.NetworkQuota(network_quota)
+
+        if nic_quota is not None:
+            vdc['NicQuota'] = E.NetworkQuota(nic_quota)
+
+        if vm_quota is not None:
+            vdc['VmQuota'] = E.VmQuota(vm_quota)
+
+        return self.client.put_resource(vdc.get('href'), vdc, EntityType.VDC_ADMIN.value)
+
     def get_access_settings(self):
         """Get the access settings of the vdc.
 

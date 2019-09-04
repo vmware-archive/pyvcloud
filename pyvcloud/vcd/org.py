@@ -1621,8 +1621,10 @@ class Org(object):
         if self.client.get_api_version() < ApiVersion.VERSION_33.value:
             links = get_links(self.resource, media_type=EntityType.VDC.value)
         else:
-            links = self.client.get_resource_link_from_query_object(
-                self.resource, media_type=EntityType.RECORDS.value, type='vdc')
+            if self.resource.get('name') != 'System':
+                links = self.client.get_resource_link_from_query_object(
+                    self.resource, media_type=EntityType.RECORDS.value,
+                    type='vdc')
         for v in links:
             result.append({'name': v.name, 'href': v.href})
         return result

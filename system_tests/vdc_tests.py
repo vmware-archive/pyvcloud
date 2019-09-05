@@ -112,6 +112,23 @@ class TestOrgVDC(BaseTestCase):
         self.assertEqual(TestOrgVDC._new_vdc_name, vdc.get('name'))
         self.assertEqual(TestOrgVDC._new_vdc_href, vdc.get('href'))
 
+    def test_0021_get_vdc_admin_href(self):
+        """Test the method VDC.get_vdc().
+        This test passes if the expected vdc admin href.
+        """
+        org = Environment.get_test_org(TestOrgVDC._client)
+        vdc = org.get_vdc(name=TestOrgVDC._new_vdc_name,
+                          is_admin_operation=True)
+        self.assertTrue('/api/admin/' in vdc.get('href'))
+
+    def test_0022_get_vdc_non_admin_href(self):
+        """Test the method VDC.get_vdc().
+        This test passes if the expected vdc non admin href.
+        """
+        org = Environment.get_test_org(TestOrgVDC._client)
+        vdc = org.get_vdc(TestOrgVDC._new_vdc_name)
+        self.assertFalse('/api/admin/' in vdc.get('href'))
+
     def test_0030_get_non_existent_vdc(self):
         """Test the method VDC.get_vdc().
         This test passes if the non-existent vdc can't be successfully

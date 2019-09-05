@@ -47,6 +47,7 @@ from pyvcloud.vcd.exceptions import UploadException
 from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.system import System
 from pyvcloud.vcd.utils import get_admin_href
+from pyvcloud.vcd.utils import get_non_admin_href
 from pyvcloud.vcd.utils import get_safe_members_in_tar_file
 from pyvcloud.vcd.utils import retrieve_compute_policy_id_from_href
 from pyvcloud.vcd.utils import to_dict
@@ -1602,7 +1603,7 @@ class Org(object):
                 if is_admin_operation:
                     href = get_admin_href(link.href)
                 else:
-                    href = link.href
+                    href = get_non_admin_href(link.href)
                 return self.client.get_resource(href)
         return None
 

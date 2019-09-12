@@ -1589,8 +1589,7 @@ class Client(object):
                         link.set('name', record.get('name'))
                         link.set('href', record.get('href'))
                         link.set('rel', rel.value)
-                        if resource.get('name') == record.get('orgName'):
-                            list_of_links.append(Link(link))
+                        list_of_links.append(Link(link))
                 return list_of_links
 
 

@@ -1591,7 +1591,6 @@ class Client(object):
                         link.set('rel', rel.value)
                         if resource.get('name') == record.get('orgName'):
                             list_of_links.append(Link(link))
-                            print(record.get('orgName'))
                 return list_of_links
 
 

@@ -1580,9 +1580,8 @@ class Client(object):
             link_href = query_link.href
             list_of_links = []
             if type in link_href.lower():
-                link_part = link_href.split('&')
-                if len(link_part) == 2:
-                    link_href = link_part[0] + '&;' + link_part[1]
+                if '%3D%3D' in link_href:
+                    link_href = link_href.replace('%3D%3D', '==')
                 record_resource = self.get_resource(link_href)
                 for record in record_resource.getchildren():
                     if record.tag != '{http://www.vmware.com/vcloud/v1.5}Link':
@@ -1590,7 +1589,8 @@ class Client(object):
                         link.set('name', record.get('name'))
                         link.set('href', record.get('href'))
                         link.set('rel', rel.value)
-                        list_of_links.append(Link(link))
+                        if resource.get('name') == record.get('orgName'):
+                            list_of_links.append(Link(link))
                 return list_of_links
 
 

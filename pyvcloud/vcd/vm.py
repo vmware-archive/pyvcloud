@@ -135,9 +135,12 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        if float(self.client.get_api_version()) < \
-                float(ApiVersion.VERSION_32.value):
-            raise OperationNotSupportedException("Unsupported API version")
+        api_version = self.client.get_api_version()
+        required_api_version = ApiVersion.VERSION_32.value
+        if float(api_version) < float(required_api_version):
+            raise OperationNotSupportedException(
+                f"Unsupported API version. Received '{required_api_version}' "
+                f"but '{api_version}' is required.")
 
         vm_resource = self.get_resource()
         vm_resource.VdcComputePolicy.set('href', compute_policy_href)

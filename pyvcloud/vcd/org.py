@@ -1631,14 +1631,14 @@ class Org(object):
                 type='vdc')
         for v in links:
             if self.client.is_sysadmin():
-                href = self.\
-                    convert_href_based_on_flag(href = v.href,
-                                               is_admin_url = is_admin_url)
+                href = self. \
+                    convert_href_based_on_flag(href=v.href,
+                                               is_admin_url=is_admin_url)
             else:
                 if not is_admin_url:
-                    href = self.\
-                    convert_href_based_on_flag(href = v.href,
-                                               is_admin_url = is_admin_url)
+                    href = self. \
+                        convert_href_based_on_flag(href=v.href,
+                                                   is_admin_url=is_admin_url)
                 else:
                     href = 'ACCESS_FORBIDDEN'
 

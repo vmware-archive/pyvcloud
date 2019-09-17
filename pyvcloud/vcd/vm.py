@@ -125,6 +125,16 @@ class VM(object):
             self.resource.VmSpecSection.MemoryResourceMb.Configured.text)
 
     def update_compute_policy(self, compute_policy_href, compute_policy_id):
+        """Updates the VdcComputePolicy of this VM.
+
+        :param str compute_policy_href: compute policy href to update to.
+        :param str id: compute policy id to update to.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that updates the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
         if float(self.client.get_api_version()) < \
                 float(ApiVersion.VERSION_32.value):
             raise OperationNotSupportedException("Unsupported API version")

@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pyvcloud.vcd.client import ApiVersion
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import MetadataValueType
@@ -121,6 +123,21 @@ class VM(object):
         self.get_resource()
         return int(
             self.resource.VmSpecSection.MemoryResourceMb.Configured.text)
+
+    def update_compute_policy(self, compute_policy_href, compute_policy_id):
+        if float(self.client.get_api_version()) < \
+                float(ApiVersion.VERSION_32.value):
+            raise OperationNotSupportedException("Unsupported API version")
+
+        vm_resource = self.get_resource()
+        vm_resource.VdcComputePolicy.set('href', compute_policy_href)
+        vm_resource.VdcComputePolicy.set('id', compute_policy_id)
+
+        link = find_link(self.resource,
+                         RelationType.RECONFIGURE_VM,
+                         EntityType.VM.value)
+        uri = link.href
+        return self.client.post_resource(uri, vm_resource, EntityType.VM.value)
 
     def modify_cpu(self, virtual_quantity, cores_per_socket=None):
         """Updates the number of CPUs of a vm.

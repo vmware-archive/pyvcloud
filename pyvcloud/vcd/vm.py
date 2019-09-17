@@ -133,11 +133,12 @@ class VM(object):
         vm_resource.VdcComputePolicy.set('href', compute_policy_href)
         vm_resource.VdcComputePolicy.set('id', compute_policy_id)
 
-        link = find_link(self.resource,
-                         RelationType.RECONFIGURE_VM,
-                         EntityType.VM.value)
-        uri = link.href
-        return self.client.post_resource(uri, vm_resource, EntityType.VM.value)
+        reconfigure_vm_link = find_link(self.resource,
+                                        RelationType.RECONFIGURE_VM,
+                                        EntityType.VM.value)
+        return self.client.post_resource(reconfigure_vm_link.href,
+                                         vm_resource,
+                                         EntityType.VM.value)
 
     def modify_cpu(self, virtual_quantity, cores_per_socket=None):
         """Updates the number of CPUs of a vm.

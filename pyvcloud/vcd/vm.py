@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pyvcloud.vcd.client import ApiVersion
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import IpAddressMode
 from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import MetadataValueType
@@ -121,6 +123,35 @@ class VM(object):
         self.get_resource()
         return int(
             self.resource.VmSpecSection.MemoryResourceMb.Configured.text)
+
+    def update_compute_policy(self, compute_policy_href, compute_policy_id):
+        """Updates the VdcComputePolicy of this VM.
+
+        :param str compute_policy_href: compute policy href to update to.
+        :param str id: compute policy id to update to.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that updates the vm.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        api_version = self.client.get_api_version()
+        required_api_version = ApiVersion.VERSION_32.value
+        if float(api_version) < float(required_api_version):
+            raise OperationNotSupportedException(
+                f"Unsupported API version. Received '{required_api_version}' "
+                f"but '{api_version}' is required.")
+
+        vm_resource = self.get_resource()
+        vm_resource.VdcComputePolicy.set('href', compute_policy_href)
+        vm_resource.VdcComputePolicy.set('id', compute_policy_id)
+
+        reconfigure_vm_link = find_link(self.resource,
+                                        RelationType.RECONFIGURE_VM,
+                                        EntityType.VM.value)
+        return self.client.post_resource(reconfigure_vm_link.href,
+                                         vm_resource,
+                                         EntityType.VM.value)
 
     def modify_cpu(self, virtual_quantity, cores_per_socket=None):
         """Updates the number of CPUs of a vm.

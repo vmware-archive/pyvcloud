@@ -1,6 +1,283 @@
 CHANGES
 =======
 
+21.0.0
+------
+
+* Implement update VM compute policy (#615)
+* VP-3046: [PYSDK] Functionality to provide admin or non admin URL in list\_vdc method. (#617)
+* Remove Condition (#614)
+* VP-3026: [2420217]With api version 33.0 , "vcd vdc use vdc-name " not working (#613)
+* [2420217]With api version 33.0 , "vcd vdc use vdc-name " not working (#612)
+* VP-2981: get\_vdc issue with PySDK
+* VP-2974: [PYVCLOUD]list system-vdc fix. (#610)
+* Fix bug in list\_compute\_policies() (#607)
+* Commenting PR raised test cases (#609)
+* Implemented method to remove all compute policies from vms in a vApp template (#606)
+* VP-2904: Logger issue in pyvcloud (#605)
+* VP-2917: [PYSDK] bug fix for list\_idisk CI/CD failure. (#604)
+* VP-2704,VP-2884: List Independent diks, enable nested hypervisor (#603)
+* Changes made in list\_media\_id and added href of media in dictionary
+* VP-2661,VP-2656: Update VirtualHardwareSection media and disks (#601)
+* VP-2005: [PySDK]As a SDK user, I can create VM from scratch
+* Fix for VM relocate test case failure (#599)
+* VP-2644,VP-2646,VP-2627,VP-2639 ticket and product section operations (#597)
+* Test Failure in pyvcloud due to href issue
+* VP-2755: [PySDK]Enable static routing in vapp network VP-2757: [PySDK]Add static route in vapp network VP-2759: [PySDK]Update static route in vapp network VP-2761: [PySDK]Delete static route in vapp network VP-2812: [PySDK]List static route in vapp network
+* Skipping update external network test case because of PR: 2399981 (#595)
+* Fixing CI/CD test failures. (#592)
+* VP-2620,VP-2855,VP-2848,VP-2850: Metadata CRUD operations (#590)
+* Unit Test Failure in pyvcloud
+* Add mac\_address to VM NIC listing (#480)
+* Due to suspended vm state test cases it's went in partial state. That making cause to fail other test cases for temporary 
+* VP-2746: [PySDK]Update NAT rule in vapp network
+* VP-2822: [PYSDK-VCDCLI] Bug fixes of CI/CD (#587)
+* VP-2684,VP-2686,VP-2813: Boot options and runtime info (#584)
+* Unified exception for unsupported vcd versions (#576)
+* VP-2797: [PySDK] List NAT rule in vapp network VP-2810: [PySDK] get NAT type and policy in vapp network VP-2748: [PySDK]Delete NAT rule in vapp network
+* VP-2680,VP-2682: List and updata vm capabilities. (#582)
+* Test failure Status code: 400/BAD\_REQUEST, Missing right to use ExtraConfig vmotion.checkpointSVGAPrimarySize. (request id: ca3031ea-ebed-4efd-8c3e-e08ff42a0180)
+* VP-2800,VP-2674,VP-2678: List, update and check guest customization s… (#579)
+* VP-2744: [PySDK]Add NAT rule in vapp network
+* VP-2672.VP-2795: List and update operating system section (#578)
+* VP-2792: [PySDK]List VM Interfaces
+* VP-2076:, VP-2709: [PySDK]Update VM nic (#575)
+* VP-2750: [PySDK]Enable NAT rule in vapp network VP-2753: [PySDK]Select NAT rule type in vapp network
+* VP-2652:[PySDK] Add firewall rule in vapp network VP-2655: [PySDK]Remove firewall rule in vapp network VP-2640: [PySDK] update firewall rule default action and log in vapp network VP-2642: [PySDK]Update firewall rule in vapp network VP-2778: [PySDK] list firewall rule in vapp network
+* VP-2051: [PySDK] relocate (#572)
+* VP-2762: [PYSDK] Get sample historic data of a metric (#571)
+* Support for add,remove compute policy to vm(s) that belong to vapp-template (#563)
+* VP-2634,VP-2728,VP-2730: List VM Metrics (#570)
+* VP-2624: [PYSDK] get compliance result (#569)
+* VP-2637:[PySDK]show product section in vapp VP-2720:[PySDK]show startup section of vapp VP-2725:[PySDK]update product section in vapp
+* VP-2659,VP-2648,VP-2662: GET Virtual Hardware Section (#567)
+* VP-2642 [PySDK]Start time action in vapp VP-2643 [PySDK]Stop time action in vapp
+* VP-2638: [PySDK]show Lease setting in vapp
+* VP-1908 : [PySDK] Create vApp network using orgVdc network VP-1921: [PySDK] Enable vApp Fence VP-2633: [PySDK] Enable disble download in vapp
+* Support for list,add,remove compute policy reference added
+* VP-2021,VP-2676,VP-2689 :Power on with force Recustomization for a VM (#559)
+* VP-2065: [PySDK]Update selected VM general properties
+* remove metadata on catalog item
+* VP-2079: [PySDK] CUstomize at Next Power ON (#556)
+* VP-1399 : [PySdk] Synchronize syslog server settings VP-2598 : [PySdk] Make connection of vapp network
+* set metadata on catalog item
+* Getter methods for all metadata and specific metadata-value for the given key for given catalog item
+* VP-2074: [PySDK] Check compliance (#554)
+* VP-2072: [PySDK] Reload from VC (#553)
+* Docstyle issue with flake8. This issue is due to pydocstyle version 4.0. "flake8-docstrings" failed during execution due to "module 'pydocstyle' has no attribute 'tokenize\_open'" RROR: InvocationError for command /data/jenkins/jenkins-Preflight-pysdk-1.0-STF-272/.tox/flake8/bin/flake8 pyvcloud/vcd (exited with code 1)
+* VP-2049: [PySDK] Detach Disk (#536)
+* VP-2593 :[PySDK] Show DNS detail of Vapp Network
+* Fix CToT failure in case of file\_name is not provided. (#551)
+* Fix flake8 issue (#549)
+* Adding support for log roll over (#548)
+* VP-2067: [pySDK] List Storage profiles
+* Bug effectively renders function useless as only empty orgs can be deleted Fixes Issue #508 Issue provides a detailed analysis of the issue and resolution
+* VP-2063: [PySDK]List selected VM general properties
+* Fix get\_catalog for API version less than 33 (#545)
+* C to t failure (#544)
+* Disk test failure due to API version 33
+* VP-2496 : Upgrade pysdk and CLI for API version 33 (#542)
+* VP-2112 : [PySDK] List vApp Networks
+* VP-2047: [pySdk] Attach Disk (#535)
+* VP-2108 and VP-2110 (#534)
+* VP-2106 : [PySDK] create snapshot of vapp. This CLN contains creating a snapshot of a vapp. create\_snapshot() method is exposed in vapp.py class and corresponding test case added
+* VP-2037: [PySDK]Move To VM from one vapp to another (#532)
+* VP-2102 : [PySDK] Move to vapp (#531)
+* VP-2409: [PYSDK] Feature to add test files automatically. (#530)
+* VP-2372: Fix - CI/CD of PYSDK for API version 32.0 (#528)
+* VP-2396: [PYSDK] Add missing test case classes to include in CI/CD. (#527)
+* VP-2396: [PYSDK] Add missing test case classes to include in CI/CD. (#526)
+* VP-2100 : [PySDK] Copy to vapp
+* VP-2394: [PYSDK]idisk test case fix (#525)
+* VP-2393: PYPI api version fix (#524)
+* VP-2039: [PySDK] Delete VM (#521)
+* Added method list\_vapp\_details() and test-case for list\_vapp\_details() (#516)
+* VP-2035: [PYSDK]Copy to VM from one vApp to another (#514)
+* VP-2041: [PySDK]Consolidate VM (#513)
+* VP-2094 : [PySDK] Upgrade Virtual Hardware version vapp
+* VP-2025,2027: [PYSDK]Insert and eject CD/DVD from VM (#509)
+* VP-2098 : [PySDK] Download vapp
+* VP-2029:[PYSDK] Install Vmware tools. (#507)
+* VP-2086:[PySDK]Discard suspended state. VP-2090:[PySDK] Enter maintenance mode. VP-2092:[PySDK] Exit maintenance mode. VP-2198:[PySDK]suspend vapp
+
+20.1.0
+------
+
+* VP-2194: [PYVCLOUD] unittest.skip : getVC fix (#503)
+* VP-2177 : Incorrect implementation of method list\_rights\_available\_in\_system in org.py
+* VP-2183 : List network for non admin user
+* VP-2177 : Incorrect implementation of method list\_rights\_available\_in\_system in org.py
+* ipsec\_vpn's get\_vpn\_site\_info test failure
+* Custom Logger for rotating file handler
+* [VCDA-926] Redact sensitive headers in logs. (#494)
+* VP-2145 : In org.py, method remove\_right does not raise error if a spurious right name is passed as input VP-2146 : vcd remove right doesn't report error for non existent right
+* Indentation error (#493)
+* VP-2006,VP-2023: Suspend a VM and Discard suspend state (#492)
+* VP-1903 : [PySDK] List IP allocations of vApp network
+* VP-1943 : [PySDK] Enable Firewall of vApp network. VP-1945 : [PySDK] Disable Firewall of vApp network
+* Previously self.client.delete\_resource(href, force) call passing the force value but the delete\_resource was taking default value. In this changes self.client.delete\_resource(href, force=force) taking the passed value
+* Fix for jenkin test failure (#485)
+* Jenkin's test failure (#484)
+* VP-1939 : [PySDK] Set DHCP service of vApp network. VP-1941 : [PySDK] Enable/Disable DHCP service of vApp network
+* Fix VDC EdgeGateway Sub-Allocate IP Pool configuration (#483)
+* Fix issue configuring IP settings inEdgeGateway (#482)
+* VCDA-912 : Enhancing client methods to support query params from request library (#471)
+* VP-1972,VP-1976:List CA and Delete CRL certificate (#477)
+* VP-1912,VP-1970,VP-1914,VP-1974: Add,Delete CA certificate, Add,List … (#473)
+* VP-1929 : [PySDK] Add DNS details to vApp network
+* VP-1966,VP-1968, list and delete service certificate (#469)
+* VP-1927 : [PySDK] Delete IP range from vApp network
+* VP-1910:[PYSDK] Add service certificate (#467)
+* VP-1925 : [PySDK] Update IP range of vApp network
+* VP-1923 : [PySDK] Add IP range to vApp network
+* VP-1901 : [PySDK] Update vApp network (#462)
+* VP-1803: added function vm\_to\_dict to utils. (#460)
+* Fix of gateway failure because of EdgeGatewayType (#461)
+* VP-1801: added delete\_nic function to vm class. (#459)
+* VP-1797, VP-1799: vm methods: add\_nic, list\_nics (#458)
+* Unit\_Test\_Failure : Handle the test case failing for catalog and external network
+* VP-1723,VP-1775: Update Ipsec Vpn, Info VPN site (#455)
+* VP-1571,VP-1849:List and Delete DHCP Binding
+* Added code to set syslog server IP for gateway (#453)
+* VP-1394, VP-1397: add reset and delete vapp network functions. This CL adds reset\_vapp\_network and delete\_vapp\_network functions to vapp. Added the following test cases to vapp: test\_0120\_reset\_vapp\_network, test\_0130\_delete\_vapp\_network
+* VP-1228: [PYSDK] TestFest bugs IPSEC Vpn (#452)
+* VP-1795 : [PySDK] delete values from Firewall Service
+* VP-1845 : [PySDK] List Firewall Service
+* Modify pysdk as per CLI errors for reorder NAT rule (#448)
+* VP-1793 : [PySDK] delete values from Firewall Destination
+* VP-1561: Add DHCP Binding
+* VP-1840 : [PySDK] List Firewall Destination
+* Fix for pyyaml vulnerability found in requirements.txt (#444)
+* [VCDA-863] Enhance update\_user method to change role of an existing user in vCD (#432)
+* VP-1401: edit name and description of a vapp (#442)
+* Generate test reports (#443)
+* VP-1791 : [PySDK] delete values from Firewall Source
+* Update required version to Python 3.6 (#440)
+* VP-1544 : [PySDK] Change the sequence of the firewall rules
+* Fix share catalog functionality for api v29.0 (#421)
+* VP-1789 : [PySDK] List Firewall Source
+* Jenkin'e test failure (#436)
+* Test\_fest\_fix also added enable/disable HA
+* List commands in external\_network throws exception on empty result (#434)
+* Enable new subnet by default (#433)
+* Jenkins run not able to take the API provided (#431)
+* VP-1827 : [PySDK] Run firewall rule test cases as org admin
+* Added support for org user to convert to distributed interface (#430)
+* [Fix]: listing of vsphere network and direct org vdc network (#426)
+* Fix of firewall rule update test case failure from CLI (#428)
+* Failing System Test complaining No module named 'system\_test' (#427)
+* VP-1538 : [PySDK] Edit Firewall rule name Enhanced the update feature to support edit of firewall rule name as well 
+* VP-1595: Changes in the pysdk to handle str comming from vcd-cli (#423)
+* Fix for percheck failure. (#424)
+* VP-1559:[PySDK] Get Firewall rule Info.. Adding a feature to info firewall rule on the basis of rule id
+* VP-1592: Change the NAT rule sequence (#420)
+* VP-1715,1719,1726: Set info level, info logging settings,list ipsec vpn (#419)
+* VP-1534:[PySDK]: Enable Firewall rule (#417)
+*  [VP-1734] Edit service of firewall rule (#418)
+* [VP-1392]: Create a vApp network (#416)
+* Added support for update firewall rule (#415)
+* VP-1708,1710,1713,1717: [Pysdk]Enable activation status,logging.Info … (#413)
+* VP-1606: Edit Static Routes (#412)
+* VP-1608: Delete Static Routes (#409)
+* [VP 1768]List objects and object types for firewall rule edit (#411)
+* VP-1725: [PySDK] Delete IPsec VPN Sites (#410)
+* Comment update of external network test case as it gets stuck in vCD (#408)
+* Created a FirewallRule class and added delete of firewall rule (#407)
+* VP 1721: [PySDK] Add IPsec VPN Sites (#404)
+
+20.0.3
+------
+
+* Some of the existing code is failing flake8 check after upgrage to version 3.7.1, this change fixes them. (#403)
+* [VP-1387] Convert to Distributed Routing (#401)
+* Fixed failing api-extension system tests. (#402)
+* Convert to subinterface (#400)
+* Add update\_extension function to api\_extension.py (#379)
+* Added a feature to delete static IP pool from a routed network. It also removes if there is just one IP pool. (#399)
+* [VP-1748]: Listing of connected vApps fails for system admin (#398)
+* VP-1604,1611: Add and List Static Routes (#396)
+* Jenkins Test failure fixed (#397)
+* VP-1542:[PySDK] List Firewall rules and list user defined rules (#394)
+* [VCDA-857] Support to add new right from a vCD api extension service (#386)
+* [VP-1363] Add DNS and Fixed failing test case (#395)
+* [VP-1377]: List connected vApps to a org vdc routed network (#390)
+* Dhcp info (#392)
+* VP-1555:List DHCP Pool
+* VP-1549: Add a Dhcp pool (#388)
+* VP-1586: Edit a NAT Rule (#389)
+* Add cidr to isolated vdc network (#373)
+* VP-1590,1594: Get Nat Rule info and list Nat Rules (#387)
+* VP-1584,VP-1588: Add and delete nat rule (#385)
+* Add option for getting admin view of org vdc (#384)
+* [VP-1375] List IP allocations of a routed org vdc network (#382)
+
+20.0.2
+------
+
+* VP-1658:List default config gateway (#381)
+* VP-1473,VP-1656,VP-1658: Configure default gateway,DNS and list
+* VP-1602: List vSphere Networks (#378)
+* VP-1523: List Rate limits of the gateway VP-1628: Disable rate limit of the gateway
+* Fix test cases (#376)
+* [VP-1369,VP-1371,VP-1373]: add/update/delete metadata in vDC Routed Network
+* [VP-1536] Add a Firewall Rule (#375)
+* VP-1246: List associated direct org vDC networks in external network (#371)
+* VP 1266: [PySdk] List gateway IP sub-allocation (#372)
+* Jenkins Test failure fix (#370)
+* [VCDA-840] Added metadata support for first class objects in vCD (#348)
+* VP 1266: [PySdk] List gateway IP sub-allocation (#369)
+* VP 1264: [PySdk] List allocated IP addresses (#368)
+* VP 1268: [PySdk] List associated edge gateways (#365)
+* Added support for \* Setting multiple metadata entries in one REST call \* Util functions to convert   \* metadata xml objects to dictionaries   \* metadata entry xml objects to tuples   \* metadata value xml objects to strings \* Renamed few metadata operations to clarify their purpose
+* Add support to specify error stacktrace while updating a Task object (#353)
+* [VP-1361]Edit routed network for Static IP pool under Network Specification (Edit) (#363)
+* VP-1300: [PySdk] List edge gateway's Syslog Server Settings (#364)
+* [VP-1359]Edit routed network for Static IP pool under Network Specification (Add) (#361)
+* Removed dependency on flufl.enum while replacing it with python standard enum
+* [VP-1261] List accessible provider vDCs (#360)
+* VP-1521: Fix external network tests (#359)
+* VP-1147 : [PySDK] Delete an IP range of a subnet in external network (#358)
+* VP-1491: Edit gateway for Configure Rate Limits (#357)
+* [VP-1357] Edit routed network's name, description and shared network state (#356)
+* Provided options to run against existing vCD and respective API version (#354)
+* Migrate Pyvcloud CI to Butler and fixing failure'GatewayConstants not Found issue (#351)
+* VP 1447: [PySDK] Delete an IP range of a subnet in external network (#349)
+* Fixed flake8 failure
+* Added metadata tests for vApp
+* Change flufl.Enum to python standard enum
+* Adding test for vdc metadata
+* Adding remove\_metadata method to vApp
+* second cut
+* Geenral metadata support - first cut
+* Revert to lazy loading of resource during initialization of VDC objects. (#347)
+* VP1259: [PySdk] Detach port groups from an external network (#346)
+* VP-1298:Remove Suballocate ip pool of gateway (#345)
+* VP-1294,VP-1296:Add and Modify sub allocate pool of gateway (#344)
+* VP-1291: Edit gateways ip config settings:
+* VP-1450:List available portgroups in a vCenter (#343)
+* Fixing the order of request body (#342)
+* VP-1257: Attach port groups to an external network (#339)
+* [VP-1427] Move Test case related to create\_routed\_vdc\_network to system\_test (#340)
+* Add vdc routed network (#329)
+* VP-1293: Edit gateway Name (#336)
+* VP-1292:List edge gateway's Configure IP Settings (#335)
+* VP-1251, VP-1252: Configure external network: add/remove (#331)
+* VP-1243: Modify an IP range of a subnet in external network (#333)
+* VP-1237,VP-1240: ENABLE A SUBNET &ADD AN IP RANGE TO A SUBNET IN EXTE… (#328)
+* VP-1323] Provide backward compatibility support for create gateway workflow (#330)
+* VP-1162: Synchronize syslog server settings of a gateway. (#327)
+* VP-1160 : Redeploy edge gateway. (#326)
+* VP-1239: List external network ip allocations. (#324)
+* VP-1151: Add subnet to external network (#323)
+* [VDP-2171]: Add/Delete storage profiles to a PVDC (#318)
+* [VP-1247] Provided support for Modify form factor for gateway (#321)
+* VP-1183,1200: Provided support for Convert to Advanced gateway and Enable Distributed Routing (#319)
+* [VP-1153] Update name and description of an external network (#317)
+* [VP-1158 and VP-1156] Providing support for Gateway create and delete (#315)
+* [VP-1145,VP-1146] External Network: Create and Delete (#314)
+* Fix Flake8 failures (#313)
+* Update Changelog for pyvcloud v20.0.1 (#305)
+
 20.0.1
 ------
 

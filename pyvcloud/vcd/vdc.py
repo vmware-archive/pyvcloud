@@ -630,14 +630,14 @@ class VDC(object):
 
         if new_size is not None:
             if self.client.get_api_version() < ApiVersion.VERSION_33.value:
-                disk_params.set('size', new_size)
+                disk_params.set('size', str(new_size))
             else:
                 size = int(int(new_size) / SIZE_1MB)
                 disk_params.set('sizeMb', str(size))
         else:
             if self.client.get_api_version() < ApiVersion.VERSION_33.value:
                 size = disk.get('size')
-                disk_params.set('size', size)
+                disk_params.set('size', str(size))
             else:
                 size = disk.get('sizeMb')
                 disk_params.set('sizeMb', str(size))

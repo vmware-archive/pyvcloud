@@ -103,6 +103,20 @@ class VM(object):
                     return record.VimServerRef.get('name')
         return None
 
+    def get_moid(self):
+        """Returns the vCenter MoRef of this vm.
+
+        :return: MoRef of this vm.
+
+        :rtype: str
+        """
+        if hasattr(self.get_resource(), 'VCloudExtension'):
+            return self.get_resource().VCloudExtension[
+                '{' + NSMAP['vmext'] + '}VmVimInfo'][
+                    '{' + NSMAP['vmext'] + '}VmVimObjectRef'][
+                        '{' + NSMAP['vmext'] + '}MoRef'].text
+        return None
+
     def get_cpus(self):
         """Returns the number of CPUs in the vm.
 

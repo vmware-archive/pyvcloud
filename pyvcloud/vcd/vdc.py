@@ -1042,12 +1042,22 @@ class VDC(object):
 
         :rtype: str
         """
-        self.get_resource()
+        return self._get_vc_ref().get('name')
 
-        vim_server_ref = self.resource.VCloudExtension[
+    def get_vc_resource(self):
+        """Returns the vCenter where this vdc is located as resource.
+
+        :return: an object containing EntityType.VIRTUAL_CENTER XML data which
+                 represents the vCenter of this vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        return self.client.get_resource(self._get_vc_ref().get('href'))
+
+    def _get_vc_ref(self):
+        return self.get_resource().VCloudExtension[
             '{' + NSMAP['vmext'] + '}VimObjectRef'][
                 '{' + NSMAP['vmext'] + '}VimServerRef']
-        return vim_server_ref.get('name')
 
     def get_access_settings(self):
         """Get the access settings of the vdc.

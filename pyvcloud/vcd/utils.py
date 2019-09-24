@@ -503,7 +503,7 @@ def task_to_dict(task):
 
     :rtype: dict
     """
-    result = to_dict(task)
+    result = to_dict(task, exclude=[])
     if hasattr(task, 'Owner'):
         result['owner_name'] = task.Owner.get('name')
         result['owner_href'] = task.Owner.get('href')
@@ -513,7 +513,7 @@ def task_to_dict(task):
     if hasattr(task, 'Organization'):
         result['organization'] = task.Organization.get('name')
     if hasattr(task, 'Details'):
-        result['details'] = task.Details
+        result['details'] = task.Details.text
     return result
 
 

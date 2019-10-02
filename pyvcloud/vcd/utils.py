@@ -187,7 +187,8 @@ def pvdc_to_dict(pvdc, refs=None, metadata=None):
     result = {}
     result['name'] = pvdc.get('name')
     result['id'] = extract_id(pvdc.get('id'))
-    result['description'] = str(pvdc.Description)
+    if hasattr(pvdc, 'Description'):
+        result['description'] = str(pvdc.Description)
     if hasattr(pvdc, 'IsEnabled'):
         result['is_enabled'] = bool(pvdc.IsEnabled)
     if hasattr(pvdc, 'AvailableNetworks') and \
@@ -442,20 +443,23 @@ def vm_to_dict(vm):
             '{' + NSMAP['vmext'] + '}VmVimInfo'][
                 '{' + NSMAP['vmext'] + '}VmVimObjectRef']['{' + NSMAP['vmext']
                                                           + '}MoRef'].text
-    result['computer-name'] = vm.GuestCustomizationSection.ComputerName.text
+    if hasattr(vm, 'GuestCustomizationSection'):
+        result['computer-name'] = \
+            vm.GuestCustomizationSection.ComputerName.text
 
     disk_instance_name_map = {}
     nic_instance_name_map = {}
-    for item in vm['{' + NSMAP['ovf'] +
-                   '}VirtualHardwareSection']['{' + NSMAP['ovf'] + '}Item']:
-        if item['{' + NSMAP['rasd'] + '}ResourceType'].text == str(10):
-            nic_instance_name_map[item[
-                '{' + NSMAP['rasd'] + '}AddressOnParent'].text] = item[
-                    '{' + NSMAP['rasd'] + '}ElementName'].text
-        if item['{' + NSMAP['rasd'] + '}ResourceType'].text == str(17):
-            disk_instance_name_map[item['{' + NSMAP['rasd'] + '}InstanceID'].
-                                   text] = item['{' + NSMAP['rasd'] +
-                                                '}ElementName'].text
+    if hasattr(vm, '{' + NSMAP['ovf'] + '}VirtualHardwareSection'):
+        for item in vm['{' + NSMAP['ovf'] + '}VirtualHardwareSection'][
+                '{' + NSMAP['ovf'] + '}Item']:
+            if item['{' + NSMAP['rasd'] + '}ResourceType'].text == str(10):
+                nic_instance_name_map[
+                    item['{' + NSMAP['rasd'] + '}AddressOnParent'].text] = \
+                    item['{' + NSMAP['rasd'] + '}ElementName'].text
+            if item['{' + NSMAP['rasd'] + '}ResourceType'].text == str(17):
+                disk_instance_name_map[
+                    item['{' + NSMAP['rasd'] + '}InstanceID'].text] = \
+                    item['{' + NSMAP['rasd'] + '}ElementName'].text
 
     if hasattr(vm, 'NetworkConnectionSection'):
         ncs = vm.NetworkConnectionSection

@@ -2210,3 +2210,23 @@ class Org(object):
             catalog_name=catalog_name,
             catalog_item_name=catalog_item_name,
             compute_policy_href=None)
+
+    def create_group(self,
+                     name,
+                     role_href):
+        """Create a Group.
+
+        :param str name: name of the group.
+        :param str role_href: href of the role for the imported group.
+
+        :return: an object containing EntityType.GROUP XML data describing the
+            group that just got created.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        resource_admin = self.client.get_resource(self.href_admin)
+        group = E.Group(
+            E.Role(href=role_href),
+            name=name)
+        return self.client.post_linked_resource(
+            resource_admin, RelationType.ADD, EntityType.GROUP.value, group)

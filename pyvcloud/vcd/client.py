@@ -378,6 +378,7 @@ class EntityType(Enum):
     EXTERNAL_NETWORK = 'application/vnd.vmware.admin.vmwexternalnet+xml'
     EXTERNAL_NETWORK_REFS = \
         'application/vnd.vmware.admin.vmwExternalNetworkReferences+xml'
+    GROUP = 'application/vnd.vmware.admin.group+xml'
     GUEST_CUSTOMIZATION_SECTION = \
         'application/vnd.vmware.vcloud.guestCustomizationSection+xml'
     HISTORIC_USAGE = \

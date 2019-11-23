@@ -1790,7 +1790,7 @@ class _AbstractQuery(object):
         uri += str(page)
 
         if (page_size is not None):
-            uri += 'pageSize='
+            uri += '&pageSize='
             uri += str(page_size)
 
         if qfilter is not None:

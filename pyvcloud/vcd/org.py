@@ -1261,7 +1261,7 @@ class Org(object):
 
         :rtype: list
         """
-        return self.list_rights_available_in_vcd(self, name_filter)
+        return self.list_rights_available_in_vcd(name_filter)
 
     def list_rights_available_in_vcd(self, name_filter=None):
         """Retrieves all rights available in the vcd.

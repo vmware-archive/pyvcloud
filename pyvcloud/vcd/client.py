@@ -966,13 +966,13 @@ class Client(object):
                 else:
                     raise VcdException('Login failed.')
 
-            session = objectify.fromstring(response.content)
-            self._session_endpoints = _get_session_endpoints(session)
+            self.session = objectify.fromstring(response.content)
+            self._session_endpoints = _get_session_endpoints(self.session)
 
             self._session = new_session
             self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
                 response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
-            self._is_sysadmin = self._is_sys_admin(session.get('org'))
+            self._is_sysadmin = self._is_sys_admin(self.session.get('org'))
         except Exception:
             new_session.close()
             raise
@@ -1015,14 +1015,15 @@ class Client(object):
                 sc, self._get_response_request_id(response),
                 _objectify_response(response))
 
-        session = objectify.fromstring(response.content)
+        self.session = objectify.fromstring(response.content)
 
-        self._is_sysadmin = self._is_sys_admin(session.get('org'))
-        self._session_endpoints = _get_session_endpoints(session)
+        self._is_sysadmin = self._is_sys_admin(self.session.get('org'))
+        self._session_endpoints = _get_session_endpoints(self.session)
         self._session = new_session
         self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
             response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
-        return session
+        # Preserve backward compatibility vy returning the session object
+        return self.session
 
     def logout(self):
         """Destroy the server session and de-allocate local resources.

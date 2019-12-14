@@ -1817,109 +1817,164 @@ class Org(object):
                                                    catalog_name,
                                                    catalog_item_name,
                                                    compute_policy_href):
-        """Add compute policy identified by href to all vms of vapp template.
+        """Assign compute policy to all vms in a given vApp template.
 
-        :param str catalog_name: catalog name that contains the catalog item
-        :param str catalog_item_name: name of the catalog item
+        The compute policy is identified by its href.
+
+        :param str catalog_name: Name of the catalog that contains the template
+        :param str catalog_item_name: Name of the template (catalog item)
         :param str compute_policy_href: href of the compute policy
 
         :return: an object of type EntityType.TASK XML which represents
-        the asynchronous task that is updating virtual application template.
+            the asynchronous task that is updating virtual application
+            template. If the given vApp doesn't have any vm in it, then None
+            will be returned.
 
         :rtype: lxml.objectify.ObjectifiedElement
 
         :raises: OperationNotSupportedException: if the api version is not
-        supported.
-        :raises: EntityNotFoundException: if the vm cannot be located.
+            supported.
         """
-        if float(self.client.get_api_version()) < \
-                float(ApiVersion.VERSION_32.value):
-            raise OperationNotSupportedException("Unsupported API version")
+        api_version = self.client.get_api_version()
+        min_supported_api_version = ApiVersion.VERSION_32.value
+        if float(api_version) < float(min_supported_api_version):
+            raise OperationNotSupportedException(
+                "Unsupported API version. Received '"
+                f"{api_version}' but '{min_supported_api_version}' is "
+                "required.")
 
         policy_id = retrieve_compute_policy_id_from_href(compute_policy_href)
-        template_resource_href = self.get_vapp_template_href(catalog_name,
-                                                             catalog_item_name)
+        template_resource_href = self.get_vapp_template_href(
+            catalog_name, catalog_item_name)
         template_resource = self.client.get_resource(template_resource_href)
+
         if hasattr(template_resource, 'Children') and \
                 hasattr(template_resource.Children, 'Vm'):
             vms = template_resource.Children.Vm
             for vm in vms:
-                if hasattr(vm, 'VdcComputePolicy'):
-                    vm.VdcComputePolicy.set('href', compute_policy_href)
-                    vm.VdcComputePolicy.set('id', policy_id)
+                date_created_node = vm.find('{http://www.vmware.com/vcloud/v1.5}DateCreated')  # noqa: E501
+                # api v32 supports VdcComputePolicy
+                if float(api_version) == float(min_supported_api_version):
+                    if hasattr(vm, 'VdcComputePolicy'):
+                        vdc_compute_policy_element = vm.VdcComputePolicy
+                    else:
+                        vdc_compute_policy_element = E.VdcComputePolicy()
+                        date_created_node.addprevious(vdc_compute_policy_element)  # noqa: E501
+
+                    vdc_compute_policy_element.set('href', compute_policy_href)
+                    vdc_compute_policy_element.set('id', policy_id)
+                    vdc_compute_policy_element.set('type', 'application/json')
+                # api v33 and onwards supports ComputePolicy instead
                 else:
-                    date_created_node = vm.\
-                        find('{http://www.vmware.com/vcloud/v1.5}DateCreated')
-                    policy_element = E.VdcComputePolicy()
-                    policy_element.set('href', compute_policy_href)
-                    policy_element.set('id', policy_id)
-                    date_created_node.addprevious(policy_element)
+                    if hasattr(vm, 'ComputePolicy'):
+                        compute_policy_element = vm.ComputePolicy
+                    else:
+                        compute_policy_element = E.ComputePolicy()
+                        date_created_node.addprevious(compute_policy_element)
+
+                    if hasattr(compute_policy_element, 'VmSizingPolicy'):
+                        vm_sizing_policy_element = compute_policy_element.VmSizingPolicy  # noqa: E501
+                    else:
+                        vm_sizing_policy_element = E.VmSizingPolicy()
+                        compute_policy_element.append(vm_sizing_policy_element)
+                        compute_policy_element.append(
+                            E.VmSizingPolicyFinal('false'))
+
+                    vm_sizing_policy_element.set('href', compute_policy_href)
+                    vm_sizing_policy_element.set('id', policy_id)
+                    vm_sizing_policy_element.set('type', 'application/json')
 
             return self.client.put_resource(
                 template_resource_href,
                 template_resource,
                 media_type=EntityType.VAPP_TEMPLATE.value)
 
-        raise EntityNotFoundException(f"Vm element not found")
+    def remove_compute_policy_from_vapp_template_vms(
+            self, catalog_name, catalog_item_name, compute_policy_href=None):
+        """Remove compute policy from all vms in a given vApp template.
 
-    def remove_compute_policy_from_vapp_template_vms(self,
-                                                     catalog_name,
-                                                     catalog_item_name,
-                                                     compute_policy_href):
-        """Remove compute policy from all vms of the vapp template.
+        The compute policy is identified by its href. If compute policy is not
+        provided, all vdc compute policies (i.e. vm sizing policies) will be
+        removed.
 
-        :param str catalog_name: catalog name that contains the catalog item
-        :param str catalog_item_name: name of the catalog item
-        :param str compute_policy_href: href of the compute policy
+        :param str catalog_name: Name of the catalog that contains the template
+        :param str catalog_item_name: Name of the template (catalog item)
+        :param str compute_policy_href: href of the compute policy.
 
         :return: an object of type EntityType.TASK XML which represents
-        the asynchronous task that is updating virtual application template.
-
-        If the given compute policy id is not found, then no TASK XML will be
-        returned.
+            the asynchronous task that is updating vApp template. If the given
+            compute policy id is not found on any of the vm, then None will be
+            returned.
 
         :rtype: lxml.objectify.ObjectifiedElement.
 
         :raises: OperationNotSupportedException: if the api version is not
-        supported.
+            supported.
         :raises: EntityNotFoundException: if the compute policy not found
         """
-        if float(self.client.get_api_version()) < \
-                float(ApiVersion.VERSION_32.value):
-            raise OperationNotSupportedException("Unsupported API version")
+        api_version = self.client.get_api_version()
+        min_supported_api_version = ApiVersion.VERSION_32.value
+        if float(api_version) < float(min_supported_api_version):
+            raise OperationNotSupportedException(
+                "Unsupported API version. Received '"
+                f"{api_version}' but '{min_supported_api_version}' is "
+                "required.")
 
-        policy_id = retrieve_compute_policy_id_from_href(compute_policy_href)
+        policy_id = None
+        if compute_policy_href:
+            policy_id = \
+                retrieve_compute_policy_id_from_href(compute_policy_href)
+
         template_resource_href = self.get_vapp_template_href(catalog_name,
                                                              catalog_item_name)
         template_resource = self.client.get_resource(template_resource_href)
-        template_update_required = False
+
+        template_updation_required = False
         if hasattr(template_resource, 'Children') and \
                 hasattr(template_resource.Children, 'Vm'):
             for vm in template_resource.Children.Vm:
-                if hasattr(vm, 'VdcComputePolicy'):
-                    vm_compute_policy_id = vm.VdcComputePolicy.get('id')
-                    if policy_id == vm_compute_policy_id:
-                        vm.remove(vm.VdcComputePolicy)
-                        template_update_required = True
+                # api v32 supports VdcComputePolicy
+                if float(api_version) == float(min_supported_api_version):
+                    if hasattr(vm, 'VdcComputePolicy'):
+                        vm_compute_policy_id = vm.VdcComputePolicy.get('id')
+                        if not policy_id or policy_id == vm_compute_policy_id:
+                            vm.remove(vm.VdcComputePolicy)
+                            template_updation_required = True
+                # api v33 and onwards supports ComputePolicy instead
+                elif hasattr(vm, 'ComputePolicy') and hasattr(vm.ComputePolicy, 'VmSizingPolicy'):  # noqa: E501
+                    vm_compute_policy_id = \
+                        vm.ComputePolicy.VmSizingPolicy.get('id')
+                    if not policy_id or policy_id == vm_compute_policy_id:
+                        vm.VdcComputePolicy.remove(
+                            vm.VdcComputePolicy.VmSizingPolicy)
+                        template_updation_required = True
+                        if hasattr(vm.VdcComputePolicy, 'VmSizingPolicyFinal'):
+                            vm.VdcComputePolicy.remove(
+                                vm.VdcComputePolicy.VmSizingPolicyFinal)
 
-        if template_update_required:
+        if template_updation_required:
             return self.client.put_resource(
                 template_resource_href,
                 template_resource,
                 media_type=EntityType.VAPP_TEMPLATE.value)
 
+    # keeping this method to preserve backward compatibility with older clients
+    # that call this method
     def remove_all_compute_policies_from_vapp_template_vms(self,
                                                            catalog_name,
                                                            catalog_item_name):
-        """Remove all compute policies from all vms of a vapp template.
+        """Remove all compute policies from all vms in a vApp template.
 
-        :param str catalog_name: name of the catalog that contains the
-            vapp template.
-        :param str catalog_item_name: name of the catalog item (vapp template)
+        For api v32, the VdcComputePolicy element is removed. For api v33 and
+        above, VmSizingPolicy is removed.
+
+        :param str catalog_name: Name of the catalog that contains the
+            vApp template.
+        :param str catalog_item_name: Name of the catalog item (vApp template)
 
         :return: an object of type EntityType.TASK XML which represents
-            the asynchronous task that is updating vapp template.
-            If no updatation is required None will be returned.
+            the asynchronous task that is updating vApp template. If no change
+            is required to be made to the vApp template, None will be returned.
 
         :rtype: lxml.objectify.ObjectifiedElement.
 
@@ -1928,23 +1983,7 @@ class Org(object):
         :raises: EntityNotFoundException: if the vapp template is not found in
             the catalog.
         """
-        if float(self.client.get_api_version()) < \
-                float(ApiVersion.VERSION_32.value):
-            raise OperationNotSupportedException("Unsupported API version")
-
-        template_href = \
-            self.get_vapp_template_href(catalog_name, catalog_item_name)
-        template_resource = self.client.get_resource(template_href)
-        template_update_required = False
-        if hasattr(template_resource, 'Children') and \
-                hasattr(template_resource.Children, 'Vm'):
-            for vm in template_resource.Children.Vm:
-                if hasattr(vm, 'VdcComputePolicy'):
-                    vm.remove(vm.VdcComputePolicy)
-                    template_update_required = True
-
-        if template_update_required:
-            return self.client.put_resource(
-                template_href,
-                template_resource,
-                media_type=EntityType.VAPP_TEMPLATE.value)
+        return self.remove_compute_policy_from_vapp_template_vms(
+            catalog_name=catalog_name,
+            catalog_item_name=catalog_item_name,
+            compute_policy_href=None)

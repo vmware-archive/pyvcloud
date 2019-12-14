@@ -33,6 +33,7 @@ from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.exceptions import MultipleRecordsException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.metadata import Metadata
+from pyvcloud.vcd.utils import retrieve_compute_policy_id_from_href
 from pyvcloud.vcd.utils import uri_to_api_uri
 
 
@@ -124,11 +125,16 @@ class VM(object):
         return int(
             self.resource.VmSpecSection.MemoryResourceMb.Configured.text)
 
-    def update_compute_policy(self, compute_policy_href, compute_policy_id):
-        """Updates the VdcComputePolicy of this VM.
+    def update_compute_policy(self, compute_policy_href, compute_policy_id=None):  # noqa: E501
+        """Updates the Compute Policy of this VM.
 
-        :param str compute_policy_href: compute policy href to update to.
-        :param str id: compute policy id to update to.
+        For api v32, the VdcComputePolicy element is modified. For api v33 and
+        above, VmSizingPolicy is modified.
+
+        :param str compute_policy_href: href of the target compute policy
+        :param str compute_policy_id: id of the target compute policy. This is
+            a redundant param, keeping it, to preserve compatibility with
+            older clients using this method.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that updates the vm.
@@ -136,15 +142,28 @@ class VM(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         api_version = self.client.get_api_version()
-        required_api_version = ApiVersion.VERSION_32.value
-        if float(api_version) < float(required_api_version):
+        min_supported_api_version = ApiVersion.VERSION_32.value
+        if float(api_version) < float(min_supported_api_version):
             raise OperationNotSupportedException(
-                f"Unsupported API version. Received '{required_api_version}' "
-                f"but '{api_version}' is required.")
+                "Unsupported API version. Received '"
+                f"{api_version}' but '{min_supported_api_version}' is "
+                "required.")
+
+        if not compute_policy_id:
+            compute_policy_id = \
+                retrieve_compute_policy_id_from_href(compute_policy_href)
 
         vm_resource = self.get_resource()
-        vm_resource.VdcComputePolicy.set('href', compute_policy_href)
-        vm_resource.VdcComputePolicy.set('id', compute_policy_id)
+        # For api v32, work with VdcComputePolicy
+        if float(api_version) == float(min_supported_api_version):
+            vm_resource.VdcComputePolicy.set('href', compute_policy_href)
+            vm_resource.VdcComputePolicy.set('id', compute_policy_id)
+        # For api v33 and above, work with ComputePolicy, VmSizingPolicy
+        else:
+            vm_resource.ComputePolicy.VmSizingPolicy.set('href',
+                                                         compute_policy_href)
+            vm_resource.ComputePolicy.VmSizingPolicy.set('id',
+                                                         compute_policy_id)
 
         reconfigure_vm_link = find_link(self.resource,
                                         RelationType.RECONFIGURE_VM,

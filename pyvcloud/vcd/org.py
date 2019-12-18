@@ -1929,7 +1929,7 @@ class Org(object):
                                                              catalog_item_name)
         template_resource = self.client.get_resource(template_resource_href)
 
-        template_updation_required = False
+        template_update_required = False
         if hasattr(template_resource, 'Children') and \
                 hasattr(template_resource.Children, 'Vm'):
             for vm in template_resource.Children.Vm:
@@ -1937,19 +1937,19 @@ class Org(object):
                     vm_compute_policy_id = vm.VdcComputePolicy.get('id')
                     if not policy_id or policy_id == vm_compute_policy_id:
                         vm.remove(vm.VdcComputePolicy)
-                        template_updation_required = True
+                        template_update_required = True
                 if hasattr(vm, 'ComputePolicy') and hasattr(vm.ComputePolicy, 'VmSizingPolicy'):  # noqa: E501
                     vm_compute_policy_id = \
                         vm.ComputePolicy.VmSizingPolicy.get('id')
                     if not policy_id or policy_id == vm_compute_policy_id:
                         vm.ComputePolicy.remove(
                             vm.ComputePolicy.VmSizingPolicy)
-                        template_updation_required = True
+                        template_update_required = True
                         if hasattr(vm.ComputePolicy, 'VmSizingPolicyFinal'):  # noqa: E501
                             vm.ComputePolicy.remove(
                                 vm.ComputePolicy.VmSizingPolicyFinal)
 
-        if template_updation_required:
+        if template_update_required:
             return self.client.put_resource(
                 template_resource_href,
                 template_resource,

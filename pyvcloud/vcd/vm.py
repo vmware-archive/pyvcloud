@@ -36,6 +36,10 @@ from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.utils import retrieve_compute_policy_id_from_href
 from pyvcloud.vcd.utils import uri_to_api_uri
 
+VDC_COMPUTE_POLICY_MIN_API_VERSION = float(ApiVersion.VERSION_32.value)
+VDC_COMPUTE_POLICY_MAX_API_VERSION = float(ApiVersion.VERSION_33.value)
+VM_SIZING_POLICY_MIN_API_VERSION = float(ApiVersion.VERSION_33.value)
+
 
 class VM(object):
     """A helper class to work with Virtual Machines."""
@@ -141,25 +145,23 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        api_version = self.client.get_api_version()
-        min_supported_api_version = ApiVersion.VERSION_32.value
-        if float(api_version) < float(min_supported_api_version):
+        api_version = float(self.client.get_api_version())
+        if api_version < VDC_COMPUTE_POLICY_MIN_API_VERSION:
             raise OperationNotSupportedException(
-                "Unsupported API version. Received '"
-                f"{api_version}' but '{min_supported_api_version}' is "
-                "required.")
+                f"Unsupported API version. Received '{api_version}' but "
+                f"'{VDC_COMPUTE_POLICY_MIN_API_VERSION}' is required.")
 
         if not compute_policy_id:
             compute_policy_id = \
                 retrieve_compute_policy_id_from_href(compute_policy_href)
 
         vm_resource = self.get_resource()
-        # For api v32, work with VdcComputePolicy
-        if float(api_version) == float(min_supported_api_version):
+
+        if api_version <= VDC_COMPUTE_POLICY_MAX_API_VERSION:
             vm_resource.VdcComputePolicy.set('href', compute_policy_href)
             vm_resource.VdcComputePolicy.set('id', compute_policy_id)
-        # For api v33 and above, work with ComputePolicy, VmSizingPolicy
-        else:
+
+        if api_version >= VM_SIZING_POLICY_MIN_API_VERSION:
             vm_resource.ComputePolicy.VmSizingPolicy.set('href',
                                                          compute_policy_href)
             vm_resource.ComputePolicy.VmSizingPolicy.set('id',

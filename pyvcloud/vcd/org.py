@@ -58,6 +58,10 @@ from pyvcloud.vcd.utils import to_dict
 # 10MB is a happy medium between 50MB and 1MB.
 DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024
 
+VDC_COMPUTE_POLICY_MIN_API_VERSION = float(ApiVersion.VERSION_32.value)
+VDC_COMPUTE_POLICY_MAX_API_VERSION = float(ApiVersion.VERSION_33.value)
+VM_SIZING_POLICY_MIN_API_VERSION = float(ApiVersion.VERSION_33.value)
+
 
 class Org(object):
     def __init__(self, client, href=None, resource=None):
@@ -1835,13 +1839,11 @@ class Org(object):
         :raises: OperationNotSupportedException: if the api version is not
             supported.
         """
-        api_version = self.client.get_api_version()
-        min_supported_api_version = ApiVersion.VERSION_32.value
-        if float(api_version) < float(min_supported_api_version):
+        api_version = float(self.client.get_api_version())
+        if api_version < VDC_COMPUTE_POLICY_MIN_API_VERSION:
             raise OperationNotSupportedException(
-                "Unsupported API version. Received '"
-                f"{api_version}' but '{min_supported_api_version}' is "
-                "required.")
+                f"Unsupported API version. Received '{api_version}' but "
+                f"'{VDC_COMPUTE_POLICY_MIN_API_VERSION}' is required.")
 
         policy_id = retrieve_compute_policy_id_from_href(compute_policy_href)
         template_resource_href = self.get_vapp_template_href(
@@ -1853,8 +1855,8 @@ class Org(object):
             vms = template_resource.Children.Vm
             for vm in vms:
                 date_created_node = vm.find('{http://www.vmware.com/vcloud/v1.5}DateCreated')  # noqa: E501
-                # api v32 supports VdcComputePolicy
-                if float(api_version) == float(min_supported_api_version):
+
+                if api_version <= VDC_COMPUTE_POLICY_MAX_API_VERSION:
                     if hasattr(vm, 'VdcComputePolicy'):
                         vdc_compute_policy_element = vm.VdcComputePolicy
                     else:
@@ -1864,8 +1866,8 @@ class Org(object):
                     vdc_compute_policy_element.set('href', compute_policy_href)
                     vdc_compute_policy_element.set('id', policy_id)
                     vdc_compute_policy_element.set('type', 'application/json')
-                # api v33 and onwards supports ComputePolicy instead
-                else:
+
+                if api_version >= VM_SIZING_POLICY_MIN_API_VERSION:
                     if hasattr(vm, 'ComputePolicy'):
                         compute_policy_element = vm.ComputePolicy
                     else:
@@ -1912,13 +1914,11 @@ class Org(object):
             supported.
         :raises: EntityNotFoundException: if the compute policy not found
         """
-        api_version = self.client.get_api_version()
-        min_supported_api_version = ApiVersion.VERSION_32.value
-        if float(api_version) < float(min_supported_api_version):
+        api_version = float(self.client.get_api_version())
+        if api_version < VDC_COMPUTE_POLICY_MIN_API_VERSION:
             raise OperationNotSupportedException(
-                "Unsupported API version. Received '"
-                f"{api_version}' but '{min_supported_api_version}' is "
-                "required.")
+                f"Unsupported API version. Received '{api_version}' but "
+                f"'{VDC_COMPUTE_POLICY_MIN_API_VERSION}' is required.")
 
         policy_id = None
         if compute_policy_href:
@@ -1933,24 +1933,21 @@ class Org(object):
         if hasattr(template_resource, 'Children') and \
                 hasattr(template_resource.Children, 'Vm'):
             for vm in template_resource.Children.Vm:
-                # api v32 supports VdcComputePolicy
-                if float(api_version) == float(min_supported_api_version):
-                    if hasattr(vm, 'VdcComputePolicy'):
-                        vm_compute_policy_id = vm.VdcComputePolicy.get('id')
-                        if not policy_id or policy_id == vm_compute_policy_id:
-                            vm.remove(vm.VdcComputePolicy)
-                            template_updation_required = True
-                # api v33 and onwards supports ComputePolicy instead
-                elif hasattr(vm, 'ComputePolicy') and hasattr(vm.ComputePolicy, 'VmSizingPolicy'):  # noqa: E501
+                if hasattr(vm, 'VdcComputePolicy'):
+                    vm_compute_policy_id = vm.VdcComputePolicy.get('id')
+                    if not policy_id or policy_id == vm_compute_policy_id:
+                        vm.remove(vm.VdcComputePolicy)
+                        template_updation_required = True
+                if hasattr(vm, 'ComputePolicy') and hasattr(vm.ComputePolicy, 'VmSizingPolicy'):  # noqa: E501
                     vm_compute_policy_id = \
                         vm.ComputePolicy.VmSizingPolicy.get('id')
                     if not policy_id or policy_id == vm_compute_policy_id:
-                        vm.VdcComputePolicy.remove(
-                            vm.VdcComputePolicy.VmSizingPolicy)
+                        vm.ComputePolicy.remove(
+                            vm.ComputePolicy.VmSizingPolicy)
                         template_updation_required = True
-                        if hasattr(vm.VdcComputePolicy, 'VmSizingPolicyFinal'):
-                            vm.VdcComputePolicy.remove(
-                                vm.VdcComputePolicy.VmSizingPolicyFinal)
+                        if hasattr(vm.ComputePolicy, 'VmSizingPolicyFinal'):  # noqa: E501
+                            vm.ComputePolicy.remove(
+                                vm.ComputePolicy.VmSizingPolicyFinal)
 
         if template_updation_required:
             return self.client.put_resource(

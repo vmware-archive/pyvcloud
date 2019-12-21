@@ -41,6 +41,7 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     VcdTaskException  # NOQA
 
 SIZE_1MB = 1024 * 1024
+SYSTEM_ORG_NAME = 'system'
 
 NSMAP = {
     'ns10':
@@ -107,8 +108,10 @@ class ApiVersion(Enum):
 
 # Important! Values must be listed in ascending order.
 API_CURRENT_VERSIONS = [
-    ApiVersion.VERSION_29.value, ApiVersion.VERSION_30.value,
-    ApiVersion.VERSION_31.value, ApiVersion.VERSION_32.value,
+    ApiVersion.VERSION_29.value,
+    ApiVersion.VERSION_30.value,
+    ApiVersion.VERSION_31.value,
+    ApiVersion.VERSION_32.value,
     ApiVersion.VERSION_33.value
 ]
 
@@ -204,6 +207,7 @@ class RelationType(Enum):
     MIGRATE_VMS = 'migrateVms'
     MODIFY_FORM_FACTOR = 'edgeGateway:modifyFormFactor'
     NEXT_PAGE = 'nextPage'
+    OPENAPI = 'openapi'
     ORG_VDC_NETWORKS = 'orgVdcNetworks'
     POWER_OFF = 'power:powerOff'
     POWER_ON = 'power:powerOn'
@@ -373,6 +377,7 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.guestCustomizationSection+xml'
     HISTORIC_USAGE = \
         'application/vnd.vmware.vcloud.metrics.historicUsageSpec+xml'
+    JSON = 'application/json'
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'
     MEDIA_INSERT_OR_EJECT_PARAMS = \
@@ -480,6 +485,7 @@ class _WellKnownEndpoint(Enum):
     ORG_LIST = (RelationType.DOWN, EntityType.ORG_LIST.value)
     SNAPSHOT_CREATE = (RelationType.SNAPSHOT_CREATE,
                        EntityType.SNAPSHOT_CREATE.value)
+    OPENAPI = (RelationType.OPENAPI, EntityType.JSON)
 
 
 class FenceMode(Enum):
@@ -699,18 +705,21 @@ class Client(object):
     """
 
     _HEADER_ACCEPT_NAME = 'Accept'
+    _HEADER_AUTHORIZATION_NAME = 'Authorization'
     _HEADER_CONNECTION_NAME = 'Connection'
     _HEADER_CONTENT_LENGTH_NAME = 'Content-Length'
     _HEADER_CONTENT_RANGE_NAME = 'Content-Range'
     _HEADER_CONTENT_TYPE_NAME = 'Content-Type'
     _HEADER_REQUEST_ID_NAME = 'X-VMWARE-VCLOUD-REQUEST-ID'
     _HEADER_X_VCLOUD_AUTH_NAME = 'x-vcloud-authorization'
+    _HEADER_X_VMWARE_CLOUD_ACCESS_TOKEN_NAME = 'x-vmware-vcloud-access-token'
 
     _HEADER_CONNECTION_VALUE_CLOSE = 'close'
 
     _HEADERS_TO_REDACT = [
-        'Authorization', 'x-vcloud-authorization',
-        'X-VMWARE-VCLOUD-ACCESS-TOKEN'
+        _HEADER_AUTHORIZATION_NAME,
+        _HEADER_X_VCLOUD_AUTH_NAME,
+        _HEADER_X_VMWARE_CLOUD_ACCESS_TOKEN_NAME
     ]
 
     _UPLOAD_FRAGMENT_MAX_RETRIES = 5
@@ -723,17 +732,20 @@ class Client(object):
                  log_requests=False,
                  log_headers=False,
                  log_bodies=False):
-        self._uri = uri
-        if len(self._uri) > 0:
-            if self._uri[-1] == '/':
+        self._uri = self._cloudapi_uri = uri
+        if len(uri) > 0:
+            if uri[-1] == '/':
                 self._uri += 'api'
+                self._cloudapi_uri +=  'cloudapi/1.0.0'
             else:
                 self._uri += '/api'
-            if self._uri.startswith('https://') or self._uri.startswith(
-                    'http://'):
-                pass
-            else:
+                self._cloudapi_uri +=  '/cloudapi/1.0.0'
+
+            if not self._uri.startswith('https://') and not self._uri.startswith('http://'):  # noqa: E501
                 self._uri = 'https://' + self._uri
+
+            if not self._cloudapi_uri.startswith('https://') and not self._cloudapi_uri.startswith('http://'):  # noqa: E501
+                self._cloudapi_uri = 'https://' + self._cloudapi_uri
 
         # If user provides API version we accept it, otherwise use default
         # and set negotiation flag.
@@ -746,12 +758,13 @@ class Client(object):
 
         self._session_endpoints = None
         self._session = None
+        self._vcloud_session = None
         self._query_list_map = None
         self._task_monitor = None
         self._verify_ssl_certs = verify_ssl_certs
 
         self._logger = None
-        self._get_defaut_logger(file_name=log_file)
+        self._get_default_logger(file_name=log_file)
         self._logger.setLevel(logging.DEBUG)
         # This makes sure that we don't append a new handler to the logger
         # every time we create a new client.
@@ -780,7 +793,7 @@ class Client(object):
 
         self._is_sysadmin = False
 
-    def _get_defaut_logger(self, file_name="vcd_pysdk.log",
+    def _get_default_logger(self, file_name="vcd_pysdk.log",
                            log_level=logging.DEBUG,
                            max_bytes=30000000, backup_count=30):
         """This will set the default logger with Rotating FileHandler.
@@ -827,7 +840,7 @@ class Client(object):
 
         :rtype: str
         """
-        return response.headers[self._HEADER_REQUEST_ID_NAME]
+        return response.headers.get(self._HEADER_REQUEST_ID_NAME)
 
     def is_connection_closed(self, response):
         """Determine from server response if the connection has been closed.
@@ -947,11 +960,25 @@ class Client(object):
         self._logger.debug('API version in use: %s' % self._api_version)
         new_session = requests.Session()
         try:
+            # Use /cloudapi/1.0.0/sessions for Xendi and beyond i.e. api v33+
+            # otherwise use /api/sessions
+            if self._api_version >= ApiVersion.VERSION_33:
+                _used_cloudapi_login_endpoint = True
+                accept_type = 'application/json'
+                uri = self._cloudapi_uri + '/sessions',
+                if creds.org.lower() == SYSTEM_ORG_NAME.lower():
+                    uri += '/provider'
+            else:
+                _used_cloudapi_login_endpoint = False
+                accept_type = 'application/*+xml'
+                uri = self._uri + '/sessions',
+
             response = self._do_request_prim(
                 'POST',
-                self._uri + '/sessions',
+                uri,
                 new_session,
-                auth=('%s@%s' % (creds.user, creds.org), creds.password))
+                accept_type=accept_type,
+                auth=(f'{creds.user}@{creds.org}', creds.password))
 
             sc = response.status_code
             if sc != 200:
@@ -966,12 +993,18 @@ class Client(object):
                 else:
                     raise VcdException('Login failed.')
 
-            session = objectify.fromstring(response.content)
-            self._session_endpoints = _get_session_endpoints(session)
-
             self._session = new_session
-            self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
-                response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
+            if _used_cloudapi_login_endpoint:
+                access_token = response.headers[self._HEADER_X_VMWARE_CLOUD_ACCESS_TOKEN_NAME]  # noqa: E501
+                self._session.headers[self._HEADER_AUTHORIZATION_NAME] = \
+                    'Bearer ' + access_token
+                # Get the XML vcd session object by another GET call to /api/session
+            else:
+                self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
+                    response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
+                session = objectify.fromstring(response.content)
+
+            self._session_endpoints = _get_session_endpoints(session)
             self._is_sysadmin = self._is_sys_admin(session.get('org'))
         except Exception:
             new_session.close()
@@ -1038,9 +1071,7 @@ class Client(object):
             return result
 
     def _is_sys_admin(self, logged_in_org):
-        if logged_in_org.lower() == 'system':
-            return True
-        return False
+        return logged_in_org.lower() == SYSTEM_ORG_NAME.lower():
 
     def is_sysadmin(self):
         return self._is_sysadmin

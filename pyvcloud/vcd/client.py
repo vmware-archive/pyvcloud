@@ -998,14 +998,18 @@ class Client(object):
                 access_token = response.headers[self._HEADER_X_VMWARE_CLOUD_ACCESS_TOKEN_NAME]  # noqa: E501
                 self._session.headers[self._HEADER_AUTHORIZATION_NAME] = \
                     'Bearer ' + access_token
+
                 # Get the XML vcd session object by another GET call to /api/session
+                uri = self._uri + '/session'
+                vcloud_session = self._do_request('GET', uri)
             else:
                 self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
                     response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
-                session = objectify.fromstring(response.content)
+                vcloud_session = objectify.fromstring(response.content)
 
-            self._session_endpoints = _get_session_endpoints(session)
-            self._is_sysadmin = self._is_sys_admin(session.get('org'))
+            self._vcloud_session = vcloud_session
+            self._session_endpoints = _get_session_endpoints(vcloud_session)
+            self._is_sysadmin = self._is_sys_admin(vcloud_session.get('org'))
         except Exception:
             new_session.close()
             raise
@@ -1202,9 +1206,10 @@ class Client(object):
         headers = {}
         if media_type is not None:
             headers[self._HEADER_CONTENT_TYPE_NAME] = media_type
-        headers[self._HEADER_ACCEPT_NAME] = '%s;version=%s' % \
-            ('application/*+xml' if accept_type is None else accept_type,
-             self._api_version)
+        headers[self._HEADER_ACCEPT_NAME] = accept_type
+        if not accept_type:
+            headers[self._HEADER_ACCEPT_NAME] = \
+                f"application/*+xml;version={self._api_version}"
 
         if contents is None:
             data = None

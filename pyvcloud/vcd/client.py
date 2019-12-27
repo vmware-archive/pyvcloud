@@ -904,9 +904,9 @@ class Client(object):
             active_versions = []
             for version in versions.VersionInfo:
                 # Versions must be explicitly assigned as text values using the
-                # .text property. Otherwise lxml will return "corrected" numbers
-                # that drop non-significant digits. For example, 5.10 becomes
-                # 5.1.  This transformation corrupts the version.
+                # .text property. Otherwise lxml will return "corrected"
+                # numbers that drop non-significant digits. For example, 5.10
+                # becomes 5.1.  This transformation corrupts the version.
                 if not hasattr(version, 'deprecated') or \
                    version.get('deprecated') == 'false':
                     active_versions.append(str(version.Version.text))
@@ -1031,7 +1031,8 @@ class Client(object):
                 response.headers.get(self._HEADER_X_VCLOUD_AUTH_NAME)
             self._vcloud_session = objectify.fromstring(response.content)
             self._update_is_sysadmin()
-            self._session_endpoints = _get_session_endpoints(self._vcloud_session)
+            self._session_endpoints = \
+                _get_session_endpoints(self._vcloud_session)
 
         except Exception:
             new_session.close()
@@ -1110,7 +1111,7 @@ class Client(object):
             params=params)
 
         sc = response.status_code
-        if sc in (requests.codes.ok, 
+        if sc in (requests.codes.ok,
                   requests.codes.created,
                   requests.codes.accepted,
                   requests.codes.no_content):
@@ -1179,7 +1180,7 @@ class Client(object):
                                                      response.request.url))
 
         if self._log_headers:
-            self._logger.debug('Request headers: %s' % self._redact_headers(response.request.headers))
+            self._logger.debug(f"Request headers: {self._redact_headers(response.request.headers)}")  # noqa: E501
 
         if self._log_bodies and request_body is not None:
             if isinstance(request_body, str):

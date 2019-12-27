@@ -970,7 +970,7 @@ class Client(object):
                 uri,
                 new_session,
                 accept_type=accept_type,
-                auth=(f'{creds.user}@{creds.org}', creds.password))
+                auth=(f"{creds.user}@{creds.org}", creds.password))
 
             sc = response.status_code
             if sc != requests.codes.ok:
@@ -996,7 +996,7 @@ class Client(object):
                 self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
                     self._vcloud_auth_token
                 self._vcloud_session = objectify.fromstring(response.content)
-                self._is_sysadmin = self._is_sys_admin()
+                self._update_is_sysadmin()
                 self._session_endpoints = \
                     _get_session_endpoints(self._vcloud_session)
 
@@ -1009,28 +1009,33 @@ class Client(object):
         self._logger.debug('API version in use: %s' % self._api_version)
 
         new_session = requests.Session()
-        if is_jwt_token:
-            self._vcloud_access_token = token
-            new_session.headers[self._HEADER_AUTHORIZATION_NAME] = \
-                'Bearer ' + self._vcloud_access_token
-        else:
-            new_session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = token
-        response = self._do_request_prim(
-            'GET',
-            self._api_base_uri + "/session",
-            new_session)
-        sc = response.status_code
-        if sc != requests.codes.ok:
-            self._response_code_to_exception(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response))
+        try:
+            if is_jwt_token:
+                self._vcloud_access_token = token
+                new_session.headers[self._HEADER_AUTHORIZATION_NAME] = \
+                    'Bearer ' + self._vcloud_access_token
+            else:
+                new_session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = token
+            response = self._do_request_prim(
+                'GET',
+                self._api_base_uri + "/session",
+                new_session)
+            sc = response.status_code
+            if sc != requests.codes.ok:
+                self._response_code_to_exception(
+                    sc, self._get_response_request_id(response),
+                    _objectify_response(response))
 
-        self._session = new_session
-        self._vcloud_auth_token = \
-            response.headers.get(self._HEADER_X_VCLOUD_AUTH_NAME)
-        self._vcloud_session = objectify.fromstring(response.content)
-        self._is_sysadmin = self._is_sys_admin()
-        self._session_endpoints = _get_session_endpoints(self._vcloud_session)
+            self._session = new_session
+            self._vcloud_auth_token = \
+                response.headers.get(self._HEADER_X_VCLOUD_AUTH_NAME)
+            self._vcloud_session = objectify.fromstring(response.content)
+            self._update_is_sysadmin()
+            self._session_endpoints = _get_session_endpoints(self._vcloud_session)
+
+        except Exception:
+            new_session.close()
+            raise
 
         return self._vcloud_session
 
@@ -1050,12 +1055,12 @@ class Client(object):
             self._vcloud_auth_token = None
             return result
 
-    def _is_sys_admin(self):
+    def _update_is_sysadmin(self):
+        self._is_sysadmin = False
         if self._vcloud_session is not None:
             logged_in_org = self._vcloud_session.get('org')
             if logged_in_org:
-                return logged_in_org.lower() == SYSTEM_ORG_NAME
-        return False
+                self._is_sysadmin = logged_in_org.lower() == SYSTEM_ORG_NAME
 
     def is_sysadmin(self):
         return self._is_sysadmin
@@ -1105,7 +1110,10 @@ class Client(object):
             params=params)
 
         sc = response.status_code
-        if 200 <= sc <= 299:
+        if sc in (requests.codes.ok, 
+                  requests.codes.created,
+                  requests.codes.accepted,
+                  requests.codes.no_content):
             return _objectify_response(response, objectify_results)
 
         self._response_code_to_exception(
@@ -1114,39 +1122,39 @@ class Client(object):
 
     @staticmethod
     def _response_code_to_exception(sc, request_id, objectify_response):
-        if sc == 400:
+        if sc == requests.codes.bad_request:
             raise BadRequestException(sc, request_id, objectify_response)
 
-        if sc == 401:
+        if sc == requests.codes.unauthorized:
             raise UnauthorizedException(sc, request_id, objectify_response)
 
-        if sc == 403:
+        if sc == requests.codes.forbidden:
             raise AccessForbiddenException(sc, request_id, objectify_response)
 
-        if sc == 404:
+        if sc == requests.codes.not_found:
             raise NotFoundException(sc, request_id, objectify_response)
 
-        if sc == 405:
+        if sc == requests.codes.method_not_allowed:
             raise MethodNotAllowedException(sc, request_id, objectify_response)
 
-        if sc == 406:
+        if sc == requests.codes.not_acceptable:
             raise NotAcceptableException(sc, request_id, objectify_response)
 
-        if sc == 408:
+        if sc == requests.codes.request_timeout:
             raise RequestTimeoutException(sc, request_id, objectify_response)
 
-        if sc == 409:
+        if sc == requests.codes.conflict:
             raise ConflictException(sc, request_id, objectify_response)
 
-        if sc == 415:
+        if sc == requests.codes.unsupported_media_type:
             raise UnsupportedMediaTypeException(sc, request_id,
                                                 objectify_response)
 
-        if sc == 416:
+        if sc == requests.codes.range_not_satisfiable:
             raise InvalidContentLengthException(sc, request_id,
                                                 objectify_response)
 
-        if sc == 500:
+        if sc == requests.codes.internal_server_error:
             raise InternalServerException(sc, request_id, objectify_response)
 
         raise UnknownApiException(sc, request_id, objectify_response)
@@ -1503,7 +1511,7 @@ class Client(object):
         """
         resource_type = ResourceType.USER.value
         org_filter = None
-        if self.is_sysadmin():
+        if self._is_sysadmin:
             resource_type = ResourceType.ADMIN_USER.value
             org_filter = 'org==%s' % urllib.parse.quote_plus(org_href)
         query = self.get_typed_query(

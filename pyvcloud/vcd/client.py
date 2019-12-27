@@ -963,7 +963,7 @@ class Client(object):
                     uri += '/provider'
             else:
                 accept_type = 'application/*+xml'
-                uri = self._api_base_uri + '/sessions',
+                uri = self._api_base_uri + '/sessions'
 
             response = self._do_request_prim(
                 'POST',
@@ -1051,7 +1051,7 @@ class Client(object):
             return result
 
     def _is_sys_admin(self):
-        if self._vcloud_session:
+        if self._vcloud_session is not None:
             logged_in_org = self._vcloud_session.get('org')
             if logged_in_org:
                 return logged_in_org.lower() == SYSTEM_ORG_NAME
@@ -1171,8 +1171,7 @@ class Client(object):
                                                      response.request.url))
 
         if self._log_headers:
-            self._logger.debug('Request headers: %s' % self._redact_headers(
-                response.request.headers))
+            self._logger.debug('Request headers: %s' % self._redact_headers(response.request.headers))
 
         if self._log_bodies and request_body is not None:
             if isinstance(request_body, str):

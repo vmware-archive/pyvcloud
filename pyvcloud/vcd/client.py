@@ -987,8 +987,8 @@ class Client(object):
 
             if use_cloudapi_login_endpoint:
                 access_token = response.headers[self._HEADER_X_VMWARE_CLOUD_ACCESS_TOKEN_NAME]  # noqa: E501
-                 # A new session will be created in rehydrate and stored in
-                 # this object
+                # A new session will be created in rehydrate and stored in
+                # this object
                 new_session.close()
                 self.rehydrate_from_token(
                     token=access_token, is_jwt_token=True)

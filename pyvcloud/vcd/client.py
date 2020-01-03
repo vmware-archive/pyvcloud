@@ -1110,7 +1110,7 @@ class Client(object):
         """
         return self._api_version
 
-    def get_vlcoud_session(self):
+    def get_vcloud_session(self):
         """Return the current vCD session.
 
         :return: vCD session of the current user.

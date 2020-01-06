@@ -41,6 +41,7 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     VcdTaskException  # NOQA
 
 SIZE_1MB = 1024 * 1024
+SYSTEM_ORG_NAME = 'system'
 
 NSMAP = {
     'ns10':
@@ -107,8 +108,10 @@ class ApiVersion(Enum):
 
 # Important! Values must be listed in ascending order.
 API_CURRENT_VERSIONS = [
-    ApiVersion.VERSION_29.value, ApiVersion.VERSION_30.value,
-    ApiVersion.VERSION_31.value, ApiVersion.VERSION_32.value,
+    ApiVersion.VERSION_29.value,
+    ApiVersion.VERSION_30.value,
+    ApiVersion.VERSION_31.value,
+    ApiVersion.VERSION_32.value,
     ApiVersion.VERSION_33.value
 ]
 
@@ -204,6 +207,7 @@ class RelationType(Enum):
     MIGRATE_VMS = 'migrateVms'
     MODIFY_FORM_FACTOR = 'edgeGateway:modifyFormFactor'
     NEXT_PAGE = 'nextPage'
+    OPENAPI = 'openapi'
     ORG_VDC_NETWORKS = 'orgVdcNetworks'
     POWER_OFF = 'power:powerOff'
     POWER_ON = 'power:powerOn'
@@ -373,6 +377,7 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.guestCustomizationSection+xml'
     HISTORIC_USAGE = \
         'application/vnd.vmware.vcloud.metrics.historicUsageSpec+xml'
+    JSON = 'application/json'
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'
     MEDIA_INSERT_OR_EJECT_PARAMS = \
@@ -480,6 +485,7 @@ class _WellKnownEndpoint(Enum):
     ORG_LIST = (RelationType.DOWN, EntityType.ORG_LIST.value)
     SNAPSHOT_CREATE = (RelationType.SNAPSHOT_CREATE,
                        EntityType.SNAPSHOT_CREATE.value)
+    OPENAPI = (RelationType.OPENAPI, EntityType.JSON)
 
 
 class FenceMode(Enum):
@@ -526,52 +532,6 @@ class MetadataValueType(Enum):
     NUMBER = 'MetadataNumberValue'
     BOOLEAN = 'MetadataBooleanValue'
     DATA_TIME = 'MetadataDateTimeValue'
-
-
-def _get_session_endpoints(session):
-    """Return a map of well known endpoints.
-
-    Build and return a map keyed by well-known endpoints, yielding hrefs,
-    from a <Session> XML element.
-
-    :param lxml.objectify.ObjectifiedElement session: session object.
-
-    :return: session endpoint hrefs.
-
-    :rtype: dict
-    """
-    smap = {}
-    for endpoint in _WellKnownEndpoint:
-        (rel, media_type) = endpoint.value
-        link = find_link(session, rel, media_type, False)
-        if link is not None:
-            smap[endpoint] = link.href
-    return smap
-
-
-def _response_has_content(response):
-    return response.content is not None and len(response.content) > 0
-
-
-def _objectify_response(response, as_object=True):
-    """Convert XML response content to an lxml object.
-
-    :param str response: an XML response as a string.
-    :param boolean as_object: If True convert to an
-        lxml.objectify.ObjectifiedElement where XML properties look like
-        python object attributes.
-
-    :return: lxml.objectify.ObjectifiedElement or xml.etree.ElementTree object.
-
-    :rtype: lxml.objectify.ObjectifiedElement
-    """
-    if _response_has_content(response):
-        if as_object:
-            return objectify.fromstring(response.content)
-        else:
-            return etree.fromstring(response.content)
-    else:
-        return None
 
 
 class TaskStatus(Enum):
@@ -676,6 +636,52 @@ class _TaskMonitor(object):
         return self._get_task_status(task.get('href')).get('status').lower()
 
 
+def _get_session_endpoints(session):
+    """Return a map of well known endpoints.
+
+    Build and return a map keyed by well-known endpoints, yielding hrefs,
+    from a <Session> XML element.
+
+    :param lxml.objectify.ObjectifiedElement session: session object.
+
+    :return: session endpoint hrefs.
+
+    :rtype: dict
+    """
+    smap = {}
+    for endpoint in _WellKnownEndpoint:
+        (rel, media_type) = endpoint.value
+        link = find_link(session, rel, media_type, False)
+        if link is not None:
+            smap[endpoint] = link.href
+    return smap
+
+
+def _response_has_content(response):
+    return response.content is not None and len(response.content) > 0
+
+
+def _objectify_response(response, as_object=True):
+    """Convert XML response content to an lxml object.
+
+    :param str response: an XML response as a string.
+    :param boolean as_object: If True convert to an
+        lxml.objectify.ObjectifiedElement where XML properties look like
+        python object attributes.
+
+    :return: lxml.objectify.ObjectifiedElement or xml.etree.ElementTree object.
+
+    :rtype: lxml.objectify.ObjectifiedElement
+    """
+    if _response_has_content(response):
+        if as_object:
+            return objectify.fromstring(response.content)
+        else:
+            return etree.fromstring(response.content)
+    else:
+        return None
+
+
 class Client(object):
     """A low-level interface to the vCloud Director REST API.
 
@@ -699,21 +705,39 @@ class Client(object):
     """
 
     _HEADER_ACCEPT_NAME = 'Accept'
+    _HEADER_AUTHORIZATION_NAME = 'Authorization'
     _HEADER_CONNECTION_NAME = 'Connection'
     _HEADER_CONTENT_LENGTH_NAME = 'Content-Length'
     _HEADER_CONTENT_RANGE_NAME = 'Content-Range'
     _HEADER_CONTENT_TYPE_NAME = 'Content-Type'
     _HEADER_REQUEST_ID_NAME = 'X-VMWARE-VCLOUD-REQUEST-ID'
     _HEADER_X_VCLOUD_AUTH_NAME = 'x-vcloud-authorization'
+    _HEADER_X_VMWARE_CLOUD_ACCESS_TOKEN_NAME = 'x-vmware-vcloud-access-token'
 
     _HEADER_CONNECTION_VALUE_CLOSE = 'close'
 
     _HEADERS_TO_REDACT = [
-        'Authorization', 'x-vcloud-authorization',
-        'X-VMWARE-VCLOUD-ACCESS-TOKEN'
+        _HEADER_AUTHORIZATION_NAME,
+        _HEADER_X_VCLOUD_AUTH_NAME,
+        _HEADER_X_VMWARE_CLOUD_ACCESS_TOKEN_NAME
     ]
 
     _UPLOAD_FRAGMENT_MAX_RETRIES = 5
+
+    def _prep_base_uri(self, uri, is_cloudapi=False):
+        result = uri
+        if len(result) > 0:
+            if result[-1] != '/':
+                result += '/'
+
+            if is_cloudapi:
+                result += 'cloudapi'
+            else:
+                result += 'api'
+
+            if not result.startswith('https://') and not result.startswith('http://'):  # noqa: E501
+                result = 'https://' + result
+        return result
 
     def __init__(self,
                  uri,
@@ -723,38 +747,12 @@ class Client(object):
                  log_requests=False,
                  log_headers=False,
                  log_bodies=False):
-        self._uri = uri
-        if len(self._uri) > 0:
-            if self._uri[-1] == '/':
-                self._uri += 'api'
-            else:
-                self._uri += '/api'
-            if self._uri.startswith('https://') or self._uri.startswith(
-                    'http://'):
-                pass
-            else:
-                self._uri = 'https://' + self._uri
-
-        # If user provides API version we accept it, otherwise use default
-        # and set negotiation flag.
-        if api_version is None:
-            self._api_version = API_CURRENT_VERSIONS[-1]
-            self._negotiate_api_version = True
-        else:
-            self._api_version = api_version
-            self._negotiate_api_version = False
-
-        self._session_endpoints = None
-        self._session = None
-        self._query_list_map = None
-        self._task_monitor = None
-        self._verify_ssl_certs = verify_ssl_certs
-
         self._logger = None
-        self._get_defaut_logger(file_name=log_file)
+        self._get_default_logger(file_name=log_file)
         self._logger.setLevel(logging.DEBUG)
         # This makes sure that we don't append a new handler to the logger
-        # every time we create a new client.
+        # every time we create a new client. Since all the client share the
+        # same underlying logger instance.
         if not self._logger.handlers:
             if log_file is not None:
                 # make sure the path to the log file is valid, create missing
@@ -775,14 +773,27 @@ class Client(object):
         self._log_requests = log_requests
         self._log_headers = log_headers
         self._log_bodies = log_bodies
+        self._verify_ssl_certs = verify_ssl_certs
 
         self.fsencoding = sys.getfilesystemencoding()
 
+        self._api_base_uri = self._prep_base_uri(uri)
+        self._cloudapi_base_uri = self._prep_base_uri(uri, True)
+        self._api_version = api_version
+
+        self._session_endpoints = None
+        self._session = None
+        self._vcloud_session = None
+        self._vcloud_auth_token = None
+        self._vcloud_access_token = None
+        self._query_list_map = None
+        self._task_monitor = None
+
         self._is_sysadmin = False
 
-    def _get_defaut_logger(self, file_name="vcd_pysdk.log",
-                           log_level=logging.DEBUG,
-                           max_bytes=30000000, backup_count=30):
+    def _get_default_logger(self, file_name="vcd_pysdk.log",
+                            log_level=logging.DEBUG,
+                            max_bytes=30000000, backup_count=30):
         """This will set the default logger with Rotating FileHandler.
 
         Open the specified file and use it as the stream for logging.
@@ -818,6 +829,29 @@ class Client(object):
             default_log_handler.setLevel(log_level)
             self._logger.addHandler(default_log_handler)
 
+    def _negotiate_api_version(self):
+        # If user provided API version we accept it, otherwise negotiate with
+        # vCD server
+        if not self._api_version:
+            self._logger.debug("Negotiating API version")
+            active_versions = self.get_supported_versions_list()
+            self._logger.debug('API versions supported: %s' % active_versions)
+            # Versions are strings sorted in ascending order, so we can work
+            # backwards to find a match.
+            for version in reversed(active_versions):
+                if version in API_CURRENT_VERSIONS:
+                    self._api_version = version
+                    self._logger.debug(
+                        f"API version negotiated to: {self._api_version}")
+                    break
+
+            # Still api version is unset? That means we didn't find a
+            # suitable version.
+            if not self._api_version:
+                raise VcdException(
+                    "Unable to find a supported API version in available "
+                    f"server versions: {active_versions}")
+
     def _get_response_request_id(self, response):
         """Extract request id of a request to vCD from the response.
 
@@ -827,7 +861,7 @@ class Client(object):
 
         :rtype: str
         """
-        return response.headers[self._HEADER_REQUEST_ID_NAME]
+        return response.headers.get(self._HEADER_REQUEST_ID_NAME)
 
     def is_connection_closed(self, response):
         """Determine from server response if the connection has been closed.
@@ -850,15 +884,6 @@ class Client(object):
 
         return False
 
-    def get_api_version(self):
-        """Return vCD API version client is using.
-
-        :return: api version of the client.
-
-        :rtype: str
-        """
-        return self._api_version
-
     def get_supported_versions_list(self):
         """Return non-deprecated server API versions as a list.
 
@@ -866,35 +891,27 @@ class Client(object):
 
         :rtype: list
         """
-        versions = self.get_supported_versions()
-        active_versions = []
-        for version in versions.VersionInfo:
-            # Versions must be explicitly assigned as text values using the
-            # .text property. Otherwise lxml will return "corrected" numbers
-            # that drop non-significant digits. For example, 5.10 becomes
-            # 5.1.  This transformation corrupts the version.
-            if not hasattr(version, 'deprecated') or \
-               version.get('deprecated') == 'false':
-                active_versions.append(str(version.Version.text))
-        active_versions.sort(key=StrictVersion)
-        return active_versions
-
-    def get_supported_versions(self):
-        """Return non-deprecated API versions on vCD server.
-
-        :return: an object containing SupportedVersions XML element which
-            represents versions supported by vCD.
-
-        :rtype: lxml.objectify.ObjectifiedElement
-        """
         with requests.Session() as new_session:
             # Use with block to avoid leaking socket connections.
             response = self._do_request_prim(
-                'GET', self._uri + '/versions', new_session, accept_type='')
-            sc = response.status_code
-            if sc != 200:
+                'GET',
+                self._api_base_uri + '/versions',
+                new_session)
+            if response.status_code != requests.codes.ok:
                 raise VcdException('Unable to get supported API versions.')
-            return objectify.fromstring(response.content)
+
+            versions = objectify.fromstring(response.content)
+            active_versions = []
+            for version in versions.VersionInfo:
+                # Versions must be explicitly assigned as text values using the
+                # .text property. Otherwise lxml will return "corrected"
+                # numbers that drop non-significant digits. For example, 5.10
+                # becomes 5.1.  This transformation corrupts the version.
+                if not hasattr(version, 'deprecated') or \
+                   version.get('deprecated') == 'false':
+                    active_versions.append(str(version.Version.text))
+            active_versions.sort(key=StrictVersion)
+            return active_versions
 
     def set_highest_supported_version(self):
         """Set the client API version to the highest server API version.
@@ -910,7 +927,6 @@ class Client(object):
         """
         active_versions = self.get_supported_versions_list()
         self._api_version = active_versions[-1]
-        self._negotiate_api_version = False
         self._logger.debug('API versions supported: %s' % active_versions)
         self._logger.debug('API version set to: %s' % self._api_version)
         return self._api_version
@@ -929,32 +945,35 @@ class Client(object):
         :raises: VcdException: if automatic API negotiation fails to arrive
             at a supported client version
         """
-        # If we need to negotiate the server API level find the highest
-        # server version that pyvcloud supports.
-        if self._negotiate_api_version:
-            active_versions = self.get_supported_versions_list()
-            self.get_latest_api_version()
-
-            # Still need to negotiate?  That means we didn't find a
-            # suitable version.
-            if self._negotiate_api_version:
-                raise VcdException(
-                    "Unable to find a supported API version in available \
-                        server versions: {0}".format(active_versions))
-
-        # We can now proceed to login. Ensure we close session if
-        # any exception is thrown to avoid leaking a socket connection.
+        self._negotiate_api_version()
         self._logger.debug('API version in use: %s' % self._api_version)
+
+        # Ensure we close session if any exception is thrown to avoid leaking
+        # a socket connection.
         new_session = requests.Session()
         try:
+            # Use /cloudapi/1.0.0/sessions for Xendi and beyond i.e. api v33+
+            # otherwise use /api/sessions
+            use_cloudapi_login_endpoint = \
+                float(self._api_version) >= float(ApiVersion.VERSION_33.value)
+            if use_cloudapi_login_endpoint:
+                accept_type = 'application/json'
+                uri = self._cloudapi_base_uri + '/1.0.0/sessions'
+                if creds.org.lower() == SYSTEM_ORG_NAME:
+                    uri += '/provider'
+            else:
+                accept_type = 'application/*+xml'
+                uri = self._api_base_uri + '/sessions'
+
             response = self._do_request_prim(
                 'POST',
-                self._uri + '/sessions',
+                uri,
                 new_session,
-                auth=('%s@%s' % (creds.user, creds.org), creds.password))
+                accept_type=accept_type,
+                auth=(f"{creds.user}@{creds.org}", creds.password))
 
             sc = response.status_code
-            if sc != 200:
+            if sc != requests.codes.ok:
                 r = None
                 try:
                     r = _objectify_response(response)
@@ -966,63 +985,77 @@ class Client(object):
                 else:
                     raise VcdException('Login failed.')
 
-            session = objectify.fromstring(response.content)
-            self._session_endpoints = _get_session_endpoints(session)
+            if use_cloudapi_login_endpoint:
+                access_token = response.headers[self._HEADER_X_VMWARE_CLOUD_ACCESS_TOKEN_NAME]  # noqa: E501
+                # A new session will be created in rehydrate and stored in
+                # this object
+                new_session.close()
+                self.rehydrate_from_token(
+                    token=access_token, is_jwt_token=True)
+            else:
+                self._session = new_session
+                self._vcloud_auth_token = \
+                    response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
+                self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
+                    self._vcloud_auth_token
+                self._vcloud_session = objectify.fromstring(response.content)
+                self._update_is_sysadmin()
+                self._session_endpoints = \
+                    _get_session_endpoints(self._vcloud_session)
 
-            self._session = new_session
-            self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
-                response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
-            self._is_sysadmin = self._is_sys_admin(session.get('org'))
         except Exception:
             new_session.close()
             raise
 
-    def get_latest_api_version(self):
-        """Get latest VCD api version supported by pysdk."""
-        self._logger.debug("Negotiating API version")
-        active_versions = self.get_supported_versions_list()
-        self._logger.debug('API versions supported: %s' % active_versions)
-        # Versions are strings sorted in ascending order, so we can work
-        # backwards to find a match.
-        for version in reversed(active_versions):
-            if version in API_CURRENT_VERSIONS:
-                self._api_version = version
-                self._negotiate_api_version = False
-                self._logger.debug(
-                    'API version negotiated to: %s' % self._api_version)
-                break
-        return self._api_version
+    def rehydrate_from_token(self, token, is_jwt_token=False):
+        """Use authorization token to retrieve vCD session.
 
-    def rehydrate(self, state):
-        self._session = requests.Session()
-        self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
-            state.get('token')
-        self._is_sysadmin = self._is_sys_admin(state.get('org'))
-        wkep = state.get('wkep')
-        self._session_endpoints = {}
-        for endpoint in _WellKnownEndpoint:
-            if endpoint.name in wkep:
-                self._session_endpoints[endpoint] = wkep[endpoint.name]
+        This call will automatically negotiate the server API version if
+        it was not set previously. Note that the method may generate
+        exceptions from the underlying socket connection, which we pass
+        up unchanged to the client.
 
-    def rehydrate_from_token(self, token):
+        :param str token: authorization token (either x-vcloud-authorization
+            token or x-vmware-vcloud-access-token(JWT) generated by vCD).
+        :param bool is_jwt_token:
+
+        :raises: VcdException: if automatic API negotiation fails to arrive
+            at a supported client version
+        """
+        self._negotiate_api_version()
+        self._logger.debug('API version in use: %s' % self._api_version)
+
         new_session = requests.Session()
-        new_session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = token
-        response = self._do_request_prim('GET', self._uri + "/session",
-                                         new_session)
-        sc = response.status_code
-        if sc != 200:
-            self._response_code_to_exception(
-                sc, self._get_response_request_id(response),
-                _objectify_response(response))
+        try:
+            if is_jwt_token:
+                self._vcloud_access_token = token
+                new_session.headers[self._HEADER_AUTHORIZATION_NAME] = \
+                    'Bearer ' + self._vcloud_access_token
+            else:
+                new_session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = token
+            response = self._do_request_prim(
+                'GET',
+                self._api_base_uri + "/session",
+                new_session)
+            sc = response.status_code
+            if sc != requests.codes.ok:
+                self._response_code_to_exception(
+                    sc, self._get_response_request_id(response),
+                    _objectify_response(response))
 
-        session = objectify.fromstring(response.content)
+            self._session = new_session
+            self._vcloud_auth_token = \
+                response.headers.get(self._HEADER_X_VCLOUD_AUTH_NAME)
+            self._vcloud_session = objectify.fromstring(response.content)
+            self._update_is_sysadmin()
+            self._session_endpoints = \
+                _get_session_endpoints(self._vcloud_session)
 
-        self._is_sysadmin = self._is_sys_admin(session.get('org'))
-        self._session_endpoints = _get_session_endpoints(session)
-        self._session = new_session
-        self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
-            response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
-        return session
+        except Exception:
+            new_session.close()
+            raise
+
+        return self._vcloud_session
 
     def logout(self):
         """Destroy the server session and de-allocate local resources.
@@ -1030,23 +1063,79 @@ class Client(object):
         Logout is idempotent. Reusing a client after logout will result
         in undefined behavior.
         """
-        if self._session is not None:
-            uri = self._uri + '/session'
+        if self._session:
+            uri = self._api_base_uri + '/session'
             result = self._do_request('DELETE', uri)
             self._session.close()
             self._session = None
+            self._vcloud_session = None
+            self._vcloud_access_token = None
+            self._vcloud_auth_token = None
             return result
 
-    def _is_sys_admin(self, logged_in_org):
-        if logged_in_org.lower() == 'system':
-            return True
-        return False
+    def _update_is_sysadmin(self):
+        self._is_sysadmin = False
+        if self._vcloud_session is not None:
+            logged_in_org = self._vcloud_session.get('org')
+            if logged_in_org:
+                self._is_sysadmin = logged_in_org.lower() == SYSTEM_ORG_NAME
 
     def is_sysadmin(self):
         return self._is_sysadmin
 
     def get_api_uri(self):
-        return self._uri
+        """Retrieve the uri for vCD api endpoint.
+
+        :return: base api uri
+
+        :rtype: str
+        """
+        return self._api_base_uri
+
+    def get_cloudapi_uri(self):
+        """Retrieve the uri for vCD cloudapi endpoint.
+
+        :return: base cloudapi uri
+
+        :rtype: str
+        """
+        return self._cloudapi_base_uri
+
+    def get_api_version(self):
+        """Return vCD API version client is using.
+
+        :return: api version of the client.
+
+        :rtype: str
+        """
+        return self._api_version
+
+    def get_vcloud_session(self):
+        """Return the current vCD session.
+
+        :return: vCD session of the current user.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        return self._vcloud_session
+
+    def get_xvcloud_authorization_token(self):
+        """Retrieve the xvcloud-authorization token.
+
+        :return: the xvcloud-authorization token.
+
+        :rtype: str
+        """
+        return self._vcloud_auth_token
+
+    def get_access_token(self):
+        """Retrieve the access token.
+
+        :return: the xvmware-vcloud-access token.
+
+        :rtype: str
+        """
+        return self._vcloud_access_token
 
     def get_task_monitor(self):
         if self._task_monitor is None:
@@ -1069,7 +1158,10 @@ class Client(object):
             params=params)
 
         sc = response.status_code
-        if 200 <= sc <= 299:
+        if sc in (requests.codes.ok,
+                  requests.codes.created,
+                  requests.codes.accepted,
+                  requests.codes.no_content):
             return _objectify_response(response, objectify_results)
 
         self._response_code_to_exception(
@@ -1078,39 +1170,39 @@ class Client(object):
 
     @staticmethod
     def _response_code_to_exception(sc, request_id, objectify_response):
-        if sc == 400:
+        if sc == requests.codes.bad_request:
             raise BadRequestException(sc, request_id, objectify_response)
 
-        if sc == 401:
+        if sc == requests.codes.unauthorized:
             raise UnauthorizedException(sc, request_id, objectify_response)
 
-        if sc == 403:
+        if sc == requests.codes.forbidden:
             raise AccessForbiddenException(sc, request_id, objectify_response)
 
-        if sc == 404:
+        if sc == requests.codes.not_found:
             raise NotFoundException(sc, request_id, objectify_response)
 
-        if sc == 405:
+        if sc == requests.codes.method_not_allowed:
             raise MethodNotAllowedException(sc, request_id, objectify_response)
 
-        if sc == 406:
+        if sc == requests.codes.not_acceptable:
             raise NotAcceptableException(sc, request_id, objectify_response)
 
-        if sc == 408:
+        if sc == requests.codes.request_timeout:
             raise RequestTimeoutException(sc, request_id, objectify_response)
 
-        if sc == 409:
+        if sc == requests.codes.conflict:
             raise ConflictException(sc, request_id, objectify_response)
 
-        if sc == 415:
+        if sc == requests.codes.unsupported_media_type:
             raise UnsupportedMediaTypeException(sc, request_id,
                                                 objectify_response)
 
-        if sc == 416:
+        if sc == requests.codes.range_not_satisfiable:
             raise InvalidContentLengthException(sc, request_id,
                                                 objectify_response)
 
-        if sc == 500:
+        if sc == requests.codes.internal_server_error:
             raise InternalServerException(sc, request_id, objectify_response)
 
         raise UnknownApiException(sc, request_id, objectify_response)
@@ -1135,8 +1227,7 @@ class Client(object):
                                                      response.request.url))
 
         if self._log_headers:
-            self._logger.debug('Request headers: %s' % self._redact_headers(
-                response.request.headers))
+            self._logger.debug(f"Request headers: {self._redact_headers(response.request.headers)}")  # noqa: E501
 
         if self._log_bodies and request_body is not None:
             if isinstance(request_body, str):
@@ -1171,9 +1262,14 @@ class Client(object):
         headers = {}
         if media_type is not None:
             headers[self._HEADER_CONTENT_TYPE_NAME] = media_type
-        headers[self._HEADER_ACCEPT_NAME] = '%s;version=%s' % \
-            ('application/*+xml' if accept_type is None else accept_type,
-             self._api_version)
+
+        if not accept_type:
+            accept_header = 'application/*+xml'
+        else:
+            accept_header = accept_type
+        if self._api_version:
+            accept_header += f";version={self._api_version}"
+        headers[self._HEADER_ACCEPT_NAME] = accept_header
 
         if contents is None:
             data = None
@@ -1463,7 +1559,7 @@ class Client(object):
         """
         resource_type = ResourceType.USER.value
         org_filter = None
-        if self.is_sysadmin():
+        if self._is_sysadmin:
             resource_type = ResourceType.ADMIN_USER.value
             org_filter = 'org==%s' % urllib.parse.quote_plus(org_href)
         query = self.get_typed_query(

@@ -96,7 +96,7 @@ class VM(object):
         """
         self.get_resource()
         for record in self.resource.VCloudExtension[
-                '{' + NSMAP['vmext'] + '}VmVimInfo'].iterchildren():
+            '{' + NSMAP['vmext'] + '}VmVimInfo'].iterchildren():
             if hasattr(record, '{' + NSMAP['vmext'] + '}VimObjectType'):
                 if 'VIRTUAL_MACHINE' == record.VimObjectType.text:
                     return record.VimServerRef.get('name')
@@ -113,9 +113,9 @@ class VM(object):
         self.get_resource()
         return {
             'num_cpus':
-            int(self.resource.VmSpecSection.NumCpus.text),
+                int(self.resource.VmSpecSection.NumCpus.text),
             'num_cores_per_socket':
-            int(self.resource.VmSpecSection.NumCoresPerSocket.text)
+                int(self.resource.VmSpecSection.NumCoresPerSocket.text)
         }
 
     def get_memory(self):
@@ -529,7 +529,7 @@ class VM(object):
         self.get_resource()
         if hasattr(self.resource.NetworkConnectionSection,
                    'PrimaryNetworkConnectionIndex'):
-            primary_index = self.resource.NetworkConnectionSection.\
+            primary_index = self.resource.NetworkConnectionSection. \
                 PrimaryNetworkConnectionIndex.text
 
         for nc in self.resource.NetworkConnectionSection.NetworkConnection:
@@ -537,7 +537,7 @@ class VM(object):
             nic[VmNicProperties.INDEX.value] = nc.NetworkConnectionIndex.text
             nic[VmNicProperties.CONNECTED.value] = nc.IsConnected.text
             nic[VmNicProperties.PRIMARY.value] = (
-                primary_index == nc.NetworkConnectionIndex.text)
+                    primary_index == nc.NetworkConnectionIndex.text)
             nic[VmNicProperties.ADAPTER_TYPE.
                 value] = nc.NetworkAdapterType.text
             nic[VmNicProperties.NETWORK.value] = nc.get(
@@ -846,7 +846,7 @@ class VM(object):
                     if hasattr(disk_setting, 'StorageProfile'):
                         storage_profile.append({
                             'name':
-                            disk_setting.StorageProfile.get('name')
+                                disk_setting.StorageProfile.get('name')
                         })
         return storage_profile
 
@@ -994,7 +994,7 @@ class VM(object):
         if hasattr(gc_section, 'Enabled'):
             gc_section.Enabled = E.Enabled(is_enabled)
         uri = self.href + '/guestCustomizationSection/'
-        return self.client.\
+        return self.client. \
             put_resource(uri, gc_section,
                          EntityType.GUEST_CUSTOMIZATION_SECTION.value)
 
@@ -1044,7 +1044,7 @@ class VM(object):
                         'diskElementName': disk[
                             '{' + NSMAP['rasd'] + '}ElementName'],
                         'diskVirtualQuantityInBytes': disk[
-                        '{' + NSMAP['rasd'] + '}VirtualQuantity']
+                            '{' + NSMAP['rasd'] + '}VirtualQuantity']
                     }
                     result.append(vhs_disk_info)
 
@@ -1100,7 +1100,7 @@ class VM(object):
                         '{' + NSMAP['rasd'] + '}Address']
                     vhs_network_info['nCardAddressOnParent'] = \
                         ncard[
-                        '{' + NSMAP['rasd'] + '}AddressOnParent']
+                            '{' + NSMAP['rasd'] + '}AddressOnParent']
                     vhs_network_info['nCardAutomaticAllocation'] = \
                         ncard['{' + NSMAP['rasd'] + '}AutomaticAllocation']
                     vhs_network_info['nCardResourceSubType'] = \
@@ -1518,7 +1518,7 @@ class VM(object):
         uri = self.href + '/vmCapabilities/'
         vm_capabilities_section = self.get_vm_capabilities_section()
         if memory_hot_add_enabled is not None:
-            vm_capabilities_section.MemoryHotAddEnabled = E.\
+            vm_capabilities_section.MemoryHotAddEnabled = E. \
                 MemoryHotAddEnabled(memory_hot_add_enabled)
         if cpu_hot_add_enabled is not None:
             vm_capabilities_section.CpuHotAddEnabled = E.CpuHotAddEnabled(

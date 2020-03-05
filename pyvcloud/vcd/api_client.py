@@ -17,7 +17,8 @@ from vcloud.api.rest.schema_v1_5.task_type import TaskType
 from vcloud.rest.openapi.models.link import Link
 
 from pyvcloud.vcd.api_helper import ApiHelper
-from pyvcloud.vcd.client import Client, ClientException
+from pyvcloud.vcd.client import Client
+from pyvcloud.vcd.client import ClientException
 
 
 class ApiClient(Client):
@@ -36,6 +37,7 @@ class ApiClient(Client):
     :param boolean log_headers: if True log HTTP headers.
     :param boolean log_bodies: if True log HTTP bodies.
     """
+
     API = '/api/'
     CLOUDAPI = '/cloudapi/'
 
@@ -173,7 +175,7 @@ class ApiClient(Client):
                                            response_type=TaskType)
 
     def get_last_status(self):
-        """Returns the status of last API call
+        """Returns the status of last API call.
 
         :return: Status code of last response
 
@@ -182,7 +184,7 @@ class ApiClient(Client):
         return self._status
 
     def get_last_headers(self):
-        """Returns response headers of last API call
+        """Returns response headers of last API call.
 
         :return: response headers
 
@@ -241,8 +243,7 @@ class ApiClient(Client):
                 self.get_resource(task.href))
 
     def wait_for_last_task(self):
-        """Waits for the success of last task.
-        """
+        """Waits for the success of last task."""
         self.wait_for_task(self._task)
 
 
@@ -252,6 +253,7 @@ class QueryParamsBuilder(object):
     It provides setters for all query parameters and a method to get complete
     parameters set in a dictionary format.
     """
+
     IDRECORDS = 'idrecords',
     RECORDS = 'records',
     REFERENCES = 'references'

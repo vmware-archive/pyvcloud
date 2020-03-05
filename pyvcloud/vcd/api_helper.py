@@ -1,17 +1,37 @@
+# VMware vCloud Director Python SDK
+# Copyright (c) 2020 VMware, Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from datetime import date
+from datetime import datetime
+from enum import Enum
+from importlib import import_module
 import inspect
 import json
 import os
 import re
 import tempfile
-from datetime import date, datetime
-from enum import Enum
-from importlib import import_module
 
 from dateutil.parser import parse
-from six import integer_types, iteritems, text_type
+from six import integer_types
+from six import iteritems
+from six import text_type
 from vcloud.api.rest import schema_v1_5
-from vcloud.api.rest.schema import ovf, versioning
-from vcloud.api.rest.schema.ovf import environment, vmware
+from vcloud.api.rest.schema import ovf  # noqa: H306
+from vcloud.api.rest.schema import versioning
+from vcloud.api.rest.schema.ovf import environment  # noqa: H306
+from vcloud.api.rest.schema.ovf import vmware  # noqa: H306
 from vcloud.api.rest.schema_v1_5 import extension
 from vcloud.api.rest.schema_v1_5.query_result_record_type import \
     QueryResultRecordType
@@ -22,6 +42,13 @@ from pyvcloud.vcd.client import ClientException
 
 
 class ApiHelper(object):
+    """Helper class to serialize and deserialize model objects.
+
+    Model classes are in a thirt party library, vcd-api-schemas-type. REST API
+    model classes are under vcloud.api.rest.* module. CloudAPI model classes
+    are under vcloud.rest.openapi.models module. Both modules are scanned to
+    find the right class for a given response type.
+    """
 
     PRIMITIVE_TYPES = (float, bool, bytes, text_type) + integer_types
     NATIVE_TYPES_MAPPING = {
@@ -36,9 +63,7 @@ class ApiHelper(object):
     }
 
     def __init__(self):
-        """
-        Constructor of the class.
-        """
+        """Constructor of the class."""
         # Load all cloudapi model classes in models
         for file in os.listdir(os.path.dirname(session.__file__)):
             mod_name = file[:-3]
@@ -51,8 +76,7 @@ class ApiHelper(object):
                     setattr(models, name, obj)
 
     def sanitize_for_serialization(self, obj):
-        """
-        Builds a JSON POST object.
+        """Builds a JSON POST object.
 
         If obj is None, return None.
         If obj is str, int, long, float, bool, return directly.
@@ -107,8 +131,7 @@ class ApiHelper(object):
         }
 
     def deserialize(self, response, response_type):
-        """
-        Deserializes response into an object.
+        """Deserializes response into an object.
 
         :param response: Response object to be deserialized.
         :param response_type: class literal for
@@ -130,8 +153,7 @@ class ApiHelper(object):
         return self.__deserialize(data, response_type)
 
     def __deserialize(self, data, klass):
-        """
-        Deserializes dict, list, str into an object.
+        """Deserializes dict, list, str into an object.
 
         :param data: dict, list or str.
         :param klass: class literal, or string of class name.
@@ -186,14 +208,14 @@ class ApiHelper(object):
             return self.__deserialize_model(data, klass)
 
     def __deserialize_file(self, response):
-        """
-        Saves response body into a file in a temporary folder,
-        using the filename from the `Content-Disposition` header if provided.
+        """Saves response body into a file.
+
+        Saves response in a temporary folder, using the filename from the
+        `Content-Disposition` header if provided.
 
         :param response:  RESTResponse.
         :return: file path.
         """
-
         fd, path = tempfile.mkstemp()
         os.close(fd)
         os.remove(path)
@@ -210,8 +232,7 @@ class ApiHelper(object):
         return path
 
     def __deserialize_primitive(self, data, klass):
-        """
-        Deserializes string to primitive type.
+        """Deserializes string to primitive type.
 
         :param data: str.
         :param klass: class literal.
@@ -226,16 +247,14 @@ class ApiHelper(object):
             return data
 
     def __deserialize_object(self, value):
-        """
-        Return a original value.
+        """Return a original value.
 
         :return: object.
         """
         return value
 
     def __deserialize_date(self, string):
-        """
-        Deserializes string to date.
+        """Deserializes string to date.
 
         :param string: str.
         :return: date.
@@ -249,8 +268,7 @@ class ApiHelper(object):
                 "Failed to parse `{0}` into a date object".format(string))
 
     def __deserialize_datatime(self, string):
-        """
-        Deserializes string to datetime.
+        """Deserializes string to datetime.
 
         The string should be in iso8601 datetime format.
 
@@ -266,8 +284,7 @@ class ApiHelper(object):
                 "Failed to parse `{0}` into a datetime object".format(string))
 
     def __deserialize_model(self, data, klass):
-        """
-        Deserializes list or dict to model.
+        """Deserializes list or dict to model.
 
         :param data: dict, list.
         :param klass: class literal.

@@ -1,26 +1,24 @@
+import inspect
+import json
 import os
 import re
-import json
-import mimetypes
 import tempfile
-from dateutil.parser import parse
 from datetime import date, datetime
-
-from six import integer_types, iteritems, text_type
-
-import inspect
+from enum import Enum
 from importlib import import_module
 
-from vcloud.rest.openapi import models
+from dateutil.parser import parse
+from six import integer_types, iteritems, text_type
 from vcloud.api.rest import schema_v1_5
-from vcloud.api.rest.schema_v1_5 import extension
-from vcloud.api.rest.schema_v1_5.query_result_record_type import (
-    QueryResultRecordType)
 from vcloud.api.rest.schema import ovf, versioning
 from vcloud.api.rest.schema.ovf import environment, vmware
+from vcloud.api.rest.schema_v1_5 import extension
+from vcloud.api.rest.schema_v1_5.query_result_record_type import \
+    QueryResultRecordType
+from vcloud.rest.openapi import models
 from vcloud.rest.openapi.models import session
+
 from pyvcloud.vcd.client import ClientException
-from enum import Enum
 
 
 class ApiHelper(object):
@@ -145,13 +143,13 @@ class ApiHelper(object):
 
         if type(klass) == str:
             if klass.startswith('list['):
-                sub_kls = re.match('list\[(.*)\]', klass).group(1)
+                sub_kls = re.match(r'list\[(.*)\]', klass).group(1)
                 return [
                     self.__deserialize(sub_data, sub_kls) for sub_data in data
                 ]
 
-            if klass.startswith('dict('):
-                sub_kls = re.match('dict\(([^,]*), (.*)\)', klass).group(2)
+            if klass.startswith(r'dict('):
+                sub_kls = re.match(r'dict\(([^,]*), (.*)\)', klass).group(2)
                 return {
                     k: self.__deserialize(v, sub_kls)
                     for k, v in iteritems(data)
@@ -202,9 +200,8 @@ class ApiHelper(object):
 
         content_disposition = response.getheader("Content-Disposition")
         if content_disposition:
-            filename = re.\
-                search(r'filename=[\'"]?([^\'"\s]+)[\'"]?', content_disposition).\
-                group(1)
+            filename = re.search(r'filename=[\'"]?([^\'"\s]+)[\'"]?',
+                                 content_disposition).group(1)
             path = os.path.join(os.path.dirname(path), filename)
 
         with open(path, "w") as f:

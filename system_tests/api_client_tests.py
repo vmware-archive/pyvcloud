@@ -16,20 +16,17 @@
 import unittest
 from uuid import uuid1
 
-from pyvcloud.system_test_framework.base_test import BaseTestCase
-from pyvcloud.system_test_framework.environment import Environment
-
-from pyvcloud.vcd.api_client import ApiClient
-from pyvcloud.vcd.api_client import QueryParamsBuilder
-from pyvcloud.vcd.client import BasicLoginCredentials
-
 from vcloud.api.rest.schema_v1_5.admin_org_type import AdminOrgType
-from vcloud.api.rest.schema_v1_5.task_type import TaskType
 from vcloud.api.rest.schema_v1_5.query_result_records_type import \
     QueryResultRecordsType
-
+from vcloud.api.rest.schema_v1_5.task_type import TaskType
 from vcloud.rest.openapi.models.role import Role
 from vcloud.rest.openapi.models.roles import Roles
+
+from pyvcloud.system_test_framework.base_test import BaseTestCase
+from pyvcloud.system_test_framework.environment import Environment
+from pyvcloud.vcd.api_client import ApiClient, QueryParamsBuilder
+from pyvcloud.vcd.client import BasicLoginCredentials
 
 
 class TestApiClient(BaseTestCase):

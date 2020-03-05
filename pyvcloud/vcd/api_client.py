@@ -12,12 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pyvcloud.vcd.client import Client
-from pyvcloud.vcd.client import ClientException
-from pyvcloud.vcd.api_helper import ApiHelper
 
 from vcloud.api.rest.schema_v1_5.task_type import TaskType
 from vcloud.rest.openapi.models.link import Link
+
+from pyvcloud.vcd.api_helper import ApiHelper
+from pyvcloud.vcd.client import Client, ClientException
 
 
 class ApiClient(Client):
@@ -86,6 +86,7 @@ class ApiClient(Client):
         is_api = self._is_api_uri(uri)
         accept_type = self._get_accept_type(is_api)
         contents_json = self._api_helper.sanitize_for_serialization(contents)
+        self._status = self._headers = self._links = self._headers = None
         response = self._do_request_prim(method,
                                          uri,
                                          self._session,

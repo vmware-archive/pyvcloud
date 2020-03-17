@@ -1,6 +1,21 @@
 CHANGES
 =======
 
+* Add a client with model bindings for REST API and CloudAPI (#645)
+* fixing bug where only one disk is listed even if there are more (#644)
+
+22.0.0
+------
+
+* Adding supported API versions in README (#641)
+* [VCDA 1336, 1337, 1338, 1339] - Added support for vCD JWT token in pyvcloud (#637)
+* [VCDA-1333] Adding support for VMSizingPolicy while dealing with compute policies on VMs (#636)
+* fix-bug-page-size (#629)
+* Fix #630 list\_rights\_available\_in\_system (#631)
+* VP-3104 (#623)
+* there is bug releated to: vcd-cli issue 497
+* Updating AUTHORS and ChangeLog in pyvcloud github
+
 21.0.0
 ------
 

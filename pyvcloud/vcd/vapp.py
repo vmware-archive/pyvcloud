@@ -658,7 +658,8 @@ class VApp(object):
                 return vm
         raise EntityNotFoundException('Can\'t find VM \'%s\'' % vm_name)
 
-    def add_disk_to_vm(self, vm_name, disk_size):
+    def add_disk_to_vm(self, vm_name, disk_size,
+                       disk_controller_type="lsilogic"):
         """Add a virtual disk to a virtual machine in the vApp.
 
         It assumes that the vm has already at least one virtual hard disk
@@ -666,6 +667,8 @@ class VApp(object):
 
         :param str vm_name: name of the vm to be customized.
         :param int disk_size: size of the disk to be added, in MBs.
+        :param str disk_controller_type: name of the disk controller bus
+        sub type.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is creating the disk.
@@ -675,30 +678,90 @@ class VApp(object):
         :raises: EntityNotFoundException: if the named vm cannot be located.
             occurred.
         """
-        vm = self.get_vm(vm_name)
-        disk_list = self.client.get_resource(
-            vm.get('href') + '/virtualHardwareSection/disks')
         last_disk = None
-        for disk in disk_list.Item:
+        is_disk_controller_present = False
+        disk_index = 0
+        scsi_controller_bus_type = 6
+        vm = self.get_vm(vm_name)
+        disks = self.client.get_resource(
+            vm.get('href') + '/virtualHardwareSection/disks')
+
+        for disk in disks.Item:
             if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':
                 last_disk = disk
-        assert last_disk is not None
+                disk_index += 1
+
+            # look for SCSI disk controller if present
+            resource_type = int(disk['{' + NSMAP['rasd'] + '}ResourceType'])
+            if resource_type == scsi_controller_bus_type:
+                if disk_controller_type == str(disk[
+                        '{' + NSMAP['rasd'] + '}ResourceSubType']):
+                    is_disk_controller_present = True
+
         new_disk = deepcopy(last_disk)
-        addr = int(str(
-            last_disk['{' + NSMAP['rasd'] + '}AddressOnParent'])) + 1
-        instance_id = int(str(
-            last_disk['{' + NSMAP['rasd'] + '}InstanceID'])) + 1
-        new_disk['{' + NSMAP['rasd'] + '}AddressOnParent'] = addr
-        new_disk['{' + NSMAP['rasd'] + '}ElementName'] = 'Hard disk %s' % addr
-        new_disk['{' + NSMAP['rasd'] + '}InstanceID'] = instance_id
-        new_disk['{' + NSMAP['rasd'] + '}VirtualQuantity'] = \
-            disk_size * 1024 * 1024
+        instance_id = int(str(last_disk[
+            '{' + NSMAP['rasd'] + '}InstanceID'])) + 1
+        address = int(str(last_disk[
+            '{' + NSMAP['rasd'] + '}AddressOnParent'])) + 1
+
+        if not is_disk_controller_present:
+            # create a new SCSI controller
+            last_disk_controller = last_disk
+            new_disk_controller = self._create_scsi_disk_controller(
+                last_disk_controller, disk_controller_type)
+            address = new_disk_controller['{' + NSMAP['rasd'] + '}Address']
+            new_disk['{' + NSMAP['rasd'] + '}Parent'] = new_disk_controller[
+                '{' + NSMAP['rasd'] + '}InstanceID']
+            disks.append(new_disk_controller)
+
+        # create a new disk
+        new_disk['{' + NSMAP['rasd'] + '}AddressOnParent'] = address
+        new_disk[
+            '{' + NSMAP['rasd'] + '}ElementName'] = 'Hard disk %s' % disk_index
+        new_disk[
+            '{' + NSMAP['rasd'] + '}InstanceID'] = instance_id
+        new_disk[
+            '{' + NSMAP['rasd'] + '}VirtualQuantity'] = disk_size * 1024 * 1024
         new_disk['{' + NSMAP['rasd'] + '}HostResource'].set(
             '{' + NSMAP['vcloud'] + '}capacity', str(disk_size))
-        disk_list.append(new_disk)
+        new_disk['{' + NSMAP['rasd'] + '}HostResource'].set(
+            '{' + NSMAP['vcloud'] + '}busSubType', disk_controller_type)
+        new_disk['{' + NSMAP['rasd'] + '}HostResource'].set(
+            '{' + NSMAP['vcloud'] + '}busType', str(scsi_controller_bus_type))
+        disks.append(new_disk)
+
         return self.client.put_resource(
-            vm.get('href') + '/virtualHardwareSection/disks', disk_list,
-            EntityType.RASD_ITEMS_LIST.value)
+            vm.get('href') + '/virtualHardwareSection/disks',
+            disks, EntityType.RASD_ITEMS_LIST.value)
+
+    def _create_scsi_disk_controller(self, last_disk_controller,
+                                     disk_controller_type):
+        """Create a new SCSI disk controller to a virtual machine in the vApp.
+
+        :param lxml.objectify.ObjectifiedElement last_disk_controller: name
+        of the vm to be customized.
+        :param str disk_controller_type: name of the disk controller bus
+        sub type.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is creating the disk.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        scsi_disk_controllers = {
+            "lsilogic": {"address": 0},
+            "lsilogicsas": {"address": 1},
+            "VirtualSCSI": {"address": 2}
+        }
+        new_disk_controller = deepcopy(last_disk_controller)
+        address = scsi_disk_controllers.get(
+            disk_controller_type).get("address")
+        new_disk_controller['{' + NSMAP['rasd'] + '}Address'] = address
+        new_disk_controller['{' + NSMAP['rasd'] + '}ResourceType'] = 6
+        new_disk_controller[
+            '{' + NSMAP['rasd'] + '}ResourceSubType'] = disk_controller_type
+
+        return new_disk_controller
 
     def get_access_settings(self):
         """Get the access settings of the vApp.

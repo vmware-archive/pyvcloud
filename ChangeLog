@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+* Fix Not able to add a new disk to a VM #647
+* Added disk adaptertype on vcd vm info command (#654)
+* Fix query filter URL encoding (#646)
 * Add a client with model bindings for REST API and CloudAPI (#645)
 * fixing bug where only one disk is listed even if there are more (#644)
 

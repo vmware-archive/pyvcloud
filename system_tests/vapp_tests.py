@@ -1132,6 +1132,45 @@ class TestVApp(BaseTestCase):
         vm = vapp.get_vm(TestVApp._vm_name_scartch)
         self.assertNotEqual(vm, None)
 
+    def _add_disk_to_vm(self, disk_controller="lsilogic"):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+        disk_size = 1024  # 1GB
+        vm_name = TestVApp._customized_vapp_vm_name
+        task = vapp.add_disk_to_vm(vm_name, disk_size, disk_controller)
+
+        return TestVApp._sys_admin_client.get_task_monitor(
+        ).wait_for_success(task)
+
+    def _get_vm_general_settings(self):
+        vapp = Environment.get_vapp_in_test_vdc(
+            client=TestVApp._sys_admin_client,
+            vapp_name=TestVApp._customized_vapp_name)
+        vm_name = TestVApp._customized_vapp_vm_name
+        vm = VM(TestVApp._sys_admin_client, resource=vapp.get_vm(vm_name))
+
+        return vm.general_setting_detail()
+
+    def test_0251_add_disk_lsilogic(self):
+        result = self._add_disk_to_vm()
+        assert result.get('status') == TaskStatus.SUCCESS.value
+
+    def test_0252_add_disk_lsilogicsas(self):
+        result = self._add_disk_to_vm(disk_controller="lsilogicsas")
+        assert result.get('status') == TaskStatus.SUCCESS.value
+
+    def test_0253_add_disk_virtualscsi(self):
+        result = self._add_disk_to_vm(disk_controller="VirtualSCSI")
+        assert result.get('status') == TaskStatus.SUCCESS.value
+
+    def test_0254_add_disk_buslogic(self):
+        vm_settings = self._get_vm_general_settings()
+        os_type = str(vm_settings.get("OS"))
+        if "32-bit" in os_type:
+            task = self._add_disk_to_vm(disk_controller="buslogic")
+            assert task.get('status') == TaskStatus.SUCCESS.value
+
     @developerModeAware
     def test_9998_teardown(self):
         """Test the  method vdc.delete_vapp().

@@ -338,8 +338,8 @@ def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
             n += 1
             k = 'vm-%s' % n
             result[k + ': name'] = vm.get('name')
-            items = vm.xpath(
-                'ovf:VirtualHardwareSection/ovf:Item', namespaces=NSMAP)
+            items = vm.xpath('ovf:VirtualHardwareSection/ovf:Item',
+                             namespaces=NSMAP)
             for item in items:
                 element_name = item.find('rasd:ElementName', NSMAP)
                 connection = item.find('rasd:Connection', NSMAP)
@@ -391,8 +391,8 @@ def vapp_to_dict(vapp, metadata=None, access_control_settings=None):
                             result['%s: net-%s-mac' % (k, nci)] = \
                                 nc.MACAddress.text
                         if hasattr(nc, 'IpAddress'):
-                            result['%s: net-%s-ip' % (k,
-                                                      nci)] = nc.IpAddress.text
+                            result['%s: net-%s-ip' %
+                                   (k, nci)] = nc.IpAddress.text
             if 'VmSpecSection' in vm:
                 for setting in vm.VmSpecSection.DiskSection.DiskSettings:
                     if hasattr(setting, 'Disk'):
@@ -439,9 +439,10 @@ def vm_to_dict(vm):
     result['needs-customization'] = vm.get('needsCustomization')
     if hasattr(vm, 'VCloudExtension'):
         result['moref'] = vm.VCloudExtension[
-            '{' + NSMAP['vmext'] + '}VmVimInfo'][
-                '{' + NSMAP['vmext'] + '}VmVimObjectRef']['{' + NSMAP['vmext']
-                                                          + '}MoRef'].text
+            '{' + NSMAP['vmext'] +
+            '}VmVimInfo']['{' + NSMAP['vmext'] +
+                          '}VmVimObjectRef']['{' + NSMAP['vmext'] +
+                                             '}MoRef'].text
     result['computer-name'] = vm.GuestCustomizationSection.ComputerName.text
 
     disk_instance_name_map = {}
@@ -449,13 +450,15 @@ def vm_to_dict(vm):
     for item in vm['{' + NSMAP['ovf'] +
                    '}VirtualHardwareSection']['{' + NSMAP['ovf'] + '}Item']:
         if item['{' + NSMAP['rasd'] + '}ResourceType'].text == str(10):
-            nic_instance_name_map[item[
-                '{' + NSMAP['rasd'] + '}AddressOnParent'].text] = item[
-                    '{' + NSMAP['rasd'] + '}ElementName'].text
+            nic_instance_name_map[
+                item['{' + NSMAP['rasd'] +
+                     '}AddressOnParent'].text] = item['{' + NSMAP['rasd'] +
+                                                      '}ElementName'].text
         if item['{' + NSMAP['rasd'] + '}ResourceType'].text == str(17):
-            disk_instance_name_map[item['{' + NSMAP['rasd'] + '}InstanceID'].
-                                   text] = item['{' + NSMAP['rasd'] +
-                                                '}ElementName'].text
+            disk_instance_name_map[
+                item['{' + NSMAP['rasd'] +
+                     '}InstanceID'].text] = item['{' + NSMAP['rasd'] +
+                                                 '}ElementName'].text
 
     if hasattr(vm, 'NetworkConnectionSection'):
         ncs = vm.NetworkConnectionSection
@@ -487,21 +490,26 @@ def vm_to_dict(vm):
             result['disk-' + setting.DiskId.text] = disk_props
             disk_props['name'] = disk_instance_name_map[setting.DiskId.text]
             disk_props['size-MB'] = setting.SizeMb.text
-            disk_props['adapter-type'] = adapterTypeToName(setting.AdapterType.text)
+            disk_props['adapter-type'] = adapterTypeToName(
+                setting.AdapterType.text)
             disk_props['bus'] = setting.BusNumber.text
             disk_props['unit'] = setting.UnitNumber.text
     return result
 
-def adapterTypeToName (adapterType):
+
+def adapterTypeToName(adapterType):
     adapters = {
-      "1": "IDE",
-      "2": "BusLogic Parallel (SCSI)",
-      "3": "LSI Logic Parallel (SCSI)",
-      "4": "LSI Logic SAS (SCSI)",
-      "5": "Paravirtual (SCSI)",
-      "6": "SATA",
+        "1": "IDE",
+        "2": "BusLogic Parallel (SCSI)",
+        "3": "LSI Logic Parallel (SCSI)",
+        "4": "LSI Logic SAS (SCSI)",
+        "5": "Paravirtual (SCSI)",
+        "6": "SATA",
     }
-    return adapters.get(adapterType,"Adapter Type " + adapterType + "undefined")
+
+    return adapters.get(adapterType,
+                        "Adapter Type " + adapterType + "undefined")
+
 
 def task_to_dict(task):
     """Converts a lxml.objectify.ObjectifiedElement task object to a dict.
@@ -687,8 +695,10 @@ def filter_attributes(resource_type):
     return attributes
 
 
-def to_dict(obj, attributes=None, resource_type=None, exclude=['href',
-                                                               'type']):
+def to_dict(obj,
+            attributes=None,
+            resource_type=None,
+            exclude=['href', 'type']):
     """Converts generic lxml.objectify.ObjectifiedElement to a dictionary.
 
     :param lxml.objectify.ObjectifiedElement obj:

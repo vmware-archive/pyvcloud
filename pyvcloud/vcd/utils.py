@@ -487,11 +487,21 @@ def vm_to_dict(vm):
             result['disk-' + setting.DiskId.text] = disk_props
             disk_props['name'] = disk_instance_name_map[setting.DiskId.text]
             disk_props['size-MB'] = setting.SizeMb.text
+            disk_props['adapter-type'] = adapterTypeToName(setting.AdapterType.text)
             disk_props['bus'] = setting.BusNumber.text
             disk_props['unit'] = setting.UnitNumber.text
-
     return result
 
+def adapterTypeToName (adapterType):
+    adapters = {
+      "1": "IDE",
+      "2": "BusLogic Parallel (SCSI)",
+      "3": "LSI Logic Parallel (SCSI)",
+      "4": "LSI Logic SAS (SCSI)",
+      "5": "Paravirtual (SCSI)",
+      "6": "SATA",
+    }
+    return adapters.get(adapterType,"Adapter Type " + adapterType + "undefined")
 
 def task_to_dict(task):
     """Converts a lxml.objectify.ObjectifiedElement task object to a dict.

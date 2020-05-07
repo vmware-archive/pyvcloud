@@ -1282,6 +1282,7 @@ class VM(object):
                 'Vapp with name \'%s\' not found.' % network_name)
 
         if is_primary:
+            nic_index = int(nic_index.text)
             net_conn_section.PrimaryNetworkConnectionIndex = \
                 E.PrimaryNetworkConnectionIndex(nic_index)
 

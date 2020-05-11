@@ -1197,15 +1197,16 @@ class VApp(object):
         if dns_suffix is not None:
             ip_scope.append(E.DnsSuffix(dns_suffix))
 
-        e_ip_ranges = E.IpRanges()
-        for ip_range in ip_ranges:
-            e_ip_range = E.IpRange()
-            ip_range_token = ip_range.split('-')
-            e_ip_range.append(E.StartAddress(ip_range_token[0]))
-            e_ip_range.append(E.EndAddress(ip_range_token[1]))
-            e_ip_ranges.append(e_ip_range)
+        if ip_ranges is not None:
+            e_ip_ranges = E.IpRanges()
+            for ip_range in ip_ranges:
+                e_ip_range = E.IpRange()
+                ip_range_token = ip_range.split('-')
+                e_ip_range.append(E.StartAddress(ip_range_token[0]))
+                e_ip_range.append(E.EndAddress(ip_range_token[1]))
+                e_ip_ranges.append(e_ip_range)
 
-        ip_scope.append(e_ip_ranges)
+            ip_scope.append(e_ip_ranges)
         ip_scopes.append(ip_scope)
         config.append(ip_scopes)
         config.append(E.FenceMode(FenceMode.ISOLATED.value))

@@ -549,8 +549,10 @@ def disk_to_dict(disk):
     result['name'] = disk.get('name')
     result['id'] = extract_id(disk.get('id'))
     result['status'] = disk.get('status')
-    result['size'] = humanfriendly.format_size(int(disk.get('size')))
-    result['size_bytes'] = disk.get('size')
+    if 'sizeMb' in disk.keys():
+        size_key = 'sizeMb'
+    result['size'] = humanfriendly.format_size(int(disk.get(size_key)))
+    result['size_bytes'] = disk.get(size_key)
     result['busType'] = disk.get('busType')
     result['busSubType'] = disk.get('busSubType')
     result['iops'] = disk.get('iops')

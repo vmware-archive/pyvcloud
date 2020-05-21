@@ -27,10 +27,16 @@ from pygments import highlight
 from pygments import lexers
 
 from pyvcloud.vcd.client import ApiVersion
+from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import get_links
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import VCLOUD_STATUS_MAP
+
+
+VDC_COMPUTE_POLICY_MIN_API_VERSION = float(ApiVersion.VERSION_32.value)
+VDC_COMPUTE_POLICY_MAX_API_VERSION = float(ApiVersion.VERSION_33.value)
+VM_SIZING_POLICY_MIN_API_VERSION = float(ApiVersion.VERSION_33.value)
 
 
 def extract_id(urn):
@@ -979,3 +985,22 @@ def uri_to_api_uri(uri):
     uri_components = uri.split('/')
     api_uri = '/'.join(uri_components[:4])
     return api_uri
+
+
+def get_compute_policy_tags(api_version, compute_policy_href):
+    compute_policy_id = compute_policy_href.split('/')[-1]
+    vdc_compute_policy_element = None
+    compute_policy_element = None
+    if api_version >= VDC_COMPUTE_POLICY_MIN_API_VERSION and \
+            api_version <= VDC_COMPUTE_POLICY_MAX_API_VERSION:
+        vdc_compute_policy_element = E.VdcComputePolicy()
+        vdc_compute_policy_element.set('href', compute_policy_href)
+        vdc_compute_policy_element.set('id', compute_policy_id)
+        vdc_compute_policy_element.set('type', 'application/json')
+    if api_version >= VM_SIZING_POLICY_MIN_API_VERSION:
+        compute_policy_element = E.ComputePolicy()
+        sizing_policy_element = E.VmSizingPolicy()
+        compute_policy_element.append(sizing_policy_element)
+        sizing_policy_element.set('href', compute_policy_href)
+        sizing_policy_element.set('id', compute_policy_id)
+    return (vdc_compute_policy_element, compute_policy_element)

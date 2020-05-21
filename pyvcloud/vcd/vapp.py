@@ -36,10 +36,8 @@ from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.metadata import Metadata
-from pyvcloud.vcd.org import VDC_COMPUTE_POLICY_MAX_API_VERSION
-from pyvcloud.vcd.org import VDC_COMPUTE_POLICY_MIN_API_VERSION
-from pyvcloud.vcd.org import VM_SIZING_POLICY_MIN_API_VERSION
 from pyvcloud.vcd.utils import cidr_to_netmask
+from pyvcloud.vcd.utils import get_compute_policy_tags
 from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.vm import VM
 
@@ -902,7 +900,7 @@ class VApp(object):
                 If omitted, the vm won't be connected to any network.
             - storage_profile: (str): (optional) the name of the storage
                 profile to be used for this vm.
-            - compute_policy_href: (str): (optional) sizing policy used for
+            - sizing_policy_href: (str): (optional) sizing policy used for
                 creating the VM
 
         :return: an object containing SourcedItem XML element.
@@ -976,25 +974,12 @@ class VApp(object):
         sourced_item.append(vm_instantiation_param)
 
         if 'sizing_policy_href' in spec:
-            api_version = float(self.client.get_api_version())
-            compute_policy_href = spec['sizing_policy_href']
-            compute_policy_id = compute_policy_href.split('/')[-1]
-            if api_version < VDC_COMPUTE_POLICY_MIN_API_VERSION:
-                raise OperationNotSupportedException(
-                    f"Unsupported API version. Received '{api_version}' but "
-                    f"'{VDC_COMPUTE_POLICY_MIN_API_VERSION}' is required.")
-            if api_version <= VDC_COMPUTE_POLICY_MAX_API_VERSION:
-                vdc_compute_policy_element = E.VdcComputePolicy()
-                vdc_compute_policy_element.set('href', compute_policy_href)
-                vdc_compute_policy_element.set('id', compute_policy_id)
-                vdc_compute_policy_element.set('type', 'application/json')
+            vdc_compute_policy_element, compute_policy_element = \
+                get_compute_policy_tags(float(self.client.get_api_version()),
+                                        spec['sizing_policy_href'])
+            if vdc_compute_policy_element:
                 sourced_item.append(vdc_compute_policy_element)
-            if api_version >= VM_SIZING_POLICY_MIN_API_VERSION:
-                compute_policy_element = E.ComputePolicy()
-                sizing_policy_element = E.VmSizingPolicy()
-                compute_policy_element.append(sizing_policy_element)
-                sizing_policy_element.set('href', compute_policy_href)
-                sizing_policy_element.set('id', compute_policy_id)
+            if compute_policy_element:
                 sourced_item.append(compute_policy_element)
 
         if 'storage_profile' in spec:

@@ -973,14 +973,13 @@ class VApp(object):
         sourced_item.append(vm_general_params)
         sourced_item.append(vm_instantiation_param)
 
-        if 'sizing_policy_href' in spec:
-            vdc_compute_policy_element, compute_policy_element = \
-                get_compute_policy_tags(float(self.client.get_api_version()),
-                                        spec['sizing_policy_href'])
-            if vdc_compute_policy_element:
-                sourced_item.append(vdc_compute_policy_element)
-            if compute_policy_element:
-                sourced_item.append(compute_policy_element)
+        vdc_compute_policy_element, compute_policy_element = \
+            get_compute_policy_tags(float(self.client.get_api_version()),
+                                    spec.get('sizing_policy_href'))
+        if vdc_compute_policy_element:
+            sourced_item.append(vdc_compute_policy_element)
+        if compute_policy_element:
+            sourced_item.append(compute_policy_element)
 
         if 'storage_profile' in spec:
             sp = spec['storage_profile']

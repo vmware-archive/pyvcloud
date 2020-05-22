@@ -988,6 +988,15 @@ def uri_to_api_uri(uri):
 
 
 def get_compute_policy_tags(api_version, sizing_compute_policy_href):
+    """Generate compute policy tags depending on api_version.
+
+    VdcComputePolicy and ComputePolicy tags are generated from
+    sizing_compute_policy_href.
+
+    :param api_version str
+    :param sizing_compute_policy_href href
+    :rtype (VdcComputePolicy, ComputePolicy) (etree.Element, etree.Element)
+    """
     if not sizing_compute_policy_href:
         return (None, None)
     sizing_compute_policy_id = sizing_compute_policy_href.split('/')[-1]

@@ -976,9 +976,9 @@ class VApp(object):
         vdc_compute_policy_element, compute_policy_element = \
             get_compute_policy_tags(float(self.client.get_api_version()),
                                     spec.get('sizing_policy_href'))
-        if vdc_compute_policy_element:
+        if vdc_compute_policy_element is not None:
             sourced_item.append(vdc_compute_policy_element)
-        if compute_policy_element:
+        if compute_policy_element is not None:
             sourced_item.append(compute_policy_element)
 
         if 'storage_profile' in spec:

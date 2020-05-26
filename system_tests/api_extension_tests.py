@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import unittest
 from uuid import uuid1
 
 from pyvcloud.system_test_framework.base_test import BaseTestCase
@@ -166,7 +167,7 @@ class TestApiExtension(BaseTestCase):
                 name=TestApiExtension._non_existent_service_name)
             self.fail('Should not be able to fetch service ' +
                       TestApiExtension._non_existent_service_name)
-        except MissingRecordException as e:
+        except MissingRecordException:
             pass
 
     @unittest.skip("broken test")
@@ -186,7 +187,7 @@ class TestApiExtension(BaseTestCase):
             self.fail('Should not be able to fetch service ' +
                       TestApiExtension._service_name +
                       ' with an empty namespace.')
-        except MultipleRecordsException as e:
+        except MultipleRecordsException:
             pass
 
     @unittest.skip("broken test")
@@ -205,7 +206,7 @@ class TestApiExtension(BaseTestCase):
                 namespace=TestApiExtension._non_existent_service_namespace)
             self.fail('Should not be able to fetch service ' +
                       TestApiExtension._non_existent_service_name)
-        except MissingRecordException as e:
+        except MissingRecordException:
             pass
 
     @unittest.skip("broken test")

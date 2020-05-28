@@ -378,12 +378,10 @@ class EntityType(Enum):
         'application/vnd.vmware.admin.vmwExternalNetworkReferences+xml'
     GUEST_CUSTOMIZATION_SECTION = \
         'application/vnd.vmware.vcloud.guestCustomizationSection+xml'
-    INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
-        'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
-    GUEST_CUSTOMIZATION_SECTION = \
-        'application/vnd.vmware.vcloud.guestCustomizationSection+xml'
     HISTORIC_USAGE = \
         'application/vnd.vmware.vcloud.metrics.historicUsageSpec+xml'
+    INSTANTIATE_VAPP_TEMPLATE_PARAMS = \
+        'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml'
     JSON = 'application/json'
     LEASE_SETTINGS = 'application/vnd.vmware.vcloud.leaseSettingsSection+xml'
     MEDIA = 'application/vnd.vmware.vcloud.media+xml'

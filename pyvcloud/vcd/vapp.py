@@ -37,6 +37,7 @@ from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.utils import cidr_to_netmask
+from pyvcloud.vcd.utils import get_compute_policy_tags
 from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.vm import VM
 
@@ -899,6 +900,8 @@ class VApp(object):
                 If omitted, the vm won't be connected to any network.
             - storage_profile: (str): (optional) the name of the storage
                 profile to be used for this vm.
+            - sizing_policy_href: (str): (optional) sizing policy used for
+                creating the VM
 
         :return: an object containing SourcedItem XML element.
 
@@ -969,6 +972,14 @@ class VApp(object):
         vm_general_params.append(E.NeedsCustomization(needs_customization))
         sourced_item.append(vm_general_params)
         sourced_item.append(vm_instantiation_param)
+
+        vdc_compute_policy_element, compute_policy_element = \
+            get_compute_policy_tags(float(self.client.get_api_version()),
+                                    spec.get('sizing_policy_href'))
+        if vdc_compute_policy_element is not None:
+            sourced_item.append(vdc_compute_policy_element)
+        if compute_policy_element is not None:
+            sourced_item.append(compute_policy_element)
 
         if 'storage_profile' in spec:
             sp = spec['storage_profile']

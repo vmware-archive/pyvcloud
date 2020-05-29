@@ -52,15 +52,14 @@ from pyvcloud.vcd.utils import get_safe_members_in_tar_file
 from pyvcloud.vcd.utils import is_admin
 from pyvcloud.vcd.utils import retrieve_compute_policy_id_from_href
 from pyvcloud.vcd.utils import to_dict
+from pyvcloud.vcd.utils import VDC_COMPUTE_POLICY_MAX_API_VERSION
+from pyvcloud.vcd.utils import VDC_COMPUTE_POLICY_MIN_API_VERSION
+from pyvcloud.vcd.utils import VM_SIZING_POLICY_MIN_API_VERSION
 
 # Uptil pyvcloud v20.0.0 1 MB was the default chunk size,
 # in constrast vCD H5 UI uses 50MB for upload chunk size,
 # 10MB is a happy medium between 50MB and 1MB.
 DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024
-
-VDC_COMPUTE_POLICY_MIN_API_VERSION = float(ApiVersion.VERSION_32.value)
-VDC_COMPUTE_POLICY_MAX_API_VERSION = float(ApiVersion.VERSION_33.value)
-VM_SIZING_POLICY_MIN_API_VERSION = float(ApiVersion.VERSION_33.value)
 
 
 class Org(object):

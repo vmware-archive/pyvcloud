@@ -1816,6 +1816,71 @@ class Org(object):
         catalog_item = self.get_catalog_item(catalog_name, catalog_item_name)
         return catalog_item.Entity.get('href')
 
+    def assign_placement_policy_to_vapp_template_vms(self,
+                                                     catalog_name,
+                                                     catalog_item_name,
+                                                     placement_policy_href):
+        """Assign placement policy to all vms of a given vApp template.
+
+        The placement policy is identified by its href.
+
+        :param str catalog_name: Name of the catalog that contains the template
+        :param str catalog_item_name: Name of the template (catalog item)
+        :param str placement_policy_href: href of the placement policy
+
+        :return: an object of type EntityType.TASK XML which represents
+                the asynchronous task that is updating virtual application
+                template. If the given vApp doesn't have any vm in it, then
+                None will be returned.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: OperationNotSupportedException: if the api version is not
+            supported.
+        """
+        api_version = float(self.client.get_api_version())
+        if api_version < VM_SIZING_POLICY_MIN_API_VERSION:
+            raise OperationNotSupportedException(
+                f"Unsupported API version. Received '{api_version}' but "
+                f"'{VDC_COMPUTE_POLICY_MIN_API_VERSION}' is required.")
+
+        policy_id = retrieve_compute_policy_id_from_href(placement_policy_href)
+        template_resource_href = self.get_vapp_template_href(
+            catalog_name, catalog_item_name)
+        template_resource = self.client.get_resource(template_resource_href)
+
+        if hasattr(template_resource, 'Children') and \
+                hasattr(template_resource.Children, 'Vm'):
+            vms = template_resource.Children.Vm
+            for vm in vms:
+                date_created_node = vm.find('{http://www.vmware.com/vcloud/v1.5}DateCreated')  # noqa: E501
+
+                if api_version >= VM_SIZING_POLICY_MIN_API_VERSION:
+                    if hasattr(vm, 'ComputePolicy'):
+                        compute_policy_element = vm.ComputePolicy
+                    else:
+                        compute_policy_element = E.ComputePolicy()
+                        date_created_node.addprevious(compute_policy_element)
+
+                    if hasattr(compute_policy_element, 'VmPlacementPolicy'):
+                        vm_placement_policy_element = compute_policy_element.VmPlacementPolicy  # noqa: E501
+                    else:
+                        vm_placement_policy_element = E.VmPlacementPolicy()
+                        compute_policy_element.append(
+                            vm_placement_policy_element)
+                        compute_policy_element.append(
+                            E.VmPlacementPolicyFinal('false'))
+
+                    vm_placement_policy_element.set('href',
+                                                    placement_policy_href)
+                    vm_placement_policy_element.set('id', policy_id)
+                    vm_placement_policy_element.set('type', 'application/json')
+
+            return self.client.put_resource(
+                template_resource_href,
+                template_resource,
+                media_type=EntityType.VAPP_TEMPLATE.value)
+
     def assign_compute_policy_to_vapp_template_vms(self,
                                                    catalog_name,
                                                    catalog_item_name,
@@ -1895,8 +1960,8 @@ class Org(object):
         """Remove compute policy from all vms in a given vApp template.
 
         The compute policy is identified by its href. If compute policy is not
-        provided, all vdc compute policies (i.e. vm sizing policies) will be
-        removed.
+        provided, all vdc compute policies (i.e. vm sizing policies and
+        vm placement policies) will be removed.
 
         :param str catalog_name: Name of the catalog that contains the template
         :param str catalog_item_name: Name of the template (catalog item)
@@ -1937,16 +2002,27 @@ class Org(object):
                     if not policy_id or policy_id == vm_compute_policy_id:
                         vm.remove(vm.VdcComputePolicy)
                         template_update_required = True
-                if hasattr(vm, 'ComputePolicy') and hasattr(vm.ComputePolicy, 'VmSizingPolicy'):  # noqa: E501
-                    vm_compute_policy_id = \
-                        vm.ComputePolicy.VmSizingPolicy.get('id')
-                    if not policy_id or policy_id == vm_compute_policy_id:
-                        vm.ComputePolicy.remove(
-                            vm.ComputePolicy.VmSizingPolicy)
-                        template_update_required = True
-                        if hasattr(vm.ComputePolicy, 'VmSizingPolicyFinal'):  # noqa: E501
+                if hasattr(vm, 'ComputePolicy'):
+                    if hasattr(vm.ComputePolicy, 'VmSizingPolicy'):
+                        vm_sizing_policy_id = \
+                            vm.ComputePolicy.VmSizingPolicy.get('id')
+                        if not policy_id or policy_id == vm_sizing_policy_id:
                             vm.ComputePolicy.remove(
-                                vm.ComputePolicy.VmSizingPolicyFinal)
+                                vm.ComputePolicy.VmSizingPolicy)
+                            template_update_required = True
+                            if hasattr(vm.ComputePolicy, 'VmSizingPolicyFinal'):  # noqa: E501
+                                vm.ComputePolicy.remove(
+                                    vm.ComputePolicy.VmSizingPolicyFinal)
+                    if hasattr(vm.ComputePolicy, 'VmPlacementPolicy'):
+                        vm_placement_policy_id = \
+                            vm.ComputePolicy.VmPlacementPolicy.get('id')
+                        if not policy_id or policy_id == vm_placement_policy_id:  # noqa: E501
+                            vm.ComputePolicy.remove(
+                                vm.ComputePolicy.VmPlacementPolicy)
+                            template_update_required = True
+                            if hasattr(vm.ComputePolicy, 'VmPlacementPolicyFinal'):  # noqa: E501
+                                vm.ComputePolicy.remove(
+                                    vm.ComputePolicy.VmPlacementPolicyFinal)
 
         if template_update_required:
             return self.client.put_resource(

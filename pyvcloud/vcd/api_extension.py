@@ -16,8 +16,8 @@
 import urllib
 
 from pyvcloud.vcd.client import E
-from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import E_VCLOUD
+from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType

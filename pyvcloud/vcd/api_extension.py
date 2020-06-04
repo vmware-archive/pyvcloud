@@ -16,7 +16,6 @@
 import urllib
 
 from pyvcloud.vcd.client import E
-from pyvcloud.vcd.client import E_VCLOUD
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
@@ -201,7 +200,7 @@ class APIExtension(object):
         params = E_VMEXT.Service({'name': name})
         description = description or record.get('description')
         if description is not None:
-            params.append(E_VCLOUD.Description(description))
+            params.append(E.Description(description))
         params.append(E_VMEXT.Namespace(record.get('namespace')))
         params.append(E_VMEXT.Enabled(record.get('enabled')))
         params.append(E_VMEXT.RoutingKey(
@@ -230,7 +229,7 @@ class APIExtension(object):
         """
         params = E_VMEXT.Service({'name': name})
         if description is not None:
-            params.append(E_VCLOUD.Description(description))
+            params.append(E.Description(description))
         params.append(E_VMEXT.Namespace(namespace))
         params.append(E_VMEXT.Enabled('true'))
         params.append(E_VMEXT.RoutingKey(routing_key))

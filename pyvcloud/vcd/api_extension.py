@@ -17,6 +17,7 @@ import urllib
 
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_VMEXT
+from pyvcloud.vcd.client import E_VCLOUD
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
@@ -176,7 +177,7 @@ class APIExtension(object):
         return ext
 
     def update_extension(self, name, namespace=None, routing_key=None,
-                         exchange=None):
+                         exchange=None, description=None):
         """Update properties for an existing API extension.
 
         :param str name: name of the API extension.
@@ -198,6 +199,9 @@ class APIExtension(object):
                                             format=QueryResultFormat.RECORDS)
 
         params = E_VMEXT.Service({'name': name})
+        description = description or record.get('description')
+        if description is not None:
+            params.append(E_VCLOUD.Description(description))
         params.append(E_VMEXT.Namespace(record.get('namespace')))
         params.append(E_VMEXT.Enabled(record.get('enabled')))
         params.append(E_VMEXT.RoutingKey(
@@ -208,7 +212,8 @@ class APIExtension(object):
         self.client.put_resource(record.get('href'), params, None)
         return record.get('href')
 
-    def add_extension(self, name, namespace, routing_key, exchange, patterns):
+    def add_extension(self, name, namespace, routing_key, exchange, patterns,
+                      description=None):
         """Add an API extension service.
 
         :param str name: name of the new API extension service.
@@ -224,6 +229,8 @@ class APIExtension(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         params = E_VMEXT.Service({'name': name})
+        if description is not None:
+            params.append(E_VCLOUD.Description(description))
         params.append(E_VMEXT.Namespace(namespace))
         params.append(E_VMEXT.Enabled('true'))
         params.append(E_VMEXT.RoutingKey(routing_key))

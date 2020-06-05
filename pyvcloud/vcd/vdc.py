@@ -247,9 +247,16 @@ class VDC(object):
         media_type = EntityType.ORG.value
         if self.is_admin:
             media_type = EntityType.ADMIN_ORG.value
-        org_href = find_link(self.resource, RelationType.UP,
-                             media_type).href
-        org = Org(self.client, href=org_href)
+        org_link = find_link(self.resource, RelationType.UP,
+                             media_type,
+                             fail_if_absent=False)
+
+        if org_link is not None:
+            org = Org(self.client, href=org_link.href)
+        else:
+            org_resource = self.client.get_org()
+            org = Org(self.client, resource=org_resource)
+        
         catalog_item = org.get_catalog_item(catalog, template)
         template_resource = self.client.get_resource(
             catalog_item.Entity.get('href'))

@@ -129,6 +129,14 @@ class APIExtension(object):
         ext_record = self._get_extension_record(name, namespace)
         return to_dict(ext_record, self.ATTRIBUTES)
 
+    def get_extension_xml(self, extension_id):
+        uri = f"{self.client.get_api_uri()}/admin/extension/service/{extension_id}"  # noqa: E501
+        try:
+            response_xml = self.client.get_resource(uri)
+            return response_xml
+        except Exception as err:
+            raise Exception(f"Failed to get extension XML with error: {err}")
+
     def get_api_filters(self, service_id):
         """Fetch the API filters defined for the service.
 

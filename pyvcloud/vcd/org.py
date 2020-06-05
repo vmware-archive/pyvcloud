@@ -2000,8 +2000,12 @@ class Org(object):
         :param placement_policy_href: href of the placement policy to be added
         :param placement_policy_id: id of the placement policy to be added
 
+        :return: a tuple which contains the updated vm element and a boolean
+            to indicate if the vm element was changed
+
         :rtype: (lxml.objectify.ObjectifiedElement, bool)
         """
+        # boolean which indicates if template vm element has been changed
         template_update_required = False
         if api_version < VM_SIZING_POLICY_MIN_API_VERSION:
             return (vm, template_update_required)

@@ -256,7 +256,7 @@ class VDC(object):
         else:
             org_resource = self.client.get_org()
             org = Org(self.client, resource=org_resource)
-        
+
         catalog_item = org.get_catalog_item(catalog, template)
         template_resource = self.client.get_resource(
             catalog_item.Entity.get('href'))

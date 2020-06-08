@@ -1665,8 +1665,8 @@ class Client(object):
         Process the query link and fetch all vdc links and make a list of
             links.
 
-        :param lxml.objectify.ObjectifiedElement resource: the resource with
-            the links.
+        :param lxml.objectify.ObjectifiedElement resource: resource with
+            query links.
         :param RelationType rel: the rel of the desired link.
         :param str media_type: media type of content.
         :param str type: type of query.
@@ -1679,17 +1679,21 @@ class Client(object):
         for query_link in links:
             link_href = query_link.href
             list_of_links = []
-            if type in link_href.lower():
-                link_href = urllib.parse.unquote(link_href)
-                record_resource = self.get_resource(link_href)
-                for record in record_resource.getchildren():
-                    if record.tag != '{http://www.vmware.com/vcloud/v1.5}Link':
-                        link = E.Link()
-                        link.set('name', record.get('name'))
-                        link.set('href', record.get('href'))
-                        link.set('rel', rel.value)
-                        list_of_links.append(Link(link))
-                return list_of_links
+            if type not in link_href.lower():
+                continue
+            link_href = urllib.parse.unquote(link_href)
+            next_page_uri = link_href
+            while next_page_uri is not None:
+                record_resource = self.get_resource(next_page_uri)
+                next_page_uri = None
+                for record in record_resource.iterchildren():
+                    tag = etree.QName(record.tag)
+                    if tag.localname == 'Link':
+                        if record.get('rel') == RelationType.NEXT_PAGE.value:
+                            next_page_uri = record.get('href')
+                    else:
+                        list_of_links.append(Link(record))
+            return list_of_links
 
 
 def find_link(resource, rel, media_type, fail_if_absent=True, name=None):

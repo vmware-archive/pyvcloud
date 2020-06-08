@@ -1,8 +1,17 @@
 CHANGES
 =======
 
-* Fix Not able to add a new disk to a VM #647
+* Added sizing policy to vapp.add\_vm() (#662)
+* Adding support for api version 34.0 and 35.0 in pyvcloud (#666)
+* Fix - disk list size (#660)
+* Updates \`create\_vapp\_network\` to check \`ip\_ranges\` before using (#659)
+* Fixed - Updating a VM nic as primary nic (#657)
+* Fix Not able to add a new disk to a VM #647 (#648)
 * Added disk adaptertype on vcd vm info command (#654)
+
+22.0.1
+------
+
 * Fix query filter URL encoding (#646)
 * Add a client with model bindings for REST API and CloudAPI (#645)
 * fixing bug where only one disk is listed even if there are more (#644)

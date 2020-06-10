@@ -129,6 +129,14 @@ class APIExtension(object):
         ext_record = self._get_extension_record(name, namespace)
         return to_dict(ext_record, self.ATTRIBUTES)
 
+    def get_extension_xml(self, extension_id):
+        uri = f"{self.client.get_api_uri()}/admin/extension/service/{extension_id}"  # noqa: E501
+        try:
+            response_xml = self.client.get_resource(uri)
+            return response_xml
+        except Exception as err:
+            raise Exception(f"Failed to get extension XML with error: {err}")
+
     def get_api_filters(self, service_id):
         """Fetch the API filters defined for the service.
 
@@ -176,7 +184,7 @@ class APIExtension(object):
         return ext
 
     def update_extension(self, name, namespace=None, routing_key=None,
-                         exchange=None):
+                         exchange=None, description=None):
         """Update properties for an existing API extension.
 
         :param str name: name of the API extension.
@@ -198,6 +206,9 @@ class APIExtension(object):
                                             format=QueryResultFormat.RECORDS)
 
         params = E_VMEXT.Service({'name': name})
+        description = description or record.get('description')
+        if description is not None:
+            params.append(E.Description(description))
         params.append(E_VMEXT.Namespace(record.get('namespace')))
         params.append(E_VMEXT.Enabled(record.get('enabled')))
         params.append(E_VMEXT.RoutingKey(
@@ -208,7 +219,8 @@ class APIExtension(object):
         self.client.put_resource(record.get('href'), params, None)
         return record.get('href')
 
-    def add_extension(self, name, namespace, routing_key, exchange, patterns):
+    def add_extension(self, name, namespace, routing_key, exchange, patterns,
+                      description=None):
         """Add an API extension service.
 
         :param str name: name of the new API extension service.
@@ -224,6 +236,8 @@ class APIExtension(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         params = E_VMEXT.Service({'name': name})
+        if description is not None:
+            params.append(E.Description(description))
         params.append(E_VMEXT.Namespace(namespace))
         params.append(E_VMEXT.Enabled('true'))
         params.append(E_VMEXT.RoutingKey(routing_key))

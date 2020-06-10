@@ -83,7 +83,7 @@ E_VMEXT = objectify.ElementMaker(
     namespace=NSMAP['vmext'],
     nsmap={
         None: NSMAP['vcloud'],
-        'vmext': NSMAP['vmext']
+        'vmext': NSMAP['vmext'],
     })
 
 E_OVF = objectify.ElementMaker(

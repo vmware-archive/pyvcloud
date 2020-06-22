@@ -129,7 +129,8 @@ class VM(object):
         return int(
             self.resource.VmSpecSection.MemoryResourceMb.Configured.text)
 
-    def update_compute_policy(self, compute_policy_href, compute_policy_id=None):  # noqa: E501
+    def update_compute_policy(self, compute_policy_href, compute_policy_id=None,  # noqa: E501
+                              placement_policy_href=None, remove_placement_policy=False):  # noqa: E501
         """Updates the Compute Policy of this VM.
 
         For api v32, the VdcComputePolicy element is modified. For api v33 and
@@ -139,6 +140,9 @@ class VM(object):
         :param str compute_policy_id: id of the target compute policy. This is
             a redundant param, keeping it, to preserve compatibility with
             older clients using this method.
+        :param str placement_policy_href: target placement policy href.
+        :param boolean remove_placement_policy: Specifies if the placement
+            policy should be removed
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that updates the vm.
@@ -157,7 +161,7 @@ class VM(object):
 
         vm_resource = self.get_resource()
 
-        if api_version <= VDC_COMPUTE_POLICY_MAX_API_VERSION:
+        if hasattr(vm_resource, 'VdcComputePolicy'):
             vm_resource.VdcComputePolicy.set('href', compute_policy_href)
             vm_resource.VdcComputePolicy.set('id', compute_policy_id)
 
@@ -166,6 +170,20 @@ class VM(object):
                                                          compute_policy_href)
             vm_resource.ComputePolicy.VmSizingPolicy.set('id',
                                                          compute_policy_id)
+            if remove_placement_policy and hasattr(vm_resource.ComputePolicy,
+                                                   'VmPlacementPolicy'):
+                vm_resource.ComputePolicy.remove(
+                    vm_resource.ComputePolicy.VmPlacementPolicy)
+                if hasattr(vm_resource.ComputePolicy, 'VmPlacementPolicyFinal'):  # noqa: E501
+                    vm_resource.ComputePolicy.remove(
+                        vm_resource.ComputePolicy.VmPlacementPolicyFinal)
+            elif placement_policy_href:
+                placement_policy_id = \
+                    retrieve_compute_policy_id_from_href(placement_policy_href)
+                vm_resource.ComputePolicy.VmPlacementPolicy.set('href',
+                                                                placement_policy_href)  # noqa: E501
+                vm_resource.ComputePolicy.VmPlacementPolicy.set('id',
+                                                                placement_policy_id)  # noqa: E501
 
         reconfigure_vm_link = find_link(self.resource,
                                         RelationType.RECONFIGURE_VM,

@@ -74,9 +74,8 @@ class APIExtension(object):
 
         :return: the extension service record.
 
-        :rtype: generator object that returns lxml.objectify.ObjectifiedElement
-            object containing AdminServiceRecord XML data representing the
-            service.
+        :rtype: lxml.objectify.ObjectifiedElement object containing
+            AdminServiceRecord XML data representing the service.
 
         :raises MissingRecordException: if a service with the given name and
             namespace couldn't be found.

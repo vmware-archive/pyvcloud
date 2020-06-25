@@ -146,12 +146,10 @@ class VM(object):
             raise ValueError('Not possible to remove placement policy if '
                              ' Sizing Policy is not present')
 
-        # set VdcComputePolicy details to sizing policy details
+        # Remove VdcComputePolicy from request as we know that we are dealing
+        # with API version >= 33.0
         if hasattr(vm_resource, 'VdcComputePolicy'):
-            sizing_policy_href = vm_resource.ComputePolicy.VmSizingPolicy.get('href')  # noqa: E501
-            sizing_policy_id = vm_resource.ComputePolicy.VmSizingPolicy.get('id')  # noqa: E501
-            vm_resource.VdcComputePolicy.set('href', sizing_policy_href)
-            vm_resource.VdcComputePolicy.set('id', sizing_policy_id)
+            vm_resource.remove(vm_resource.VdcComputePolicy)
 
         vm_resource.ComputePolicy.remove(
             vm_resource.ComputePolicy.VmPlacementPolicy)
@@ -174,6 +172,7 @@ class VM(object):
         above, VmSizingPolicy is modified.
 
         :param str compute_policy_href: href of the target compute policy
+            (also used to update sizing policy for api version >=33.0)
         :param str placement_policy_href: target placement policy href.
 
         :return: an object containing EntityType.TASK XML data which represents
@@ -194,31 +193,34 @@ class VM(object):
         if not compute_policy_href and not placement_policy_href:
             return
 
-        # Update VdcComputePolicy while updating both Placement and Sizing
-        # policies to handle the case where only one of them is present
         vm_resource = self.get_resource()
-        if placement_policy_href:
-            placement_policy_id = \
-                retrieve_compute_policy_id_from_href(placement_policy_href)
-            if hasattr(vm_resource, 'VdcComputePolicy'):
-                vm_resource.VdcComputePolicy.set('href', placement_policy_href)
-                vm_resource.VdcComputePolicy.set('id', placement_policy_id)
 
-            vm_resource.ComputePolicy.VmPlacementPolicy.set('href',
-                                                            placement_policy_href)  # noqa: E501
-            vm_resource.ComputePolicy.VmPlacementPolicy.set('id',
-                                                            placement_policy_id)  # noqa: E501
-        if compute_policy_href:
-            compute_policy_id = \
-                retrieve_compute_policy_id_from_href(compute_policy_href)
-            if hasattr(vm_resource, 'VdcComputePolicy'):
+        if api_version < VDC_COMPUTE_POLICY_MAX_API_VERSION:
+            if compute_policy_href:
+                compute_policy_id = \
+                    retrieve_compute_policy_id_from_href(compute_policy_href)
                 vm_resource.VdcComputePolicy.set('href', compute_policy_href)
                 vm_resource.VdcComputePolicy.set('id', compute_policy_id)
-            if api_version >= VM_SIZING_POLICY_MIN_API_VERSION:
+        else:
+            # No need to send VdcComputePolicy in request if >= 33.0
+            if hasattr(vm_resource, 'VdcComputePolicy'):
+                vm_resource.remove(vm_resource.VdcComputePolicy)
+
+            if placement_policy_href:
+                placement_policy_id = \
+                    retrieve_compute_policy_id_from_href(placement_policy_href)
+
+                vm_resource.ComputePolicy.VmPlacementPolicy.set('href',
+                                                                placement_policy_href)  # noqa: E501
+                vm_resource.ComputePolicy.VmPlacementPolicy.set('id',
+                                                                placement_policy_id)  # noqa: E501
+            if compute_policy_href:
+                compute_policy_id = \
+                    retrieve_compute_policy_id_from_href(compute_policy_href)
                 vm_resource.ComputePolicy.VmSizingPolicy.set('href',
-                                                             compute_policy_href)  # noqa: E501
+                                                            compute_policy_href)  # noqa: E501
                 vm_resource.ComputePolicy.VmSizingPolicy.set('id',
-                                                             compute_policy_id)
+                                                            compute_policy_id)
 
         reconfigure_vm_link = find_link(self.resource,
                                         RelationType.RECONFIGURE_VM,

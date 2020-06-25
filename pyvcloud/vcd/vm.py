@@ -1041,10 +1041,10 @@ class VM(object):
             for disk in disk_list.Item:
                 if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':
                     vhs_disk_info = {
-                        'diskElementName': disk[
-                            '{' + NSMAP['rasd'] + '}ElementName'],
-                        'diskVirtualQuantityInBytes': disk[
-                            '{' + NSMAP['rasd'] + '}VirtualQuantity']
+                        'diskElementName': str(disk[
+                            '{' + NSMAP['rasd'] + '}ElementName']),
+                        'diskVirtualQuantityInBytes': int(disk[
+                            '{' + NSMAP['rasd'] + '}VirtualQuantity'])
                     }
                     result.append(vhs_disk_info)
 

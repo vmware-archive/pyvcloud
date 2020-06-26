@@ -34,6 +34,7 @@ from pyvcloud.vcd.exceptions import MultipleRecordsException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.utils import retrieve_compute_policy_id_from_href
+from pyvcloud.vcd.utils import update_vm_compute_policy_element
 from pyvcloud.vcd.utils import uri_to_api_uri
 
 VDC_COMPUTE_POLICY_MIN_API_VERSION = float(ApiVersion.VERSION_32.value)
@@ -176,7 +177,7 @@ class VM(object):
         :param str placement_policy_href: target placement policy href.
 
         :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task that updates the vm.
+            the asynchronous task that updates the vm if update is needed.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
@@ -194,40 +195,50 @@ class VM(object):
             return
 
         vm_resource = self.get_resource()
+        compute_policy_id = None
+        placement_policy_id = None
+        if compute_policy_href:
+            compute_policy_id = \
+                retrieve_compute_policy_id_from_href(compute_policy_href)
+        if placement_policy_href:
+            placement_policy_id = \
+                retrieve_compute_policy_id_from_href(placement_policy_href)
+        # To check if update is required
+        is_update_required = False
+        date_created_node = vm_resource.find('{http://www.vmware.com/vcloud/v1.5}DateCreated')  # noqa: E501
 
         if api_version < VDC_COMPUTE_POLICY_MAX_API_VERSION:
             if compute_policy_href:
-                compute_policy_id = \
-                    retrieve_compute_policy_id_from_href(compute_policy_href)
-                vm_resource.VdcComputePolicy.set('href', compute_policy_href)
-                vm_resource.VdcComputePolicy.set('id', compute_policy_id)
+                if hasattr(vm_resource, 'VdcComputePolicy'):
+                    if vm_resource.VdcComputePolicy.get('href', '') != compute_policy_href:  # noqa: E501
+                        is_update_required = True
+                    vdc_compute_policy_element = vm_resource.VdcComputePolicy
+                else:
+                    is_update_required = True
+                    vdc_compute_policy_element = E.VdcComputePolicy()
+                    date_created_node.addprevious(vdc_compute_policy_element)
+                vdc_compute_policy_element.set('href', compute_policy_href)
+                vdc_compute_policy_element.set('id', compute_policy_id)
+                vdc_compute_policy_element.set('type', 'application/json')
         else:
             # No need to send VdcComputePolicy in request if >= 33.0
             if hasattr(vm_resource, 'VdcComputePolicy'):
                 vm_resource.remove(vm_resource.VdcComputePolicy)
+            vm_resource, is_update_required = \
+                update_vm_compute_policy_element(api_version,
+                                                 vm_resource,
+                                                 sizing_policy_href=compute_policy_href,  # noqa: E501
+                                                 sizing_policy_id=compute_policy_id,  # noqa: E501
+                                                 placement_policy_href=placement_policy_href,  # noqa: E501
+                                                 placement_policy_id=placement_policy_id)  # noqa: E501
 
-            if placement_policy_href:
-                placement_policy_id = \
-                    retrieve_compute_policy_id_from_href(placement_policy_href)
-
-                vm_resource.ComputePolicy.VmPlacementPolicy.set('href',
-                                                                placement_policy_href)  # noqa: E501
-                vm_resource.ComputePolicy.VmPlacementPolicy.set('id',
-                                                                placement_policy_id)  # noqa: E501
-            if compute_policy_href:
-                compute_policy_id = \
-                    retrieve_compute_policy_id_from_href(compute_policy_href)
-                vm_resource.ComputePolicy.VmSizingPolicy.set('href',
-                                                            compute_policy_href)  # noqa: E501
-                vm_resource.ComputePolicy.VmSizingPolicy.set('id',
-                                                            compute_policy_id)
-
-        reconfigure_vm_link = find_link(self.resource,
-                                        RelationType.RECONFIGURE_VM,
-                                        EntityType.VM.value)
-        return self.client.post_resource(reconfigure_vm_link.href,
-                                         vm_resource,
-                                         EntityType.VM.value)
+        if is_update_required:
+            reconfigure_vm_link = find_link(self.resource,
+                                            RelationType.RECONFIGURE_VM,
+                                            EntityType.VM.value)
+            return self.client.post_resource(reconfigure_vm_link.href,
+                                             vm_resource,
+                                             EntityType.VM.value)
 
     def modify_cpu(self, virtual_quantity, cores_per_socket=None):
         """Updates the number of CPUs of a vm.

@@ -52,6 +52,7 @@ from pyvcloud.vcd.utils import get_safe_members_in_tar_file
 from pyvcloud.vcd.utils import is_admin
 from pyvcloud.vcd.utils import retrieve_compute_policy_id_from_href
 from pyvcloud.vcd.utils import to_dict
+from pyvcloud.vcd.utils import update_vm_compute_policy_element
 from pyvcloud.vcd.utils import VDC_COMPUTE_POLICY_MAX_API_VERSION
 from pyvcloud.vcd.utils import VDC_COMPUTE_POLICY_MIN_API_VERSION
 from pyvcloud.vcd.utils import VM_SIZING_POLICY_MIN_API_VERSION
@@ -1854,10 +1855,10 @@ class Org(object):
             vms = template_resource.Children.Vm
             for vm in vms:
                 vm, template_update_required = \
-                    self._update_vm_compute_policy_element(api_version,
-                                                           vm,
-                                                           placement_policy_href=placement_policy_href,  # noqa: E501
-                                                           placement_policy_id=policy_id)  # noqa: E501
+                    update_vm_compute_policy_element(api_version,
+                                                     vm,
+                                                     placement_policy_href=placement_policy_href,  # noqa: E501
+                                                     placement_policy_id=policy_id)  # noqa: E501
 
             if template_update_required:
                 return self.client.put_resource(
@@ -1903,10 +1904,10 @@ class Org(object):
             vms = template_resource.Children.Vm
             for vm in vms:
                 vm, template_update_required = \
-                    self._update_vm_compute_policy_element(api_version,
-                                                           vm,
-                                                           sizing_policy_href=sizing_policy_href,  # noqa: E501
-                                                           sizing_policy_id=policy_id)  # noqa: E501
+                    update_vm_compute_policy_element(api_version,
+                                                     vm,
+                                                     sizing_policy_href=sizing_policy_href,  # noqa: E501
+                                                     sizing_policy_id=policy_id)  # noqa: E501
 
             if template_update_required:
                 return self.client.put_resource(
@@ -1970,86 +1971,16 @@ class Org(object):
 
                 if api_version >= VM_SIZING_POLICY_MIN_API_VERSION:
                     vm, template_update_required = \
-                        self._update_vm_compute_policy_element(api_version,
-                                                               vm,
-                                                               sizing_policy_href=compute_policy_href,  # noqa: E501
-                                                               sizing_policy_id=policy_id)  # noqa: E501
+                        update_vm_compute_policy_element(api_version,
+                                                         vm,
+                                                         sizing_policy_href=compute_policy_href,  # noqa: E501
+                                                         sizing_policy_id=policy_id)  # noqa: E501
 
             if template_update_required:
                 return self.client.put_resource(
                     template_resource_href,
                     template_resource,
                     media_type=EntityType.VAPP_TEMPLATE.value)
-
-    def _update_vm_compute_policy_element(self,
-                                          api_version,
-                                          vm,
-                                          sizing_policy_href=None,
-                                          sizing_policy_id=None,
-                                          placement_policy_href=None,
-                                          placement_policy_id=None):
-        """Update the compute policy element of a VM.
-
-        Note: This method only adds the policy elements if supported by the
-            api_version
-
-        :param api_version float:
-        :param vm lxml.objectify.ObjectifiedElement: Element representing a VM
-        :param sizing_policy_href: href of the sizing policy to be added
-        :param sizing_policy_id: id of the sizing policy to be added
-        :param placement_policy_href: href of the placement policy to be added
-        :param placement_policy_id: id of the placement policy to be added
-
-        :return: a tuple which contains the updated vm element and a boolean
-            to indicate if the vm element was changed
-
-        :rtype: (lxml.objectify.ObjectifiedElement, bool)
-        """
-        # boolean which indicates if template vm element has been changed
-        template_update_required = False
-        if api_version < VM_SIZING_POLICY_MIN_API_VERSION:
-            return (vm, template_update_required)
-
-        if not sizing_policy_href and not placement_policy_href:
-            return (vm, template_update_required)
-
-        date_created_node = vm.find('{http://www.vmware.com/vcloud/v1.5}DateCreated')  # noqa: E501
-        if hasattr(vm, 'ComputePolicy'):
-            compute_policy_element = vm.ComputePolicy
-        else:
-            template_update_required = True
-            compute_policy_element = E.ComputePolicy()
-            date_created_node.addprevious(compute_policy_element)
-
-        if sizing_policy_href:
-            if hasattr(compute_policy_element, 'VmSizingPolicy'):
-                if compute_policy_element.VmSizingPolicy.get('href', '') != sizing_policy_href:  # noqa: E501
-                    template_update_required = True
-                vm_sizing_policy_element = compute_policy_element.VmSizingPolicy  # noqa: E501
-            else:
-                template_update_required = True
-                vm_sizing_policy_element = E.VmSizingPolicy()
-                compute_policy_element.append(vm_sizing_policy_element)
-                compute_policy_element.append(E.VmSizingPolicyFinal('false'))
-            vm_sizing_policy_element.set('href', sizing_policy_href)
-            vm_sizing_policy_element.set('id', sizing_policy_id)
-            vm_sizing_policy_element.set('type', 'application/json')
-
-        if placement_policy_href:
-            if hasattr(compute_policy_element, 'VmPlacementPolicy'):
-                if compute_policy_element.VmPlacementPolicy.get('href', '') != placement_policy_href:  # noqa: E501
-                    template_update_required = True
-                vm_placement_policy_element = compute_policy_element.VmPlacementPolicy  # noqa: E501
-            else:
-                template_update_required = True
-                vm_placement_policy_element = E.VmPlacementPolicy()
-                compute_policy_element.append(vm_placement_policy_element)
-                compute_policy_element.append(E.VmPlacementPolicyFinal('false'))  # noqa: E501
-            vm_placement_policy_element.set('href', placement_policy_href)
-            vm_placement_policy_element.set('id', placement_policy_id)
-            vm_placement_policy_element.set('type', 'application/json')
-
-        return (vm, template_update_required)
 
     def remove_compute_policy_from_vapp_template_vms(
             self, catalog_name, catalog_item_name, compute_policy_href=None):

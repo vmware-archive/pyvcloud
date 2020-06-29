@@ -1845,7 +1845,6 @@ class Org(object):
                 f"Unsupported API version. Received '{api_version}' but "
                 f"atleast'{VM_SIZING_POLICY_MIN_API_VERSION}' is required.")
 
-        policy_id = retrieve_compute_policy_id_from_href(placement_policy_href)
         template_resource_href = self.get_vapp_template_href(
             catalog_name, catalog_item_name)
         template_resource = self.client.get_resource(template_resource_href)
@@ -1854,11 +1853,10 @@ class Org(object):
                 hasattr(template_resource.Children, 'Vm'):
             vms = template_resource.Children.Vm
             for vm in vms:
-                vm, template_update_required = \
+                template_update_required = \
                     update_vm_compute_policy_element(api_version,
                                                      vm,
-                                                     placement_policy_href=placement_policy_href,  # noqa: E501
-                                                     placement_policy_id=policy_id)  # noqa: E501
+                                                     placement_policy_href=placement_policy_href)  # noqa: E501
 
             if template_update_required:
                 return self.client.put_resource(
@@ -1894,7 +1892,6 @@ class Org(object):
                 f"Unsupported API version. Received '{api_version}' but "
                 f"atleast'{VM_SIZING_POLICY_MIN_API_VERSION}' is required.")
 
-        policy_id = retrieve_compute_policy_id_from_href(sizing_policy_href)
         template_resource_href = self.get_vapp_template_href(
             catalog_name, catalog_item_name)
         template_resource = self.client.get_resource(template_resource_href)
@@ -1903,11 +1900,10 @@ class Org(object):
                 hasattr(template_resource.Children, 'Vm'):
             vms = template_resource.Children.Vm
             for vm in vms:
-                vm, template_update_required = \
+                template_update_required = \
                     update_vm_compute_policy_element(api_version,
                                                      vm,
-                                                     sizing_policy_href=sizing_policy_href,  # noqa: E501
-                                                     sizing_policy_id=policy_id)  # noqa: E501
+                                                     sizing_policy_href=sizing_policy_href)  # noqa: E501
 
             if template_update_required:
                 return self.client.put_resource(
@@ -1970,11 +1966,10 @@ class Org(object):
                     vdc_compute_policy_element.set('type', 'application/json')
 
                 if api_version >= VM_SIZING_POLICY_MIN_API_VERSION:
-                    vm, template_update_required = \
+                    template_update_required = \
                         update_vm_compute_policy_element(api_version,
                                                          vm,
-                                                         sizing_policy_href=compute_policy_href,  # noqa: E501
-                                                         sizing_policy_id=policy_id)  # noqa: E501
+                                                         sizing_policy_href=compute_policy_href)  # noqa: E501
 
             if template_update_required:
                 return self.client.put_resource(

@@ -144,7 +144,7 @@ class VM(object):
                 f"'{VM_SIZING_POLICY_MIN_API_VERSION}' is required.")
         vm_resource = self.get_resource()
         if not hasattr(vm_resource.ComputePolicy, 'VmSizingPolicy'):
-            raise ValueError('Not possible to remove placement policy if '
+            raise ValueError('Unable to remove placement policy if '
                              ' Sizing Policy is not present')
 
         # Remove VdcComputePolicy from request as we know that we are dealing
@@ -195,19 +195,14 @@ class VM(object):
             return
 
         vm_resource = self.get_resource()
-        compute_policy_id = None
-        placement_policy_id = None
-        if compute_policy_href:
-            compute_policy_id = \
-                retrieve_compute_policy_id_from_href(compute_policy_href)
-        if placement_policy_href:
-            placement_policy_id = \
-                retrieve_compute_policy_id_from_href(placement_policy_href)
         # To check if update is required
         is_update_required = False
         date_created_node = vm_resource.find('{http://www.vmware.com/vcloud/v1.5}DateCreated')  # noqa: E501
 
         if api_version < VDC_COMPUTE_POLICY_MAX_API_VERSION:
+            if compute_policy_href:
+                compute_policy_id = \
+                    retrieve_compute_policy_id_from_href(compute_policy_href)
             if compute_policy_href:
                 if hasattr(vm_resource, 'VdcComputePolicy'):
                     if vm_resource.VdcComputePolicy.get('href', '') != compute_policy_href:  # noqa: E501
@@ -224,13 +219,12 @@ class VM(object):
             # No need to send VdcComputePolicy in request if >= 33.0
             if hasattr(vm_resource, 'VdcComputePolicy'):
                 vm_resource.remove(vm_resource.VdcComputePolicy)
-            vm_resource, is_update_required = \
+
+            is_update_required = \
                 update_vm_compute_policy_element(api_version,
                                                  vm_resource,
                                                  sizing_policy_href=compute_policy_href,  # noqa: E501
-                                                 sizing_policy_id=compute_policy_id,  # noqa: E501
-                                                 placement_policy_href=placement_policy_href,  # noqa: E501
-                                                 placement_policy_id=placement_policy_id)  # noqa: E501
+                                                 placement_policy_href=placement_policy_href)  # noqa: E501
 
         if is_update_required:
             reconfigure_vm_link = find_link(self.resource,

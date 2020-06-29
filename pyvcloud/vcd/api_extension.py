@@ -74,9 +74,8 @@ class APIExtension(object):
 
         :return: the extension service record.
 
-        :rtype: generator object that returns lxml.objectify.ObjectifiedElement
-            object containing AdminServiceRecord XML data representing the
-            service.
+        :rtype: lxml.objectify.ObjectifiedElement object containing
+            AdminServiceRecord XML data representing the service.
 
         :raises MissingRecordException: if a service with the given name and
             namespace couldn't be found.
@@ -136,26 +135,6 @@ class APIExtension(object):
             return response_xml
         except Exception as err:
             raise Exception(f"Failed to get extension XML with error: {err}")
-
-    def get_api_filters(self, service_id):
-        """Fetch the API filters defined for the service.
-
-        :param str service_id: the id of the extension service.
-
-        :return: API filters registered for the API extension.
-
-        :rtype: generator object
-        """
-        try:
-            records = self.client.get_typed_query(
-                ResourceType.API_FILTER.value,
-                equality_filter=('service', service_id),
-                query_result_format=QueryResultFormat.ID_RECORDS).execute()
-        except OperationNotSupportedException:
-            msg = 'User doesn\'t have permission to view api filters.'
-            raise OperationNotSupportedException(msg)
-
-        return records
 
     def get_extension_info(self, name, namespace=None):
         """Return info about an API extension, including filters.
@@ -302,6 +281,51 @@ class APIExtension(object):
         """
         href = self.enable_extension(name, enabled=False, namespace=namespace)
         return self.client.delete_resource(href)
+
+    def get_api_filters(self, service_id, format=QueryResultFormat.ID_RECORDS):
+        """Fetch the API filters defined for the service.
+
+        :param str service_id: the id of the extension service.
+        :param format QueryResultFormat: dictates whether id or href should be
+            part of the returned record. By default id is returned.
+
+        :return: API filters registered for the API extension.
+
+        :rtype: generator object
+        """
+        try:
+            records = self.client.get_typed_query(
+                ResourceType.API_FILTER.value,
+                equality_filter=('service', service_id),
+                query_result_format=format).execute()
+        except OperationNotSupportedException:
+            msg = 'User doesn\'t have permission to view api filters.'
+            raise OperationNotSupportedException(msg)
+
+        return records
+
+    def remove_all_api_filters_from_service(self, name, namespace=None):
+        """."""
+        ext_record = self._get_extension_record(name=name, namespace=namespace)
+        api_filter_records = self.get_api_filters(
+            service_id=ext_record.get('id'),
+            format=QueryResultFormat.REFERENCES)
+        for record in api_filter_records:
+            api_filter = self.client.get_resource(uri=record.get('href'))
+            self.client.delete_linked_resource(
+                resource=api_filter, rel=RelationType.REMOVE, media_type=None)
+
+    def add_api_filters_to_service(self, name, patterns, namespace=None):
+        """."""
+        ext_record = self._get_extension_record(
+            name=name, namespace=namespace,
+            format=QueryResultFormat.REFERENCES)
+        ext = self.client.get_resource(uri=ext_record.get('href'))
+        for pattern in patterns:
+            api_filter = E_VMEXT.ApiFilter(E_VMEXT.UrlPattern(pattern.strip()))
+            self.client.post_linked_resource(
+                resource=ext, rel=RelationType.ADD,
+                media_type=EntityType.API_FILTER.value, contents=api_filter)
 
     def add_service_right(self, right_name, service_name, namespace,
                           description, category, bundle_key):

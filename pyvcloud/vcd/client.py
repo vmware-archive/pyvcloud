@@ -342,6 +342,7 @@ class EntityType(Enum):
         'application/vnd.vmware.vcloud.allocatedNetworkAddress+xml'
     AMQP_SETTINGS = 'application/vnd.vmware.admin.amqpSettings+xml'
     API_EXTENSIBILITY = 'application/vnd.vmware.vcloud.apiextensibility+xml'
+    API_FILTER = 'application/vnd.vmware.admin.apiFilter+xml'
     APPLICATION_BINARY = 'application/binary'
     CATALOG = 'application/vnd.vmware.vcloud.catalog+xml'
     CAPTURE_VAPP_PARAMS = \

@@ -263,6 +263,7 @@ class VDC(object):
 
         # If network is not specified by user then default to
         # vApp network name specified in the template
+        network_is_template_vapp_network = False
         template_networks = template_resource.xpath(
             '//ovf:NetworkSection/ovf:Network',
             namespaces={'ovf': NSMAP['ovf']})
@@ -272,8 +273,10 @@ class VDC(object):
                 '{' + NSMAP['ovf'] + '}name')
             if ((network is None) and (network_name_from_template != 'none')):
                 network = network_name_from_template
+                network_is_template_vapp_network = True
+        
         # Find the network in vdc referred to by user, using
-        # name of the network
+        # name of the network, ignoring template vApp networks
         network_href = network_name = None
         if network is not None:
             if hasattr(self.resource, 'AvailableNetworks') and \
@@ -284,9 +287,12 @@ class VDC(object):
                         network_name = n.get('name')
                         break
             if network_href is None:
-                raise EntityNotFoundException(
-                    'Network \'%s\' not found in the Virtual Datacenter.' %
-                    network)
+                if network_is_template_vapp_network:
+                    pass
+                else:
+                    raise EntityNotFoundException(
+                        'Network \'%s\' not found in the Virtual Datacenter.' %
+                        network)
 
         # Configure the network of the vApp
         vapp_instantiation_param = None

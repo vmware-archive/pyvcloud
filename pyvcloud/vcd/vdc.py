@@ -274,7 +274,7 @@ class VDC(object):
             if ((network is None) and (network_name_from_template != 'none')):
                 network = network_name_from_template
                 network_is_template_vapp_network = True
-        
+
         # Find the network in vdc referred to by user, using
         # name of the network, ignoring template vApp networks
         network_href = network_name = None

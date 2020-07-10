@@ -951,7 +951,8 @@ class Gateway(object):
         ip_pool_tag = create_element("ipPool")
         ip_pool_tag.append(create_element("autoConfigureDNS", auto_config_dns))
         if default_gateway is not None:
-            ip_pool_tag.append(create_element("defaultGateway", default_gateway))
+            ip_pool_tag.append(create_element("defaultGateway", 
+                                              default_gateway))
         if domain_name is not None:
             ip_pool_tag.append(create_element("domainName", domain_name))
         if primary_server is not None:
@@ -1527,7 +1528,8 @@ class Gateway(object):
                     create_element("secondaryNameServer", secondary_server))
 
         if default_gateway:
-            static_binding.append(create_element("defaultGateway", default_gateway))
+            static_binding.append(create_element("defaultGateway", 
+                                                 default_gateway))
         if domain_name:
             static_binding.append(create_element("domainName", domain_name))
 

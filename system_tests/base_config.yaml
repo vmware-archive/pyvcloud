@@ -87,6 +87,9 @@ nsxt:
   admin_pwd: '<nsx-t admin password>'
   descrip: 'This is a description.'
 
+host:
+  host_name: 'host1'
+
 pvdc:
   pvdc_name: '<pvdc-name>'
   respools_to_attach: ['<resource-pool-name1>', '<resource-pool-name2>', ...]

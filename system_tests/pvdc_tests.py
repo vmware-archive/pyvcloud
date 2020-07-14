@@ -30,8 +30,10 @@ from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
 from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.client import TaskStatus
+from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.platform import Platform
+from pyvcloud.vcd.pvdc import PVDC
 from pyvcloud.vcd.utils import get_admin_extension_href
 from pyvcloud.vcd.vapp import VApp
 from pyvcloud.vcd.vdc import VDC
@@ -47,6 +49,9 @@ class TestPVDC(BaseTestCase):
     _new_vdc_name = 'org_vdc_' + str(uuid1())
     _new_vdc_href = None
     _non_existent_vdc_name = 'non_existent_org_vdc_' + str(uuid1())
+
+    _non_existent_storage_profile_name = \
+        'non_existent_storage_profile_' + str(uuid1())
 
     _test_runner_role = CommonRoles.VAPP_AUTHOR
 
@@ -195,6 +200,37 @@ class TestPVDC(BaseTestCase):
         res = TestPVDC._sys_admin_client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(res.get('status'), TaskStatus.SUCCESS.value)
+
+    def test_0036_get_storage_profiles(self):
+        """Get storage profile(s) of a PVDC."""
+        platform = Platform(TestPVDC._sys_admin_client)
+        _, _, pvdc_ext_res = platform.get_pvdc(TestPVDC._pvdc_name)
+        pvdc = PVDC(TestPVDC._sys_admin_client, resource=pvdc_ext_res)
+        pvdc_storage_profiles = pvdc.get_storage_profiles()
+        self.assertTrue(len(pvdc_storage_profiles) > 0)
+
+    def test_0037_get_storage_profile(self):
+        """Get a storage profile of a PVDC by name."""
+        platform = Platform(TestPVDC._sys_admin_client)
+        _, _, pvdc_ext_res = platform.get_pvdc(TestPVDC._pvdc_name)
+        pvdc = PVDC(TestPVDC._sys_admin_client, resource=pvdc_ext_res)
+        pvdc_storage_profile = pvdc.get_storage_profile(
+            TestPVDC._storage_profiles[0])
+        self.assertIsNotNone(pvdc_storage_profile)
+
+    def test_0038_get_storage_profile_negative(self):
+        """PVDC.get_storage_profile does not find a non-existent profile."""
+        try:
+            platform = Platform(TestPVDC._sys_admin_client)
+            _, _, pvdc_ext_res = platform.get_pvdc(TestPVDC._pvdc_name)
+            pvdc = PVDC(TestPVDC._sys_admin_client, resource=pvdc_ext_res)
+            pvdc.get_storage_profile(
+                TestPVDC._non_existent_storage_profile_name)
+            self.fail(
+                'Should not be able to find Storage Profile that does '
+                'not exist ' + TestPVDC._non_existent_storage_profile_name)
+        except EntityNotFoundException as e:
+            return
 
     def test_0040_migrate_vms(self):
         """Migrate VM(s) from one resource pool to another."""

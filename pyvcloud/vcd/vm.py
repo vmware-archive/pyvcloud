@@ -1051,7 +1051,6 @@ class VM(object):
             self.resource.BootOptions.BootDelay.addnext(ebs)
         if storage_policy_href is not None:
             storage_policy_res = self.client.get_resource(storage_policy_href)
-            print(storage_policy_href)
             self.resource.StorageProfile.set('href', storage_policy_href)
             self.resource.StorageProfile.set('id',
                                              storage_policy_res.get('id'))

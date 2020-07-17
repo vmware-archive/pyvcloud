@@ -1296,7 +1296,7 @@ class VM(object):
                                  EntityType.RELOCATE_PARAMS.value,
                                  relocate_params)
 
-    def update_nic(self, network_name,
+    def update_nic(self, network_name, nic_id=0,
                    is_connected=False,
                    is_primary=False,
                    ip_address_mode=None,
@@ -1323,19 +1323,20 @@ class VM(object):
         nic_found = False
         for network in net_conn_section.NetworkConnection:
             if network.get('network') == network_name:
-                nic_found = True
-                if ip_address is not None:
-                    network.IpAddress = E.IpAddress(ip_address)
-                network.IsConnected = E.IsConnected(is_connected)
-                if ip_address_mode is not None:
-                    network.IpAddressAllocationMode = \
-                        E.IpAddressAllocationMode(ip_address_mode)
-                if adapter_type is not None:
-                    network.NetworkAdapterType = E.NetworkAdapterType(
-                        adapter_type)
-                if is_primary:
-                    nic_index = network.NetworkConnectionIndex
-                break
+                if network.NetworkConnectionIndex == nic_id:
+                    nic_found = True
+                    if ip_address is not None:
+                        network.IpAddress = E.IpAddress(ip_address)
+                    network.IsConnected = E.IsConnected(is_connected)
+                    if ip_address_mode is not None:
+                        network.IpAddressAllocationMode = \
+                            E.IpAddressAllocationMode(ip_address_mode)
+                    if adapter_type is not None:
+                        network.NetworkAdapterType = E.NetworkAdapterType(
+                            adapter_type)
+                    if is_primary:
+                        nic_index = network.NetworkConnectionIndex
+                    break
 
         if nic_found is False:
             raise EntityNotFoundException(

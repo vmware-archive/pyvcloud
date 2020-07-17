@@ -473,28 +473,30 @@ class VM(object):
         return self.client.post_linked_resource(
             self.resource, RelationType.DISCARD_SUSPENDED_STATE, None, None)
 
-    def set_name(self, name):
-        """Set the name of the vm.
+    def edit_name(self, name):
+        """Edit name of the vm.
 
-        :param str name: new name for the vm.
+        :param str name: New name of the vm. It is mandatory.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is reconfiguring the vm.
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
+        if name is None or name.isspace():
+            raise InvalidParameterException("Name can't be None or empty")
         self.get_resource()
         params = E.Vm(
-            name=name
+            name=name.strip()
         )
         return self.client.post_linked_resource(
             self.resource, RelationType.RECONFIGURE_VM,
             EntityType.VM.value, params)
 
-    def set_hostname(self, hostname):
-        """Set the hostname (computer name) of the vm.
+    def edit_hostname(self, hostname):
+        """Edit hostname (computer name) of the vm.
 
-        :param str hostname: new hostname for the vm.
+        :param str hostname: new hostname of the vm. It is mandatory.
 
         :return: an object containing EntityType.TASK XML data which represents
             the asynchronous task that is updating the vm's guest customization
@@ -502,14 +504,14 @@ class VM(object):
 
         :rtype: lxml.objectify.ObjectifiedElement
         """
-        from lxml import objectify
-
+        if hostname is None or hostname.isspace():
+            raise InvalidParameterException("Hostname can't be None or empty")
         self.get_resource()
-
         # Get current values and overwrite only ComputerName
+        from lxml import objectify
         params = self.resource.GuestCustomizationSection
         params.ComputerName = objectify.DataElement(
-            hostname, nsmap='', _pytype='')
+            hostname.strip(), nsmap='', _pytype='')
 
         return self.client.put_resource(
             self.resource.GuestCustomizationSection.get('href'),

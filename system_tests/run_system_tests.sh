@@ -35,6 +35,7 @@ UNSTABLE_TESTS="helpers/portgroup_helper.py \
 main.py \
 nsxt_tests.py \
 pvdc_tests.py \
+host_tests.py \
 vc_tests.py \
 cleanup_test.py \
 __init__.py"

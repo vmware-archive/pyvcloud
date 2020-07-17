@@ -711,10 +711,8 @@ class Platform(object):
                 media_type=EntityType.VMW_PVDC_STORAGE_PROFILE.value)
             num_links = len(links)
             if num_links == 1:
-                if hasattr(sp_resource,
-                   '{' + NSMAP['vcloud'] + '}Units'):
-                    units = \
-                        sp_resource['{' + NSMAP['vcloud'] + '}Units']
+                if hasattr(sp_resource, '{' + NSMAP['vcloud'] + '}Units'):
+                    units = sp_resource['{' + NSMAP['vcloud'] + '}Units']
                     disable_payload = \
                         E_VMEXT.VMWProviderVdcStorageProfile(
                             name=sp_name,
@@ -960,7 +958,7 @@ class Platform(object):
         :rtype: lxml.objectify.ObjectifiedElement
         """
         payload = E_VMEXT.NsxTManager(name=nsxt_manager_name)
-        if (nsxt_manager_description is not None):
+        if nsxt_manager_description is not None:
             payload.append(E.Description(nsxt_manager_description))
         payload.append(E_VMEXT.Username(nsxt_manager_username))
         payload.append(E_VMEXT.Password(nsxt_manager_password))
@@ -1109,3 +1107,107 @@ class Platform(object):
                 if reference.get('id') == datastore_id:
                     return reference.get('href')
         raise EntityNotFoundException('Datastore id  \'%s\' not found' % id)
+
+    def list_hosts(self):
+        """List all hosts available in the system.
+
+        :return: list of lxml.objectify.ObjectifiedElement objects which
+            contains vmext:HostReference XML element representing
+            the host references.
+
+        :rtype: list
+        """
+        host_refs = self.client.get_linked_resource(
+            self.extension.get_resource(), RelationType.DOWN,
+            EntityType.HOST_REFS.value)
+
+        if hasattr(host_refs, 'HostReference'):
+            return host_refs.HostReference
+
+        return []
+
+    def get_host(self, name):
+        """Fetch an host resource identified by its name.
+
+        :param str name: name of the host to be retrieved.
+
+        :return: an object containing EntityType.HOST XML data
+            which represents a host.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+
+        :raises: EntityNotFoundException: If the named host cannot
+            be located.
+        """
+        host_refs = self.list_hosts()
+        for host in host_refs:
+            if host.get('name') == name:
+                return self.client.get_resource(host.get('href'))
+        raise EntityNotFoundException('Host \'%s\' not found.' % name)
+
+    def enable_disable_host(self, name, enable_flag):
+        """Enable or disable a host.
+
+        Deprecated since vCloud API version 31.0 (vCloud Director 9.5).
+
+        :param str name: name of the host.
+        :param boolean enable_flag: True means enable, False means disable.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is enabling or disabling the host.
+            None, if the host was already in correct state.
+
+        rtype: lxml.objectify.ObjectifiedElement'
+        """
+        host = self.get_host(name)
+        if enable_flag == bool(host.Enabled):
+            return None
+        return self.client.post_linked_resource(
+            resource=host,
+            rel=(RelationType.ENABLE if enable_flag else RelationType.DISABLE),
+            media_type=None,
+            contents=None)
+
+    def prepare_host(self, name, username, password):
+        """Prepare a host.
+
+        Deprecated since vCloud API version 31.0 (vCloud Director 9.5).
+
+        :param str name: name of the host.
+        :param str username: username for preparing the host.
+        :param str password: password for preparing the host.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is preparing the host.
+
+        rtype: lxml.objectify.ObjectifiedElement'
+        """
+        host = self.get_host(name)
+        params = E_VMEXT.PrepareHostParams(
+            E_VMEXT.Username(username),
+            E_VMEXT.Password(password)
+        )
+        return self.client.post_linked_resource(
+            resource=host,
+            rel=RelationType.EDIT,
+            media_type='application/vnd.vmware.admin.prepareHostParams+xml',
+            contents=params)
+
+    def unprepare_host(self, name):
+        """Unprepare a host.
+
+        Deprecated since vCloud API version 31.0 (vCloud Director 9.5).
+
+        :param str name: name of the host.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that is unpreparing the host.
+
+        rtype: lxml.objectify.ObjectifiedElement'
+        """
+        host = self.get_host(name)
+        return self.client.post_linked_resource(
+            resource=host,
+            rel=RelationType.EDIT,
+            media_type=None,
+            contents=None)

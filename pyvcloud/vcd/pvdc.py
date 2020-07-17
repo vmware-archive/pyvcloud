@@ -16,6 +16,7 @@ from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.utils import get_admin_href
 
@@ -129,3 +130,45 @@ class PVDC(object):
         return self.client.post_linked_resource(metadata, RelationType.ADD,
                                                 EntityType.METADATA.value,
                                                 new_metadata)
+
+    def get_storage_profiles(self):
+        """Fetch a list of the Storage Profiles defined in a provider vdc.
+
+        :return: a list of lxml.objectify.ObjectifiedElement objects, where
+            each object contains a ProviderVdcStorageProfile XML element
+            representing an existing storage profile.
+
+        :rtype: list
+        """
+        profile_list = []
+        self.get_resource()
+
+        if hasattr(self.resource, 'StorageProfiles') and hasattr(
+                self.resource.StorageProfiles, 'ProviderVdcStorageProfile'):
+            profiles = self.resource.StorageProfiles.ProviderVdcStorageProfile
+            for profile in profiles:
+                profile_list.append(profile)
+            return profile_list
+        return None
+
+    def get_storage_profile(self, profile_name):
+        """Fetch a specific Storage Profile within an provider vdc.
+
+        :param str profile_name: name of the requested storage profile.
+
+        :return: an object containing ProviderVdcStorageProfile XML element
+            that represents the requested storage profile.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        self.get_resource()
+
+        if hasattr(self.resource, 'StorageProfiles') and hasattr(
+                self.resource.StorageProfiles, 'ProviderVdcStorageProfile'):
+            profiles = self.resource.StorageProfiles.ProviderVdcStorageProfile
+            for profile in profiles:
+                if profile.get('name') == profile_name:
+                    return profile
+
+        raise EntityNotFoundException(
+            'Storage Profile named \'%s\' not found' % profile_name)

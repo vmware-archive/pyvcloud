@@ -277,7 +277,7 @@ class Environment(object):
             admin_resource=cls._sys_admin_client.get_admin())
 
         pvdc_refs = system.list_provider_vdcs()
-        if pvdc_name is not '*':
+        if pvdc_name != '*':
             for pvdc_ref in pvdc_refs:
                 if pvdc_ref.get('name').lower() == pvdc_name.lower():
                     cls._logger.debug('Reusing existing ' + pvdc_name)
@@ -349,7 +349,7 @@ class Environment(object):
         platform = Platform(cls._sys_admin_client)
 
         net_refs = platform.list_external_networks()
-        if net_name is not '*':
+        if net_name != '*':
             for net_ref in net_refs:
                 if net_ref.get('name').lower() == net_name.lower():
                     cls._logger.debug('Reusing existing ' + net_name)
@@ -517,7 +517,7 @@ class Environment(object):
         netpools = system.list_network_pools()
         netpool_to_use = None
         netpool_name = cls._config['vcd']['default_netpool_name']
-        if netpool_name is not '*':
+        if netpool_name != '*':
             for item in netpools:
                 if item.get('name').lower() == netpool_name.lower():
                     netpool_to_use = item.get('name')

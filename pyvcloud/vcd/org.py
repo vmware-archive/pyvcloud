@@ -1820,7 +1820,8 @@ class Org(object):
     def assign_placement_policy_to_vapp_template_vms(self,
                                                      catalog_name,
                                                      catalog_item_name,
-                                                     placement_policy_href):
+                                                     placement_policy_href,
+                                                     placement_policy_final=False):  # noqa: E501
         """Assign placement policy to all vms of a given vApp template.
 
         The placement policy is identified by its href.
@@ -1828,6 +1829,8 @@ class Org(object):
         :param str catalog_name: Name of the catalog that contains the template
         :param str catalog_item_name: Name of the template (catalog item)
         :param str placement_policy_href: href of the placement policy
+        :param bool placement_policy_final: if set to True, the placement
+            policy can't be overridden
 
         :return: an object of type EntityType.TASK XML which represents
                 the asynchronous task that is updating virtual application
@@ -1856,7 +1859,8 @@ class Org(object):
                 template_update_required = \
                     update_vm_compute_policy_element(api_version,
                                                      vm,
-                                                     placement_policy_href=placement_policy_href)  # noqa: E501
+                                                     placement_policy_href=placement_policy_href,  # noqa: E501
+                                                     placement_policy_final=placement_policy_final)  # noqa: E501
 
             if template_update_required:
                 return self.client.put_resource(
@@ -1867,7 +1871,8 @@ class Org(object):
     def assign_sizing_policy_to_vapp_template_vms(self,
                                                   catalog_name,
                                                   catalog_item_name,
-                                                  sizing_policy_href):
+                                                  sizing_policy_href,
+                                                  sizing_policy_final=False):
         """Assign sizing policy to all vms in a given vApp template.
 
         The sizing policy is identified by its href.
@@ -1875,6 +1880,8 @@ class Org(object):
         :param str catalog_name: Name of the catalog that contains the template
         :param str catalog_item_name: Name of the template (catalog item)
         :param str sizing_policy_href: href of the sizing policy
+        :param bool sizing_policy_final: If set to True, the sizing policy
+            can't be overridden
 
         :return: an object of type EntityType.TASK XML which represents
             the asynchronous task that is updating virtual application
@@ -1903,7 +1910,8 @@ class Org(object):
                 template_update_required = \
                     update_vm_compute_policy_element(api_version,
                                                      vm,
-                                                     sizing_policy_href=sizing_policy_href)  # noqa: E501
+                                                     sizing_policy_href=sizing_policy_href,  # noqa: E501
+                                                     sizing_policy_final=sizing_policy_final)  # noqa: E501
 
             if template_update_required:
                 return self.client.put_resource(
@@ -1914,14 +1922,21 @@ class Org(object):
     def assign_compute_policy_to_vapp_template_vms(self,
                                                    catalog_name,
                                                    catalog_item_name,
-                                                   compute_policy_href):
+                                                   compute_policy_href,
+                                                   sizing_policy_final=False):
         """Assign compute policy to all vms in a given vApp template.
+
+        NOTE: This function is deprecated as VdcComputePolicy Tags are
+        deprecated. When used with api_version >= 33.0, the function tries to
+        add a sizing policy with href 'compute_policy_href' to template VMs
 
         The compute policy is identified by its href.
 
         :param str catalog_name: Name of the catalog that contains the template
         :param str catalog_item_name: Name of the template (catalog item)
         :param str compute_policy_href: href of the compute policy
+        :param bool sizing_policy_final: If set to True, the compute policy
+            can't be overridden.
 
         :return: an object of type EntityType.TASK XML which represents
             the asynchronous task that is updating virtual application
@@ -1969,7 +1984,8 @@ class Org(object):
                     template_update_required = \
                         update_vm_compute_policy_element(api_version,
                                                          vm,
-                                                         sizing_policy_href=compute_policy_href)  # noqa: E501
+                                                         sizing_policy_href=compute_policy_href,  # noqa: E501
+                                                         sizing_policy_final=sizing_policy_final)  # noqa: E501
 
             if template_update_required:
                 return self.client.put_resource(

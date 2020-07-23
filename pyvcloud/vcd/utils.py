@@ -1024,16 +1024,22 @@ def get_compute_policy_tags(api_version, sizing_compute_policy_href):
 def update_vm_compute_policy_element(api_version,
                                      vm,
                                      sizing_policy_href=None,
-                                     placement_policy_href=None):
+                                     sizing_policy_final=False,
+                                     placement_policy_href=None,
+                                     placement_policy_final=False):
     """Update the compute policy element of a VM.
 
     Note: This method only adds the policy elements if supported by the
         api_version
 
-    :param api_version float:
-    :param vm lxml.objectify.ObjectifiedElement: Element representing a VM
-    :param sizing_policy_href: href of the sizing policy to be added
-    :param placement_policy_href: href of the placement policy to be added
+    :param float api_version:
+    :param lxml.objectify.ObjectifiedElement vm: Element representing a VM
+    :param str sizing_policy_href: href of the sizing policy to be added
+    :param bool sizing_policy_final: If set to True, the sizing policy can't
+        be overridden
+    :param str placement_policy_href: href of the placement policy to be added
+    :param bool placement_policy_final: If set to True, the placement policy
+        can't be overridden
 
     :return: Boolean which indicates if update is required. (VM resource is
         manipulated in-place)
@@ -1065,7 +1071,7 @@ def update_vm_compute_policy_element(api_version,
             vm_placement_policy_element = E.VmPlacementPolicy()
             # VmPlacementPolicy should always precede VmSizingPolicy
             compute_policy_element.insert(0, vm_placement_policy_element)
-            compute_policy_element.insert(1, E.VmPlacementPolicyFinal('false'))  # noqa: E501
+            compute_policy_element.insert(1, E.VmPlacementPolicyFinal(str(placement_policy_final).lower()))  # noqa: E501
         vm_placement_policy_element.set('href', placement_policy_href)
         vm_placement_policy_element.set('id', placement_policy_id)
         vm_placement_policy_element.set('type', 'application/json')
@@ -1080,7 +1086,7 @@ def update_vm_compute_policy_element(api_version,
             update_required = True
             vm_sizing_policy_element = E.VmSizingPolicy()
             compute_policy_element.append(vm_sizing_policy_element)
-            compute_policy_element.append(E.VmSizingPolicyFinal('false'))
+            compute_policy_element.append(E.VmSizingPolicyFinal(str(sizing_policy_final).lower()))  # noqa: E501
         vm_sizing_policy_element.set('href', sizing_policy_href)
         vm_sizing_policy_element.set('id', sizing_policy_id)
         vm_sizing_policy_element.set('type', 'application/json')

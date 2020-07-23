@@ -1035,10 +1035,11 @@ def update_vm_compute_policy_element(api_version,
     :param float api_version:
     :param lxml.objectify.ObjectifiedElement vm: Element representing a VM
     :param str sizing_policy_href: href of the sizing policy to be added
-    :param bool sizing_policy_final: True if sizing policy can be overridden
+    :param bool sizing_policy_final: If set to True, the sizing policy can't
+        be overridden
     :param str placement_policy_href: href of the placement policy to be added
-    :param bool placement_policy_final: True if placement policy can be
-        overridden
+    :param bool placement_policy_final: If set to True, the placement policy
+        can't be overridden
 
     :return: Boolean which indicates if update is required. (VM resource is
         manipulated in-place)

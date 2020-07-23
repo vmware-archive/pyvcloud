@@ -1829,8 +1829,8 @@ class Org(object):
         :param str catalog_name: Name of the catalog that contains the template
         :param str catalog_item_name: Name of the template (catalog item)
         :param str placement_policy_href: href of the placement policy
-        :param bool placement_policy_final: True if the placement policy can
-            be overridden
+        :param bool placement_policy_final: if set to True, the placement
+            policy can't be overridden
 
         :return: an object of type EntityType.TASK XML which represents
                 the asynchronous task that is updating virtual application
@@ -1880,8 +1880,8 @@ class Org(object):
         :param str catalog_name: Name of the catalog that contains the template
         :param str catalog_item_name: Name of the template (catalog item)
         :param str sizing_policy_href: href of the sizing policy
-        :param bool sizing_policy_final: True if the sizing policy can be
-            overridden
+        :param bool sizing_policy_final: If set to True, the sizing policy
+            can't be overridden
 
         :return: an object of type EntityType.TASK XML which represents
             the asynchronous task that is updating virtual application
@@ -1935,8 +1935,8 @@ class Org(object):
         :param str catalog_name: Name of the catalog that contains the template
         :param str catalog_item_name: Name of the template (catalog item)
         :param str compute_policy_href: href of the compute policy
-        :param bool sizing_policy_final: True if the compute policy can be
-            overridden
+        :param bool sizing_policy_final: If set to True, the compute policy
+            can't be overridden.
 
         :return: an object of type EntityType.TASK XML which represents
             the asynchronous task that is updating virtual application

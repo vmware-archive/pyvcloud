@@ -369,7 +369,7 @@ class Gateway(object):
             self.resource, RelationType.GATEWAY_UPDATE_PROPERTIES,
             EntityType.EDGE_GATEWAY.value, gateway)
 
-    def edit_gateway(self, newname=None, desc=None, ha=None):
+    def edit_gateway(self, newname=None, desc=None, ha=None, gateway_backing_config=None):
         """It changes the old name of the gateway to the new name.
 
         :param str newname: new name of the gateway
@@ -383,7 +383,7 @@ class Gateway(object):
 
         :raises: ValueError: if the values are not provided.
         """
-        if newname is None and desc is None and ha is None:
+        if newname is None and desc is None and ha is None and gateway_backing_config is None:
             raise ValueError('Invalid input, please provide at least one '
                              'parameter')
 
@@ -397,6 +397,11 @@ class Gateway(object):
                 gateway.insert(0, E.Description(desc))
         if ha:
             gateway.Configuration.HaEnabled = E.HaEnabled(ha)
+
+        if gateway_backing_config:
+            gateway.Configuration.GatewayBackingConfig = E.GatewayBackingConfig(
+                gateway_backing_config
+            )
 
         return self.client.put_linked_resource(
             self.resource, RelationType.EDIT, EntityType.EDGE_GATEWAY.value,

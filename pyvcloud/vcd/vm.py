@@ -674,6 +674,7 @@ class VM(object):
         nics = []
         if hasattr(net_conn_section, 'PrimaryNetworkConnectionIndex'):
             primary_index = net_conn_section.PrimaryNetworkConnectionIndex.text
+            self.primary_index = primary_index
 
         if hasattr(net_conn_section, 'NetworkConnection'):
             for nc in net_conn_section.NetworkConnection:

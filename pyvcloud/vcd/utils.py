@@ -991,33 +991,52 @@ def uri_to_api_uri(uri):
     return api_uri
 
 
-def get_compute_policy_tags(api_version, sizing_compute_policy_href):
+def generate_compute_policy_tags(api_version, sizing_policy_href=None,
+                                 placement_policy_href=None):
     """Generate compute policy tags depending on api_version.
 
     VdcComputePolicy and ComputePolicy tags are generated from
-    sizing_compute_policy_href.
+    sizing_compute_policy_href and placement_policy_href.
+    VdcComputePolicy Tag will be generated if api_version < 33.0.
+    ComputePolicy Tag will be generated only if the api_version >= 33.0.
 
     :param api_version str
-    :param sizing_compute_policy_href href
+    :param sizing_policy_href href
+    :param placement_policy_href href
     :rtype (VdcComputePolicy, ComputePolicy) (etree.Element, etree.Element)
     """
-    if not sizing_compute_policy_href:
+    if api_version < VDC_COMPUTE_POLICY_MIN_API_VERSION or not \
+            (sizing_policy_href or placement_policy_href):
         return (None, None)
-    sizing_compute_policy_id = sizing_compute_policy_href.split('/')[-1]
     vdc_compute_policy_element = None
     compute_policy_element = None
-    if api_version >= VDC_COMPUTE_POLICY_MIN_API_VERSION and \
-            api_version <= VDC_COMPUTE_POLICY_MAX_API_VERSION:
+    if api_version < VDC_COMPUTE_POLICY_MAX_API_VERSION:
+        # Placement policy always have precedence over sizing policy to be set
+        # as VdcComputePolicy
+        vdc_compute_policy_href = placement_policy_href \
+            if placement_policy_href else sizing_policy_href
+        vdc_compute_policy_id = \
+            retrieve_compute_policy_id_from_href(vdc_compute_policy_href)
         vdc_compute_policy_element = E.VdcComputePolicy()
-        vdc_compute_policy_element.set('href', sizing_compute_policy_href)
-        vdc_compute_policy_element.set('id', sizing_compute_policy_id)
+        vdc_compute_policy_element.set('href', vdc_compute_policy_href)
+        vdc_compute_policy_element.set('id', vdc_compute_policy_id)
         vdc_compute_policy_element.set('type', 'application/json')
-    if api_version >= VM_SIZING_POLICY_MIN_API_VERSION:
+    else:
         compute_policy_element = E.ComputePolicy()
-        sizing_policy_element = E.VmSizingPolicy()
-        compute_policy_element.append(sizing_policy_element)
-        sizing_policy_element.set('href', sizing_compute_policy_href)
-        sizing_policy_element.set('id', sizing_compute_policy_id)
+        if sizing_policy_href:
+            sizing_policy_id = \
+                retrieve_compute_policy_id_from_href(sizing_policy_href)
+            sizing_policy_element = E.VmSizingPolicy()
+            compute_policy_element.append(sizing_policy_element)
+            sizing_policy_element.set('href', sizing_policy_href)
+            sizing_policy_element.set('id', sizing_policy_id)
+        if placement_policy_href:
+            placement_policy_id = \
+                retrieve_compute_policy_id_from_href(placement_policy_href)
+            placement_policy_element = E.VmPlacementPolicy()
+            compute_policy_element.append(placement_policy_element)
+            placement_policy_element.set('href', placement_policy_href)
+            placement_policy_element.set('id', placement_policy_id)
     return (vdc_compute_policy_element, compute_policy_element)
 
 

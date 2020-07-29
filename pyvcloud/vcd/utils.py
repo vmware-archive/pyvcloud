@@ -1023,13 +1023,6 @@ def generate_compute_policy_tags(api_version, sizing_policy_href=None,
         vdc_compute_policy_element.set('type', 'application/json')
     else:
         compute_policy_element = E.ComputePolicy()
-        if sizing_policy_href:
-            sizing_policy_id = \
-                retrieve_compute_policy_id_from_href(sizing_policy_href)
-            sizing_policy_element = E.VmSizingPolicy()
-            compute_policy_element.append(sizing_policy_element)
-            sizing_policy_element.set('href', sizing_policy_href)
-            sizing_policy_element.set('id', sizing_policy_id)
         if placement_policy_href:
             placement_policy_id = \
                 retrieve_compute_policy_id_from_href(placement_policy_href)
@@ -1037,6 +1030,13 @@ def generate_compute_policy_tags(api_version, sizing_policy_href=None,
             compute_policy_element.append(placement_policy_element)
             placement_policy_element.set('href', placement_policy_href)
             placement_policy_element.set('id', placement_policy_id)
+        if sizing_policy_href:
+            sizing_policy_id = \
+                retrieve_compute_policy_id_from_href(sizing_policy_href)
+            sizing_policy_element = E.VmSizingPolicy()
+            compute_policy_element.append(sizing_policy_element)
+            sizing_policy_element.set('href', sizing_policy_href)
+            sizing_policy_element.set('id', sizing_policy_id)
     return (vdc_compute_policy_element, compute_policy_element)
 
 

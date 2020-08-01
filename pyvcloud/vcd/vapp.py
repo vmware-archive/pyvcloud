@@ -37,7 +37,7 @@ from pyvcloud.vcd.exceptions import InvalidStateException
 from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.utils import cidr_to_netmask
-from pyvcloud.vcd.utils import get_compute_policy_tags
+from pyvcloud.vcd.utils import generate_compute_policy_tags
 from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.vm import VM
 
@@ -902,6 +902,8 @@ class VApp(object):
                 profile to be used for this vm.
             - sizing_policy_href: (str): (optional) sizing policy used for
                 creating the VM
+            - placement_policy_href: (str): (optional) placement policy used
+                for creating the VM
 
         :return: an object containing SourcedItem XML element.
 
@@ -974,8 +976,9 @@ class VApp(object):
         sourced_item.append(vm_instantiation_param)
 
         vdc_compute_policy_element, compute_policy_element = \
-            get_compute_policy_tags(float(self.client.get_api_version()),
-                                    spec.get('sizing_policy_href'))
+            generate_compute_policy_tags(float(self.client.get_api_version()),
+                                         sizing_policy_href=spec.get('sizing_policy_href'),  # noqa: E501
+                                         placement_policy_href=spec.get('placement_policy_href'))  # noqa: E501
         if vdc_compute_policy_element is not None:
             sourced_item.append(vdc_compute_policy_element)
         if compute_policy_element is not None:

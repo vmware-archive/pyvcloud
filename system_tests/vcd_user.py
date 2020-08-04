@@ -119,11 +119,24 @@ class TestUser(BaseTestCase):
         logger.debug('Update org_user role from vApp User tp vApp Author')
         updated_user = TestUser._org.update_user(
             TestUser._org_user, role_name=TestUser._vapp_author_role)
-        updated_user_role = updated_user['Role'].get('name')
+        updated_user_role = updated_user["Role"].get("name")
 
         self.assertEqual(updated_user_role, TestUser._vapp_author_role)
 
-    def test_0050_delete_user(self):
+    def test_0050_update_user_password(self):
+        """Test the method Client.update_user().
+
+        This test passes if the method is able to update an
+        existing user password with a supplied user password.
+        """
+        logger = Environment.get_default_logger()
+        logger.debug('Update org_user password from vApp User tp vApp Author')
+        updated_user = TestUser._org.update_user(
+            TestUser._org_user, password="password123")
+
+        self.assertNotEqual(updated_user, None)
+
+    def test_0060_delete_user(self):
         """Test the method Client.delete_user().
 
         This test passes if no errors are generated while deleting org user.

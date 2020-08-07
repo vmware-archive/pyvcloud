@@ -301,7 +301,7 @@ class ResourceType(Enum):
     ORG_VDC_NETWORK = 'orgVdcNetwork'
     ORG_VDC_RESOURCE_POOL_RELATION = 'orgVdcResourcePoolRelation'
     ORG_VDC_STORAGE_PROFILE = 'orgVdcStorageProfile'
-    PORT_GROUP = 'portGroup'
+    PORT_GROUP = 'portgroup'
     PROVIDER_VDC = 'providerVdc'
     PROVIDER_VDC_RESOURCE_POOL_RELATION = 'providerVdcResourcePoolRelation'
     PROVIDER_VDC_STORAGE_PROFILE = 'providerVdcStorageProfile'

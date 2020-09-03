@@ -761,26 +761,6 @@ class Client(object):
                  log_bodies=False):
         self._logger = None
         self._get_default_logger(file_name=log_file)
-        self._logger.setLevel(logging.DEBUG)
-        # This makes sure that we don't append a new handler to the logger
-        # every time we create a new client. Since all the client share the
-        # same underlying logger instance.
-        if not self._logger.handlers:
-            if log_file is not None:
-                # make sure the path to the log file is valid, create missing
-                # folders if required
-                Path(log_file).parent.mkdir(parents=True, exist_ok=True)
-                handler = logging.FileHandler(log_file)
-            else:
-                handler = logging.NullHandler()
-            formatter = logging.Formatter('%(asctime)-23.23s | '
-                                          '%(levelname)-5.5s | '
-                                          '%(name)-15.15s | '
-                                          '%(module)-15.15s | '
-                                          '%(funcName)-12.12s | '
-                                          '%(message)s')
-            handler.setFormatter(formatter)
-            self._logger.addHandler(handler)
 
         self._log_requests = log_requests
         self._log_headers = log_headers
@@ -831,15 +811,21 @@ class Client(object):
         if file_name is None:
             file_name = "vcd_pysdk.log"
         self._logger = logging.getLogger(file_name)
+        self._logger.setLevel(log_level)
         file = Path(file_name)
         if not file.exists():
             file.parent.mkdir(parents=True, exist_ok=True)
         if not self._logger.handlers:
-            default_log_handler = handlers.RotatingFileHandler(
+            log_handler = handlers.RotatingFileHandler(
                 filename=file_name, maxBytes=max_bytes,
                 backupCount=backup_count)
-            default_log_handler.setLevel(log_level)
-            self._logger.addHandler(default_log_handler)
+            formatter = logging.Formatter(
+                fmt='%(asctime)s | %(module)s:%(lineno)s - %(funcName)s '
+                    '| %(levelname)s :: %(message)s',
+                datefmt='%y-%m-%d %H:%M:%S')
+            log_handler.setFormatter(formatter)
+            log_handler.setLevel(log_level)
+            self._logger.addHandler(log_handler)
 
     def _negotiate_api_version(self):
         # If user provided API version we accept it, otherwise negotiate with

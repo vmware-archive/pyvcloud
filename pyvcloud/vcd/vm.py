@@ -680,7 +680,7 @@ class VM(object):
             for nc in net_conn_section.NetworkConnection:
                 nic = {}
                 nic[VmNicProperties.INDEX.value] = \
-                    nc.NetworkConnectionIndex.text
+                    int(nc.NetworkConnectionIndex.text)
                 nic[VmNicProperties.CONNECTED.value] = nc.IsConnected.text
                 nic[VmNicProperties.PRIMARY.value] = (
                     primary_index == nc.NetworkConnectionIndex.text)

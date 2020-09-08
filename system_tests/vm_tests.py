@@ -570,7 +570,7 @@ class TestVM(BaseTestCase):
         self.assertTrue(len(nics) == 2)
         nic_to_delete = next(i[VmNicProperties.INDEX.value] for i in nics
                              if i[VmNicProperties.PRIMARY.value])
-        task = vm.delete_nic(int(nic_to_delete))
+        task = vm.delete_nic(nic_to_delete)
         result = TestVM._client.get_task_monitor().wait_for_success(
             task=task)
         self.assertEqual(result.get('status'), TaskStatus.SUCCESS.value)
@@ -806,7 +806,7 @@ class TestVM(BaseTestCase):
         dict = vm.list_os_section()
         self.assertTrue(len(dict) > 0)
 
-    """Commenting test case as it shows inconsistent behavior for task 
+    """Commenting test case as it shows inconsistent behavior for task
     object in CI/CD.
     def test_0280_update_os_section(self):
         vm = VM(TestVM._sys_admin_client,

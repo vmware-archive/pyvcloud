@@ -62,7 +62,7 @@ from pyvcloud.vcd.utils import VM_SIZING_POLICY_MIN_API_VERSION
 # 10MB is a happy medium between 50MB and 1MB.
 DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024
 
-TENANT_CONTEXT_HDR = 'X_VMWARE_VCLOUD_TENANT_CONTEXT'
+TENANT_CONTEXT_HDR = 'X-VMWARE-VCLOUD-TENANT-CONTEXT'
 
 
 def get_org_id_from_urn(org_urn_id):

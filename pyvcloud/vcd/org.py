@@ -46,6 +46,7 @@ from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.exceptions import UploadException
 from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.system import System
+from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import get_non_admin_href
 from pyvcloud.vcd.utils import get_safe_members_in_tar_file
@@ -63,14 +64,6 @@ from pyvcloud.vcd.utils import VM_SIZING_POLICY_MIN_API_VERSION
 DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024
 
 TENANT_CONTEXT_HDR = 'X-VMWARE-VCLOUD-TENANT-CONTEXT'
-
-
-def get_org_id_from_urn(org_urn_id):
-    urn_id_split = org_urn_id.split('urn:vcloud:org:')
-    try:
-        return urn_id_split[1]
-    except IndexError:
-        return ''
 
 
 class Org(object):
@@ -129,7 +122,7 @@ class Org(object):
             self.reload()
         payload = E.AdminCatalog(E.Description(description), name=name)
         extra_headers = {TENANT_CONTEXT_HDR:
-                         get_org_id_from_urn(self.resource.attrib['id'])}
+                         extract_id(self.resource.attrib['id'])}
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD, EntityType.ADMIN_CATALOG.value,
             payload, extra_headers=extra_headers)

@@ -62,6 +62,16 @@ from pyvcloud.vcd.utils import VM_SIZING_POLICY_MIN_API_VERSION
 # 10MB is a happy medium between 50MB and 1MB.
 DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024
 
+TENANT_CONTEXT_HDR = 'X_VMWARE_VCLOUD_TENANT_CONTEXT'
+
+
+def get_org_id_from_urn(org_urn_id):
+    urn_id_split = org_urn_id.split('urn:vcloud:org:')
+    try:
+        return urn_id_split[1]
+    except IndexError:
+        return ''
+
 
 class Org(object):
     def __init__(self, client, href=None, resource=None):
@@ -118,9 +128,11 @@ class Org(object):
         if self.resource is None:
             self.reload()
         payload = E.AdminCatalog(E.Description(description), name=name)
+        extra_headers = {TENANT_CONTEXT_HDR:
+                         get_org_id_from_urn(self.resource.attrib['id'])}
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD, EntityType.ADMIN_CATALOG.value,
-            payload)
+            payload, extra_headers=extra_headers)
 
     def delete_catalog(self, name):
         """Delete a catalog in the organization.

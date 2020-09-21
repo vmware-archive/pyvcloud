@@ -1146,14 +1146,16 @@ class Client(object):
                     contents=None,
                     media_type=None,
                     objectify_results=True,
-                    params=None):
+                    params=None,
+                    extra_headers=None):
         response = self._do_request_prim(
             method,
             uri,
             self._session,
             contents=contents,
             media_type=media_type,
-            params=params)
+            params=params,
+            extra_headers=extra_headers)
 
         sc = response.status_code
         if sc in (requests.codes.ok,
@@ -1261,8 +1263,9 @@ class Client(object):
                          media_type=None,
                          accept_type=None,
                          auth=None,
-                         params=None):
-        headers = {}
+                         params=None,
+                         extra_headers=None):
+        headers = extra_headers or {}
         if media_type is not None:
             headers[self._HEADER_CONTENT_TYPE_NAME] = media_type
 
@@ -1402,7 +1405,8 @@ class Client(object):
                       contents,
                       media_type,
                       params=None,
-                      objectify_results=True):
+                      objectify_results=True,
+                      extra_headers=None):
         """Posts to a resource link.
 
         Posts the specified contents to the specified resource. (Does an HTTP
@@ -1414,9 +1418,11 @@ class Client(object):
             contents=contents,
             media_type=media_type,
             objectify_results=objectify_results,
-            params=params)
+            params=params,
+            extra_headers=extra_headers)
 
-    def post_linked_resource(self, resource, rel, media_type, contents):
+    def post_linked_resource(self, resource, rel, media_type, contents,
+                             extra_headers=None):
         """Posts to a resource link.
 
         Posts the contents of the resource referenced by the link with the
@@ -1430,20 +1436,23 @@ class Client(object):
         try:
             return self.post_resource(
                 find_link(resource, rel, media_type).href, contents,
-                media_type)
+                media_type, extra_headers=extra_headers)
         except MissingLinkException as e:
             raise OperationNotSupportedException(
                 "Operation is not supported").with_traceback(e.__traceback__)
 
-    def get_resource(self, uri, params=None, objectify_results=True):
+    def get_resource(self, uri, params=None, objectify_results=True,
+                     extra_headers=None):
         """Gets the specified contents to the specified resource.
 
         This method does an HTTP GET.
         """
         return self._do_request(
-            'GET', uri, objectify_results=objectify_results, params=params)
+            'GET', uri, objectify_results=objectify_results, params=params,
+            extra_headers=extra_headers)
 
-    def get_linked_resource(self, resource, rel, media_type):
+    def get_linked_resource(self, resource, rel, media_type,
+                            extra_headers=None):
         """Gets the content of the resource link.
 
         Gets the contents of the resource referenced by the link with the
@@ -1458,16 +1467,20 @@ class Client(object):
             the link being not visible to the logged in user of the client.
         """
         try:
-            return self.get_resource(find_link(resource, rel, media_type).href)
+            return self.get_resource(find_link(resource, rel, media_type).href,
+                                     extra_headers=extra_headers)
         except MissingLinkException as e:
             raise OperationNotSupportedException(
                 "Operation is not supported").with_traceback(e.__traceback__)
 
-    def delete_resource(self, uri, params=None, force=False, recursive=False):
+    def delete_resource(self, uri, params=None, force=False, recursive=False,
+                        extra_headers=None):
         full_uri = '%s?force=%s&recursive=%s' % (uri, force, recursive)
-        return self._do_request('DELETE', full_uri, params=params)
+        return self._do_request('DELETE', full_uri, params=params,
+                                extra_headers=extra_headers)
 
-    def delete_linked_resource(self, resource, rel, media_type):
+    def delete_linked_resource(self, resource, rel, media_type,
+                               extra_headers=None):
         """Deletes the resource referenced by the link.
 
         Deletes the resource referenced by the link with the specified rel and
@@ -1478,7 +1491,8 @@ class Client(object):
         """
         try:
             return self.delete_resource(
-                find_link(resource, rel, media_type).href)
+                find_link(resource, rel, media_type).href,
+                extra_headers=extra_headers)
         except MissingLinkException as e:
             raise OperationNotSupportedException(
                 "Operation is not supported").with_traceback(e.__traceback__)

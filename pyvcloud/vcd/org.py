@@ -46,6 +46,7 @@ from pyvcloud.vcd.exceptions import OperationNotSupportedException
 from pyvcloud.vcd.exceptions import UploadException
 from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.system import System
+from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import get_non_admin_href
 from pyvcloud.vcd.utils import get_safe_members_in_tar_file
@@ -61,6 +62,8 @@ from pyvcloud.vcd.utils import VM_SIZING_POLICY_MIN_API_VERSION
 # in constrast vCD H5 UI uses 50MB for upload chunk size,
 # 10MB is a happy medium between 50MB and 1MB.
 DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024
+
+TENANT_CONTEXT_HDR = 'X-VMWARE-VCLOUD-TENANT-CONTEXT'
 
 
 class Org(object):
@@ -118,9 +121,11 @@ class Org(object):
         if self.resource is None:
             self.reload()
         payload = E.AdminCatalog(E.Description(description), name=name)
+        extra_headers = {TENANT_CONTEXT_HDR:
+                         extract_id(self.resource.attrib['id'])}
         return self.client.post_linked_resource(
             self.resource, RelationType.ADD, EntityType.ADMIN_CATALOG.value,
-            payload)
+            payload, extra_headers=extra_headers)
 
     def delete_catalog(self, name):
         """Delete a catalog in the organization.

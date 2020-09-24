@@ -1835,7 +1835,10 @@ class _AbstractQuery(object):
                 self._filter = ''
             self._filter += equality_filter[0]
             self._filter += '=='
-            self._filter += equality_filter[1]
+            if float(client.get_api_version()) < float(ApiVersion.VERSION_35.value):  # noqa: E501
+                self._filter += equality_filter[1]
+            else:
+                self._filter += urllib.parse.quote(equality_filter[1])
 
         self._sort_desc = sort_desc
         self._sort_asc = sort_asc
@@ -1914,14 +1917,20 @@ class _AbstractQuery(object):
             uri += '&pageSize='
             uri += str(page_size)
 
-        if qfilter is not None:
-            # filterEncoded=true directs vCD to decode the individual filter
-            # values, i.e. the value after each ==.
-            uri += '&filterEncoded=true&filter='
-            # Need to encode the value of filter param again to escape special
-            # characters like ',', ';' which have special meaning in context of
-            # query filter.
-            uri += urllib.parse.quote(qfilter)
+        if qfilter:
+            if float(self._client.get_api_version()) < float(ApiVersion.VERSION_35.value):  # noqa: E501
+                # filterEncoded=true directs vCD to decode the individual
+                # filter values, i.e. the value after each ==.
+                uri += '&filterEncoded=true&filter='
+                # Need to encode the value of filter param again to escape
+                # special characters like ',', ';' which have special meaning
+                # in context of query filter.
+                uri += urllib.parse.quote(qfilter)
+            else:
+                # api v35.0 (vCD Zeus) onwards vCD doesn't accept double
+                # encoded filter values, neither the filterEncoded query param
+                # has any effect
+                uri += f"&filter={qfilter}"
 
         if fields is not None:
             uri += '&fields='

@@ -1829,9 +1829,9 @@ class _AbstractQuery(object):
 
         is_below_v35_query = float(client.get_api_version()) < float(ApiVersion.VERSION_35.value)  # noqa: E501
         if is_below_v35_query:
-            self._filter = self._escape_special_characters(qfilter)
-        else:
             self._filter = qfilter
+        else:
+            self._filter = self._escape_special_characters(qfilter)
 
         if equality_filter:
             if self._filter:

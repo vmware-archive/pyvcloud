@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import urllib
+
 from lxml import etree
 
 from pyvcloud.vcd.acl import Acl
@@ -155,7 +157,7 @@ class VDC(object):
         :raises: MultipleRecordsException: if more than one VM with the
             provided name are found.
         """
-        vdc_filter = ('vdc==%s' % self.href)
+        vdc_filter = ('vdc==%s' % urllib.parse.quote(self.href))
         name_filter = ('name', name)
         query_obj = self.client.get_typed_query(
             ResourceType.ADMIN_VM.value,
@@ -166,7 +168,7 @@ class VDC(object):
 
     def get_vapp_href(self, name):
         name_filter = ('name', name)
-        vdc_filter = 'vdc==%s' % self.href
+        vdc_filter = 'vdc==%s' % urllib.parse.quote(self.href)
         resource_type = ResourceType.VAPP.value
         if self.client.is_sysadmin():
             resource_type = ResourceType.ADMIN_VAPP.value

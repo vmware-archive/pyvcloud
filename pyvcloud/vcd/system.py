@@ -18,6 +18,7 @@ from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import NSMAP
 from pyvcloud.vcd.client import QueryResultFormat
 from pyvcloud.vcd.client import RelationType
+from pyvcloud.vcd.client import ResourceType
 from pyvcloud.vcd.exceptions import EntityNotFoundException
 from pyvcloud.vcd.exceptions import InvalidParameterException
 from pyvcloud.vcd.utils import get_admin_href
@@ -129,7 +130,7 @@ class System(object):
             name_filter = ('name', name)
 
         q = self.client.get_typed_query(
-            'providerVdcStorageProfile',
+            ResourceType.PROVIDER_VDC_STORAGE_PROFILE.value,
             query_result_format=QueryResultFormat.RECORDS,
             equality_filter=name_filter)
 

@@ -125,7 +125,7 @@ class Task(object):
         """
         query_filter = ''
         for f in filter_status_list:
-            query_filter += 'status==%s,' % urllib.parse.quote_plus(f)
+            query_filter += 'status==%s,' % urllib.parse.quote(f)
         if len(query_filter) > 0:
             query_filter = query_filter[:-1]
         sort_asc = None

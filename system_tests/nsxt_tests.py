@@ -34,7 +34,7 @@ class TestNSXT(BaseTestCase):
         platform = Platform(TestNSXT._client)
 
         manager_name = Environment._config['nsxt']['manager_name']
-        query_filter = 'name==%s' % urllib.parse.quote_plus(manager_name)
+        query_filter = 'name==%s' % urllib.parse.quote(manager_name)
         query = TestNSXT._client.get_typed_query(
             ResourceType.NSXT_MANAGER.value,
             query_result_format=QueryResultFormat.REFERENCES,

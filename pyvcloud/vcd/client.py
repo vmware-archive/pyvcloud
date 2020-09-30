@@ -1827,23 +1827,49 @@ class _AbstractQuery(object):
         self._include_links = include_links
         self._page = 1
 
-        self._filter = qfilter
-        if equality_filter is not None:
-            if self._filter is not None:
+        is_below_v35_query = float(client.get_api_version()) < float(ApiVersion.VERSION_35.value)  # noqa: E501
+        if is_below_v35_query:
+            self._filter = self._escape_special_characters(qfilter)
+        else:
+            self._filter = qfilter
+
+        if equality_filter:
+            if self._filter:
                 self._filter += ';'
             else:
                 self._filter = ''
             self._filter += equality_filter[0]
             self._filter += '=='
-            if float(client.get_api_version()) < float(ApiVersion.VERSION_35.value):  # noqa: E501
+            if is_below_v35_query:
                 self._filter += equality_filter[1]
             else:
-                self._filter += urllib.parse.quote(equality_filter[1])
+                self._filter += self._escape_special_characters(
+                    urllib.parse.quote(equality_filter[1]))
 
         self._sort_desc = sort_desc
         self._sort_asc = sort_asc
 
         self.fields = fields
+
+    def _escape_special_characters(self, single_encoded_value_string):
+        """Escape vCD query specific special characters viz. ( ) ; ,.
+
+        This method accepts a url encoded string and replaces encoded
+        instances of ( ) ; , with their escaped version.
+
+        :param str single_encoded_value_string: string to be processed
+
+        :return: string with vCD query specific special characters escaped
+
+        :rtype: str
+        """
+        val = single_encoded_value_string
+        if val:
+            val = val.replace('%28', '%5C%28')
+            val = val.replace('%29', '%5C%29')
+            val = val.replace('%2C', '%5C%2C')
+            val = val.replace('%3B', '%5C%3B')
+        return val
 
     def execute(self):
         """Executes query and returns results.

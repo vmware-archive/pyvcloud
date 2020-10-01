@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import urllib
+
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import E_VMEXT
 from pyvcloud.vcd.client import EntityType
@@ -562,7 +564,7 @@ class ExternalNetwork(object):
         :raises: EntityNotFoundException: if any direct org vDC network
          cannot be found.
         """
-        query_filter = 'connectedTo==' + self.name
+        query_filter = 'connectedTo==' + urllib.parse.quote(self.name)
         if filter:
             query_filter += ';' + filter
         query = self.client.get_typed_query(
@@ -585,7 +587,7 @@ class ExternalNetwork(object):
         :rtype: list
         """
         out_list = []
-        query_filter = 'networkName==' + self.name
+        query_filter = 'networkName==' + urllib.parse.quote(self.name)
         if filter:
             query_filter += ';' + filter
         query = self.client.get_typed_query(

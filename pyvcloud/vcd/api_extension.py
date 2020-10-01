@@ -82,9 +82,9 @@ class APIExtension(object):
         :raise MultipleRecordsException: if more than one service with the
             given name and namespace are found.
         """
-        qfilter = 'name==%s' % urllib.parse.quote_plus(name)
+        qfilter = 'name==%s' % urllib.parse.quote(name)
         if namespace is not None:
-            qfilter += ';namespace==%s' % urllib.parse.quote_plus(namespace)
+            qfilter += ';namespace==%s' % urllib.parse.quote(namespace)
         try:
             ext = self.client.get_typed_query(
                 ResourceType.ADMIN_SERVICE.value,

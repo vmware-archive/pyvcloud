@@ -1013,7 +1013,7 @@ class Platform(object):
         :raises: EntityNotFoundException: if any port group name cannot be
         found.
         """
-        vcfilter = 'vcName==%s' % urllib.parse.quote_plus(vim_server_name)
+        vcfilter = 'vcName==%s' % urllib.parse.quote(vim_server_name)
         query = self.client.get_typed_query(
             ResourceType.PORT_GROUP.value,
             qfilter=vcfilter,
@@ -1041,7 +1041,7 @@ class Platform(object):
         :raises: EntityNotFoundException: if any port group name cannot be
         found.
         """
-        vcfilter = 'vcName==%s' % urllib.parse.quote_plus(vim_server_name)
+        vcfilter = 'vcName==%s' % urllib.parse.quote(vim_server_name)
         query = self.client.get_typed_query(
             ResourceType.PORT_GROUP.value,
             qfilter=vcfilter,

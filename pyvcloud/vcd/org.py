@@ -1059,7 +1059,7 @@ class Org(object):
         if self.client.is_sysadmin():
             resource_type = ResourceType.ADMIN_USER.value
             org_filter = 'org==%s' % \
-                urllib.parse.quote_plus(self.resource.get('href'))
+                urllib.parse.quote(self.resource.get('href'))
         query = self.client.get_typed_query(
             resource_type,
             query_result_format=QueryResultFormat.RECORDS,
@@ -1168,7 +1168,7 @@ class Org(object):
         if self.client.is_sysadmin():
             resource_type = ResourceType.ADMIN_ROLE.value
             org_filter = 'org==%s' % \
-                urllib.parse.quote_plus(self.resource.get('href'))
+                urllib.parse.quote(self.resource.get('href'))
 
         query = self.client.get_typed_query(
             resource_type,

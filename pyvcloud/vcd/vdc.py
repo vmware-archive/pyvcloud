@@ -235,7 +235,8 @@ class VDC(object):
                          hostname=None,
                          ip_address=None,
                          storage_profile=None,
-                         network_adapter_type=None):
+                         network_adapter_type=None,
+                         clone_mode=None):
         """Instantiate a vApp from a vApp template in a catalog.
 
         If customization parameters are provided, it will customize the vm and
@@ -270,6 +271,7 @@ class VDC(object):
         :param str storage_profile:
         :param str network_adapter_type: One of the values in
             pyvcloud.vcd.client.NetworkAdapterType.
+        :param str clone_mode: cloning mode. Acceptable values are `exact_copy`
 
         :return: an object containing EntityType.VAPP XML data which
             represents the new vApp.
@@ -369,16 +371,23 @@ class VDC(object):
         if network_name is not None:
             primary_index = int(vms[0].NetworkConnectionSection.
                                 PrimaryNetworkConnectionIndex.text)
-            network_connection_param = E.NetworkConnection(
-                E.NetworkConnectionIndex(primary_index), network=network_name)
-            if ip_address is not None:
-                network_connection_param.append(E.IpAddress(ip_address))
-            network_connection_param.append(E.IsConnected('true'))
-            network_connection_param.append(
-                E.IpAddressAllocationMode(ip_allocation_mode.upper()))
-            if network_adapter_type is not None:
+
+            if clone_mode is None:
+                network_connection_param = E.NetworkConnection(
+                    E.NetworkConnectionIndex(primary_index),
+                    network=network_name)
+                if ip_address is not None:
+                    network_connection_param.append(E.IpAddress(ip_address))
+                network_connection_param.append(E.IsConnected('true'))
                 network_connection_param.append(
-                    E.NetworkAdapterType(network_adapter_type))
+                    E.IpAddressAllocationMode(ip_allocation_mode.upper()))
+                if network_adapter_type is not None:
+                    network_connection_param.append(
+                        E.NetworkAdapterType(network_adapter_type))
+            else:
+                network_connection_param = (vms[0].NetworkConnectionSection.
+                                            NetworkConnection)
+
             vm_instantiation_param.append(
                 E.NetworkConnectionSection(
                     E_OVF.Info(

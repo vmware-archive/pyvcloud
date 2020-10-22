@@ -1984,3 +1984,26 @@ class VM(object):
         uri = self.href + '/action/enableNestedHypervisor'
         return self.client. \
             post_resource(uri=uri, contents=None, media_type=None)
+
+    def get_pending_user_input_question(self):
+        """Retrieves pending user input question of the VM
+
+        :return: an object containing EntityType.VM_PENDING_QUESTION data which
+            represents the question pending the user's input
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        uri = self.href + '/question'
+        return self.client.get_resource(uri=uri)
+
+    def post_answer_to_pending_user_input_question(self, choice_id, question_id):
+        """POST an answer choice id for a pending question id
+
+        :param int choice_id
+        :param int question_id
+        """
+        uri = self.href + '/question/action/answer'
+        vm_question_answer = E.VmQuestionAnswer()
+        vm_question_answer.append(E.ChoiceId(choice_id))
+        vm_question_answer.append(E.QuestionId(question_id))
+        return self.client.post_resource(uri, vm_question_answer,
+                                         EntityType.VM_PENDING_ANSWER.value)

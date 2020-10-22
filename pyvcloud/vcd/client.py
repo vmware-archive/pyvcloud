@@ -461,6 +461,8 @@ class EntityType(Enum):
     VM_CAPABILITIES_SECTION = \
         'application/vnd.vmware.vcloud.vmCapabilitiesSection+xml'
     VMS = 'application/vnd.vmware.vcloud.vms+xml'
+    VM_PENDING_ANSWER = 'application/vnd.vmware.vcloud.vmPendingAnswer+xml'
+    VM_PENDING_QUESTION = 'application/vnd.vmware.vcloud.vmPendingQuestion+xml'
     VM_SCREEN_ACQUIRE_TICKET = \
         'application/vnd.vmware.vcloud.screenTicket+xml'
     VM_SCREEN_ACQUIRE_MKSTICKET = \

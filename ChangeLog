@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+* Add support to escape special characters in query filter for api v35.0+ (#711)
+* For api 35.0+, single encode query filter, and remove filterEncoded param (#710)
+* Include tenant context header when creating catalog (#709)
+* Listing nics with integer index values (#708)
+* Improve logging in pyvcloud (#707)
 * Updating rel value for ResourceType.PORT\_GROUP (#699)
 * Updating Org user password (#697)
 * Support addition of placement policy during adding vms to vapps (#698)

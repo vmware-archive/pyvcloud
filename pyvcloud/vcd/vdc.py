@@ -241,8 +241,13 @@ class VDC(object):
         If customization parameters are provided, it will customize the vm and
         guest OS, taking some assumptions.
 
-        A general assumption is made by this method that there is only one vm
-        in the vApp. And the vm has only one NIC.
+        A general assumption is made by this method that customization
+        parameters are applicable only if there is only one vm in the vApp.
+        And, the vm has a single NIC.
+
+        In case of a vApp template having multiple VMs having multiple NICs in
+        any of the VM, none of the optional paramters will be considered. vApp
+        template will be instantiated with default settings.
 
         :param str name: name of the new vApp.
         :param str catalog: name of the catalog.
@@ -296,103 +301,190 @@ class VDC(object):
         template_resource = self.client.get_resource(
             catalog_item.Entity.get('href'))
 
-        # If network is not specified by user then default to
-        # vApp network name specified in the template
-        is_template_vapp_network = False
-        template_networks = template_resource.xpath(
-            '//ovf:NetworkSection/ovf:Network',
-            namespaces={'ovf': NSMAP['ovf']})
-        #        assert len(template_networks) > 0
-        if len(template_networks) > 0:
-            network_name_from_template = template_networks[0].get(
-                '{' + NSMAP['ovf'] + '}name')
-            if ((network is None) and (network_name_from_template != 'none')):
-                network = network_name_from_template
-                is_template_vapp_network = True
-
-        # Find the network in vdc referred to by user, using
-        # name of the network, ignoring template vApp networks
-        network_href = network_name = None
-        if network is not None:
-            if hasattr(self.resource, 'AvailableNetworks') and \
-               hasattr(self.resource.AvailableNetworks, 'Network'):
-                for n in self.resource.AvailableNetworks.Network:
-                    if network == n.get('name'):
-                        network_href = n.get('href')
-                        network_name = n.get('name')
-                        break
-            if network_href is None:
-                if is_template_vapp_network:
-                    pass
-                else:
-                    raise EntityNotFoundException(
-                        'Network \'%s\' not found in the Virtual Datacenter.' %
-                        network)
-
-        # Configure the network of the vApp
-        vapp_instantiation_param = None
-        if network_name is not None:
-            network_configuration = E.Configuration(
-                E.ParentNetwork(href=network_href), E.FenceMode(fence_mode))
-
-            if fence_mode == 'natRouted':
-                # TODO(need to find the vm_id)
-                vm_id = None
-                network_configuration.append(
-                    E.Features(
-                        E.NatService(
-                            E.IsEnabled('true'), E.NatType('ipTranslation'),
-                            E.Policy('allowTraffic'),
-                            E.NatRule(
-                                E.OneToOneVmRule(
-                                    E.MappingMode('automatic'),
-                                    E.VAppScopedVmId(vm_id), E.VmNicId(0))))))
-
-            vapp_instantiation_param = E.InstantiationParams(
-                E.NetworkConfigSection(
-                    E_OVF.Info('Configuration for logical networks'),
-                    E.NetworkConfig(
-                        network_configuration, networkName=network_name)))
-
         # Get all vms in the vapp template
         vms = template_resource.xpath(
             '//vcloud:VAppTemplate/vcloud:Children/vcloud:Vm',
             namespaces=NSMAP)
         assert len(vms) > 0
 
-        vm_instantiation_param = E.InstantiationParams()
+        if len(vms) > 1:
+            # Reset any customization parameters if provided
+            network = memory = cpu = disk_size = password = cust_script = \
+                vm_name = hostname = ip_address = storage_profile = \
+                network_adapter_type = None
+
+        template_vdc_networks = []
+        # If provided, only given network will be configured
+        if network is not None:
+            template_vdc_networks.append(network)
+        # Get all vDC networks from vapp template
+        elif hasattr(template_resource, 'NetworkConfigSection') and hasattr(
+                template_resource.NetworkConfigSection, 'NetworkConfig'):
+            for net in template_resource.NetworkConfigSection\
+                    .NetworkConfig:
+                if hasattr(net.Configuration, 'ParentNetwork'):
+                    template_vdc_networks.append(net.get('networkName'))
+
+        vdc_networks = {}
+        # Get all networks in vDC
+        if hasattr(self.resource, 'AvailableNetworks') and hasattr(
+                self.resource.AvailableNetworks, 'Network'):
+            for net in self.resource.AvailableNetworks.Network:
+                vdc_networks[net.get('name')] = net.get('href')
+
+        # Check if networks used in vapp template are found in vDC
+        for net in template_vdc_networks:
+            if net not in vdc_networks:
+                raise EntityNotFoundException(
+                    'Network \'%s\' not found in the Virtual Datacenter.' %
+                    net)
+
+        vapp_instantiation_param = E.InstantiationParams()
+        if network is not None:
+            self._configure_vapp_network(vapp_instantiation_param, network,
+                                         vdc_networks.get(network), fence_mode)
+
+        # Cook the entire vApp Template instantiation element
+        deploy_param = 'true' if deploy else 'false'
+        power_on_param = 'true' if power_on else 'false'
+        all_eulas_accepted = 'true' if accept_all_eulas else 'false'
+
+        vapp_template_params = E.InstantiateVAppTemplateParams(
+            name=name, deploy=deploy_param, powerOn=power_on_param)
+
+        if description is not None:
+            vapp_template_params.append(E.Description(description))
+
+        if vapp_instantiation_param is not None:
+            vapp_template_params.append(vapp_instantiation_param)
+
+        vapp_template_params.append(
+            E.Source(href=catalog_item.Entity.get('href')))
+
+        for vm in vms:
+            vm_instantiation_param = E.InstantiationParams()
+
+            # Configure network of vms
+            self._configure_vm_netowrk(vm_instantiation_param, vm, network,
+                                       ip_address, ip_allocation_mode,
+                                       network_adapter_type)
+
+            # Configure cpu, memory, disk of the first vm
+            self._configure_vm_compute(vm_instantiation_param, vm, cpu, memory,
+                                       disk_size)
+
+            # Configure guest customization for the vm
+            self._configure_vm_guest_cust(vm_instantiation_param, password,
+                                          cust_script, hostname)
+
+            # Craft the <SourcedItem> element for the vm
+            sourced_item = E.SourcedItem(
+                E.Source(href=vm.get('href'),
+                         id=vm.get('id'),
+                         name=vm.get('name'),
+                         type=vm.get('type')))
+
+            vm_general_params = E.VmGeneralParams()
+            if vm_name is not None:
+                vm_general_params.append(E.Name(vm_name))
+
+            # TODO(check if it needs customization if network, cpu or memory..)
+            if disk_size is None \
+               and password is None \
+               and cust_script is None \
+               and hostname is None:
+                needs_customization = 'false'
+            else:
+                needs_customization = 'true'
+            vm_general_params.append(E.NeedsCustomization(needs_customization))
+            sourced_item.append(vm_general_params)
+            sourced_item.append(vm_instantiation_param)
+
+            if storage_profile is not None:
+                sp = self.get_storage_profile(storage_profile)
+                vapp_storage_profile = E.StorageProfile(
+                    href=sp.get('href'),
+                    id=sp.get('href').split('/')[-1],
+                    type=sp.get('type'),
+                    name=sp.get('name'))
+                sourced_item.append(vapp_storage_profile)
+
+            vapp_template_params.append(sourced_item)
+
+        vapp_template_params.append(E.AllEULAsAccepted(all_eulas_accepted))
+        non_admin_resource = self.resource
+        if self.is_admin:
+            alternate_href = find_link(self.resource,
+                                       rel=RelationType.ALTERNATE,
+                                       media_type=EntityType.VDC.value).href
+            non_admin_resource = self.client.get_resource(
+                alternate_href)
+
+        return self.client.post_linked_resource(
+            non_admin_resource, RelationType.ADD,
+            EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value,
+            vapp_template_params)
+
+    def _configure_vapp_network(self, vapp_instantiation_param, network,
+                                network_href, fence_mode):
+        # Configure the network of the vApp
+        config = E.Configuration(E.ParentNetwork(href=network_href),
+                                 E.FenceMode(fence_mode))
+        if fence_mode == 'natRouted':
+            # TODO(need to find the vm_id)
+            vm_id = None
+            config.append(
+                E.Features(
+                    E.NatService(
+                        E.IsEnabled('true'), E.NatType('ipTranslation'),
+                        E.Policy('allowTraffic'),
+                        E.NatRule(
+                            E.OneToOneVmRule(E.MappingMode('automatic'),
+                                             E.VAppScopedVmId(vm_id),
+                                             E.VmNicId(0))))))
+        network_config = E.NetworkConfig(config, networkName=network)
+        network_config_section = E.NetworkConfigSection(
+            E_OVF.Info('Configuration for logical networks'), network_config)
+        vapp_instantiation_param.append(network_config_section)
+
+    def _configure_vm_netowrk(self, vm_instantiation_param, vm, network,
+                              ip_address, ip_allocation_mode,
+                              network_adapter_type):
+        if network is None:
+            return
+
+        primary_index = int(
+            vm.NetworkConnectionSection.PrimaryNetworkConnectionIndex.text)
+        network_connection = E.NetworkConnection(
+            E.NetworkConnectionIndex(primary_index), network=network)
+
+        if ip_address is not None:
+            network_connection.append(E.IpAddress(ip_address))
+        network_connection.append(E.IsConnected('true'))
 
         if ip_allocation_mode == 'static':
             ip_allocation_mode = 'manual'
+        network_connection.append(
+            E.IpAddressAllocationMode(ip_allocation_mode.upper()))
 
-        # Configure network of the first vm
-        if network_name is not None:
-            primary_index = int(vms[0].NetworkConnectionSection.
-                                PrimaryNetworkConnectionIndex.text)
-            network_connection_param = E.NetworkConnection(
-                E.NetworkConnectionIndex(primary_index), network=network_name)
-            if ip_address is not None:
-                network_connection_param.append(E.IpAddress(ip_address))
-            network_connection_param.append(E.IsConnected('true'))
-            network_connection_param.append(
-                E.IpAddressAllocationMode(ip_allocation_mode.upper()))
-            if network_adapter_type is not None:
-                network_connection_param.append(
-                    E.NetworkAdapterType(network_adapter_type))
-            vm_instantiation_param.append(
-                E.NetworkConnectionSection(
-                    E_OVF.Info(
-                        'Specifies the available VM network connections'),
-                    network_connection_param))
+        if network_adapter_type is not None:
+            network_connection.append(
+                E.NetworkAdapterType(network_adapter_type))
 
-        # Configure cpu, memory, disk of the first vm
+        network_connection_section = E.NetworkConnectionSection(
+            E_OVF.Info('Specifies the available VM network connections'))
+        network_connection_section.append(network_connection)
+        vm_instantiation_param.append(network_connection_section)
+
+    def _configure_vm_compute(self, vm_instantiation_param, vm, cpu, memory,
+                              disk_size):
+        # Configure cpu, memory, disk of the vm
         cpu_params = memory_params = disk_params = None
         if memory is not None or cpu is not None or disk_size is not None:
             virtual_hardware_section = E_OVF.VirtualHardwareSection(
                 E_OVF.Info('Virtual hardware requirements'))
-            items = vms[0].xpath(
-                '//ovf:VirtualHardwareSection/ovf:Item',
-                namespaces={'ovf': NSMAP['ovf']})
+            items = vm.xpath('//ovf:VirtualHardwareSection/ovf:Item',
+                             namespaces={'ovf': NSMAP['ovf']})
             for item in items:
                 if memory is not None and memory_params is None:
                     if item['{' + NSMAP['rasd'] + '}ResourceType'] == 4:
@@ -422,9 +514,10 @@ class VDC(object):
                         virtual_hardware_section.append(disk_params)
             vm_instantiation_param.append(virtual_hardware_section)
 
-        # Configure guest customization for the vm
-        if password is not None or cust_script is not None or \
-           hostname is not None:
+    def _configure_vm_guest_cust(self, vm_instantiation_param, password,
+                                 cust_script, hostname):
+        if password is not None or cust_script is not None \
+                or hostname is not None:
             guest_customization_param = E.GuestCustomizationSection(
                 E_OVF.Info('Specifies Guest OS Customization Settings'),
                 E.Enabled('true'),
@@ -445,72 +538,6 @@ class VDC(object):
             if hostname is not None:
                 guest_customization_param.append(E.ComputerName(hostname))
             vm_instantiation_param.append(guest_customization_param)
-
-        # Craft the <SourcedItem> element for the first vm
-        sourced_item = E.SourcedItem(
-            E.Source(
-                href=vms[0].get('href'),
-                id=vms[0].get('id'),
-                name=vms[0].get('name'),
-                type=vms[0].get('type')))
-
-        vm_general_params = E.VmGeneralParams()
-        if vm_name is not None:
-            vm_general_params.append(E.Name(vm_name))
-
-        # TODO(check if it needs customization if network, cpu or memory...)
-        if disk_size is None and \
-           password is None and \
-           cust_script is None and \
-           hostname is None:
-            needs_customization = 'false'
-        else:
-            needs_customization = 'true'
-        vm_general_params.append(E.NeedsCustomization(needs_customization))
-        sourced_item.append(vm_general_params)
-        sourced_item.append(vm_instantiation_param)
-
-        if storage_profile is not None:
-            sp = self.get_storage_profile(storage_profile)
-            vapp_storage_profile = E.StorageProfile(
-                href=sp.get('href'),
-                id=sp.get('href').split('/')[-1],
-                type=sp.get('type'),
-                name=sp.get('name'))
-            sourced_item.append(vapp_storage_profile)
-
-        # Cook the entire vApp Template instantiation element
-        deploy_param = 'true' if deploy else 'false'
-        power_on_param = 'true' if power_on else 'false'
-        all_eulas_accepted = 'true' if accept_all_eulas else 'false'
-
-        vapp_template_params = E.InstantiateVAppTemplateParams(
-            name=name, deploy=deploy_param, powerOn=power_on_param)
-
-        if description is not None:
-            vapp_template_params.append(E.Description(description))
-
-        if vapp_instantiation_param is not None:
-            vapp_template_params.append(vapp_instantiation_param)
-
-        vapp_template_params.append(
-            E.Source(href=catalog_item.Entity.get('href')))
-
-        vapp_template_params.append(sourced_item)
-
-        vapp_template_params.append(E.AllEULAsAccepted(all_eulas_accepted))
-        non_admin_resource = self.resource
-        if self.is_admin:
-            alternate_href = find_link(self.resource,
-                                       rel=RelationType.ALTERNATE,
-                                       media_type=EntityType.VDC.value).href
-            non_admin_resource = self.client.get_resource(
-                alternate_href)
-
-        return self.client.post_linked_resource(
-            non_admin_resource, RelationType.ADD,
-            EntityType.INSTANTIATE_VAPP_TEMPLATE_PARAMS.value,
-            vapp_template_params)
 
     def list_resources(self, entity_type=None):
         """Fetch information about all resources in the current org vdc.

@@ -884,7 +884,8 @@ class VApp(object):
 
         :param dict spec: a dictionary containing
 
-            - vapp: (resource): (required) source vApp or vAppTemplate
+            - vapp: (resource): (required) source vApp or vApp
+            
                 resource.
             - source_vm_name: (str): (required) source vm name.
             - target_vm_name: (str): (optional) target vm name.
@@ -1033,7 +1034,8 @@ class VApp(object):
     
     def get_template(self, catalog, template):
         """Returns the template resource from the provided catalog name
-            and vapp template name"""
+           and vapp template name
+        """
         org_resource = self.client.get_org()
         org = Org(self.client, resource=org_resource)
         catalog_item = org.get_catalog_item(catalog, template)
@@ -1042,22 +1044,22 @@ class VApp(object):
         return template_vapp_resource
 
     def create_vm_from_template(self, 
-                catalog,
-                vapp_template,
-                vm_template,
-                isAdmin=False,
-                name=None,
-                hostname=None,
-                password=None,
-                password_auto=None,
-                password_reset=None,
-                cust_script=None,
-                network=None,
-                disk_size=None,
-                storage_profile=None,
-                sizing_policy_href=None,
-                placement_policy_href=None,
-                ip_allocation_mode='DHCP'):
+            catalog,
+            vapp_template,
+            vm_template,
+            isAdmin=False,
+            name=None,
+            hostname=None,
+            password=None,
+            password_auto=None,
+            password_reset=None,
+            cust_script=None,
+            network=None,
+            disk_size=None,
+            storage_profile=None,
+            sizing_policy_href=None,
+            placement_policy_href=None,
+            ip_allocation_mode='DHCP'):
         """Creates a vm from a template or based on an existing VM from a different vapp
         and recompose the vapp to add the new vm.
             
@@ -1065,33 +1067,33 @@ class VApp(object):
         instead the template resource, you provide a vapp name or vapp template name 
         to create the new VM based on an existing vm from the vapp.
 
-            :param str catalog: (required) catalog name cointaining vapp template.
-            :param str vapp_template: (required) source vApp template name.
-            :param str vm_template: (required) source vm template name.
-            :param str bame: (optional) new vm name.
-            :param str hostname: (optional) new guest hostname.
-            :param str password: (optional) the administrator password of the vm.
-            :param str password_auto: (bool): (optional) auto generate administrator
-                password.
-            :param str password_reset: (bool): (optional) True, if the administrator
-                password for this vm must be reset after first use.
-            :param str cust_script: (optional) script to run on guest
-                customization.
-            :param str network: (optional) name of the vApp network to connect.
-                If omitted, the vm won't be connected to any network.
-            :param str storage_profile: (optional) the name of the storage
-                profile to be used for this vm.
-            :param str sizing_policy_href: (optional) sizing policy used for
-                creating the VM.
-            :param str placement_policy_href: (optional) placement policy used
-                for creating the VM.
-            :param str ip_allocation_mode: (optional) the allocation mode for ip.
-                Default is for DHCP.
+        :param str catalog: (required) catalog name cointaining vapp template.
+        :param str vapp_template: (required) source vApp template name.
+        :param str vm_template: (required) source vm template name.
+        :param str bame: (optional) new vm name.
+        :param str hostname: (optional) new guest hostname.
+        :param str password: (optional) the administrator password of the vm.
+        :param str password_auto: (bool): (optional) auto generate administrator
+            password.
+        :param str password_reset: (bool): (optional) True, if the administrator
+            password for this vm must be reset after first use.
+        :param str cust_script: (optional) script to run on guest
+            customization.
+        :param str network: (optional) name of the vApp network to connect.
+            If omitted, the vm won't be connected to any network.
+        :param str storage_profile: (optional) the name of the storage
+            profile to be used for this vm.
+        :param str sizing_policy_href: (optional) sizing policy used for
+            creating the VM.
+        :param str placement_policy_href: (optional) placement policy used
+            for creating the VM.
+        :param str ip_allocation_mode: (optional) the allocation mode for ip.
+            Default is for DHCP.
 
-            :return: an object containing EntityType.VAPP XML data representing the
-                updated vApp.
+        :return: an object containing EntityType.VAPP XML data representing the
+            updated vApp.
 
-            :rtype: lxml.objectify.ObjectifiedElement
+        :rtype: lxml.objectify.ObjectifiedElement
         """
         try:
             template_vapp_resource = self.get_template(catalog, vapp_template)

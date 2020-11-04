@@ -884,7 +884,7 @@ class VApp(object):
 
         :param dict spec: a dictionary containing
 
-            - vapp: (resource): (required) source vApp or vApp
+            - vapp: (resource): (required) source vApp or vAppTemplate
             
                 resource.
             - source_vm_name: (str): (required) source vm name.

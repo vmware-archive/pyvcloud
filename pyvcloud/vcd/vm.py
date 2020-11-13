@@ -742,7 +742,8 @@ class VM(object):
 
         if nic_not_found:
             raise EntityNotFoundException(
-                'Nic with name \'%s\' and index \'%s\' is not found in the VM \'%s\'' %
+                'Nic with name '
+                '\'%s\' and index \'%s\' is not found in the VM \'%s\'' %
                 (network_name, nic_id, self.get_resource().get('name')))
 
         if is_primary:

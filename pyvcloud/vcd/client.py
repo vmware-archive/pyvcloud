@@ -1972,6 +1972,25 @@ class _AbstractQuery(object):
 
         return uri
 
+    def get_single_page(self, page=1, page_size=25):
+        query_href = self._find_query_uri(self._query_result_format)
+        if query_href is None:
+            raise OperationNotSupportedException('Unable to execute query.')
+        query_uri = self._build_query_uri(
+            query_href,
+            page,
+            page_size,
+            self._filter,
+            self._include_links,
+            fields=self.fields)
+        query_results = self._client.get_resource(query_uri)
+        result_total = query_results.get('total')
+        resources = []
+        for r in query_results.iterchildren():
+            tag = etree.QName(r.tag)
+            if tag.localname != 'Link':
+                resources.append(r)
+        return resources, int(result_total)
 
 class _TypedQuery(_AbstractQuery):
     def __init__(self,

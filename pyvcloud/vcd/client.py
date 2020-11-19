@@ -1973,6 +1973,12 @@ class _AbstractQuery(object):
         return uri
 
     def get_single_page(self, page=1, page_size=25):
+        """Convenience wrapper to get a single page response.
+
+        :param int page: page number to be retrieved
+        :param int page_size: maximum number of records in the response
+        :return: tuple containing list of responses and total number of records
+        """
         query_href = self._find_query_uri(self._query_result_format)
         if query_href is None:
             raise OperationNotSupportedException('Unable to execute query.')

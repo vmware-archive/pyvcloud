@@ -1593,6 +1593,104 @@ class Org(object):
             resource_admin, RelationType.ADD, EntityType.VDCS_PARAMS.value,
             params)
 
+    def update_org_vdc(self,
+                       vdc_name,
+                       description=None,
+                       allocation_model=None,
+                       cpu_units=None,
+                       cpu_allocated=None,
+                       cpu_limit=None,
+                       mem_units=None,
+                       mem_allocated=None,
+                       mem_limit=None,
+                       nic_quota=None,
+                       network_quota=None,
+                       vm_quota=None,
+                       resource_guaranteed_memory=None,
+                       resource_guaranteed_cpu=None,
+                       vcpu_in_mhz=None,
+                       is_thin_provision=None,
+                       is_enabled=None):
+        """Create an Organization VDC in the current organization.
+
+        :param str vdc_name: name of the new org vdc.
+        :param str description: description of the new org vdc.
+        :param str allocation_model: allocation model used by this vdc.
+            Accepted values are 'AllocationVApp', 'AllocationPool' or
+            'ReservationPool'.
+        :param str cpu_units: unit for compute capacity allocated to this vdc.
+            Accepted values are 'MHz' or 'GHz'.
+        :param int cpu_allocated: capacity that is committed to be available.
+        :param int cpu_limit: capacity limit relative to the value specified
+            for allocation.
+        :param str mem_units: unit for memory capacity allocated to this vdc.
+            Acceptable values are 'MB' or 'GB'.
+        :param int mem_allocated: memory capacity that is committed to be
+            available.
+        :param int mem_limit: memory capacity limit relative to the value
+            specified for allocation.
+        :param int nic_quota: maximum number of virtual NICs allowed in this
+            vdc.
+        :param int network_quota: maximum number of network objects that can be
+            deployed in this vdc.
+        :param int vm_quota: maximum number of VMs that can be created in this
+            vdc.
+        :param float resource_guaranteed_memory: percentage of allocated CPU
+            resources guaranteed to vApps deployed in this vdc.
+        :param float resource_guaranteed_cpu: percentage of allocated memory
+            resources guaranteed to vApps deployed in this vdc.
+        :param int vcpu_in_mhz: specifies the clock frequency, in MegaHertz,
+            for any virtual CPU that is allocated to a VM.
+        :param bool is_thin_provision: True to request thin provisioning.
+        :param bool is_enabled: True / False  if this vdc is enabled for use
+            by the organization users.
+
+        :return: a task to update the vdc.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vdc = self.get_vdc(vdc_name, is_admin_operation=True)
+        if vdc is None:
+            raise EntityNotFoundException("{0} is not found".format(vdc_name))
+
+        if description:
+            vdc['Description'] = E.Description(description)
+        if allocation_model:
+            vdc['AllocationModel'] = E.AllocationModel(allocation_model)
+        if cpu_units:
+            vdc.ComputeCapacity.Cpu.Units = E.Units(cpu_units)
+        if cpu_allocated:
+            vdc.ComputeCapacity.Cpu.Allocated = E.Allocated(cpu_allocated)
+        if cpu_limit:
+            vdc.ComputeCapacity.Cpu.Limit = E.Limit(cpu_limit)
+        if mem_units:
+            vdc.ComputeCapacity.Memory.Units = E.Units(mem_units)
+        if mem_allocated:
+            vdc.ComputeCapacity.Memory.Allocated = E.Allocated(mem_allocated)
+        if mem_limit:
+            vdc.ComputeCapacity.Memory.Limit = E.Limit(mem_limit)
+        if nic_quota:
+            vdc['NicQuota'] = E.NicQuota(nic_quota)
+        if network_quota:
+            vdc['NetworkQuota'] = E.NetworkQuota(network_quota)
+        if vm_quota:
+            vdc['VmQuota'] = E.VmQuota(vm_quota)
+        if resource_guaranteed_memory:
+            vdc['ResourceGuaranteedCpu'] = E.ResourceGuaranteedCpu(
+                resource_guaranteed_cpu)
+        if resource_guaranteed_cpu:
+            vdc['ResourceGuaranteedMemory'] = E.ResourceGuaranteedMemory(
+                resource_guaranteed_memory)
+        if vcpu_in_mhz:
+            vdc['VCpuInMhz'] = E.VCpuInMhz(vcpu_in_mhz)
+        if is_thin_provision:
+            vdc['IsThinProvision'] = E.IsThinProvision(is_thin_provision)
+        if is_enabled is not None:
+            vdc['IsEnabled'] = E.IsEnabled(is_enabled)
+
+        return self.client.put_resource(
+            vdc.get("href"), vdc, EntityType.VDC_ADMIN.value)
+
     def get_vdc(self, name, is_admin_operation=False):
         """Retrieves resource of an org vdc identified by its name.
 

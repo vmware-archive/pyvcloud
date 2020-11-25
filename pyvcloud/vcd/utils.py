@@ -480,6 +480,7 @@ def vm_to_dict(vm):
                 nic_props['network'] = nc.get('network')
                 nic_props['mode'] = nc.IpAddressAllocationMode.text
                 nic_props['connected'] = nc.IsConnected.text
+                nic_props['adapter_type'] = nc.NetworkAdapterType.text
                 if hasattr(nc, 'MACAddress'):
                     nic_props['mac'] = nc.MACAddress.text
                 if hasattr(nc, 'IpAddress'):

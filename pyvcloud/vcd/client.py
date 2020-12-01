@@ -1881,7 +1881,9 @@ class _AbstractQuery(object):
     def execute(self):
         """Executes query and returns results.
 
-        :return: A generator to returns results.
+        :return: If specific page number is not set. If a specific page number
+            is set, return a dictionary which contains results of the specific
+            page or else, return a generator to return results
 
         :rtype: generator object
         """

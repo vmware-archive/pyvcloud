@@ -1881,11 +1881,11 @@ class _AbstractQuery(object):
     def execute(self):
         """Executes query and returns results.
 
-        :return: If specific page number is not set. If a specific page number
-            is set, return a dictionary which contains results of the specific
-            page or else, return a generator to return results
+        :return: If a specific page number is set, return a dictionary which
+            contains results of the specific page or else,
+            return a generator to return results
 
-        :rtype: generator object
+        :rtype: dict if page is set else a generator object
         """
         # create query href
         query_href = self._find_query_uri(self._query_result_format)
@@ -1921,7 +1921,7 @@ class _AbstractQuery(object):
                 fields=self.fields)
         if self._page > 1:
             # build query uri for the previous page
-            result['previousPageuri'] = self._build_query_uri(
+            result['previousPageUri'] = self._build_query_uri(
                 query_href,
                 self._page - 1,
                 self._page_size,

@@ -1606,6 +1606,7 @@ class Client(object):
     def get_typed_query(self,
                         query_type_name,
                         query_result_format=QueryResultFormat.REFERENCES,
+                        page=None,
                         page_size=None,
                         include_links=False,
                         qfilter=None,
@@ -1647,6 +1648,7 @@ class Client(object):
             query_type_name,
             self,
             query_result_format,
+            page=page,
             page_size=page_size,
             include_links=include_links,
             qfilter=qfilter,
@@ -1792,6 +1794,7 @@ class _AbstractQuery(object):
     def __init__(self,
                  query_result_format,
                  client,
+                 page=None,
                  page_size=None,
                  include_links=False,
                  qfilter=None,
@@ -1825,7 +1828,11 @@ class _AbstractQuery(object):
         self._query_result_format = query_result_format
         self._page_size = page_size
         self._include_links = include_links
+        self._query_all_pages = True
         self._page = 1
+        if page:
+            self._query_all_pages = False
+            self._page = page
 
         is_below_v35_query = float(client.get_api_version()) < float(ApiVersion.VERSION_35.value)  # noqa: E501
         if is_below_v35_query:
@@ -1874,13 +1881,18 @@ class _AbstractQuery(object):
     def execute(self):
         """Executes query and returns results.
 
-        :return: A generator to returns results.
+        :return: If a specific page number is set, return a dictionary which
+            contains results of the specific page or else,
+            return a generator to return results
 
-        :rtype: generator object
+        :rtype: dict if page is set else a generator object
         """
+        # create query href
         query_href = self._find_query_uri(self._query_result_format)
         if query_href is None:
             raise OperationNotSupportedException('Unable to execute query.')
+
+        # build query uri
         query_uri = self._build_query_uri(
             query_href,
             self._page,
@@ -1888,7 +1900,41 @@ class _AbstractQuery(object):
             self._filter,
             self._include_links,
             fields=self.fields)
-        return self._iterator(self._client.get_resource(query_uri))
+
+        if self._query_all_pages:
+            # Iterate over all the pages present to return all the resources
+            return self._iterator(self._client.get_resource(query_uri))
+
+        # return the resources in the present in the required page number
+        result = {}
+        query_results = self._client.get_resource(query_uri)
+        result['resultTotal'] = int(query_results.get('total'))
+        result['nextPageUri'] = None
+        if self._page * self._page_size < result['resultTotal']:
+            # build query uri for the next page
+            result['nextPageUri'] = self._build_query_uri(
+                query_href,
+                self._page + 1,
+                self._page_size,
+                self._filter,
+                self._include_links,
+                fields=self.fields)
+        if self._page > 1:
+            # build query uri for the previous page
+            result['previousPageUri'] = self._build_query_uri(
+                query_href,
+                self._page - 1,
+                self._page_size,
+                self._filter,
+                self._include_links,
+                fields=self.fields)
+        resources = []
+        for r in query_results.iterchildren():
+            tag = etree.QName(r.tag)
+            if tag.localname != 'Link':
+                resources.append(r)
+        result['values'] = resources
+        return result
 
     def _iterator(self, query_results):
         while True:
@@ -1978,6 +2024,7 @@ class _TypedQuery(_AbstractQuery):
                  query_type_name,
                  client,
                  query_result_format,
+                 page=None,
                  page_size=None,
                  include_links=False,
                  qfilter=None,
@@ -1988,6 +2035,7 @@ class _TypedQuery(_AbstractQuery):
         super(_TypedQuery, self).__init__(
             query_result_format,
             client,
+            page=page,
             page_size=page_size,
             include_links=include_links,
             qfilter=qfilter,

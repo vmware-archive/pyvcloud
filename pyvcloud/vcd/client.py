@@ -106,6 +106,7 @@ class ApiVersion(Enum):
     VERSION_33 = '33.0'
     VERSION_34 = '34.0'
     VERSION_35 = '35.0'
+    VERSION_36 = '36.0'
 
 
 # Important! Values must be listed in ascending order.
@@ -116,7 +117,8 @@ API_CURRENT_VERSIONS = [
     ApiVersion.VERSION_32.value,
     ApiVersion.VERSION_33.value,
     ApiVersion.VERSION_34.value,
-    ApiVersion.VERSION_35.value
+    ApiVersion.VERSION_35.value,
+    ApiVersion.VERSION_36.value
 ]
 
 

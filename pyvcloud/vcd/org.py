@@ -943,18 +943,20 @@ class Org(object):
         :param str email: email address of the user.
         :param str telephone: The telephone of the user.
         :param str im: instant message address of the user.
-        :param str alert_email: email address where alerts should be sent.
+        :param str alert_email: email address where alerts should be sent
+            (Deprecated).
         :param str alert_email_prefix: string to prepend to alert message
-            subject line.
+            subject line (Deprecated).
         :param str stored_vm_quota: quota of vApps that this user can store.
         :param str deployed_vm_quota: quota of vApps that this user can deploy
             concurrently.
         :param bool is_group_role: indicates if the user has a group role.
-        :param bool is_default_cached: indicates if user should be cached.
+        :param bool is_default_cached: indicates if user should be cached
+            (Deprecated).
         :param bool is_external: indicates if user is imported from an external
             source.
         :param bool is_alert_enabled: if, True will enable email alert for the
-            user.
+            user (Deprecated).
         :param bool is_enabled: if True, will enable the user after creation
             else will let the user remain disabled after creation.
 
@@ -971,11 +973,7 @@ class Org(object):
             E.Telephone(telephone),
             E.IsEnabled(is_enabled),
             E.IM(im),
-            E.IsAlertEnabled(is_alert_enabled),
-            E.AlertEmailPrefix(alert_email_prefix),
-            E.AlertEmail(alert_email),
             E.IsExternal(is_external),
-            E.IsDefaultCached(is_default_cached),
             E.IsGroupRole(is_group_role),
             E.StoredVmQuota(stored_vm_quota),
             E.DeployedVmQuota(deployed_vm_quota),

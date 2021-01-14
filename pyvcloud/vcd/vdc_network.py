@@ -14,6 +14,7 @@
 
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
+from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import MetadataValueType
 from pyvcloud.vcd.client import MetadataVisibility
@@ -449,3 +450,11 @@ class VdcNetwork(object):
             self.admin_resource,
             RelationType.VDC_ROUTED_CONVERT_TO_DISTRIBUTED_INTERFACE, None,
             None)
+
+    def is_routed_network(self):
+        vdc_network = self.get_resource()
+        if hasattr(vdc_network, 'Configuration') and \
+                hasattr(vdc_network.Configuration, 'FenceMode') and \
+                str(vdc_network.Configuration.FenceMode) == FenceMode.NAT_ROUTED.value:  # noqa: E501
+            return True
+        return False

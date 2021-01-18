@@ -1160,7 +1160,8 @@ class VM(object):
 
             if hasattr(disk_list, 'Item'):
                 for disk in disk_list.Item:
-                    if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':
+                    if disk['{' + NSMAP['rasd'] + '}Description'] \
+                        == 'Hard disk':
                         vhs_disk_info = {
                             'diskElementName': str(disk[
                                 '{' + NSMAP['rasd'] + '}ElementName']),

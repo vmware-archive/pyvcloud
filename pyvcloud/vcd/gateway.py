@@ -11,6 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
+
+import requests
+
 from pyvcloud.vcd.client import create_element
 from pyvcloud.vcd.client import E
 from pyvcloud.vcd.client import EntityType
@@ -31,6 +35,7 @@ from pyvcloud.vcd.network_url_constants import SERVICE_CERTIFICATE_POST
 from pyvcloud.vcd.network_url_constants import STATIC_ROUTE_URL_TEMPLATE
 from pyvcloud.vcd.platform import Platform
 from pyvcloud.vcd.utils import build_network_url_from_gateway_url
+from pyvcloud.vcd.utils import extract_id
 from pyvcloud.vcd.utils import get_admin_href
 from pyvcloud.vcd.utils import netmask_to_cidr_prefix_len
 
@@ -47,6 +52,9 @@ class Gateway(object):
     __FIREWALL_OBJECT_TYPE = '/firewall/{0}/{1}'
     __OBJECT_TYPE = '/firewall/{0}'
     __EDGES = '/edges'
+    __NSXT_BACKED = 'NSXT_BACKED'
+    __EDGE_GATEWAYS = '/edgeGateways'
+    __URN_PREFIX = 'urn:vcloud:gateway:'
 
     def __init__(self, client, name=None, href=None, resource=None):
         """Constructor for Gateway objects.
@@ -1701,6 +1709,57 @@ class Gateway(object):
             _build_get_crl_certificates_href(network_url)
         return self.client.get_resource(crl_certificates_href)
 
+    def get_gateway_urn(self):
+        gateway_id = extract_id(self.href, is_href=True)
+        return f'{Gateway.__URN_PREFIX}{gateway_id}'
+
+    def is_nsxt_backed(self):
+        resource = self.get_resource()
+        return resource.attrib['edgeGatewayType'] == Gateway.__NSXT_BACKED
+
+    def nsxt_backed_quick_ip_allocation(self, gateway, prefix_length,
+                                        number_ips):
+        """Allocate an ip using the edge quick ip allocation feature.
+
+        :param str gateway: ip of the subnet
+        :param int prefix_length: prefix length of the subnet
+        :param int number_ips: number of ips to allocate
+        """
+        assert self.is_nsxt_backed()
+
+        # Handle making GET request
+        gateway_urn = self.get_gateway_urn()
+        gateway_cloudapi_uri = f'{self.client.get_cloudapi_uri()}/1.0.0' \
+                               f'{Gateway.__EDGE_GATEWAYS}/{gateway_urn}'
+        get_response = self.client._do_request_prim(
+            method='GET',
+            uri=gateway_cloudapi_uri,
+            session=self.client._session,
+            accept_type='application/json')
+        if get_response.status_code != requests.codes.ok:
+            raise Exception(f'Request failed with response code: '
+                            f'{get_response.status_code}')
+
+        # Form PUT request body
+        put_request_body = json.loads(get_response.text)
+        subnet_values = put_request_body['edgeGatewayUplinks'][0]['subnets']['values']  # noqa: E501
+        subnet_index = self._get_subnet_index(gateway, prefix_length, subnet_values)  # noqa: E501
+        request_subnet_value = subnet_values[subnet_index]
+        request_subnet_value["totalIpCount"] = int(request_subnet_value["totalIpCount"]) + number_ips  # noqa: E501
+        request_subnet_value["autoAllocateIpRanges"] = True
+
+        # Send PUT request
+        put_response = self.client._do_request_prim(
+            method='PUT',
+            uri=gateway_cloudapi_uri,
+            session=self.client._session,
+            contents=put_request_body,
+            media_type='application/json',
+            accept_type='application/json')
+        if put_response.status_code != requests.codes.accepted:
+            raise Exception(f'Error in put request: '
+                            f'{put_response.status_code}')
+
     def _build_post_service_certificate_href(self, network_url):
         gateway_id = self._get_gateway_id_from_network_url(network_url)
         removal_string = '/edges/' + gateway_id
@@ -1744,3 +1803,19 @@ class Gateway(object):
         with open(file_path, 'r') as myfile:
             content = myfile.read()
         return content
+
+    def _get_subnet_index(self, gateway, prefix_length, subnet_values):
+        """Get the index in the array of the correct subnet dict.
+
+        :param str gateway: ip of the subnet
+        :param int prefix_length: prefix length of the subnet
+        :param arr subnet_values: array of dicts containing subnet info
+
+        :return: index of the target gateway
+        :rtype: int
+        """
+        for index, subnet in enumerate(subnet_values):
+            if subnet['gateway'] == gateway and \
+                    subnet['prefixLength'] == prefix_length:
+                return index
+        return -1

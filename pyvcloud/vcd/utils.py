@@ -39,24 +39,29 @@ VDC_COMPUTE_POLICY_MAX_API_VERSION = float(ApiVersion.VERSION_33.value)
 VM_SIZING_POLICY_MIN_API_VERSION = float(ApiVersion.VERSION_33.value)
 
 
-def extract_id(urn):
-    """Extract id from an urn.
+def extract_id(extract_str, is_href=False):
+    """Extract id from a urn or href.
 
-    'urn:vcloud:catalog:39867ab4-04e0-4b13-b468-08abcc1de810' will produce
+    urn 'urn:vcloud:catalog:39867ab4-04e0-4b13-b468-08abcc1de810' will produce
     '39867ab4-04e0-4b13-b468-08abcc1de810'
 
-    :param str urn: a vcloud resource urn.
+    href 'https://XXX.eng.vmware.com/api/admin/XXX/d78f-b0ae-4a0e-ad3b-1757895'
+    will produce 'd78f-b0ae-4a0e-ad3b-1757895'
+
+    :param str extract_str: string to extract the id from.
 
     :return: the extracted id
 
     :rtype: str
     """
-    if urn is None:
+    if extract_str is None:
         return None
-    if ':' in urn:
-        return urn.split(':')[-1]
+    if is_href and '/' in extract_str:
+        return extract_str.split('/')[-1]
+    elif not is_href and ':' in extract_str:
+        return extract_str.split(':')[-1]
     else:
-        return urn
+        return extract_str
 
 
 def org_to_dict(org):

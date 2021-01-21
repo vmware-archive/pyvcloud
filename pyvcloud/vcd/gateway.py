@@ -55,6 +55,8 @@ class Gateway(object):
     __NSXT_BACKED = 'NSXT_BACKED'
     __EDGE_GATEWAYS = '/edgeGateways'
     __URN_PREFIX = 'urn:vcloud:gateway:'
+    __NAT = '/nat'
+    __RULES = '/rules'
 
     def __init__(self, client, name=None, href=None, resource=None):
         """Constructor for Gateway objects.
@@ -1713,6 +1715,12 @@ class Gateway(object):
         gateway_id = extract_id(self.href, is_href=True)
         return f'{Gateway.__URN_PREFIX}{gateway_id}'
 
+    def get_gateway_cloudapi_uri(self):
+        gateway_urn = self.get_gateway_urn()
+        gateway_cloudapi_uri = f'{self.client.get_cloudapi_uri()}/1.0.0' \
+                               f'{Gateway.__EDGE_GATEWAYS}/{gateway_urn}'
+        return gateway_cloudapi_uri
+
     def is_nsxt_backed(self):
         resource = self.get_resource()
         return resource.attrib['edgeGatewayType'] == Gateway.__NSXT_BACKED
@@ -1728,9 +1736,7 @@ class Gateway(object):
         assert self.is_nsxt_backed()
 
         # Handle making GET request
-        gateway_urn = self.get_gateway_urn()
-        gateway_cloudapi_uri = f'{self.client.get_cloudapi_uri()}/1.0.0' \
-                               f'{Gateway.__EDGE_GATEWAYS}/{gateway_urn}'
+        gateway_cloudapi_uri = self.get_gateway_cloudapi_uri()
         get_response = self.client._do_request_prim(
             method='GET',
             uri=gateway_cloudapi_uri,
@@ -1759,6 +1765,53 @@ class Gateway(object):
         if put_response.status_code != requests.codes.accepted:
             raise Exception(f'Error in put request: '
                             f'{put_response.status_code}')
+
+    def nsxt_backed_add_dnat_rule(self,
+                                  name,
+                                  internal_address,
+                                  external_address,
+                                  dnat_external_port=None,
+                                  description='',
+                                  logging_enabled=False,
+                                  enabled=True,
+                                  application_port_profile=None):
+        """Add a DNAT rule for an NSX-T backed gateway.
+
+        :param str name: name of the rule
+        :param str internal address: internal ip address
+        :param str external address: external ip address
+        :param str dnat_external_port: external port
+        :param str description: rule description
+        :param bool logging_enabled: indicate if logging is enabled
+        :param bool enabled: indicate state
+        :param dict application_port_profile: dict with keys "id" and "name"
+            for port profile
+        """
+        assert self.is_nsxt_backed()
+
+        content = {
+            'name': name,
+            'description': description,
+            'enabled': enabled,
+            'ruleType': 'DNAT',
+            'externalAddresses': external_address,
+            'internalAddresses': internal_address,
+            'logging': logging_enabled,
+            'applicationPortProfile': application_port_profile,
+            'dnatExternalPort': dnat_external_port
+        }
+
+        gateway_cloudapi_uri = self.get_gateway_cloudapi_uri()
+        post_response = self.client._do_request_prim(
+            method='POST',
+            uri=f'{gateway_cloudapi_uri}{Gateway.__NAT}{Gateway.__RULES}',
+            session=self.client._session,
+            contents=content,
+            media_type='application/json',
+            accept_type='application/json')
+        if post_response.status_code != requests.codes.accepted:
+            raise Exception(f'Failed dnat post response: '
+                            f'{post_response.status_code}')
 
     def _build_post_service_certificate_href(self, network_url):
         gateway_id = self._get_gateway_id_from_network_url(network_url)

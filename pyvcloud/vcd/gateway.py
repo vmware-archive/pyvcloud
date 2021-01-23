@@ -1725,11 +1725,11 @@ class Gateway(object):
         resource = self.get_resource()
         return resource.attrib['edgeGatewayType'] == Gateway.__NSXT_BACKED
 
-    def nsxt_backed_quick_ip_allocation(self, gateway, prefix_length,
-                                        number_ips):
+    def nsxt_backed_quick_ip_allocation(self, external_nw_name, gateway_ip,
+                                        prefix_length, number_ips):
         """Allocate an ip using the edge quick ip allocation feature.
 
-        :param str gateway: ip of the subnet
+        :param str gateway_ip: ip of the subnet
         :param int prefix_length: prefix length of the subnet
         :param int number_ips: number of ips to allocate
         """
@@ -1748,8 +1748,11 @@ class Gateway(object):
 
         # Form PUT request body
         put_request_body = json.loads(get_response.text)
-        subnet_values = put_request_body['edgeGatewayUplinks'][0]['subnets']['values']  # noqa: E501
-        subnet_index = self._get_subnet_index(gateway, prefix_length, subnet_values)  # noqa: E501
+        uplink_index = self._get_uplink_index(
+            put_request_body['edgeGatewayUplinks'],
+            external_nw_name)
+        subnet_values = put_request_body['edgeGatewayUplinks'][uplink_index]['subnets']['values']  # noqa: E501
+        subnet_index = self._get_subnet_index(gateway_ip, prefix_length, subnet_values)  # noqa: E501
         request_subnet_value = subnet_values[subnet_index]
         request_subnet_value["totalIpCount"] = int(request_subnet_value["totalIpCount"]) + number_ips  # noqa: E501
         request_subnet_value["autoAllocateIpRanges"] = True
@@ -1857,14 +1860,30 @@ class Gateway(object):
             content = myfile.read()
         return content
 
+    def _get_uplink_index(self, uplinks, uplink_name):
+        """Get the index in the uplinks array of the correct uplink name.
+
+        :param arr uplinks: array of uplinks
+        :param str uplink_name: name of the uplink
+
+        :return: index of the uplink. -1 is returned if the uplink name is not
+            found.
+        :rtype: int
+        """
+        for index, uplink in enumerate(uplinks):
+            if uplink['uplinkName'] == uplink_name:
+                return index
+        return -1
+
     def _get_subnet_index(self, gateway, prefix_length, subnet_values):
-        """Get the index in the array of the correct subnet dict.
+        """Get the index in the subnet values array of the correct subnet dict.
 
         :param str gateway: ip of the subnet
         :param int prefix_length: prefix length of the subnet
         :param arr subnet_values: array of dicts containing subnet info
 
-        :return: index of the target gateway
+        :return: index of the target gateway. -1 is returned if the uplink name
+            is not found.
         :rtype: int
         """
         for index, subnet in enumerate(subnet_values):

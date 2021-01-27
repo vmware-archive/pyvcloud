@@ -47,6 +47,7 @@ class Gateway(object):
     __FIREWALL_OBJECT_TYPE = '/firewall/{0}/{1}'
     __OBJECT_TYPE = '/firewall/{0}'
     __EDGES = '/edges'
+    __NSXT_BACKED = 'NSXT_BACKED'
 
     def __init__(self, client, name=None, href=None, resource=None):
         """Constructor for Gateway objects.
@@ -1744,3 +1745,7 @@ class Gateway(object):
         with open(file_path, 'r') as myfile:
             content = myfile.read()
         return content
+
+    def is_nsxt_backed(self):
+        resource = self.get_resource()
+        return resource.attrib['edgeGatewayType'] == Gateway.__NSXT_BACKED

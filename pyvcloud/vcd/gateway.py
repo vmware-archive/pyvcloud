@@ -1161,9 +1161,9 @@ class Gateway(object):
         if hasattr(static_routes_resource.staticRoutes, 'route'):
             for static_route in static_routes_resource.staticRoutes.route:
                 static_route_info = {}
-                static_route_info['Network'] = static_route.network
-                static_route_info['Next Hop'] = static_route.nextHop
-                static_route_info['MTU'] = static_route.mtu
+                static_route_info['Network'] = str(static_route.network)
+                static_route_info['Next Hop'] = str(static_route.nextHop)
+                static_route_info['MTU'] = int(static_route.mtu)
                 out_list.append(static_route_info)
         return out_list
 

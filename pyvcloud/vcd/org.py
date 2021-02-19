@@ -1015,7 +1015,7 @@ class Org(object):
             updated_user["Password"] = E.Password(password)
             user["Password"] = updated_user["Password"]
 
-        if is_enabled or role_name or password:
+        if (is_enabled is False or is_enabled is True) or role_name or password:
             return self.client.put_resource(
                 user.get('href'), updated_user, EntityType.USER.value)
 

@@ -976,7 +976,10 @@ class Client(object):
             if sc != requests.codes.ok:
                 r = None
                 try:
-                    r = _objectify_response(response)
+                    if accept_type.lower() == 'application/json':
+                        r = response.json()
+                    else:
+                        r = _objectify_response(response)
                 except Exception:
                     pass
                 if r is not None:

@@ -199,5 +199,31 @@ class TestVAppVM(TestCase):
             callback=None)
         assert task.get('status') == TaskStatus.SUCCESS.value
 
+    def test_001_update_product_section(self):
+        _org=self.client.get_org_by_name(org_name=self.config['vcd']['org_to_use'])
+        org = Org(self.client, resource=_org)
+        v = org.get_vdc(self.config['vcd']['vdc'])
+        vdc = VDC(self.client, href=v.get('href'))
+        assert self.config['vcd']['vdc'] == vdc.get_resource().get('name')
+        vapp_resource = vdc.get_vapp(self.config['vcd']['vapp'])
+        assert vapp_resource.get('name') == self.config['vcd']['vapp']
+        vapp = VApp(self.client, resource=vapp_resource)
+        key_to_be_updated = "guestinfo.ignition.config.data.encoding"
+        value_to_be_updated_for_key = "base64"
+        result = vapp.update_product_section(key=key_to_be_updated, value=value_to_be_updated_for_key, instance_name=self.config['vcd']['vm'])
+        task = self.client.get_task_monitor().wait_for_status(
+            task=result,
+            timeout=60,
+            poll_frequency=2,
+            fail_on_statuses=None,
+            expected_target_statuses=[
+                TaskStatus.SUCCESS,
+                TaskStatus.ABORTED,
+                TaskStatus.ERROR,
+                TaskStatus.CANCELED],
+            callback=None)
+        assert task.get('status') == TaskStatus.SUCCESS.value
+
+
 if __name__ == '__main__':
     unittest.main()

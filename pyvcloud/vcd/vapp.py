@@ -2030,12 +2030,13 @@ class VApp(object):
                     'ovf:Property', namespaces=NSMAP)
                 prop = self.find_prop(properties, key)
                 if prop is not None:
-                  if hasattr(prop, "Value"):
-                    prop.Value.set("{" + NSMAP["ovf"] + "}value", str(value))
-                  else:
-                    _value = E_OVF.Value()
-                    _value.set("{" + NSMAP["ovf"] + "}value", str(value))
-                    prop.append(_value)
+                    if hasattr(prop, "Value"):
+                        _value = prop.Value
+                        _value.set("{" + NSMAP["ovf"] + "}value", str(value))
+                    else:
+                        _value = E_OVF.Value()
+                        _value.set("{" + NSMAP["ovf"] + "}value", str(value))
+                        prop.append(_value)
                 else:
                     product_section.append(property)
                 is_updated = True

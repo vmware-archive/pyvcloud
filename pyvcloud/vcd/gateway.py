@@ -1748,4 +1748,11 @@ class Gateway(object):
 
     def is_nsxt_backed(self):
         resource = self.get_resource()
-        return resource.attrib['edgeGatewayType'] == Gateway.__NSXT_BACKED
+        if hasattr(resource, 'EdgeGatewayType') and \
+                str(resource.EdgeGatewayType) == Gateway.__NSXT_BACKED:
+            return True
+
+        # Check other field for finding gateway type
+        if resource.attrib.get('edgeGatewayType', '') == Gateway.__NSXT_BACKED:
+            return True
+        return False

@@ -37,12 +37,12 @@ requests.packages.urllib3.disable_warnings()
 # certificates.  You should only do this in trusted environments.
 print("Logging in: host={0}, org={1}, user={2}".format(vcd_host, org, user))
 client = Client(vcd_host,
-                api_version='29.0',
                 verify_ssl_certs=False,
                 log_file='pyvcloud.log',
                 log_requests=True,
                 log_headers=True,
                 log_bodies=True)
+client.set_highest_supported_version()
 client.set_credentials(BasicLoginCredentials(user, org, password))
 
 print("Fetching vCD installation info...")

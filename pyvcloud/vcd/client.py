@@ -1269,7 +1269,8 @@ class Client(object):
                          accept_type=None,
                          auth=None,
                          params=None,
-                         extra_headers=None):
+                         extra_headers=None,
+                         timeout=None):
         headers = extra_headers or {}
         if media_type is not None:
             headers[self._HEADER_CONTENT_TYPE_NAME] = media_type
@@ -1300,7 +1301,8 @@ class Client(object):
             data=data,
             headers=headers,
             auth=auth,
-            verify=self._verify_ssl_certs)
+            verify=self._verify_ssl_certs,
+            timeout=timeout)
 
         self._log_request_response(response=response)
 

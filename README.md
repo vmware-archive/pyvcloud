@@ -4,7 +4,7 @@
 
 `pyvcloud` is the Python SDK for VMware vCloud Director.
 
-Supported API versions are 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0.
+Supported API versions are 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0.
 
 ## Installation
 

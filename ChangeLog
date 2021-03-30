@@ -1,6 +1,22 @@
 CHANGES
 =======
 
+* Remove hardcoding of API version from examples (#755)
+* Safer check for checking gateway is nsxt backed (#750)
+* Parse the returned response based on the set \`accept\_type\` value (#732)
+* Added a helper to check if the gateway is NSX-T backed (#740)
+* [VCDA-2006] added function to detect vdc network is routed  (#738)
+* Remove deprecated fields from UserType XML payload while creating a new user. (#735)
+* Add support for API version 36 in pyvcloud (#734)
+* Add support to get query results one page at a time (#724)
+* Update an Org VDC (#727)
+* Update supported version in README (#721)
+* Fix: vApp instantiation fails if template has more than one VM (#713)
+
+23.0.0
+------
+
+* Update Changelog and Authors for v23.0.0 release
 * Add support to escape special characters in query filter for api v35.0+ (#711)
 * For api 35.0+, single encode query filter, and remove filterEncoded param (#710)
 * Include tenant context header when creating catalog (#709)

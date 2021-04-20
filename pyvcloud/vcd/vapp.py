@@ -975,15 +975,6 @@ class VApp(object):
         sourced_item.append(vm_general_params)
         sourced_item.append(vm_instantiation_param)
 
-        vdc_compute_policy_element, compute_policy_element = \
-            generate_compute_policy_tags(float(self.client.get_api_version()),
-                                         sizing_policy_href=spec.get('sizing_policy_href'),  # noqa: E501
-                                         placement_policy_href=spec.get('placement_policy_href'))  # noqa: E501
-        if vdc_compute_policy_element is not None:
-            sourced_item.append(vdc_compute_policy_element)
-        if compute_policy_element is not None:
-            sourced_item.append(compute_policy_element)
-
         if 'storage_profile' in spec:
             sp = spec['storage_profile']
             storage_profile = E.StorageProfile(
@@ -992,6 +983,15 @@ class VApp(object):
                 type=sp.get('type'),
                 name=sp.get('name'))
             sourced_item.append(storage_profile)
+
+        vdc_compute_policy_element, compute_policy_element = \
+            generate_compute_policy_tags(float(self.client.get_api_version()),
+                                         sizing_policy_href=spec.get('sizing_policy_href'),  # noqa: E501
+                                         placement_policy_href=spec.get('placement_policy_href'))  # noqa: E501
+        if vdc_compute_policy_element is not None:
+            sourced_item.append(vdc_compute_policy_element)
+        if compute_policy_element is not None:
+            sourced_item.append(compute_policy_element)
 
         return sourced_item
 

@@ -1140,6 +1140,14 @@ class Client(object):
         """
         return self._vcloud_access_token
 
+    def should_verify_ssl(self):
+        """Retrieve boolean indicating if ssl verification is enabled.
+
+        :return: True if ssl verification is enabled, else False
+        :rtype: bool
+        """
+        return self._verify_ssl_certs
+
     def get_task_monitor(self):
         if self._task_monitor is None:
             self._task_monitor = _TaskMonitor(self)

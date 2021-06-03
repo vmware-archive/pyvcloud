@@ -1650,6 +1650,27 @@ class VM(object):
             put_resource(uri, vm_capabilities_section,
                          EntityType.VM_CAPABILITIES_SECTION.value)
 
+    def get_vm_extra_config_elements(self):
+        """Get vmw:ExtraConfig section of VM.
+
+        :return: list of all ExtraConfig elements
+        :rtype: list[lxml.objectify.StringElement]
+        """
+        vm_resource = self.get_resource()
+        return vm_resource.xpath(
+            'ovf:VirtualHardwareSection/vmw:ExtraConfig',
+            namespaces=NSMAP)
+
+    def list_vm_extra_config_info(self):
+        """List VM extra config key-value pairs.
+
+        :return: dictionary which contains VM ExtraConfig info
+        :rtype: dict
+        """
+        extra_config_items = self.get_vm_extra_config_elements()
+        return {item.get(f"{{{NSMAP['vmw']}}}key"): item.get(
+            f"{{{NSMAP['vmw']}}}value") for item in extra_config_items}
+
     def get_boot_options(self):
         """Get boot options of VM.
 

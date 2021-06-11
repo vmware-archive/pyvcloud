@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+* method to get extra config elements of vm (#765)
+* Adding a new module NsxtExtension to add/update/delete (#764)
+* [VCDA-2334] Storage profile element should cbe added before compute policy (#761)
+
+23.0.1
+------
+
+* Update Changelog and Authors for v23.0.1 release
 * Remove hardcoding of API version from examples (#755)
 * Safer check for checking gateway is nsxt backed (#750)
 * Parse the returned response based on the set \`accept\_type\` value (#732)

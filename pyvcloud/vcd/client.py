@@ -1229,7 +1229,7 @@ class Client(object):
                 redacted_headers[key] = "[REDACTED]"
         return redacted_headers
 
-    def _log_request_sent(self, method, uri, headers=[], request_body=None):
+    def _log_request_sent(self, method, uri, headers={}, request_body=None):
         if not self._log_requests:
             return
 

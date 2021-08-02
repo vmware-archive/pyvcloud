@@ -20,6 +20,7 @@ from enum import Enum
 import json
 import logging
 import logging.handlers as handlers
+from vcloud.rest.openapi.api_client import ApiClient
 from pathlib import Path
 import sys
 import time
@@ -28,6 +29,8 @@ import urllib
 from lxml import etree
 from lxml import objectify
 import requests
+
+from vcloud.rest.openapi.configuration import Configuration
 
 from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     BadRequestException, ClientException, ConflictException, \
@@ -696,7 +699,7 @@ def _objectify_response(response, as_object=True):
         return None
 
 
-class Client(object):
+class Client(ApiClient):
     """A low-level interface to the vCloud Director REST API.
 
     Clients default to the production vCD API version as of the pyvcloud
@@ -761,6 +764,15 @@ class Client(object):
                  log_requests=False,
                  log_headers=False,
                  log_bodies=False):
+
+        self._config = Configuration()
+        if hasattr(self, '_uri'):
+            self._config.host = self._uri
+        else:
+            self._config.host = uri
+        self._config.verify_ssl = verify_ssl_certs
+        self._log_requests = log_requests
+
         self._logger = None
         self._get_default_logger(file_name=log_file)
 
@@ -774,7 +786,6 @@ class Client(object):
         self._api_base_uri = self._prep_base_uri(uri)
         self._cloudapi_base_uri = self._prep_base_uri(uri, True)
         self._api_version = api_version
-
         self._session_endpoints = None
         self._session = None
         self._vcloud_session = None
@@ -782,8 +793,10 @@ class Client(object):
         self._vcloud_access_token = None
         self._query_list_map = None
         self._task_monitor = None
-
         self._is_sysadmin = False
+
+        super(Client, self).__init__()
+
 
     def _get_default_logger(self, file_name="vcd_pysdk.log",
                             log_level=logging.DEBUG,
@@ -990,6 +1003,10 @@ class Client(object):
 
             if use_cloudapi_login_endpoint:
                 access_token = response.headers[self._HEADER_X_VMWARE_CLOUD_ACCESS_TOKEN_NAME]  # noqa: E501
+                self._config.api_key_prefix["Authorization"] = "Bearer"
+                self._config.api_key["Authorization"] = access_token
+                self.set_default_header("Accept", f'application/*;version={self._api_version}')
+                self.set_default_header("Authorization", access_token)
                 # A new session will be created in rehydrate and stored in
                 # this object
                 new_session.close()
@@ -1001,6 +1018,10 @@ class Client(object):
                     response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
                 self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
                     self._vcloud_auth_token
+                self._config.api_key_prefix["Authorization"] = "Bearer"
+                self._config.api_key["Authorization"] = self._vcloud_auth_token
+                self.set_default_header("Accept", f'application/*;version={self._api_version}')
+                self.set_default_header("Authorization", self._vcloud_auth_token)
                 self._vcloud_session = objectify.fromstring(response.content)
                 self._update_is_sysadmin()
                 self._session_endpoints = \
@@ -1229,7 +1250,7 @@ class Client(object):
                 redacted_headers[key] = "[REDACTED]"
         return redacted_headers
 
-    def _log_request_sent(self, method, uri, headers={}, request_body=None):
+    def _log_request_sent(self, method, uri, headers=[], request_body=None):
         if not self._log_requests:
             return
 
@@ -1300,7 +1321,6 @@ class Client(object):
 
         self._log_request_sent(
             method=method, uri=uri, headers=headers, request_body=data)
-
         response = session.request(
             method,
             uri,

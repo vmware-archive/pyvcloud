@@ -54,10 +54,10 @@ from enum import Enum
 
 from six.moves import http_client
 from pyvcloud.vcd.api_helper import ApiHelper
-from pyvcloud.vcd.client import Client, BasicLoginCredentials, Link, ApiVersion
-from vcloud.rest.openapi.apis.sessions_api import SessionsApi
+from pyvcloud.vcd.client import Client, Link
 from vcloud.api.rest.schema_v1_5.task_type import TaskType
-from vcloud.api.rest.schema_v1_5.session_type import SessionType
+from vcloud.rest.openapi.api_client import ApiClient
+from vcloud.rest.openapi.configuration import Configuration
 from vcloud.rest.openapi.rest import ApiException
 from pyvcloud.vcd.exceptions import (
     AccessForbiddenException, BadRequestException, ConflictException,
@@ -186,7 +186,7 @@ class _TaskMonitor(object):
         return self._get_task_status(task.get('href')).get('status').lower()
 
 
-class VcdClient(Client):
+class VcdClient(Client, ApiClient):
     """A client to interact with the vCloud Director OpenAPI & Legacy Api.
 
     Client defaults to the highest API version supported by vCloud Director
@@ -216,8 +216,22 @@ class VcdClient(Client):
                  ):
         self.prep_base_uri(uri)
         self._api_version = api_version
-        # Initialize ApiBaseClient without any parameter
-        super().__init__(uri, api_version, verify_ssl_certs, log_file, log_requests, log_bodies=log_bodies, log_headers=log_headers)
+
+        # Create configuration object
+        self._config = Configuration()
+        if hasattr(self, '_uri'):
+            self._config.host = self._uri
+        else:
+            self._config.host = uri
+        self._config.verify_ssl = verify_ssl_certs
+        self._log_requests = log_requests
+
+        # Initializing client
+        Client.__init__(self, uri, api_version, verify_ssl_certs, log_file, log_requests, log_bodies=log_bodies, log_headers=log_headers)
+
+        # Initialize OPENApi BaseClient without any parameter
+        ApiClient.__init__(self)
+
         # Disable HTTP debug logging on stdout
         http_client.HTTPConnection.debuglevel = 0
         self._api_helper = ApiHelper()
@@ -232,6 +246,25 @@ class VcdClient(Client):
                 pass
             else:
                 self._uri = 'https://' + self._uri
+
+    def set_credentials(self, creds):
+        """Set credentials and authenticate to create a new session.
+
+        This call will automatically set the highest supported API version if
+        it was not set previously.
+
+        :param BasicLoginCredentials creds: Credentials containing org,
+            user, and password.
+
+        :raises: VcdException: if automatic API negotiation fails to arrive
+        """
+        super(VcdClient, self).set_credentials(creds)
+        api_token = self._session.headers['Authorization'].split()[-1] if self._session.headers.get('Authorization') \
+            else self._vcloud_auth_token
+        self._config.api_key_prefix["Authorization"] = "Bearer"
+        self._config.api_key["Authorization"] = api_token
+        self.set_default_header("Accept", f'application/*;version={self._api_version}')
+        self.set_default_header("Authorization", api_token)
 
     def logout(self):
         """Logout current user and clear the session.

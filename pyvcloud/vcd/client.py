@@ -20,7 +20,6 @@ from enum import Enum
 import json
 import logging
 import logging.handlers as handlers
-from vcloud.rest.openapi.api_client import ApiClient
 from pathlib import Path
 import sys
 import time
@@ -29,8 +28,6 @@ import urllib
 from lxml import etree
 from lxml import objectify
 import requests
-
-from vcloud.rest.openapi.configuration import Configuration
 
 from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     BadRequestException, ClientException, ConflictException, \
@@ -605,7 +602,6 @@ class _TaskMonitor(object):
                         expected_target_statuses=[TaskStatus.SUCCESS],
                         callback=None):
         """Waits for task to reach expected status.
-
         :param Task task: Task returned by post or put calls.
         :param float timeout: Time (in seconds, floating point, fractional)
             to wait for task to finish.
@@ -655,14 +651,10 @@ class _TaskMonitor(object):
 
 def _get_session_endpoints(session):
     """Return a map of well known endpoints.
-
     Build and return a map keyed by well-known endpoints, yielding hrefs,
     from a <Session> XML element.
-
     :param lxml.objectify.ObjectifiedElement session: session object.
-
     :return: session endpoint hrefs.
-
     :rtype: dict
     """
     smap = {}
@@ -680,14 +672,11 @@ def _response_has_content(response):
 
 def _objectify_response(response, as_object=True):
     """Convert XML response content to an lxml object.
-
     :param str response: an XML response as a string.
     :param boolean as_object: If True convert to an
         lxml.objectify.ObjectifiedElement where XML properties look like
         python object attributes.
-
     :return: lxml.objectify.ObjectifiedElement or xml.etree.ElementTree object.
-
     :rtype: lxml.objectify.ObjectifiedElement
     """
     if _response_has_content(response):
@@ -699,18 +688,15 @@ def _objectify_response(response, as_object=True):
         return None
 
 
-class Client(ApiClient):
+class Client(object):
     """A low-level interface to the vCloud Director REST API.
-
     Clients default to the production vCD API version as of the pyvcloud
     module release and will try to negotiate down to a lower API version
     that pyvcloud certifies if the vCD server is older. You can also set
     the version explicitly using the api_version parameter or by calling
     the set_highest_supported_version() method.
-
     The log_file is set by the first client instantiated and will be
     ignored in later clients.
-
     :param str uri: vCD server host name or connection URI.
     :param str api_version: vCD API version to use.
     :param boolean verify_ssl_certs: If True validate server certificate;
@@ -764,15 +750,6 @@ class Client(ApiClient):
                  log_requests=False,
                  log_headers=False,
                  log_bodies=False):
-
-        self._config = Configuration()
-        if hasattr(self, '_uri'):
-            self._config.host = self._uri
-        else:
-            self._config.host = uri
-        self._config.verify_ssl = verify_ssl_certs
-        self._log_requests = log_requests
-
         self._logger = None
         self._get_default_logger(file_name=log_file)
 
@@ -786,6 +763,7 @@ class Client(ApiClient):
         self._api_base_uri = self._prep_base_uri(uri)
         self._cloudapi_base_uri = self._prep_base_uri(uri, True)
         self._api_version = api_version
+
         self._session_endpoints = None
         self._session = None
         self._vcloud_session = None
@@ -793,16 +771,13 @@ class Client(ApiClient):
         self._vcloud_access_token = None
         self._query_list_map = None
         self._task_monitor = None
+
         self._is_sysadmin = False
-
-        super(Client, self).__init__()
-
 
     def _get_default_logger(self, file_name="vcd_pysdk.log",
                             log_level=logging.DEBUG,
                             max_bytes=30000000, backup_count=30):
         """This will set the default logger with Rotating FileHandler.
-
         Open the specified file and use it as the stream for logging.
         By default, the file grows indefinitely. You can specify particular
         values of maxBytes and backupCount to allow the file to rollover at
@@ -817,7 +792,6 @@ class Client(ApiClient):
         and renamed to "app.log.1", and if files "app.log.1", "app.log.2" etc.
         exist, then they are renamed to "app.log.2", "app.log.3" etc.
         respectively.
-
         :param file_name: name of the log file.
         :param log_level: log level.
         :param max_bytes: max size of log file in bytes.
@@ -867,24 +841,18 @@ class Client(ApiClient):
 
     def _get_response_request_id(self, response):
         """Extract request id of a request to vCD from the response.
-
         :param requests.Response response: response from vCD.
-
         :return: the request id.
-
         :rtype: str
         """
         return response.headers.get(self._HEADER_REQUEST_ID_NAME)
 
     def is_connection_closed(self, response):
         """Determine from server response if the connection has been closed.
-
         :param requests.Response response: the response received from server
             for the last REST call.
-
         :return: True, if the response from server indicates that the
             connection has been closed, else False.
-
         :rtype: boolean
         """
         if response is None:
@@ -899,9 +867,7 @@ class Client(ApiClient):
 
     def get_supported_versions_list(self):
         """Return non-deprecated server API versions as a list.
-
         :return: versions as strings, sorted in numerical order.
-
         :rtype: list
         """
         with requests.Session() as new_session:
@@ -928,14 +894,11 @@ class Client(ApiClient):
 
     def set_highest_supported_version(self):
         """Set the client API version to the highest server API version.
-
         This call is intended to make it easy to work with new vCD
         features before they are officially supported in pyvcloud.
         Production applications should either use the default pyvcloud API
         version or set the API version explicitly to freeze compatibility.
-
         :return: selected api version.
-
         :rtype: str
         """
         active_versions = self.get_supported_versions_list()
@@ -946,15 +909,12 @@ class Client(ApiClient):
 
     def set_credentials(self, creds):
         """Set credentials and authenticate to create a new session.
-
         This call will automatically negotiate the server API version if
         it was not set previously. Note that the method may generate
         exceptions from the underlying socket connection, which we pass
         up unchanged to the client.
-
         :param BasicLoginCredentials creds: Credentials containing org,
             user, and password.
-
         :raises: VcdException: if automatic API negotiation fails to arrive
             at a supported client version
         """
@@ -1003,10 +963,6 @@ class Client(ApiClient):
 
             if use_cloudapi_login_endpoint:
                 access_token = response.headers[self._HEADER_X_VMWARE_CLOUD_ACCESS_TOKEN_NAME]  # noqa: E501
-                self._config.api_key_prefix["Authorization"] = "Bearer"
-                self._config.api_key["Authorization"] = access_token
-                self.set_default_header("Accept", f'application/*;version={self._api_version}')
-                self.set_default_header("Authorization", access_token)
                 # A new session will be created in rehydrate and stored in
                 # this object
                 new_session.close()
@@ -1018,10 +974,6 @@ class Client(ApiClient):
                     response.headers[self._HEADER_X_VCLOUD_AUTH_NAME]
                 self._session.headers[self._HEADER_X_VCLOUD_AUTH_NAME] = \
                     self._vcloud_auth_token
-                self._config.api_key_prefix["Authorization"] = "Bearer"
-                self._config.api_key["Authorization"] = self._vcloud_auth_token
-                self.set_default_header("Accept", f'application/*;version={self._api_version}')
-                self.set_default_header("Authorization", self._vcloud_auth_token)
                 self._vcloud_session = objectify.fromstring(response.content)
                 self._update_is_sysadmin()
                 self._session_endpoints = \
@@ -1033,16 +985,13 @@ class Client(ApiClient):
 
     def rehydrate_from_token(self, token, is_jwt_token=False):
         """Use authorization token to retrieve vCD session.
-
         This call will automatically negotiate the server API version if
         it was not set previously. Note that the method may generate
         exceptions from the underlying socket connection, which we pass
         up unchanged to the client.
-
         :param str token: authorization token (either x-vcloud-authorization
             token or x-vmware-vcloud-access-token(JWT) generated by vCD).
         :param bool is_jwt_token:
-
         :raises: VcdException: if automatic API negotiation fails to arrive
             at a supported client version
         """
@@ -1083,7 +1032,6 @@ class Client(ApiClient):
 
     def logout(self):
         """Destroy the server session and de-allocate local resources.
-
         Logout is idempotent. Reusing a client after logout will result
         in undefined behavior.
         """
@@ -1109,61 +1057,48 @@ class Client(ApiClient):
 
     def get_api_uri(self):
         """Retrieve the uri for vCD api endpoint.
-
         :return: base api uri
-
         :rtype: str
         """
         return self._api_base_uri
 
     def get_cloudapi_uri(self):
         """Retrieve the uri for vCD cloudapi endpoint.
-
         :return: base cloudapi uri
-
         :rtype: str
         """
         return self._cloudapi_base_uri
 
     def get_api_version(self):
         """Return vCD API version client is using.
-
         :return: api version of the client.
-
         :rtype: str
         """
         return self._api_version
 
     def get_vcloud_session(self):
         """Return the current vCD session.
-
         :return: vCD session of the current user.
-
         :rtype: lxml.objectify.ObjectifiedElement
         """
         return self._vcloud_session
 
     def get_xvcloud_authorization_token(self):
         """Retrieve the xvcloud-authorization token.
-
         :return: the xvcloud-authorization token.
-
         :rtype: str
         """
         return self._vcloud_auth_token
 
     def get_access_token(self):
         """Retrieve the access token.
-
         :return: the xvmware-vcloud-access token.
-
         :rtype: str
         """
         return self._vcloud_access_token
 
     def should_verify_ssl(self):
         """Retrieve boolean indicating if ssl verification is enabled.
-
         :return: True if ssl verification is enabled, else False
         :rtype: bool
         """
@@ -1250,7 +1185,7 @@ class Client(ApiClient):
                 redacted_headers[key] = "[REDACTED]"
         return redacted_headers
 
-    def _log_request_sent(self, method, uri, headers=[], request_body=None):
+    def _log_request_sent(self, method, uri, headers={}, request_body=None):
         if not self._log_requests:
             return
 
@@ -1321,6 +1256,7 @@ class Client(ApiClient):
 
         self._log_request_sent(
             method=method, uri=uri, headers=headers, request_body=data)
+
         response = session.request(
             method,
             uri,
@@ -1404,7 +1340,6 @@ class Client(ApiClient):
                      params=None,
                      objectify_results=True):
         """Puts the specified contents to the specified resource.
-
         This method does an HTTP PUT.
         """
         return self._do_request(
@@ -1417,12 +1352,9 @@ class Client(ApiClient):
 
     def put_linked_resource(self, resource, rel, media_type, contents):
         """Puts to a resource link.
-
         Puts the contents of the resource referenced by the link with the
         specified rel and mediaType in the specified resource.
-
         :return: the result of the PUT operation.
-
         :raises: OperationNotSupportedException: if the operation fails due to
             the link being not visible to the logged in user of the client.
         """
@@ -1441,7 +1373,6 @@ class Client(ApiClient):
                       objectify_results=True,
                       extra_headers=None):
         """Posts to a resource link.
-
         Posts the specified contents to the specified resource. (Does an HTTP
         POST.)
         """
@@ -1457,12 +1388,9 @@ class Client(ApiClient):
     def post_linked_resource(self, resource, rel, media_type, contents,
                              extra_headers=None):
         """Posts to a resource link.
-
         Posts the contents of the resource referenced by the link with the
         specified rel and mediaType in the specified resource.
-
         :return: the result of the POST operation.
-
         :raises: OperationNotSupportedException: if the operation fails due to
             the link being not visible to the logged in user of the client.
         """
@@ -1477,7 +1405,6 @@ class Client(ApiClient):
     def get_resource(self, uri, params=None, objectify_results=True,
                      extra_headers=None):
         """Gets the specified contents to the specified resource.
-
         This method does an HTTP GET.
         """
         return self._do_request(
@@ -1487,15 +1414,11 @@ class Client(ApiClient):
     def get_linked_resource(self, resource, rel, media_type,
                             extra_headers=None):
         """Gets the content of the resource link.
-
         Gets the contents of the resource referenced by the link with the
         specified rel and mediaType in the specified resource.
-
         :return: an object containing XML representation of the resource the
             link points to.
-
         :rtype: lxml.objectify.ObjectifiedElement
-
         :raises: OperationNotSupportedException: if the operation fails due to
             the link being not visible to the logged in user of the client.
         """
@@ -1515,10 +1438,8 @@ class Client(ApiClient):
     def delete_linked_resource(self, resource, rel, media_type,
                                extra_headers=None):
         """Deletes the resource referenced by the link.
-
         Deletes the resource referenced by the link with the specified rel and
         mediaType in the specified resource.
-
         :raises: OperationNotSupportedException: if the operation fails due to
             the link being not visible to the logged in user of the client.
         """
@@ -1540,11 +1461,9 @@ class Client(ApiClient):
 
     def get_org(self):
         """Returns the logged in org.
-
         :return: a sparse representation of the logged in org. The returned
             object has an 'Org' XML element with 'name', 'href', and 'type'
             attribute.
-
         :rtype: lxml.objectify.ObjectifiedElement
         """
         return self._get_wk_resource(_WellKnownEndpoint.LOGGED_IN_ORG)
@@ -1559,10 +1478,8 @@ class Client(ApiClient):
 
     def get_org_list(self):
         """Returns the list of organizations visible to the user.
-
         :return: a list of objects, where each object contains EntityType.ORG
             XML data which represents a single organization.
-
         :rtype: list
         """
         orgs = self._get_wk_resource(_WellKnownEndpoint.ORG_LIST)
@@ -1575,14 +1492,10 @@ class Client(ApiClient):
 
     def get_org_by_name(self, org_name):
         """Retrieve an organization.
-
         :param str org_name: name of the organization to be retrieved.
-
         :return: object containing EntityType.ORG XML data representing the
             organization.
-
         :rtype: lxml.objectify.ObjectifiedElement
-
         :raises: EntityNotFoundException: if organization with the provided
             name couldn't be found.
         """
@@ -1601,14 +1514,11 @@ class Client(ApiClient):
 
     def get_user_in_org(self, user_name, org_href):
         """Retrieve user from a particular organization.
-
         :param str user_name: name of the user to be retrieved.
         :param str org_href: href of the organization to which the user
             belongs.
-
         :return: an object containing EntityType.USER XML data which respresnts
             an user in vCD.
-
         :rtype: lxml.objectify.ObjectifiedElement
         """
         resource_type = ResourceType.USER.value
@@ -1648,7 +1558,6 @@ class Client(ApiClient):
                         sort_desc=None,
                         fields=None):
         """Issue a typed query using vCD query API.
-
         :param str query_type_name: name of the entity, which should be a
             string listed in ResourceType enum values.
         :param QueryResultFormat query_result_format: format of query result.
@@ -1671,10 +1580,8 @@ class Client(ApiClient):
         :param str sort_desc: if 'name' field is present in the result sort
             descending by that field.
         :param str fields: comma separated list of fields to return.
-
         :return: A query object that runs the query when execute()
             method is called.
-
         :rtype: pyvcloud.vcd.client._TypedQuery
         """
         return _TypedQuery(
@@ -1707,7 +1614,6 @@ class Client(ApiClient):
                                             media_type=None,
                                             type=None):
         """Returns all the links of the specified rel and type in the resource.
-
         This method take resource and find the query link of provided type.
         It processes query link and get query result records.
         It search href and name of non link type from query result records and
@@ -1716,7 +1622,6 @@ class Client(ApiClient):
         It take org resources and find the query link for vdc.
         Process the query link and fetch all vdc links and make a list of
             links.
-
         :param lxml.objectify.ObjectifiedElement resource: resource with
             query links.
         :param RelationType rel: the rel of the desired link.
@@ -1750,19 +1655,15 @@ class Client(ApiClient):
 
 def find_link(resource, rel, media_type, fail_if_absent=True, name=None):
     """Returns the link of the specified rel and type in the resource.
-
     :param lxml.objectify.ObjectifiedElement resource: the resource with the
         link.
     :param RelationType rel: the rel of the desired link.
     :param str media_type: media type of content.
     :param bool fail_if_absent: if True raise an exception if there's
         not exactly one link of the specified rel and media type.
-
     :return: an object containing Link XML element representing the desired
         link or None if no such link is present and fail_if_absent is False.
-
     :rtype: lxml.objectify.ObjectifiedElement
-
     :raises MissingLinkException: if no link of the specified rel and media
         type is found
     :raises MultipleLinksException: if multiple links of the specified rel
@@ -1783,15 +1684,12 @@ def find_link(resource, rel, media_type, fail_if_absent=True, name=None):
 
 def get_links(resource, rel=RelationType.DOWN, media_type=None, name=None):
     """Returns all the links of the specified rel and type in the resource.
-
     :param lxml.objectify.ObjectifiedElement resource: the resource with the
         links.
     :param RelationType rel: the rel of the desired link.
     :param str media_type: media type of content.
-
     :return: list of lxml.objectify.ObjectifiedElement objects, where each
         object contains a Link XML element. Result could include an empty list.
-
     :rtype: list
     """
     links = []
@@ -1836,7 +1734,6 @@ class _AbstractQuery(object):
                  sort_desc=None,
                  fields=None):
         """Constructor for _AbstractQuery object.
-
         :param QueryResultFormat query_result_format: format of query result.
         :param pyvcloud.vcd.client.Client client: the client that will be used
             to make REST calls to vCD.
@@ -1893,14 +1790,10 @@ class _AbstractQuery(object):
 
     def _escape_special_characters(self, single_encoded_value_string):
         """Escape vCD query specific special characters viz. ( ) ; ,.
-
         This method accepts a url encoded string and replaces encoded
         instances of ( ) ; , with their escaped version.
-
         :param str single_encoded_value_string: string to be processed
-
         :return: string with vCD query specific special characters escaped
-
         :rtype: str
         """
         val = single_encoded_value_string
@@ -1913,11 +1806,9 @@ class _AbstractQuery(object):
 
     def execute(self):
         """Executes query and returns results.
-
         :return: If a specific page number is set, return a dictionary which
             contains results of the specific page or else,
             return a generator to return results
-
         :rtype: dict if page is set else a generator object
         """
         # create query href
@@ -1986,7 +1877,6 @@ class _AbstractQuery(object):
 
     def find_unique(self):
         """Convenience wrapper over execute().
-
         Convenience wrapper over execute() for the case where exactly one match
         is expected.
         """
@@ -2094,23 +1984,17 @@ class _TypedQuery(_AbstractQuery):
 
 def create_element(node_name, value=None):
     """Creates Objectify Element.
-
     It is useful in the use case where one wants to add ObjectifiedElement to
     either StringElement or to the BooleanElement e.g:
-
     <dhcp><enable>false</enable><ippools/></dhcp>
-
     Here:<ippools/> is a StringElement, and user cannot add child element
     <ippool> to <ippools> by using ippools.append(E.ippool(ippool))
-
     It creates the Objectify element with provided value and this element can
     be appended with StringElement or BooleanElement
-
     :param node_name: name of the node
     :param value: value of the node
     :return: Objectify element with given value
     :type: ObjectifyElement
-
     """
     if value is None:
         return etree.Element(node_name)
@@ -2131,7 +2015,6 @@ def get_logger(file_name="vcd_sdk.log",
                max_bytes=10000000,
                backup_count=10):
     """This will give a logger with Rotating FileHandler.
-
     Open the specified file and use it as the stream for logging.
     By default, the file grows indefinitely. You can specify particular
     values of maxBytes and backupCount to allow the file to rollover at
@@ -2146,7 +2029,6 @@ def get_logger(file_name="vcd_sdk.log",
     and renamed to "app.log.1", and if files "app.log.1", "app.log.2" etc.
     exist, then they are renamed to "app.log.2", "app.log.3" etc.
     respectively.
-
     :param file_name: name of the log file.
     :param log_level: log level.
     :param max_bytes: max size of log file in bytes.

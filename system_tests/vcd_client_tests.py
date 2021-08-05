@@ -19,7 +19,8 @@ from vcloud.rest.openapi.apis.sessions_api import SessionsApi
 
 from pyvcloud.system_test_framework.base_test import BaseTestCase
 from pyvcloud.system_test_framework.environment import Environment
-from pyvcloud.vcd.vcd_client import VcdClient, BasicLoginCredentials
+from pyvcloud.vcd.vcd_client import VcdClient
+from pyvcloud.vcd.client import BasicLoginCredentials
 
 
 class TestApiClient(BaseTestCase):

@@ -15,19 +15,13 @@
 
 import unittest
 from uuid import uuid1
-
-from vcloud.api.rest.schema_v1_5.admin_org_type import AdminOrgType
-
 from vcloud.rest.openapi.apis.org_api import OrgApi
 from vcloud.rest.openapi.models.org import Org
 
-from pyvcloud.system_test_framework.base_test import BaseTestCase
-from pyvcloud.system_test_framework.environment import Environment
-from pyvcloud.vcd.vcd_client import VcdClient
-from pyvcloud.vcd.client import BasicLoginCredentials
+from pyvcloud.system_test_framework.api_base_test import ApiBaseTestCase
 
 
-class TestApiClient(BaseTestCase):
+class TestApiClient(ApiBaseTestCase):
     """Test API client module functions.
     Test cases in this module have ordering dependencies.
     """
@@ -49,15 +43,6 @@ class TestApiClient(BaseTestCase):
     _org = None
 
     ADMIN_ORG_MEDIA_TYPE = 'application/vnd.vmware.admin.organization+json'
-
-    def test_0000_setup(self):
-        """Setup a API client for other tests in this module.
-        Create a API client as per test configurations.
-        This test passes if the client in not None.
-        """
-        TestApiClient._logger = Environment.get_default_logger()
-        TestApiClient._client = TestApiClient._create_client_with_credentials()
-        self.assertIsNotNone(TestApiClient._client)
 
     def test_0010_create_org(self):
         """Create an org using generated model class.
@@ -135,32 +120,6 @@ class TestApiClient(BaseTestCase):
         org_api.delete_org(org_urn=org_urn)
         TestApiClient._client.wait_for_last_task()
 
-    def test_9999_cleanup(self):
-        """Log out client connection if allocated."""
-        if TestApiClient._client is not None:
-            try:
-                TestApiClient._logger.info("Logging out client automatically")
-                TestApiClient._client.logout()
-            except Exception:
-                TestApiClient._logger.warning("Client logout failed",
-                                              exc_info=True)
-
-    @classmethod
-    def _create_client_with_credentials(cls):
-        """Create client and login."""
-        config = Environment.get_config()
-        host = config['vcd']['host']
-        org = config['vcd']['sys_org_name']
-        user = config['vcd']['sys_admin_username']
-        pwd = config['vcd']['sys_admin_pass']
-        client = VcdClient(host,
-                           verify_ssl_certs=False,
-                           log_requests=True,
-                           log_bodies=True,
-                           log_headers=True)
-        creds = BasicLoginCredentials(user, org, pwd)
-        client.set_credentials(creds)
-        return client
 
 
 if __name__ == '__main__':

@@ -16,7 +16,6 @@
 import unittest
 from uuid import uuid1
 
-from vcloud.rest.openapi.models.provider_vdc import ProviderVdc
 from vcloud.rest.openapi.apis.provider_vdc_api import ProviderVdcApi
 from vcloud.api.rest.schema_v1_5.extension.vmw_provider_vdc_params_type \
     import VMWProviderVdcParamsType
@@ -31,13 +30,12 @@ from vcloud.api.rest.schema_v1_5.provider_vdc_type import ProviderVdcType
 from vcloud.api.rest.schema_v1_5.references_type import \
     ReferencesType
 
-from pyvcloud.system_test_framework.base_test import BaseTestCase
-from pyvcloud.system_test_framework.environment import Environment
-from pyvcloud.vcd.vcd_client import VcdClient, QueryParamsBuilder
-from pyvcloud.vcd.client import BasicLoginCredentials, ResourceType
+from pyvcloud.system_test_framework.api_base_test import ApiBaseTestCase
+from pyvcloud.vcd.vcd_client import QueryParamsBuilder
+from pyvcloud.vcd.client import ResourceType
 
 
-class TestApiClient(BaseTestCase):
+class TestApiClient(ApiBaseTestCase):
     """Test API client module functions.
     Test cases in this module have ordering dependencies.
     """
@@ -57,14 +55,6 @@ class TestApiClient(BaseTestCase):
     _pvdc_href = None
     _pvdc = None
 
-    def test_0000_setup(self):
-        """Setup a API client for other tests in this module.
-        Create a API client as per test configurations.
-        This test passes if the client in not None.
-        """
-        TestApiClient._logger = Environment.get_default_logger()
-        TestApiClient._client = TestApiClient._create_client_with_credentials()
-        self.assertIsNotNone(TestApiClient._client)
 
     def test_0010_create_pvdc(self):
         """Create an pvdc using generated model class.
@@ -146,34 +136,6 @@ class TestApiClient(BaseTestCase):
             uri=pvdc_href)
         TestApiClient._client.wait_for_last_task()
 
-    def test_9999_cleanup(self):
-        """Log out client connection if allocated."""
-        if TestApiClient._client is not None:
-            try:
-                TestApiClient._logger.info("Logging out client automatically")
-                TestApiClient._client.logout()
-            except Exception:
-                TestApiClient._logger.warning("Client logout failed",
-                                              exc_info=True)
-
-    @classmethod
-    def _create_client_with_credentials(cls):
-        """Create client and login."""
-        config = Environment.get_config()
-        host = config['vcd']['host']
-        org = config['vcd']['sys_org_name']
-        user = config['vcd']['sys_admin_username']
-        pwd = config['vcd']['sys_admin_pass']
-        api_version = config['vcd']['api_version']
-        client = VcdClient(host,
-                           api_version=api_version,
-                           verify_ssl_certs=False,
-                           log_requests=True,
-                           log_bodies=True,
-                           log_headers=True)
-        creds = BasicLoginCredentials(user, org, pwd)
-        client.set_credentials(creds)
-        return client
 
     @classmethod
     def _get_resource_pool(cls):

@@ -1400,7 +1400,7 @@ class VM(object):
 
         if nic_found is False:
             raise EntityNotFoundException(
-                'Vapp with name \'%s\' not found.' % network_name)
+                'VM Network with name \'%s\' not found.' % network_name)
 
         if is_primary:
             nic_index = int(nic_index.text)

@@ -97,6 +97,13 @@ E_RASD = objectify.ElementMaker(
         'vcloud': NSMAP['vcloud']
     })
 
+E_VMW = objectify.ElementMaker(
+    annotate=False,
+    namespace=NSMAP['vmw'],
+    nsmap={
+        'vmw': NSMAP['vmw']
+    })
+
 
 class ApiVersion(Enum):
     VERSION_29 = '29.0'

@@ -15,6 +15,7 @@
 
 from pyvcloud.vcd.client import ApiVersion
 from pyvcloud.vcd.client import E
+from pyvcloud.vcd.client import E_VMW
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import find_link
 from pyvcloud.vcd.client import IpAddressMode
@@ -1660,6 +1661,44 @@ class VM(object):
         return vm_resource.xpath(
             'ovf:VirtualHardwareSection/vmw:ExtraConfig',
             namespaces=NSMAP)
+
+    def add_extra_config_element(self, key, value, required=False):
+        """Add vmw:ExtraConfig element.
+
+        :param str key: name of the extra config key
+        :param str value: value of extra config
+        :param bool required: if mandatory to specify during ovf deployment
+        :return:
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task that updates the vm.
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        vm_resource = self.get_resource()
+        current_element = vm_resource.find(
+            'ovf:VirtualHardwareSection/vmw:ExtraConfig',
+            NSMAP
+        )
+        new_element = E_VMW(f"{{{NSMAP['vmw']}}}ExtraConfig")
+        new_element.set(
+            f"{{{NSMAP['vmw']}}}key",
+            key
+        )
+        new_element.set(f"{{{NSMAP['vmw']}}}value", value)
+        new_element.set(
+            f"{{{NSMAP['ovf']}}}required",
+            str(required).lower()
+        )
+        current_element.addnext(new_element)
+        reconfigure_vm_link = find_link(
+            self.resource,
+            RelationType.RECONFIGURE_VM,
+            EntityType.VM.value
+        )
+        return self.client.post_resource(
+            reconfigure_vm_link.href,
+            vm_resource,
+            EntityType.VM.value
+        )
 
     def list_vm_extra_config_info(self):
         """List VM extra config key-value pairs.

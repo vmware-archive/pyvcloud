@@ -15,8 +15,6 @@
 
 from datetime import datetime
 from datetime import timedelta
-
-from packaging.version import Version
 from enum import Enum
 import json
 import logging
@@ -790,7 +788,9 @@ class Client(object):
         self._api_base_uri = self._prep_base_uri(uri)
         self._cloudapi_base_uri = self._prep_base_uri(uri, True)
         self._api_version = api_version
-        self._vcd_api_version = VCDApiVersion(api_version)
+        self._vcd_api_version = None
+        if api_version:
+            self._vcd_api_version = VCDApiVersion(api_version)
 
         self._session_endpoints = None
         self._session = None
@@ -902,7 +902,7 @@ class Client(object):
 
         return False
 
-    def get_supported_versions_list(self, include_alpha_versions: bool = False):
+    def get_supported_versions_list(self, include_alpha_versions: bool = False):  # noqa: E501
         """Return non-deprecated server API versions as a list.
 
         :param bool include_alpha_versions: boolean indicating if alpha
@@ -939,20 +939,19 @@ class Client(object):
             active_versions.sort(key=VCDApiVersion)
             return active_versions
 
-
     def get_supported_versions(self, include_alpha_versions: bool = False):
         """Return non-deprecated server API version Objects as a list.
 
         :param bool include_alpha_versions: boolean indicating if alpha
             versions need to be considered.
-    
+
         :rtype: List[VCDApiVersion]
         :return: versions as strings, sorted in numerical order.
         """
         api_version_list = self.get_supported_versions_list(
             include_alpha_versions=include_alpha_versions)
         if api_version_list:
-            return [VCDApiVersion(api_version) \
+            return [VCDApiVersion(api_version)
                     for api_version in api_version_list]
 
     def set_highest_supported_version(self):
@@ -998,7 +997,8 @@ class Client(object):
             # Use /cloudapi/1.0.0/sessions for Xendi and beyond i.e. api v33+
             # otherwise use /api/sessions
             use_cloudapi_login_endpoint = \
-                VCDApiVersion(self._api_version) >= VCDApiVersion(ApiVersion.VERSION_33.value)
+                VCDApiVersion(self._api_version) >= \
+                VCDApiVersion(ApiVersion.VERSION_33.value)
             if use_cloudapi_login_endpoint:
                 accept_type = 'application/json'
                 uri = self._cloudapi_base_uri + '/1.0.0/sessions'

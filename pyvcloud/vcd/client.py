@@ -847,6 +847,10 @@ class Client(object):
             self._logger.addHandler(log_handler)
 
     def _negotiate_api_version(self):
+        """Negotiate the API version to use with VCD.
+
+        The negotiated API version cannot be a pre-release version.
+        """
         # If user provided API version we accept it, otherwise negotiate with
         # vCD server
         if not self._api_version:
@@ -928,8 +932,9 @@ class Client(object):
                 # .text property. Otherwise lxml will return "corrected"
                 # numbers that drop non-significant digits. For example, 5.10
                 # becomes 5.1.  This transformation corrupts the version.
+
                 if not hasattr(version, 'deprecated') or \
-                   version.get('deprecated') == 'false':
+                   version.get('deprecated').lower() == 'false':
                     active_versions.append(str(version.Version.text))
             if include_alpha_versions:
                 for version in versions.AlphaVersion:
@@ -977,7 +982,8 @@ class Client(object):
         """Set credentials and authenticate to create a new session.
 
         This call will automatically negotiate the server API version if
-        it was not set previously. Note that the method may generate
+        it was not set previously. The auto-negotiated API version cannot be
+        a pre-release version. Note that the method may generate
         exceptions from the underlying socket connection, which we pass
         up unchanged to the client.
 
@@ -1057,7 +1063,8 @@ class Client(object):
         """Use authorization token to retrieve vCD session.
 
         This call will automatically negotiate the server API version if
-        it was not set previously. Note that the method may generate
+        it was not set previously. The auto-negotiated API version cannot be a
+        pre-release version. Note that the method may generate
         exceptions from the underlying socket connection, which we pass
         up unchanged to the client.
 
@@ -1163,7 +1170,7 @@ class Client(object):
 
         :rtype: VCDApiVersion
         """
-        return self._vcd_api_versions
+        return self._vcd_api_version
 
     def get_vcloud_session(self):
         """Return the current vCD session.

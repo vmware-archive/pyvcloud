@@ -15,7 +15,6 @@
 
 from datetime import datetime
 from datetime import timedelta
-from distutils.version import StrictVersion
 from enum import Enum
 import json
 import logging
@@ -29,6 +28,7 @@ from lxml import etree
 from lxml import objectify
 import requests
 
+from pyvcloud.vcd.vcd_api_version import VCDApiVersion
 from pyvcloud.vcd.exceptions import AccessForbiddenException, \
     BadRequestException, ClientException, ConflictException, \
     EntityNotFoundException, InternalServerException, \
@@ -114,6 +114,7 @@ class ApiVersion(Enum):
     VERSION_34 = '34.0'
     VERSION_35 = '35.0'
     VERSION_36 = '36.0'
+    VERSION_37_ALPHA = '37.0.0-alpha'
 
 
 # Important! Values must be listed in ascending order.
@@ -126,6 +127,19 @@ API_CURRENT_VERSIONS = [
     ApiVersion.VERSION_34.value,
     ApiVersion.VERSION_35.value,
     ApiVersion.VERSION_36.value
+]
+
+
+VCD_API_CURRENT_VERSIONS = [
+    VCDApiVersion(ApiVersion.VERSION_29.value),
+    VCDApiVersion(ApiVersion.VERSION_30.value),
+    VCDApiVersion(ApiVersion.VERSION_31.value),
+    VCDApiVersion(ApiVersion.VERSION_32.value),
+    VCDApiVersion(ApiVersion.VERSION_33.value),
+    VCDApiVersion(ApiVersion.VERSION_34.value),
+    VCDApiVersion(ApiVersion.VERSION_35.value),
+    VCDApiVersion(ApiVersion.VERSION_36.value),
+    VCDApiVersion(ApiVersion.VERSION_37_ALPHA.value)
 ]
 
 
@@ -781,6 +795,9 @@ class Client(object):
         self._api_base_uri = self._prep_base_uri(uri)
         self._cloudapi_base_uri = self._prep_base_uri(uri, True)
         self._api_version = api_version
+        self._vcd_api_version = None
+        if api_version:
+            self._vcd_api_version = VCDApiVersion(api_version)
 
         self._session_endpoints = None
         self._session = None
@@ -837,6 +854,10 @@ class Client(object):
             self._logger.addHandler(log_handler)
 
     def _negotiate_api_version(self):
+        """Negotiate the API version to use with VCD.
+
+        The negotiated API version cannot be a pre-release version.
+        """
         # If user provided API version we accept it, otherwise negotiate with
         # vCD server
         if not self._api_version:
@@ -846,8 +867,9 @@ class Client(object):
             # Versions are strings sorted in ascending order, so we can work
             # backwards to find a match.
             for version in reversed(active_versions):
-                if version in API_CURRENT_VERSIONS:
+                if VCDApiVersion(version) in VCD_API_CURRENT_VERSIONS:
                     self._api_version = version
+                    self._vcd_api_version = VCDApiVersion(version)
                     self._logger.debug(
                         f"API version negotiated to: {self._api_version}")
                     break
@@ -891,8 +913,11 @@ class Client(object):
 
         return False
 
-    def get_supported_versions_list(self):
+    def get_supported_versions_list(self, include_alpha_versions: bool = False):  # noqa: E501
         """Return non-deprecated server API versions as a list.
+
+        :param bool include_alpha_versions: boolean indicating if alpha
+            versions should be included in the result.
 
         :return: versions as strings, sorted in numerical order.
 
@@ -914,11 +939,32 @@ class Client(object):
                 # .text property. Otherwise lxml will return "corrected"
                 # numbers that drop non-significant digits. For example, 5.10
                 # becomes 5.1.  This transformation corrupts the version.
+
                 if not hasattr(version, 'deprecated') or \
-                   version.get('deprecated') == 'false':
+                   version.get('deprecated').lower() == 'false':
                     active_versions.append(str(version.Version.text))
-            active_versions.sort(key=StrictVersion)
+            if include_alpha_versions:
+                for version in versions.AlphaVersion:
+                    if not hasattr(version, 'deprecated') or \
+                            version.get('deprecated') == 'false':
+                        active_versions.append(str(version.Version.text))
+            active_versions.sort(key=VCDApiVersion)
             return active_versions
+
+    def get_supported_versions(self, include_alpha_versions: bool = False):
+        """Return non-deprecated server API version Objects as a list.
+
+        :param bool include_alpha_versions: boolean indicating if alpha
+            versions need to be considered.
+
+        :rtype: List[VCDApiVersion]
+        :return: versions as strings, sorted in numerical order.
+        """
+        api_version_list = self.get_supported_versions_list(
+            include_alpha_versions=include_alpha_versions)
+        if api_version_list:
+            return [VCDApiVersion(api_version)
+                    for api_version in api_version_list]
 
     def set_highest_supported_version(self):
         """Set the client API version to the highest server API version.
@@ -934,6 +980,7 @@ class Client(object):
         """
         active_versions = self.get_supported_versions_list()
         self._api_version = active_versions[-1]
+        self._vcd_api_version = VCDApiVersion(self._api_version)
         self._logger.debug('API versions supported: %s' % active_versions)
         self._logger.debug('API version set to: %s' % self._api_version)
         return self._api_version
@@ -942,7 +989,8 @@ class Client(object):
         """Set credentials and authenticate to create a new session.
 
         This call will automatically negotiate the server API version if
-        it was not set previously. Note that the method may generate
+        it was not set previously. The auto-negotiated API version cannot be
+        a pre-release version. Note that the method may generate
         exceptions from the underlying socket connection, which we pass
         up unchanged to the client.
 
@@ -962,7 +1010,8 @@ class Client(object):
             # Use /cloudapi/1.0.0/sessions for Xendi and beyond i.e. api v33+
             # otherwise use /api/sessions
             use_cloudapi_login_endpoint = \
-                float(self._api_version) >= float(ApiVersion.VERSION_33.value)
+                VCDApiVersion(self._api_version) >= \
+                VCDApiVersion(ApiVersion.VERSION_33.value)
             if use_cloudapi_login_endpoint:
                 accept_type = 'application/json'
                 uri = self._cloudapi_base_uri + '/1.0.0/sessions'
@@ -1021,7 +1070,8 @@ class Client(object):
         """Use authorization token to retrieve vCD session.
 
         This call will automatically negotiate the server API version if
-        it was not set previously. Note that the method may generate
+        it was not set previously. The auto-negotiated API version cannot be a
+        pre-release version. Note that the method may generate
         exceptions from the underlying socket connection, which we pass
         up unchanged to the client.
 
@@ -1119,6 +1169,15 @@ class Client(object):
         :rtype: str
         """
         return self._api_version
+
+    def get_vcd_api_version(self):
+        """Return vCD API version object the client is using.
+
+        :return: api version of the client
+
+        :rtype: VCDApiVersion
+        """
+        return self._vcd_api_version
 
     def get_vcloud_session(self):
         """Return the current vCD session.

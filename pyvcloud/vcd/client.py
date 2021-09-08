@@ -117,6 +117,18 @@ class ApiVersion(Enum):
     VERSION_37_ALPHA = '37.0.0-alpha'
 
 
+class VcdApiVersionObj(Enum):
+    VERSION_29 = VCDApiVersion(ApiVersion.VERSION_29.value)
+    VERSION_30 = VCDApiVersion(ApiVersion.VERSION_30.value)
+    VERSION_31 = VCDApiVersion(ApiVersion.VERSION_31.value)
+    VERSION_32 = VCDApiVersion(ApiVersion.VERSION_32.value)
+    VERSION_33 = VCDApiVersion(ApiVersion.VERSION_33.value)
+    VERSION_34 = VCDApiVersion(ApiVersion.VERSION_34.value)
+    VERSION_35 = VCDApiVersion(ApiVersion.VERSION_35.value)
+    VERSION_36 = VCDApiVersion(ApiVersion.VERSION_36.value)
+    VERSION_37_ALPHA = VCDApiVersion(ApiVersion.VERSION_37_ALPHA.value)
+
+
 # Important! Values must be listed in ascending order.
 API_CURRENT_VERSIONS = [
     ApiVersion.VERSION_29.value,
@@ -131,15 +143,15 @@ API_CURRENT_VERSIONS = [
 
 
 VCD_API_CURRENT_VERSIONS = [
-    VCDApiVersion(ApiVersion.VERSION_29.value),
-    VCDApiVersion(ApiVersion.VERSION_30.value),
-    VCDApiVersion(ApiVersion.VERSION_31.value),
-    VCDApiVersion(ApiVersion.VERSION_32.value),
-    VCDApiVersion(ApiVersion.VERSION_33.value),
-    VCDApiVersion(ApiVersion.VERSION_34.value),
-    VCDApiVersion(ApiVersion.VERSION_35.value),
-    VCDApiVersion(ApiVersion.VERSION_36.value),
-    VCDApiVersion(ApiVersion.VERSION_37_ALPHA.value)
+    VcdApiVersionObj.VERSION_29.value,
+    VcdApiVersionObj.VERSION_30.value,
+    VcdApiVersionObj.VERSION_31.value,
+    VcdApiVersionObj.VERSION_32.value,
+    VcdApiVersionObj.VERSION_33.value,
+    VcdApiVersionObj.VERSION_34.value,
+    VcdApiVersionObj.VERSION_35.value,
+    VcdApiVersionObj.VERSION_36.value,
+    VcdApiVersionObj.VERSION_37_ALPHA.value
 ]
 
 

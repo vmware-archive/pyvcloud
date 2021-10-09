@@ -1,6 +1,20 @@
 CHANGES
 =======
 
+* Add version objects enum
+* Address review comments
+* Add vcd api version file
+* Fixed flake8 errors
+* Add VCDApiVersion object for easy version comparison
+* support for adding extra config element on a vm (#775)
+* Update VM nic update error message
+* Add client and testcases to work with openApi (#772)
+* Fix media download (#769)
+
+23.0.2
+------
+
+* Update Changelog for v23.0.2 release
 * method to get extra config elements of vm (#765)
 * Adding a new module NsxtExtension to add/update/delete (#764)
 * [VCDA-2334] Storage profile element should cbe added before compute policy (#761)

@@ -543,7 +543,7 @@ class VDC(object):
         """Fetch information about all resources in the current org vdc.
 
         :param str entity_type: filter to restrict type of resource we want to
-            fetch. EntityType.VAPP.value and EntityType.VAPP_TEMPLATE.value
+            fetch. EntityType.VAPP and EntityType.VAPP_TEMPLATE
             both are acceptable values.
 
         :return: a list of dictionaries, where each dictionary represents a

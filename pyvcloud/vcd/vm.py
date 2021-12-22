@@ -753,9 +753,6 @@ class VM(object):
         if hasattr(net_conn_section, 'NetworkConnection'):
             for nc in net_conn_section.NetworkConnection:
                 net_conn_section.remove(nc)
-        else:
-            raise InvalidStateException(
-                'No nics found in the VM' % (self.get_resource().get('name')))
         return self.client.put_linked_resource(
             net_conn_section, RelationType.EDIT,
             EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)

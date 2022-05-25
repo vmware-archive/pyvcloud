@@ -61,7 +61,13 @@ class System(object):
         org_params = E.AdminOrg(
             E.FullName(full_org_name),
             E.IsEnabled(is_enabled),
-            E.Settings,
+            E.Settings(
+                E.VAppLeaseSettings(
+                    E.DeploymentLeaseSeconds(0),
+                    E.StorageLeaseSeconds(0)
+                    ),
+                E.VAppTemplateLeaseSettings(E.StorageLeaseSeconds(0))
+                ),
             name=org_name)
         return self.client.post_linked_resource(
             self.admin_resource, RelationType.ADD, EntityType.ADMIN_ORG.value,

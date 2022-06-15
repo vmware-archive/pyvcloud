@@ -42,6 +42,7 @@ from pyvcloud.vcd.exceptions import AccessForbiddenException, \
 
 SIZE_1MB = 1024 * 1024
 SYSTEM_ORG_NAME = 'system'
+ALPHA_API_SUBSTRING = "alpha"
 
 NSMAP = {
     'ns10':
@@ -955,11 +956,17 @@ class Client(object):
                 if not hasattr(version, 'deprecated') or \
                    version.get('deprecated').lower() == 'false':
                     active_versions.append(str(version.Version.text))
-            if include_alpha_versions:
+            if include_alpha_versions and hasattr(versions, "AlphaVersion"):
                 for version in versions.AlphaVersion:
                     if not hasattr(version, 'deprecated') or \
                             version.get('deprecated') == 'false':
-                        active_versions.append(str(version.Version.text))
+                        # alpha version may be of the form `3X.0.0-alpha-12345`
+                        # so we remove the portion after "alpha"
+                        alpha_version = str(version.Version.text)
+                        start_alpha_ind = alpha_version.find(ALPHA_API_SUBSTRING)  # noqa: E501
+                        if start_alpha_ind != -1:
+                            alpha_version = alpha_version[:start_alpha_ind + len(ALPHA_API_SUBSTRING)]  # noqa: E501
+                        active_versions.append(alpha_version)
             active_versions.sort(key=VCDApiVersion)
             return active_versions
 

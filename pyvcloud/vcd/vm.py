@@ -739,6 +739,24 @@ class VM(object):
             net_conn_section, RelationType.EDIT,
             EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)
 
+    def delete_all_nics(self):
+        """Deletes all nics from the VM.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task deleting all nics.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        # get network connection section.
+        net_conn_section = self.get_resource().NetworkConnectionSection
+
+        if hasattr(net_conn_section, 'NetworkConnection'):
+            for nc in net_conn_section.NetworkConnection:
+                net_conn_section.remove(nc)
+        return self.client.put_linked_resource(
+            net_conn_section, RelationType.EDIT,
+            EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)
+
     def install_vmware_tools(self):
         """Install vmware tools in the vm.
 

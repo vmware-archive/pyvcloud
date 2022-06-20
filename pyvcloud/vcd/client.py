@@ -23,6 +23,7 @@ from pathlib import Path
 import sys
 import time
 import urllib
+from tempfile import NamedTemporaryFile
 
 from lxml import etree
 from lxml import objectify
@@ -2191,7 +2192,7 @@ def create_element(node_name, value=None):
     return element
 
 
-def get_logger(file_name="vcd_sdk.log",
+def get_logger(file_name=None,
                log_level=logging.DEBUG,
                max_bytes=10000000,
                backup_count=10):
@@ -2219,6 +2220,9 @@ def get_logger(file_name="vcd_sdk.log",
     :return: Logger with rotating file handler.
     :type: LOGGER
     """
+    if not file_name:
+        tf_obj = NamedTemporaryFile(delete=False)
+        file_name = tf_obj.name
     LOGGER = logging.getLogger(file_name)
     logHandler = handlers.RotatingFileHandler(
         filename=file_name, maxBytes=max_bytes, backupCount=backup_count)

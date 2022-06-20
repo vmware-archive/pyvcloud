@@ -698,6 +698,64 @@ class VM(object):
                 nics.append(nic)
         return nics
 
+    def update_nic(self, network_name, nic_id=0,
+                   is_connected=False,
+                   is_primary=False,
+                   ip_address_mode=None,
+                   ip_address=None,
+                   adapter_type=None):
+        """Updates a nic of the VM.
+
+        :param str network_name: name of the network to be modified.
+        :param bool is_connected: True, if the nic has to be connected.
+        :param bool is_primary: True, if its a primary nic of the VM.
+        :param str ip_address_mode: One of DHCP|POOL|MANUAL|NONE.
+        :param str ip_address: to be set an ip in case of MANUAL mode.
+        :param str adapter_type: nic adapter type.One of NetworkAdapterType
+                                 values.
+
+        :return: an object containing EntityType.TASK XML data which represents
+            the asynchronous task adding  a nic.
+
+        :rtype: lxml.objectify.ObjectifiedElement
+        """
+        # get network connection section.
+        net_conn_section = self.get_resource().NetworkConnectionSection
+        nic_index = 0
+        nic_not_found = True
+        if hasattr(net_conn_section, 'NetworkConnection'):
+            for nc in net_conn_section.NetworkConnection:
+                if nc.get('network') == network_name:
+                    if int(nc.NetworkConnectionIndex.text) == nic_id:
+                        nic_not_found = False
+                        if ip_address is not None:
+                            nc.IpAddress = E.IpAddress(ip_address)
+                        nc.IsConnected = E.IsConnected(is_connected)
+                        if ip_address_mode is not None:
+                            nc.IpAddressAllocationMode = \
+                                E.IpAddressAllocationMode(ip_address_mode)
+                        if adapter_type is not None:
+                            nc.NetworkAdapterType = E.NetworkAdapterType(
+                                adapter_type)
+                        if is_primary:
+                            nic_index = nc.NetworkConnectionIndex
+                        break
+
+        if nic_not_found:
+            raise EntityNotFoundException(
+                'Nic with name '
+                '\'%s\' and index \'%s\' is not found in the VM \'%s\'' %
+                (network_name, nic_id, self.get_resource().get('name')))
+
+        if is_primary:
+            nic_index = int(nic_index.text)
+            net_conn_section.PrimaryNetworkConnectionIndex = \
+                E.PrimaryNetworkConnectionIndex(nic_index)
+
+        return self.client.put_linked_resource(
+            net_conn_section, RelationType.EDIT,
+            EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)
+
     def delete_nic(self, index):
         """Deletes a nic from the VM.
 
@@ -717,13 +775,14 @@ class VM(object):
         indices = [None] * 10
         nic_not_found = True
         # find the nic with the given index
-        for nc in net_conn_section.NetworkConnection:
-            if int(nc.NetworkConnectionIndex.text) == index:
-                net_conn_section.remove(nc)
-                nic_not_found = False
-            else:
-                indices[int(nc.NetworkConnectionIndex.
-                            text)] = nc.NetworkConnectionIndex.text
+        if hasattr(net_conn_section, 'NetworkConnection'):
+            for nc in net_conn_section.NetworkConnection:
+                if int(nc.NetworkConnectionIndex.text) == index:
+                    net_conn_section.remove(nc)
+                    nic_not_found = False
+                else:
+                    indices[int(nc.NetworkConnectionIndex.
+                                text)] = nc.NetworkConnectionIndex.text
 
         if nic_not_found:
             raise InvalidParameterException(
@@ -1356,61 +1415,6 @@ class VM(object):
             post_linked_resource(vm_resource, RelationType.RELOCATE,
                                  EntityType.RELOCATE_PARAMS.value,
                                  relocate_params)
-
-    def update_nic(self, network_name, nic_id=0,
-                   is_connected=False,
-                   is_primary=False,
-                   ip_address_mode=None,
-                   ip_address=None,
-                   adapter_type=None):
-        """Updates a nic of the VM.
-
-        :param str network_name: name of the network to be modified.
-        :param bool is_connected: True, if the nic has to be connected.
-        :param bool is_primary: True, if its a primary nic of the VM.
-        :param str ip_address_mode: One of DHCP|POOL|MANUAL|NONE.
-        :param str ip_address: to be set an ip in case of MANUAL mode.
-        :param str adapter_type: nic adapter type.One of NetworkAdapterType
-                                 values.
-
-        :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task adding  a nic.
-
-        :rtype: lxml.objectify.ObjectifiedElement
-        """
-        # get network connection section.
-        net_conn_section = self.get_resource().NetworkConnectionSection
-        nic_index = 0
-        nic_found = False
-        for network in net_conn_section.NetworkConnection:
-            if network.get('network') == network_name:
-                if network.NetworkConnectionIndex == nic_id:
-                    nic_found = True
-                    if ip_address is not None:
-                        network.IpAddress = E.IpAddress(ip_address)
-                    network.IsConnected = E.IsConnected(is_connected)
-                    if ip_address_mode is not None:
-                        network.IpAddressAllocationMode = \
-                            E.IpAddressAllocationMode(ip_address_mode)
-                    if adapter_type is not None:
-                        network.NetworkAdapterType = E.NetworkAdapterType(
-                            adapter_type)
-                    if is_primary:
-                        nic_index = network.NetworkConnectionIndex
-                    break
-
-        if nic_found is False:
-            raise EntityNotFoundException(
-                'VM Network with name \'%s\' not found.' % network_name)
-
-        if is_primary:
-            nic_index = int(nic_index.text)
-            net_conn_section.PrimaryNetworkConnectionIndex = \
-                E.PrimaryNetworkConnectionIndex(nic_index)
-
-        return self.client.put_linked_resource(
-            net_conn_section, RelationType.EDIT,
-            EntityType.NETWORK_CONNECTION_SECTION.value, net_conn_section)
 
     def get_operating_system_section(self):
         """Get operating system section of VM.

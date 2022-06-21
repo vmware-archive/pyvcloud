@@ -547,7 +547,7 @@ class VDC(object):
             both are acceptable values.
 
         :return: a list of dictionaries, where each dictionary represents a
-            resource e.g. vApp templates, vApps. And each dictionary has 'name'
+            resource e.g. vApp templates, vApps. And each dictionary has 'name', 'href'
             and 'type' of the resource.
 
         :rtype: dict
@@ -561,7 +561,8 @@ class VDC(object):
                    entity_type.value == resource.get('type'):
                     result.append({
                         'name': resource.get('name'),
-                        'type': resource.get('type')
+                        'type': resource.get('type'),
+                        'href': resource.get('href')
                     })
         return result
 

@@ -547,6 +547,7 @@ class LogicalNetworkLinkType(Enum):
     BRIDGED = 0
     INDEPENDENT = 1
     DLR_UPLINK = 2
+    UNKNOWN = 3  # Stretched Networks
 
 
 class NetworkAdapterType(Enum):

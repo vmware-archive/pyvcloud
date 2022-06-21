@@ -24,7 +24,6 @@ from pyvcloud.vcd.client import E_OVF
 from pyvcloud.vcd.client import EntityType
 from pyvcloud.vcd.client import FenceMode
 from pyvcloud.vcd.client import find_link
-from pyvcloud.vcd.client import get_logger
 from pyvcloud.vcd.client import MetadataDomain
 from pyvcloud.vcd.client import MetadataValueType
 from pyvcloud.vcd.client import MetadataVisibility
@@ -42,7 +41,6 @@ from pyvcloud.vcd.vdc import VDC
 from pyvcloud.vcd.vm import VM
 
 DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024
-LOGGER = get_logger()
 
 
 class VApp(object):
@@ -1604,8 +1602,9 @@ class VApp(object):
                 self.client.get_task_monitor().wait_for_success(task)
                 no_of_vm_upgraded += 1
             except OperationNotSupportedException:
-                LOGGER.error('Operation not supported  for vm ' +
-                             vm.get('name'))
+                raise OperationNotSupportedException(
+                    'Operation not supported for vm' +  vm.get('name')
+                )
         return no_of_vm_upgraded
 
     def vapp_clone(self, vdc_href, vapp_name, description, source_delete):

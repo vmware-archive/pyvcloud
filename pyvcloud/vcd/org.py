@@ -1468,7 +1468,9 @@ class Org(object):
                        uses_fast_provisioning=None,
                        over_commit_allowed=None,
                        vm_discovery_enabled=None,
-                       is_enabled=True):
+                       is_enabled=True,
+                       is_elastic=False,
+                       include_memory_overhead=False):
         """Create an Organization VDC in the current organization.
 
         :param str vdc_name: name of the new org vdc.
@@ -1477,7 +1479,7 @@ class Org(object):
         :param str description: description of the new org vdc.
         :param str allocation_model: allocation model used by this vdc.
             Accepted values are 'AllocationVApp', 'AllocationPool' or
-            'ReservationPool'.
+            'ReservationPool' or 'Flex'.
         :param str cpu_units: unit for compute capacity allocated to this vdc.
             Accepted values are 'MHz' or 'GHz'.
         :param int cpu_allocated: capacity that is committed to be available.
@@ -1528,6 +1530,10 @@ class Org(object):
             is enabled for resource pools backing this vdc.
         :param bool is_enabled: True, if this vdc is enabled for use by the
             organization users.
+        :param bool is_elastic: Defaults to False, True to enable elasticity
+                               in Flex allocation model.
+        :param bool include_memory_overhead: Defaults to False,
+               True to include memory overhead in Flex allocation model.
 
         :return: an object containing EntityType.VDC XML data describing the
             new VDC.
@@ -1587,6 +1593,10 @@ class Org(object):
             params.append(E.OverCommitAllowed(over_commit_allowed))
         if vm_discovery_enabled is not None:
             params.append(E.VmDiscoveryEnabled(vm_discovery_enabled))
+        if is_elastic:
+            params.append(E.IsElastic(is_elastic))
+        if include_memory_overhead:
+            params.append(E.IncludeMemoryOverhead(include_memory_overhead))
         return self.client.post_linked_resource(
             resource_admin, RelationType.ADD, EntityType.VDCS_PARAMS.value,
             params)

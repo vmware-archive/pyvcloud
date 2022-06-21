@@ -201,7 +201,9 @@ class Gateway(object):
         for inf in gateway.Configuration.GatewayInterfaces.GatewayInterface:
             if inf.InterfaceType.text == 'uplink':
                 ips = out.setdefault(inf.Name.text, [])
-                ips.append(inf.SubnetParticipation.IpAddress.text)
+                for subnet_participation in inf.SubnetParticipation:
+                    if hasattr(subnet_participation, 'IpAddress'):
+                        ips.append(subnet_participation.IpAddress.text)
         return out
 
     def redeploy(self):

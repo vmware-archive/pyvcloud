@@ -2028,11 +2028,17 @@ class VApp(object):
             if class_name == class_val and instance_name == instance_val:
                 properties = product_section.xpath(
                     'ovf:Property', namespaces=NSMAP)
-                for prop in properties:
-                    id = prop.get('{' + NSMAP['ovf'] + '}key')
-                    if key == id:
-                        prop.getparent().remove(prop)
-                product_section.append(property)
+                prop = self.find_prop(properties, key)
+                if prop is not None:
+                    if hasattr(prop, "Value"):
+                        _value = prop.Value
+                        _value.set("{" + NSMAP["ovf"] + "}value", str(value))
+                    else:
+                        _value = E_OVF.Value()
+                        _value.set("{" + NSMAP["ovf"] + "}value", str(value))
+                        prop.append(_value)
+                else:
+                    product_section.append(property)
                 is_updated = True
                 break
         if not is_updated:
@@ -2051,6 +2057,13 @@ class VApp(object):
             rel=RelationType.EDIT,
             media_type=EntityType.PRODUCT_SECTIONS.value,
             contents=product_sections_res)
+
+    def find_prop(self, properties, key):
+        for prop in properties:
+            id = prop.get("{" + NSMAP["ovf"] + "}key")
+            if key == id:
+                return prop
+        return
 
     def list_vm_interface(self, network_name):
         """List vm interfaces of network.

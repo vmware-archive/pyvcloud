@@ -1159,15 +1159,17 @@ class VM(object):
             uri = self.href + '/virtualHardwareSection/disks'
             disk_list = self.client.get_resource(uri)
 
-            for disk in disk_list.Item:
-                if disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk':
-                    vhs_disk_info = {
-                        'diskElementName': str(disk[
-                            '{' + NSMAP['rasd'] + '}ElementName']),
-                        'diskVirtualQuantityInBytes': int(disk[
-                            '{' + NSMAP['rasd'] + '}VirtualQuantity'])
-                    }
-                    result.append(vhs_disk_info)
+            if hasattr(disk_list, 'Item'):
+                for disk in disk_list.Item:
+                    if disk['{' + NSMAP['rasd'] + '}Description'] \
+                            == 'Hard disk':
+                        vhs_disk_info = {
+                            'diskElementName': str(disk[
+                                '{' + NSMAP['rasd'] + '}ElementName']),
+                            'diskVirtualQuantityInBytes': int(disk[
+                                '{' + NSMAP['rasd'] + '}VirtualQuantity'])
+                        }
+                        result.append(vhs_disk_info)
 
         if is_media:
             uri = self.href + '/virtualHardwareSection/media'

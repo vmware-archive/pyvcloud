@@ -148,6 +148,10 @@ class VcdClient(Client, ApiClient):
         self.set_default_header("Accept",
                                 f'application/*;version={self._api_version}')
         self.set_default_header("Authorization", api_token)
+    
+    def rehydrate_from_token(self, token, is_jwt_token=False):
+        super().rehydrate_from_token(token=token, is_jwt_token=is_jwt_token)
+        self._initialize_openapi_client()
 
     def logout(self):
         """Logout current user and clear the session."""

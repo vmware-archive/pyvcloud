@@ -500,6 +500,12 @@ def vm_to_dict(vm):
                 setting.AdapterType.text)
             disk_props['bus'] = setting.BusNumber.text
             disk_props['unit'] = setting.UnitNumber.text
+
+    if hasattr(vm, 'ComputePolicy'):
+        if hasattr(vm.ComputePolicy, 'VmPlacementPolicy'):
+            result['placement-policy'] = vm.ComputePolicy.VmPlacementPolicy.get('name')
+        if hasattr(vm.ComputePolicy, 'VmSizingPolicy'):
+            result['sizing-policy'] = vm.ComputePolicy.VmSizingPolicy.get('name')
     return result
 
 

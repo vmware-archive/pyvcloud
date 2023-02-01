@@ -122,7 +122,7 @@ class Platform(object):
         """
         vc_record = self.get_vcenter(vim_server_name)
         vc_href = vc_record.get('href')
-        pg_morefs = self.get_port_group_morefs(port_group_names)
+        pg_morefs = self.get_port_group_morefs(port_group_names, vim_server_name)
         vmw_external_network = E_VMEXT.VMWExternalNetwork(name=name)
         if description is not None:
             vmw_external_network.append(E.Description(description))
@@ -165,7 +165,7 @@ class Platform(object):
             media_type=EntityType.EXTERNAL_NETWORK.value,
             contents=vmw_external_network)
 
-    def get_port_group_morefs(self, port_group_names):
+    def get_port_group_morefs(self, port_group_names, vim_server_name):
         """Fetches moref and type for a given list of port group names.
 
         :return: list of tuples containing port group moref and type.
@@ -175,9 +175,11 @@ class Platform(object):
         :raises: EntityNotFoundException: if any port group names cannot be
             found.
         """
+        query_filter = 'vcName==%s' % urllib.parse.quote(vim_server_name)
         query = self.client.get_typed_query(
             ResourceType.PORT_GROUP.value,
-            query_result_format=QueryResultFormat.RECORDS)
+            query_result_format=QueryResultFormat.RECORDS,
+            qfilter=query_filter)
         records = list(query.execute())
         port_groups = {}
         for record in records:

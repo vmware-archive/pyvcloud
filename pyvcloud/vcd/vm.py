@@ -1568,8 +1568,13 @@ class VM(object):
             gc_section.ResetPasswordRequired = E.ResetPasswordRequired(
                 reset_password_required)
         if customization_script is not None:
-            gc_section.CustomizationScript = E.CustomizationScript(
-                customization_script)
+            cs = E.CustomizationScript(customization_script)
+            if hasattr(gc_section, "CustomizationScript"):
+                gc_section.CustomizationScript = cs
+            elif hasattr(gc_section, "ComputerName"):
+                gc_section.ComputerName.addprevious(cs)
+            else:
+                gc_section.Link.addprevious(cs)
 
         return self.client. \
             put_resource(uri, gc_section,

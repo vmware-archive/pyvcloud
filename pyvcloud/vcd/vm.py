@@ -37,6 +37,8 @@ from pyvcloud.vcd.metadata import Metadata
 from pyvcloud.vcd.utils import retrieve_compute_policy_id_from_href
 from pyvcloud.vcd.utils import update_vm_compute_policy_element
 from pyvcloud.vcd.utils import uri_to_api_uri
+from lxml import etree
+from collections import OrderedDict
 
 VDC_COMPUTE_POLICY_MIN_API_VERSION = float(ApiVersion.VERSION_32.value)
 VDC_COMPUTE_POLICY_MAX_API_VERSION = float(ApiVersion.VERSION_33.value)
@@ -1497,88 +1499,81 @@ class VM(object):
         return result
 
     def update_guest_customization_section(self, enabled=None,
-                                           change_sid=None,
-                                           join_domain_enabled=None,
-                                           use_org_settings=None,
-                                           domain_name=None,
-                                           domain_user_name=None,
-                                           domain_user_password=None,
-                                           admin_password_enabled=None,
-                                           admin_password_auto=None,
-                                           admin_password=None,
-                                           admin_auto_logon_enabled=None,
-                                           admin_auto_logon_count=0,
-                                           reset_password_required=None,
-                                           customization_script=None):
-        """Update guest customization section of VM.
-
-        :param bool enabled
-        :param bool change_sid
-        :param bool join_domain_enabled
-        :param bool use_org_settings
-        :param str domain_name
-        :param str domain_user_name
-        :param str domain_user_password
-        :param bool admin_password_enabled
-        :param bool admin_password_auto
-        :param str admin_password
-        :param bool admin_auto_logon_enabled
-        :param int admin_auto_logon_count
-        :param bool reset_password_required
-        :param str customization_script
-
-        :return: an object containing EntityType.TASK XML data which represents
-            the asynchronous task updating guest customization section.
-        :rtype: lxml.objectify.ObjectifiedElement
-        """
+                                       change_sid=None,
+                                       join_domain_enabled=None,
+                                       use_org_settings=None,
+                                       domain_name=None,
+                                       domain_user_name=None,
+                                       domain_user_password=None,
+                                       admin_password_enabled=None,
+                                       admin_password_auto=None,
+                                       admin_password=None,
+                                       admin_auto_logon_enabled=None,
+                                       admin_auto_logon_count=0,
+                                       reset_password_required=None,
+                                       customization_script=None):
         self.get_resource()
         uri = self.href + '/guestCustomizationSection/'
         gc_section = self.get_guest_customization_section()
-        if enabled is not None:
-            gc_section.Enabled = E.Enabled(enabled)
-        if change_sid is not None:
-            gc_section.ChangeSid = E.ChangeSid(change_sid)
-        if join_domain_enabled is not None:
-            gc_section.JoinDomainEnabled = E. \
-                JoinDomainEnabled(join_domain_enabled)
-        if use_org_settings is not None:
-            gc_section.UseOrgSettings = E.UseOrgSettings(use_org_settings)
-        if domain_name is not None:
-            gc_section.DomainName = E.DomainName(domain_name)
-        if domain_user_name is not None:
-            gc_section.DomainUserName = E.DomainUserName(domain_user_name)
-        if domain_user_password is not None:
-            gc_section.DomainUserPassword = E. \
-                DomainUserPassword(domain_user_password)
-        if admin_password_enabled is not None:
-            gc_section.AdminPasswordEnabled = E. \
-                AdminPasswordEnabled(admin_password_enabled)
-        if admin_password_auto is not None:
-            gc_section.AdminPasswordAuto = E.AdminPasswordAuto(
-                admin_password_auto)
-        if admin_password is not None:
-            gc_section.AdminPassword = E.AdminPassword(admin_password)
-        if admin_auto_logon_enabled is not None:
-            gc_section.AdminAutoLogonEnabled = E.AdminAutoLogonEnabled(
-                admin_auto_logon_enabled)
-        if admin_auto_logon_count != 0:
-            gc_section.AdminAutoLogonCount = E.AdminAutoLogonCount(
-                admin_auto_logon_count)
-        if reset_password_required is not None:
-            gc_section.ResetPasswordRequired = E.ResetPasswordRequired(
-                reset_password_required)
-        if customization_script is not None:
-            cs = E.CustomizationScript(customization_script)
-            if hasattr(gc_section, "CustomizationScript"):
-                gc_section.CustomizationScript = cs
-            elif hasattr(gc_section, "ComputerName"):
-                gc_section.ComputerName.addprevious(cs)
-            else:
-                gc_section.Link.addprevious(cs)
+        print(etree.tostring(gc_section, pretty_print=True))
+
+        elements_dict = OrderedDict([
+            ('Enabled', enabled),
+            ('ChangeSid', change_sid),
+            ('JoinDomainEnabled', join_domain_enabled),
+            ('UseOrgSettings', use_org_settings),
+            ('DomainName', domain_name),
+            ('DomainUserName', domain_user_name),
+            ('DomainUserPassword', domain_user_password),
+            ('AdminPasswordEnabled', admin_password_enabled),
+            ('AdminPasswordAuto', admin_password_auto),
+            ('AdminPassword', admin_password),
+            ('AdminAutoLogonEnabled', admin_auto_logon_enabled),
+            ('AdminAutoLogonCount', admin_auto_logon_count),
+            ('ResetPasswordRequired', reset_password_required),
+            ('CustomizationScript', customization_script),
+        ])
+
+        elements_order = [
+            'Info', 'Enabled', 'ChangeSid', 'VirtualMachineId', 'JoinDomainEnabled', 'UseOrgSettings',
+            'DomainName', 'DomainUserName', 'DomainUserPassword', 'MachineObjectOU', 'AdminPasswordEnabled',
+            'AdminPasswordAuto', 'AdminPassword', 'AdminAutoLogonEnabled', 'AdminAutoLogonCount', 
+            'ResetPasswordRequired', 'CustomizationScript', 'ComputerName', 'Link'
+        ]
+
+        # Create a new XML tree
+        new_gc_section = etree.Element('{http://www.vmware.com/vcloud/v1.5}GuestCustomizationSection')
+
+        # Copy the attributes from the original XML tree
+        for attr_name, attr_value in gc_section.items():
+            new_gc_section.set(attr_name, attr_value)
+
+        # Add the Info element to the new XML tree
+        info_element = gc_section.find('{http://schemas.dmtf.org/ovf/envelope/1}Info')
+        new_info_element = etree.SubElement(new_gc_section, '{http://schemas.dmtf.org/ovf/envelope/1}Info')
+        new_info_element.text = info_element.text
+
+        # Add elements to the new XML tree in the correct order
+        for element_name in elements_order:
+            # Skip the Info element because it has already been added
+            if element_name == 'Info':
+                continue
+
+            element_value = elements_dict.get(element_name)
+
+            # If the element value is None, skip this element
+            if element_value is None:
+                continue
+
+            # Create a new element with the correct namespace
+            new_element = etree.SubElement(new_gc_section, f'{{http://www.vmware.com/vcloud/v1.5}}{element_name}')
+            new_element.text = str(element_value).lower() if isinstance(element_value, bool) else str(element_value)
+
+        print(etree.tostring(new_gc_section, pretty_print=True))
 
         return self.client. \
-            put_resource(uri, gc_section,
-                         EntityType.GUEST_CUSTOMIZATION_SECTION.value)
+            put_resource(uri, new_gc_section,
+                        EntityType.GUEST_CUSTOMIZATION_SECTION.value)
 
     def get_check_post_customization_section(self):
         """Get check post customization section.
